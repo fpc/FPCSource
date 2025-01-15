@@ -250,7 +250,7 @@ type
   Tsf_count_t = off_t;
 
 const
-  SF_COUNT_MAX = ctypes.clong($7FFFFFFFFFFFFFFF);
+  SF_COUNT_MAX = clong($7FFFFFFFFFFFFFFF);
 
 {
 ** A pointer to a SF_INFO structure is passed to sf_open_read () and filled in.
@@ -261,11 +261,11 @@ type
   PSF_INFO = ^TSF_INFO;
   TSF_INFO = record
                frames     : Tsf_count_t; // Used to be called samples.  Changed to avoid confusion.
-               samplerate : ctypes.cint;
-               channels   : ctypes.cint;
-               format     : ctypes.cint;
-               sections   : ctypes.cint;
-               seekable   : ctypes.cint;
+               samplerate : cint;
+               channels   : cint;
+               format     : cint;
+               sections   : cint;
+               seekable   : cint;
              end;
 
 {
@@ -282,9 +282,9 @@ type
 type
   PSF_FORMAT_INFO = ^TSF_FORMAT_INFO;
   TSF_FORMAT_INFO = record
-                      format    : ctypes.cint;
-                      name      : ctypes.pcchar;
-                      extension : ctypes.pcchar;
+                      format    : cint;
+                      name      : pcchar;
+                      extension : pcchar;
                     end;
 
 {
@@ -303,9 +303,9 @@ const
 type
   PSF_DITHER_INFO = ^TSF_DITHER_INFO;
   TSF_DITHER_INFO = record
-                      type_ : ctypes.cint;
-                      level : ctypes.cdouble;
-                      name  : ctypes.pcchar;
+                      type_ : cint;
+                      level : cdouble;
+                      name  : pcchar;
                     end;
 
 {
@@ -331,17 +331,17 @@ const
 type
   PSF_INSTRUMENT = ^TSF_INSTRUMENT;
   TSF_INSTRUMENT = record
-                     gain         : ctypes.cint;
+                     gain         : cint;
                      basenote,
-                     detune       : ctypes.cchar;
+                     detune       : cchar;
                      velocity_lo,
-                     velocity_hi  : ctypes.cchar;
-                     loop_count   : ctypes.cint;
+                     velocity_hi  : cchar;
+                     loop_count   : cint;
                      loops        : array[0..15] of record
-                                                      mode  : ctypes.cint;
-                                                      start : ctypes.cuint;
-                                                      end_  : ctypes.cuint;
-                                                      count : ctypes.cuint;
+                                                      mode  : cint;
+                                                      start : cuint;
+                                                      end_  : cuint;
+                                                      count : cuint;
                                                     end;
                    end;
 
@@ -349,20 +349,20 @@ type
 type
   PSF_LOOP_INFO = ^TSF_LOOP_INFO;
   TSF_LOOP_INFO = record
-                    time_sig_num : ctypes.cushort;             // any positive integer    > 0
-                    time_sig_den : ctypes.cushort;             // any positive power of 2 > 0
-                    loop_mode    : ctypes.cint;                // see SF_LOOP enum
+                    time_sig_num : cushort;             // any positive integer    > 0
+                    time_sig_den : cushort;             // any positive power of 2 > 0
+                    loop_mode    : cint;                // see SF_LOOP enum
                     
-                    num_beats    : ctypes.cint;                // this is NOT the amount of quarter notes !!!
+                    num_beats    : cint;                // this is NOT the amount of quarter notes !!!
                                                                // a full bar of 4/4 is 4 beats
                                                                // a full bar of 7/8 is 7 beats
                                                    
-                    bpm          : ctypes.cfloat;              // suggestion, as it can be calculated using other fields:
+                    bpm          : cfloat;              // suggestion, as it can be calculated using other fields:
                                                                // file's lenght, file's sampleRate and our time_sig_den
                                                                // -> bpms are always the amount of _quarter notes_ per minute
                                                    
-                    root_key     : ctypes.cint;                // MIDI note, or -1 for None
-                    future       : array[0..5] of ctypes.cint;
+                    root_key     : cint;                // MIDI note, or -1 for None
+                    future       : array[0..5] of cint;
                   end;
                   
 
@@ -373,24 +373,24 @@ type
 type
   PSF_BROADCAST_INFO = ^TSF_BROADCAST_INFO;
   TSF_BROADCAST_INFO = record
-                         description          : array[0..255] of ctypes.cchar;
-                         originator           : array[0..31]  of ctypes.cchar;
-                         originator_reference : array[0..31]  of ctypes.cchar;
-                         origination_date     : array[0..9]   of ctypes.cchar;
-                         origination_time     : array[0..7]   of ctypes.cchar;
-                         time_reference_low   : ctypes.cint;
-                         time_reference_high  : ctypes.cint;
-                         version              : ctypes.cshort;
-                         umid                 : array[0..63]  of ctypes.cchar;
-                         reserved             : array[0..189] of ctypes.cchar;
-                         coding_history_size  : ctypes.cuint;
-                         coding_history       : array[0..255] of ctypes.cchar;
+                         description          : array[0..255] of cchar;
+                         originator           : array[0..31]  of cchar;
+                         originator_reference : array[0..31]  of cchar;
+                         origination_date     : array[0..9]   of cchar;
+                         origination_time     : array[0..7]   of cchar;
+                         time_reference_low   : cint;
+                         time_reference_high  : cint;
+                         version              : cshort;
+                         umid                 : array[0..63]  of cchar;
+                         reserved             : array[0..189] of cchar;
+                         coding_history_size  : cuint;
+                         coding_history       : array[0..255] of cchar;
                        end;
 
 type
    Tsf_vio_get_filelen = function (user_date : pointer) : Tsf_count_t;           cdecl;
    
-   Tsf_vio_seek        = function (offest : Tsf_count_t; whence : ctypes.cint;
+   Tsf_vio_seek        = function (offest : Tsf_count_t; whence : cint;
                                    user_date : pointer) : Tsf_count_t;           cdecl;
                                    
    Tsf_vio_read        = function (ptr : Pointer; count : Tsf_count_t;
@@ -417,7 +417,7 @@ type
 ** to sf_perror () or sf_error_str ().
 ** All calls to sf_open() should be matched with a call to sf_close().
 }
-function sf_open (path : PAnsiChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
+function sf_open (path : PAnsiChar; mode : cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
   external sndfilelib  name 'sf_open';
 
 {
@@ -432,11 +432,11 @@ function sf_open (path : PAnsiChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSN
 ** All calls to sf_open_fd() should be matched with a call to sf_close().
 }
 
-function sf_open_fd (fd     : ctypes.cint; mode       : ctypes.cint;
-                     sfinfo : PSF_INFO;    close_desc : ctypes.cint) : PSNDFILE; cdecl;
+function sf_open_fd (fd     : cint; mode       : cint;
+                     sfinfo : PSF_INFO;    close_desc : cint) : PSNDFILE; cdecl;
   external sndfilelib name 'sf_open_fd';
 
-function sf_open_virtual (sfvirtual : PSF_VIRTUAL_IO; mode      : ctypes.cint;
+function sf_open_virtual (sfvirtual : PSF_VIRTUAL_IO; mode      : cint;
                           sfinfo    : PSF_INFO;       user_data : Pointer) : PSNDFILE; cdecl;
   external sndfilelib name 'sf_open_virtual';
 
@@ -445,7 +445,7 @@ function sf_open_virtual (sfvirtual : PSF_VIRTUAL_IO; mode      : ctypes.cint;
 ** string using sf_error_number().
 }
 
-function sf_error (sndfile : PSNDFILE) : ctypes.cint; cdecl;
+function sf_error (sndfile : PSNDFILE) : cint; cdecl;
   external sndfilelib name 'sf_error';
 
 {
@@ -453,7 +453,7 @@ function sf_error (sndfile : PSNDFILE) : ctypes.cint; cdecl;
 ** the given SNDFILE.
 }
 
-function sf_strerror (sndfile : PSNDFILE) : ctypes.pcchar; cdecl;
+function sf_strerror (sndfile : PSNDFILE) : pcchar; cdecl;
   external sndfilelib name 'sf_strerror';
 
 {
@@ -461,7 +461,7 @@ function sf_strerror (sndfile : PSNDFILE) : ctypes.pcchar; cdecl;
 ** error number.
 }
 
-function sf_error_number (errnum : ctypes.cint) : ctypes.pcchar; cdecl;
+function sf_error_number (errnum : cint) : pcchar; cdecl;
   external sndfilelib name 'sf_error_number';
 
 {
@@ -470,22 +470,22 @@ function sf_error_number (errnum : ctypes.cint) : ctypes.pcchar; cdecl;
 ** in their place.
 }
 
-function sf_perror (sndfile : PSNDFILE) : ctypes.cint; cdecl;
+function sf_perror (sndfile : PSNDFILE) : cint; cdecl;
   external sndfilelib name 'sf_perror';
 
-function sf_error_str (sndfile : PSNDFILE; str : ctypes.pcchar;
-                       len     : size_t) : ctypes.cint; cdecl;
+function sf_error_str (sndfile : PSNDFILE; str : pcchar;
+                       len     : size_t) : cint; cdecl;
   external sndfilelib name 'sf_error_str';
 
 // Return TRUE if fields of the SF_INFO struct are a valid combination of values.
 
-function sf_command (sndfile : PSNDFILE; command  : ctypes.cint;
-                     data    : Pointer;  datasize : ctypes.cint) : ctypes.cint; cdecl;
+function sf_command (sndfile : PSNDFILE; command  : cint;
+                     data    : Pointer;  datasize : cint) : cint; cdecl;
   external sndfilelib name 'sf_command';
 
 // Return TRUE if fields of the SF_INFO struct are a valid combination of values.
 
-function sf_format_check (info : PSF_INFO) : ctypes.cint; cdecl;
+function sf_format_check (info : PSF_INFO) : cint; cdecl;
   external sndfilelib name 'sf_format_check';
 
 {
@@ -502,7 +502,7 @@ function sf_format_check (info : PSF_INFO) : ctypes.cint; cdecl;
 }
 
 function sf_seek (sndfile : PSNDFILE; frame : Tsf_count_t;
-                  whence  : ctypes.cint) : Tsf_count_t; cdecl;
+                  whence  : cint) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_seek';
 
 {
@@ -514,11 +514,11 @@ function sf_seek (sndfile : PSNDFILE; frame : Tsf_count_t;
 ** returns NULL.
 }
 
-function sf_set_string (sndfile : PSNDFILE;      str_type : ctypes.cint;
-                        str     : ctypes.pcchar) : ctypes.cint; cdecl;
+function sf_set_string (sndfile : PSNDFILE;      str_type : cint;
+                        str     : pcchar) : cint; cdecl;
   external sndfilelib name 'sf_set_string';
   
-function sf_get_string (sndfile : PSNDFILE; str_type : ctypes.cint) : ctypes.pcchar; cdecl;
+function sf_get_string (sndfile : PSNDFILE; str_type : cint) : pcchar; cdecl;
   external sndfilelib name 'sf_get_string';
 
 // Functions for reading/writing the waveform data of a sound file.
@@ -542,35 +542,35 @@ function sf_write_raw (sndfile : PSNDFILE; ptr : Pointer;
 ** All of these read/write function return number of frames read/written.
 }
 
-function sf_readf_short (sndfile : PSNDFILE; ptr : ctypes.pcshort;
+function sf_readf_short (sndfile : PSNDFILE; ptr : pcshort;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_readf_short';
                          
-function sf_writef_short (sndfile : PSNDFILE; ptr : ctypes.pcshort;
+function sf_writef_short (sndfile : PSNDFILE; ptr : pcshort;
                           frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_writef_short';
 
-function sf_readf_int (sndfile : PSNDFILE; ptr : ctypes.pcint;
+function sf_readf_int (sndfile : PSNDFILE; ptr : pcint;
                        frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_readf_int';
 
-function sf_writef_int (sndfile : PSNDFILE; ptr : ctypes.pcint;
+function sf_writef_int (sndfile : PSNDFILE; ptr : pcint;
                         frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_writef_int';
 
-function sf_readf_float (sndfile : PSNDFILE; ptr : ctypes.pcfloat;
+function sf_readf_float (sndfile : PSNDFILE; ptr : pcfloat;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_readf_float';
 
-function sf_writef_float (sndfile : PSNDFILE; ptr : ctypes.pcfloat;
+function sf_writef_float (sndfile : PSNDFILE; ptr : pcfloat;
                           frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_writef_float';
 
-function sf_readf_double (sndfile : PSNDFILE; ptr : ctypes.pcdouble;
+function sf_readf_double (sndfile : PSNDFILE; ptr : pcdouble;
                           frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_readf_double';
 
-function sf_writef_double (sndfile : PSNDFILE; ptr : ctypes.pcdouble;
+function sf_writef_double (sndfile : PSNDFILE; ptr : pcdouble;
                            frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_writef_double';
 
@@ -580,35 +580,35 @@ function sf_writef_double (sndfile : PSNDFILE; ptr : ctypes.pcdouble;
 ** All of these read/write function return number of items read/written.
 }
 
-function sf_read_short (sndfile : PSNDFILE; ptr : ctypes.pcshort;
+function sf_read_short (sndfile : PSNDFILE; ptr : pcshort;
                         frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_read_short';
 
-function sf_write_short (sndfile : PSNDFILE; ptr : ctypes.pcshort;
+function sf_write_short (sndfile : PSNDFILE; ptr : pcshort;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_write_short';
 
-function sf_read_int (sndfile : PSNDFILE; ptr : ctypes.pcint;
+function sf_read_int (sndfile : PSNDFILE; ptr : pcint;
                       frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_read_int';
 
-function sf_write_int (sndfile : PSNDFILE; ptr : ctypes.pcint;
+function sf_write_int (sndfile : PSNDFILE; ptr : pcint;
                        frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_write_int';
 
-function sf_read_float (sndfile : PSNDFILE; ptr : ctypes.pcfloat;
+function sf_read_float (sndfile : PSNDFILE; ptr : pcfloat;
                         frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_read_float';
   
-function sf_write_float (sndfile : PSNDFILE; ptr : ctypes.pcfloat;
+function sf_write_float (sndfile : PSNDFILE; ptr : pcfloat;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_write_float';
 
-function sf_read_double (sndfile : PSNDFILE; ptr : ctypes.pcdouble;
+function sf_read_double (sndfile : PSNDFILE; ptr : pcdouble;
                          frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_read_double';
 
-function sf_write_double (sndfile : PSNDFILE; ptr : ctypes.pcdouble;
+function sf_write_double (sndfile : PSNDFILE; ptr : pcdouble;
                           frames  : Tsf_count_t) : Tsf_count_t; cdecl;
   external sndfilelib name 'sf_write_double';
 
@@ -618,7 +618,7 @@ function sf_write_double (sndfile : PSNDFILE; ptr : ctypes.pcdouble;
 ** Returns 0 on success, or an error number.
 }
 
-function sf_close (sndfile : PSNDFILE) : ctypes.cint; cdecl;
+function sf_close (sndfile : PSNDFILE) : cint; cdecl;
   external sndfilelib name 'sf_close';
 
 {
