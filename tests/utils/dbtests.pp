@@ -33,59 +33,99 @@ Type
     FUser : String;
     FPassword : String;
     FPort : Word;
-
+    Flogprefix : String;
     Class Procedure FreeQueryResult (Var Res : TSQLQuery);
     Class Function  GetIntResultField (Res : TSQLQuery; Id : Integer) : Integer;
     Class Function  GetInt64ResultField (Res : TSQLQuery; Id : Integer) : Int64;
     Class Function  GetStrResultField (Res : TSQLQuery; Id : Integer) : String;
+    // Overload adds prefix
+    procedure Verbose(aLevel : TVerboseLevel; const aMsg : string);
     { ---------------------------------------------------------------------
         Low-level DB access.
       ---------------------------------------------------------------------}
 
+    // Create query object.
     function CreateQuery(const ASQL: String): TSQLQuery;
+    // create and open a query, return in Res.
     Function  OpenQuery (Qry : String; Out Res : TSQLQuery; Silent : Boolean) : Boolean ;
+    // Run query, return first field as integer. -1 on error or no data.
     Function  IDQuery(Qry : String) : Integer;
+    // Run query, return first field as int64. -1 on error or no data.
     Function  ID64Query(Qry : String) : Int64;
+    // Run query, return first field as string. Empty string on error or no data.
     Function  StringQuery(Qry : String) : String;
   Public
     { ---------------------------------------------------------------------
       High-level access
       ---------------------------------------------------------------------}
+    // Constructor.
     Constructor create(aDatabaseName,aHost,aUser,aPassword : String; aPort : Word);
+    // Destructor
     Destructor destroy; override;
+    // Try to connect to database with params given in constructor.
     Function ConnectToDatabase : Boolean;
-    Function  ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
+    // Disconnect from database
     Procedure DisconnectDatabase;
+    // Execute a query, return true if it executed without error.
+    Function  ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
     // Adding things
+    // Add a category.
     Function AddCategory(const aName : String) : Integer;
+    // Add a CPU.
     Function AddCPU(const aName : String) : Integer;
+    // Add an OS.
     Function AddOS(const aName : String) : Integer;
+    // Add a compiler version.
     function AddVersion(const aName: String; aReleaseDate: TDateTime): Integer;
+    // Add a platform.
     Function AddPlatform(const aData : TTestRunData) : Integer;
+    // Add a test and return the ID. If the test already exists, return it's ID
     Function AddTest(Name : String; AddSource : Boolean) : Integer;
+    // Add a test run. Return the test run ID.
     function AddRun(const aData: TTestRunData): Int64;
+    // Ad test result and return ID. If a result exists already for the given run/test, update and return ID.
     Function AddTestResult(aData : TTestResultData) : Int64;
+    // Add LastTestResult. If it exists already with given platform/test, update result ID.
     function AddLastResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
-    // Get ID based on key
-    Function GetTestID(Name : string) : Integer;
-    Function GetOSID(Name : String) : Integer;
-    Function GetCPUID(Name : String) : Integer;
-    Function GetCategoryID(Name : String) : Integer;
-    Function GetVersionID(Name : String) : Integer;
-    function GetPlatformID(aData: TTestRunData; aAllowCreate: Boolean): Integer;
-    Function GetRunID(aData : TTestRunData) : Int64;
-    function GetLastTestResult(aTestID, aPlatFormID: Integer): TTestResultData;
+    // Add previousTestResult. If it exists already with given platform/test, update result ID.
+    function AddPreviousResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
     //
+    // Get ID based on key. All keys are case sensitive. If a key does not exist, -1 is returned.
+    //
+    // Get test ID based on test name.
+    Function GetTestID(Name : string) : Integer;
+    // Get OS ID based on OS name.
+    Function GetOSID(Name : String) : Integer;
+    // Get CPU ID based on CPU name.
+    Function GetCPUID(Name : String) : Integer;
+    // Get category ID based on Category name.
+    Function GetCategoryID(Name : String) : Integer;
+    // Get version ID based on version name.
+    Function GetVersionID(Name : String) : Integer;
+    // Get platform ID based on OS, cpu, category, config.
+    function GetPlatformID(aData: TTestRunData; aAllowCreate: Boolean): Integer;
+    // Get run ID based on platform/date.
+    Function GetRunID(aData : TTestRunData) : Int64;
+    // Get last test result ID based on platform/test.
+    function GetLastTestResult(aTestID, aPlatFormID: Integer): TTestResultData;
+    // Update tests
     Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
     function UpdateTestResult(aData: TTestResultData): Int64;
     function UpdateTestRun(aData : TTestRunData): Boolean;
+    // Create test if it does not exist yet.
     Function RequireTestID(Name : String): Integer;
+    // Delete all results from a test run.
     Function CleanTestRun(ID : Integer) : Boolean;
+    // Escape SQL (quotes etc.
     Class Function  EscapeSQL(S : String) : String;
+    // return SQL date
     Class Function  SQLDate(D : TDateTime) : String;
+    // Rel src dir
     Property RelSrcDir : String Read FRelSrcDir Write FRelSrcDir;
+    // test src dir.
     Property TestSrcDir : string read FTestSrcDir Write FTestSrcDir;
-
+    // Prefix to use when logging (in case of multi-thread)
+    Property LogPrefix : String Read FLogPrefix Write FLogPrefix;
   end;
 
 
@@ -230,25 +270,30 @@ begin
     Result:=-1
   else
     Result:=Res.Fields[ID].AsInteger;
-  Verbose(V_SQL,'Field value '+IntToStr(Result));
+  testu.Verbose(V_SQL,'Field value '+IntToStr(Result));
 end;
 
 class function TTestSQL.GetInt64ResultField(Res: TSQLQuery; Id: Integer): Int64;
 begin
-  If (Res=Nil) or (ID>=Res.Fields.Count) then
+  If (Res=Nil) or (res.IsEmpty) or (ID>=Res.Fields.Count) then
     Result:=-1
   else
     Result:=Res.Fields[ID].AsLargeInt;
-  Verbose(V_SQL,'Field value '+IntToStr(Result));
+  testu.Verbose(V_SQL,'Field value '+IntToStr(Result));
 end;
 
 class function TTestSQL.GetStrResultField(Res: TSQLQuery; Id: Integer): String;
 begin
-  If (Res=Nil) or (ID>=Res.Fields.Count) then
+  If (Res=Nil) or (res.IsEmpty) or (ID>=Res.Fields.Count) then
     Result:=''
   else
     Result:=Res.Fields[ID].AsString;
-  Verbose(V_SQL,'Field value '+Result);
+  testu.Verbose(V_SQL,'Field value '+Result);
+end;
+
+procedure TTestSQL.Verbose(aLevel: TVerboseLevel; const aMsg: string);
+begin
+  testu.Verbose(aLevel,logPrefix+aMsg);
 end;
 
 function TTestSQL.AddPlatform(const aData : TTestRunData) : Integer;
@@ -335,7 +380,7 @@ class function TTestSQL.EscapeSQL(S: String): String;
 begin
 //  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
   Result:=StringReplace(S,'''','''''',[rfReplaceAll]);
-  Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
+  testu.Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
 
@@ -462,7 +507,7 @@ function TTestSQL.AddTest(Name: String; AddSource: Boolean): Integer;
 
 Const
   SInsertTest = 'INSERT INTO TESTS (T_NAME,T_ADDDATE)'+
-                ' VALUES (''%s'',NOW()) RETURNING T_ID';
+                ' VALUES (''%s'',NOW()) ON CONFLICT (T_NAME) DO UPDATE SET T_ADDDATE=NOW() RETURNING T_ID';
 
 Var
   Info : TConfig;
@@ -473,14 +518,17 @@ begin
   Result:=-1;
   lSrcDir:=IncludeTrailingPathDelimiter(TestSrcDir+RelSrcDir);
   lFileName:=ExpandFileName(lSrcDir+Name);
-  Verbose(V_Normal,'Checking test filename: '+lFileName);
-  If (FileExists(lFileName) and GetConfig(lFileName,Info))
-     or GetUnitTestConfig(Name,lSrcDir,Info) then
+  Verbose(V_Debug,'Checking test filename: '+lFileName);
+  Result:=IDQuery(Format(SInsertTest,[Name]));
+  If Result=-1 then
     begin
-    Result:=IDQuery(Format(SInsertTest,[Name]));
-    If Result=-1 then
-      Verbose(V_WARNING,'Could not add test!')
-    else If AddSource then
+    Verbose(V_WARNING,'Could not add test!');
+    exit;
+    end;
+  If (FileExists(lFileName) and GetConfig(logprefix,lFileName,Info))
+     or GetUnitTestConfig(logprefix,Name,lSrcDir,Info) then
+    begin
+    If AddSource then
       UpdateTest(Result,Info,testu.GetFileContents(Name))
     else
       UpdateTest(Result,Info,'');
@@ -578,14 +626,15 @@ begin
     Qry:=Format(SQLInsert, [TestID,RunID,Bools[OK],Bools[Skipped],Ord(TestResult),EscapeSQL(Log)]);
     end;
   Result:=ID64Query(Qry);
-  aData.ID:=Result;
 end;
 
 function TTestSQL.GetLastTestResult(aTestID, aPlatFormID: Integer): TTestResultData;
 
 Const
-  SQLSelect = 'SELECT TESTRESULTS.* FROM '+
-              ' TESTLASTRESULTS INNER JOIN TESTRESULTS ON (TL_TESTRESULTS_FK=TR_ID) '+
+  SQLSelect = 'SELECT TESTRESULTS.*, TU_DATE FROM '+
+              ' TESTLASTRESULTS '+
+              ' INNER JOIN TESTRESULTS ON (TL_TESTRESULTS_FK=TR_ID) '+
+              ' INNER JOIN TESTRUN ON (TR_TESTRUN_FK=TU_ID) '+
               'WHERE '+
               ' (TL_TEST_FK=%d) '+
               ' AND (TL_PLATFORM_FK=%d)';
@@ -606,6 +655,7 @@ begin
       Result.TestResult:=TTestStatus(Qry.FieldByName('TR_RESULT').AsInteger);
       Result.RunID:=Qry.FieldByName('TR_TESTRUN_FK').AsLargeInt;
       Result.Log:=Qry.FieldByName('TR_LOG').AsString;
+      Result.Date:=Qry.FieldByName('TU_DATE').AsDateTime;
       end
     else
       Result.ID:=-1;
@@ -626,6 +676,19 @@ const
              '  (%d,%d,%d) '+
              'ON CONFLICT (TL_TEST_FK,TL_PLATFORM_FK) '+
              'DO UPDATE SET TL_TESTRESULTS_FK = EXCLUDED.TL_TESTRESULTS_FK ';
+
+begin
+  Result:=ExecuteQuery(Format(SQLInsert,[TestId,PlatFormID,ResultID]),False);
+end;
+
+function TTestSQL.AddPreviousResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
+const
+  SQLInsert = 'Insert into TESTPREVIOUSRESULTS '+
+             '  (TPR_TEST_FK,TPR_PLATFORM_FK,TPR_TESTRESULTS_FK) '+
+             'VALUES '+
+             '  (%d,%d,%d) '+
+             'ON CONFLICT (TPR_TEST_FK,TPR_PLATFORM_FK) '+
+             'DO UPDATE SET TPR_TESTRESULTS_FK = EXCLUDED.TPR_TESTRESULTS_FK ';
 
 begin
   Result:=ExecuteQuery(Format(SQLInsert,[TestId,PlatFormID,ResultID]),False);

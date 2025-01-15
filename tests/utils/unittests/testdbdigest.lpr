@@ -3,7 +3,7 @@ program testdbdigest;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tctestsql, dbtests, digestanalyst, tcsetup;
+  Classes, consoletestrunner, tctestsql, dbtests, digestanalyst, tcsetup, tcanalyst;
 
 type
 

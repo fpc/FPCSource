@@ -15,7 +15,9 @@ type
     class var Conn : TPQConnection;
     class function CreateQuery(const aSQL : String) : TSQLQuery;
     class procedure setup;
+    class procedure TearDown;
     class procedure ClearTable(const aTable : string);
+    class procedure ClearAllTables;
     class function IDQuery(const aSQL : String) : Int64;
     class procedure ExecAndCommit(Qry: TSQLQuery);
     class procedure ExecSQL(const aSQL: String);
@@ -104,6 +106,12 @@ begin
   *)
 end;
 
+class procedure TDBHelper.TearDown;
+begin
+  FreeAndNil(SQL);
+  FreeAndNil(Conn);
+end;
+
 class procedure TDBHelper.ExecAndCommit(Qry : TSQLQuery);
 
 begin
@@ -157,6 +165,20 @@ begin
   ExecSQL('delete from '+aTable);
 end;
 
+class procedure TDBHelper.ClearAllTables;
+begin
+  ClearTable('TESTOS');
+  ClearTable('TESTCPU');
+  ClearTable('TESTCATEGORY');
+  ClearTable('TESTVERSION');
+  ClearTable('TESTPLATFORM');
+  ClearTable('TESTRUN');
+  ClearTable('TESTS');
+  ClearTable('TESTRESULTS');
+  ClearTable('TESTLASTRESULTS');
+  ClearTable('TESTPREVIOUSRESULTS');
+end;
+
 class function TDBHelper.IDQuery(const aSQL: String): Int64;
 
 var
@@ -191,8 +213,7 @@ end;
 
 procedure TDBDecorator.OneTimeTearDown;
 begin
-  FreeAndNil(TDBHelper.SQL);
-  FreeAndNil(TDBHelper.Conn);
+  TDBHelper.TearDown;
 end;
 
 

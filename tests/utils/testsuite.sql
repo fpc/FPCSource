@@ -57,9 +57,9 @@ CREATE SEQUENCE SEQ_TESTS as INT start with 1;
 
 CREATE TABLE TESTS (
   T_ID int NOT NULL default nextval('SEQ_TESTS'),
-  T_NAME varchar(40),
-  T_CPU varchar(20),
-  T_OS varchar(30),
+  T_NAME varchar(127),
+  T_CPU varchar(127),
+  T_OS varchar(127),
   T_VERSION varchar(10),
   T_ADDDATE date NOT NULL,
   T_GRAPH boolean NOT NULL default 'f',

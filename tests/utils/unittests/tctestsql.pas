@@ -11,24 +11,29 @@ const
   Bools : Array[Boolean] of string = ('f','t');
 
 type
-
-
   { TTestSQLCase }
 
-  TTestSQLCase= class(TTestCase)
+  { TTestBaseSQLCase }
+
+  TTestBaseSQLCase = class(TTestCase)
+  Protected
+    function CreateResultData(out aData: TTestRunData; out aResult: TTestResultData; DateOffset: Integer = 0): Int64;
+    function PreparePlatform(var aData: TTestRunData): Integer;
+    procedure CreateSource(const aFileName : String);
+    procedure DeleteSource(const aFileName: String);
+    procedure AssertTestRunData(aQry: TSQLQuery; aData: TTestRunData);
+    function GetSQL: TTestSQL; virtual; abstract;
+    property SQL : TTestSQL Read GetSQL;
+  end;
+
+  TTestSQLCase = class(TTestBaseSQLCase)
   const
     SQLTestResultFilter = '(TR_ID=%d) and (TR_TESTRUN_FK=%d) and (TR_TEST_FK=%d) and (TR_OK=''%s'') and (TR_SKIP=''%s'') and (TR_RESULT=%d) and (TR_LOG=''%s'')';
-  private
-    procedure AssertTestRunData(aQry: TSQLQuery; aData: TTestRunData);
-    function CreateResultData(out aData: TTestRunData; out aResult: TTestResultData; DateOffset: Integer = 0): Int64;
-    procedure DeleteSource(const aFileName: String);
-    function GetSQL: TTestSQL;
-    function PreparePlatform(var aData: TTestRunData): Integer;
+  protected
+    function GetSQL: TTestSQL; override;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-    procedure CreateSource(const aFileName : String);
-    property SQL : TTestSQL Read GetSQL;
   published
     procedure TestHookUp;
     procedure TestAddCPU;
@@ -45,6 +50,8 @@ type
     Procedure TestAddLastResult;
     Procedure TestAddLastResultTwice;
     Procedure TestGetLastTestResult;
+    Procedure TestAddPreviousResult;
+    Procedure TestAddPreviousResultTwice;
     procedure TestGetCPUID;
     procedure TestGetOSID;
     procedure TestGetCategoryID;
@@ -58,6 +65,105 @@ type
 implementation
 
 uses tcsetup;
+
+{ TTestBaseSQLCase }
+
+
+procedure TTestBaseSQLCase.DeleteSource(const aFileName: String);
+begin
+  if FileExists(aFilename+'.pp') then
+    if not DeleteFile(aFilename+'.pp') then
+      Fail('Failed to delete '+aFileName+'.pp');
+end;
+
+procedure TTestBaseSQLCase.CreateSource(const aFileName: String);
+var
+  Src : TStrings;
+begin
+  Src:=TStringList.Create;
+  try
+    Src.Add('program '+aFileName+';');
+    Src.Add('begin');
+    Src.Add('end.');
+    Src.SaveToFile(afileName+'.pp');
+  finally
+    Src.Free;
+  end;
+end;
+
+function TTestBaseSQLCase.PreparePlatform(var aData : TTestRunData) : Integer;
+
+begin
+  aData.CategoryID:=SQL.GetCategoryID('x');
+  if aData.CategoryID=-1 then
+    aData.CategoryID:=SQL.AddCategory('x');
+
+  aData.OSID:=SQL.GetOSID('y');
+  if aData.OSID=-1 then
+    aData.OSID:=SQL.AddOS('y');
+
+  aData.CPUID:=SQL.GetCPUID('z');
+  if aData.CPUID=-1 then
+    aData.CPUID:=SQL.AddCPU('z');
+
+  aData.VersionID:=SQL.GetVersionID('w');
+  if aData.VersionID=-1 then
+    aData.VersionID:=SQL.AddVersion('w',Date);
+
+  aData.config:='v';
+  Result:=SQL.GetPlatformID(aData,False);
+  if Result=-1 then
+    Result:=SQL.AddPlatform(aData);
+end;
+
+procedure TTestBaseSQLCase.AssertTestRunData(aQry : TSQLQuery; aData : TTestRunData);
+
+var
+  St : TTestStatus;
+
+begin
+  With aQry,aData do
+    begin
+    AssertEquals('Date',DATE,FieldByName('TU_DATE').AsDateTime);
+    AssertEquals('Platform',PlatformID,FieldByName('TU_PLATFORM_FK').AsInteger);
+    AssertEquals('Machine',Machine,FieldByName('TU_MACHINE').AsString);
+    AssertEquals('Submitter',Submitter,FieldByName('TU_SUBMITTER').AsString);
+    For St in TTestStatus do
+      AssertEquals(StatusText[St],StatusCount[st],FieldByName(SQLField[ST]).AsInteger);
+    AssertEquals('CompilerDate',CompilerDate,FieldByName('TU_COMPILERDATE').AsString);
+    AssertEquals('CompilerFullVersion',CompilerFullVersion,FieldByName('TU_COMPILERFULLVERSION').AsString);
+    AssertEquals('CompilerRevision',CompilerRevision,FieldByName('TU_COMPILERREVISION').AsString);
+    AssertEquals('TestsRevision',TestsRevision,FieldByName('TU_TESTSREVISION').AsString);
+    AssertEquals('RTLRevision',RTLRevision,FieldByName('TU_RTLREVISION').AsString);
+    AssertEquals('PackagesRevision',PackagesRevision,FieldByName('TU_PACKAGESREVISION').AsString);
+    end;
+end;
+
+function TTestBaseSQLCase.CreateResultData(out aData: TTestRunData; out aResult: TTestResultData; DateOffset: Integer): Int64;
+
+begin
+  aData:=Default(TTestRunData);
+  aData.PlatformID:=PreparePlatform(aData);
+  aData.Date:=Date-DateOffset;
+  aData.RunID:=SQL.AddRun(aData);
+  aResult:=Default(TTestResultData);
+  aResult.RunID:=aData.RunID;
+  aResult.PlatformID:=aData.PlatformID;
+  aResult.Date:=Date-DateOffset;
+  CreateSource('x');
+  if SQL.GetTestID('x.pp')=-1 then
+    aResult.TestID:=SQL.AddTest('x.pp',False);
+  aResult.TestResult:=stSuccessCompilationFailed;
+  aResult.Log:='xyz';
+  With aData do
+    begin
+    Result:=SQL.AddTestResult(aResult);
+    aResult.ID:=Result;
+    end;
+end;
+
+
+{ TTestSQLCase }
 
 procedure TTestSQLCase.TestHookUp;
 begin
@@ -114,30 +220,6 @@ begin
   AssertEquals('exists',1,TDBHelper.CountRecords('TESTS',Format('(T_ID=%d) and (t_name=''x.pp'')',[lID])));
 end;
 
-function TTestSQLCase.PreparePlatform(var aData : TTestRunData) : Integer;
-
-begin
-  aData.CategoryID:=SQL.GetCategoryID('x');
-  if aData.CategoryID=-1 then
-    aData.CategoryID:=SQL.AddCategory('x');
-
-  aData.OSID:=SQL.GetOSID('y');
-  if aData.OSID=-1 then
-    aData.OSID:=SQL.AddOS('y');
-
-  aData.CPUID:=SQL.GetCPUID('z');
-  if aData.CPUID=-1 then
-    aData.CPUID:=SQL.AddCPU('z');
-
-  aData.VersionID:=SQL.GetVersionID('w');
-  if aData.VersionID=-1 then
-    aData.VersionID:=SQL.AddVersion('w',Date);
-
-  aData.config:='v';
-  Result:=SQL.GetPlatformID(aData,False);
-  if Result=-1 then
-    Result:=SQL.AddPlatform(aData);
-end;
 
 procedure TTestSQLCase.TestAddPlatform;
 
@@ -156,28 +238,6 @@ begin
   AssertEquals('Platform',1,TDBHelper.CountRecords('TESTPLATFORM',Flt));
 end;
 
-procedure TTestSQLCase.AssertTestRunData(aQry : TSQLQuery; aData : TTestRunData);
-
-var
-  St : TTestStatus;
-
-begin
-  With aQry,aData do
-    begin
-    AssertEquals('Date',DATE,FieldByName('TU_DATE').AsDateTime);
-    AssertEquals('Platform',PlatformID,FieldByName('TU_PLATFORM_FK').AsInteger);
-    AssertEquals('Machine',Machine,FieldByName('TU_MACHINE').AsString);
-    AssertEquals('Submitter',Submitter,FieldByName('TU_SUBMITTER').AsString);
-    For St in TTestStatus do
-      AssertEquals(StatusText[St],StatusCount[st],FieldByName(SQLField[ST]).AsInteger);
-    AssertEquals('CompilerDate',CompilerDate,FieldByName('TU_COMPILERDATE').AsString);
-    AssertEquals('CompilerFullVersion',CompilerFullVersion,FieldByName('TU_COMPILERFULLVERSION').AsString);
-    AssertEquals('CompilerRevision',CompilerRevision,FieldByName('TU_COMPILERREVISION').AsString);
-    AssertEquals('TestsRevision',TestsRevision,FieldByName('TU_TESTSREVISION').AsString);
-    AssertEquals('RTLRevision',RTLRevision,FieldByName('TU_RTLREVISION').AsString);
-    AssertEquals('PackagesRevision',PackagesRevision,FieldByName('TU_PACKAGESREVISION').AsString);
-    end;
-end;
 
 procedure TTestSQLCase.TestAddRun;
 var
@@ -212,23 +272,6 @@ begin
   end;
 end;
 
-function TTestSQLCase.CreateResultData(out aData: TTestRunData; out aResult: TTestResultData; DateOffset: Integer): Int64;
-
-begin
-  aData:=Default(TTestRunData);
-  aData.PlatformID:=PreparePlatform(aData);
-  aData.Date:=Date-DateOffset;
-  aData.RunID:=SQL.AddRun(aData);
-  aResult:=Default(TTestResultData);
-  aResult.RunID:=aData.RunID;
-  CreateSource('x');
-  if SQL.GetTestID('x.pp')=-1 then
-    aResult.TestID:=SQL.AddTest('x.pp',False);
-  aResult.TestResult:=stSuccessCompilationFailed;
-  aResult.Log:='xyz';
-  With aData do
-    Result:=SQL.AddTestResult(aResult);
-end;
 
 procedure TTestSQLCase.TestAddTestResult;
 
@@ -324,7 +367,6 @@ begin
   AssertTrue('Add',SQL.AddLastResult(lResult.TestID,lData.PlatformID,lID2));
   flt:=Format('(TL_TEST_FK=%d) and (TL_PLATFORM_FK=%d) and (TL_TESTRESULTS_FK=%d)',[lResult.TestID,lData.PlatformID,lID2]);
   AssertEquals('Result',1,TDBHelper.CountRecords('TESTLASTRESULTS',Flt));
-
 end;
 
 procedure TTestSQLCase.TestGetLastTestResult;
@@ -333,13 +375,43 @@ var
   lResult2,lResult : TTestResultData;
   lID : Integer;
 begin
-  lID:=CreateResultData(lData,lResult);
+  lID:=CreateResultData(lData,lResult,1);
   AssertTrue('Add',SQL.AddLastResult(lResult.TestID,lData.PlatformID,lID));
   lResult2:=SQL.GetLastTestResult(lResult.TestID,lData.PlatformID);
   AssertEquals('ID',lID,lResult2.ID);
   AssertEquals('Run',lResult.RunID,lResult2.RunID);
   AssertTrue('Status',lResult.TestResult=lResult2.TestResult);
   AssertEquals('Log',lResult.Log,lResult2.Log);
+  AssertEquals('Date',Date-1,lResult2.Date);
+end;
+
+procedure TTestSQLCase.TestAddPreviousResult;
+var
+  lData : TTestRunData;
+  lResult : TTestResultData;
+  lID : Int64;
+  flt : String;
+
+begin
+  lID:=CreateResultData(lData,lResult);
+  AssertTrue('Add',SQL.AddPreviousResult(lResult.TestID,lData.PlatformID,lID));
+  flt:=Format('(TPR_TEST_FK=%d) and (TPR_PLATFORM_FK=%d) and (TPR_TESTRESULTS_FK=%d)',[lResult.TestID,lData.PlatformID,lID]);
+  AssertEquals('Result',1,TDBHelper.CountRecords('TESTPREVIOUSRESULTS',Flt));
+end;
+
+procedure TTestSQLCase.TestAddPreviousResultTwice;
+var
+  lData : TTestRunData;
+  lResult : TTestResultData;
+  lID,lID2 : Integer;
+  flt : string;
+begin
+  lID:=CreateResultData(lData,lResult,1);
+  AssertTrue('Add',SQL.AddPreviousResult(lResult.TestID,lData.PlatformID,lID));
+  lID2:=CreateResultData(lData,lResult,0);
+  AssertTrue('Add',SQL.AddPreviousResult(lResult.TestID,lData.PlatformID,lID2));
+  flt:=Format('(TPR_TEST_FK=%d) and (TPR_PLATFORM_FK=%d) and (TPR_TESTRESULTS_FK=%d)',[lResult.TestID,lData.PlatformID,lID2]);
+  AssertEquals('Result',1,TDBHelper.CountRecords('TESTPREVIOUSRESULTS',Flt));
 end;
 
 procedure TTestSQLCase.TestUpdateRun;
@@ -439,16 +511,7 @@ end;
 
 procedure TTestSQLCase.SetUp;
 begin
-  TDBHelper.ClearTable('TESTOS');
-  TDBHelper.ClearTable('TESTCPU');
-  TDBHelper.ClearTable('TESTCATEGORY');
-  TDBHelper.ClearTable('TESTVERSION');
-  TDBHelper.ClearTable('TESTPLATFORM');
-  TDBHelper.ClearTable('TESTRUN');
-  TDBHelper.ClearTable('TESTS');
-  TDBHelper.ClearTable('TESTRESULTS');
-  TDBHelper.ClearTable('TESTLASTRESULTS');
-  TDBHelper.ClearTable('TESTPREVIOUSRESULTS');
+  TDBHelper.ClearAllTables;
   SQL.TestSrcDir:='./';
 end;
 
@@ -456,27 +519,6 @@ procedure TTestSQLCase.TearDown;
 begin
   TDBHelper.MaybeRollback;
   DeleteSource('x');
-end;
-
-procedure TTestSQLCase.DeleteSource(const aFileName: String);
-begin
-  if FileExists(aFilename+'.pp') then
-    if not DeleteFile(aFilename+'.pp') then
-      Fail('Failed to delete '+aFileName+'.pp');
-end;
-procedure TTestSQLCase.CreateSource(const aFileName: String);
-var
-  Src : TStrings;
-begin
-  Src:=TStringList.Create;
-  try
-    Src.Add('program '+aFileName+';');
-    Src.Add('begin');
-    Src.Add('end.');
-    Src.SaveToFile(afileName+'.pp');
-  finally
-    Src.Free;
-  end;
 end;
 
 

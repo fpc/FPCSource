@@ -23,34 +23,48 @@
 program dbdigest;
 
 uses
+  {$ifdef unix}
+  cthreads,
+  {$endif}
   types, classes, custapp, sysutils, inifiles, teststr, testu, tresults, dbtests, digestanalyst;
 
 Type
+
+  { TThreadTask }
+
+  TThreadTask = Class(TObject)
+    CfgFileName : string;
+    Config: TDigestConfig;
+    Data: TTestRunData;
+    Constructor Create(const aFileName : String; const aConfig : TDigestConfig; aData : TTestRunData);
+  end;
 
   { TDBDigestApplication }
 
   TDBDigestApplication = class(TCustomApplication)
   Const
      ShortOpts =
-      'd'+ {  coDatabaseName }
-      'h'+ {  coHost }
-      'u'+ {  coUserName }
-      'p'+ {  coPassword }
-      'P'+ {  coPort }
-      'l'+ {  coLogFile }
-      'L'+ {  coLongLogFile }
-      'o'+ {  coOS }
-      'c'+ {  coCPU }
-      'a'+ {  coCategory }
-      'v'+ {  coVersion }
-      't'+ {  coDate }
-      's'+ {  coSubmitter }
-      'm'+ {  coMachine }
-      'C'+ {  coComment }
-      'S'+ {  coTestSrcDir }
-      'r'+ {  coRelSrcDir }
-      'V'+ {  coVerbose }
-      'Q'  {  coSQL }
+      'd'+ {  DatabaseName }
+      'h'+ {  Host }
+      'u'+ {  UserName }
+      'p'+ {  Password }
+      'P'+ {  Port }
+      'l'+ {  LogFile }
+      'L'+ {  LongLogFile }
+      'o'+ {  OS }
+      'c'+ {  CPU }
+      'a'+ {  Category }
+      'v'+ {  Version }
+      't'+ {  Date }
+      's'+ {  Submitter }
+      'm'+ {  Machine }
+      'C'+ {  Comment }
+      'S'+ {  TestSrcDir }
+      'r'+ {  RelSrcDir }
+      'T'+ {  ThreadList }
+      'j'+ {  ThreadCount }
+      'V'+ {  Verbose }
+      'Q'  {  SQL }
      ;
 
     LongOpts : Array of string = (
@@ -71,6 +85,8 @@ Type
       'comment',
       'testsrcdir',
       'relsrcdir',
+      'threadlist',
+      'threadcount',
       'verbose',
       'sql',
       'compilerdate',
@@ -80,39 +96,129 @@ Type
       'svnrtlrevision',
       'svnpackagesrevision'
     );
-    // Return true if we can continue
-    function ProcessCommandLine(var aConfig: TDigestConfig; var aData: TTestRunData): Boolean;
+
   private
+    FTasks : TThreadList;
+    FMaxThreads : Integer;
+    FThreadCount : Integer;
+    // Process the command line. Return true if we can continue
+    function ProcessCommandLine(var aConfig: TDigestConfig; var aData: TTestRunData): Boolean;
+    // Check the names of the log files, expanding them if needed.
+    function CheckConfigFiles(lCfg: String; var lData: TTestRunData): Boolean;
+    // Extract a date.
     class function ExtractDate(aValue: string): TDateTime;
+    // Analyse a log file (i.e. one dbdigest.cfg file)
     procedure Analyze(const aConfig: TDigestConfig; const aData: TTestRunData);
+    // process a config file (dbdigest.cfg file);
     procedure ProcessConfigfile(const aFileName: String; var aConfig: TDigestConfig; var aData: TTestRunData);
+    // process a single option. Adapt aConf,aData as needed. Return false if the option was not recognized.
     function ProcessOption(const aOption: String; aValue: String; var aConfig: TDigestConfig; var aData: TTestRunData): Boolean;
+    // Read /etc/dbdigest.ini for database configuration.
     procedure ReadSystemDBConfig(var aConfig: TDigestConfig);
+    // In thread mode, create a list of tasks.
+    function CreateTaskList(const aBaseConfig: TDigestConfig; const aBaseData: TTestRunData): boolean;
+    // Callback when a task is done. Checks to see if additional threads must be started.
+    procedure TaskDone(Sender: TObject);
+    // Wait for all tasks & threads to terminate.
+    procedure WaitForThreads;
+    // Start as many threads as allowed, up to task count.
+    procedure StartThreads;
   protected
+    // Run
     procedure DoRun; override;
+    // Print usage message.
     procedure Usage(const aMsg: String);
+  Public
+    Constructor Create(aOwner : TComponent); override;
   end;
 
-class Function TDBDigestApplication.ExtractDate(aValue : string) : TDateTime;
+  { TProcessFileThread }
+
+  TProcessFileThread = class(TThread)
+  Private
+    FTask : TThreadTask;
+    FApp : TDBDigestApplication;
+  Public
+    Constructor Create(aApp : TDBDigestApplication; const aTask : TThreadTask; aOnTerminate : TNotifyEvent);
+    Destructor Destroy; override;
+    Procedure Execute; override;
+  end;
+
+{ TThreadTask }
+
+constructor TThreadTask.Create(const aFileName: String; const aConfig: TDigestConfig; aData: TTestRunData);
+begin
+  CfgFileName:=aFileName;
+  Config:=aConfig;
+  Data:=aData;
+end;
+
+{ TProcessFileThread }
+
+constructor TProcessFileThread.Create(aApp: TDBDigestApplication; const aTask: TThreadTask; aOnTerminate: TNotifyEvent);
+begin
+  FTask:=aTask;
+  FApp:=aApp;
+  Self.OnTerminate:=aOnTerminate;
+  Inherited create(False);
+end;
+
+destructor TProcessFileThread.Destroy;
+var
+  lPrefix : String;
+  lCfg : String;
+begin
+  try
+    lCfg:=FTask.CfgFileName;
+    lPrefix:='['+IntToStr(PtrInt(GetCurrentThreadId))+' - '+lCfg+'] ';
+    FreeAndNil(FTask);
+    Verbose(V_DEBUG,lPrefix+' task destroyed ');
+  except
+    On e : Exception do
+      Verbose(V_WARNING,lPrefix+Format('Error %s during processing of "%s": %s',[E.ClassName,lCfg,E.Message]));
+  end;
+  inherited Destroy;
+end;
+
+procedure TProcessFileThread.Execute;
+var
+  lPrefix:String;
+
+begin
+  try
+    lPrefix:='['+IntToStr(PtrInt(GetCurrentThreadId))+' - '+FTask.CfgFileName+'] ';
+    FApp.Analyze(FTask.Config,FTask.Data);
+    Writeln(IntToStr(PtrInt(GetCurrentThreadId))+'Thread done');
+  except
+    On e : Exception do
+      Verbose(V_WARNING,lPrefix+Format('Error %s during processing of "%s": %s',[E.ClassName,FTask.CfgFileName,E.Message]));
+  end;
+end;
+
+class function TDBDigestApplication.ExtractDate(aValue: string): TDateTime;
 
 var
   year,month,day,min,hour : word;
 
 begin
-  if Length(avalue)=12 then
+  if (Length(avalue)=12) or (Length(avalue)=8) then
     begin
       year:=StrToInt(Copy(avalue,1,4));
       month:=StrToInt(Copy(avalue,5,2));
       day:=StrToInt(Copy(aValue,7,2));
-      hour:=StrToInt(Copy(aValue,9,2));
-      min:=StrToInt(Copy(aValue,11,2));
+      if Length(avalue)=12 then
+        begin
+        hour:=StrToInt(Copy(aValue,9,2));
+        min:=StrToInt(Copy(aValue,11,2));
+        end;
       Result:=EncodeDate(year,month,day)+EncodeTime(hour,min,0,0);
     end
   else
     Verbose(V_Error,'Error in date format, use YYYYMMDDhhmm');
 end;
 
-Function TDBDigestApplication.ProcessOption(const aOption : String; aValue: String; var aConfig : TDigestConfig; var aData : TTestRunData) : Boolean;
+function TDBDigestApplication.ProcessOption(const aOption: String; aValue: String; var aConfig: TDigestConfig;
+  var aData: TTestRunData): Boolean;
 
 begin
   Result:=True;
@@ -137,6 +243,8 @@ begin
     'S','testsrcdir': aConfig.testsrcdir:=aValue;
     'r','relsrcdir': aConfig.relsrcdir:=aValue;
     'V','verbose': DoVerbose:=True;
+    'T','threadlist' : ; // treated elsewhere
+    'j','threadcount' : ; // treated elsewhere
     //  'S','sql': aConfig.sql:=aValue;
     'compilerdate': aData.CompilerDate:=aValue;
     'compilerfullversion': aData.CompilerFullVersion:=aValue;
@@ -149,7 +257,7 @@ begin
   end;
 end;
 
-Procedure TDBDigestApplication.ProcessConfigfile(const aFileName : String; var aConfig : TDigestConfig; var aData : TTestRunData);
+procedure TDBDigestApplication.ProcessConfigfile(const aFileName: String; var aConfig: TDigestConfig; var aData: TTestRunData);
 
 Var
   Cfg : TStrings;
@@ -192,7 +300,7 @@ end;
 
 { TDBDigestApplication }
 
-Procedure TDBDigestApplication.Usage(const aMsg : String);
+procedure TDBDigestApplication.Usage(const aMsg: String);
 
 begin
   if (aMsg<>'') then
@@ -208,6 +316,8 @@ begin
   Writeln('-r --relsrcdir                    relative source dir');
   Writeln('-S --testsrcdir                   test source dir');
   Writeln('-u --username=USER                database user name');
+  Writeln('-T --threadlist=FILE              file with configuration file names to imports.');
+  Writeln('-j --threadcount=N                Number of threads to use');
   Writeln('-V --verbose                      be more verbose');
   Writeln('Test run data:');
   Writeln('-l --logfile=FILE                 set log file to analyse');
@@ -229,11 +339,19 @@ begin
   Writeln('   --svnrtlrevision=REV           set revision of RTL');
   Writeln('   --svnpackagesrevision=REV      set revison of packages');
   Writeln('');
+  Writeln('If -T is specified, no test run options may be specified');
+  Writeln('');
   Writeln('The config file can contain the same options as the command-line in the form.');
   Writeln('option=value');
   Writeln('where option is the long or short version of the option');
   Writeln('comments may be included using the # character.');
   ExitCode:=Ord(aMsg<>'');
+end;
+
+constructor TDBDigestApplication.Create(aOwner: TComponent);
+begin
+  inherited Create(aOwner);
+  FTasks:=TThreadList.Create;
 end;
 
 function TDBDigestApplication.ProcessCommandLine(var aConfig: TDigestConfig; var aData : TTestRunData): Boolean;
@@ -304,6 +422,7 @@ procedure TDBDigestApplication.Analyze(const aConfig : TDigestConfig; const aDat
 var
   lSQL : TTestSQL;
   lDigest : TDBDigestAnalyzer;
+  lPrefix : string;
 
 begin
   lDigest:=Nil;
@@ -311,7 +430,12 @@ begin
     lSQL:=TTestSQL.create(databasename,host,username,password,port);
   try
     lSQL.ConnectToDatabase;
-    lDigest:=TDBDigestAnalyzer.Create(lSQL);
+    if GetCurrentThreadId<>MainThreadID then
+      lPrefix:='['+IntToStr(PtrInt(GetCurrentThreadId))+' - '+aData.logfile+']: '
+    else
+      lPrefix:='';
+    lSQL.LogPrefix:=lPrefix;
+    lDigest:=TDBDigestAnalyzer.Create(lSQL,lPrefix);
     lDigest.Analyse(aConfig,aData);
   finally
     lDigest.Free;
@@ -343,6 +467,131 @@ begin
     end;
 end;
 
+function TDBDigestApplication.CheckConfigFiles(lCfg : String; var lData : TTestRunData) : Boolean;
+
+  function CheckFile(const aDir : String; var aFile : String) : boolean;
+
+  var
+    lExpanded : string;
+
+  begin
+    if (aFile<>'') and (aFile[1]<>'/') then
+      begin
+      lExpanded:=aDir+aFile;
+      Verbose(V_Debug,Format('Expanding file from %s to %s',[aFile,lExpanded]));
+      aFile:=lExpanded;
+      end;
+    Result:=FileExists(aFile);
+    if not Result then
+       Verbose(V_Warning,Format('file does not exist: %s',[lExpanded]));
+  end;
+
+var
+  lDir : String;
+
+begin
+  lDir:=ExtractFilePath(ExpandFileName(lCfg));
+  Result:=CheckFile(lDir,lData.logfile);
+  if Result then
+    Result:=CheckFile(lDir,lData.longlogfile);
+end;
+
+
+function TDBDigestApplication.CreateTaskList(const aBaseConfig: TDigestConfig; const aBaseData: TTestRunData) : boolean;
+
+var
+  lCfg,lFileName : String;
+  L : TStrings;
+  lConfig : TDigestConfig;
+  lData : TTestRunData;
+  lList : TList;
+
+
+begin
+  Result:=False;
+  lFileName:=GetOptionValue('T','threadlist');
+  if not FileExists(lFileName) then
+    begin
+    Verbose(V_Normal,'No such file :'+lFileName);
+    Exit;
+    end;
+  L:=TStringList.Create;
+  try
+    l.LoadFromFile(lFileName);
+    Result:=True;
+    For lcfg in L do
+      begin
+      if not FileExists(lCfg) then
+        begin
+        Verbose(V_Warning,'No such file: '+lcfg);
+        Result:=False;
+        end
+      else
+        begin
+        lConfig:=aBaseConfig;
+        lData:=aBaseData;
+        lList:=FTasks.LockList;
+        ProcessConfigfile(lCfg,lConfig,lData);
+        if CheckConfigFiles(lCfg,lData) then
+          lList.Add(TThreadTask.Create(lCfg,lConfig,lData))
+        else
+          Result:=False;
+        end;
+      end;
+  finally
+    l.Free;
+  end;
+end;
+
+procedure TDBDigestApplication.TaskDone(Sender: TObject);
+begin
+  InterlockedDecrement(FThreadCount);
+  StartThreads;
+end;
+
+Procedure TDBDigestApplication.StartThreads;
+
+var
+  L : TList;
+  lTask : TThreadTask;
+
+begin
+  L:=FTasks.LockList;
+  try
+    Verbose(V_DEBUG,Format('Starting tasks. Current thread count: %d remaining tasks: %d.',[FThreadCount,l.Count]));
+    While (L.Count>0) and (FThreadCount<FMaxThreads) do
+      begin
+      lTask:=TThreadTask(L[0]);
+      L.Delete(0);
+      Verbose(V_DEBUG,'Starting task for '+lTask.CfgFileName);
+      TProcessFileThread.Create(Self,lTask,@TaskDone);
+      InterlockedIncrement(FThreadCount);
+      end;
+  finally
+    FTasks.UnlockList;
+  end;
+end;
+
+procedure TDBDigestApplication.WaitForThreads;
+
+var
+  lDone : Boolean;
+  lList : TList;
+
+begin
+  Repeat
+    CheckSynchronize;
+    Sleep(100);
+    lList:=FTasks.LockList;
+    try
+      Verbose(V_DEBUG,Format('Waiting...(Todo: %d threads: %d)',[lList.Count,FThreadCount]));
+      lDone:=(lList.Count=0) and (FThreadCount=0);
+    finally
+      FTasks.UnlockList;
+    end
+  until ldone;
+end;
+
 procedure TDBDigestApplication.DoRun;
 
 var
@@ -354,13 +603,26 @@ begin
   lConfigFile:=GetOptionValue('f','config');
   if lConfigFile='' then
     lConfigFile:='dbdigest.cfg';
-  lData:=Default(TTestRunData);
   lConfig:=Default(TDigestConfig);
   lConfig.RelSrcDir:='tests/';
   ReadSystemDBConfig(lConfig);
-  ProcessConfigFile(lConfigFile,lConfig,lData);
-  if ProcessCommandLine(lConfig,lData) then
-    Analyze(lConfig,lData);
+  if not HasOption('T','threadlist') then
+    begin
+    lData:=Default(TTestRunData);
+    ProcessConfigFile(lConfigFile,lConfig,lData);
+    if ProcessCommandLine(lConfig,lData) then
+      Analyze(lConfig,lData);
+    end
+  else
+    begin
+    FMaxThreads:=StrToIntDef(GetOptionValue('j','threadcount'),4);
+    if ProcessCommandLine(lConfig,lData) then
+      if CreateTaskList(lConfig,lData) then
+        begin
+        StartThreads;
+        WaitForThreads;
+        end;
+    end;
 end;
 
 var

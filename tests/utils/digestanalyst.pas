@@ -31,27 +31,49 @@ Type
     UnknownLines : integer;
     UseLongLog : Boolean;
     FCurLongLogLine : Integer;
-    function CheckIDs(var aData: TTestRunData): Boolean;
+    FPrefix : String;
+    // Call global verbose with prefix to message.
+    procedure Verbose(aLevel : TVerboseLevel; const aMsg : string);
+    // Get the execute log for a given test
     function GetExecuteLog(Line, FN: String): String;
+    // Get the IDs from all config parameters: OS, Log,
     function GetIDs(const aConfig: TDigestConfig; var aData: TTestRunData): Boolean;
+    // Check that all IDS needed for a test run are <>-1
+    function CheckIDs(var aData: TTestRunData): Boolean;
+    // process a log file.
     procedure Processfile(const aFileName: String; var aData: TTestRunData);
-    function SaveTestResult(aResult: TTestResultData): Boolean;
+    // Update the test run statistics.
     procedure UpdateTestRun(const aData: TTestRunData);
+    // Get contents from longlog
     function GetContentsFromLongLog(Line: String): String;
+    // Get Log from file line
     function GetLog(Line, FN: String): String;
   public
-    constructor Create(aDB : TTestSQL);
+    constructor Create(aDB : TTestSQL; const aPrefix : String);
+    // Extract the status from a log line. Will change the log line.
     class function AnalyseLine(var Line: string; var Status: TTestStatus): Boolean;
+    // Extract test filename from a log line
     class procedure ExtractTestFileName(var Line: string);
+    // Analyse the file.
     procedure Analyse(aConfig : TDigestConfig; aData : TTestRunData);
+    // Save test result. Return true if a NEW test result record was created (and the result must be counted)
+    function SaveTestResult(var aResult: TTestResultData): Boolean;
+    // DB connection to use
+    property DB : TTestSQL read FDB;
   end;
 
 
 implementation
 
-constructor TDBDigestAnalyzer.Create(aDB: TTestSQL);
+constructor TDBDigestAnalyzer.Create(aDB: TTestSQL; const aPrefix: String);
 begin
   FDB:=aDB;
+  FPrefix:=aPrefix;
+end;
+
+procedure TDBDigestAnalyzer.Verbose(aLevel: TVerboseLevel; const aMsg: string);
+begin
+  testu.Verbose(aLevel,FPrefix+aMsg);
 end;
 
 function TDBDigestAnalyzer.CheckIDs(var aData : TTestRunData): Boolean;
@@ -63,11 +85,11 @@ begin
   if Result then
     exit;
   If aData.CPUID=-1 then
-    Verbose(V_Error,'NO ID for CPU "'+aData.CPU+'" found.');
+    Verbose(V_WARNING,'NO ID for CPU "'+aData.CPU+'" found.');
   If aData.OSID=-1 then
-    Verbose(V_Error,'NO ID for OS "'+aData.OS+'" found.');
+    Verbose(V_WARNING,'NO ID for OS "'+aData.OS+'" found.');
   If aData.VersionID=-1 then
-    Verbose(V_Error,'NO ID for version "'+aData.Version+'" found.');
+    Verbose(V_WARNING,'NO ID for version "'+aData.Version+'" found.');
 end;
 
 procedure TDBDigestAnalyzer.Analyse(aConfig: TDigestConfig; aData : TTestRunData);
@@ -273,22 +295,31 @@ begin
     end;
 end;
 
-function TDBDigestAnalyzer.SaveTestResult(aResult : TTestResultData) : Boolean;
+function TDBDigestAnalyzer.SaveTestResult(var aResult: TTestResultData): Boolean;
 
 var
   lLast : TTestResultData;
   lNewID : Int64;
 
 begin
+  Result:=False;
+  // Get last result for this test.
   lLast:=FDB.GetLastTestResult(aResult.TestID,aResult.PlatformID);
-  if aResult.Differs(lLast) then
+  if (aResult.Date<lLast.Date) then
+    exit; // Do not save earlier results
+  if not aResult.ResultDiffers(lLast) then
+    exit; // do not save identical results
+  // Need to save.
+  lNewID:=FDB.AddTestResult(aResult);
+  aResult.ID:=lNewId;
+  // Save current in lastresult
+  Result:=(LLast.ID<>lNewID);
+  if Result then
     begin
-    // Need to save
-    lNewID:=FDB.AddTestResult(aResult)
-    end
-  else
-    // Update status, testrun & log
-    FDB.UpdateTestResult(aResult);
+    // When new, save previous.
+    FDB.AddLastResult(aResult.TestID,aResult.PlatformID,lNewID);
+    FDB.AddPreviousResult(aResult.TestID,aResult.PlatformID,LLast.ID);
+    end;
 end;
 
 procedure TDBDigestAnalyzer.Processfile(const aFileName: String; var aData: TTestRunData);
@@ -297,8 +328,6 @@ var
   logfile : TStrings;
   fullline,line,prevLine : string;
   TS : TTestStatus;
-  Testlog : string;
-  count_test : boolean;
   lPrev,lResult : TTestResultData;
 
 begin
@@ -306,9 +335,13 @@ begin
   // init data common to the whole testrun
   lResult.RunID:=aData.RunID;
   lResult.PlatFormID:=aData.PlatFormID;
+  lResult.Date:=aData.Date;
   lPrev.RunID:=aData.RunID;
   lPrev.PlatformID:=aData.PlatformID;
   lPrev.TestID:=-1; // Init no test
+  lPrev.Date:=aData.Date;
+  for TS in TTestStatus do
+    aData.StatusCount[TS]:=0;
   PrevLine:='';
   logfile:=TStringList.Create;
   try
@@ -318,7 +351,8 @@ begin
       begin
         lResult:=Default(TTestResultData);
         line:=fullline;
-        lResult.TestResult:=stFailedToCompile;
+        TS:=stFailedToCompile;
+        lResult.TestResult:=TS;
         If not AnalyseLine(line,TS) then
           begin
           Inc(UnknownLines);
@@ -364,7 +398,8 @@ begin
                 end
               else
                 lResult.Log:='';
-              SaveTestResult(lResult);
+              if SaveTestResult(lResult) then
+                Inc(aData.StatusCount[TS]);
               end;
             end
           end

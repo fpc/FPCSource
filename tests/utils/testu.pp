@@ -92,7 +92,8 @@ type
     RunID : Int64;
     TestResult : TTestStatus;
     Log : String;
-    function Differs(aResult : TTestResultData; CompareLog : Boolean = False) : Boolean;
+    Date : TDateTime;
+    function ResultDiffers(aResult : TTestResultData; CompareLog : Boolean = False) : Boolean;
   end;
 
 
@@ -106,9 +107,9 @@ procedure TrimB(var s:string);
 procedure TrimE(var s:string);
 function upper(const s : string) : string;
 procedure Verbose(lvl:TVerboseLevel;const s:string);
-function GetConfig(const fn:string;var r:TConfig):boolean;
+function GetConfig(const logprefix,fn:string;var r:TConfig):boolean;
 Function GetFileContents (FN : String) : String;
-function GetUnitTestConfig(const fn,SrcDir: string; var r : TConfig) : Boolean;
+function GetUnitTestConfig(const logprefix,fn,SrcDir: string; var r : TConfig) : Boolean;
 
 const
 { Constants used in IsAbsolute function }
@@ -276,6 +277,7 @@ begin
         halt(0);
       end;
   end;
+  Flush(output);
 end;
 
 procedure TrimB(var s:string);
@@ -307,7 +309,7 @@ begin
      Result[i]:=s[i];
 end;
 
-function GetConfig(const fn:string;var r:TConfig):boolean;
+function GetConfig(const logprefix,fn:string;var r:TConfig):boolean;
 var
   t : text;
   part,code : integer;
@@ -558,7 +560,7 @@ begin
   Close(F);
 end;
 
-function GetUnitTestConfig(const fn,SrcDir : string; var r : TConfig) : Boolean;
+function GetUnitTestConfig(const logprefix,fn,SrcDir : string; var r : TConfig) : Boolean;
 
 var
   Path       : string;
@@ -598,7 +600,7 @@ begin
     exit;
   Src:=TStringList.Create;
   try
-    Verbose(V_Debug,'Reading: '+FileName);
+    Verbose(V_Debug,logprefix+'Reading: '+FileName);
     Src.LoadFromFile(FileName);
     for Line in Src do
       if Line<>'' then
@@ -626,7 +628,7 @@ end;
 
 { TTestResultData }
 
-function TTestResultData.Differs(aResult: TTestResultData; CompareLog: Boolean): Boolean;
+function TTestResultData.ResultDiffers(aResult: TTestResultData; CompareLog: Boolean): Boolean;
 begin
   Result:=(PlatformID<>aResult.PlatFormID);
   Result:=Result or (TestID<>aResult.TestID);
