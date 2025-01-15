@@ -1517,10 +1517,7 @@ implementation
         if assigned(ref.symbol) then
           begin
             tmpreg:=getintregister(list,OS_INT);
-            if ((cs_create_pic in current_settings.moduleswitches) and
-                (ref.symbol.bind in [AB_LOCAL,AB_TEMP])) or
-               ((not(cs_create_pic in current_settings.moduleswitches)) and
-                (ref.symbol.bind in [AB_LOCAL,AB_GLOBAL,AB_TEMP])) then
+            if (ref.symbol.bind in [AB_LOCAL,AB_TEMP]) then
               begin
                 { Load symbol address as local. }
                 reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment,ref.volatility);
