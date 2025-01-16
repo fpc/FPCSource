@@ -1890,7 +1890,7 @@ var
   PPDir,LibraryName,LogSuffix,PPPrefix : string;
   Res : boolean;
 begin
-  Res:=GetConfig(PPFile[current],Config);
+  Res:=GetConfig('',PPFile[current],Config);
   TranslateConfig(Config);
 
   if Res then
