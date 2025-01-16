@@ -19,7 +19,7 @@ var
   dlexitproc : pointer;
 
 var
-  BSS_START: record end; external name '__bss_start';
+  global_pointer: record end; external name '__global_pointer$';
   STACK_PTR: record end; external name '__stkptr';
 
 procedure _FPC_rv_enter(sp: pptruint);
@@ -42,7 +42,7 @@ procedure _FPC_proc_start; assembler; nostackframe; public name '_start';
     .option push
     .option norelax
 .L1:
-    auipc gp, %pcrel_hi(BSS_START+0x800)
+    auipc gp, %pcrel_hi(global_pointer)
     addi  gp, gp, %pcrel_lo(.L1)
     .option pop
 
