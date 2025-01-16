@@ -6,105 +6,216 @@ unit dbtests;
 Interface
 
 Uses
-  sqldb, testu;
+  sqldb, tresults, testu, pqconnection;
 
-{ ---------------------------------------------------------------------
-  High-level access
-  ---------------------------------------------------------------------}
+const
+  // Ini file constants
+  SSection    = 'Database';
+  KeyName     = 'Name';
+  KeyHost     = 'Host';
+  KeyUser     = 'UserName';
+  KeyPassword = 'Password';
+  KeyPort     = 'Port';
 
-Function GetTestID(Name : string) : Integer;
-Function GetOSID(Name : String) : Integer;
-Function GetCPUID(Name : String) : Integer;
-Function GetCategoryID(Name : String) : Integer;
-Function GetVersionID(Name : String) : Integer;
-Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
-Function AddRun(OSID, CPUID, VERSIONID, CATEGORYID : Integer; Date : TDateTime) : Integer;
-Function AddTest(Name : String; AddSource : Boolean) : Integer;
-Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
-Function AddTestResult(TestID,RunID,TestRes : Integer;
-                       OK, Skipped : Boolean;
-                       Log : String;var count_it : boolean) : Integer;
-Function RequireTestID(Name : String): Integer;
-Function CleanTestRun(ID : Integer) : Boolean;
-function GetTestPreviousRunHistoryID(TestRunID : Integer) : Integer;
-function GetTestNextRunHistoryID(TestRunID : Integer) : Integer;
-function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
+Type
 
-{ ---------------------------------------------------------------------
-    Low-level DB access.
-  ---------------------------------------------------------------------}
+  { TTestSQL }
 
-Function  ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
-Procedure DisconnectDatabase;
-Function  InsertQuery(const Query : string) : Integer;
-Function  ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
-Function  OpenQuery (Qry : String; Out Res : TSQLQuery; Silent : Boolean) : Boolean ;
-Procedure FreeQueryResult (Var Res : TSQLQuery);
-Function  GetResultField (Res : TSQLQuery; Id : Integer) : String;
-Function  IDQuery(Qry : String) : Integer;
-Function  StringQuery(Qry : String) : String;
-Function  EscapeSQL( S : String) : String;
-Function  SQLDate(D : TDateTime) : String;
+  TTestSQL = class(TObject)
+  Const
+    Bools : Array[Boolean] of String = ('f','t');
+  private
+    FRelSrcDir: String;
+    FTestSrcDir: string;
+    FConnection : TPQConnection;
+    FDatabaseName : String;
+    FHost : String;
+    FUser : String;
+    FPassword : String;
+    FPort : Word;
+    Flogprefix : String;
+    Class Procedure FreeQueryResult (Var Res : TSQLQuery);
+    Class Function  GetIntResultField (Res : TSQLQuery; Id : Integer) : Integer;
+    Class Function  GetInt64ResultField (Res : TSQLQuery; Id : Integer) : Int64;
+    Class Function  GetStrResultField (Res : TSQLQuery; Id : Integer) : String;
+    // Overload adds prefix
+    procedure Verbose(aLevel : TVerboseLevel; const aMsg : string);
+    { ---------------------------------------------------------------------
+        Low-level DB access.
+      ---------------------------------------------------------------------}
 
+    // Create query object.
+    function CreateQuery(const ASQL: String): TSQLQuery;
+    // create and open a query, return in Res.
+    Function  OpenQuery (Qry : String; Out Res : TSQLQuery; Silent : Boolean) : Boolean ;
+    // Run query, return first field as integer. -1 on error or no data.
+    Function  IDQuery(Qry : String) : Integer;
+    // Run query, return first field as int64. -1 on error or no data.
+    Function  ID64Query(Qry : String) : Int64;
+    // Run query, return first field as string. Empty string on error or no data.
+    Function  StringQuery(Qry : String) : String;
+  Public
+    { ---------------------------------------------------------------------
+      High-level access
+      ---------------------------------------------------------------------}
+    // Constructor.
+    Constructor create(aDatabaseName,aHost,aUser,aPassword : String; aPort : Word);
+    // Destructor
+    Destructor destroy; override;
+    // Try to connect to database with params given in constructor.
+    Function ConnectToDatabase : Boolean;
+    // Disconnect from database
+    Procedure DisconnectDatabase;
+    // Execute a query, return true if it executed without error.
+    Function  ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
+    // Adding things
+    // Add a category.
+    Function AddCategory(const aName : String) : Integer;
+    // Add a CPU.
+    Function AddCPU(const aName : String) : Integer;
+    // Add an OS.
+    Function AddOS(const aName : String) : Integer;
+    // Add a compiler version.
+    function AddVersion(const aName: String; aReleaseDate: TDateTime): Integer;
+    // Add a platform.
+    Function AddPlatform(const aData : TTestRunData) : Integer;
+    // Add a test and return the ID. If the test already exists, return it's ID
+    Function AddTest(Name : String; AddSource : Boolean) : Integer;
+    // Add a test run. Return the test run ID.
+    function AddRun(const aData: TTestRunData): Int64;
+    // Ad test result and return ID. If a result exists already for the given run/test, update and return ID.
+    Function AddTestResult(aData : TTestResultData) : Int64;
+    // Add LastTestResult. If it exists already with given platform/test, update result ID.
+    function AddLastResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
+    // Add previousTestResult. If it exists already with given platform/test, update result ID.
+    function AddPreviousResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
+    //
+    // Get ID based on key. All keys are case sensitive. If a key does not exist, -1 is returned.
+    //
+    // Get test ID based on test name.
+    Function GetTestID(Name : string) : Integer;
+    // Get OS ID based on OS name.
+    Function GetOSID(Name : String) : Integer;
+    // Get CPU ID based on CPU name.
+    Function GetCPUID(Name : String) : Integer;
+    // Get category ID based on Category name.
+    Function GetCategoryID(Name : String) : Integer;
+    // Get version ID based on version name.
+    Function GetVersionID(Name : String) : Integer;
+    // Get platform ID based on OS, cpu, category, config.
+    function GetPlatformID(aData: TTestRunData; aAllowCreate: Boolean): Integer;
+    // Get run ID based on platform/date.
+    Function GetRunID(aData : TTestRunData) : Int64;
+    // Get last test result ID based on platform/test.
+    function GetLastTestResult(aTestID, aPlatFormID: Integer): TTestResultData;
+    // Update tests
+    Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
+    function UpdateTestResult(aData: TTestResultData): Int64;
+    function UpdateTestRun(aData : TTestRunData): Boolean;
+    // Create test if it does not exist yet.
+    Function RequireTestID(Name : String): Integer;
+    // Delete all results from a test run.
+    Function CleanTestRun(ID : Integer) : Boolean;
+    // Escape SQL (quotes etc.
+    Class Function  EscapeSQL(S : String) : String;
+    // return SQL date
+    Class Function  SQLDate(D : TDateTime) : String;
+    // Rel src dir
+    Property RelSrcDir : String Read FRelSrcDir Write FRelSrcDir;
+    // test src dir.
+    Property TestSrcDir : string read FTestSrcDir Write FTestSrcDir;
+    // Prefix to use when logging (in case of multi-thread)
+    Property LogPrefix : String Read FLogPrefix Write FLogPrefix;
+  end;
 
-var
-  RelSrcDir,
-  TestSrcDir : string;
 
 Implementation
 
 Uses
-  SysUtils, pqconnection;
-
-Var
-  Connection : TPQConnection;
+  SysUtils;
 
 { ---------------------------------------------------------------------
     Low-level DB access.
   ---------------------------------------------------------------------}
 
-Function ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
+function TTestSQL.ConnectToDatabase: Boolean;
 
 begin
   Result:=False;
-  Verbose(V_SQL,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Port);
-  Connection:=TPQConnection.Create(Nil);
+  Verbose(V_SQL,'Connection params : '+FDatabaseName+' '+FHost+' '+FUser+' '+IntToStr(FPort));
+  FConnection:=TPQConnection.Create(Nil);
   try
-    Connection.Hostname:=Host;
-    Connection.DatabaseName:=DatabaseName;
-    Connection.Username:=User;
-    Connection.Password:=Password;
-    Connection.Connected:=true;
-    Connection.Transaction:=TSQLTransaction.Create(Connection);
-    if (Port<>'') then
-      Connection.Params.Values['Port']:=Port;
+    FConnection.Hostname:=FHost;
+    FConnection.DatabaseName:=FDatabaseName;
+    FConnection.Username:=FUser;
+    FConnection.Password:=FPassword;
+    FConnection.Connected:=true;
+    FConnection.Transaction:=TSQLTransaction.Create(FConnection);
+    if (FPort<>0) then
+      FConnection.Params.Values['Port']:=IntToStr(FPort);
+    FConnection.Connected:=True;
+    Result:=True
   except
     On E : Exception do
       begin
       Verbose(V_ERROR,'Failed to connect to database : '+E.Message);
-      FreeAndNil(Connection);
+      FreeAndNil(FConnection);
       end;
   end;
 end;
 
-Procedure DisconnectDatabase;
+procedure TTestSQL.DisconnectDatabase;
 
 begin
-  FreeAndNil(Connection);
+  FreeAndNil(FConnection);
 end;
 
-Function CreateQuery(Const ASQL : String) : TSQLQuery;
+function TTestSQL.AddCategory(const aName: String): Integer;
+
+Const
+  SQLInsert = 'INSERT INTO TESTCATEGORY (TA_NAME) VALUES (''%s'') RETURNING TA_ID';
 
 begin
-  Result:=TSQLQuery.Create(Connection);
-  Result.Database:=Connection;
-  Result.Transaction:=Connection.Transaction;
+  Result:=IDQuery(Format(SQLInsert,[EscapeSQL(aName)]));
+end;
+
+function TTestSQL.AddCPU(const aName: String): Integer;
+
+Const
+  SQLInsert = 'INSERT INTO TESTCPU (TC_NAME) VALUES (''%s'') RETURNING TC_ID';
+
+begin
+  Result:=IDQuery(Format(SQLInsert,[EscapeSQL(aName)]));
+end;
+
+function TTestSQL.AddOS(const aName: String): Integer;
+Const
+  SQLInsert = 'INSERT INTO TESTOS (TO_NAME) VALUES (''%s'') RETURNING TO_ID';
+
+begin
+  Result:=IDQuery(Format(SQLInsert,[EscapeSQL(aName)]));
+end;
+
+function TTestSQL.AddVersion(const aName: String; aReleaseDate : TDateTime): Integer;
+Const
+  SQLInsert = 'INSERT INTO TESTVERSION (TV_VERSION,TV_RELEASEDATE) VALUES (''%s'',''%s'') RETURNING TV_ID';
+
+begin
+  Result:=IDQuery(Format(SQLInsert,[EscapeSQL(aName),SQLDate(aReleaseDate)]));
+end;
+
+
+function TTestSQL.CreateQuery(const ASQL: String): TSQLQuery;
+
+begin
+  Result:=TSQLQuery.Create(FConnection);
+  Result.Database:=FConnection;
+  Result.Transaction:=FConnection.Transaction;
   Result.SQL.Text:=ASQL;
 end;
 
 
-
-Function ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
+function TTestSQL.ExecuteQuery(Qry: String; Silent: Boolean): Boolean;
 
 begin
   Verbose(V_SQL,'Executing query:'+Qry);
@@ -121,14 +232,14 @@ begin
   except
     On E : exception do
       begin
-      Connection.Transaction.RollBack;
+      FConnection.Transaction.RollBack;
       if not Silent then
         Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
       end;
   end;
 end;
 
-Function OpenQuery (Qry : String; Out res : TSQLQuery; Silent : Boolean) : Boolean ;
+function TTestSQL.OpenQuery(Qry: String; out Res: TSQLQuery; Silent: Boolean): Boolean;
 
 begin
   Result:=False;
@@ -142,7 +253,7 @@ begin
       begin
       FreeAndNil(Res);
       Try
-        Connection.Transaction.RollBack;
+        FConnection.Transaction.RollBack;
       except
       end;
       if not Silent then
@@ -151,18 +262,53 @@ begin
   end;
 end;
 
-Function GetResultField (Res : TSQLQuery; Id : Integer) : String;
+class function TTestSQL.GetIntResultField(Res: TSQLQuery; Id: Integer): Integer;
 
 
 begin
-  If (Res=Nil) or (ID>=Res.Fields.Count) then
+  If (Res=Nil) or (res.IsEmpty) or (ID>=Res.Fields.Count) then
+    Result:=-1
+  else
+    Result:=Res.Fields[ID].AsInteger;
+  testu.Verbose(V_SQL,'Field value '+IntToStr(Result));
+end;
+
+class function TTestSQL.GetInt64ResultField(Res: TSQLQuery; Id: Integer): Int64;
+begin
+  If (Res=Nil) or (res.IsEmpty) or (ID>=Res.Fields.Count) then
+    Result:=-1
+  else
+    Result:=Res.Fields[ID].AsLargeInt;
+  testu.Verbose(V_SQL,'Field value '+IntToStr(Result));
+end;
+
+class function TTestSQL.GetStrResultField(Res: TSQLQuery; Id: Integer): String;
+begin
+  If (Res=Nil) or (res.IsEmpty) or (ID>=Res.Fields.Count) then
     Result:=''
   else
     Result:=Res.Fields[ID].AsString;
-  Verbose(V_SQL,'Field value '+Result);
+  testu.Verbose(V_SQL,'Field value '+Result);
 end;
 
-Procedure FreeQueryResult(var Res : TSQLQuery);
+procedure TTestSQL.Verbose(aLevel: TVerboseLevel; const aMsg: string);
+begin
+  testu.Verbose(aLevel,logPrefix+aMsg);
+end;
+
+function TTestSQL.AddPlatform(const aData : TTestRunData) : Integer;
+
+const
+  SQLInsert = 'INSERT INTO TESTPLATFORM (TP_CPU_FK, TP_OS_FK, TP_VERSION_FK, TP_CATEGORY_FK, TP_CONFIG) '+
+              ' VALUES (%d, %d, %d, %d, ''%s'') '+
+              '  RETURNING TP_ID';
+
+begin
+  With aData do
+    Result:=IDQuery(Format(SQLInsert,[CPUID,OSID,VersionID,CategoryID,EscapeSQL(config)]));
+end;
+
+class procedure TTestSQL.FreeQueryResult(var Res: TSQLQuery);
 
 begin
   if Assigned(Res) and Assigned(Res.Transaction) then
@@ -170,7 +316,7 @@ begin
   FreeAndNil(Res);
 end;
 
-Function IDQuery(Qry : String) : Integer;
+function TTestSQL.IDQuery(Qry: String): Integer;
 
 Var
   Res : TSQLQuery;
@@ -179,13 +325,27 @@ begin
   Result:=-1;
   If OpenQuery(Qry,Res,False) then
     try
-      Result:=StrToIntDef(GetResultField(Res,0),-1);
+      Result:=GetIntResultField(Res,0);
     finally
       FreeQueryResult(Res);
     end;
 end;
 
-Function StringQuery(Qry : String) : String;
+function TTestSQL.ID64Query(Qry: String): Int64;
+Var
+  Res : TSQLQuery;
+
+begin
+  Result:=-1;
+  If OpenQuery(Qry,Res,False) then
+    try
+      Result:=GetInt64ResultField(Res,0);
+    finally
+      FreeQueryResult(Res);
+    end;
+end;
+
+function TTestSQL.StringQuery(Qry: String): String;
 
 Var
   Res : TSQLQuery;
@@ -194,22 +354,37 @@ begin
   Result:='';
   If OpenQuery(Qry,Res,False) then
     try
-      Result:=GetResultField(Res,0);
+      Result:=GetStrResultField(Res,0);
     finally
       FreeQueryResult(Res);
     end;
 end;
 
-Function EscapeSQL( S : String) : String;
+constructor TTestSQL.create(aDatabaseName, aHost, aUser, aPassword: String; aPort: Word);
+begin
+  FDatabaseName:=aDatabaseName;
+  FHost:=aHost;
+  FUser:=aUser;
+  FPassword:=aPassword;
+  FPort:=aPort;
+end;
+
+destructor TTestSQL.destroy;
+begin
+  DisconnectDatabase;
+  inherited destroy;
+end;
+
+class function TTestSQL.EscapeSQL(S: String): String;
 
 begin
 //  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
   Result:=StringReplace(S,'''','''''',[rfReplaceAll]);
-  Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
+  testu.Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
 
-Function SQLDate(D : TDateTime) : String;
+class function TTestSQL.SQLDate(D: TDateTime): String;
 
 begin
   Result:=FormatDateTime('YYYY/MM/DD hh:nn:ss',D);
@@ -220,7 +395,7 @@ end;
   ---------------------------------------------------------------------}
 
 
-Function GetTestID(Name : string) : Integer;
+function TTestSQL.GetTestID(Name: string): Integer;
 
 Const
   SFromName = 'SELECT T_ID FROM TESTS WHERE (T_NAME=''%s'')';
@@ -229,7 +404,7 @@ begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
-Function GetOSID(Name : String) : Integer;
+function TTestSQL.GetOSID(Name: String): Integer;
 
 Const
   SFromName = 'SELECT TO_ID FROM TESTOS WHERE (TO_NAME=''%s'')';
@@ -238,7 +413,7 @@ begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
-Function GetVersionID(Name : String) : Integer;
+function TTestSQL.GetVersionID(Name: String): Integer;
 
 Const
   SFromName = 'SELECT TV_ID FROM TESTVERSION WHERE (TV_VERSION=''%s'')';
@@ -247,7 +422,25 @@ begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
-Function GetCPUID(Name : String) : Integer;
+function TTestSQL.GetPlatformID(aData: TTestRunData; aAllowCreate: Boolean): Integer;
+
+Const
+  SQLSelect = 'SELECT TP_ID FROM TESTPLATFORM ' +
+             ' WHERE ' +
+             '  (TP_VERSION_FK=%d)' +
+             '  AND (TP_OS_FK=%d)' +
+             '  AND (TP_CPU_FK=%d)' +
+             '  AND (TP_CATEGORY_FK=%d)' +
+             '  AND (TP_CONFIG=''%s'')';
+
+begin
+  With aData do
+    Result:=IDQuery(Format(SQLSelect,[VersionID,OSID,CPUID,CategoryID,Config]));
+  if (Result=-1) and aAllowCreate then
+    Result:=AddPlatform(aData)
+end;
+
+function TTestSQL.GetCPUID(Name: String): Integer;
 
 Const
   SFromName = 'SELECT TC_ID FROM TESTCPU WHERE (TC_NAME=''%s'')';
@@ -256,164 +449,96 @@ begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
-Function GetCategoryID(Name : String) : Integer;
+function TTestSQL.GetCategoryID(Name: String): Integer;
 
 Const
-  SFromName = 'SELECT TCAT_ID FROM TESTCATEGORY WHERE (TCAT_NAME=''%s'')';
+  SFromName = 'SELECT TA_ID FROM TESTCATEGORY WHERE (TA_NAME=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
-Function GetRunID(OSID, CPUID, VERSIONID : Integer; Date : TDateTime) : Integer;
+function TTestSQL.GetRunID(aData: TTestRunData): Int64;
 
 
 Const
   SFromIDS = 'SELECT TU_ID FROM TESTRUN WHERE '+
-             ' (TU_OS_FK=%d) '+
-             ' AND (TU_CPU_FK=%d) '+
-             ' AND (TU_VERSION_FK=%d) '+
+             ' (TU_PLATFORM_FK=%d) '+
              ' AND (TU_DATE=''%s'')';
 
 begin
-  Result:=IDQuery(Format(SFromIDS,[OSID,CPUID,VERSIONID,SQLDate(Date)]));
+  With aData do
+    Result:=ID64Query(Format(SFromIDS,[PlatFormID,SQLDate(Date)]));
 end;
 
-Function InsertQuery(const Query : string) : Integer;
-
-begin
-  Result:=IDQuery(Query);
-end;
-
-Function AddRun(OSID, CPUID, VERSIONID, CATEGORYID : Integer; Date : TDateTime) : Integer;
+function TTestSQL.AddRun(const aData : TTestRunData): Int64;
 
 Const
   SInsertRun = 'INSERT INTO TESTRUN '+
-               '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_CATEGORY_FK,TU_DATE)'+
+               '(TU_PLATFORM_FK, TU_MACHINE, TU_SUBMITTER, TU_DATE, '+
+               ' TU_COMPILERDATE, TU_COMPILERFULLVERSION, TU_COMPILERREVISION, '+
+               ' TU_TESTSREVISION, TU_RTLREVISION, TU_PACKAGESREVISION  )'+
                ' VALUES '+
-               '(%d,%d,%d,%d,''%s'') RETURNING TU_ID';
+               '(%d,''%s'',''%s'',''%s'', '+
+               ' ''%s'',''%s'',''%s'', '+
+               ' ''%s'',''%s'',''%s'' '+
+               ') RETURNING TU_ID';
+
 var
   Qry : string;
 begin
-  qry:=Format(SInsertRun,[OSID,CPUID,VERSIONID,CATEGORYID,SQLDate(Date)]);
+  With aData do
+    qry:=Format(SInsertRun,[PlatformID,
+                            EscapeSQL(Machine),
+                            EscapeSQL(Submitter),
+                            SQLDate(Date),
+                            EscapeSQL(CompilerDate),
+                            EscapeSQL(CompilerFullVersion),
+                            EscapeSQL(CompilerRevision),
+                            EscapeSQL(TestsRevision),
+                            EscapeSQL(RTLRevision),
+                            EscapeSQL(PackagesRevision)]);
   Result:=IDQuery(Qry);
 end;
 
-function posr(c : Char; const s : AnsiString) : integer;
-var
-  i : integer;
-begin
-  i := length(s);
-  while (i>0) and (s[i] <> c) do dec(i);
-  Result := i;
-end;
 
-function GetUnitTestConfig(const fn : string; var r : TConfig) : Boolean;
-var
-  Path       : string;
-  ClassName  : string;
-  MethodName : string;
-  slashpos   : integer;
-  FileName   : string;
-  s          : string;
-  t          : text;
-begin
-  Result := False;
-  FillChar(r,sizeof(r),0);
-  if pos('.',fn) > 0 then exit; // This is normally not a unit-test
-  slashpos := posr('/',fn);
-  if slashpos < 1 then exit;
-  MethodName := copy(fn,slashpos+1,length(fn));
-  Path := copy(fn,1,slashpos-1);
-  slashpos := posr('/',Path);
-  if slashpos > 0 then
-    begin
-    ClassName := copy(Path,slashpos+1,length(Path));
-    Path := copy(Path,1,slashpos-1);
-    end
-  else
-    begin
-    ClassName := Path;
-    path := '.';
-    end;
-  if upper(ClassName[1])<>'T' then exit;
-  FileName := TestSrcDir+RelSrcDir+Path+DirectorySeparator+copy(lowercase(ClassName),2,length(classname));
-  if FileExists(FileName+'.pas') then
-    FileName := FileName + '.pas'
-  else if FileExists(FileName+'.pp') then
-    FileName := FileName + '.pp'
-  else exit;
 
-  Verbose(V_Debug,'Reading: '+FileName);
-  assign(t,FileName);
-  {$I-}
-   reset(t);
-  {$I+}
-  if ioresult<>0 then
-   begin
-     Verbose(V_Error,'Can''t open '+FileName);
-     exit;
-   end;
-  while not eof(t) do
-   begin
-     readln(t,s);
-
-     if s<>'' then
-      begin
-        TrimB(s);
-        if SameText(copy(s,1,9),'PROCEDURE') then
-         begin
-           if pos(';',s)>11 then
-            begin
-              s := copy(s,11,pos(';',s)-11);
-              TrimB(s);
-              if SameText(s,ClassName+'.'+MethodName) then
-               begin
-                 Result := True;
-                 r.Note:= 'unittest';
-               end;
-            end;
-         end;
-      end;
-   end;
-  close(t);
-end;
-
-Function AddTest(Name : String; AddSource : Boolean) : Integer;
+function TTestSQL.AddTest(Name: String; AddSource: Boolean): Integer;
 
 Const
   SInsertTest = 'INSERT INTO TESTS (T_NAME,T_ADDDATE)'+
-                ' VALUES (''%s'',NOW())';
+                ' VALUES (''%s'',NOW()) ON CONFLICT (T_NAME) DO UPDATE SET T_ADDDATE=NOW() RETURNING T_ID';
 
 Var
   Info : TConfig;
-
+  lSrcDir : String;
+  lFileName : string;
 begin
+  Info:=Default(TConfig);
   Result:=-1;
-  If (FileExists(TestSrcDir+RelSrcDir+Name) and
-     GetConfig(TestSrcDir+RelSrcDir+Name,Info)) or
-     GetUnitTestConfig(Name,Info) then
+  lSrcDir:=IncludeTrailingPathDelimiter(TestSrcDir+RelSrcDir);
+  lFileName:=ExpandFileName(lSrcDir+Name);
+  Verbose(V_Debug,'Checking test filename: '+lFileName);
+  Result:=IDQuery(Format(SInsertTest,[Name]));
+  If Result=-1 then
     begin
-    If ExecuteQuery(Format(SInsertTest,[Name]),False) then
-      begin
-      Result:=GetTestID(Name);
-      If Result=-1 then
-        Verbose(V_WARNING,'Could not find newly added test!')
-      else
-        If AddSource then
-          UpdateTest(Result,Info,testu.GetFileContents(Name))
-        else
-          UpdateTest(Result,Info,'');
-      end
+    Verbose(V_WARNING,'Could not add test!');
+    exit;
+    end;
+  If (FileExists(lFileName) and GetConfig(logprefix,lFileName,Info))
+     or GetUnitTestConfig(logprefix,Name,lSrcDir,Info) then
+    begin
+    If AddSource then
+      UpdateTest(Result,Info,testu.GetFileContents(Name))
+    else
+      UpdateTest(Result,Info,'');
     end
   else
-    Verbose(V_ERROR,'Could not find test "'+Name+'" or info about this test.');
+    Verbose(V_WARNING,'Could not find test "'+Name+'" or info about this test.');
 end;
 
-Const
-  B : Array[Boolean] of String = ('f','t');
 
-Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
+function TTestSQL.UpdateTest(ID: Integer; Info: TConfig; Source: String): Boolean;
 
 Const
   SUpdateTest = 'Update TESTS SET '+
@@ -438,74 +563,170 @@ begin
     end;
   With Info do
     Qry:=Format(SUpdateTest,[EscapeSQL(NeedCPU),'',EscapeSQL(MinVersion),
-                             B[usesGraph],B[IsInteractive],ResultCode,
-                             B[ShouldFail],B[NeedRecompile],B[NoRun],
-                             B[NeedLibrary],KnownRunError,
-                             B[IsKnownCompileError],EscapeSQL(Note),EscapeSQL(NeedOptions),
+                             Bools[usesGraph],Bools[IsInteractive],ResultCode,
+                             Bools[ShouldFail],Bools[NeedRecompile],Bools[NoRun],
+                             Bools[NeedLibrary],KnownRunError,
+                             Bools[IsKnownCompileError],EscapeSQL(Note),EscapeSQL(NeedOptions),
                              Source,
                              ID
      ]);
   Result:=ExecuteQuery(Qry,False);
 end;
 
-Function AddTestResult(TestID,RunID,TestRes : Integer;
-                       OK, Skipped : Boolean;
-                       Log : String;var count_it : boolean) : Integer;
+function TTestSQL.UpdateTestResult(aData: TTestResultData): Int64;
 
-Const
-  SInsertRes='Insert into TESTRESULTS '+
-             '(TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT) '+
-             ' VALUES '+
-             '(%d,%d,''%s'',''%s'',%d) RETURNING TR_ID';
-  SSelectId='SELECT TR_ID FROM TESTRESULTS WHERE (TR_TEST_FK=%d) '+
-            ' AND (TR_TESTRUN_FK=%d)';
-  SSelectTestResult='SELECT TR_RESULT FROM TESTRESULTS WHERE (TR_TEST_FK=%d) '+
-            ' AND (TR_TESTRUN_FK=%d)';
-  SInsertLog='Update TESTRESULTS SET TR_LOG=''%s'''+
-             ',TR_OK=''%s'',TR_SKIP=''%s'',TR_RESULT=%d WHERE (TR_ID=%d)';
-Var
+const
+  SQLUpdate = 'UPDATE TESTRESULTS SET '+
+              '  TR_RESULT = %d, '+
+              '  TR_TESTRUN_FK = %d, '+
+              '  TR_OK = ''%s'', '+
+              '  TR_SKIP = ''%s'', '+
+              '  TR_LOG = ''%s'' '+
+              'WHERE (TR_ID=%d)';
+var
   Qry : String;
-  updateValues : boolean;
-  prevTestResult : integer;
+  OK, Skipped : Boolean;
+
 begin
-  updateValues:=false;
-  Result:=-1;
-  prevTestResult:=-1;
-  Qry:=Format(SInsertRes,
-              [TestID,RunID,B[OK],B[Skipped],TestRes]);
-  Result:=IDQuery(Qry);
-  if (Result=-1) then
+  with aData do
     begin
-    Qry:=format(SSelectId,[TestId,RunId]);
-    Result:=IDQuery(Qry);
-    if Result<>-1 then
-      begin
-      UpdateValues:=true;
-      Qry:=format(SSelectTestResult,[TestId,RunId]);
-      prevTestResult:=IDQuery(Qry);
-      end;
+    OK:=TestOK[TestResult];
+    Skipped:=TestSkipped[TestResult];
+    Qry:=Format(SQLUpdate, [Ord(TestResult),RunID,Bools[OK],Bools[Skipped],EscapeSQL(Log),aData.ID]);
+    Result:=aData.ID;
     end;
-  if (Result<>-1) and ((Log<>'') or updateValues) then
-    begin
-    Qry:=Format(SInsertLog,[EscapeSQL(Log),B[OK],B[Skipped],TestRes,Result]);
-    if Not ExecuteQuery(Qry,False) then
-       Verbose(V_Warning,'Insert Log failed');
-    end;
-  { If test already existed, return false for count_it to avoid double counting }
-  count_it:=not updateValues or (prevTestResult<>TestRes);
+  ExecuteQuery(Qry,False);
 end;
 
-Function RequireTestID(Name : String): Integer;
+function TTestSQL.AddTestResult(aData: TTestResultData): Int64;
+
+Const
+  SQLInsert = 'Insert into TESTRESULTS '+
+              '  (TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT,TR_LOG) '+
+              'VALUES '+
+              '  (%d,%d,''%s'',''%s'',%d, ''%s'') '+
+              'ON CONFLICT (TR_TEST_FK,TR_TESTRUN_FK) '+
+              'DO UPDATE SET '+
+              '  TR_OK = EXCLUDED.TR_OK, '+
+              '  TR_SKIP = EXCLUDED.TR_SKIP, '+
+              '  TR_RESULT = EXCLUDED.TR_RESULT, '+
+              '  TR_LOG = EXCLUDED.TR_LOG '+
+              'RETURNING TR_ID ';
+
+Var
+  Qry : String;
+  OK, Skipped : Boolean;
+
+begin
+  Result:=-1;
+  With aData do
+    begin
+    OK:=TestOK[TestResult];
+    Skipped:=TestSkipped[TestResult];
+    Qry:=Format(SQLInsert, [TestID,RunID,Bools[OK],Bools[Skipped],Ord(TestResult),EscapeSQL(Log)]);
+    end;
+  Result:=ID64Query(Qry);
+end;
+
+function TTestSQL.GetLastTestResult(aTestID, aPlatFormID: Integer): TTestResultData;
+
+Const
+  SQLSelect = 'SELECT TESTRESULTS.*, TU_DATE FROM '+
+              ' TESTLASTRESULTS '+
+              ' INNER JOIN TESTRESULTS ON (TL_TESTRESULTS_FK=TR_ID) '+
+              ' INNER JOIN TESTRUN ON (TR_TESTRUN_FK=TU_ID) '+
+              'WHERE '+
+              ' (TL_TEST_FK=%d) '+
+              ' AND (TL_PLATFORM_FK=%d)';
+
+var
+  Qry : TSQLQuery;
+
+begin
+  Result:=Default(TTestResultData);
+  Result.TestID:=aTestID;
+  Result.PlatformID:=aPlatformID;
+  Qry:=CreateQuery(Format(SQLSelect,[aTestID,aPlatformID]));
+  try
+    Qry.Open;
+    If not Qry.IsEmpty then
+      begin
+      Result.ID:=Qry.FieldByName('TR_ID').AsLargeInt;
+      Result.TestResult:=TTestStatus(Qry.FieldByName('TR_RESULT').AsInteger);
+      Result.RunID:=Qry.FieldByName('TR_TESTRUN_FK').AsLargeInt;
+      Result.Log:=Qry.FieldByName('TR_LOG').AsString;
+      Result.Date:=Qry.FieldByName('TU_DATE').AsDateTime;
+      end
+    else
+      Result.ID:=-1;
+  finally
+    if Qry.SQLTransaction.Active then
+      Qry.SQLTransaction.Commit;
+    Qry.Free;
+  end;
+
+end;
+
+function TTestSQL.AddLastResult(TestID, PlatformID: Integer; ResultID: Int64) : Boolean;
+
+const
+  SQLInsert = 'Insert into TESTLASTRESULTS '+
+             '  (TL_TEST_FK,TL_PLATFORM_FK,TL_TESTRESULTS_FK) '+
+             'VALUES '+
+             '  (%d,%d,%d) '+
+             'ON CONFLICT (TL_TEST_FK,TL_PLATFORM_FK) '+
+             'DO UPDATE SET TL_TESTRESULTS_FK = EXCLUDED.TL_TESTRESULTS_FK ';
+
+begin
+  Result:=ExecuteQuery(Format(SQLInsert,[TestId,PlatFormID,ResultID]),False);
+end;
+
+function TTestSQL.AddPreviousResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
+const
+  SQLInsert = 'Insert into TESTPREVIOUSRESULTS '+
+             '  (TPR_TEST_FK,TPR_PLATFORM_FK,TPR_TESTRESULTS_FK) '+
+             'VALUES '+
+             '  (%d,%d,%d) '+
+             'ON CONFLICT (TPR_TEST_FK,TPR_PLATFORM_FK) '+
+             'DO UPDATE SET TPR_TESTRESULTS_FK = EXCLUDED.TPR_TESTRESULTS_FK ';
+
+begin
+  Result:=ExecuteQuery(Format(SQLInsert,[TestId,PlatFormID,ResultID]),False);
+end;
+
+function TTestSQL.UpdateTestRun(aData: TTestRunData): Boolean;
+var
+  Qry : string;
+  I : TTestStatus;
+
+  Procedure AddTo(S : String);
+
+  begin
+    if Qry<>'' then
+      Qry:=Qry+' , ';
+    Qry:=Qry+S;
+  end;
+
+begin
+  Qry:='';
+  for i:=low(TTestStatus) to high(TTestStatus) do
+    AddTo(format('%s=%d',[SQLField[i],aData.StatusCount[i]]));
+  qry:='UPDATE TESTRUN SET '+Qry+' WHERE TU_ID='+format('%d',[aData.RunID]);
+  ExecuteQuery(Qry,False);
+  Result:=True;
+end;
+
+function TTestSQL.RequireTestID(Name: String): Integer;
 
 begin
   Result:=GetTestID(Name);
   If Result=-1 then
-    Result:=AddTest(Name,FileExists(Name));
+    Result:=AddTest(Name,True);
   If Result=-1 then
     Verbose(V_WARNING,'Could not find or create entry for test '+Name);
 end;
 
-Function CleanTestRun(ID : Integer) : Boolean;
+function TTestSQL.CleanTestRun(ID: Integer): Boolean;
 
 Const
   SDeleteRun = 'DELETE FROM TESTRESULTS WHERE TR_TESTRUN_FK=%d';
@@ -514,27 +735,5 @@ begin
   Result:=ExecuteQuery(Format(SDeleteRun,[ID]),False);
 end;
 
-function GetTestPreviousRunHistoryID(TestRunID : Integer) : Integer;
-begin
-  GetTestPreviousRunHistoryID:=IDQuery(
-    format('SELECT TH_PREVIOUS_FK FROM TESTRUNHISTORY WHERE TH_ID_FK=%d',[TestRunID]));
-end;
-
-function GetTestNextRunHistoryID(TestRunID : Integer) : Integer;
-begin
-  GetTestNextRunHistoryID:=IDQuery(
-    format('SELECT TH_ID_FK FROM TESTRUNHISTORY WHERE TH_PREVIOUS_FK=%d',[TestRunID]));
-end;
-
-function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
-
-var
-  qry : string;
-
-begin
-  Qry:=format('INSERT INTO TESTRUNHISTORY (TH_ID_FK,TH_PREVIOUS_FK) '+
-              ' VALUES (%d,%d)',[TestRunID,TestPreviousID]);
-  Result:=ExecuteQuery(Qry,False);
-end;
 
 end.

@@ -1,4 +1,5 @@
 {$mode objfpc}
+{$modeswitch advancedrecords}
 {$h+}
 
 unit testu;
@@ -6,7 +7,7 @@ unit testu;
 Interface
 
 uses
-  dos;
+  classes, sysutils, tresults;
 { ---------------------------------------------------------------------
     utility functions, shared by several programs of the test suite
   ---------------------------------------------------------------------}
@@ -53,6 +54,49 @@ type
     ExpectMsgs    : array of longint;
   end;
 
+  // Test run data
+  TTestRunData = Record
+    logfile: string;
+    longlogfile : string;
+    os: string;
+    cpu: string;
+    category: string;
+    version: string;
+    submitter: string;
+    machine: string;
+    config : string;
+    description : string;
+    Date : TDateTime;
+    CompilerDate,
+    CompilerFullVersion,
+    CompilerRevision,
+    TestsRevision,
+    RTLRevision,
+    PackagesRevision : String;
+    CPUID : Integer;
+    OSID  : Integer;
+    VersionID  : Integer;
+    CategoryID : Integer;
+    RunID : Int64;
+    //ConfigID : Integer;
+    PlatformID : Integer;
+    StatusCount : Array[TTestStatus] of Integer;
+  end;
+
+  { TTestResultData }
+
+  TTestResultData = record
+    PlatformID : Integer;
+    TestID : Integer;
+    ID : Int64;
+    RunID : Int64;
+    TestResult : TTestStatus;
+    Log : String;
+    Date : TDateTime;
+    function ResultDiffers(aResult : TTestResultData; CompareLog : Boolean = False) : Boolean;
+  end;
+
+
 Const
   DoVerbose : boolean = false;
   DoSQL     : boolean = false;
@@ -63,8 +107,9 @@ procedure TrimB(var s:string);
 procedure TrimE(var s:string);
 function upper(const s : string) : string;
 procedure Verbose(lvl:TVerboseLevel;const s:string);
-function GetConfig(const fn:string;var r:TConfig):boolean;
+function GetConfig(const logprefix,fn:string;var r:TConfig):boolean;
 Function GetFileContents (FN : String) : String;
+function GetUnitTestConfig(const logprefix,fn,SrcDir: string; var r : TConfig) : Boolean;
 
 const
 { Constants used in IsAbsolute function }
@@ -85,6 +130,16 @@ Function IsAbsolute (Const F : String) : boolean;
 function GetToken(var s: string; Delims: TCharSet = [' ']):string;
 
 Implementation
+
+function posr(c : Char; const s : AnsiString) : integer;
+var
+  i : integer;
+begin
+  i := length(s);
+  while (i>0) and (s[i] <> c) do dec(i);
+  Result := i;
+end;
+
 
 function GetToken(var s: string; Delims: TCharSet = [' ']):string;
 var
@@ -125,46 +180,27 @@ begin
 end;
 
 Function SplitFileName(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
+
 begin
-  FSplit(s,p,n,e);
-  SplitFileName:=n+e;
+  Result:=ExtractFileName(S);
 end;
 
 Function SplitFileBase(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
+
 begin
-  FSplit(s,p,n,e);
-  SplitFileBase:=n;
+  Result:=ChangeFileExt(ExtractFileName(S),'');
 end;
 
 Function SplitFileExt(const s:string):string;
-var
-  p : dirstr;
-  n : namestr;
-  e : extstr;
 begin
-  FSplit(s,p,n,e);
-  SplitFileExt:=e;
+  Result:=ExtractFileExt(S);
 end;
 
 
 Function FileExists (Const F : String) : Boolean;
-{
-  Returns True if the file exists, False if not.
-}
-Var
-  info : searchrec;
+
 begin
-  FindFirst (F,anyfile,Info);
-  FileExists:=DosError=0;
-  FindClose (Info);
+  Result:=SysUtils.FileExists(F);
 end;
 
 
@@ -172,12 +208,9 @@ Function PathExists (Const F : String) : Boolean;
 {
   Returns True if the file exists, False if not.
 }
-Var
-  info : searchrec;
+
 begin
-  FindFirst (F,anyfile,Info);
-  PathExists:=(DosError=0) and (Info.Attr and Directory=Directory);
-  FindClose (Info);
+  Result:=DirectoryExists(F);
 end;
 
 { extracted from rtl/macos/macutils.inc }
@@ -244,6 +277,7 @@ begin
         halt(0);
       end;
   end;
+  Flush(output);
 end;
 
 procedure TrimB(var s:string);
@@ -265,22 +299,23 @@ var
   i,l  : longint;
 
 begin
+  Result:='';
   L:=Length(S);
-  SetLength(upper,l);
+  SetLength(Result,l);
   for i:=1 to l do
     if s[i] in ['a'..'z'] then
-     upper[i]:=char(byte(s[i])-32)
+     Result[i]:=char(byte(s[i])-32)
     else
-     upper[i]:=s[i];
+     Result[i]:=s[i];
 end;
 
-function GetConfig(const fn:string;var r:TConfig):boolean;
+function GetConfig(const logprefix,fn:string;var r:TConfig):boolean;
 var
   t : text;
   part,code : integer;
   l : longint;
   p : sizeint;
-  s,res,tmp : string;
+  s,res: string;
 
   function GetEntry(const entry:string):boolean;
   var
@@ -523,6 +558,83 @@ begin
       Result:=Result+S+LineEnding;
     end;
   Close(F);
+end;
+
+function GetUnitTestConfig(const logprefix,fn,SrcDir : string; var r : TConfig) : Boolean;
+
+var
+  Path       : string;
+  lClassName  : string;
+  lMethodName : string;
+  slashpos   : integer;
+  FileName   : string;
+  s,line     : string;
+  Src : TStrings;
+
+begin
+  Result := False;
+  FillChar(r,sizeof(r),0);
+  if pos('.',fn) > 0 then exit; // This is normally not a unit-test
+  slashpos := posr('/',fn);
+  if slashpos < 1 then exit;
+  lMethodName := copy(fn,slashpos+1,length(fn));
+  Path := copy(fn,1,slashpos-1);
+  slashpos := posr('/',Path);
+  if slashpos > 0 then
+    begin
+    lClassName := copy(Path,slashpos+1,length(Path));
+    Path := copy(Path,1,slashpos-1);
+    end
+  else
+    begin
+    lClassName := Path;
+    path := '.';
+    end;
+  if upper(lClassName[1])<>'T' then exit;
+  FileName := SrcDir+Path+DirectorySeparator+copy(lowercase(lClassName),2,length(lClassName));
+  if FileExists(FileName+'.pas') then
+    FileName := FileName + '.pas'
+  else if FileExists(FileName+'.pp') then
+    FileName := FileName + '.pp'
+  else
+    exit;
+  Src:=TStringList.Create;
+  try
+    Verbose(V_Debug,logprefix+'Reading: '+FileName);
+    Src.LoadFromFile(FileName);
+    for Line in Src do
+      if Line<>'' then
+        begin
+        s:=Line;
+        TrimB(s);
+        if SameText(copy(s,1,9),'PROCEDURE') then
+          begin
+           if pos(';',s)>11 then
+            begin
+              s := copy(s,11,pos(';',s)-11);
+              TrimB(s);
+              if SameText(s,lClassName+'.'+lMethodName) then
+               begin
+                 Result := True;
+                 r.Note:= 'unittest';
+               end;
+            end;
+          end;
+        end;
+  finally
+    Src.Free
+  end;
+end;
+
+{ TTestResultData }
+
+function TTestResultData.ResultDiffers(aResult: TTestResultData; CompareLog: Boolean): Boolean;
+begin
+  Result:=(PlatformID<>aResult.PlatFormID);
+  Result:=Result or (TestID<>aResult.TestID);
+  Result:=Result or (TestResult<>aResult.TestResult);
+  if CompareLog and Not Result then
+    Result:=Log<>aResult.Log;
 end;
 
 end.
