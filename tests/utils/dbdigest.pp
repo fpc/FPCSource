@@ -243,9 +243,9 @@ begin
     'S','testsrcdir': aConfig.testsrcdir:=aValue;
     'r','relsrcdir': aConfig.relsrcdir:=aValue;
     'V','verbose': DoVerbose:=True;
+    'sql': dosql:=true;
     'T','threadlist' : ; // treated elsewhere
     'j','threadcount' : ; // treated elsewhere
-    //  'S','sql': aConfig.sql:=aValue;
     'compilerdate': aData.CompilerDate:=aValue;
     'compilerfullversion': aData.CompilerFullVersion:=aValue;
     'svncompilerrevision': aData.CompilerRevision:=aValue;
@@ -376,7 +376,11 @@ function TDBDigestApplication.ProcessCommandLine(var aConfig: TDigestConfig; var
     Result:=['help'];
     SetLength(Result,1+Length(S));
     For I:=0 to Length(S)-1 do
-      Result[1+i]:=S[I]+':'
+      begin
+      Result[1+I]:=S[I];
+      if (S[I]<>'verbose') and (S[I]<>'sql') then
+        Result[1+I]:=Result[1+I]+':';
+      end;  
   end;
 
 var

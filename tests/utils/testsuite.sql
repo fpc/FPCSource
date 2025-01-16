@@ -9,8 +9,11 @@ CREATE DATABASE testsuite
     LC_COLLATE = 'en_GB.UTF-8'
     LC_CTYPE = 'en_GB.UTF-8'
     TABLESPACE = pg_default
+    template = 'template0'
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
+    
+\c testsuite    
 
 CREATE SEQUENCE SEQ_TESTCATEGORY as INT start with 1;
 
@@ -161,6 +164,18 @@ CREATE TABLE TESTPREVIOUSRESULTS (
 );
 
 CREATE UNIQUE INDEX UDX_TESTPREVIOUSRESULTS ON TESTPREVIOUSRESULTS(TPR_PLATFORM_FK,TPR_TEST_FK);
+
+-- Create relations
+
+ALTER TABLE testplatform ADD CONSTRAINT fk_plaform_os FOREIGN KEY (tp_os_fk) REFERENCES testos (to_id);
+ALTER TABLE testplatform ADD CONSTRAINT fk_plaform_cpu FOREIGN KEY (tp_cpu_fk) REFERENCES testcpu (tc_id);
+ALTER TABLE testplatform ADD CONSTRAINT fk_plaform_version FOREIGN KEY (tp_version_fk) REFERENCES testversion (tv_id);
+ALTER TABLE testplatform ADD CONSTRAINT fk_plaform_category FOREIGN KEY (tp_category_fk) REFERENCES testcategory (ta_id);
+ALTER TABLE testrun ADD CONSTRAINT fk_run_platform FOREIGN KEY (tu_platform_fk) REFERENCES testplatform (tp_id);
+ALTER TABLE testresults ADD CONSTRAINT fk_results_run FOREIGN KEY (tr_testrun_fk) REFERENCES testrun (tu_id);
+ALTER TABLE testresults ADD CONSTRAINT fk_results_test FOREIGN KEY (tr_test_fk) REFERENCES tests (t_id);
+
+-- Insert default data
 
 INSERT INTO TESTCATEGORY VALUES (1, 'Compiler/RTL');
 INSERT INTO TESTCATEGORY VALUES (2, 'DB');

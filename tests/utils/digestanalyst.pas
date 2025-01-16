@@ -116,6 +116,8 @@ begin
   aData.CPUID := FDB.GetCPUID(aData.CPU);
   aData.OSID := FDB.GetOSID(aData.OS);
   aData.VersionID := FDB.GetVersionID(aData.Version);
+  if aData.Category='' then
+    aData.Category:='Compiler/RTL';
   aData.CategoryID := FDB.GetCategoryID(aData.Category);
   aData.PlatformID := FDB.GetPlatformID(aData,True);
   If (Round(aData.Date)=0) then
@@ -127,14 +129,12 @@ begin
   If (aData.RunID<>-1) then
     FDB.CleanTestRun(aData.RunID)
   else
-    begin
     aData.RunID:=FDB.AddRun(aData);
-    Result:=aData.RunID<>-1;
-    if not Result then
-      begin
-      Verbose(V_Error,'Could not insert new testrun record!');
-      exit;
-      end;
+  Result:=aData.RunID<>-1;
+  if not Result then
+    begin
+    Verbose(V_Error,'Could not insert new testrun record!');
+    exit;
     end;
 end;
 
@@ -332,6 +332,7 @@ var
 
 begin
   lPrev:=Default(TTestResultData);
+  lResult:=Default(TTestResultData);
   // init data common to the whole testrun
   lResult.RunID:=aData.RunID;
   lResult.PlatFormID:=aData.PlatFormID;
@@ -349,7 +350,6 @@ begin
     LogFile.LoadFromFile(aFileName);
     For FullLine in LogFile do
       begin
-        lResult:=Default(TTestResultData);
         line:=fullline;
         TS:=stFailedToCompile;
         lResult.TestResult:=TS;
