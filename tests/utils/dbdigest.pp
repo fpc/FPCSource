@@ -244,7 +244,7 @@ begin
     'r','relsrcdir': aConfig.relsrcdir:=aValue;
     'V','verbose': DoVerbose:=True;
     'sql': dosql:=true;
-    'T','threadlist' : ; // treated elsewhere
+    'T','tasklist' : ; // treated elsewhere
     'j','threadcount' : ; // treated elsewhere
     'compilerdate': aData.CompilerDate:=aValue;
     'compilerfullversion': aData.CompilerFullVersion:=aValue;
@@ -316,7 +316,7 @@ begin
   Writeln('-r --relsrcdir                    relative source dir');
   Writeln('-S --testsrcdir                   test source dir');
   Writeln('-u --username=USER                database user name');
-  Writeln('-T --threadlist=FILE              file with configuration file names to imports.');
+  Writeln('-T --tasklist=FILE              file with configuration file names to imports.');
   Writeln('-j --threadcount=N                Number of threads to use');
   Writeln('-V --verbose                      be more verbose');
   Writeln('Test run data:');
@@ -513,7 +513,7 @@ var
 
 begin
   Result:=False;
-  lFileName:=GetOptionValue('T','threadlist');
+  lFileName:=GetOptionValue('T','tasklist');
   if not FileExists(lFileName) then
     begin
     Verbose(V_Normal,'No such file :'+lFileName);
