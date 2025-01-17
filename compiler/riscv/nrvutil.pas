@@ -39,6 +39,7 @@ implementation
   uses
     globtype,globals,
     systems,
+    cpuinfo,
     aasmdata,aasmtai;
 
   const
@@ -50,6 +51,8 @@ implementation
     tag_priv_spec_revision = 12;
 
   class procedure trvnodeutils.InsertObjectInfo;
+    var
+     attr_arch: String;
     begin
       inherited InsertObjectInfo;
       if (target_info.system in systems_linux) then
@@ -61,6 +64,40 @@ implementation
 
           current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,target_info.stackalign));
           current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_unaligned_access,0));
+{$if defined(RISCV32)}
+          attr_arch:='rv32i2p1';
+{$elseif defined(RISCV64)}
+          attr_arch:='rv64i2p1';
+{$elseif defined(RISCV128)}
+          attr_arch:='rv128i2p1';
+{$endif defined(RISCV32)}
+          if CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_m2p0';
+          if CPURV_HAS_ATOMIC in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_a2p1';
+          if CPURV_HAS_F in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_f2p2';
+          if CPURV_HAS_D in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_d2p2';
+          if CPURV_HAS_COMPACT in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_c2p0';
+{          if CPURV_HAS_ICOND in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zicond1p0'; }
+          if CPURV_HAS_CSR_INSTRUCTIONS in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zicrs2p0';
+          if CPURV_HAS_FETCH_FENCE in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zifencei2p0';
+          if CPURV_HAS_ZFA in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zfa1p0';
+          if CPURV_HAS_ZBA in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zba1p0';
+          if CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zbb1p0';
+          if CPURV_HAS_ZBC in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zbc1p0';
+          if CPURV_HAS_ZBS in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zbs1p0';
+          current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_arch,attr_arch));
         end;
     end;
 
