@@ -206,7 +206,7 @@ type
       ImplStatements: string = ''); virtual;
     procedure CheckFullSource(Msg,ExpectedSrc: String); virtual;
     procedure CheckDiff(Msg, Expected, Actual: string); virtual;
-    procedure CheckUnit(Filename, ExpectedSrc: string); virtual;
+    procedure CheckUnit(aFilename, ExpectedSrc: string); virtual;
     procedure CheckReferenceDirectives; virtual;
     procedure CheckHint(MsgType: TMessageType; MsgNumber: integer;
       Msg: string; Marker: PSrcMarker = nil); virtual;
@@ -225,8 +225,8 @@ type
     procedure HandleException(E: Exception);
     procedure FailException(E: Exception);
     procedure WriteSources(const aFilename: string; aRow, aCol: integer);
-    function IndexOfResolver(const Filename: string): integer;
-    function GetResolver(const Filename: string): TTestEnginePasResolver;
+    function IndexOfResolver(const aFilename: string): integer;
+    function GetResolver(const aFilename: string): TTestEnginePasResolver;
     procedure GetSrc(Index: integer; out SrcLines: TStringList; out aFilename: string);
     function FindElementsAt(aFilename: string; aLine, aStartCol, aEndCol: integer): TFPList;// list of TPasElement
     function FindElementsAt(aMarker: PSrcMarker; ErrorOnNoElements: boolean = true): TFPList;// list of TPasElement
@@ -2386,18 +2386,18 @@ begin
   Fail(Msg+': '+s);
 end;
 
-procedure TCustomTestModule.CheckUnit(Filename, ExpectedSrc: string);
+procedure TCustomTestModule.CheckUnit(aFilename, ExpectedSrc: string);
 var
   aResolver: TTestEnginePasResolver;
   aConverter: TPasToJSConverter;
   aJSModule: TJSSourceElements;
   ActualSrc: String;
 begin
-  aResolver:=GetResolver(Filename);
-  AssertNotNull('missing resolver of unit '+Filename,aResolver);
-  AssertNotNull('missing resolver.module of unit '+Filename,aResolver.Module);
+  aResolver:=GetResolver(aFilename);
+  AssertNotNull('missing resolver of unit '+aFilename,aResolver);
+  AssertNotNull('missing resolver.module of unit '+aFilename,aResolver.Module);
   {$IFDEF VerbosePas2JS}
-  writeln('CheckUnit '+Filename+' converting ...');
+  writeln('CheckUnit '+aFilename+' converting ...');
   {$ENDIF}
   aConverter:=CreateConverter;
   aJSModule:=nil;
@@ -3054,21 +3054,21 @@ begin
     end;
 end;
 
-function TCustomTestModule.IndexOfResolver(const Filename: string): integer;
+function TCustomTestModule.IndexOfResolver(const aFilename: string): integer;
 var
   i: Integer;
 begin
   for i:=0 to ResolverCount-1 do
-    if Filename=Resolvers[i].Filename then exit(i);
+    if aFilename=Resolvers[i].Filename then exit(i);
   Result:=-1;
 end;
 
-function TCustomTestModule.GetResolver(const Filename: string
+function TCustomTestModule.GetResolver(const aFilename: string
   ): TTestEnginePasResolver;
 var
   i: Integer;
 begin
-  i:=IndexOfResolver(Filename);
+  i:=IndexOfResolver(aFilename);
   if i<0 then exit(nil);
   Result:=Resolvers[i];
 end;
