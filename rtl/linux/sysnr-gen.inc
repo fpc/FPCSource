@@ -1,8 +1,6 @@
 
 {
-  System call numbers taken from include/uapi/asm-generic/unistd.h
-  in a 4.0 Linux kernel. They are therefore architecture-independent,
-  though only the newest architectures use this generic list.
+  Updated to latest numbers from 6.13-rc7
 }
 
 Const
@@ -320,4 +318,34 @@ Const
         syscall_nr_fspick                       = 433;
         syscall_nr_pidfd_open                   = 434;
         syscall_nr_clone3                       = 435;
-
+        syscall_nr_close_range                  = 436;
+        syscall_nr_openat2                      = 437;
+        syscall_nr_pidfd_getfd                  = 438;
+        syscall_nr_faccessat2                   = 439;
+        syscall_nr_process_madvise              = 440;
+        syscall_nr_epoll_pwait2                 = 441;
+        syscall_nr_mount_setattr                = 442;
+        syscall_nr_quotactl_fd                  = 443;
+        syscall_nr_landlock_create_ruleset      = 444;
+        syscall_nr_landlock_add_rule            = 445;
+        syscall_nr_landlock_restrict_self       = 446;
+        syscall_nr_memfd_secret                 = 447;
+        syscall_nr_process_mrelease             = 448;
+        syscall_nr_futex_waitv                  = 449;
+        syscall_nr_set_mempolicy_home_node      = 450;
+        syscall_nr_cachestat                    = 451;
+        syscall_nr_fchmodat2                    = 452;
+        syscall_nr_map_shadow_stack             = 453;
+        syscall_nr_futex_wake                   = 454;
+        syscall_nr_futex_wait                   = 455;
+        syscall_nr_futex_requeue                = 456;
+        syscall_nr_statmount                    = 457;
+        syscall_nr_listmount                    = 458;
+        syscall_nr_lsm_get_self_attr            = 459;
+        syscall_nr_lsm_set_self_attr            = 460;
+        syscall_nr_lsm_list_modules             = 461;
+        syscall_nr_mseal                        = 462;
+        syscall_nr_setxattrat                   = 463;
+        syscall_nr_getxattrat                   = 464;
+        syscall_nr_listxattrat                  = 465;
+        syscall_nr_removexattrat                = 466;
