@@ -101,6 +101,7 @@ begin
     begin
     LongLogFile:=TStringList.Create;
     LongLogFile.LoadFromFile(aData.longlogfile);
+    UseLongLog:=LongLogFile.Count>0;
     end;
   if not GetIDS(aConfig,aData) then
     exit;
@@ -356,15 +357,15 @@ begin
         If not AnalyseLine(line,TS) then
           begin
           Inc(UnknownLines);
-          Verbose(V_Warning,'Unknown line: "'+line+'"');
+          Verbose(V_Warning,'Unknown line: "'+fullline+'"');
           end
         else
           begin
-          Verbose(V_NORMAL,'Analysing result for test '+Line);
+          Verbose(V_NORMAL,'Analysing result for test '+fullLine);
           lResult.TestID:=FDB.RequireTestID(line);
           if lResult.TestID=-1 then
             begin
-            Verbose(V_Warning,'No test ID: "'+line+'", skipping');
+            Verbose(V_Warning,'No test ID: "'+fullline+'", skipping');
             Continue;
             end;
           If ExpectRun[TS] then

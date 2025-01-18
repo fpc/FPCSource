@@ -2412,7 +2412,7 @@ endif
 utils: all
 dbconfig$(SRCEXEEXT): dbconfig.pp teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
 	$(COMPILER) $<
-dbdigest$(SRCEXEEXT): dbdigest.pp teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
+dbdigest$(SRCEXEEXT): dbdigest.pp digestanalyst$(PPUEXT) teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
 	$(COMPILER) $<
 digest$(SRCEXEEXT): digest.pp teststr$(PPUEXT)
 	$(COMPILER) $<
