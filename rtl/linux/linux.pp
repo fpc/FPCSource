@@ -554,6 +554,98 @@ Type
 Function utimensat(dfd: cint; path:PAnsiChar;const times:TTimespecArr;flags:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'utimensat'; {$ENDIF}
 Function futimens(fd: cint; const times:TTimespecArr):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'futimens'; {$ENDIF}
 
+{$if defined(cpuriscv)}
+  type
+    priscv_hwprobe = ^triscv_hwprobe;
+    triscv_hwprobe = record
+      key : __s64;
+      value : __u64;
+    end;
+
+  const
+    RISCV_HWPROBE_KEY_MVENDORID = 0;
+    RISCV_HWPROBE_KEY_MARCHID = 1;
+    RISCV_HWPROBE_KEY_MIMPID = 2;
+    RISCV_HWPROBE_KEY_BASE_BEHAVIOR = 3;
+    RISCV_HWPROBE_BASE_BEHAVIOR_IMA = 1 shl 0;
+    RISCV_HWPROBE_KEY_IMA_EXT_0 = 4;
+    RISCV_HWPROBE_IMA_FD = 1 shl 0;
+    RISCV_HWPROBE_IMA_C = 1 shl 1;
+    RISCV_HWPROBE_IMA_V = 1 shl 2;
+    RISCV_HWPROBE_EXT_ZBA = 1 shl 3;
+    RISCV_HWPROBE_EXT_ZBB = 1 shl 4;
+    RISCV_HWPROBE_EXT_ZBS = 1 shl 5;
+    RISCV_HWPROBE_EXT_ZICBOZ = 1 shl 6;
+    RISCV_HWPROBE_EXT_ZBC = 1 shl 7;
+    RISCV_HWPROBE_EXT_ZBKB = 1 shl 8;
+    RISCV_HWPROBE_EXT_ZBKC = 1 shl 9;
+    RISCV_HWPROBE_EXT_ZBKX = 1 shl 10;
+    RISCV_HWPROBE_EXT_ZKND = 1 shl 11;
+    RISCV_HWPROBE_EXT_ZKNE = 1 shl 12;
+    RISCV_HWPROBE_EXT_ZKNH = 1 shl 13;
+    RISCV_HWPROBE_EXT_ZKSED = 1 shl 14;
+    RISCV_HWPROBE_EXT_ZKSH = 1 shl 15;
+    RISCV_HWPROBE_EXT_ZKT = 1 shl 16;
+    RISCV_HWPROBE_EXT_ZVBB = 1 shl 17;
+    RISCV_HWPROBE_EXT_ZVBC = 1 shl 18;
+    RISCV_HWPROBE_EXT_ZVKB = 1 shl 19;
+    RISCV_HWPROBE_EXT_ZVKG = 1 shl 20;
+    RISCV_HWPROBE_EXT_ZVKNED = 1 shl 21;
+    RISCV_HWPROBE_EXT_ZVKNHA = 1 shl 22;
+    RISCV_HWPROBE_EXT_ZVKNHB = 1 shl 23;
+    RISCV_HWPROBE_EXT_ZVKSED = 1 shl 24;
+    RISCV_HWPROBE_EXT_ZVKSH = 1 shl 25;
+    RISCV_HWPROBE_EXT_ZVKT = 1 shl 26;
+    RISCV_HWPROBE_EXT_ZFH = 1 shl 27;
+    RISCV_HWPROBE_EXT_ZFHMIN = 1 shl 28;
+    RISCV_HWPROBE_EXT_ZIHINTNTL = 1 shl 29;
+    RISCV_HWPROBE_EXT_ZVFH = 1 shl 30;
+    RISCV_HWPROBE_EXT_ZVFHMIN = 1 shl 31;
+    RISCV_HWPROBE_EXT_ZFA = 1 shl 32;
+    RISCV_HWPROBE_EXT_ZTSO = 1 shl 33;
+    RISCV_HWPROBE_EXT_ZACAS = 1 shl 34;
+    RISCV_HWPROBE_EXT_ZICOND = 1 shl 35;
+    RISCV_HWPROBE_EXT_ZIHINTPAUSE = 1 shl 36;
+    RISCV_HWPROBE_EXT_ZVE32X = 1 shl 37;
+    RISCV_HWPROBE_EXT_ZVE32F = 1 shl 38;
+    RISCV_HWPROBE_EXT_ZVE64X = 1 shl 39;
+    RISCV_HWPROBE_EXT_ZVE64F = 1 shl 40;
+    RISCV_HWPROBE_EXT_ZVE64D = 1 shl 41;
+    RISCV_HWPROBE_EXT_ZIMOP = 1 shl 42;
+    RISCV_HWPROBE_EXT_ZCA = 1 shl 43;
+    RISCV_HWPROBE_EXT_ZCB = 1 shl 44;
+    RISCV_HWPROBE_EXT_ZCD = 1 shl 45;
+    RISCV_HWPROBE_EXT_ZCF = 1 shl 46;
+    RISCV_HWPROBE_EXT_ZCMOP = 1 shl 47;
+    RISCV_HWPROBE_EXT_ZAWRS = 1 shl 48;
+    RISCV_HWPROBE_EXT_SUPM = 1 shl 49;
+    RISCV_HWPROBE_KEY_CPUPERF_0 = 5;
+    RISCV_HWPROBE_MISALIGNED_UNKNOWN = 0 shl 0;
+    RISCV_HWPROBE_MISALIGNED_EMULATED = 1 shl 0;
+    RISCV_HWPROBE_MISALIGNED_SLOW = 2 shl 0;
+    RISCV_HWPROBE_MISALIGNED_FAST = 3 shl 0;
+    RISCV_HWPROBE_MISALIGNED_UNSUPPORTED = 4 shl 0;
+    RISCV_HWPROBE_MISALIGNED_MASK = 7 shl 0;
+    RISCV_HWPROBE_KEY_ZICBOZ_BLOCK_SIZE = 6;
+    RISCV_HWPROBE_KEY_HIGHEST_VIRT_ADDRESS = 7;
+    RISCV_HWPROBE_KEY_TIME_CSR_FREQ = 8;
+    RISCV_HWPROBE_KEY_MISALIGNED_SCALAR_PERF = 9;
+    RISCV_HWPROBE_MISALIGNED_SCALAR_UNKNOWN = 0;
+    RISCV_HWPROBE_MISALIGNED_SCALAR_EMULATED = 1;
+    RISCV_HWPROBE_MISALIGNED_SCALAR_SLOW = 2;
+    RISCV_HWPROBE_MISALIGNED_SCALAR_FAST = 3;
+    RISCV_HWPROBE_MISALIGNED_SCALAR_UNSUPPORTED = 4;
+    RISCV_HWPROBE_KEY_MISALIGNED_VECTOR_PERF = 10;
+    RISCV_HWPROBE_MISALIGNED_VECTOR_UNKNOWN = 0;
+    RISCV_HWPROBE_MISALIGNED_VECTOR_SLOW = 2;
+    RISCV_HWPROBE_MISALIGNED_VECTOR_FAST = 3;
+    RISCV_HWPROBE_MISALIGNED_VECTOR_UNSUPPORTED = 4;
+    RISCV_HWPROBE_WHICH_CPUS = 1 shl 0;
+
+function riscv_hwprobe(pairs:priscv_hwprobe; pair_count:size_t; cpusetsize:size_t; cpus:pdword; flags:dword):longint;
+
+{$endif defined(cpuriscv)}
+
 implementation
 
 
@@ -922,5 +1014,12 @@ end;
 
 {$endif not FPC_USE_LIBC}
 
+
+{$if defined(cpuriscv)}
+function riscv_hwprobe(pairs:priscv_hwprobe; pair_count:size_t; cpusetsize:size_t; cpus:pdword; flags:dword):longint;
+begin
+  riscv_hwprobe:=do_syscall(syscall_nr_riscv_hwprobe,TSysParam(pairs),TSysParam(pair_count),TSysParam(cpusetsize),TSysParam(cpus),TSysParam(flags));
+end;
+{$endif defined(cpuriscv)}
 end.
 
