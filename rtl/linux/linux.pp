@@ -643,7 +643,9 @@ Function futimens(fd: cint; const times:TTimespecArr):cint; {$ifdef FPC_USE_LIBC
     RISCV_HWPROBE_WHICH_CPUS = 1 shl 0;
 
 function riscv_hwprobe(pairs:priscv_hwprobe; pair_count:size_t; cpusetsize:size_t; cpus:pdword; flags:dword):longint;
-
+{$ifdef FPC_USE_LIBC}
+ cdecl; external name '__riscv_hwprobe';
+{$endif}
 {$endif defined(cpuriscv)}
 
 implementation
@@ -1012,14 +1014,15 @@ begin
 {$endif USE_TIME64}
 end;
 
-{$endif not FPC_USE_LIBC}
-
-
 {$if defined(cpuriscv)}
 function riscv_hwprobe(pairs:priscv_hwprobe; pair_count:size_t; cpusetsize:size_t; cpus:pdword; flags:dword):longint;
 begin
   riscv_hwprobe:=do_syscall(syscall_nr_riscv_hwprobe,TSysParam(pairs),TSysParam(pair_count),TSysParam(cpusetsize),TSysParam(cpus),TSysParam(flags));
 end;
 {$endif defined(cpuriscv)}
+
+{$endif not FPC_USE_LIBC}
+
+
 end.
 
