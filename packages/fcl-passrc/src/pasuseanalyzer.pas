@@ -1308,6 +1308,8 @@ begin
     if (El is TPasFunctionType) and (TPasFunctionType(El).ResultEl<>nil) then
       UseSubEl(TPasFunctionType(El).ResultEl.ResultType);
     end
+  else if C=TPasResultElement then
+    UseSubEl(TPasResultElement(El).ResultType)
   else if C=TPasSpecializeType then
     begin
     SpecType:=TPasSpecializeType(El);

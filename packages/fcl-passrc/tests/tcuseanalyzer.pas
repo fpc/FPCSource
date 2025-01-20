@@ -87,6 +87,7 @@ type
     procedure TestM_Class_MethodOverride;
     procedure TestM_Class_MethodOverride2;
     procedure TestM_Class_NestedClass;
+    procedure TestM_Class_Function;
     procedure TestM_ClassInterface_Corba;
     procedure TestM_ClassInterface_NoHintsForMethod;
     procedure TestM_ClassInterface_NoHintsForImpl;
@@ -1354,6 +1355,42 @@ begin
   'function TBird.TWing.MoveNext: Boolean; reintroduce;',
   'begin',
   '  Result:=false;',
+  'end;',
+  '']);
+  AnalyzeUnit;
+  CheckUseAnalyzerUnexpectedHints;
+end;
+
+procedure TTestUseAnalyzer.TestM_Class_Function;
+begin
+  Parser.Options:=Parser.Options+[po_CheckDirectiveRTTI];
+  StartUnit(true,[supTObject]);
+  Add([
+  '{$mode objfpc}',
+  '{$RTTI explicit methods([vcPublic])}',
+  'interface',
+  'type',
+  '  TInterfacedObject = class',
+  '  end;',
+  '  IUnknown = interface',
+  '  end;',
+  '  ITestInterface = interface',
+  '    procedure Test1;',
+  '    function Test2: word;',
+  '  end;',
+  '  TTestInterfaceClass = class(TInterfacedObject, ITestInterface)',
+  '  public',
+  '    procedure Test1;',
+  '    function Test2: word;',
+  '  end;',
+  'implementation',
+  'procedure TTestInterfaceClass.Test1;',
+  'begin',
+  'end;',
+  'function TTestInterfaceClass.Test2: word;',
+  'begin',
+  '  Result:=0;',
+  '  if typeinfo(Result)<>nil then ;',
   'end;',
   '']);
   AnalyzeUnit;
