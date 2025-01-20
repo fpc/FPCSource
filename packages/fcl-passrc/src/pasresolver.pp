@@ -21538,6 +21538,7 @@ var
   Clause: TPasUsesClause;
   i: Integer;
   Section: TPasSection;
+  CurExpr: TPasExpr;
 begin
   {$IFDEF VerbosePasResolver}
   //writeln('TPasResolver.FindLongestUnitName El=',GetObjName(El),' Expr=',GetObjName(Expr));
@@ -21547,12 +21548,13 @@ begin
   aName:=GetNameExprValue(Expr);
   if aName='' then
     RaiseNotYetImplemented(20170503110217,Expr);
+  CurExpr:=Expr;
   repeat
-    Expr:=GetNextDottedExpr(Expr);
-    if Expr=nil then break;
-    CurName:=GetNameExprValue(Expr);
+    CurExpr:=GetNextDottedExpr(CurExpr);
+    if CurExpr=nil then break;
+    CurName:=GetNameExprValue(CurExpr);
     if CurName='' then
-      RaiseNotYetImplemented(20170502164242,Expr);
+      RaiseNotYetImplemented(20170502164242,CurExpr);
     aName:=aName+'.'+CurName;
   until false;
 
