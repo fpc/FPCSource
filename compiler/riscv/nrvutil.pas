@@ -81,8 +81,8 @@ implementation
             attr_arch:=attr_arch+'_d2p2';
           if CPURV_HAS_COMPACT in cpu_capabilities[current_settings.cputype] then
             attr_arch:=attr_arch+'_c2p0';
-{          if CPURV_HAS_ICOND in cpu_capabilities[current_settings.cputype] then
-            attr_arch:=attr_arch+'_zicond1p0'; }
+          if CPURV_HAS_ZICOND in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zicond1p0';
           if CPURV_HAS_CSR_INSTRUCTIONS in cpu_capabilities[current_settings.cputype] then
             attr_arch:=attr_arch+'_zicrs2p0';
           if CPURV_HAS_FETCH_FENCE in cpu_capabilities[current_settings.cputype] then
