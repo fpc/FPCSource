@@ -2196,6 +2196,8 @@ begin
     Result:=TJSONStringType(FloatToStr(FValue,JSONFormatSettings))
   else
     Result:=AsJSON;
+  if CurrentIndent=0 then ;
+  if Indent=0 then ;
 end;
 
 
