@@ -98,9 +98,6 @@ ThreadVar
 Var
 {$endif FPC_HAS_FEATURE_THREADING}
   softfloat_exception_flags : TFPUExceptionMask;
-
-{ global/shared just like the native ones }
-var
   softfloat_exception_mask : TFPUExceptionMask;
   softfloat_rounding_mode : TFPURoundingMode;
 
