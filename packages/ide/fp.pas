@@ -174,7 +174,7 @@ begin
               StartupOptions:=StartupOptions and not soHeapMonitor;
           end else
 {$ifdef go32v2}
-        if UpcaseStr(Param)='NOLFN' then
+        if (UpcaseStr(Param)='NOLFN') or (UpcaseStr(Param)='N') then
           begin
             LFNSupport:=false;
           end else
