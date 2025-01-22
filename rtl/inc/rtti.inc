@@ -401,6 +401,9 @@ procedure InitializeArray(p, typeInfo: Pointer; count: SizeInt);
 procedure FinalizeArray(p, typeInfo: Pointer; count: SizeInt);
   external name 'FPC_FINALIZE_ARRAY';
 
+procedure AddRefArray(p, typeInfo: Pointer; count: SizeInt);
+  external name 'FPC_ADDREF_ARRAY';
+
 procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
   var
     i, size: SizeInt;
