@@ -791,6 +791,8 @@ begin
 {$include libenet/fpmake.pp}
 end;
 
+{$include libpipewire/fpmake.pp}
+
 procedure add_zorba(const ADirectory: string);
 begin
   with Installer do

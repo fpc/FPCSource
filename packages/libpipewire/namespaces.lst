@@ -1,0 +1,4 @@
+src/libspa.pp=namespaced/Api.SPA.pp
+src/libpipewire.pp=namespaced/Api.PipeWire.pp
+{s*:src/}=namespaced/
+{i+:src/}
