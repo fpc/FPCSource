@@ -1680,7 +1680,8 @@ end;
                   recorddef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfRecord);
-                      ProcessSymTable(Symbol,Symbol^.Items,trecorddef(typedef).symtable);
+                      if (trecorddef(typedef).symtable<>Table) then
+                        ProcessSymTable(Symbol,Symbol^.Items,trecorddef(typedef).symtable);
                     end;
                   pointerdef :
                     begin
