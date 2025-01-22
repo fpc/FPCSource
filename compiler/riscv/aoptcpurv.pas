@@ -50,6 +50,7 @@ type
     function OptPass1FOP(var p: tai;mvop: tasmop): boolean;
     function OptPass1FSGNJ(var p: tai;mvop: tasmop): boolean;
     function OptPass1SLTx(var p: tai): boolean;
+    function OptPass1SLTI(var p: tai): boolean;
 
     function OptPass1Add(var p: tai): boolean;
     function OptPass1Sub(var p: tai): boolean;
@@ -600,6 +601,51 @@ implementation
     end;
 
 
+  function TRVCpuAsmOptimizer.OptPass1SLTI(var p: tai): boolean;
+    var
+      hp1: tai;
+    begin
+      result:=false;
+      {
+        Turn
+          slti x,y,0
+          beq/ne x,x0,...
+          dealloc x
+        Into
+          bge/lt y,x0,...
+      }
+      if (taicpu(p).ops=3) and
+         (taicpu(p).oper[2]^.typ=top_const) and
+         (taicpu(p).oper[2]^.val=0) and
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+         (hp1.typ=ait_instruction) and
+         (taicpu(hp1).opcode=A_Bxx) and
+         (taicpu(hp1).ops=3) and
+         (taicpu(hp1).oper[0]^.typ=top_reg) and
+         (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+         (taicpu(hp1).oper[1]^.typ=top_reg) and
+         (taicpu(hp1).oper[1]^.reg=NR_X0) and
+         (taicpu(hp1).condition in [C_NE,C_EQ]) and
+         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+        begin
+          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+          taicpu(hp1).loadreg(1,NR_X0);
+
+          if taicpu(hp1).condition=C_NE then
+            taicpu(hp1).condition:=C_LT
+          else
+            taicpu(hp1).condition:=C_GE;
+
+          DebugMsg('Peephole Slti0B2B performed', hp1);
+
+          RemoveInstr(p);
+
+          result:=true;
+        end;
+    end;
+
+
   function TRVCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1: tai;
@@ -779,45 +825,7 @@ implementation
                     result:=OptPass1OP(p);
                 end;
               A_SLTI:
-                begin
-                  {
-                    Turn
-                      slti x,y,0
-                      beq/ne x,x0,...
-                      dealloc x
-                    Into
-                      bge/lt y,x0,...
-                  }
-                  if (taicpu(p).ops=3) and
-                     (taicpu(p).oper[2]^.typ=top_const) and
-                     (taicpu(p).oper[2]^.val=0) and
-                     GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-                     (hp1.typ=ait_instruction) and
-                     (taicpu(hp1).opcode=A_Bxx) and
-                     (taicpu(hp1).ops=3) and
-                     (taicpu(hp1).oper[0]^.typ=top_reg) and
-                     (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
-                     (taicpu(hp1).oper[1]^.typ=top_reg) and
-                     (taicpu(hp1).oper[1]^.reg=NR_X0) and
-                     (taicpu(hp1).condition in [C_NE,C_EQ]) and
-                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-                     RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-                    begin
-                      taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
-                      taicpu(hp1).loadreg(1,NR_X0);
-
-                      if taicpu(hp1).condition=C_NE then
-                        taicpu(hp1).condition:=C_LT
-                      else
-                        taicpu(hp1).condition:=C_GE;
-
-                      DebugMsg('Peephole Slti0B2B performed', hp1);
-
-                      RemoveInstr(p);
-
-                      result:=true;
-                    end;
-                end;
+                result:=OptPass1SLTI(p);
               A_FADD_S,
               A_FSUB_S,
               A_FMUL_S,
