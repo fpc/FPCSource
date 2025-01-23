@@ -94,10 +94,11 @@ type
 
 var
   methodTable : pMethodNameTable;
-  i : dword;
+  i : integer;
   vmt: PVmt;
   idx: integer;
   pmr: PMethodNameRec;
+  lName : shortstring;
 begin
   AList.Clear;
   vmt := PVmt(aClass);
@@ -109,11 +110,12 @@ begin
       pmr := @methodTable^.entries[0];
       for i := 0 to MethodTable^.count - 1 do
       begin
-        idx := aList.IndexOf(pmr^.name^);
+        lName:=pmr^.name^;
+        idx := aList.IndexOf(lName);
         if (idx <> - 1) then
         //found overridden method so delete it
           aList.Delete(idx);
-        aList.AddObject(pmr^.name^, TObject(pmr^.addr));
+        aList.AddObject(lName, TObject(pmr^.addr));
         Inc(pmr);
       end;
     end;
