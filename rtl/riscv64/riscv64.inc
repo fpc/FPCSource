@@ -292,18 +292,21 @@ procedure ReadDependencyBarrier;
   begin
   end;
 
+
 procedure ReadWriteBarrier; assembler; nostackframe;
   asm
     fence iorw, iorw
   end;
+
 
 procedure WriteBarrier; assembler; nostackframe;
   asm
     fence ow, ow
   end;
 
-{$define FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU;
 {$ifdef FPUFD}
 var
   cw: TNativeFPUControlWord;
@@ -320,4 +323,22 @@ begin
   cw.rndmode:=0;
   SetNativeFPUControlWord(cw);
 {$endif}
+end;
+
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;
+{$ifdef FPUFD}
+var
+  cw: TNativeFPUControlWord;
+{$endif}
+begin
+  softfloat_exception_flags:=[];
+  softfloat_exception_mask:=[exPrecision,exUnderflow];
+{$ifdef FPUFD}
+  { clear all "exception happened" flags we care about}
+  cw:=GetNativeFPUControlWord;
+  cw.cw:=0;
+  SetNativeFPUControlWord(cw);
+{$endif FPUFD}
 end;
