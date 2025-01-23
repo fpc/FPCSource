@@ -73,7 +73,10 @@ Type
   { TSerializerCodeGenerator }
 
   TSerializerCodeGenerator = class(TJSONSchemaCodeGenerator)
+  const
+    Bools : Array[Boolean] of String = ('False','True');
   private
+    FConvertUTC: Boolean;
     FDataUnitName: string;
     function FieldToJSON(aProperty: TPascalPropertyData) : string;
     function ArrayMemberToField(aType: TPropertyType; const aPropertyTypeName: String; const aFieldName: string): string;
@@ -91,6 +94,7 @@ Type
   public
     procedure Execute(aData: TSchemaData);
     property DataUnitName: string read FDataUnitName write FDataUnitName;
+    property ConvertUTC : Boolean Read FConvertUTC Write FConvertUTC;
   end;
 
 implementation
@@ -377,7 +381,7 @@ begin
         else
           Result := Format('GetJSON(%s)', [aFieldName]);
       ptDateTime :
-        Result := Format('DateToISO8601(%s)', [aFieldName]);
+        Result := Format('DateToISO8601(%s,%s)', [aFieldName,Bools[Not ConvertUTC]]);
       ptEnum :
         Result := Format('%s.AsString', [aFieldName]);
     else
@@ -584,7 +588,7 @@ begin
       Addln('Result.%s.AsString:=%s;', [lFieldName, lValue]);
     ptDateTime:
       begin
-      Addln('Result.%s:=ISO8601ToDateDef(%s,0);', [lFieldName, lValue]);
+      Addln('Result.%s:=ISO8601ToDateDef(%s,0,%s);', [lFieldName, lValue, Bools[Not ConvertUTC]]);
       end;
     ptInteger,
     ptInt64,
@@ -800,7 +804,7 @@ end;
 procedure TSerializerCodeGenerator.GenerateConverters;
 
 begin
-  Addln('function ISO8601ToDateDef(S: String; aDefault : TDateTime) : TDateTime;');
+  Addln('function ISO8601ToDateDef(S: String; aDefault : TDateTime; aConvertUTC: Boolean = True) : TDateTime;');
   Addln('');
   Addln('begin');
   indent;
@@ -810,7 +814,7 @@ begin
   undent;
   Addln('try');
   indent;
-  AddLn('Result:=ISO8601ToDate(S);');
+  AddLn('Result:=ISO8601ToDate(S,aConvertUTC);');
   undent;
   Addln('except');
   indent;
