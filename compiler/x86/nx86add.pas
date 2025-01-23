@@ -1741,7 +1741,13 @@ unit nx86add;
         refnode, hp: tnode;
         hasref : boolean;
       begin
-        if use_vectorfpu(resultdef) and use_vectorfpu(left.resultdef) and use_vectorfpu(right.resultdef) then
+        if use_vectorfpu(resultdef)
+{$ifndef x86_64}
+          { Make sure currency typs etc. aren't passed through SSE/AVX }
+          and use_vectorfpu(left.resultdef)
+          and use_vectorfpu(right.resultdef)
+{$endif x86_64}
+          then
           begin
             if UseAVX then
               second_addfloatavx
