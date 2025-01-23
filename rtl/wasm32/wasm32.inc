@@ -150,7 +150,7 @@ function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Compara
 function fpc_atomic_cmp_xchg_64 (var Target: Int64; NewValue: Int64; Comparand: Int64) : Int64; [public,alias:'FPC_ATOMIC_CMP_XCHG_64'];
   begin
 {$ifdef FPC_WASM_THREADS}
-    Result:=Int64(fpc_wasm32_i64_atomic_rmw_cmpxchg_u(@Target,QWord(Comparand}),LongWord(NewValue)));
+    Result:=Int64(fpc_wasm32_i64_atomic_rmw_cmpxchg_u(@Target,QWord(Comparand),QWord(NewValue)));
 {$else FPC_WASM_THREADS}
     Result:=Target;
     if Target=Comparand then
