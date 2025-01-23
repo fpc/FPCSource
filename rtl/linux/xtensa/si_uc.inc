@@ -92,7 +92,7 @@ procedure _FPC_proc_start; assembler; public name '_start';
 
 procedure _FPC_xtensa_exit(e:longint); assembler;
   asm
-    mov a6,a3
+    mov a6,a2
     movi a2,119
     syscall
   end;

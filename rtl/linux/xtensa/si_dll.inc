@@ -32,7 +32,7 @@ procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public
 procedure _FPC_shared_lib_haltproc(e:longint); cdecl; assembler; public name '_haltproc';
   asm
   .L1:
-    mov a6,a3
+    mov a6,a2
     movi a2,119
     syscall
     j .L1

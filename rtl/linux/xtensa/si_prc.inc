@@ -55,7 +55,7 @@ procedure _FPC_dynamic_proc_start; assembler; public name '_dynamic_start';
 procedure _FPC_xtensa_exit(e:longint); assembler;
   asm
   .L1:
-    mov a6,a3
+    mov a6,a2
     movi a2,119
     syscall
     j .L1
