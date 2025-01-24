@@ -58,10 +58,14 @@ Type
   TTypeCodeGenerator = class(TJSONSchemaCodeGenerator)
   private
     FTypeParentClass: string;
-    procedure WriteDtoConstructor(aType: TPascalTypeData);
-    procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData);
-    procedure WriteDtoType(aType: TPascalTypeData);
-    procedure WriteDtoArrayType(aType: TPascalTypeData);
+    procedure GenerateClassTypes(aData: TSchemaData);
+    procedure GenerateStringTypes(aData: TSchemaData);
+    procedure WriteDtoConstructor(aType: TPascalTypeData); virtual;
+    procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
+    procedure WriteDtoType(aType: TPascalTypeData); virtual;
+    procedure WriteDtoArrayType(aType: TPascalTypeData); virtual;
+    procedure WriteStringArrayType(aType: TPascalTypeData);
+    procedure WriteStringType(aType: TPascalTypeData); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Execute(aData: TSchemaData);
@@ -287,6 +291,18 @@ begin
   Addln(Fmt,[aType.PascalName,aType.ElementTypeData.PascalName]);
 end;
 
+procedure TTypeCodeGenerator.WriteStringArrayType(aType: TPascalTypeData);
+
+begin
+  WriteDtoArrayType(aType);
+end;
+
+procedure TTypeCodeGenerator.WriteStringType(aType: TPascalTypeData);
+
+begin
+  Addln('%s = string;',[aType.PascalName]);
+end;
+
 
 constructor TTypeCodeGenerator.Create(AOwner: TComponent);
 begin
@@ -294,12 +310,47 @@ begin
   TypeParentClass := 'TObject';
 end;
 
+procedure TTypeCodeGenerator.GenerateStringTypes(aData : TSchemaData);
+
+var
+  I: integer;
+  lType,lArray : TPascalTypeData;
+begin
+  for I := 0 to aData.TypeCount-1 do
+    begin
+    lType:=aData.Types[I];
+    if (lType.PascalType=ptString) then
+      begin
+      DoLog('Generating string type %s', [lType.PascalName]);
+      WriteStringType(lType);
+      lArray:=aData.FindSchemaTypeData('['+lType.SchemaName+']');
+      if lArray<>Nil then
+         WriteStringArrayType(lArray);
+      end;
+    end;
+end;
+
+procedure TTypeCodeGenerator.GenerateClassTypes(aData : TSchemaData);
+
+var
+  I: integer;
+  lArray : TPascalTypeData;
+begin
+  for I := 0 to aData.TypeCount-1 do
+    if aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct] then
+      begin
+        DoLog('Generating DTO class type %s', [aData.Types[I].PascalName]);
+        WriteDtoType(aData.Types[I]);
+        lArray:=aData.FindSchemaTypeData('['+aData.Types[I].SchemaName+']');
+        if lArray<>Nil then
+          WriteDtoArrayType(lArray);
+      end
+end;
 
 procedure TTypeCodeGenerator.Execute(aData: TSchemaData);
 
 var
   I: integer;
-  lArray : TPascalTypeData;
 
 begin
   FData := aData;
@@ -319,18 +370,8 @@ begin
     EnsureSection(csType);
     Addln('');
     indent;
-    for I := 0 to aData.TypeCount-1 do
-      if aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct] then
-        begin
-          DoLog('Generating type %s', [aData.Types[I].PascalName]);
-          WriteDtoType(aData.Types[I]);
-          lArray:=aData.FindSchemaTypeData('['+aData.Types[I].SchemaName+']');
-          if lArray<>Nil then
-            WriteDtoArrayType(lArray);
-        end;
-{      else if (aData.Types[I].PascalType=ptArray) then
-        WriteDtoArrayType(aData.Types[I]);}
-
+    GenerateStringTypes(aData);
+    GenerateClassTypes(aData);
     undent;
     Addln('implementation');
     Addln('');
@@ -363,6 +404,8 @@ end;
 function TSerializerCodeGenerator.FieldToJSON(aType: TPropertyType; aFieldName : String): string;
 
 begin
+  if aFieldName='options' then
+    Writeln('ah');
   if aType in [ptAnonStruct,ptSchemaStruct] then
   begin
     Result := Format('%s.SerializeObject', [aFieldName]);
@@ -554,6 +597,8 @@ begin
     ptArray:
     begin
       Addln('Arr:=TJSONArray.Create;');
+      if lKeyName='options' then
+        Writeln('ah');
       if DelphiCode then
         Addln('Result.AddPair(''%s'',Arr);', [lKeyName])
       else

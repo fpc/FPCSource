@@ -824,19 +824,27 @@ procedure TAPIData.CreateDefaultAPITypeMaps(aIncludeServer : Boolean);
 
 var
   I : Integer;
-  lName,lType : String;
+  lName,lTypeName : String;
   lSchema : TJsonSchema;
   lData : TAPITypeData;
+  lType : TSchemaSimpleType;
 
 begin
   For I:=0 to FAPI.Components.Schemas.Count-1 Do
     begin
     lName:=FAPI.Components.Schemas.Names[I];
     lSchema:=FAPI.Components.Schemas.Schemas[lName];
-    if sstObject in lSchema.Validations.Types then
+    lType:=lSchema.Validations.GetFirstType;
+    if (lType in [sstObject,sstString]) then
       begin
-      lType:=EscapeKeyWord(ObjectTypePrefix+lName+ObjectTypeSuffix);
-      lData:=CreatePascalType(I,ptSchemaStruct,lName,lType,lSchema);
+      lTypeName:=EscapeKeyWord(ObjectTypePrefix+lName+ObjectTypeSuffix);
+      case lType of
+        sstObject : lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
+        sstString :
+          begin
+          lData:=CreatePascalType(I,ptString,lName,lTypeName,lSchema);
+          end;
+      end;
       ConfigType(lData);
       AddType(lName,lData);
       AddToTypeMap(lName,lData);

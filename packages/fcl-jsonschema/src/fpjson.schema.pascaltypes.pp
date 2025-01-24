@@ -65,6 +65,8 @@ Type
 
   { TPascalProperty }
 
+  { TPascalPropertyData }
+
   TPascalPropertyData = class(TObject)
   private
     FSchemaName: string;
@@ -82,6 +84,7 @@ Type
     procedure SetElementTypeNames(aType : TNameType; AValue: String);
     procedure SetEnumValues(AValue: TStrings);
     Function GetTypeName(aType: TNameType) : String;
+    procedure SetTypeData(AValue: TPascalTypeData);
     procedure SetTypeName(aType: TNameType; aValue : String);
   Public
     Constructor Create(const aSchemaName, aPascalName : string);
@@ -106,7 +109,7 @@ Type
     Property ElementTypeNames[aType : TNameType] : String Read GetElementTypeNames Write SetElementTypeNames;
     // PropertyType = ptSchemaStruct: The type data for that component.
     // PropertyType = ptArray and elType=ptSchemaStruct
-    Property TypeData : TPascalTypeData Read FTypeData Write FTypeData;
+    Property TypeData : TPascalTypeData Read FTypeData Write SetTypeData;
     // The JSON Schema for this property
     Property Schema : TJSONSchema Read FSchema Write FSchema;
   end;
@@ -393,6 +396,14 @@ begin
   Result:=GetFallBackTypeName(FPropertyType);
 end;
 
+procedure TPascalPropertyData.SetTypeData(AValue: TPascalTypeData);
+begin
+  if FTypeData=AValue then Exit;
+  FTypeData:=AValue;
+  if Assigned(FTypeData) then
+    FElementType:=FTypeData.Pascaltype;
+end;
+
 function TPascalPropertyData.GetFallBackTypeName(aPropertyType: TPropertyType): string;
 
 begin
@@ -509,6 +520,8 @@ constructor TPascalTypeData.Create(aIndex: integer; aType: TPascalType; const aS
   );
 
 begin
+  if (aType=ptArray) and (Pos('Meeting',aSchemaName)>0) then
+    Writeln('ah');
   FIndex:=aIndex;
   FSchema:=ASchema;
   FSchemaName:=aSchemaName;
@@ -874,9 +887,11 @@ begin
       sstArray:
         begin
         lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
+//        if
 //         Data.FindSchemaTypeData('Array of string')
         lPascalName:=ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix;
-
+        if lElTypeData.SchemaName='MeetingOption' then
+          Writeln('Ah');
         lName:='['+lElTypeData.SchemaName;
         if lSchema.Items[0].Validations.HasKeywordData(jskformat) then
           lName:=lName+'--'+lSchema.Items[0].Validations.Format;
@@ -886,6 +901,8 @@ begin
           lName:='';
         if (Result=Nil) and AllowCreate then
           begin
+          if (lName='[MeetingOption]') then
+            Writeln('ah');
           Result:=CreatePascalType(-1,ptArray,lName,lPascalName,lSchema);
           FinishAutoCreatedType(lName,Result,lElTypeData);
           lName:='';
@@ -935,6 +952,7 @@ begin
   lName:=aName;
   if lName='' then
     lName:=EscapeKeyWord(lProp.Name);
+  Writeln('Adding property name ',lName,' to ',aType.PascalName);
   if lProp.Validations.TypesCount>1 then
     Raise ESchemaData.CreateFmt('Creating property for schema with multiple types ("%s") is not supported',[lName]);
   if (lProp.Validations.GetFirstType=sstArray) then
