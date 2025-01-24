@@ -1701,8 +1701,9 @@ begin
     exit(Self);
   Result.Width:=Self.Width / Ratio;
   Result.Height:=Self.Height / Ratio;
-  Result.Left:=Self.Left + (Self.Width - Result.Width) / 2;
-  Result.Top:=Self.Top + (Self.Height - Result.Height) / 2;
+  // Center the result within the Dest rectangle
+  Result.Left:=Dest.Left + (Dest.Width - Result.Width) / 2;
+  Result.Top:=Dest.Top + (Dest.Height - Result.Height) / 2;
 end;
 
 function TRectF.FitInto(const Dest: TRectF): TRectF;
