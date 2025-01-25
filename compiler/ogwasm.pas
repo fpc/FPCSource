@@ -317,6 +317,7 @@ interface
         procedure SetThreadVarGlobalsInitValues;
         procedure GenerateCode_InitTls;
         procedure GenerateCode_InitSharedMemory;
+        procedure GenerateCode_InvokeHelper;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
       protected
         function writeData:boolean;override;
@@ -5196,6 +5197,7 @@ implementation
         SetThreadVarGlobalsInitValues;
         GenerateCode_InitTls;
         GenerateCode_InitSharedMemory;
+        GenerateCode_InvokeHelper;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
@@ -5990,6 +5992,196 @@ implementation
                 WriteUleb(sec,DataSecIdx);
               end;
           end;
+        { end }
+        Sec.writeUInt8($0B);
+      end;
+
+    procedure TWasmExeOutput.GenerateCode_InvokeHelper;
+      var
+        Sec: TObjSection;
+
+      procedure InvokeFuncType(typidx: Integer);
+        var
+          ft: TWasmFuncType;
+          i, nextofs: Integer;
+        begin
+          ft:=FFuncTypes[typidx];
+          for i:=0 to Length(ft.results)-1 do
+            { local.get 2 }
+            Sec.writeUInt16BE($2002);
+          nextofs:=0;
+          for i:=0 to Length(ft.params)-1 do
+            begin
+              { local.get 1 }
+              Sec.writeUInt16BE($2001);
+              case ft.params[i] of
+                wbt_i32:
+                  begin
+                    { i32.load nextofs }
+                    Sec.writeUInt16BE($2802);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,4);
+                  end;
+                wbt_i64:
+                  begin
+                    { i64.load nextofs }
+                    Sec.writeUInt16BE($2902);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,8);
+                  end;
+                wbt_f32:
+                  begin
+                    { f32.load nextofs }
+                    Sec.writeUInt16BE($2A02);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,4);
+                  end;
+                wbt_f64:
+                  begin
+                    { f64.load nextofs }
+                    Sec.writeUInt16BE($2B02);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,8);
+                  end;
+                wbt_v128:
+                  begin
+                    { v128.load nextofs }
+                    Sec.writeUInt16BE($FD00);
+                    Sec.writeUInt8($02);  { align: 4 bytes }
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,16);
+                  end;
+                wbt_externref,
+                wbt_funcref:
+                  begin
+                    { unreachable }
+                    Sec.writeUInt8($00);
+                  end;
+                else
+                  internalerror(2025012501);
+              end;
+            end;
+          { local.get 0 }
+          Sec.writeUInt16BE($2000);
+          { call_indirect }
+          Sec.writeUInt8($11);
+          WriteUleb(Sec,typidx);
+          Sec.writeUInt8($0);  { table index 0 }
+          nextofs:=0;
+          for i:=0 to Length(ft.results)-1 do
+            begin
+              case ft.results[i] of
+                wbt_i32:
+                  begin
+                    { i32.store nextofs }
+                    Sec.writeUInt16BE($3602);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,4);
+                  end;
+                wbt_i64:
+                  begin
+                    { i64.store nextofs }
+                    Sec.writeUInt16BE($3702);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,8);
+                  end;
+                wbt_f32:
+                  begin
+                    { f32.store nextofs }
+                    Sec.writeUInt16BE($3802);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,4);
+                  end;
+                wbt_f64:
+                  begin
+                    { f64.store nextofs }
+                    Sec.writeUInt16BE($3902);
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,8);
+                  end;
+                wbt_v128:
+                  begin
+                    { v128.store nextofs }
+                    Sec.writeUInt16BE($FD0B);
+                    Sec.writeUInt8($02);  { align: 4 bytes }
+                    WriteUleb(Sec, nextofs);
+                    Inc(nextofs,16);
+                  end;
+                wbt_externref,
+                wbt_funcref:
+                  begin
+                    { unreachable }
+                    Sec.writeUInt8($00);
+                  end;
+                else
+                  internalerror(2025012501);
+              end;
+            end;
+          { return }
+          Sec.writeUInt8($0F);
+        end;
+
+      function FuncIdx2TypeIdx(fi: Integer): Integer;
+        var
+          exesec: TExeSection;
+          objsec: TWasmObjSection;
+          fsym: TWasmObjSymbol;
+        begin
+          if fi<Length(FFunctionImports) then
+            Result:=FFunctionImports[fi].TypeIdx
+          else
+            begin
+              exesec:=FindExeSection('.text');
+              if not assigned(exesec) then
+                internalerror(2023123106);
+              objsec:=TWasmObjSection(exesec.ObjSectionList[fi-Length(FFunctionImports)]);
+              fsym:=objsec.MainFuncSymbol;
+              Result:=fsym.LinkingData.ExeTypeIndex;
+            end;
+        end;
+
+      var
+        exesym: TExeSymbol;
+        objsym: TObjSymbol;
+        i: Integer;
+      begin
+        exesym:=TExeSymbol(ExeSymbolList.Find('fpc_wasm_invoke_helper'));
+        if not Assigned(exesym) then
+          exit;
+        objsym:=exesym.ObjSymbol;
+        Sec:=objsym.objsection;
+        Sec.Size:=0;
+        Sec.Data.reset;
+
+        { locals }
+        Sec.writeUInt8($00);
+
+        for i:=1 to Length(FIndirectFunctionTable)-1 do
+          { block }
+          Sec.writeUInt16BE($0240);
+
+        { block }
+        Sec.writeUInt16BE($0240);
+        { local.get 0 }
+        Sec.writeUInt16BE($2000);
+        { br_table <0, 1, 2, 3, 4, 5, 6, ..., High>, 0 }
+        Sec.writeUInt8($0E);
+        WriteUleb(Sec,Length(FIndirectFunctionTable));
+        for i:=0 to Length(FIndirectFunctionTable)-1 do
+          WriteUleb(Sec,i);
+        Sec.writeUInt8($00);
+        { end }
+        Sec.writeUInt8($0B);
+        { unreachable }
+        Sec.writeUInt8($00);
+
+        for i:=1 to Length(FIndirectFunctionTable)-1 do
+          begin
+            { end }
+            Sec.writeUInt8($0B);
+            InvokeFuncType(FuncIdx2TypeIdx(FIndirectFunctionTable[i].FuncIdx));
+          end;
+
         { end }
         Sec.writeUInt8($0B);
       end;
