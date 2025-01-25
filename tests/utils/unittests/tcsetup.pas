@@ -5,7 +5,7 @@ unit tcsetup;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, testdecorator, dbtests, sqldb, pqconnection;
+  Classes, SysUtils, fpcunit, testutils, testregistry, testdecorator, tsdb, sqldb, pqconnection;
 
 type
   { TDBHelper }
@@ -167,16 +167,17 @@ end;
 
 class procedure TDBHelper.ClearAllTables;
 begin
+  ClearTable('TESTRUNHISTORY');
+  ClearTable('TESTPREVIOUSRESULTS');
+  ClearTable('TESTLASTRESULTS');
+  ClearTable('TESTRESULTS');
+  ClearTable('TESTRUN');
+  ClearTable('TESTPLATFORM');
   ClearTable('TESTOS');
   ClearTable('TESTCPU');
   ClearTable('TESTCATEGORY');
   ClearTable('TESTVERSION');
-  ClearTable('TESTPLATFORM');
-  ClearTable('TESTRUN');
   ClearTable('TESTS');
-  ClearTable('TESTRESULTS');
-  ClearTable('TESTLASTRESULTS');
-  ClearTable('TESTPREVIOUSRESULTS');
 end;
 
 class function TDBHelper.IDQuery(const aSQL: String): Int64;

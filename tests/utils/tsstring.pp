@@ -15,9 +15,12 @@
 
  **********************************************************************}
 
-unit teststr;
+unit tsstring;
 
 interface
+
+const
+  Bools : Array[Boolean] of string = ('f','t');
 
 const
   failed_to_compile = 'Failed to compile ';

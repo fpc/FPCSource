@@ -5,10 +5,8 @@ unit tctestsql;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, testu, dbtests, tresults, sqldb, pqconnection;
+  Classes, SysUtils, fpcunit, testregistry, tsutils, tsdb, tstypes, sqldb, pqconnection;
 
-const
-  Bools : Array[Boolean] of string = ('f','t');
 
 type
   { TTestSQLCase }
@@ -29,6 +27,7 @@ type
   TTestSQLCase = class(TTestBaseSQLCase)
   const
     SQLTestResultFilter = '(TR_ID=%d) and (TR_TESTRUN_FK=%d) and (TR_TEST_FK=%d) and (TR_OK=''%s'') and (TR_SKIP=''%s'') and (TR_RESULT=%d) and (TR_LOG=''%s'')';
+  private
   protected
     function GetSQL: TTestSQL; override;
   protected
@@ -41,6 +40,7 @@ type
     procedure TestAddVersion;
     procedure TestAddCategory;
     procedure TestAddTest;
+    Procedure TestUpdateTest;
     procedure TestAddPlatform;
     Procedure TestAddRun;
     procedure TestUpdateRun;
@@ -58,13 +58,17 @@ type
     procedure TestGetVersionID;
     procedure TestGetTestID;
     procedure TestGetRunID;
+    procedure TestHistoryNoHistory;
+    procedure TestHistoryWithHistory;
+    Procedure TestGetPreviousTestRun;
+    Procedure TestGetNextTestRun;
   end;
 
 
 
 implementation
 
-uses tcsetup;
+uses tsstring, tcsetup;
 
 { TTestBaseSQLCase }
 
@@ -111,7 +115,9 @@ begin
     aData.VersionID:=SQL.AddVersion('w',Date);
 
   aData.config:='v';
+  aData.machine:='w';
   Result:=SQL.GetPlatformID(aData,False);
+
   if Result=-1 then
     Result:=SQL.AddPlatform(aData);
 end;
@@ -126,7 +132,6 @@ begin
     begin
     AssertEquals('Date',DATE,FieldByName('TU_DATE').AsDateTime);
     AssertEquals('Platform',PlatformID,FieldByName('TU_PLATFORM_FK').AsInteger);
-    AssertEquals('Machine',Machine,FieldByName('TU_MACHINE').AsString);
     AssertEquals('Submitter',Submitter,FieldByName('TU_SUBMITTER').AsString);
     For St in TTestStatus do
       AssertEquals(StatusText[St],StatusCount[st],FieldByName(SQLField[ST]).AsInteger);
@@ -152,7 +157,9 @@ begin
   aResult.Date:=Date-DateOffset;
   CreateSource('x');
   if SQL.GetTestID('x.pp')=-1 then
-    aResult.TestID:=SQL.AddTest('x.pp',False);
+    aResult.TestID:=SQL.AddTest('x.pp',False)
+  else
+    aResult.TestID:=SQL.GetTestID('x.pp');
   aResult.TestResult:=stSuccessCompilationFailed;
   aResult.Log:='xyz';
   With aData do
@@ -220,12 +227,106 @@ begin
   AssertEquals('exists',1,TDBHelper.CountRecords('TESTS',Format('(T_ID=%d) and (t_name=''x.pp'')',[lID])));
 end;
 
+procedure TTestSQLCase.TestUpdateTest;
+var
+  lInfo : TTestInfo;
+  lID : Integer;
+  lFilter : string;
+begin
+  lID:=SQL.AddTest('x.pp',False);
+  lInfo:=Default(TTestInfo);
+  With lInfo do
+    begin
+    Name:='name';  // Will not be changed
+    CPU:='cpu';
+    OS:='os';
+    Version:='version';
+    AddDate:=Date-1; // Will not be changed
+    Graph:=True;
+    Interactive:=True;
+    Result:=123;
+    Fail:=True;
+    ReCompile:=True;
+    NoRun:=True;
+    NeedLibrary:=True;
+    KnownRunError:=456;
+    Known:=True;
+    Note:='note';
+    Description:='description';
+    Source:='source';
+    Opts:='opts';
+    DelOptions:='deloptions';
+    SkipCPU:='skipcpu';
+    SkipEmu:='skipemu';
+    NeedTarget:='needtarget';
+    SkipTarget:='skiptarget';
+    MaxVersion:='maxversion';
+    KnownRunNote:='knownrunnote';
+    KnownCompileNote:='knowncompilenote';
+    RecompileOpt:='recompileopt';
+    KnownCompileError:=789;
+    NeededAfter:=True;
+    IsKnownRunError:=True;
+    Timeout:=543;
+    Category:='category';
+    Files:='files';
+    ConfigFileSrc:='configfilesrc';
+    ConfigFileDst:='configfiledst';
+    WpoParas:='wpoparas';
+    WpoPasses:=321;
+    DelFiles:='delfiles';
+    ExpectMsgs:=[1,2,3];
+    end;
+  SQL.UpdateTest(lID,lInfo,'xyz');
+  // Construct filter with the values we expect.
+  lFilter := Format('(T_ID = %d) AND ',[lID])
+  + '(T_Name = ''x.pp'') AND '
+  + '(T_CPU = ''cpu'') AND '
+  + '(T_OS = ''os'') AND '
+  + '(T_Version = ''version'') AND '
+  + '(T_AddDate = '''+TTestSQL.SQLDate(Date)+''') AND '
+  + '(T_Graph = ''t'') AND '
+  + '(T_Interactive = ''t'') AND '
+  + '(T_Result = 123) AND '
+  + '(T_Fail = ''t'') AND '
+  + '(T_ReCompile = ''t'') AND '
+  + '(T_NoRun = ''t'') AND '
+  + '(T_NeedLibrary = ''t'') AND '
+  + '(T_KnownRunError = 456) AND '
+  + '(T_Known = ''t'') AND '
+  + '(T_Note = ''note'') AND '
+  + '(T_Description = ''description'') AND '
+  + '(T_Source = ''source'') AND '
+  + '(T_Opts = ''opts'') AND '
+  + '(T_DELOPTS =''deloptions'') AND '
+  + '(T_SKIPCPU = ''skipcpu'') AND '
+  + '(T_NEEDTARGET = ''needtarget'') AND '
+  + '(T_MAXVERSION = ''maxversion'') AND '
+  + '(T_KNOWNRUNNOTE = ''knownrunnote'') AND '
+  + '(T_KNOWNCOMPILENOTE = ''knowncompilenote'') AND '
+  + '(T_RECOMPILEOPT = ''recompileopt'') AND '
+  + '(T_KNOWNCOMPILEERROR = 789) AND '
+  + '(T_NEEDEDAFTER = ''t'') AND '
+  + '(T_ISKNOWNRUNERROR = ''t'') AND '
+  + '(T_Timeout = 543) AND '
+  + '(T_CATEGORY = ''category'') AND '
+  + '(T_FILES = ''files'') AND '
+  + '(T_CONFIGFILESRC = ''configfilesrc'') AND '
+  + '(T_CONFIGFILEDST = ''configfiledst'') AND '
+  + '(T_WPOPARAS = ''wpoparas'') AND '
+  + '(T_WPOPASSES = 321) AND '
+  + '(T_DELFILES = ''delfiles'') AND '
+  + '(T_EXPECTMSGS = ''1,2,3'')' ;
+  // We should have 1 record with this filter
+  AssertEquals('Updated',1,TDBHelper.CountRecords('TESTS',lFilter));
+end;
+
 
 procedure TTestSQLCase.TestAddPlatform;
 
 const
   SQLFilter = '(TP_ID=%d) and (TP_OS_FK=%d) and (TP_CPU_FK=%d) '+
-              'and (TP_VERSION_FK=%d) and (TP_CONFIG=''%s'')';
+              'and (TP_VERSION_FK=%d) and (TP_CONFIG=''%s'') and (TP_MACHINE=''%s'')';
 var
   lData : TTestRunData;
   lID : integer;
@@ -234,7 +335,7 @@ begin
   lData:=Default(TTestRunData);
   lID:=PreparePlatform(lData);
   With lData do
-    flt:=Format(SQLFilter,[lID,OSID,CPUID,VersionID,Config]);
+    flt:=Format(SQLFilter,[lID,OSID,CPUID,VersionID,Config,Machine]);
   AssertEquals('Platform',1,TDBHelper.CountRecords('TESTPLATFORM',Flt));
 end;
 
@@ -521,6 +622,65 @@ begin
   DeleteSource('x');
 end;
 
+procedure TTestSQLCase.TestHistoryNoHistory;
+
+Var
+  lData : TTestRunData;
+  lResultID : Int64;
+
+begin
+  AssertEquals('count TESTRUNHISTORY before',0,TDBHelper.CountRecords('TESTRUNHISTORY'));
+  lData:=Default(TTestRunData);
+  lData.PlatformID:=PreparePlatform(lData);
+  lData.Date:=Date;
+  lResultID:=SQL.AddRun(lData);
+  AssertEquals('count TESTRUN', 1, TDBHelper.CountRecords('TESTRUN',Format('(TU_ID=%d)',[lResultID])));
+  AssertEquals('count TESTRUNHISTORY after',0,TDBHelper.CountRecords('TESTRUNHISTORY'));
+end;
+
+procedure TTestSQLCase.TestHistoryWithHistory;
+
+Var
+  lData : TTestRunData;
+  lResult1ID,lResult2ID : Int64;
+  lFilter : String;
+
+begin
+  AssertEquals('count TESTRUNHISTORY before',0,TDBHelper.CountRecords('TESTRUNHISTORY'));
+  lData:=Default(TTestRunData);
+  lData.PlatformID:=PreparePlatform(lData);
+  lData.Date:=Date-1;
+  lResult1ID:=SQL.AddRun(lData);
+  AssertEquals('count TESTRUN', 1, TDBHelper.CountRecords('TESTRUN',Format('(TU_ID=%d)',[lResult1ID])));
+  AssertEquals('count TESTRUNHISTORY after',0,TDBHelper.CountRecords('TESTRUNHISTORY'));
+  lData.Date:=Date;
+  lResult2ID:=SQL.AddRun(lData);
+  AssertEquals('count TESTRUN', 1, TDBHelper.CountRecords('TESTRUN',Format('(TU_ID=%d)',[lResult2ID])));
+  lFilter:=Format('(TH_ID_FK=%d) and (TH_PREVIOUS_FK=%d)',[lResult2ID,lResult1ID]);
+  AssertEquals('count TESTRUNHISTORY after',1,TDBHelper.CountRecords('TESTRUNHISTORY',lFilter));
+end;
+
+procedure TTestSQLCase.TestGetPreviousTestRun;
+begin
+  TDBHelper.ExecSQL('INSERT INTO TESTRUNHISTORY VALUES (2,1)');
+  TDBHelper.ExecSQL('INSERT INTO TESTRUNHISTORY VALUES (3,2)');
+  TDBHelper.ExecSQL('INSERT INTO TESTRUNHISTORY VALUES (4,3)');
+  AssertEquals('First',-1,SQL.GetPreviousRunID(1));
+  AssertEquals('Second',1,SQL.GetPreviousRunID(2));
+  AssertEquals('third',2,SQL.GetPreviousRunID(3));
+  AssertEquals('last',3,SQL.GetPreviousRunID(4));
+end;
+
+procedure TTestSQLCase.TestGetNextTestRun;
+begin
+  TDBHelper.ExecSQL('INSERT INTO TESTRUNHISTORY VALUES (2,1)');
+  TDBHelper.ExecSQL('INSERT INTO TESTRUNHISTORY VALUES (3,2)');
+  TDBHelper.ExecSQL('INSERT INTO TESTRUNHISTORY VALUES (4,3)');
+  AssertEquals('First',2,SQL.GetNextRunID(1));
+  AssertEquals('Second',3,SQL.GetNextRunID(2));
+  AssertEquals('third',4,SQL.GetNextRunID(3));
+  AssertEquals('last',-1,SQL.GetNextRunID(4));
+end;
 
 
 initialization

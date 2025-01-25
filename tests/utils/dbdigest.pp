@@ -26,7 +26,7 @@ uses
   {$ifdef unix}
   cthreads,
   {$endif}
-  types, classes, custapp, sysutils, inifiles, teststr, testu, tresults, dbtests, digestanalyst;
+  types, classes, custapp, sysutils, inifiles, tsstring, tsutils, tstypes, tsdb, digestanalyst;
 
 Type
 

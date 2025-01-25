@@ -5,7 +5,7 @@ unit tcanalyst;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, testu, dbtests, tresults, sqldb, digestanalyst, pqconnection, tcsetup, tctestsql;
+  Classes, SysUtils, fpcunit, testregistry, sqldb, digestanalyst, pqconnection, tcsetup, tctestsql, tsutils, tsdb, tstypes;
 
 type
 
@@ -45,7 +45,7 @@ begin
   if not Assigned(TDBHelper.SQL) then
     TDBHelper.Setup;
   FSQL:=TDBHelper.SQL;
-  FAnalyst:=TDBDigestAnalyzer.Create(FSQL);
+  FAnalyst:=TDBDigestAnalyzer.Create(FSQL,'');
   TDBHelper.ClearAllTables;
 end;
 
@@ -148,11 +148,12 @@ begin
   AssertTrue('New record was marked as last (status)',lResults2.TestResult=lResults.TestResult);
 end;
 
+
 procedure TTestAnalyst.TestSaveResultsIdentical;
 
 var
   lData : TTestRunData;
-  lResults2,lResults : TTestResultData;
+  lResults : TTestResultData;
   lResultID : Int64;
 
 begin
@@ -167,23 +168,6 @@ begin
   AssertEquals('count TESTRESULTS after identical',1,TDBHelper.CountRecords('TESTRESULTS'));
   AssertEquals('count TESTLASTRESULTS before',1,TDBHelper.CountRecords('TESTLASTRESULTS'));
   AssertEquals('count TESTPREVIOUSRESULTS before',0,TDBHelper.CountRecords('TESTPREVIOUSRESULTS'));
-
-(*
-lResults.TestResult:=TTestStatus.stFailedToRun;
-  AssertFalse('No new record for same test date',Analyst.SaveTestResult(lResults));
-  lResults2:=SQL.GetLastTestResult(lResults.TestID,lData.PlatformID);
-  AssertTrue('Existing record was updated');
-
-  lResults.Date:=Date;
-  lData.Date:=Date;
-  lData.RunID:=SQL.AddRun(lData);
-  lResults.RunID:=lData.RunID;
-
-  AssertTrue('new record for different result&test date',Analyst.SaveTestResult(lResults));
-  AssertEquals('count TESTLASTRESULTS after differ',2,TDBHelper.CountRecords('TESTRESULTS'));
-  AssertEquals('count TESTLASTRESULTS after differ',2,TDBHelper.CountRecords('TESTLASTRESULTS'));
-  AssertEquals('count TESTPREVIOUSRESULTS after differ ',1,TDBHelper.CountRecords('TESTLASTRESULTS'));
-*)
 end;
 
 begin

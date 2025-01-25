@@ -34,19 +34,19 @@ endif
 
 utils: all
 
-dbconfig$(SRCEXEEXT): dbconfig.pp teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
+dbconfig$(SRCEXEEXT): dbconfig.pp tsstring$(PPUEXT) tsutils$(PPUEXT) tstypes$(PPUEXT) tsdb$(PPUEXT)
         $(COMPILER) $<
 
-dbdigest$(SRCEXEEXT): dbdigest.pp digestanalyst$(PPUEXT) teststr$(PPUEXT) testu$(PPUEXT) tresults$(PPUEXT) dbtests$(PPUEXT)
+dbdigest$(SRCEXEEXT): dbdigest.pp digestanalyst$(PPUEXT) tsstring$(PPUEXT) tsutils$(PPUEXT) tstypes$(PPUEXT) tsdb$(PPUEXT)
         $(COMPILER) $<
 
-digest$(SRCEXEEXT): digest.pp teststr$(PPUEXT)
+digest$(SRCEXEEXT): digest.pp tsstring$(PPUEXT)
         $(COMPILER) $<
 
 dosbox/dosbox_wrapper$(SRCEXEEXT): dosbox/dosbox_wrapper.pas  
 	$(COMPILER) -FE./dosbox $<
 
-dotest$(SRCEXEEXT): dotest.pp bench$(PPUEXT) teststr$(PPUEXT) redir$(PPUEXT) testu$(PPUEXT)
+dotest$(SRCEXEEXT): dotest.pp bench$(PPUEXT) tsstring$(PPUEXT) redir$(PPUEXT) tsutils$(PPUEXT)
         $(COMPILER) $<
 
 fptime$(SRCEXEEXT): fptime.pp bench$(PPUEXT)

@@ -3,7 +3,7 @@ program testdbdigest;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tctestsql, dbtests, digestanalyst, tcsetup, tcanalyst;
+  Classes, consoletestrunner, tctestsql, digestanalyst, tsdb, tstypes, tsstring, tsutils, tcsetup, tcanalyst, tctsutils;
 
 type
 
@@ -18,6 +18,8 @@ var
   Application: TMyTestRunner;
 
 begin
+  // Will stop V_ERROR from exiting.
+  IsCGI:=True;
   DefaultRunAllTests:=True;
   DefaultFormat:=fPlain;
   Application := TMyTestRunner.Create(nil);

@@ -5,7 +5,7 @@ program dbadd;
 {$modeswitch typehelpers}
 
 uses
-  Classes, SysUtils, CustApp, dbtests, inifiles;
+  Classes, SysUtils, CustApp, tsdb, tsutils, inifiles;
 
 type
   TValueType = (vtCategory,vtCPU,vtOS,vtVersion);

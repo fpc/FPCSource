@@ -18,3 +18,7 @@ programs=testsuite
 
 [default]
 fpcdir=../../..
+
+[rules]
+testsuite$(SRCEXEEXT): testsuite.pp  tscgiapp.pp  tsconsts.pas  tsgraph.pas  tshistory.pas  tshtml.pas  tssql.pas
+	$(COMPILER) $<

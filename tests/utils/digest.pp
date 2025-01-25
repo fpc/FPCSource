@@ -17,7 +17,7 @@
 program digest;
 
 uses
-  teststr;
+  tsstring;
 
 
 const

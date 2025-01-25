@@ -25,8 +25,9 @@ uses
 {$ifdef macos}
   macutils,
 {$endif}
-  teststr,
-  testu,
+  tsstring,
+  tsutils,
+  tstypes,
   redir,
   bench,
   classes;
@@ -146,10 +147,10 @@ begin
       if VerbosePrefix='' then
         VerbosePrefix:='#'+UniqueSuffix+'# ';
       su:=VerbosePrefix+s;
-      testu.Verbose(lvl,su);
+      tsutils.Verbose(lvl,su);
     end
   else
-    testu.Verbose(lvl,s);
+    tsutils.Verbose(lvl,s);
 end;
 
 function ToStr(l:longint):string;

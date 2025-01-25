@@ -1,19 +1,31 @@
 {$mode objfpc}
 {$h+}
+{$define httpserver}
 program testsuite;
 
-uses utests, tresults;
+uses
+  sysutils, httproute, fpweb, tshttp, tsconsts, tshtml,
+  {$ifdef httpserver}
+  fphttpapp
+  {$else}
+  fpcgi
+  {$endif}
+  ;
 
-Var
-  App : TTestSuite;
+
 
 begin
-  App:=TTestSuite.Create(nil);
-  Try
-    App.Title:='Free Pascal Compiler Test Suite Results';
-    App.Initialize;
-    App.Run;
-  Finally
-    App.Free;
-  end;
+  if paramstr(0)<>'' then
+    TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+extractfilename(paramstr(0))
+  else
+    TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+TestsuiteBin;
+
+  HTTPRouter.RegisterRoute('*',rmAll,@HandleTestSuiteRequest,True);
+  Application.Initialize;
+  {$ifdef httpserver}
+  Application.Port:=9090;
+  {$else}
+  IsCGI:=True;
+  {$endif}
+  Application.Run;
 end.
