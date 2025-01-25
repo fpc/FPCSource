@@ -1,6 +1,11 @@
+{
+  Main entry for testsuite CGI/HTTP program.
+}
 {$mode objfpc}
 {$h+}
-{$define httpserver}
+
+{ $define httpserver}
+
 program testsuite;
 
 uses
