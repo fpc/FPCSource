@@ -883,3 +883,7 @@ function fpc_hugeptr_cmp_normalized_ae(p1, p2: HugePointer): Boolean; compilerpr
 {$ifdef cpullvm}
 {$i llvmintr.inc}
 {$endif cpullvm}
+
+{$ifdef cpuwasm32}
+procedure fpc_wasm_invoke_helper(CodeAddress: CodePointer; Args: Pointer; Result: Pointer); compilerproc;
+{$endif cpuwasm32}

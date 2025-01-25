@@ -20,6 +20,11 @@
 procedure fpc_wasm32_init_tls(memory: Pointer);external name '__wasm_init_tls';
 {$endif FPC_WASM_THREADS}
 
+procedure fpc_wasm_invoke_helper(CodeAddress: CodePointer; Args: Pointer; Result: Pointer);assembler;nostackframe;
+asm
+  unreachable
+end;
+
 {$define FPC_SYSTEM_HAS_FPC_CPUINIT}
 procedure fpc_cpuinit;
   begin
