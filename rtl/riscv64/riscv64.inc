@@ -18,19 +18,6 @@
 { Common RiscV stuff }
 {$I ../riscv/riscv.inc}
 
-{****************************************************************************
-                       stack frame related stuff
-****************************************************************************}
-
-{$IFNDEF INTERNAL_BACKTRACE}
-{$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;nostackframe;
-  asm
-    addi a0, fp, 0
-  end;
-{$ENDIF not INTERNAL_BACKTRACE}
-
-
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
@@ -44,13 +31,9 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
     ld a0, -8*2(a0)
   end;
 
-
-{$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : pointer;assembler;nostackframe;
-  asm
-    addi a0, sp, 0
-  end;
-
+{****************************************************************************
+                       stack frame related stuff
+****************************************************************************}
 
 {$ifdef VER3_2}
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;

@@ -18,29 +18,18 @@
 { Common RiscV stuff }
 {$I ../riscv/riscv.inc}
 
-{$IFNDEF INTERNAL_BACKTRACE}
-{$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;nostackframe;
-  asm
-  end;
-{$ENDIF not INTERNAL_BACKTRACE}
-
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
+    lw a0, -4*1(a0)
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
-  end;
-
-
-{$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : pointer;assembler;
-  asm
+    lw a0, -4*2(a0)
   end;
 
 

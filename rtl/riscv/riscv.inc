@@ -15,6 +15,21 @@
 
  **********************************************************************}
 
+{$IFNDEF INTERNAL_BACKTRACE}
+{$define FPC_SYSTEM_HAS_GET_FRAME}
+function get_frame:pointer;assembler;nostackframe;
+  asm
+    addi a0, fp, 0
+  end;
+{$ENDIF not INTERNAL_BACKTRACE}
+
+
+{$define FPC_SYSTEM_HAS_SPTR}
+Function Sptr : pointer;assembler;nostackframe;
+  asm
+    addi a0, sp, 0
+  end;
+
 {****************************************************************************
                        fpu exception related stuff
 ****************************************************************************}
