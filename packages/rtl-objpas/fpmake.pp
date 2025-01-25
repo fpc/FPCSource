@@ -139,7 +139,7 @@ begin
     T:=P.Targets.AddUnit('rtti.pp',RttiOSes);
     with T.Dependencies do
        begin
-         AddInclude('invoke.inc',[x86_64],RttiOSes);
+         AddInclude('invoke.inc',[x86_64,wasm32],RttiOSes);
          AddUnit('variants');
        end;
     T.ResourceStrings:=true;

@@ -8408,7 +8408,7 @@ end;
 
 
 {$ifndef InLazIDE}
-{$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64))}
+{$if defined(CPUI386) or (defined(CPUX86_64) and defined(WIN64)) or defined(CPUWASM32)}
 {$I invoke.inc}
 {$endif}
 {$endif}
