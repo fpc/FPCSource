@@ -157,3 +157,28 @@ begin
   SetNativeFPUControlWord(cw);
 {$endif FPUFD}
 end;
+
+
+{$define FPC_SYSTEM_HAS_MEM_BARRIER}
+
+procedure ReadBarrier; assembler; nostackframe;
+  asm
+    fence ir, ir
+  end;
+
+
+procedure ReadDependencyBarrier;
+  begin
+  end;
+
+
+procedure ReadWriteBarrier; assembler; nostackframe;
+  asm
+    fence iorw, iorw
+  end;
+
+
+procedure WriteBarrier; assembler; nostackframe;
+  asm
+    fence ow, ow
+  end;
