@@ -119,3 +119,41 @@ procedure fpc_throwfpuexception;[public,alias:'FPC_THROWFPUEXCEPTION'];
       RaisePendingExceptions;
   end;
 {$endif FPUFD}
+
+
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU;
+{$ifdef FPUFD}
+var
+  cw: TNativeFPUControlWord;
+{$endif}
+begin
+  softfloat_exception_flags:=[];
+  softfloat_exception_mask:=[exPrecision,exUnderflow];
+{$ifdef FPUFD}
+  cw:=GetNativeFPUControlWord;
+  { riscv does not support triggering exceptions when FPU exceptions happen;
+    it merely records which exceptions have happened until now -> clear }
+  cw.cw:=0;
+  { round to nearest }
+  cw.rndmode:=0;
+  SetNativeFPUControlWord(cw);
+{$endif}
+end;
+
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;
+{$ifdef FPUFD}
+var
+  cw: TNativeFPUControlWord;
+{$endif}
+begin
+  softfloat_exception_flags:=[];
+{$ifdef FPUFD}
+  { clear all "exception happened" flags we care about}
+  cw:=GetNativeFPUControlWord;
+  cw.cw:=0;
+  SetNativeFPUControlWord(cw);
+{$endif FPUFD}
+end;
