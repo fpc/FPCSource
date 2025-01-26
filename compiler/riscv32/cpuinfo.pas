@@ -225,7 +225,8 @@ Const
        CPURV_HAS_ZDINX,
        CPURV_HAS_ZHINX,
        CPURV_HAS_ZHINXMIN,
-       CPURV_HAS_ZICOND
+       CPURV_HAS_ZICOND,
+       CPURV_HAS_ZMMUL
       );
 
  const

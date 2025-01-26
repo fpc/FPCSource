@@ -316,7 +316,7 @@ unit cgrv;
               end
             else
 {$endif RISCV64}
-            if (op in [OP_IMUL,OP_MUL]) and not(CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
+            if (op in [OP_IMUL,OP_MUL]) and ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[current_settings.cputype]=[]) then
               begin
                 case size of
                   OS_8:

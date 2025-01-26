@@ -57,7 +57,7 @@ unit nrv64add;
       begin
         if (nodetype=muln) and
            (left.resultdef.typ=orddef) and (left.resultdef.typ=orddef) and
-           (CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype]) then
+           ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[current_settings.cputype]<>[]) then
           begin
             result:=nil;
 
@@ -67,7 +67,7 @@ unit nrv64add;
             expectloc:=LOC_REGISTER;
           end
         else if (nodetype=muln) and
-           (not (CPURV_HAS_MUL in cpu_capabilities[current_settings.cputype])) and
+           ([CPURV_HAS_MUL,CPURV_HAS_ZMMUL]*cpu_capabilities[current_settings.cputype]=[]) and
            (is_64bit(left.resultdef) or
             is_64bit(right.resultdef)) then
           begin
