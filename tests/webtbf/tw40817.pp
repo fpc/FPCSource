@@ -1,4 +1,4 @@
-{ %fail ]
+{ %fail }
 procedure proc;
 begin
 end;
