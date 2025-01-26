@@ -315,6 +315,24 @@ begin
         end;
       tkQWord, tkInt64:
         PUInt64(aResultValue)^ := PUInt64(@ResultBuf)^;
+      tkBool:
+        begin
+          td := GetTypeData(aResultType);
+          case td^.OrdType of
+            otUByte,
+            otSByte:
+              PUInt8(aResultValue)^ := PUInt8(@ResultBuf)^;
+            otUWord,
+            otSWord:
+              PUInt16(aResultValue)^ := PUInt16(@ResultBuf)^;
+            otULong,
+            otSLong:
+              PUInt32(aResultValue)^ := PUInt32(@ResultBuf)^;
+            otUQWord,
+            otSQWord:
+              PUInt64(aResultValue)^ := PUInt64(@ResultBuf)^;
+          end;
+        end;
       else
         PUInt32(aResultValue)^ := PUInt32(@ResultBuf)^;
     end;
