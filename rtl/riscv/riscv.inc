@@ -15,6 +15,10 @@
 
  **********************************************************************}
 
+{****************************************************************************
+                       stack frame related stuff
+****************************************************************************}
+
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
@@ -196,4 +200,21 @@ procedure ReadWriteBarrier; assembler; nostackframe;
 procedure WriteBarrier; assembler; nostackframe;
   asm
     fence ow, ow
+  end;
+
+{****************************************************************************
+                       atomic operations
+****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
+  function declocked(var l: longint) : boolean; inline;
+  begin
+    Result:=InterLockedDecrement(l) = 0;
+  end;
+
+
+{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
+  procedure inclocked(var l: longint); inline;
+  begin
+    InterLockedIncrement(l);
   end;

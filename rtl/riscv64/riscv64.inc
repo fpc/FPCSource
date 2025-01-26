@@ -18,6 +18,10 @@
 { Common RiscV stuff }
 {$I ../riscv/riscv.inc}
 
+{****************************************************************************
+                       stack frame related stuff
+****************************************************************************}
+
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler;
   asm
@@ -32,7 +36,7 @@ function get_caller_frame(framebp:pointer;addr:pointer=nil):pointer;assembler;
   end;
 
 {****************************************************************************
-                       stack frame related stuff
+                       atomic operations
 ****************************************************************************}
 
 {$ifdef VER3_2}
@@ -232,20 +236,6 @@ function fpc_atomic_add_64 (var Target: int64;Value : int64) : int64; assembler;
     sd a2, 0(a0)
     addi a0, a2, 0
 {$endif CPURV_HAS_ATOMIC}
-  end;
-
-
-{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-  function declocked(var l: longint) : boolean; inline;
-  begin
-    Result:=InterLockedDecrement(l) = 0;
-  end;
-
-
-{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-  procedure inclocked(var l: longint); inline;
-  begin
-    InterLockedIncrement(l);
   end;
 
 
