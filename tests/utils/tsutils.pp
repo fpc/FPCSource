@@ -377,7 +377,7 @@ function GetConfig(const logprefix,fn:string;out aConfig:TConfig):boolean;
              begin
                val(Copy(aValue,1,p-1),l,code);
                if code<>0 then
-                 Verbose(V_Error,LogPrefix+' File '+fn+' nvalid value in EXPECTMSGS list: '+Copy(aValue,1,p-1));
+                 Verbose(V_Error,LogPrefix+' File '+fn+' Invalid value in EXPECTMSGS list: '+Copy(aValue,1,p-1));
                Insert(l,aConfig.ExpectMsgs,Length(aConfig.ExpectMsgs));
                Delete(aValue,1,p);
                p:=Pos(',',aValue);
