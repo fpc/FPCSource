@@ -360,9 +360,9 @@ function GetConfig(const logprefix,fn:string;out aConfig:TConfig):boolean;
              aConfig.ConfigFileSrc:=Trim(Copy(aValue,1,l-1));
              aConfig.ConfigFileDst:=Trim(Copy(aValue,l+1,Length(aValue)-l+1));
              if aConfig.ConfigFileSrc='' then
-               Verbose(V_Error,LogPrefix+'Config file source is empty');
+               Verbose(V_Error,LogPrefix+' File '+fn+' Config file source is empty');
              if aConfig.ConfigFileDst='' then
-               Verbose(V_Error,LogPrefix+'Config file destination is empty');
+               Verbose(V_Error,LogPrefix+' File '+fn+' Config file destination is empty');
            end
          else
            begin
@@ -377,18 +377,18 @@ function GetConfig(const logprefix,fn:string;out aConfig:TConfig):boolean;
              begin
                val(Copy(aValue,1,p-1),l,code);
                if code<>0 then
-                 Verbose(V_Error,LogPrefix+'Invalid value in EXPECTMSGS list: '+Copy(aValue,1,p-1));
+                 Verbose(V_Error,LogPrefix+' File '+fn+' nvalid value in EXPECTMSGS list: '+Copy(aValue,1,p-1));
                Insert(l,aConfig.ExpectMsgs,Length(aConfig.ExpectMsgs));
                Delete(aValue,1,p);
                p:=Pos(',',aValue);
              end;
            Val(aValue,l,code);
            if code<>0 then
-             Verbose(V_Error,LogPrefix+'Invalid value in EXPECTMSGS list: '+aValue);
+             Verbose(V_Error,LogPrefix+' File '+fn+' Invalid value in EXPECTMSGS list: '+aValue);
            Insert(l,aConfig.ExpectMsgs,Length(aConfig.ExpectMsgs));
          end;
        else
-         Verbose(V_Error,LogPrefix+'Unknown entry: '+aEntry+' with value: '+aValue);
+         Verbose(V_Error,LogPrefix+' File '+fn+' Unknown entry: '+aEntry+' with value: '+aValue);
     end;
   end;
 
