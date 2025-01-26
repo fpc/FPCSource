@@ -315,6 +315,8 @@ begin
         end;
       tkQWord, tkInt64:
         PUInt64(aResultValue)^ := PUInt64(@ResultBuf)^;
+      tkEnumeration,
+      tkInteger,
       tkBool:
         begin
           td := GetTypeData(aResultType);
