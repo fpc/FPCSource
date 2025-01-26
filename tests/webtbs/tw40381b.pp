@@ -1,4 +1,4 @@
-{ %FAIL }
+{ %FAIL }
 
 program tw40381b;
 

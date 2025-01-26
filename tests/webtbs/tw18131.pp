@@ -1,4 +1,4 @@
-{ %norun% }
+{ %norun }
 program tw18131;
 
 {$mode delphi}

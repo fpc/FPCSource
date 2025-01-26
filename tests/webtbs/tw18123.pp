@@ -1,4 +1,4 @@
-{ %norun% }
+{ %norun }
 program tw18123;
 
 {$mode objfpc}{$H+}

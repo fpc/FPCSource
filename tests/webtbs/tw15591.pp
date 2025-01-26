@@ -1,4 +1,4 @@
-{ %norun% }
+{ %norun }
 program tw15591;
 {$mode objfpc}
 uses uw15591;

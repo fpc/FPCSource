@@ -1,4 +1,4 @@
-{ %fail% }
+{ %fail }
 { %OPT=-O3 -Oodeadstore -Cr }
 var
   i : longint;

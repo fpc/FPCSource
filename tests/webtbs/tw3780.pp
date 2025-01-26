@@ -1,4 +1,4 @@
-{ %KNOWNCOMPILEERROR }
+{ %KNOWNCOMPILEERROR=Test disabled because mode gpc is disabled. }
 {Test disabled because mode gpc is disabled.}
 
 { Source provided for Free Pascal Bug Report 3780 }

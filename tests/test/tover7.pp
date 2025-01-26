@@ -1,4 +1,4 @@
-{ %FAIL }
+{ %FAIL }
 
 program tover7;
 

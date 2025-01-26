@@ -1,4 +1,4 @@
-{ %fail% }
+{ %fail }
 {$mode delphi}
 program IS_Precedence;
 uses

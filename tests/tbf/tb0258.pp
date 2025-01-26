@@ -1,4 +1,4 @@
-{ %fail% }
+{ %fail }
 { %opt=-Sew -vw -O- }
 
 {
