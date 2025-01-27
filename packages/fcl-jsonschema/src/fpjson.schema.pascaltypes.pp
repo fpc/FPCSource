@@ -445,8 +445,13 @@ begin
   Result:=FImplementationName;
   if Result='' then
     begin
-    Result:='T'+StringReplace(SchemaName,'Dto','',[rfIgnoreCase]);
-    Result:=Result+'Obj';
+    if PascalType in [ptSchemaStruct,ptAnonStruct] then
+      begin
+      Result:='T'+StringReplace(SchemaName,'Dto','',[rfIgnoreCase]);
+      Result:=Result+'Obj';
+      end
+    else
+      Result:=PascalName;
     end;
 end;
 
@@ -456,7 +461,12 @@ function TPascalTypeData.GetInterfaceName: String;
 begin
   Result:=FInterfaceName;
   if Result='' then
-    Result:='I'+SchemaName;
+    begin
+    if Pascaltype in [ptAnonStruct,ptSchemaStruct] then
+      Result:='I'+SchemaName
+    else
+      Result:=PascalName;
+    end;
 end;
 
 
@@ -629,12 +639,14 @@ procedure TSchemaData.CheckDependencies;
   procedure CheckProps(lTop,aData : TPascalTypeData);
 
   var
+    lProp : TPascalPropertyData;
     lPropData : TPascalTypeData;
     I : Integer;
   begin
     For I:=0 to aData.PropertyCount-1 do
       begin
-      lPropData:=aData.Properties[I].TypeData;
+      lProp:=aData.Properties[I];
+      lPropData:=lProp.TypeData; // Array element or struct depending on type.
       if Assigned(lPropData) then
         begin
         Case lPropData.Pascaltype of
