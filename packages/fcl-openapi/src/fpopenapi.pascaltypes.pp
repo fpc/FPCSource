@@ -708,8 +708,11 @@ procedure TAPIData.ConfigType(aType :TAPITypeData);
 
 
 begin
-  aType.InterfaceName:=EscapeKeyWord(InterfaceTypePrefix+aType.SchemaName);
-  aType.InterfaceUUID:=TGUID.NewGUID.ToString(False);
+  if aType.Pascaltype in [ptAnonStruct,ptSchemaStruct] then
+    begin
+    aType.InterfaceName:=EscapeKeyWord(InterfaceTypePrefix+aType.SchemaName);
+    aType.InterfaceUUID:=TGUID.NewGUID.ToString(False);
+    end;
 end;
 
 procedure TAPIData.ApplyUUIDMap(aMap : TStrings);
