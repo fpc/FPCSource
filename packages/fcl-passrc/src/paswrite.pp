@@ -872,7 +872,8 @@ procedure TPasWriter.WriteRecordType(AType: TPasRecordType);
 
 Var
   Temp : String;
-
+  i : Integer;
+  
 begin
   Temp:='record';
   If aType.IsPacked then
