@@ -541,7 +541,7 @@ type
 
   TPasType = class(TPasElement)
   Protected
-    Function FixTypeDecl(aDecl: TPasTreeString) : TPasTreeString;
+    Function FixTypeDecl(aDecl: TPasTreeString) : TPasTreeString; virtual;
   public
     Function SafeName : TPasTreeString; override;
     function ElementTypeName: TPasTreeString; override;
@@ -551,6 +551,8 @@ type
   { TPasAliasType }
 
   TPasAliasType = class(TPasType)
+  protected
+    Function FixTypeDecl(aDecl: TPasTreeString) : TPasTreeString; override;
   public
     procedure FreeChildren(Prepare: boolean); override;
     function ElementTypeName: TPasTreeString; override;
@@ -3370,6 +3372,19 @@ procedure TPasPointerType.FreeChildren(Prepare: boolean);
 begin
   DestType:=TPasType(FreeChild(DestType,Prepare));
   inherited FreeChildren(Prepare);
+end;
+
+function TPasAliasType.FixTypeDecl(aDecl: TPasTreeString): TPasTreeString;
+
+var
+  PasType : TPasType;
+begin
+  Result:=aDecl;
+  PasType:=TPasTypeAliasType(Self).DestType;
+  Result:='type '+PasType.GetDeclaration(PasType is TPasUnresolvedTypeRef);
+  if (Name<>'') then
+    Result:=SafeName+' = '+Result;
+  ProcessHints(false,Result);
 end;
 
 procedure TPasAliasType.FreeChildren(Prepare: boolean);
