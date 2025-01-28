@@ -4580,7 +4580,7 @@ begin
     end
   else
     begin
-    Result:='Set of '+EnumType.SafeName;
+    Result:='Set of '+EnumType.GetDeclaration(True);
     If Full then
       Result:=SafeName+' = '+Result;
     end;
