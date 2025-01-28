@@ -65,9 +65,15 @@ implementation
           current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_stack_align,target_info.stackalign));
           current_asmdata.asmlists[al_start].Concat(tai_attribute.create(ait_attribute,tag_unaligned_access,0));
 {$if defined(RISCV32)}
-          attr_arch:='rv32i2p1';
+          if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+            attr_arch:='rv32e2p0'
+          else
+            attr_arch:='rv32i2p1';
 {$elseif defined(RISCV64)}
-          attr_arch:='rv64i2p1';
+          if CPURV_HAS_16REGISTERS in cpu_capabilities[current_settings.cputype] then
+            attr_arch:='rv64e2p0'
+          else
+            attr_arch:='rv64i2p1';
 {$elseif defined(RISCV128)}
           attr_arch:='rv128i2p1';
 {$endif defined(RISCV32)}
