@@ -2310,6 +2310,7 @@ function TInlineSpecializeExpr.GetDeclaration(full: Boolean): TPasTreeString;
 var
   i: Integer;
   aParam: TPasElement;
+  lTmp : String;
 begin
   Result:='specialize '+NameExpr.GetDeclaration(false)+'<';
   for i:=0 to Params.Count-1 do
@@ -2320,7 +2321,11 @@ begin
     if aParam is TPasMembersType then
       Result:=Result+aParam.FullName
     else
-      Result:=Result+aParam.GetDeclaration(false);
+      begin
+      lTmp:=aParam.GetDeclaration(aParam is TPasUnresolvedTypeRef);
+      lTmp[1]:=UpCase(lTmp[1]);
+      Result:=Result+lTmp;
+      end;
     end;
   Result:=Result+'>';
   if full then ;

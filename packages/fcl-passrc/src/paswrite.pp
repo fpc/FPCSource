@@ -934,15 +934,7 @@ begin
     IsImpl:=FInImplementation;
   if FInImplementation and not forcebody and (Assigned(AProc.LibraryExpr) or Assigned(AProc.LibrarySymbolName)) and HasOption(woSkipPrivateExternals)  then
     Exit;
-  Add(AProc.TypeName + ' ' + NamePrefix+AProc.SafeName);
-  if Assigned(AProc.ProcType) and (AProc.ProcType.Args.Count > 0) then
-    AddProcArgs(AProc.ProcType.Args) ;
-  if Assigned(AProc.ProcType) and
-    (AProc.ProcType.ClassType = TPasFunctionType) then
-  begin
-    Add(': ');
-    WriteType(TPasFunctionType(AProc.ProcType).ResultEl.ResultType,False);
-  end;
+  Add(AProc.GetDeclaration(True));
   Add(';');
   // delphi compatible order for example: procedure foo; reintroduce; overload; static;
   if not IsImpl and AProc.IsReintroduced then
