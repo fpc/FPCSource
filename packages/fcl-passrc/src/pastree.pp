@@ -997,6 +997,7 @@ type
     LengthExpr : TPasTreeString;
     CodePageExpr : TPasTreeString;
     function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(full: Boolean): TPasTreeString; override;
   end;
 
   { TPasTypeRef  - not used by TPasParser }
@@ -3010,6 +3011,18 @@ function TPasConstructorImpl.ElementTypeName: TPasTreeString; begin Result := SP
 function TPasDestructorImpl.ElementTypeName: TPasTreeString; begin Result := SPasTreeDestructorImpl end;
 function TPasStringType.ElementTypeName: TPasTreeString; begin Result:=SPasStringType;end;
 
+function TPasStringType.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:='string';
+  if full then
+    begin
+    if LengthExpr<>'' then
+       Result:=Result+'['+LengthExpr+']';
+    if CodePageExpr<>'' then
+       Result:=Result+'('+CodePageExpr+')';
+    end;
+end;
+
 
 { All other stuff: }
 
@@ -4385,7 +4398,10 @@ end;
 
 function TPasAliasType.GetDeclaration(full: Boolean): TPasTreeString;
 begin
-  Result:=DestType.SafeName;
+  if DestType is TPasStringType then
+    Result:=DestType.GetDeclaration(True)
+  else
+    Result:=DestType.SafeName;
   If Full then
     Result:=FixTypeDecl(Result);
 end;
@@ -4856,8 +4872,10 @@ Const
 begin
   If Assigned(VarType) then
     begin
-    If VarType.Name='' then
-      Result:=VarType.GetDeclaration(False)
+    // Todo: need something better than this.
+    If (VarType.Name='')
+       or ((VarType is TPasAliasType) and (TPasAliasType(VarType).DestType is TPasStringType)) then
+      Result:=VarType.GetDeclaration(Full)
     else
       Result:=VarType.SafeName;
     Result:=Result+Modifiers;
