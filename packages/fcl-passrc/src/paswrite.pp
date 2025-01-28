@@ -891,6 +891,18 @@ begin
   IncIndent;
   IncDeclSectionLevel;
   WriteMembers(AType.Members,visPublic);
+  if AType.Variants<>nil then
+      begin
+      temp:='case ';
+      if (AType.VariantEl is TPasVariable) then
+        temp:=Temp+AType.VariantEl.Name+' : '+TPasVariable(AType.VariantEl).VarType.Name
+      else if (AType.VariantEl<>Nil) then
+        temp:=temp+AType.VariantEl.Name;
+      temp:=temp+' of';
+      AddLn(Temp);
+      For I:=0 to AType.Variants.Count-1 do
+        AddLn(TPasVariant(AType.Variants[i]).GetDeclaration(True));
+      end;
   DecDeclSectionLevel;
   DecIndent;
   Add('end');
