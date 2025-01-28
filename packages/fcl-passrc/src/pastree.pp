@@ -1935,12 +1935,14 @@ begin
   for i:=0 to List.Count-1 do
     begin
     if i>0 then
-      Result:=Result+',';
+      if length(T.Constraints)>0 then
+        Result:=Result+';'
+      else
+        Result:=Result+',';
     T:=TPasGenericTemplateType(List[i]);
     Result:=Result+T.Name;
     if length(T.Constraints)>0 then
       begin
-      Result:=Result+':';
       for j:=0 to length(T.Constraints)-1 do
         begin
         if j>0 then
@@ -2146,7 +2148,7 @@ begin
       begin
       if i>0 then
         Result:=Result+',';
-      Result:=Result+Constraints[i].GetDeclaration(false);
+      Result:=Result+Constraints[i].GetDeclaration(True);
       end;
     end;
 end;
