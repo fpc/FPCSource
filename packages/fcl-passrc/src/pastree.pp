@@ -4463,6 +4463,8 @@ begin
 end;
 
 function TPasArrayType.GetDeclaration (full : boolean) : TPasTreeString;
+var
+  i : Integer;
 begin
   Result:='Array';
   if Full then
@@ -4473,12 +4475,23 @@ begin
       Result:=SafeName+' = '+Result;
     end;
   If (IndexRange<>'') then
-    Result:=Result+'['+IndexRange+']';
+    Result:=Result+'['+IndexRange+']'
+  else if Length(Ranges)>0 then
+    begin
+      Result:=Result+'[';
+      for i:=0 to Length(Ranges)-1 do
+        begin
+          if i>0 then
+            Result:=Result+',';
+          Result:=Result+Ranges[i].GetDeclaration(True);
+        end;
+      Result:=Result+']';
+    end;
   Result:=Result+' of ';
   If IsPacked then
     Result := 'packed '+Result;      // 12/04/04 Dave - Added
   If Assigned(Eltype) then
-    Result:=Result+ElType.SafeName
+    Result:=Result+ElType.GetDeclaration(ElType is TPasUnresolvedTypeRef)
   else
     Result:=Result+'const';
 end;
