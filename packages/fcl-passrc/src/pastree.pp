@@ -848,6 +848,8 @@ type
   { TPasClassType }
 
   TPasClassType = class(TPasMembersType)
+  protected
+    procedure GetMembers(S: TStrings); virtual;
   public
     constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
     destructor Destroy; override;
@@ -871,6 +873,7 @@ type
     ExternalName : TPasTreeString;
     InterfaceType: TPasClassInterfaceType;
     Function IsObjCClass : Boolean;
+    function GetDeclaration(full: boolean): TPasTreeString; override;
     Function FindMember(MemberClass : TPTreeElement; Const MemberName : TPasTreeString) : TPasElement;
     Function FindMemberInAncestors(MemberClass : TPTreeElement; Const MemberName : TPasTreeString) : TPasElement;
     Function InterfaceGUID : TPasTreeString;
@@ -3591,6 +3594,83 @@ begin
     if El=aType then
       Interfaces[i]:=nil;
     end;
+end;
+
+procedure TPasClassType.GetMembers(S: TStrings);
+
+Var
+  T : TStringList;
+  temp : TPasTreeString;
+  I,J : integer;
+  E : TPasElement;
+  CV : TPasMemberVisibility ;
+
+begin
+  T:=TStringList.Create;
+  try
+  CV:=visDefault;
+  For I:=0 to Members.Count-1 do
+    begin
+    E:=TPasElement(Members[i]);
+    if E.Visibility<>CV then
+      begin
+      CV:=E.Visibility;
+      if CV<>visDefault then
+        S.Add(VisibilityNames[CV]);
+      end;
+    Temp:=E.GetDeclaration(True);
+    If E is TPasProperty then
+      Temp:='property '+Temp;
+    If Pos(LineEnding,Temp)>0 then
+      begin
+      T.Text:=Temp;
+      For J:=0 to T.Count-1 do
+        if J=T.Count-1 then
+          S.Add('  '+T[J]+';')
+        else
+          S.Add('  '+T[J])
+      end
+    else
+      S.Add('  '+Temp+';');
+    end;
+  finally
+    T.Free;
+  end;
+end;
+
+
+function TPasClassType.GetDeclaration(full: boolean): TPasTreeString;
+
+Var
+  S : TStringList;
+  temp : TPasTreeString;
+
+begin
+  S:=TStringList.Create;
+  Try
+    Temp:='class';
+    if IsAbstract then
+      Temp:=Temp+' abstract';
+    if IsSealed then
+      Temp:=Temp+' sealed';
+    if Assigned(AncestorType) then
+      Temp:=Temp+'('+AncestorType.Name+')';
+    If Full and (Name<>'') then
+      begin
+      if GenericTemplateTypes.Count>0 then
+        Temp:=SafeName+GenericTemplateTypesAsString(GenericTemplateTypes)+' = '+Temp
+      else
+        Temp:=SafeName+' = '+Temp;
+      end;
+    S.Add(Temp);
+    GetMembers(S);
+    S.Add('end');
+    Result:=S.Text;
+    if Full then
+      ProcessHints(False, Result);
+  finally
+    S.free;
+  end;
 end;
 
 function TPasClassType.ElementTypeName: TPasTreeString;
