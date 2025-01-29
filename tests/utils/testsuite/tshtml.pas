@@ -226,7 +226,7 @@ Var
 begin
   P:=(Sender as TTableProducer);
   if FVars.CompareRunID<>-1 then
-    S:=Format(TestSuiteCGIURL + '?action=%d&amp;run1id=%d&amp;run2id=%s&amp;testfileid=%s',
+    S:=Format(TestSuiteCGIURL + '?action=%d&amp;run1id=%d&amp;run2id=%d&amp;testfileid=%s',
        [faction_show_one_test,FVars.RunID,FVars.CompareRunID,P.DataSet.FieldByName('Id').AsString])
   else
     S:=Format(TestSuiteCGIURL + '?action=%d&amp;run1id=%d&amp;testfileid=%s',
