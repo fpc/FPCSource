@@ -1837,7 +1837,7 @@ Type
 Var
   Ref: TPasType;
   K : TSimpleTypeKind;
-  Name : String;
+  lName,Name : String;
   Expr: TPasExpr;
   MustBeSpecialize: Boolean;
 
@@ -1865,6 +1865,7 @@ begin
       NextToken;
       end;
     end;
+  lName:=LowerCase(Name);
 
   if MustBeSpecialize and (CurToken<>tkLessThan) then
     ParseExcTokenError('<');
@@ -1877,7 +1878,7 @@ begin
     end
   else if IsFull and (CurToken=tkSquaredBraceOpen) then
     begin
-    if LowerCase(Name)='string' then // Type A = String[12]; shortstring
+    if lName='string' then // Type A = String[12]; shortstring
       K:=stkString
     else
       ParseExcSyntaxError;
@@ -1891,10 +1892,10 @@ begin
     end
   else if (CurToken in [tkBraceOpen,tkDotDot])  then // A: B..C or A: string(CP);
     begin
-    if not (LowerCase(Name)='string') then
-      K:=stkRange
+    if (lName='string') or (lName='ansistring') then
+      K:=stkString
     else
-      K:=stkString;
+      K:=stkRange;
     UnGetToken;
     end
   else
