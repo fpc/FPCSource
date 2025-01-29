@@ -5345,19 +5345,22 @@ begin
         T:=T+' '+SafeName;
       S.Add(T);
       end;
-    ProcType.GetArguments(S);
-    If (ProcType is TPasFunctionType)
-        and Assigned(TPasFunctionType(Proctype).ResultEl) then
-      With TPasFunctionType(ProcType).ResultEl.ResultType do
-        begin
-        T:=' : ';
-        If (Name<>'') then
-          T:=T+SafeName
-        else
-          T:=T+GetDeclaration(False);
-        S.Add(T);
-        end;
-    GetModifiers(S);
+    if Assigned(ProcType) then
+      begin
+      ProcType.GetArguments(S);
+      If (ProcType is TPasFunctionType)
+          and Assigned(TPasFunctionType(Proctype).ResultEl) then
+        With TPasFunctionType(ProcType).ResultEl.ResultType do
+          begin
+          T:=' : ';
+          If (Name<>'') then
+            T:=T+SafeName
+          else
+            T:=T+GetDeclaration(False);
+          S.Add(T);
+          end;
+      GetModifiers(S); // needs proctype
+      end;
     Result:=IndentStrings(S,Length(S[0]));
   finally
     S.Free;
