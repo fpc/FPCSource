@@ -1074,7 +1074,8 @@ type
     destructor Destroy; override;
     procedure FreeChildren(Prepare: boolean); override;
     function ElementTypeName: TPasTreeString; override;
-    function GetDeclaration(full : boolean) : TPasTreeString; override;
+    function GetDeclaration(full : boolean) : TPasTreeString; override; overload;
+    function GetDeclaration(full: boolean; WithAccessor: Boolean): TPasTreeString; overload;
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
   public
@@ -5034,6 +5035,12 @@ end;
 
 function TPasProperty.GetDeclaration (full : boolean) : TPasTreeString;
 
+begin
+  Result:=GetDeclaration(Full,False);
+end;
+
+function TPasProperty.GetDeclaration (full : boolean; WithAccessor : Boolean) : TPasTreeString;
+
 Var
   S : TPasTreeString;
   I : Integer;
@@ -5066,6 +5073,13 @@ begin
   If Full then
     begin
     Result:=SafeName+S+': '+Result;
+    if WithAccessor then
+      begin
+      if Assigned(ReadAccessor) then
+         Result:=Result+' read '+ReadAccessor.GetDeclaration(True);
+      if Assigned(WriteAccessor) then
+         Result:=Result+' write '+WriteAccessor.GetDeclaration(True);
+      end;
     If (ImplementsName<>'') then
        Result:=Result+' implements '+EscapeKeyWord(ImplementsName);
     end;   
