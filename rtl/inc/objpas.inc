@@ -53,11 +53,14 @@
 
     { interface helpers }
     procedure fpc_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF']; compilerproc;
+      var
+        iFetch: pointer;
       begin
-        if assigned(i) then
+        iFetch:=i;
+        if assigned(iFetch) then
           begin
-            IUnknown(i)._Release;
             i:=nil;
+            IUnknown(iFetch)._Release;
           end;
       end;
 
