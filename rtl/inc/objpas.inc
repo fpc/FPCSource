@@ -1171,16 +1171,32 @@ end;
     function TInterfacedObject._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 
       begin
-         _addref:=interlockedincrement(frefcount);
+         _addref:=frefcount;
+         if _addref>0 then
+           _addref:=interlockedincrement(frefcount)
+         else if _addref=0 then
+           begin
+             frefcount:=1; { Work non-atomically in the common case of refcount = 0 (typical state after the complete object construction). }
+             _addref:=1;
+           end;
       end;
 
     function TInterfacedObject._Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 
       begin
-         _Release:=interlockeddecrement(frefcount);
+         _Release:=frefcount;
+         if _Release<=0 then { -1 means recursive call from destructor... 0 is impossible. }
+           exit;
+         if _Release=1 then
+           begin
+             _Release:=0; { Work non-atomically in the common case of refcount = 1 (typical state for the last owner... which is often the only owner). }
+             frefcount:=0;
+           end
+         else
+           _Release:=interlockeddecrement(frefcount);
          if _Release=0 then
            begin
-           if interlockedincrement(fdestroycount)=1 then
+             frefcount:=-1; { Prevent recursive _Release from destroying twice (bug 32168). }
              self.destroy;
            end;
       end;
@@ -1190,7 +1206,6 @@ end;
    begin
      // We must explicitly reset. Bug ID 32353
      FRefCount:=0;
-     FDestroyCount:=0;
      inherited Destroy;
    end;
 
@@ -1199,13 +1214,16 @@ end;
       begin
          { we need to fix the refcount we forced in newinstance }
          { further, it must be done in a thread safe way        }
-         declocked(frefcount);
+         if frefcount=1 then
+           frefcount:=0 { Work non-atomically in the common case of refcount = 1 (usual state before AfterConstruction). }
+         else
+           declocked(frefcount);
       end;
 
     procedure TInterfacedObject.BeforeDestruction;
 
       begin
-         if frefcount<>0 then
+         if frefcount>0 then { Legitimate values: -1 if destroying by _Release, 0 if destroying manually. }
            HandleError(204);
       end;
 

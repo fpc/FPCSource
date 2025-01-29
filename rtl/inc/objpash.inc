@@ -353,8 +353,7 @@
 
        TInterfacedObject = class(TObject,IUnknown)
        protected
-          FRefCount : longint;
-          FDestroyCount : longint;
+          FRefCount : longint; { -1 = destroying. }
           { implement methods of IUnknown }
           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
           function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
