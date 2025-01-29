@@ -7,7 +7,7 @@ uses
   cwstring,
 {$ENDIF}
   //MemCheck,
-  Classes, consoletestrunner, tcscanner,  tctypeparser, tcstatements,
+  Classes, consoletestrunner, tcscanner,  tctypeparser, tcstatements, paswrite,
   tcbaseparser, tcmoduleparser, tconstparser, tcvarparser, tcclasstype,
   tcexprparser, tcprocfunc, tcpassrcutil, TCGenerics,
   TCResolver, TCResolveGenerics, TCResolveMultiErrors,

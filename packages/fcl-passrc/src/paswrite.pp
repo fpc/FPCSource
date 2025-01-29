@@ -73,6 +73,7 @@ type
     procedure SetForwardClasses(AValue: TStrings);
     procedure SetIndentSize(AValue: Integer);
     function CheckUnitAlias(const AUnitName : String) : String;
+    procedure WriteImplWithDo(aWith: TPasImplWithDo);
   protected
     procedure DisableHintsWarnings;
     procedure PrepareDeclSectionInStruct(const ADeclSection: string);
@@ -1239,6 +1240,8 @@ begin
     WriteImplSimple(TPasImplSimple(aElement))
   else if AElement.InheritsFrom(TPasImplExceptOn) then
     WriteImplExceptOn(TPasImplExceptOn(aElement))
+  else if AElement.InheritsFrom(TPasImplWithDo) then
+      WriteImplWithDo(TPasImplWithDo(aElement))
   else
     raise EPasWriter.CreateFmt('Writing not yet implemented for %s implementation elements',[AElement.ClassName]);
 end;
@@ -1246,6 +1249,35 @@ end;
 procedure TPasWriter.WriteImplCommand(ACommand: TPasImplCommand);
 begin
   Add(ACommand.Command);
+end;
+
+procedure TPasWriter.WriteImplWithDo(aWith: TPasImplWithDo);
+var
+  ind : integer;
+  Expr : string;
+begin
+  With aWith do
+    begin
+    for ind:=0 to Expressions.Count-1 do
+      begin
+        Expr:=Expr+GetExpr(TPasExpr(Expressions[ind]));
+        if ind<Expressions.Count-1 then
+          Expr:=Expr+',';
+      end;
+    Add('With %s do',[Expr]);
+    if assigned(Body) then
+      begin
+        AddLn;
+        IncIndent;
+        WriteImplElement(Body, True);
+        DecIndent;
+        if (Body.InheritsFrom(TPasImplBlock)) and
+           (Body.InheritsFrom(TPasImplCommands)) then
+          AddLn(';');
+      end
+    else
+      AddLn(';');
+    end;
 end;
 
 procedure TPasWriter.WriteImplCommands(ACommands: TPasImplCommands);
