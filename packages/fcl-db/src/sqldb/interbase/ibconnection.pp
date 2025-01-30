@@ -1063,11 +1063,10 @@ var
   function GetBlobCharset(TableName,ColumnName: Pointer): smallint;
   var TransactionHandle: pointer;
       BlobDesc: TISC_BLOB_DESC;
-      Global: array[0..31] of AnsiChar;
   begin
     TransactionHandle := TIBCursor(cursor).TransactionHandle;
     if isc_blob_lookup_desc(@FStatus[0], @FDatabaseHandle, @TransactionHandle,
-         TableName, ColumnName, @BlobDesc, @Global) <> 0 then
+         TableName, ColumnName, @BlobDesc, nil) <> 0 then
       CheckError('Blob Charset', FStatus);
     Result := BlobDesc.blob_desc_charset;
   end;
