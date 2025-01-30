@@ -139,18 +139,16 @@ Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DEC
   If the reference count is zero, deallocate the string;
 }
 Var
-  p: PAnsiRec;
+  p: pointer;
 Begin
-  { Zero string }
-  If S=Nil then 
+  p:=S;
+  If p=Nil then
     exit;
-  { check for constant strings ...}
-  p:=PAnsiRec(S-AnsiFirstOff);
   s:=nil;
-  If p^.ref<0 then exit;
-  { declocked does a MT safe dec and returns true, if the counter is 0 }
-  If declocked(p^.ref) then
-    FreeMem(p);
+  If (PAnsiRec(p-AnsiFirstOff)^.ref>0) and { ref = -1 is constant string. }
+     ((PAnsiRec(p-AnsiFirstOff)^.ref=1) { Shortcut declocked on ref = 1. }
+      or declocked(PAnsiRec(p-AnsiFirstOff)^.ref)) then
+    FreeMem(p-AnsiFirstOff);
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 

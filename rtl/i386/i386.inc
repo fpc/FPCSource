@@ -2906,8 +2906,9 @@ asm
         testl   %edx,%edx
         jz      .Lquit
         movl    $0,(%eax)          // s:=nil
-        cmpl    $0,-8(%edx)        // exit if refcount<0
+        cmpl    $1,-8(%edx)        // exit if refcount<1
         jl      .Lquit
+        je      .Lfree             // skip the decrement if refcount=1.
   {$ifdef FPC_PIC}
         call	fpc_geteipasecx
         addl	$_GLOBAL_OFFSET_TABLE_,%ecx
@@ -2925,15 +2926,7 @@ asm
         ret
 .Lfree:
         leal    -12(%edx),%eax     // points to start of allocation
-        { freemem is not an assembler leaf function like fpc_geteipasecx, so it
-          needs to be called with proper stack alignment }
-{$ifdef FPC_SYSTEM_STACKALIGNMENT16}
-        leal    -12(%esp),%esp
-        call    FPC_FREEMEM
-        leal    12(%esp),%esp
-{$else  FPC_SYSTEM_STACKALIGNMENT16}
-        jmp     FPC_FREEMEM        // can perform a tail call
-{$endif FPC_SYSTEM_STACKALIGNMENT16}
+        jmp     FPC_FREEMEM        // nostackframe + jmp allows to ignore stack alignment.
 end;
 
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;

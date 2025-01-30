@@ -86,7 +86,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
     if not assigned(pv) then
       exit;
     p:=nil;
-    if (pv[-1].refcount>0) and declocked(pv[-1].refcount) then
+    if (pv[-1].refcount>0) and ((pv[-1].refcount=1) or declocked(pv[-1].refcount)) then
       begin
         ti:=pdynarraytypedata(aligntoqword(ti+2+PByte(ti)[1]))^.elType;
         if assigned(ti) then

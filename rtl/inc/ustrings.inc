@@ -216,20 +216,16 @@ Procedure fpc_UnicodeStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_UNICODEST
   If the reference count is zero, deallocate the string;
 }
 Var
-  p: PUnicodeRec;
+  p: pointer;
 Begin
-  { Zero string }
-  if S=Nil then
+  p:=S;
+  If p=Nil then
     exit;
-  { check for constant strings ...}
-  p:=PUnicodeRec(S-UnicodeFirstOff);
-  S:=nil;
-  if p^.Ref<0 then
-    exit;
-
-  { declocked does a MT safe dec and returns true, if the counter is 0 }
-  if declocked(p^.Ref) then
-    FreeMem(p);
+  s:=nil;
+  If (PUnicodeRec(p-UnicodeFirstOff)^.ref>0) and { ref = -1 is constant string. }
+     ((PUnicodeRec(p-UnicodeFirstOff)^.ref=1) { Shortcut declocked on ref = 1. }
+      or declocked(PUnicodeRec(p-UnicodeFirstOff)^.ref)) then
+    FreeMem(p-UnicodeFirstOff);
 end;
 
 { alias for internal use }
