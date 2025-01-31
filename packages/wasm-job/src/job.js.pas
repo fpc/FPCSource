@@ -1332,6 +1332,26 @@ type
   IJSAtomics = interface
   end;
 
+  IJSAtomicAsyncWaitResult = Interface(IJSObject) ['{FCAA8244-08C2-4638-89F2-408473EC0096}']
+    function getAsync : Boolean;
+    function getValueAsString : String;
+    function getValueAsPromise : IJSPromise;
+    property Async : boolean read getAsync;
+    property valueAsPromise : IJSPromise read GetValueAsPromise;
+    property valueAsString: UnicodeString read GetValueAsString;
+  end;
+
+  { TJSAtomicAsyncWaitResult }
+
+  TJSAtomicAsyncWaitResult = class(TJSObject,IJSAtomicAsyncWaitResult)
+    function getAsync : Boolean;
+    function getValueAsString : String;
+    function getValueAsPromise : IJSPromise;
+    property Async : boolean read getAsync;
+    property valueAsPromise : IJSPromise read GetValueAsPromise;
+    property valueAsString: UnicodeString read GetValueAsString;
+  end;
+
   { TJSAtomics }
 
   TJSAtomics = class (TJSObject,IJSAtomics)
@@ -1347,6 +1367,8 @@ type
     class function sub(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
     class function wait(aTypedArray: IJSTypedArray; index: integer; value: Integer): unicodestring;
     class function wait(aTypedArray: IJSTypedArray; index: integer; value: Integer; TimeOut: integer): unicodestring;
+    class function waitAsync(aTypedArray: IJSTypedArray; index: integer; value: Integer; TimeOut: integer): IJSAtomicAsyncWaitResult;
+    class function waitAsync(aTypedArray: IJSTypedArray; index: integer; value: Integer): IJSAtomicAsyncWaitResult;
     class function xor_(aTypedArray : IJSTypedArray; index: integer; value : Integer) : integer;
   end;
 
@@ -1758,6 +1780,29 @@ begin
   Result:=TJSTextEncoder.JOBCast(Intf);
 end;
 
+{ TJSAtomicAsyncWaitResult }
+
+function TJSAtomicAsyncWaitResult.getAsync: Boolean;
+begin
+  ReadJSPropertyBoolean('async');
+end;
+
+function TJSAtomicAsyncWaitResult.getValueAsString: String;
+begin
+  if getAsync then
+    Result:=''
+  else
+    Result:=ReadJSPropertyString('value');
+end;
+
+function TJSAtomicAsyncWaitResult.getValueAsPromise: IJSPromise;
+begin
+  if getAsync then
+    Result:=ReadJSPropertyObject('value',TJSPromise);
+  else
+    Result:=Nil
+end;
+
 { TJSAtomics }
 
 class function TJSAtomics.add(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
@@ -1819,6 +1864,17 @@ end;
 class function TJSAtomics.wait(aTypedArray: IJSTypedArray; index: integer; value: Integer; TimeOut: integer): unicodestring;
 begin
   Result:=JSAtomics.InvokeJSUnicodeStringResult('wait',[aTypedArray,Index,value,timeout]);
+end;
+
+class function TJSAtomics.waitAsync(aTypedArray: IJSTypedArray; index: integer; value: Integer; TimeOut: integer
+  ): IJSAtomicAsyncWaitResult;
+begin
+  Result:=JSAtomics.InvokeJSObjectResult('waitAsync',[aTypedArray,Index,value,timeout],TJSAtomicAsyncWaitResult) as IJSAtomicAsyncWaitResult;
+end;
+
+class function TJSAtomics.waitAsync(aTypedArray: IJSTypedArray; index: integer; value: Integer): IJSAtomicAsyncWaitResult;
+begin
+  Result:=JSAtomics.InvokeJSObjectResult('waitAsync',[aTypedArray,Index,value],TJSAtomicAsyncWaitResult) as IJSAtomicAsyncWaitResult;
 end;
 
 class function TJSAtomics.xor_(aTypedArray: IJSTypedArray; index: integer; value: Integer): integer;
