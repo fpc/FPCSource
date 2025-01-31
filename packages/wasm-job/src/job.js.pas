@@ -1334,7 +1334,7 @@ type
 
   IJSAtomicAsyncWaitResult = Interface(IJSObject) ['{FCAA8244-08C2-4638-89F2-408473EC0096}']
     function getAsync : Boolean;
-    function getValueAsString : String;
+    function getValueAsString : UnicodeString;
     function getValueAsPromise : IJSPromise;
     property Async : boolean read getAsync;
     property valueAsPromise : IJSPromise read GetValueAsPromise;
@@ -1345,7 +1345,7 @@ type
 
   TJSAtomicAsyncWaitResult = class(TJSObject,IJSAtomicAsyncWaitResult)
     function getAsync : Boolean;
-    function getValueAsString : String;
+    function getValueAsString : UnicodeString;
     function getValueAsPromise : IJSPromise;
     property Async : boolean read getAsync;
     property valueAsPromise : IJSPromise read GetValueAsPromise;
@@ -1787,18 +1787,18 @@ begin
   ReadJSPropertyBoolean('async');
 end;
 
-function TJSAtomicAsyncWaitResult.getValueAsString: String;
+function TJSAtomicAsyncWaitResult.getValueAsString: UnicodeString;
 begin
   if getAsync then
     Result:=''
   else
-    Result:=ReadJSPropertyString('value');
+    Result:=ReadJSPropertyUnicodeString('value');
 end;
 
 function TJSAtomicAsyncWaitResult.getValueAsPromise: IJSPromise;
 begin
   if getAsync then
-    Result:=ReadJSPropertyObject('value',TJSPromise);
+    Result:=ReadJSPropertyObject('value',TJSPromise) as IJSPromise
   else
     Result:=Nil
 end;
