@@ -794,7 +794,7 @@ type
   public
     PackMode: TPackMode;
     Members: TFPList;
-    RTTIVisibility: TRTTIVisibility;
+    RTTIVisibility: TRTTIVisibility; // set by $RTTI directive
     Constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
     Destructor Destroy; override;
     procedure FreeChildren(Prepare: boolean); override;

@@ -31726,10 +31726,14 @@ begin
   Add('type');
   Add('{$RTTI explicit fields([vcPrivate,vcProtected,vcPublic,vcPublished])}');
   Add('  TObject = class');
+  Add('  strict private');
+  Add('    A1: word;');
   Add('  private');
-  Add('    A: word;');
+  Add('    A2: word;');
+  Add('  strict protected');
+  Add('    B1: word;');
   Add('  protected');
-  Add('    B1, B2: word;');
+  Add('    B2, B3: word;');
   Add('  public');
   Add('    C: word;');
   Add('  published');
@@ -31741,18 +31745,22 @@ begin
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
-    '    this.A = 0;',
+    '    this.A1 = 0;',
+    '    this.A2 = 0;',
     '    this.B1 = 0;',
     '    this.B2 = 0;',
+    '    this.B3 = 0;',
     '    this.C = 0;',
     '    this.D = 0;',
     '  };',
     '  this.$final = function () {',
     '  };',
     '  var $r = this.$rtti;',
-    '  $r.addField("A", rtl.word, 0);',
-    '  $r.addField("B1", rtl.word, 1);',
+    '  $r.addField("A1", rtl.word, 5);',
+    '  $r.addField("A2", rtl.word, 0);',
+    '  $r.addField("B1", rtl.word, 6);',
     '  $r.addField("B2", rtl.word, 1);',
+    '  $r.addField("B3", rtl.word, 1);',
     '  $r.addField("C", rtl.word);',
     '  $r.addField("D", rtl.word, 3);',
     '});',

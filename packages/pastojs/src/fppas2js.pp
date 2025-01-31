@@ -567,6 +567,8 @@ const
   ExtRTTIVisPublic = 2;
   ExtRTTIVisPublished = 3;
   ExtRTTIVisPublicPublished = 4; // in source published, in RTTI public
+  ExtRTTIVisStrictPrivate = 5;
+  ExtRTTIVisStrictProtected = 6;
   ExtRTTIVisDefaultField = ExtRTTIVisPublic;
   ExtRTTIVisDefaultMethod = ExtRTTIVisPublic;
   ExtRTTIVisDefaultProperty = ExtRTTIVisPublicPublished;
@@ -20762,8 +20764,16 @@ var
 begin
   ExtVis:=TPasMembersType.VisibilityToExtRTTI[El.Visibility];
   case ExtVis of
-    vcPrivate: Result:=ExtRTTIVisPrivate;
-    vcProtected: Result:=ExtRTTIVisProtected;
+    vcPrivate:
+      if El.Visibility=visStrictPrivate then
+        Result:=ExtRTTIVisStrictPrivate
+      else
+        Result:=ExtRTTIVisPrivate;
+    vcProtected:
+      if El.Visibility=visStrictProtected then
+        Result:=ExtRTTIVisStrictProtected
+      else
+        Result:=ExtRTTIVisProtected;
     vcPublic: Result:=ExtRTTIVisPublic;
     vcPublished:
       if not (vcPublished in Vis) then
