@@ -1801,7 +1801,13 @@ unit scandir;
         current_scanner.skipspace;
         ident:=current_scanner.readid;
         current_scanner.skipspace;
-        state:=current_scanner.readid;
+        if c in ['+','-'] then
+          begin
+            state:=c;
+            current_scanner.readchar;
+          end
+        else
+          state:=current_scanner.readid;
 
         { support both delphi and fpc switches }
         { use local ms_on/off/error tmsgstate values }
