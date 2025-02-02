@@ -35,6 +35,7 @@ interface
       { tcpuparamanager }
 
       tcpuparamanager=class(TParaManager)
+        function has_strict_proc_signature: boolean; override;
         function  get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;override;
         function  keep_para_array_range(varspez: tvarspez; def: tdef; calloption: tproccalloption): boolean; override;
         function  push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -62,6 +63,12 @@ implementation
       defutil,wasmdef,tgcpu,
       aasmcpu,
       hlcgobj;
+
+
+    function tcpuparamanager.has_strict_proc_signature: boolean;
+      begin
+        Result:=true;
+      end;
 
 
     function tcpuparamanager.get_saved_registers_int(calloption: tproccalloption): tcpuregisterarray;
