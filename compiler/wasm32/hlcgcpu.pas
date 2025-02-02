@@ -1322,6 +1322,11 @@ implementation
           { no symbol, no index, just fixed address, e.g. var a: longint absolute 5; }
           list.Concat(taicpu.op_const(a_i32_const,0));
           incstack(list,1);
+          if dup then
+            begin
+              list.Concat(taicpu.op_const(a_i32_const,0));
+              incstack(list,1);
+            end;
           result:=1;
         end;
     end;
