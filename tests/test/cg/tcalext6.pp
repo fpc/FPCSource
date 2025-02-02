@@ -12,6 +12,14 @@ program calext6;
 
 uses ctypes;
 
+{$if defined(cpuwasm32)}
+  { The WebAssembly C ABI does not support calling a function with a different
+    number of parameters than it was declared with. The only exception is
+    functions, that are explicitly declared as having varargs (both at the
+    caller and callee site). }
+  {$define CABI_STRICT_PARAMS}
+{$endif}
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define test_longdouble}
 {$endif}
@@ -349,24 +357,24 @@ end;
 
 
 {$L tcext6.o}
-function pass1(s : struct1; b: byte) : single; cdecl; external;
-function pass2(s : struct2; b: byte) : double; cdecl; external;
-function pass3(s : struct3; b: byte) : single; cdecl; external;
-function pass4(s : struct4; b: byte) : double; cdecl; external;
-function pass5(s : struct5; b: byte) : double; cdecl; external;
-function pass6(s : struct6; b: byte) : double; cdecl; external;
+function pass1(s : struct1{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : single; cdecl; external;
+function pass2(s : struct2{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : double; cdecl; external;
+function pass3(s : struct3{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : single; cdecl; external;
+function pass4(s : struct4{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : double; cdecl; external;
+function pass5(s : struct5{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : double; cdecl; external;
+function pass6(s : struct6{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : double; cdecl; external;
 function pass61(d1,d2,d3,d4,d5: double; s : struct6; b: byte) : double; cdecl; external;
-function pass7(s : struct7; b: byte) : double; cdecl; external;
-function pass8(s : struct8; b: byte) : double; cdecl; external;
-function pass9(s : struct9; b: byte) : int64_t; cdecl; external;
-function pass10(s : struct10; b: byte) : int64_t; cdecl; external;
-function pass11(s : struct11; b: byte) : int64_t; cdecl; external;
-function pass12(s : struct12; b: byte) : int64_t; cdecl; external;
-function pass13(s : struct13; b: byte) : int64_t; cdecl; external;
-function pass14(s : struct14; b: byte) : int64_t; cdecl; external;
-function pass15(s : struct15; b: byte) : int64_t; cdecl; external;
-function pass16(s : struct16; b: byte) : single; cdecl; external;
-function pass17(s : struct17; b: byte) : single; cdecl; external;
+function pass7(s : struct7{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : double; cdecl; external;
+function pass8(s : struct8{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : double; cdecl; external;
+function pass9(s : struct9{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass10(s : struct10{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass11(s : struct11{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass12(s : struct12{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass13(s : struct13{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass14(s : struct14{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass15(s : struct15{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : int64_t; cdecl; external;
+function pass16(s : struct16{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : single; cdecl; external;
+function pass17(s : struct17{$ifndef CABI_STRICT_PARAMS}; b: byte{$endif}) : single; cdecl; external;
 {$ifdef test_longdouble}
 function pass31(s : struct31; b: byte; var ss: single) : cextended; cdecl; external;
 {$endif}
@@ -484,71 +492,71 @@ begin
 {$ifdef UseStackCheck}
   SetStack;
 {$endif UseStackCheck}
-  verify(pass1(s1,1), check1(s1), 1);
+  verify(pass1(s1{$ifndef CABI_STRICT_PARAMS},1{$endif}), check1(s1), 1);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass2(s2,2), check2(s2), 2);
+  verify(pass2(s2{$ifndef CABI_STRICT_PARAMS},2{$endif}), check2(s2), 2);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass3(s3,3), check3(s3), 3);
+  verify(pass3(s3{$ifndef CABI_STRICT_PARAMS},3{$endif}), check3(s3), 3);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass4(s4,4), check4(s4), 4);
+  verify(pass4(s4{$ifndef CABI_STRICT_PARAMS},4{$endif}), check4(s4), 4);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass5(s5,5), check5(s5), 5);
+  verify(pass5(s5{$ifndef CABI_STRICT_PARAMS},5{$endif}), check5(s5), 5);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass6(s6,6), check6(s6), 6);
+  verify(pass6(s6{$ifndef CABI_STRICT_PARAMS},6{$endif}), check6(s6), 6);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass7(s7,7), check7(s7), 7);
+  verify(pass7(s7{$ifndef CABI_STRICT_PARAMS},7{$endif}), check7(s7), 7);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass8(s8,8), check8(s8), 8);
+  verify(pass8(s8{$ifndef CABI_STRICT_PARAMS},8{$endif}), check8(s8), 8);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass9(s9,9), check9(s9), 9);
+  verify(pass9(s9{$ifndef CABI_STRICT_PARAMS},9{$endif}), check9(s9), 9);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass10(s10,10), check10(s10), 10);
+  verify(pass10(s10{$ifndef CABI_STRICT_PARAMS},10{$endif}), check10(s10), 10);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass11(s11,11), check11(s11), 11);
+  verify(pass11(s11{$ifndef CABI_STRICT_PARAMS},11{$endif}), check11(s11), 11);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass12(s12,12), check12(s12), 12);
+  verify(pass12(s12{$ifndef CABI_STRICT_PARAMS},12{$endif}), check12(s12), 12);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass13(s13,13), check13(s13), 13);
+  verify(pass13(s13{$ifndef CABI_STRICT_PARAMS},13{$endif}), check13(s13), 13);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass14(s14,14), check14(s14), 14);
+  verify(pass14(s14{$ifndef CABI_STRICT_PARAMS},14{$endif}), check14(s14), 14);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass15(s15,15), check15(s15), 15);
+  verify(pass15(s15{$ifndef CABI_STRICT_PARAMS},15{$endif}), check15(s15), 15);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass16(s16,16), check16(s16), 16);
+  verify(pass16(s16{$ifndef CABI_STRICT_PARAMS},16{$endif}), check16(s16), 16);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
-  verify(pass17(s17,17), check17(s17), 17);
+  verify(pass17(s17{$ifndef CABI_STRICT_PARAMS},17{$endif}), check17(s17), 17);
 {$ifdef UseStackCheck}
   CheckStack;
 {$endif UseStackCheck}
