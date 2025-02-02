@@ -806,7 +806,10 @@ implementation
     begin
       tmpref:=ref;
       if tmpref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
+        begin
+          g_load_check_simple(list,tmpref,1024);
+          a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
+        end;
       regtyp:=def2regtyp(size);
       case regtyp of
         R_EXTERNREFREGISTER,
@@ -867,7 +870,10 @@ implementation
       tmpref:=ref;
       a_load_reg_stack(list,size,reg);
       if tmpref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false))
+        begin
+          g_load_check_simple(list,tmpref,1024);
+          a_load_ref_stack(list,size,tmpref,prepare_stack_for_ref(list,tmpref,false));
+        end
       else
         cmp_op:=swap_opcmp(cmp_op);
       a_cmp_stack_stack(list,size,cmp_op);
@@ -879,7 +885,10 @@ implementation
     begin
       tmpref:=ref;
       if tmpref.base<>NR_EVAL_STACK_BASE then
-        a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
+        begin
+          g_load_check_simple(list,tmpref,1024);
+          a_load_ref_stack(list,size,ref,prepare_stack_for_ref(list,tmpref,false));
+        end;
       a_load_reg_stack(list,size,reg);
       a_cmp_stack_stack(list,size,cmp_op);
     end;
