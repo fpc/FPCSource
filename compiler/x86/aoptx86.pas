@@ -23,7 +23,7 @@ unit aoptx86;
 
 {$i fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 {$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
@@ -904,49 +904,49 @@ unit aoptx86;
                     begin
                       case getsupreg(reg) of
                         RS_EAX:
-                          if [Ch_REAX,Ch_RWEAX,Ch_MEAX]*Ch<>[] then
+                          if [Ch_REAX,Ch_RWEAX,Ch_MEAX,Ch_WRAX,Ch_RWRAX,Ch_MRAX]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_ECX:
-                          if [Ch_RECX,Ch_RWECX,Ch_MECX]*Ch<>[] then
+                          if [Ch_RECX,Ch_RWECX,Ch_MECX,Ch_WRCX,Ch_RWRCX,Ch_MRCX]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_EDX:
-                          if [Ch_REDX,Ch_RWEDX,Ch_MEDX]*Ch<>[] then
+                          if [Ch_REDX,Ch_RWEDX,Ch_MEDX,Ch_WRDX,Ch_RWRDX,Ch_MRDX]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_EBX:
-                          if [Ch_REBX,Ch_RWEBX,Ch_MEBX]*Ch<>[] then
+                          if [Ch_REBX,Ch_RWEBX,Ch_MEBX,Ch_WRBX,Ch_RWRBX,Ch_MRBX]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_ESP:
-                          if [Ch_RESP,Ch_RWESP,Ch_MESP]*Ch<>[] then
+                          if [Ch_RESP,Ch_RWESP,Ch_MESP,Ch_WRSP,Ch_RWRSP,Ch_MRSP]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_EBP:
-                          if [Ch_REBP,Ch_RWEBP,Ch_MEBP]*Ch<>[] then
+                          if [Ch_REBP,Ch_RWEBP,Ch_MEBP,Ch_WRBP,Ch_RWRBP,Ch_MRBP]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_ESI:
-                          if [Ch_RESI,Ch_RWESI,Ch_MESI]*Ch<>[] then
+                          if [Ch_RESI,Ch_RWESI,Ch_MESI,Ch_WRSI,Ch_RWRSI,Ch_MRSI]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
                             end;
                         RS_EDI:
-                          if [Ch_REDI,Ch_RWEDI,Ch_MEDI]*Ch<>[] then
+                          if [Ch_REDI,Ch_RWEDI,Ch_MEDI,Ch_WRDI,Ch_RWRDI,Ch_MRDI]*Ch<>[] then
                             begin
                               RegReadByInstruction := true;
                               exit
