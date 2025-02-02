@@ -1319,12 +1319,10 @@ implementation
         end
       else
         begin
-          { static field -> nothing to do here, except for validity check }
-          {if not assigned(ref.symbol) or
-             (ref.offset<>0) then
-          begin
-            internalerror(2010120525);
-          end;}
+          { no symbol, no index, just fixed address, e.g. var a: longint absolute 5; }
+          list.Concat(taicpu.op_const(a_i32_const,0));
+          incstack(list,1);
+          result:=1;
         end;
     end;
 
