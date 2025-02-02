@@ -1,3 +1,5 @@
+{ %opt=-CN }
+
 {$mode objfpc}
 {$B+}
 uses
