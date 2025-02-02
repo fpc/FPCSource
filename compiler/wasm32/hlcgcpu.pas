@@ -245,6 +245,10 @@ uses
       procedure resizestackfpuval(list: TAsmList; fromsize, tosize: tcgsize);
     end;
 
+{$ifdef extdebug}
+     function ref2string(const ref : treference) : string;
+{$endif extdebug}
+
 implementation
 
   uses
@@ -295,6 +299,50 @@ implementation
       a_i64_rotl,  {OP_ROL,  rotate left              }
       a_i64_rotr   {OP_ROR   rotate right             }
     );
+
+{$ifdef extdebug}
+     function ref2string(const ref : treference) : string;
+       const
+         tr: treference = (
+           offset: 0;
+           symbol: nil;
+           relsymbol: nil;
+           temppos: (val: 0);
+           base: NR_NO;
+           index: NR_NO;
+           refaddr: default(trefaddr);
+           scalefactor: 0;
+           volatility: [vol_read, vol_write];
+           alignment: 0;
+         );
+
+         function AsmSymbolName(sym: tasmsymbol): string;
+           begin
+             if assigned(sym) then
+               result := sym.name
+             else
+               result := 'nil';
+           end;
+
+         function Volatility2String(vs: tvolatilityset): string;
+           var
+             v: tvolatility;
+           begin
+             result := '[';
+             for v in tvolatility do
+               if v in vs then
+                 WriteStr(result, result, ',', v);
+             if length(result) > 1 then
+               delete(result, 2, 1);
+             result := result + ']';
+           end;
+
+       begin
+         WriteStr(result, '(offset: ', ref.offset, '; symbol: ', AsmSymbolName(ref.symbol), '; relsymbol: ', AsmSymbolName(ref.relsymbol), '; temppos: (val: ', ref.temppos.val,
+           '); base: ', std_regname(ref.base), '; index: ', std_regname(ref.index), '; refaddr: ', ref.refaddr, '; scalefactor: ', ref.scalefactor, '; volatility: ',
+           Volatility2String(ref.volatility), '; alignment: ', ref.alignment, ')');
+       end;
+{$endif extdebug}
 
   function thlcgwasm.is_methodptr_like_type(d:tdef): boolean;
     var
