@@ -886,6 +886,7 @@ type
     Procedure TestRTTI_Class_Property;
     Procedure TestRTTI_Class_PropertyParams;
     Procedure TestRTTI_Class_PropertyPrivate;
+    Procedure TestRTTI_Class_ClassProperty;
     Procedure TestRTTI_Class_OtherUnit_TypeAlias;
     Procedure TestRTTI_Class_OmitRTTI;
     Procedure TestRTTI_Class_Field_AnonymousArrayOfSelfClass;
@@ -32057,6 +32058,64 @@ begin
     '    rtl.word,',
     '    "FWord",',
     '    ""',
+    '  );',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestRTTI_Class_ClassProperty;
+begin
+  WithTypeInfo:=true;
+  StartProgram(false);
+  Add('type');
+  Add('{$RTTI explicit properties([vcPrivate,vcProtected,vcPublic,vcPublished])}');
+  Add('  TObject = class');
+  Add('  private');
+  Add('    class var FWord: word;');
+  Add('    class function GetWord: word; virtual; abstract;');
+  Add('    class procedure SetWord(Value: word); virtual; abstract;');
+  Add('    class property PrivateWord: word read FWord write FWord;');
+  Add('  protected');
+  Add('    class property ProtectedWord: word read FWord write SetWord;');
+  Add('  public');
+  Add('    class property PublicWord: word read GetWord;');
+  Add('  end;');
+  Add('begin');
+  ConvertProgram;
+  CheckSource('TestRTTI_Class_ClassProperty',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.FWord = 0;',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  var $r = this.$rtti;',
+    '  $r.addProperty(',
+    '    "PrivateWord",',
+    '    32,',
+    '    rtl.word,',
+    '    "FWord",',
+    '    "FWord",',
+    '    0',
+    '  );',
+    '  $r.addProperty(',
+    '    "ProtectedWord",',
+    '    34,',
+    '    rtl.word,',
+    '    "FWord",',
+    '    "SetWord",',
+    '    1',
+    '  );',
+    '  $r.addProperty(',
+    '    "PublicWord",',
+    '    33,',
+    '    rtl.word,',
+    '    "GetWord",',
+    '    "",',
+    '    2',
     '  );',
     '});',
     '']),

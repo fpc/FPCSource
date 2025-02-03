@@ -2385,6 +2385,7 @@ type
       pfStoredFunction = 12; // stored function, function name is in Stored
       pfHasIndex = 16; { if getter is function, append Index as last param
                          if setter is function, append Index as second last param }
+      pfClassProperty = 32;  // class property
     type
       TMethodKind = (
         mkProcedure,      // 0  default
@@ -21127,6 +21128,8 @@ begin
           inc(Flags,pfStoredField);
         end;
       end;
+    if Prop.IsClass then
+      inc(Flags,pfClassProperty);
     Call.AddArg(CreateLiteralNumber(Prop,Flags));
 
     // add type
