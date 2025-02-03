@@ -7174,9 +7174,9 @@ unit aoptx86;
               begin
                 OldOffset := taicpu(hp1).oper[0]^.ref^.offset;
 
-                if ActiveReg=taicpu(hp1).oper[0]^.ref^.base then
+                if SuperRegistersEqual(ActiveReg,taicpu(hp1).oper[0]^.ref^.base) then
                   Dec(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val);
-                if ActiveReg=taicpu(hp1).oper[0]^.ref^.index then
+                if SuperRegistersEqual(ActiveReg,taicpu(hp1).oper[0]^.ref^.index) then
                   Dec(taicpu(hp1).oper[0]^.ref^.offset,taicpu(p).oper[0]^.val*max(taicpu(hp1).oper[0]^.ref^.scalefactor,1));
 
 {$ifdef x86_64}
