@@ -1938,12 +1938,12 @@ begin
   Result:='';
   for i:=0 to List.Count-1 do
     begin
+    T:=TPasGenericTemplateType(List[i]);
     if i>0 then
       if length(T.Constraints)>0 then
         Result:=Result+';'
       else
         Result:=Result+',';
-    T:=TPasGenericTemplateType(List[i]);
     Result:=Result+T.Name;
     if length(T.Constraints)>0 then
       begin
