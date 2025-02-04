@@ -1350,7 +1350,7 @@ var rtl = {
     newBaseInt("longword",0,0xffffffff,5);
     newBaseInt("nativeint",-0x10000000000000,0xfffffffffffff,6);
     newBaseInt("nativeuint",0,0xfffffffffffff,7);
-    newBaseTI("char",2 /* tkChar */);
+    newBaseInt("char",0,65535,3 /* word */).kind=2 /* tkChar */;
     newBaseTI("string",3 /* tkString */);
     newBaseTI("tTypeInfoEnum",4 /* tkEnumeration */,rtl.tTypeInfoInteger);
     newBaseTI("tTypeInfoSet",5 /* tkSet */);
