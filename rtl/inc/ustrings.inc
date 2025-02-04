@@ -181,33 +181,6 @@ end;
                     Internal functions, not in interface.
 ****************************************************************************}
 
-procedure UnicodeStringError;
-  begin
-    HandleErrorAddrFrameInd(204,get_pc_addr,get_frame);
-  end;
-
-
-{$ifndef FPC_HAS_NEW_UNICODESTRING}
-{$define FPC_HAS_NEW_UNICODESTRING}
-Function NewUnicodeString(Len : SizeInt) : Pointer;
-{
-  Allocate a new UnicodeString on the heap.
-  initialize it to zero length and reference count 1.
-}
-begin
-  Result:=GetMem(Len*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
-  If Result=Nil then
-    UnicodeStringError;
-  PUnicodeRec(Result)^.Len:=Len;  { Initial length }
-  PUnicodeRec(Result)^.Ref:=1;    { Initial Refcount }
-  PUnicodeRec(Result)^.CodePage:=DefaultUnicodeCodePage;
-  PUnicodeRec(Result)^.ElementSize:=SizeOf(UnicodeChar);
-  inc(Result,UnicodeFirstOff);    { Points to string now }
-  PUnicodeChar(Result)^:=#0;      { Terminating #0 }
-end;
-{$endif FPC_HAS_NEW_UNICODESTRING}
-
-
 {$ifndef FPC_HAS_UNICODESTR_DECR_REF}
 {$define FPC_HAS_UNICODESTR_DECR_REF}
 Procedure fpc_UnicodeStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_UNICODESTR_DECR_REF']; compilerproc;
@@ -265,7 +238,7 @@ begin
     begin
       If Size>high(res) then
         Size:=high(res);
-      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(S2),temp,DefaultSystemCodePage,Size);
+      widestringmanager.Unicode2AnsiMoveProc(PUnicodeChar(Pointer(S2)),temp,DefaultSystemCodePage,Size);
       res:=temp;
     end;
 end;
@@ -458,7 +431,10 @@ begin
     end
   else
     begin
-      NewDestP:=NewUnicodeString(S1Len+S2Len);
+      NewDestP:=GetMem((S1Len+S2Len)*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.ElementSize:=1;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.Ref:=1;
       Move(Pointer(S1)^,NewDestP^,S1Len*sizeof(UnicodeChar));
       Move(Pointer(S2)^,PUnicodeChar(NewDestP)[S1Len],S2Len*sizeof(UnicodeChar));
       fpc_unicodestr_decr_ref(Pointer(DestS));
@@ -511,10 +487,14 @@ begin
     begin
       { Create new string. }
       OldDestP:=nil; { This case is distinguished as "not assigned(olddestp)". Also prevents "if p=olddestp" in the loop below shared with the ReallocMem branch. }
-      NewDestP:=NewUnicodeString(NewLen);
+      NewDestP:=GetMem(NewLen*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.ElementSize:=1;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.Ref:=1;
     end;
   { Copy strings from last to the first, so that possible occurences of DestS could read from the beginning of the reallocated DestS. }
   pc:=NewDestP+NewLen*sizeof(UnicodeChar);
+  PUnicodeChar(pc)^:=#0; { Conveniently write null terminator. }
   for i:=high(sarr) downto lowstart do
     begin
       p:=Pointer(sarr[i]);
@@ -527,10 +507,9 @@ begin
       dec(pc,size);
       Move(p^,pc^,Size);
     end;
+  PUnicodeRec(NewDestP-UnicodeFirstOff)^.Len:=NewLen; { Careful, loop above relies on the old Len in the NewDestP header. }
   if not assigned(OldDestP) then
     fpc_UnicodeStr_Decr_Ref(Pointer(DestS));
-  PUnicodeChar(NewDestP)[NewLen]:=#0;
-  PUnicodeRec(NewDestP-UnicodeFirstOff)^.Len:=NewLen; { Careful, loop above relies on the old Len in the NewDestP header. }
   Pointer(DestS):=NewDestP;
 end;
 {$endif FPC_HAS_UNICODESTR_CONCAT_MULTI}
@@ -763,7 +742,7 @@ begin
   len := length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    widestringmanager.unicode2ansimoveproc(punicodechar(@src[1]),temp,DefaultSystemCodePage,len);
+    widestringmanager.unicode2ansimoveproc(punicodechar(pointer(src)),temp,DefaultSystemCodePage,len);
   len := length(temp);
   if len > length(res) then
     len := length(res);
@@ -920,43 +899,46 @@ Procedure fpc_UnicodeStr_SetLength(Var S : UnicodeString; l : SizeInt);[Public,A
   Makes sure S is unique, and contains enough room.
 }
 Var
-  Temp : Pointer;
-  lens, lena : SizeUInt;
+  sp,oldsp,realsp : Pointer;
+  lens, lena : SizeInt;
 begin
-   if (l>0) then
+  if l<=0 then { length=0, deallocate the string }
     begin
-      if Pointer(S)=nil then
+      fpc_unicodestr_decr_ref (Pointer(S));
+      exit;
+    end;
+  sp:=Pointer(S);
+  if (sp<>nil) and (PUnicodeRec(sp-UnicodeFirstOff)^.Ref=1) then
+    begin
+      lens:=MemSize(sp-UnicodeFirstOff);
+      lena:=L*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar));
+      if (lena>lens) or (lena+16<=SizeInt(SizeUint(lens) div 2)) then
         begin
-          { Need a complete new string...}
-          Pointer(s):=NewUnicodeString(l);
-        end
-      else
-        if (PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Ref = 1) then
-          begin
-            Temp:=Pointer(s)-UnicodeFirstOff;
-            lens:=MemSize(Temp);
-            lena:=SizeUInt(L*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)));
-            if (lena>lens) or ((lens>32) and (lena<=SizeInt(SizeUint(lens) div 2))) then
-              Pointer(S):=reallocmem(Temp, lena)+UnicodeFirstOff;
-          end
-      else
+          realsp:=sp-UnicodeFirstOff;
+          sp:=reallocmem(realsp,lena)+UnicodeFirstOff;
+        end;
+    end
+  else
+    begin
+      { Reallocation is needed... }
+      oldsp:=sp;
+      sp:=GetMem(l*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
+      PUnicodeRec(sp-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
+      PUnicodeRec(sp-UnicodeFirstOff)^.ElementSize:=1;
+      PUnicodeRec(sp-UnicodeFirstOff)^.Ref:=1;
+      if oldsp<>nil then
         begin
-          { Reallocation is needed... }
-          Temp:=NewUnicodeString(l);
-          { also move terminating null }
-          lens:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len+1;
+          lens:=PUnicodeRec(oldsp-UnicodeFirstOff)^.Len;
           if l<lens then
             lens:=l;
-          Move(Pointer(S)^,Temp^,lens * Sizeof(UnicodeChar));
+          Move(oldsp^,sp^,lens * Sizeof(UnicodeChar));
           fpc_unicodestr_decr_ref(Pointer(S));
-          Pointer(S):=Temp;
         end;
-      { Force nil termination in case it gets shorter }
-      PWord(Pointer(S)+l*sizeof(UnicodeChar))^:=0;
-      PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len:=l;
-    end
-  else  { length=0, deallocate the string }
-    fpc_unicodestr_decr_ref (Pointer(S));
+    end;
+  { Null-terminate. }
+  PWord(sp)[l]:=0;
+  PUnicodeRec(sp-UnicodeFirstOff)^.Len:=l;
+  Pointer(S):=sp;
 end;
 {$endif FPC_HAS_UNICODESTR_SETLENGTH}
 
@@ -1120,18 +1102,18 @@ Function fpc_unicodestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_U
 }
 Var
   SNew : Pointer;
-  L    : SizeInt;
+  FullSize : SizeInt;
 begin
-  pointer(result) := pointer(s);
+  result:=S;
   If (result<>nil) and (PUnicodeRec(result-UnicodeFirstOff)^.Ref<>1) then
    begin
-     L:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.len;
-     SNew:=NewUnicodeString (L);
-     Move (PUnicodeChar(S)^,SNew^,(L+1)*sizeof(UnicodeChar));
-     PUnicodeRec(SNew-UnicodeFirstOff)^.len:=L;
-     fpc_unicodestr_decr_ref (Pointer(S));  { Thread safe }
-     pointer(S):=SNew;
-     pointer(result):=SNew;
+     FullSize:=PUnicodeRec(result-UnicodeFirstOff)^.Len*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar));
+     SNew:=GetMem(FullSize)+UnicodeFirstOff;
+     Move ((result-UnicodeFirstOff)^,(SNew-UnicodeFirstOff)^,FullSize); { Copy everything including header and #0, only refcount needs to be adjusted. }
+     PUnicodeRec(SNew-UnicodeFirstOff)^.Ref:=1;
+     fpc_unicodestr_decr_ref (S);  { Thread safe }
+     S:=SNew;
+     result:=SNew;
    end;
 end;
 {$endif FPC_HAS_UNICODESTR_UNIQUE}
@@ -1145,18 +1127,21 @@ var
   ResultAddress : Pointer;
 begin
   ResultAddress:=Nil;
+  if Index < 1 then
+    Index := 1;
   dec(index);
-  if Index < 0 then
-    Index := 0;
   Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
   if Size>Lim then
    Size:=Lim;
   If Size>0 then
    begin
-     ResultAddress:=NewUnicodeString(Size);
-     Move (PUnicodeChar(S)[Index],ResultAddress^,Size*sizeof(UnicodeChar));
+     ResultAddress:=GetMem(Size*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
+     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
+     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.ElementSize:=1;
+     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Ref:=1;
      PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
-     PUnicodeChar(ResultAddress+Size*sizeof(UnicodeChar))^:=#0;
+     Move (PUnicodeChar(Pointer(S))[Index],ResultAddress^,Size*sizeof(UnicodeChar));
+     PUnicodeChar(ResultAddress)[Size]:=#0;
    end;
   fpc_unicodestr_decr_ref(Pointer(fpc_unicodestr_copy));
   Pointer(fpc_unicodestr_Copy):=ResultAddress;
@@ -1301,9 +1286,9 @@ begin
     end;
   LSource:=PUnicodeRec(Pointer(Source)-UnicodeFirstOff)^.Len;
   LS:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len;
+  if index < 1 then
+   index := 1;
   Dec(Index);
-  if index < 0 then
-   index := 0;
   if index > LS then
    index := LS;
   selfinsert:=Pointer(Source)=Pointer(S);

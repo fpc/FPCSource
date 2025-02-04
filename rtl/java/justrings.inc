@@ -66,20 +66,6 @@ end;
   which on the Java platforms is an alias for java.lang.String
 }
 
-{$define FPC_HAS_NEW_UNICODESTRING}
-Function NewUnicodeString(Len : SizeInt) : JLString;
-{
-  Allocate a new UnicodeString on the heap.
-  initialize it to zero length and reference count 1.
-}
-var
-  data: array of jchar;
-begin
-  setlength(data,len);
-  result:=JLString.create(data);
-end;
-
-
 { lie, not required }
 {$define FPC_HAS_UNICODESTR_DECR_REF}
 {$define FPC_HAS_UNICODESTR_INCR_REF}
@@ -573,7 +559,8 @@ begin
       if JLObject(S)=nil then
        begin
          { Need a completely new string...}
-         result:=NewUnicodeString(l);
+         SetLength(chars,l);
+         result:=JLString.create(chars);
        end
       { no need to create a new string, since Java strings are immutable }
       else

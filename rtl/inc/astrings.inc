@@ -109,28 +109,6 @@ end;
 
 
 
-{$ifndef FPC_HAS_NEWANSISTR}
-{$define FPC_HAS_NEWANSISTR}
-Function NewAnsiString(Len : SizeInt) : Pointer;
-{
-  Allocate a new AnsiString on the heap.
-  initialize it to zero length and reference count 1.
-}
-begin
-  { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  Result:=GetMem(Len+(AnsiFirstOff+sizeof(AnsiChar)));
-  If Result=Nil then
-    Exit;
-  PAnsiRec(Result)^.Ref:=1;    { Set reference count }
-  PAnsiRec(Result)^.Len:=0;    { Initial length }
-  PAnsiRec(Result)^.CodePage:=DefaultSystemCodePage;
-  PAnsiRec(Result)^.ElementSize:=SizeOf(AnsiChar);
-  inc(Result,AnsiFirstOff);    { Points to string now }
-  PAnsiChar(Result)^:=#0;      { Terminating #0 }
-end;
-{$endif FPC_HAS_NEWANSISTR}
-
-
 {$ifndef FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
@@ -272,7 +250,9 @@ begin
     end
   else
     begin
-      NewDestP:=NewAnsiString(S1Len+S2Len);
+      NewDestP:=GetMem(S1Len+S2Len+(AnsiFirstOff+1))+AnsiFirstOff;
+      PAnsiRec(NewDestP-AnsiFirstOff)^.ElementSize:=1;
+      PAnsiRec(NewDestP-AnsiFirstOff)^.Ref:=1;
       Move(Pointer(S1)^,NewDestP^,S1Len);
       Move(Pointer(S2)^,PAnsiChar(NewDestP)[S1Len],S2Len);
       fpc_ansistr_decr_ref(Pointer(DestS));
@@ -360,10 +340,13 @@ begin
         begin
           { Create new string. }
           olddestp:=nil; { This case is distinguished as "not assigned(olddestp)". Also prevents "if p=olddestp" in the loop below shared with the ReallocMem branch. }
-          newdestp:=NewAnsiString(NewLen);
+          newdestp:=GetMem(NewLen+(AnsiFirstOff+1))+AnsiFirstOff;
+          PAnsiRec(newdestp-AnsiFirstOff)^.ElementSize:=1;
+          PAnsiRec(newdestp-AnsiFirstOff)^.Ref:=1;
         end;
       { Copy strings from last to the first, so that possible occurences of DestS could read from the beginning of the reallocated DestS. }
       pc:=newdestp+NewLen;
+      PByte(pc)^:=0; { Conveniently write null terminator. }
       for i:=high(sarr) downto lowstart do
         begin
           p:=pointer(sarr[i]);
@@ -376,11 +359,10 @@ begin
           dec(pc,size);
           Move(p^,pc^,Size);
         end;
-      if not assigned(olddestp) then
-        fpc_AnsiStr_Decr_Ref(pointer(DestS));
-      PAnsiChar(newdestp)[NewLen]:=#0;
       PAnsiRec(newdestp-AnsiFirstOff)^.CodePage:=tmpCP;
       PAnsiRec(newdestp-AnsiFirstOff)^.Len:=NewLen; { Careful, loop above relies on the old Len in the newdestp header. }
+      if not assigned(olddestp) then
+        fpc_AnsiStr_Decr_Ref(pointer(DestS));
       Pointer(DestS):=newdestp;
     end;
   { SetCodePage does the conversion (or at least uniquifying) if DestCP is not exactly the code page stored in the string header. Avoid if possible. }
@@ -682,46 +664,49 @@ Procedure fpc_AnsiStr_SetLength (Var S : RawByteString; l : SizeInt;cp : TSystem
   Makes sure S is unique, and contains enough room.
 }
 Var
-  Temp : Pointer;
+  sp,oldsp,realsp : Pointer;
   lens, lena : SizeInt;
 begin
-  if (l>0) then
+  if l<=0 then { length=0, deallocate the string }
     begin
-      if Pointer(S)=nil then
+      fpc_ansistr_decr_ref (Pointer(S));
+      exit;
+    end;
+  sp:=Pointer(S);
+  if (sp<>nil) and (PAnsiRec(sp-AnsiFirstOff)^.Ref=1) then
+    begin
+      lens:=MemSize(sp-AnsiFirstOff);
+      lena:=L+(AnsiFirstOff+1);
+      { allow shrinking string if that saves at least half of current size }
+      if (lena>lens) or (lena+32<=SizeInt(SizeUint(lens) div 2)) then
         begin
-          Pointer(S):=NewAnsiString(L);
-          cp:=TranslatePlaceholderCP(cp);
-          PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage:=cp;
-        end
-      else if PAnsiRec(Pointer(S)-AnsiFirstOff)^.Ref=1 then
-        begin
-          Temp:=Pointer(s)-AnsiFirstOff;
-          lens:=MemSize(Temp);
-          lena:=AnsiFirstOff+L+sizeof(AnsiChar);
-          { allow shrinking string if that saves at least half of current size }
-          if (lena>lens) or ((lens>32) and (lena<=SizeInt(SizeUint(lens) div 2))) then
-            Pointer(S):=reallocmem(Temp,lena)+AnsiFirstOff;
-        end
+          realsp:=sp-AnsiFirstOff; { Avoid taking sp address. }
+          sp:=reallocmem(realsp,lena)+AnsiFirstOff;
+        end;
+    end
+  else
+    begin
+      { Reallocation is needed... }
+      oldsp:=sp;
+      sp:=GetMem(L+(AnsiFirstOff+1))+AnsiFirstOff;
+      PAnsiRec(sp-AnsiFirstOff)^.ElementSize:=1;
+      PAnsiRec(sp-AnsiFirstOff)^.Ref:=1;
+      if oldsp=nil then
+        PAnsiRec(sp-AnsiFirstOff)^.CodePage:=TranslatePlaceholderCP(cp)
       else
         begin
-          { Reallocation is needed... }
-          Temp:=NewAnsiString(L);
-          PAnsiRec(Pointer(Temp)-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-          { Also copy a trailing implicit #0 of the original string
-            to the new larger string }
-          lens:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len+1;
+          PAnsiRec(sp-AnsiFirstOff)^.CodePage:=PAnsiRec(oldsp-AnsiFirstOff)^.CodePage;
+          lens:=PAnsiRec(oldsp-AnsiFirstOff)^.Len;
           if l<lens then
             lens:=l;
-          Move(Pointer(S)^,Temp^,lens);
+          Move(oldsp^,sp^,lens);
           fpc_ansistr_decr_ref(Pointer(s));
-          Pointer(S):=Temp;
         end;
-      { Force nil termination in case it gets shorter }
-      PByte(Pointer(S)+l)^:=0;
-      PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len:=l;
-    end
-  else  { length=0, deallocate the string }
-    fpc_ansistr_decr_ref (Pointer(S));
+    end;
+  { Null-terminate. }
+  PByte(sp+l)^:=0;
+  PAnsiRec(sp-AnsiFirstOff)^.Len:=l;
+  Pointer(S):=sp;
 end;
 {$endif FPC_HAS_ANSISTR_SETLENGTH}
 
@@ -761,17 +746,16 @@ end;
 {$define FPC_SYSTEM_HAS_TRUELY_ANSISTR_UNIQUE}
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer;
 Var
-  SNew : Pointer;
-  L    : SizeInt;
+  Sp : Pointer;
+  FullSize : SizeInt;
 begin
-  L:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.len;
-  SNew:=NewAnsiString (L);
-  Move (Pointer(S)^,SNew^,L+1);
-  PAnsiRec(SNew-AnsiFirstOff)^.len:=L;
-  PAnsiRec(SNew-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-  fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
-  pointer(S):=SNew;
-  pointer(result):=SNew;
+  Sp:=S;
+  FullSize:=PAnsiRec(Sp-AnsiFirstOff)^.len+(AnsiFirstOff+1);
+  result:=GetMem(FullSize)+AnsiFirstOff;
+  Move ((Sp-AnsiFirstOff)^,(result-AnsiFirstOff)^,FullSize); { Copy everything including header and #0, only refcount needs to be adjusted. }
+  PAnsiRec(result-AnsiFirstOff)^.Ref:=1;
+  fpc_ansistr_decr_ref (S);  { Thread safe }
+  S:=result;
 end;
 {$endif FPC_SYSTEM_HAS_TRUELY_ANSISTR_UNIQUE}
 
@@ -809,22 +793,21 @@ var
   ResultAddress : Pointer;
 begin
   ResultAddress:=Nil;
+  if Index < 1 then
+    Index := 1;
   dec(index);
-  if Index < 0 then
-    Index := 0;
   Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
   if Size>Lim then
     Size:=Lim;
   If Size>0 then
    begin
-     ResultAddress:=NewAnsiString(Size);
-     if ResultAddress<>Nil then
-      begin
-        Move(Pointer(Pointer(S)+index)^,ResultAddress^,Size);
-        PByte(ResultAddress+Size)^:=0;
-        PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
-        PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-      end;
+     ResultAddress:=GetMem(Size+(AnsiFirstOff+1))+AnsiFirstOff;
+     PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
+     PAnsiRec(ResultAddress-AnsiFirstOff)^.ElementSize:=1;
+     PAnsiRec(ResultAddress-AnsiFirstOff)^.Ref:=1;
+     PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
+     Move(Pointer(Pointer(S)+index)^,ResultAddress^,Size);
+     PByte(ResultAddress)[Size]:=0;
    end;
   fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
   Pointer(fpc_ansistr_Copy):=ResultAddress;
@@ -1251,9 +1234,9 @@ begin
     end;
   LSource:={$ifdef jvm}Length(Source){$else}PAnsiRec(Pointer(Source)-AnsiFirstOff)^.Len{$endif};
   LS:={$ifdef jvm}Length(S){$else}PAnsiRec(Pointer(S)-AnsiFirstOff)^.Len{$endif};
+  if index < 1 then
+   index := 1;
   Dec(Index);
-  if index < 0 then
-   index := 0;
   if index > LS then
    index := LS;
 {$ifdef jvm}

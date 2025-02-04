@@ -271,16 +271,6 @@ end;
 {$endif FPC_HAS_SHORTSTR_ANSISTR_INTERN_CHARMOVE}
 
 
-{$define FPC_HAS_NEWANSISTR}
-Function NewAnsiString(Len : SizeInt) : Pointer;
-{
-  Allocate a new AnsiString on the heap.
-  initialize it to zero length and reference count 1.
-}
-begin
-  result:=AnsistringClass.Create(len,DefaultSystemCodePage);
-end;
-
 { not required }
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 {$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
