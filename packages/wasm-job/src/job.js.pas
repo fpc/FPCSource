@@ -1784,7 +1784,7 @@ end;
 
 function TJSAtomicAsyncWaitResult.getAsync: Boolean;
 begin
-  ReadJSPropertyBoolean('async');
+  Result:=ReadJSPropertyBoolean('async');
 end;
 
 function TJSAtomicAsyncWaitResult.getValueAsString: UnicodeString;
