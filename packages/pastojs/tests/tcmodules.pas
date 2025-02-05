@@ -731,8 +731,9 @@ type
     Procedure TestClassInterface_COM_IntfProperty;
     Procedure TestClassInterface_COM_Delegation;
     Procedure TestClassInterface_COM_With;
-    Procedure TestClassInterface_COM_ForIn;
-    Procedure TestClassInterface_COM_ArrayOfIntf;
+    Procedure TestClassInterface_COM_ForObjectInInterface;
+    Procedure TestClassInterface_COM_ForInterfaceInObject;
+    Procedure TestClassInterface_COM_ArrayOfIntf; // todo
     Procedure TestClassInterface_COM_ArrayOfIntfFail;
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
@@ -22799,7 +22800,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_COM_ForIn;
+procedure TTestModule.TestClassInterface_COM_ForObjectInInterface;
 begin
   StartProgram(false);
   Add([
@@ -22824,7 +22825,7 @@ begin
   '  for o in i do o.Id:=3;',
   '']);
   ConvertProgram;
-  CheckSource('TestClassInterface_COM_ForIn',
+  CheckSource('TestClassInterface_COM_ForObjectInInterface',
     LinesToStr([ // statements
     'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
     'rtl.createClass(this, "TObject", null, function () {',
@@ -22848,6 +22849,88 @@ begin
     '  }',
     '} finally {',
     '  rtl._Release($in)',
+    '};',
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ForInterfaceInObject;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface end;',
+  '  TObject = class',
+  '  end;',
+  '  IWing = interface',
+  '    function Id: longint;',
+  '  end;',
+  '  TEnumerator = class',
+  '    function GetCurrent: IWing; virtual; abstract;',
+  '    function MoveNext: Boolean; virtual; abstract;',
+  '    property Current: IWing read GetCurrent;',
+  '  end;',
+  '  TBird = class',
+  '    function GetEnumerator: TEnumerator; virtual; abstract;',
+  '    procedure Test;',
+  '  end;',
+  'procedure TBird.Test;',
+  'var',
+  '  Wing: IWing;',
+  'begin',
+  '  for Wing in Self do',
+  '    if Wing.Id=1 then ;',
+  'end;',
+  'var',
+  '  Bird: TBird;',
+  '  Wing: IWing;',
+  'begin',
+  '  for Wing in Bird do',
+  '    if Wing.Id=2 then ;',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ForInterfaceInObject',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createInterface(this, "IWing", "{8B0D080B-C0F6-396E-AE88-000BDB74730C}", ["Id"], this.IUnknown);',
+    'rtl.createClass(this, "TEnumerator", this.TObject, function () {',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.Test = function () {',
+    '    var Wing = null;',
+    '    try {',
+    '      var $in = this.GetEnumerator();',
+    '      try {',
+    '        while ($in.MoveNext()) {',
+    '          Wing = rtl.setIntfL(Wing, $in.GetCurrent(), true);',
+    '          if (Wing.Id() === 1) ;',
+    '        }',
+    '      } finally {',
+    '        $in = rtl.freeLoc($in)',
+    '      };',
+    '    } finally {',
+    '      rtl._Release(Wing);',
+    '    };',
+    '  };',
+    '});',
+    'this.Bird = null;',
+    'this.Wing = null;',
+    '']),
+    LinesToStr([ // $mod.$main
+    'var $in = $mod.Bird.GetEnumerator();',
+    'try {',
+    '  while ($in.MoveNext()) {',
+    '    rtl.setIntfP($mod, "Wing", $in.GetCurrent(), true);',
+    '    if ($mod.Wing.Id() === 2) ;',
+    '  }',
+    '} finally {',
+    '  $in = rtl.freeLoc($in)',
     '};',
     '']));
 end;

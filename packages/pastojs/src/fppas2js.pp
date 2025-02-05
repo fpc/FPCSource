@@ -20182,7 +20182,7 @@ var
   Statements: TJSStatementList;
   VarSt: TJSVariableStatement;
   FuncContext: TFunctionContext;
-  List, GetCurrent, J: TJSElement;
+  List, GetCurrent, J, LHS, RHS: TJSElement;
   Call: TJSCallExpression;
   TrySt: TJSTryFinallyStatement;
   WhileSt: TJSWhileStatement;
@@ -20190,9 +20190,9 @@ var
   GetEnumeratorFunc, MoveNextFunc: TPasFunction;
   CurrentProp: TPasProperty;
   DotContext: TDotContext;
-  ResolvedEl: TPasResolverResult;
-  EnumeratorTypeEl: TPasType;
-  NeedTryFinally, NeedIntfRef: Boolean;
+  ResolvedEl, VarResolved: TPasResolverResult;
+  EnumeratorTypeEl, CurrentPropTypeEl: TPasType;
+  NeedTryFinally, NeedIntfRef, IsCurrentPropCOMIntf: Boolean;
 begin
   aResolver:=AContext.Resolver;
   ForScope:=TPasForLoopScope(El.CustomData);
@@ -20242,6 +20242,10 @@ begin
     RaiseNotSupported(El,AContext,20171225104316);
   if CurrentProp.Parent.ClassType<>TPasClassType then
     RaiseNotSupported(El,AContext,20190208154003);
+  CurrentPropTypeEl:=AContext.Resolver.ResolveAliasType(CurrentProp.VarType);
+  IsCurrentPropCOMIntf:=(CurrentPropTypeEl is TPasClassType)
+      and (TPasClassType(CurrentPropTypeEl).ObjKind=okInterface)
+      and (TPasClassType(CurrentPropTypeEl).InterfaceType=citCom);
 
   // get function context
   FuncContext:=AContext.GetFunctionContext;
@@ -20292,19 +20296,41 @@ begin
 
     // read property "Current"
     // Item=$in.GetCurrent();  or Item=$in.FCurrent;
-    AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
-    WhileSt.Body:=AssignSt;
-    AssignSt.LHS:=ConvertExpression(El.VariableName,AContext); // beware: might fail
-
-    DotContext:=TDotContext.Create(El.StartExpr,nil,AContext);
+    LHS:=nil;
+    RHS:=nil;
+    DotContext:=nil;
     try
+      LHS:=ConvertExpression(El.VariableName,AContext); // beware: might fail
+
+      DotContext:=TDotContext.Create(El.StartExpr,nil,AContext);
       GetCurrent:=CreatePropertyGet(CurrentProp,nil,DotContext,PosEl); // beware: might fail
       if DotContext.JS<>nil then
         RaiseNotSupported(El,AContext,20180509134302,GetObjName(DotContext.JS));
+      RHS:=CreateDotExpression(PosEl,CreateInName,GetCurrent,true);
+
+      if IsCurrentPropCOMIntf then
+        begin
+        // create "Item = rtl.setIntfL(Item,$in.GetCurrent);"
+        aResolver.ComputeElement(El.VariableName,VarResolved,[]);
+        WhileSt.Body:=CreateAssignComIntfVar(VarResolved,LHS,RHS,AContext,El.VariableName);
+        LHS:=nil;
+        RHS:=nil;
+        end
+      else
+        begin
+        // Item=$in.GetCurrent();  or Item=$in.FCurrent;
+        AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,PosEl));
+        WhileSt.Body:=AssignSt;
+        AssignSt.LHS:=LHS;
+        LHS:=nil;
+        AssignSt.Expr:=RHS;
+        RHS:=nil;
+        end;
     finally
       FreeAndNil(DotContext);
+      FreeAndNil(LHS);
+      FreeAndNil(RHS);
     end;
-    AssignSt.Expr:=CreateDotExpression(PosEl,CreateInName,GetCurrent,true);
 
     // add body
     if El.Body<>nil then
@@ -23903,6 +23929,7 @@ var
         // for v in <variable> do
         if InResolved.BaseType in btAllStrings then
           begin
+          // for v in string do
           InKind:=ikString;
           StartInt:=0;
           end
