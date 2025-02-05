@@ -722,6 +722,7 @@ type
     Procedure TestClassInterface_COM_AssignArg;
     Procedure TestClassInterface_COM_FunctionResult;
     Procedure TestClassInterface_COM_InheritedFuncResult;
+    Procedure TestClassInterface_COM_FunctionExit;
     Procedure TestClassInterface_COM_IsAsTypeCasts;
     Procedure TestClassInterface_COM_PassAsArg;
     Procedure TestClassInterface_COM_PassToUntypedParam;
@@ -22078,6 +22079,67 @@ begin
     '  };',
     '  rtl.addIntf(this, $mod.IUnknown);',
     '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_FunctionExit;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class(IUnknown)',
+  '    function _AddRef: longint; virtual; abstract;',
+  '    function _Release: longint; virtual; abstract;',
+  '    constructor Create;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'function GetIntf: IUnknown;',
+  'var Intf: IUnknown;',
+  'begin',
+  '  Intf := TObject.Create;',
+  '  Exit(Intf);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_FunctionExit',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '  rtl.addIntf(this, $mod.IUnknown);',
+    '});',
+    'this.GetIntf = function () {',
+    '  var Result = null;',
+    '  var Intf = null;',
+    '  var $ok = false;',
+    '  try {',
+    '    Intf = rtl.setIntfL(Intf, rtl.queryIntfT($mod.TObject.$create("Create"), $mod.IUnknown), true);',
+    '    $ok = true;',
+    '    Result = rtl.setIntfL(Result, Intf);',
+    '    return Result;',
+    '    $ok = true;',
+    '  } finally {',
+    '    rtl._Release(Intf);',
+    '    if (!$ok) rtl._Release(Result);',
+    '  };',
+    '  return Result;',
+    '};',
     '']),
     LinesToStr([ // $mod.$main
     '']));

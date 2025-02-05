@@ -13422,8 +13422,10 @@ var
   St: TJSStatementList;
   ImplProc, DeclProc: TPasProcedure;
   ImplTry: TPasImplTry;
-  ResultIsRead: Boolean;
+  ResultIsRead, IsCOMIntf: Boolean;
   ResultEl: TPasResultElement;
+  TypeEl: TPasType;
+  Call: TJSCallExpression;
 begin
   {$IFDEF VerbosePas2JS}
   writeln('TPasToJSConverter.ConvertBuiltIn_Exit ',GetObjName(El));
@@ -13434,16 +13436,30 @@ begin
   // ParentEl can be nil, when exit is in program begin block
   ImplProc:=TPasProcedure(ParentEl);
   ResultVarName:='';
+  ResultEl:=nil;
+  IsCOMIntf:=false;
   if ImplProc<>nil then
     begin
     ImplProcScope:=ImplProc.CustomData as TPas2JSProcedureScope;
-    if ImplProc.ProcType is TPasFunctionType then
+    DeclProc:=ImplProcScope.DeclarationProc;
+    if DeclProc=nil then
+      DeclProc:=ImplProc; // Note: references refer to ResultEl of DeclProc
+    if DeclProc.ProcType is TPasFunctionType then
       begin
       ResultVarName:=ImplProcScope.ResultVarName; // ResultVarName needs ImplProc
       if ResultVarName='' then
         ResultVarName:=ResolverResultVar;
+      ResultEl:=TPasFunctionType(DeclProc.ProcType).ResultEl;
+      TypeEl:=AContext.Resolver.ResolveAliasType(ResultEl.ResultType);
+      IsCOMIntf:=(TypeEl is TPasClassType)
+          and (TPasClassType(TypeEl).ObjKind=okInterface)
+          and (TPasClassType(TypeEl).InterfaceType=citCom);
       end;
-    end;
+    end
+  else
+    DeclProc:=nil;
+  FuncContext:=AContext.GetFunctionContext;
+
   Result:=TJSReturnStatement(CreateElement(TJSReturnStatement,El));
   if (El is TParamsExpr) and (length(TParamsExpr(El).Params)>0) then
     begin
@@ -13451,10 +13467,6 @@ begin
     ResultIsRead:=false;
     if (ResultVarName<>'') then
       begin
-      DeclProc:=ImplProcScope.DeclarationProc;
-      if DeclProc=nil then
-        DeclProc:=ImplProc; // Note: references refer to ResultEl of DeclProc
-      ResultEl:=TPasFunctionType(DeclProc.ProcType).ResultEl;
       ParentEl:=El.Parent;
       while (ParentEl<>ImplProc) do
         begin
@@ -13474,7 +13486,24 @@ begin
         end;
       end;
 
-    if ResultIsRead then
+    if IsCOMIntf then
+      begin
+      FuncContext.ResultNeedsIntfRelease:=true;
+      // create "Result = rtl.setIntfL(Result,param); return Result;"
+      Call:=CreateCallExpression(El);
+      Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntfSetIntfL)]);
+      Call.AddArg(CreatePrimitiveDotExpr(ResultVarName,El));
+      Call.AddArg(ConvertExpression(TParamsExpr(El).Params[0],AContext));
+      AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
+      AssignSt.LHS:=CreatePrimitiveDotExpr(ResultVarName,El);
+      AssignSt.Expr:=Call;
+      TJSReturnStatement(Result).Expr:=CreatePrimitiveDotExpr(ResultVarName,El);
+      St:=TJSStatementList(CreateElement(TJSStatementList,El));
+      St.A:=AssignSt;
+      St.B:=Result;
+      Result:=St;
+      end
+    else if ResultIsRead then
       begin
       // create "Result = param; return Result;"
       AssignSt:=TJSSimpleAssignStatement(CreateElement(TJSSimpleAssignStatement,El));
@@ -13504,7 +13533,6 @@ begin
       ; // in a procedure, "return;" which means "return undefined;"
     end;
 
-  FuncContext:=AContext.GetFunctionContext;
   if (FuncContext<>nil) and FuncContext.ResultNeedsIntfRelease then
     begin
     // add "$ok = true;"
