@@ -191,7 +191,7 @@ type
     TIDSortedSymbolCollection = object(TSymbolCollection)
       function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
       procedure Insert(Item: Pointer); virtual;
-      function  SearchSymbolByID(AID: longint): PSymbol;
+      function  SearchSymbolByID(AID: PtrInt): PSymbol;
     end;
 
     TObjectSymbolCollection = object(TSortedCollection)
@@ -583,7 +583,7 @@ begin
   TSortedCollection.Insert(Item);
 end;
 
-function TIDSortedSymbolCollection.SearchSymbolByID(AID: longint): PSymbol;
+function TIDSortedSymbolCollection.SearchSymbolByID(AID: PtrInt): PSymbol;
 var S: TSymbol;
     Index: sw_integer;
     P: PSymbol;
