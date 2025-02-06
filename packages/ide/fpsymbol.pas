@@ -1434,10 +1434,11 @@ var OK: boolean;
     st : string;
     P : PObjectSymbol;
 
-    procedure WriteSymbolTree(P:PObjectSymbol;Depth:Sw_Integer);
+    procedure WriteSymbolTree(P:PObjectSymbol;Depth:Sw_Integer;grph:string);
     var
       Q : PObjectSymbol;
       Nc,Des,Count : integer;
+      fl : word;
       Space : String;
     begin
       if not assigned(P) then
@@ -1445,13 +1446,15 @@ var OK: boolean;
       Des:=0;
       Count:=GetNumChildren{Exposed}(P);
       if Count=0 then exit;
-      SetLength(Space,Depth*2);
-      for nc:=1 to Length(Space) do Space[nc]:=' ';
       While Count>Des do
         begin
           if not ok then exit;
           Q:=P^.GetDescendant(Des);
           st:=GetText(Q);
+          if (Des+1)=Count then
+            fl:=ovExpanded or ovChildren or ovLast
+          else fl:=ovExpanded or ovChildren;
+          Space:=grph+getgraph(0,1,fl);
           S^.Write(Space[1],Length(Space));
           if not OK then exit;
           S^.Write(St[1],length(St));
@@ -1461,7 +1464,11 @@ var OK: boolean;
           OK:=(S^.Status=stOK);
           if not OK then exit;
           if Ok then
-            WriteSymbolTree(Q,Depth+1);
+          begin
+            if (Des+1)=Count then
+              Space:=grph+'   ' else Space:=grph+' '#179' ';
+            WriteSymbolTree(Q,Depth+1,Space);
+          end;
           Inc(Des);
         end;
     end;
@@ -1472,7 +1479,7 @@ begin
   if OK then
     begin
       P:=Root;
-      st:=GetText(P);
+      st:=#32#192#196#196+GetText(P);
       S^.Write(St[1],length(St));
       OK:=(S^.Status=stOK);
       if OK then
@@ -1480,7 +1487,7 @@ begin
         S^.Write(EOL[1],length(EOL));
         OK:=(S^.Status=stOK);
         if OK then
-          WriteSymbolTree(P,1);
+          WriteSymbolTree(P,1,'   ');
       end;
     end;
   if Assigned(S) then Dispose(S, Done);
