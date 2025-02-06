@@ -79,6 +79,22 @@ type
       function  At(Index: sw_Integer): PGDBValue;
       end;
 
+      {Shell of TSymbol used to filter inherited and to display qualified symbols }
+    PHollowSymbol = ^THollowSymbol;
+    THollowSymbol = object(TSymbol)
+        Sym        : PSymbol; { orginal symbol, need for unit info save}
+        Parent     : PSymbol; { to get object name from }
+        NeedPrefix : Boolean; { GetName will add object prefix if needed }
+        constructor Init(ASymbol,AParent:PSymbol);
+        function    GetName: string; virtual;
+        destructor  Done; virtual;
+      end;
+
+    PHollowSymbolCollection=^THollowSymbolCollection;
+    THollowSymbolCollection = Object(TSortedSymbolCollection)
+        function  At(Index: Sw_Integer): PHollowSymbol;
+      end;
+
 
     PFilteredSym = ^TFilteredSym;
     TFilteredSym = Object(TObject)
@@ -131,10 +147,15 @@ type
       function    GotoItem(Item: sw_integer): boolean; virtual;
       function    TrackItem(Item: sw_integer; AutoTrack: boolean): boolean; virtual;
     private
+      Inh       : Boolean; {filter for inheritance is possible}
+      ObjSymbol : PSymbol;
+      OrgSymbols: PSymbolCollection;
       FilteredSym: PFilteredSymCollection;
-      Symbols: PSymbolCollection;
+      Symbols  : PHollowSymbolCollection;
       SymbolsValue : PGDBValueCollection;
       LookupStr: string;
+      procedure   CopyOrgSymbols;
+      procedure   PullInInheritance;
     end;
 
     PSymbolReferenceView = ^TSymbolReferenceView;
@@ -642,6 +663,54 @@ begin
 end;
 
 {****************************************************************************
+                               THollowSymbol
+****************************************************************************}
+constructor THollowSymbol.init(ASymbol,AParent:PSymbol);
+begin
+  TObject.Init;
+  Name       := ASymbol^.Name;
+  Typ        := ASymbol^.Typ;
+  varoptions := ASymbol^.varoptions;
+  varspez    := ASymbol^.varspez;
+  Params     := ASymbol^.Params;
+  References := ASymbol^.References;
+  Items      := ASymbol^.Items;
+  DType      := ASymbol^.DType;
+  VType      := ASymbol^.VType;
+  TypeID     := ASymbol^.TypeID;
+  RelatedTypeID := ASymbol^.RelatedTypeID;
+  DebuggerCount := ASymbol^.DebuggerCount;
+  Ancestor   := ASymbol^.Ancestor;
+  Flags      := ASymbol^.Flags;
+  MemInfo    := ASymbol^.MemInfo;
+  Sym        := ASymbol;
+  Parent     := AParent;
+  NeedPrefix := false;
+end;
+
+function THollowSymbol.GetName: string;
+begin
+  if (not NeedPrefix) or (not assigned(Parent)) then
+    GetName:=inherited GetName
+  else
+    GetName:=Parent^.Name^+'.'+inherited GetName;
+end;
+
+destructor THollowSymbol.done;
+begin
+  { Skip TSymbol.Done because we do not own any of actual pointers here }
+  TObject.Done;
+end;
+
+{****************************************************************************
+                               THollowSymbolCollection
+****************************************************************************}
+function THollowSymbolCollection.At(Index: Sw_Integer): PHollowSymbol;
+begin
+  At:=TCollection.At(Index);
+end;
+
+{****************************************************************************
                                TFilteredSym
 ****************************************************************************}
 constructor TFilteredSym.Init(AItemSym:Sw_Integer;ASym : PSymbol);
@@ -916,9 +985,15 @@ end;
 constructor TSymbolScopeView.Init(var Bounds: TRect; ASymbols: PSymbolCollection; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds,AHScrollBar, AVScrollBar);
-  Symbols:=ASymbols;
+  OrgSymbols:=ASymbols;
+  Inh:=false; { use inheritance filter (set to true only if view object or class) }
+  ObjSymbol:=nil;
+
   New(SymbolsValue,Init(50,50));
   New(FilteredSym,Init(50,50));
+  New(Symbols,Init(50,50));
+
+  CopyOrgSymbols;
   FilterSymbols(false); {select all}
   NewList(FilteredSym);
   SetRange(FilteredSym^.Count);
@@ -926,12 +1001,11 @@ end;
 
 destructor TSymbolScopeView.Done;
 begin
-  {if assigned(Symbols) then
+  if assigned(Symbols) then
     begin
-       the elements belong to other lists
-       Symbols^.DeleteAll;
        dispose(Symbols,done);
-    end;}
+       Symbols:=nil;
+    end;
   if Assigned(SymbolsValue) then
     begin
       Dispose(SymbolsValue,Done);
@@ -1083,11 +1157,78 @@ begin
     end;
 end;
 
-procedure TSymbolScopeView.FilterSymbols(AFilter:boolean);
+procedure TSymbolScopeView.CopyOrgSymbols;
 var S : PSymbol;
     I : sw_integer;
+begin
+  Symbols^.FreeAll;
+  if OrgSymbols^.Count>0 then
+    For i:=0 to OrgSymbols^.Count-1 do
+      begin
+        S:=OrgSymbols^.At(I);
+        Symbols^.Insert(new(PHollowSymbol,Init(S,nil)));
+      end;
+end;
+
+procedure TSymbolScopeView.PullInInheritance; {adds to the list inherited procedures and fields}
+var S : PSymbol;
+    O : PObjectSymbol;
+    InhSymbols : PSymbolCollection;
+    I : sw_integer;
+
+  function LookFor (Collection, AItems : PSymbolCollection):PSymbol;
+  var I : sw_integer;
+      S : PSymbol;
+      R : PSymbol;
+  begin
+    R:=nil;
+    for i:=0 to Collection^.count-1 do
+    begin
+      S:=Collection^.At(I);
+      if assigned(S) and assigned(S^.Items) then
+      begin
+        if S^.Items = AItems then
+        begin
+          R:=S; break;
+        end;
+        R:=LookFor(S^.Items,AItems);
+        if R<>nil then break;
+      end;
+    end;
+    LookFor:=R;
+  end;
+
+begin
+  S:=LookFor(Modules,OrgSymbols); { find the owner of OrgSymbols }
+  if assigned(S) then
+  begin
+    ObjSymbol:=S;
+    For i:=0 to Symbols^.Count-1 do
+      Symbols^.At(I)^.Parent:=S;
+    SymbolsValue^.FreeAll;
+    O:=SearchObjectForSymbol(S);
+    if assigned(O) then
+      while assigned(O^.Parent) do
+      begin
+        O:=O^.Parent;
+        S:=O^.Symbol;
+        if assigned(S) then
+        begin
+          {-- add inherited symbols --}
+          InhSymbols:=S^.Items;
+          if InhSymbols^.Count>0 then
+            For i:=0 to InhSymbols^.Count-1 do
+              Symbols^.Insert(new(PHollowSymbol,Init(InhSymbols^.At(I),S)));
+        end;
+    end;
+  end;
+end;
+
+procedure TSymbolScopeView.FilterSymbols(AFilter:boolean);
+var S : PHollowSymbol;
+    I : sw_integer;
     Flags : Longint;
-    bUni, bLab, bcon, btyp, bvar, bprc, binh: boolean;
+    bUni, bLab, bCon, bTyp, bVar, bPrc, bInh, bQua: boolean;
 begin
   Flags:=0;
   if assigned(MyBW) then
@@ -1099,6 +1240,7 @@ begin
   bVar:=(Flags and bfVariables)<>0;
   bPrc:=(Flags and bfProcedures)<>0;
   bInh:=(Flags and bfInherited)<>0;
+  bQua:=(Flags and bfQualifiedSymbols)<>0;
   FilteredSym^.FreeAll;
   if Symbols^.Count = 0 then exit;
   For i:=0 to Symbols^.Count-1 do
@@ -1106,11 +1248,16 @@ begin
       S:=Symbols^.At(I);
       if AFilter then begin
         {----------  only selected ones  ----------}
+        S^.NeedPrefix:=bQua;
+        if Inh then  { we are in object scope view }
+          if not bInh then  { Inherite checkbox is not selected }
+            if S^.Parent <> ObjSymbol then continue;
         case S^.typ of
           labelsym: if not bLab then continue;
           namespacesym,staticvarsym,localvarsym,paravarsym,
-          fieldvarsym,absolutevarsym,programparasym: if not bVar then continue;
-          procsym,propertysym,syssym : if not bPrc then continue;
+          fieldvarsym,absolutevarsym,programparasym,
+          propertysym: if not bVar then continue;
+          procsym,syssym : if not bPrc then continue;
           typesym : if not bTyp then continue;
           constsym,enumsym : if not bCon then continue;
           unitsym : if not bUni then continue;
@@ -1130,6 +1277,7 @@ begin
   F:=FilteredSym^.At(Item);
   Item:=F^.ItemSym;
   S:=Symbols^.At(Item);
+  //S:=F^.Sym;
   if Assigned(SymbolsValue) and (SymbolsValue^.Count>Item) then
     SG:=SymbolsValue^.At(Item)
   else
@@ -1909,6 +2057,11 @@ begin
       ScopeView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(ScopeView);
       ScopeView^.MyBW:=@Self;
+      if assigned(AInheritance) then
+      begin
+        ScopeView^.Inh:=true;
+        ScopeView^.PullInInheritance;
+      end;
       ScopeView^.SetGDBCol;
       ScopeView^.FilterSymbols(true);
       ScopeView^.SetRange(ScopeView^.FilteredSym^.Count);
@@ -2068,7 +2221,7 @@ end;
 
 procedure TBrowserWindow.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
-    S: PSymbol;
+    S: PHollowSymbol;
     Symbols: PSymbolCollection;
     Anc: PObjectSymbol;
     P: TPoint;
@@ -2094,7 +2247,7 @@ begin
             S:=nil;
             if (Event.InfoPtr=ScopeView) then
               begin
-                S:=ScopeView^.FilteredSym^.At(ScopeView^.Focused)^.Sym;
+                S:=PHollowSymbol(ScopeView^.FilteredSym^.At(ScopeView^.Focused)^.Sym);
                 MakeGlobal(ScopeView^.Origin,P);
                 Desktop^.MakeLocal(P,P); Inc(P.Y,ScopeView^.Focused-ScopeView^.TopItem);
                 Inc(P.Y);
@@ -2125,7 +2278,7 @@ begin
                  OpenSymbolBrowser(Origin.X-1,P.Y,
                    S^.GetName,
                    ScopeView^.GetText(ScopeView^.Focused,255),
-                   S,@self,
+                   S^.Sym,@self,
                    Symbols,S^.References,Anc,S^.MemInfo);
                 ClearEvent(Event);
               end;
