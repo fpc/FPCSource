@@ -1756,6 +1756,8 @@ var i:cardinal;
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
   AddSpecialSequence(#27'[<',@GenMouseEvent_ExtendedSGR1006);
+  AddSpecialSequence(#27#27'[M',@GenMouseEvent);
+  AddSpecialSequence(#27#27'[<',@GenMouseEvent_ExtendedSGR1006);
   if not isKittyKeys then
     AddSpecialSequence(#27'[27;',@xterm_ModifyOtherKeys);
 
