@@ -250,6 +250,9 @@ type
     PUnitInfoPanel = ^TUnitInfoPanel;
     TUnitInfoPanel = object(TPanel)
       InOwnerCall: boolean;
+      UnitInfoUsed: PSymbolScopeView;
+      UnitInfoDependent: PSymbolScopeView;
+      procedure SetState(AState: Word; Enable: Boolean); virtual;
       procedure HandleEvent(var Event: TEvent); virtual;
     end;
 
@@ -265,6 +268,7 @@ type
       function    Disassemble : boolean;
       function    GetFlags: longint; virtual;
       procedure   SetFlags(AFlags: longint); virtual;
+      procedure   SizeLimits (Var Min, Max: TPoint); Virtual;
       destructor  Done;virtual;
     private
       BrowserFlags  : Longint;
@@ -1860,11 +1864,22 @@ end;
 
 procedure TBrowserTab.SelectItem(Index: Sw_integer);
 var P: PBrowserTabItem;
+    PrevTab:Sw_Integer;
 begin
+  PrevTab:=Current;
   Current:=Index;
+  if PrevTab<>Current then
+  begin
+    P:=GetItem(PrevTab);
+    if (P<>nil) and (P^.Link<>nil) then
+      P^.Link^.SetState(sfVisible,False);
+  end;
   P:=GetItem(Current);
   if (P<>nil) and (P^.Link<>nil) then
+  begin
+    P^.Link^.SetState(sfVisible,True);
     P^.Link^.Focus;
+  end;
   DrawView;
 end;
 
@@ -1986,6 +2001,25 @@ begin
   inherited Done;
 end;
 
+procedure TUnitInfoPanel.SetState(AState: Word; Enable: Boolean);
+var OState: longint;
+begin
+  OState:=State;
+  inherited SetState(AState,Enable);
+  if ((OState xor State) and sfVisible)<>0 then
+  begin
+    if GetState(sfVisible) then
+      begin
+        { even they are visible already
+          we need to make them visible for focus to work }
+        if assigned(UnitInfoUsed) then
+          UnitInfoUsed^.SetState(sfVisible,true);
+        if assigned(UnitInfoDependent) then
+          UnitInfoDependent^.SetState(sfVisible,true);
+      end;
+  end;
+end;
+
 procedure TUnitInfoPanel.HandleEvent(var Event: TEvent);
 begin
   if (Event.What=evBroadcast) and (Event.Command=cmListItemSelected) and
@@ -2105,8 +2139,10 @@ begin
       R2.B.Y:=R2.A.Y+3;
       if (Assigned(UsedUnits) or Assigned(DependentUnits))=false then
         R2.B.Y:=R3.B.Y;
-      HSB:=CreateHSB(R2); {UnitInfo^.Insert(HSB); HSB:=nil;}
-      VSB:=CreateVSB(R2);
+      {HSB:=CreateHSB(R2);} {UnitInfo^.Insert(HSB); HSB:=nil;}
+      {VSB:=CreateVSB(R2);}
+      HSB:=nil; { It is for the best to not have HSB at all. M }
+      VSB:=nil;
       {UnitInfo^.Insert(VSB);
        VSB will be owned by UnitInfoText PM }
       New(UnitInfoText, Init(R2,HSB,VSB, nil));
@@ -2128,6 +2164,7 @@ begin
       end;
       UnitInfo^.Insert(UnitInfoText);
 
+      UnitInfo^.UnitInfoUsed:=nil;
       if Assigned(UsedUnits) then
       begin
         Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R2.A.Y+1;
@@ -2135,36 +2172,51 @@ begin
         CST^.GrowMode:=gfGrowHiX;
         UnitInfo^.Insert(CST);
 
-        Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R2.A.Y+4;
+        Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R2.A.Y+3;
+        Dec(R2.B.X);  { make space for VSB inside Panel }
         if Assigned(DependentUnits)=false then R2.B.Y:=R3.B.Y;
         {HSB:=CreateHSB(R2); UnitInfo^.Insert(HSB); }
         HSB:=nil;
         VSB:=CreateVSB(R2);
         {UnitInfo^.Insert(VSB);  this created crashes,
         that were difficult to findout PM }
+        { Maybe because it was outside Panle?  M }
+        UnitInfo^.Insert(VSB); { lets try again with VSB inside Panel area }
         New(UnitInfoUsed, Init(R2,UsedUnits,HSB,VSB));
+        Inc(R2.B.X); { restore R2 }
         UnitInfoUsed^.GrowMode:=gfGrowHiY+gfGrowHiX;
         UnitInfoUsed^.MyBW:=@Self;
         UnitInfo^.Insert(UnitInfoUsed);
+        UnitInfo^.UnitInfoUsed:=UnitInfoUsed;
       end;
 
+      UnitInfo^.UnitInfoDependent:=nil;
       if Assigned(DependentUnits) then
       begin
         Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R2.A.Y+1;
         New(CST, Init(R2,#180' Dependent units '#195+CharStr(#196,255),ColorIndex(12),false));
         CST^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY;
+        if not Assigned(UsedUnits) then CST^.GrowMode:=gfGrowHiX;
         UnitInfo^.Insert(CST);
 
         Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R3.B.Y;
+        Dec(R2.B.X); { make space for VSB inside Panel }
         {HSB:=CreateHSB(R2); UnitInfo^.Insert(HSB); }
         HSB:=nil;
         VSB:=CreateVSB(R2);
         { UnitInfo^.Insert(VSB);  this created crashes,
         that were difficult to findout PM }
+        { Maybe because it was outside Panle?  M }
+        UnitInfo^.Insert(VSB); { lets try again with VSB inside Panel area }
+        if Assigned(UsedUnits) then
+          VSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowLoX+gfGrowHiY;
         New(UnitInfoDependent, Init(R2,DependentUnits,HSB,VSB));
         UnitInfoDependent^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY;
+        if not Assigned(UsedUnits) then
+          UnitInfoDependent^.GrowMode:=gfGrowHiY+gfGrowHiX;
         UnitInfoDependent^.MyBW:=@Self;
         UnitInfo^.Insert(UnitInfoDependent);
+        UnitInfo^.UnitInfoDependent:=UnitInfoDependent;
       end;
 
       if Assigned(UnitInfoText) then
@@ -2172,6 +2224,13 @@ begin
 
       Insert(UnitInfo);
     end;
+
+  { hide not active pages so that scrollbars do not overlap }
+  if assigned(ScopeView) then ScopeView^.SetState(sfVisible,False);
+  if assigned(ReferenceView) then ReferenceView^.SetState(sfVisible,False);
+  if assigned(InheritanceView) then InheritanceView^.SetState(sfVisible,False);
+  if assigned(MemInfoView) then MemInfoView^.SetState(sfVisible,False);
+  if assigned(UnitInfo) then UnitInfo^.SetState(sfVisible,False);
 
   GetExtent(R); R.Grow(-1,-1); R.Move(0,1); R.B.Y:=R.A.Y+1;
   New(PageTab, Init(R,
@@ -2254,14 +2313,14 @@ begin
               end;
             if (Event.InfoPtr=UnitInfoUsed) then
               begin
-                S:=UnitInfoUsed^.Symbols^.At(UnitInfoUsed^.Focused);
+                S:=PHollowSymbol(UnitInfoUsed^.FilteredSym^.At(UnitInfoUsed^.Focused)^.Sym);
                 MakeGlobal(UnitInfoUsed^.Origin,P);
                 Desktop^.MakeLocal(P,P); Inc(P.Y,UnitInfoUsed^.Focused-UnitInfoUsed^.TopItem);
                 Inc(P.Y);
               end;
             if (Event.InfoPtr=UnitInfoDependent) then
               begin
-                S:=UnitInfoDependent^.Symbols^.At(UnitInfoDependent^.Focused);
+                S:=PHollowSymbol(UnitInfoDependent^.FilteredSym^.At(UnitInfoDependent^.Focused)^.Sym);
                 MakeGlobal(UnitInfoDependent^.Origin,P);
                 Desktop^.MakeLocal(P,P); Inc(P.Y,UnitInfoDependent^.Focused-UnitInfoDependent^.TopItem);
                 Inc(P.Y);
@@ -2277,7 +2336,7 @@ begin
                 if (S^.GetReferenceCount>0) or (assigned(Symbols) and (Symbols^.Count>0)) or (Anc<>nil) then
                  OpenSymbolBrowser(Origin.X-1,P.Y,
                    S^.GetName,
-                   ScopeView^.GetText(ScopeView^.Focused,255),
+                   S^.GetText {ScopeView^.GetText(ScopeView^.Focused,255)},
                    S^.Sym,@self,
                    Symbols,S^.References,Anc,S^.MemInfo);
                 ClearEvent(Event);
@@ -2373,6 +2432,14 @@ begin
 {  if ((State xor OldState) and sfActive)<>0 then
     if GetState(sfActive)=false then
       Message(Desktop,evBroadcast,cmClearLineHighlights,nil);}
+end;
+
+procedure TBrowserWindow.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=20;
+  Min.Y:=15; { Scrollbars in unit info page is still usable }
+  Max.X:=ScreenWidth;
+  Max.Y:=ScreenHeight-2;
 end;
 
 procedure TBrowserWindow.Close;
