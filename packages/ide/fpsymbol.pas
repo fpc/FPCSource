@@ -401,7 +401,7 @@ end;
 procedure OpenOneSymbolBrowser(Name : String);
 
 var Index : sw_integer;
-    PS,S : PSymbol;
+    PS,S,MS : PSymbol;
     Anc : PObjectSymbol;
     P : Pstring;
     Symbols: PSymbolCollection;
@@ -410,12 +410,17 @@ var Index : sw_integer;
   begin
     Search:=UpcaseStr(P^.Items^.LookUp(Name,Index))=Name;
   end;
+  function SearchModule(P : PSymbol) : boolean;
+  begin
+    SearchModule:=UpcaseStr(P^.Name^)=Name;
+  end;
 
 begin
    Name:=UpcaseStr(Name);
    If BrowCol.Modules<>nil then
      begin
        PS:=BrowCol.Modules^.FirstThat(TCallbackFunBoolParam(@Search));
+       MS:=BrowCol.Modules^.FirstThat(TCallbackFunBoolParam(@SearchModule));
        If assigned(PS) then
          begin
            S:=PS^.Items^.At(Index);
@@ -434,6 +439,15 @@ begin
                 PS^.Items^.At(Index)^.GetText,
                 PS^.Items^.At(Index),nil,
                 Symbols,PS^.Items^.At(Index)^.References,Anc,PS^.MemInfo);
+         end
+       else If assigned(MS) then
+         begin
+           Symbols:=MS^.Items;
+           OpenSymbolBrowser(0,20,
+                MS^.GetName,
+                MS^.GetText,
+                MS,nil,
+                Symbols,MS^.References,nil,nil);
          end
        else
          begin
