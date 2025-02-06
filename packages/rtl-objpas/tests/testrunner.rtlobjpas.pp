@@ -55,8 +55,9 @@ uses
   utcvector,
   utcquaternion
 {$IFDEF HAS_MONITOR}
-  ,utcfpmonitor, tests.rtti.attrtypes2
+  ,utcfpmonitor, tests.rtti.attrtypes2,
 {$ENDIF}
+   utcStrUtils
   ;
 
 
