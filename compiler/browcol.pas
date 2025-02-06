@@ -113,7 +113,7 @@ type
       function    GetReference(Index: Sw_integer): PReference;
       function    GetItemCount: Sw_integer;
       function    GetItem(Index: Sw_integer): PSymbol;
-      function    GetName: string;
+      function    GetName: string; virtual;
       function    GetText: string;
       function    GetTypeName: string;
       destructor  Done; virtual;
@@ -805,11 +805,14 @@ begin
       if Assigned(DType) then
         S:=S+' = '+DType^;
       if Assigned(Params) then
-        S:=S+'('+Params^+')';
+        if Typ <> propertysym then
+          S:=S+'('+Params^+')'
+        else
+          S:=S+'['+Params^+']';
       if Assigned(VType) then
-        S:=S+': '+VType^;
+        S:=S+': '+VType^+';';
     end;
-  if Typ=ProcSym then
+  if (Typ=ProcSym) and not Assigned(VType) then
     S:=S+';';
   GetText:=S;
 end;
@@ -1274,7 +1277,7 @@ end;
       begin
         if i>0 then
           Name:=Name+', ';
-        Name:=Name+tenumsym(def.symtable.SymList[i]).name;
+        Name:=Name+tenumsym(def.symtable.SymList[i]).RealName;
       end;
     Name:=Name+')';
     GetEnumDefStr:=Name;
@@ -1297,6 +1300,10 @@ end;
       ft_typed   : Name:='file of '+GetDefinitionStr(def.typedfiledef);
     end;
     GetFileDefStr:=Name;
+  end;
+  function GetOrdDefStr(def: torddef): string;
+  begin
+    GetOrdDefStr:=def.GetTypeName;;
   end;
   function GetStringDefStr(def: tstringdef): string;
   var Name: string;
@@ -1325,7 +1332,7 @@ end;
   begin
     OK:=false;
     if assigned(def.returndef) then
-      if UpcaseStr(GetDefinitionStr(def.returndef))<>'VOID' then
+      if UpcaseStr(GetDefinitionStr(def.returndef))<>'$VOID' then
         OK:=true;
     retdefassigned:=OK;
   end;
@@ -1416,7 +1423,7 @@ end;
     if def<>nil then
     begin
       if assigned(def.typesym) then
-        Name:=def.typesym.name;
+        Name:=def.typesym.RealName;
       if Name='' then
       case def.typ of
         arraydef :
@@ -1450,7 +1457,7 @@ end;
           ES:=ES^.next;
         if assigned(es) and (es^.value=sym.value) then
           Name:=}
-        Name:=sym.definition.typesym.name;
+        Name:=sym.definition.typesym.RealName;
         if Name<>'' then
           Name:=Name+'('+IntToStr(sym.value)+')';
       end;
@@ -1465,7 +1472,7 @@ end;
       constord :
         begin
           if sym.constdef.typ=enumdef then
-            Name:=sym.constdef.typesym.name+'('+tostr(sym.value.valueord)+')'
+            Name:=sym.constdef.typesym.RealName+'('+tostr(sym.value.valueord)+')'
           else
             if is_boolean(sym.constdef) then
               Name:='Longbool('+tostr(sym.value.valueord)+')'
@@ -1509,6 +1516,31 @@ end;
       end;
     end;
   end;
+  function GetPropVarDef (Table : TSymTable):string;
+  var symidx : longint;
+      Sym: TSym;
+      st : string;
+  begin
+    st:='';
+    for symidx:=0 to Table.SymList.Count-1 do
+    begin
+      sym:=tsym(Table.SymList[symidx]);
+      case Sym.Typ of
+        paravarsym :
+             with tabstractvarsym(sym) do
+             begin
+               if st<>'' then st:=';';
+               st:=st+Sym.RealName;
+               if assigned(vardef) then
+                 if assigned(vardef.typesym) then
+                   st:=st+': '+vardef.typesym.RealName
+                 else
+                   st:=st+': '+GetDefinitionStr(vardef);
+             end;
+      end;
+    end;
+    GetPropVarDef:=st;
+  end;
   var MemInfo: TSymbolMemInfo;
       ObjDef: tobjectdef;
       symidx : longint;
@@ -1538,18 +1570,9 @@ end;
           paravarsym :
              with tabstractvarsym(sym) do
              begin
-               if (vo_is_funcret in varoptions) then
-                 begin
-                   if Assigned(OwnerSym) then
-                       if assigned(vardef) then
-                         if assigned(vardef.typesym) then
-                           SetVType(OwnerSym,vardef.typesym.name)
-                         else
-                           SetVType(OwnerSym,GetDefinitionStr(vardef));
-                 end;
                if assigned(vardef) then
                  if assigned(vardef.typesym) then
-                   SetVType(Symbol,vardef.typesym.name)
+                   SetVType(Symbol,vardef.typesym.RealName)
                  else
                    SetVType(Symbol,GetDefinitionStr(vardef));
                ProcessDefIfStruct(vardef);
@@ -1586,6 +1609,11 @@ end;
           fieldvarsym :
              with tfieldvarsym(sym) do
              begin
+               if assigned(vardef) then
+                 if assigned(vardef.typesym) then
+                   SetVType(Symbol,vardef.typesym.RealName)
+                 else
+                   SetVType(Symbol,GetDefinitionStr(vardef));
                if assigned(vardef) and (vardef.typ=arraydef) then
                  begin
                    if tarraydef(vardef).highrange<tarraydef(vardef).lowrange then
@@ -1596,6 +1624,17 @@ end;
                else
                  MemInfo.Size:=getsize;
                Symbol^.SetMemInfo(MemInfo);
+             end;
+          propertysym :
+             with tpropertysym(sym) do
+             begin
+               if assigned(parast) then
+                 Symbol^.Params:=TypeNames^.Add(GetPropVarDef(parast));
+               if assigned(propdef) then
+                 if assigned(propdef.typesym) then
+                   SetVType(Symbol,propdef.typesym.RealName)
+                 else
+                   SetVType(Symbol,GetDefinitionStr(propdef));
              end;
           constsym :
              SetDType(Symbol,GetConstValueName(tconstsym(sym)));
@@ -1620,7 +1659,7 @@ end;
                     begin
                       if Assigned(Symbol) then
                         Owner^.Insert(Symbol);
-                      New(Symbol, Init(Sym.Name,Sym.Typ,'',nil));
+                      New(Symbol, Init(Sym.RealName,Sym.Typ,'',nil));
                     end;
                   with tprocsym(sym) do
                     begin
@@ -1628,6 +1667,10 @@ end;
                       if assigned(pd) then
                         begin
                           ProcessSymTable(Symbol,Symbol^.Items,pd.parast);
+                          if retdefassigned(tabstractprocdef(pd)) then
+                          begin
+                             SetVType(Symbol,GetDefinitionStr(tabstractprocdef(pd).returndef));
+                          end;
                           if assigned(pd.parast) then
                             begin
                               Symbol^.Params:=TypeNames^.Add(
@@ -1656,6 +1699,10 @@ end;
                begin
                 Symbol^.TypeID:=Ptrint(typedef);
                 case typedef.typ of
+                  orddef :
+                    SetDType(Symbol,GetOrdDefStr(torddef(typedef)));
+                  stringdef:
+                    SetDType(Symbol,GetStringDefStr(tstringdef(typedef)));
                   arraydef :
                     SetDType(Symbol,GetArrayDefStr(tarraydef(typedef)));
                   enumdef :
@@ -1673,9 +1720,8 @@ end;
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
                       if tobjectdef(typedef).objecttype=odt_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
-                      if tobjectdef(typedef).objecttype=odt_class then
-                      if not(df_generic in typedef.defoptions) then
-                      ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(typedef).symtable);
+                      if (trecorddef(typedef).symtable<>Table) then
+                        ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(typedef).symtable);
                     end;
                   recorddef :
                     begin
