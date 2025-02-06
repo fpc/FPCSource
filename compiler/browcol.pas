@@ -1305,6 +1305,18 @@ begin
   New(TypeNames, Init(1000,5000));
 end;
 
+function SearchModule(const Name: string): PModuleSymbol;
+  function Match(P: PModuleSymbol): boolean;
+  begin
+    Match:=CompareText(P^.GetName,Name)=0;
+  end;
+var P: PModuleSymbol;
+begin
+  P:=nil;
+  if Assigned(Modules) then
+    P:=Modules^.FirstThat(TCallbackFunBoolParam(@Match));
+  SearchModule:=P;
+end;
 
   procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: TSymTable);
   var I: longint;
@@ -1611,7 +1623,18 @@ end;
     for symidx:=0 to Table.SymList.Count-1 do
       begin
         sym:=tsym(Table.SymList[symidx]);
-        New(Symbol, Init(Sym.Name,Sym.Typ,'',nil));
+        if Sym.Typ <> unitsym then
+          New(Symbol, Init(Sym.RealName,Sym.Typ,'',nil))
+        else
+          begin
+            Symbol:=SearchModule(Sym.Name);
+            if not assigned(Symbol) then
+            begin
+              { fpintres unit go here for some reason }
+              Symbol:=New(PModuleSymbol,Init(Sym.Name,''));
+              Modules^.Insert(Symbol);
+            end;
+          end;
         case Sym.Typ of
           staticvarsym,
           localvarsym,
@@ -1845,6 +1868,7 @@ end;
           end;
         if Assigned(Symbol) then
           begin
+            if Assigned(sym) and (sym.typ=unitsym) then continue; { Units are in Modules list already }
             (* if not Owner^.Search(Symbol,J) then *)
               Owner^.Insert(Symbol)
             (*else
@@ -1855,19 +1879,6 @@ end;
           end;
       end;
   end;
-
-function SearchModule(const Name: string): PModuleSymbol;
-function Match(P: PModuleSymbol): boolean;
-begin
-  Match:=CompareText(P^.GetName,Name)=0;
-end;
-var P: PModuleSymbol;
-begin
-  P:=nil;
-  if Assigned(Modules) then
-    P:=Modules^.FirstThat(TCallbackFunBoolParam(@Match));
-  SearchModule:=P;
-end;
 
 procedure CreateBrowserCol;
 var
@@ -1915,6 +1926,25 @@ begin
              end;
 
            Modules^.Insert(UnitS);
+         end;
+       hp:=tmodule(hp.next);
+    end;
+
+   {-- collect browser information --}
+   hp:=tmodule(loaded_units.first);
+   if (cs_browser in current_settings.moduleswitches) then
+   while assigned(hp) do
+    begin
+       if hp.is_unit then
+         t:=tsymtable(hp.globalsymtable)
+       else
+         t:=tsymtable(hp.localsymtable);
+       if assigned(t) then
+         begin
+           name:=GetStr(T.Name);
+           UnitS:=SearchModule(Name);
+
+           { all modules have to be in list before first call to ProcessSymTable }
            ProcessSymTable(UnitS,UnitS^.Items,T);
            if hp.is_unit then
            if cs_local_browser in current_settings.moduleswitches then
@@ -1927,6 +1957,7 @@ begin
        hp:=tmodule(hp.next);
     end;
 
+  {-- used modules and dependant modules --}
   hp:=tmodule(loaded_units.first);
   if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
