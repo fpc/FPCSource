@@ -118,6 +118,12 @@ begin
   GetSelfThread:=GlobalCurrentThread;
 end;
 
+Function GetMainThread : TThreadID;
+
+begin
+  Result:=PWasmThread(@MainThread);
+end;
+
 Function GetThreadState(aThread : TThreadID) : TThreadState;
 
 begin
@@ -459,7 +465,7 @@ asm
   i32.atomic.store8
 end;
 
-exports wasi_thread_start;
+exports wasi_thread_start, GetSelfThread, GetMainThread;
 
 Function wasi_thread_spawn(start_arg: PWasmThread) : LongInt; external 'wasi' name 'thread-spawn';
 
