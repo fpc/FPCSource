@@ -354,7 +354,7 @@ const
   ResSignature : array [1..32] of byte =
   ($00,$00,$00,$00,$20,$00,$00,$00,$FF,$FF,$00,$00,$FF,$FF,$00,$00,
    $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00);
-  knownexts : array[1..4] of string[4] = ('.lfm', '.dfm', '.xfm', '.tlb');
+  knownexts : array[1..5] of string[4] = ('.lfm', '.dfm', '.xfm', '.fmx', '.tlb');
 var
   f : file;
   oldfmode : byte;
