@@ -85,7 +85,7 @@ Resourcestring
   SNoParseSQL              = '%s is only possible if ParseSQL is True';
   SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
   SUnsupportedFieldType    = 'Fieldtype %s is not supported';
-  SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
+  SInvPacketRecordsValue   = 'PacketRecords has to be larger than 0';
   SInvPacketRecordsValueFieldNames = 'PacketRecords must be -1 if IndexFieldNames is set';
   SInvPacketRecordsValueUniDirectional = 'PacketRecords must not be -1 on an unidirectional dataset';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
@@ -100,7 +100,7 @@ Resourcestring
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
   SMaxIndexes              = 'The maximum amount of indexes is reached';
   SMinIndexes              = 'The minimum amount of indexes is 1';
-  STooManyFields           = 'More fields specified then really exist';
+  STooManyFields           = 'More fields specified than really exist';
   SErrNoInMemoryRefresh    = 'In-memory table cannot be refreshed.';
 
   // These are added for Delphi-compatilility, but not used by the fcl:
