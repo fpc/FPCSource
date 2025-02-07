@@ -1242,12 +1242,11 @@ type
     S1e := ScanText(S1, S1p);
     S2e := ScanText(S2, S2p);
     Result := (S1e - S1p) - (S2e - S2p);
-    if Result = 0 then 
+    if Result = 0 then { Shortcut same strings (file0000, file0001). }
       Result := CompareByte(S1[1 + S1p], S2[1 + S2p], (S1e - S1p) * SizeOf(Char));
-{$if sizeof(char) = sizeof(ansichar)}
     if Result <> 0 then
-      Result := WideCompareText(UTF8Decode(Copy(S1, 1 + S1p, S1e - S1p)), UTF8Decode(Copy(S2, 1 + S2p, S2e - S2p)));
-{$endif}
+      Result := {$if sizeof(char) = 1} AnsiCompareText {$else} UnicodeCompareText {$endif}
+        (Copy(S1, 1 + S1p, S1e - S1p), Copy(S2, 1 + S2p, S2e - S2p));
     S1p := S1e;
     S2p := S2e;
   end;
