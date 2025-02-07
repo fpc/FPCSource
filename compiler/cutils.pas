@@ -1244,7 +1244,7 @@ implementation
           Count:=Count2
         else
           Count:=Count1;
-        result := CompareChar(S1[1],S2[1], Count);
+        result := CompareByte(S1[1],S2[1], Count);
         if result=0 then
           result:=Count1-Count2;
       end;

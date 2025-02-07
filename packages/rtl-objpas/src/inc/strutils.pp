@@ -2980,7 +2980,7 @@ begin
      c:=substr[1];
      repeat
        if (c=pc^) and
-          (CompareChar(Substr[1],pc^,llen)=0) then
+          (CompareByte(Substr[1],pc^,llen)=0) then
         begin
           rPosex:=pc-pc2+1;
           exit;

@@ -1791,7 +1791,7 @@ function CollectionsEqual(C1, C2: TCollection; Owner1, Owner2: TComponent): Bool
       try
         stream_collection(s1,c1,owner1);
         stream_collection(s2,c2,owner2);
-        result:=(s1.size=s2.size) and (CompareChar(s1.memory^,s2.memory^,s1.size)=0);
+        result:=(s1.size=s2.size) and (CompareByte(s1.memory^,s2.memory^,s1.size)=0);
       finally
         s2.free;
       end;

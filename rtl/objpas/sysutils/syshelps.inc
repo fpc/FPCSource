@@ -489,9 +489,9 @@ begin
       Result:=SameText(System.Copy(Self,NS-L+1,L),AValue)
     else
 {$IFDEF IS_SHORTSTRINGHELPER}
-      Result:=CompareChar(PTStringChar(@Self[1])[NS-L],PTStringChar(@AValue[1])^,L)=0;
+      Result:=CompareByte(PTStringChar(@Self[1])[NS-L],PTStringChar(@AValue[1])^,L*sizeof(TStringChar))=0;
 {$ELSE}
-      Result:=CompareChar(PTStringChar(Pointer(Self))[NS-L],PTStringChar(Pointer(AValue))^,L)=0;
+      Result:=CompareByte(PTStringChar(Pointer(Self))[NS-L],PTStringChar(Pointer(AValue))^,L*sizeof(TStringChar))=0;
 {$ENDIF}
 end;
 
@@ -619,10 +619,10 @@ begin
           Break;
         SP:=SP+Ofs+1;
         {$IFDEF IS_SHORTSTRINGHELPER}
-        if CompareChar(SP^,PTStringChar(@AValue[1])[1],NV-1)=0 then
+        if CompareByte(SP^,PTStringChar(@AValue[1])[1],(NV-1)*sizeof(TStringChar))=0 then
           Exit(SP-PTStringChar(@Self[1])-1);
         {$ELSE}
-        if CompareChar(SP^,PTStringChar(Pointer(AValue))[1],NV-1)=0 then
+        if CompareByte(SP^,PTStringChar(Pointer(AValue))[1],(NV-1)*sizeof(TStringChar))=0 then
           Exit(SP-PTStringChar(Pointer(Self))-1);
         {$ENDIF}
       until false;
@@ -1344,9 +1344,9 @@ begin
       Result:=SameText(System.Copy(Self,1,L),AValue)
     else
 {$IFDEF IS_SHORTSTRINGHELPER}
-      Result:=CompareChar(PTStringChar(@Self[1])^,PTStringChar(@AValue[1])^,L)=0;
+      Result:=CompareByte(PTStringChar(@Self[1])^,PTStringChar(@AValue[1])^,L*sizeof(TStringChar))=0;
 {$ELSE}
-      Result:=CompareChar(PTStringChar(Pointer(Self))^,PTStringChar(Pointer(AValue))^,L)=0;
+      Result:=CompareByte(PTStringChar(Pointer(Self))^,PTStringChar(Pointer(AValue))^,L*sizeof(TStringChar))=0;
 {$ENDIF}
 end;
 
