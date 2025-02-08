@@ -1462,6 +1462,7 @@ type
     Labels: TStrings;
     constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
     destructor Destroy; override;
+    function GetDeclaration(full : Boolean) : TPasTreeString; override;
   end;
 
   TPasImplBeginBlock = class;
@@ -6314,6 +6315,11 @@ destructor TPasLabels.Destroy;
 begin
   FreeAndNil(Labels);
   inherited Destroy;
+end;
+
+function TPasLabels.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:=Labels.CommaText;
 end;
 
 end.

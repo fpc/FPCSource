@@ -73,7 +73,6 @@ type
     procedure SetForwardClasses(AValue: TStrings);
     procedure SetIndentSize(AValue: Integer);
     function CheckUnitAlias(const AUnitName : String) : String;
-    procedure WriteImplWithDo(aWith: TPasImplWithDo);
   protected
     procedure DisableHintsWarnings;
     procedure PrepareDeclSectionInStruct(const ADeclSection: string);
@@ -100,6 +99,9 @@ type
     destructor Destroy; override;
     procedure WriteMembers(aMembers: TFPList; aDefaultVisibility: TPasMemberVisibility=visDefault); virtual;
     procedure AddForwardClasses(aSection: TPasSection); virtual;
+    procedure WriteImplWithDo(aWith: TPasImplWithDo); virtual;
+    procedure WriteImplLabelMark(aLabelMark: TPasImplLabelMark); virtual;
+    procedure WriteLabels(aLabels: TPasLabels); virtual;
     procedure WriteResourceString(aStr: TPasResString); virtual;
     procedure WriteEnumType(AType: TPasEnumType); virtual;
     procedure WriteElement(AElement: TPasElement;SkipSection : Boolean = False);virtual;
@@ -276,7 +278,11 @@ begin
     WriteImplElement(TPasImplElement(AElement),false)
   else if AElement.InheritsFrom(TPasResString) then
     WriteResourceString(TPasResString(AElement))
- else
+  else if AElement.InheritsFrom(TPasLabels) then
+     WriteLabels(TPasLabels(AElement))
+  else if AElement.InheritsFrom(TPasImplLabelMark) then
+    WriteImplLabelMark(TPasImplLabelMark(AElement))
+  else
     raise EPasWriter.CreateFmt('Writing not implemented for %s nodes',[AElement.ElementTypeName]);
 end;
 
@@ -1712,6 +1718,27 @@ begin
     Dispose(E);
     end;
   DeclSectionStack.Clear;
+end;
+
+procedure TPasWriter.WriteLabels(aLabels: TPasLabels);
+var
+  ind : integer;
+begin
+  Add('label ');
+  for ind:=0 to aLabels.Labels.Count-1 do
+    begin
+      Add(aLabels.Labels[ind]);
+      if ind<aLabels.Labels.Count-1 then
+        Add(', ')
+      else
+        AddLn(';');
+    end;
+  AddLn;
+end;
+
+procedure TPasWriter.WriteImplLabelMark(aLabelMark: TPasImplLabelMark);
+begin
+  AddLn(aLabelMark.LabelId+':');
 end;
 
 procedure WritePasFile(AElement: TPasElement; const AFilename: string);
