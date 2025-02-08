@@ -586,6 +586,7 @@ type
   TPasTypeAliasType = class(TPasAliasType)
   public
     function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(Full : boolean) : TPastreeString; override;
   end;
 
   { TPasGenericTemplateType - type param of a generic }
@@ -2856,6 +2857,16 @@ function TPasType.ElementTypeName: TPasTreeString; begin Result := SPasTreeType;
 function TPasPointerType.ElementTypeName: TPasTreeString; begin Result := SPasTreePointerType; end;
 function TPasAliasType.ElementTypeName: TPasTreeString; begin Result := SPasTreeAliasType; end;
 function TPasTypeAliasType.ElementTypeName: TPasTreeString; begin Result := SPasTreeTypeAliasType; end;
+
+function TPasTypeAliasType.GetDeclaration(Full: boolean): TPastreeString;
+
+
+begin
+  Result:='type '+DestType.GetDeclaration(False);
+  if Full then
+    Result:=FixTypeDecl(Result);
+end;
+
 function TPasClassOfType.ElementTypeName: TPasTreeString; begin Result := SPasTreeClassOfType; end;
 function TPasRangeType.ElementTypeName: TPasTreeString; begin Result := SPasTreeRangeType; end;
 function TPasArrayType.ElementTypeName: TPasTreeString; begin Result := SPasTreeArrayType; end;
@@ -3387,8 +3398,6 @@ var
   PasType : TPasType;
 begin
   Result:=aDecl;
-  PasType:=TPasTypeAliasType(Self).DestType;
-  Result:='type '+PasType.GetDeclaration(PasType is TPasUnresolvedTypeRef);
   if (Name<>'') then
     Result:=SafeName+' = '+Result;
   ProcessHints(false,Result);
@@ -4992,7 +5001,7 @@ begin
     // Todo: need something better than this.
     If (VarType.Name='')
        or ((VarType is TPasAliasType) and (TPasAliasType(VarType).DestType is TPasStringType)) then
-      Result:=VarType.GetDeclaration(Full)
+      Result:=VarType.GetDeclaration(False)
     else
       Result:=VarType.SafeName;
     Result:=Result+Modifiers;
