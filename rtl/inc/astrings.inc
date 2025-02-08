@@ -832,32 +832,6 @@ end;
 {$endif FPC_HAS_ANSISTR_COPY}
 
 
-{$if not defined(FPC_HAS_POS_SHORTSTR_ANSISTR)
-  or not defined(FPC_HAS_POS_ANSISTR_ANSISTR)}
-function Find(needle : PByte; nNeedle : SizeUint; haystack : PByte; nHaystack : SizeUint): SizeInt;
-var
-  p,d,pmaxplus1,iNeedle : SizeUint;
-begin
-  p:=0;
-  if SizeUint(nNeedle-1)<nHaystack then { (nNeedle > 0) and (nNeedle <= nHaystack) }
-    begin
-      pmaxplus1:=nHaystack-nNeedle+1;
-      iNeedle:=0;
-      repeat
-        if iNeedle=0 then
-          iNeedle:=nNeedle;
-        dec(iNeedle);
-        d:=IndexByte(haystack[p+iNeedle],pmaxplus1-p,needle[iNeedle])+1;
-        inc(p,d);
-      until (d=0) or (CompareByte(haystack[p-1],needle^,nNeedle)=0);
-      if d=0 then
-        p:=0;
-    end;
-  result:=SizeInt(p)-1;
-end;
-{$endif need Find}
-
-
 {$ifndef FPC_HAS_POS_SHORTSTR_ANSISTR}
 {$define FPC_HAS_POS_SHORTSTR_ANSISTR}
 Function Pos(Const Substr : ShortString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
@@ -868,7 +842,7 @@ begin
   result:=0;
   dec(Offset);
   if SizeUint(Offset)<SizeUint(nsource) then { (Offset >= 0) and (Offset < nsource) }
-    result:=Find(@Substr[1],length(Substr),pointer(Source)+Offset,nsource-Offset)+1;
+    result:=MemPos(PByte(@Substr[1]),length(Substr),PByte(Source)+Offset,nsource-Offset)+1;
   if result>0 then
     inc(result,Offset);
 end;
@@ -885,7 +859,7 @@ begin
   result:=0;
   dec(Offset);
   if SizeUint(Offset)<SizeUint(nsource) then { (Offset >= 0) and (Offset < nsource) }
-    result:=Find(pointer(Substr),length(Substr),pointer(Source)+Offset,nsource-Offset)+1;
+    result:=MemPos(PByte(Substr),length(Substr),PByte(Source)+Offset,nsource-Offset)+1;
   if result>0 then
     inc(result,Offset);
 end;

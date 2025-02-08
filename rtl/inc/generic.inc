@@ -671,6 +671,31 @@ end;
 {$endif not FPC_SYSTEM_HAS_COMPARECHAR0}
 
 
+{$ifndef FPC_SYSTEM_HAS_MEMPOS_PBYTE}
+function MemPos(needle:PByte;nNeedle:SizeUint;haystack:PByte;nHaystack:SizeUint):SizeInt;
+var
+  p,d,pmaxplus1,iNeedle : SizeUint;
+begin
+  p:=0;
+  if SizeUint(nNeedle-1)<nHaystack then { (nNeedle > 0) and (nNeedle <= nHaystack) }
+    begin
+      pmaxplus1:=nHaystack-nNeedle+1;
+      iNeedle:=0;
+      repeat
+        if iNeedle=0 then
+          iNeedle:=nNeedle;
+        dec(iNeedle);
+        d:=IndexByte(haystack[p+iNeedle],pmaxplus1-p,needle[iNeedle])+1;
+        inc(p,d);
+      until (d=0) or (CompareByte(haystack[p-1],needle^,nNeedle)=0);
+      if d=0 then
+        p:=0;
+    end;
+  result:=SizeInt(p)-1;
+end;
+{$endif not FPC_SYSTEM_HAS_MEMPOS_PBYTE}
+
+
 {****************************************************************************
                               Object Helpers
 ****************************************************************************}

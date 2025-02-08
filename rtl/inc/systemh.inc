@@ -923,6 +923,7 @@ function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui38
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:Ansichar):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;
+function  MemPos(needle:PByte;nNeedle:SizeUint;haystack:PByte;nHaystack:SizeUint):SizeInt;
 procedure Prefetch(const mem);[internproc:fpc_in_prefetch_var];
 
 procedure ReadBarrier; {$ifdef SYSTEMINLINE}inline;{$endif}
