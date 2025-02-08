@@ -57,7 +57,7 @@ unit cgcpu;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
         { bit scan instructions }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
@@ -512,7 +512,7 @@ implementation
       end;
 
 
-    procedure tcgloongarch64.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
+    procedure tcgloongarch64.a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       begin
         internalerror(2022111943);
       end;

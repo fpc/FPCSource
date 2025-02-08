@@ -35,7 +35,7 @@ unit cgrv;
       tcgrv = class(tcg)
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean); override;
@@ -196,7 +196,7 @@ unit cgrv;
       end;
 
 
-    procedure tcgrv.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
+    procedure tcgrv.a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       begin
         internalerror(2016060401);
       end;       

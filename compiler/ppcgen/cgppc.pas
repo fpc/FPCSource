@@ -35,7 +35,7 @@ unit cgppc;
       tcgppcgen = class(tcg)
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
 
@@ -205,7 +205,7 @@ unit cgppc;
       end;
 
 
-    procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
+    procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       var
         tmpreg: tregister;
         cntlzop: tasmop;

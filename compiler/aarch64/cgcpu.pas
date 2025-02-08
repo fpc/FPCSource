@@ -84,7 +84,7 @@ interface
 
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tcgsize; src, dst: tregister; shuffle: pmmshuffle); override;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
         { comparison operations }
         procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);override;
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
@@ -1292,7 +1292,7 @@ implementation
       end;
 
 
-    procedure tcgaarch64.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
+    procedure tcgaarch64.a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       var
         bitsize: longint;
       begin
@@ -1304,8 +1304,9 @@ implementation
           begin
             bitsize:=32;
           end;
-        { source is 0 -> dst will have to become 255 }
-        list.concat(taicpu.op_reg_const(A_CMP,src,0));
+        if not(not_zero) then
+          { source is 0 -> dst will have to become 255 }
+          list.concat(taicpu.op_reg_const(A_CMP,src,0));
         if reverse then
           begin
             list.Concat(taicpu.op_reg_reg(A_CLZ,makeregsize(dst,srcsize),src));
@@ -1319,10 +1320,13 @@ implementation
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
           end;
         { set dst to -1 if src was 0 }
-        list.Concat(taicpu.op_reg_reg_reg_cond(A_CSINV,dst,dst,makeregsize(NR_XZR,dstsize),C_NE));
-        { mask the -1 to 255 if src was 0 (anyone find a two-instruction
-          branch-free version? All of mine are 3...) }
-        list.Concat(taicpu.op_reg_reg(A_UXTB,makeregsize(dst,OS_32),makeregsize(dst,OS_32)));
+        if not(not_zero) then
+          begin
+            list.Concat(taicpu.op_reg_reg_reg_cond(A_CSINV,dst,dst,makeregsize(NR_XZR,dstsize),C_NE));
+            { mask the -1 to 255 if src was 0 (anyone find a two-instruction
+              branch-free version? All of mine are 3...) }
+            list.Concat(taicpu.op_reg_reg(A_UXTB,makeregsize(dst,OS_32),makeregsize(dst,OS_32)));
+          end;
       end;
 
 

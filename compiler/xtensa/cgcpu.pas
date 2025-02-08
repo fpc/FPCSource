@@ -68,7 +68,7 @@ interface
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
         procedure a_jmp_always(list: TAsmList; l: TAsmLabel);override;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);override;
 
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister);override;
 
@@ -1320,7 +1320,7 @@ implementation
       end;
 
 
-    procedure tcgcpu.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
+    procedure tcgcpu.a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
       var
         ai: taicpu;
         tmpreg: TRegister;

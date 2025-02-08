@@ -81,7 +81,7 @@ implementation
       aasmbase,aasmdata,
       cgbase,pass_2,
       cpubase,procinfo,
-      ncon,ncal,
+      nadd,ncon,ncal,
       tgobj,ncgutil,
       cgutils,cgobj,hlcgobj,
       defcmp
@@ -994,10 +994,13 @@ implementation
 
     procedure tcginlinenode.second_BsfBsr;
     var
+      not_zero,
       reverse: boolean;
       opsize: tcgsize;
     begin
       reverse:=(inlinenumber = in_bsr_x);
+      not_zero:=(left.nodetype=orn) and (((is_constintnode(taddnode(left).left) and (tordconstnode(taddnode(left).left).value<>0))) or
+        ((is_constintnode(taddnode(left).right) and (tordconstnode(taddnode(left).right).value<>0))));
       secondpass(left);
 
       opsize:=tcgsize2unsigned[left.location.size];
@@ -1006,7 +1009,7 @@ implementation
 
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
       location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,location.size,left.location.register,location.register);
+      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,not_zero,opsize,location.size,left.location.register,location.register);
     end;
 
 
