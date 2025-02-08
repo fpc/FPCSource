@@ -81,7 +81,7 @@ implementation
       aasmbase,aasmdata,
       cgbase,pass_2,
       cpubase,procinfo,
-      nadd,ncon,ncal,
+      nadd,ncon,ncal,nutils,
       tgobj,ncgutil,
       cgutils,cgobj,hlcgobj,
       defcmp
@@ -999,8 +999,7 @@ implementation
       opsize: tcgsize;
     begin
       reverse:=(inlinenumber = in_bsr_x);
-      not_zero:=(left.nodetype=orn) and (((is_constintnode(taddnode(left).left) and (tordconstnode(taddnode(left).left).value<>0))) or
-        ((is_constintnode(taddnode(left).right) and (tordconstnode(taddnode(left).right).value<>0))));
+      not_zero:=node_not_zero(left);
       secondpass(left);
 
       opsize:=tcgsize2unsigned[left.location.size];
