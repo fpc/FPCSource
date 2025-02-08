@@ -76,11 +76,10 @@ type
 
 type
   TDirectory = class
-
   protected
-    class function GetFilesAndDirectories(const aPath, aSearchPattern: string;const aSearchOption: TSearchOption; const SearchAttributes: TFileAttributes; const aPredicate: TFilterPredicateLocal): TStringDynArray;  overload; static;
-    class function GetFilesAndDirectories(const aPath, aSearchPattern: string;const aSearchOption: TSearchOption; const SearchAttributes: TFileAttributes; const aPredicate: TFilterPredicateObject): TStringDynArray;  overload; static;
-    class function GetFilesAndDirectories(const aPath, aSearchPattern: string;const aSearchOption: TSearchOption; const SearchAttributes: TFileAttributes; const aPredicate: TFilterPredicate): TStringDynArray;  overload; static;
+    class function GetFilesAndDirectories(const aPath, aSearchPattern: string;
+      const aSearchOption: TSearchOption; const SearchAttributes: TFileAttributes;
+      const aPredicate: TFilterPredicateLocal): TStringDynArray;  static;
   public
     class procedure Copy(const SourceDirName, DestDirName: string); static;
     class procedure CreateDirectory(const aPath: string); static;
@@ -2205,32 +2204,6 @@ begin
   {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SearchRec);
 end;
 
-class function TDirectory.GetFilesAndDirectories(const aPath,
-  aSearchPattern: string; const aSearchOption: TSearchOption;
-  const SearchAttributes: TFileAttributes;
-  const aPredicate: TFilterPredicateObject): TStringDynArray;
-
-  function DoFilterPredicate(const aPath: string; const SearchRec: TSearchRec): Boolean;
-  begin
-    Result:=aPredicate(aPath, SearchRec);
-  end;
-
-begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern, aSearchOption, SearchAttributes,@DoFilterPredicate);
-end;
-
-class function TDirectory.GetFilesAndDirectories(const aPath,
-  aSearchPattern: string; const aSearchOption: TSearchOption;
-const SearchAttributes: TFileAttributes; const aPredicate: TFilterPredicate
-  ): TStringDynArray;
-  function DoFilterPredicate(const aPath: string; const SearchRec: TSearchRec): Boolean;
-  begin
-    Result:=aPredicate(aPath, SearchRec);
-  end;
-begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern, aSearchOption, SearchAttributes, @DoFilterPredicate);
-end;
-
 class procedure TDirectory.Copy(const SourceDirName, DestDirName: string);
 begin
   CopyFile(SourceDirName, DestDirName,[],True);
@@ -2394,21 +2367,38 @@ class function TDirectory.GetDirectories(const aPath, aSearchPattern: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicateLocal
   ): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern, aSearchOption, [TFileAttribute.faDirectory], aPredicate);
+  Result:=GetFilesAndDirectories(aPath, aSearchPattern,
+    aSearchOption, TFile.IntegerToFileAttributes(faAnyFile),
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result :=
+        (SearchRec.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory <> 0) and
+        (SearchRec.Name <> '.') and (SearchRec.Name <> '..');
+      if Result and Assigned(aPredicate) then
+        Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetDirectories(const aPath, aSearchPattern: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicateObject
   ): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern, aSearchOption, [TFileAttribute.faDirectory], aPredicate);
+  Result:=GetDirectories(aPath, aSearchPattern, aSearchOption,
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetDirectories(const aPath, aSearchPattern: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicate
   ): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern, aSearchOption, [TFileAttribute.faDirectory], aPredicate);
+  Result:=GetDirectories(aPath, aSearchPattern, aSearchOption,
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetDirectories(const aPath: string;
@@ -2490,22 +2480,35 @@ class function TDirectory.GetFiles(const aPath, aSearchPattern: string;
   ): TStringDynArray;
 begin
   Result:=GetFilesAndDirectories(aPath, aSearchPattern, aSearchOption,
-                                   TFile.IntegerToFileAttributes(faAnyFile) - [TFileAttribute.faDirectory],
-                                   aPredicate);
+    TFile.IntegerToFileAttributes(faAnyFile) - [TFileAttribute.faDirectory],
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := SearchRec.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory = 0;
+      if Result and Assigned(aPredicate) then
+        Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetFiles(const aPath, aSearchPattern: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicateObject
   ): TStringDynArray;
 begin
-  Result:=GetFiles(aPath, aSearchPattern, aSearchOption, aPredicate);
+  Result:=GetFiles(aPath, aSearchPattern, aSearchOption,
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetFiles(const aPath, aSearchPattern: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicate
   ): TStringDynArray;
 begin
-  Result:=GetFiles(aPath, aSearchPattern, aSearchOption, aPredicate);
+  Result:=GetFiles(aPath, aSearchPattern, aSearchOption,
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetFiles(const aPath: string;
@@ -2571,13 +2574,23 @@ class function TDirectory.GetFileSystemEntries(const aPath,
   aSearchPattern: string; const aPredicate: TFilterPredicateObject
   ): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern, TSearchOption.soTopDirectoryOnly, TFile.IntegerToFileAttributes(faAnyFile), aPredicate);
+  Result:=GetFilesAndDirectories(aPath, aSearchPattern,
+    TSearchOption.soTopDirectoryOnly, TFile.IntegerToFileAttributes(faAnyFile),
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetFileSystemEntries(const aPath,
   aSearchPattern: string; const aPredicate: TFilterPredicate): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, aSearchPattern,  TSearchOption.soTopDirectoryOnly, TFile.IntegerToFileAttributes(faAnyFile), aPredicate);
+  Result:=GetFilesAndDirectories(aPath, aSearchPattern,
+    TSearchOption.soTopDirectoryOnly, TFile.IntegerToFileAttributes(faAnyFile),
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetFileSystemEntries(const aPath: string;
@@ -2591,14 +2604,22 @@ class function TDirectory.GetFileSystemEntries(const aPath: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicateObject
   ): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, '*', aSearchOption, TFile.IntegerToFileAttributes(faAnyFile),aPredicate);
+  Result:=GetFilesAndDirectories(aPath, '*', aSearchOption, TFile.IntegerToFileAttributes(faAnyFile),
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class function TDirectory.GetFileSystemEntries(const aPath: string;
   const aSearchOption: TSearchOption; const aPredicate: TFilterPredicate
   ): TStringDynArray;
 begin
-  Result:=GetFilesAndDirectories(aPath, '*', aSearchOption, TFile.IntegerToFileAttributes(faAnyFile),aPredicate);
+  Result:=GetFilesAndDirectories(aPath, '*', aSearchOption, TFile.IntegerToFileAttributes(faAnyFile),
+    function(const aPath: string; const SearchRec: TSearchRec): Boolean
+    begin
+      Result := aPredicate(aPath, SearchRec);
+    end);
 end;
 
 class procedure TDirectory.ForAllEntries(const aPath, aPattern: string; const aBefore, aAfter: TFilterPredicateLocal; aRecursive: Boolean);
