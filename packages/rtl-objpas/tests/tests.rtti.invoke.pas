@@ -76,6 +76,9 @@ type
     procedure TestInheritedClassConstructor;
     procedure TestClassProperty;
     procedure TestIndexedProperty;
+    Procedure TestNewInstance1;
+    Procedure TestNewInstance2;
+
   end;
 
   { TTestInvokeIntfMethods }
@@ -1630,6 +1633,45 @@ begin
   aclassType.GetIndexedProperty('TestIProp').SetValue(testClass, [653, 796], testClass);
   testClass := TTestAttr2Class(aclassType.GetIndexedProperty('TestIProp').GetValue(testClass, [384, 170]).AsObject);
   AssertTrue('The getter of an indexed property for a class is incorrectly called', (testClass.fa = 384) and (testClass.fa2 = 170));
+end;
+
+procedure TTestInvoke.TestNewInstance1;
+
+var
+  obj: TTestBaseNewInstance;
+  lType: TRttiType;
+  lMethod : TRttiMethod;
+
+begin
+  TTestBaseNewInstance.BaseNewCount:=0;
+  TTestNewInstance.TestNewCount:=0;
+  lType:=TRttiContext.Create(False).GetType(TTestNewInstance);
+  AssertNotNull('Have type',lType);
+  lMethod:=lType.GetMethod('Create');
+  AssertNotNull('Have method',lMethod);
+  obj := TTestBaseNewInstance(lMethod.Invoke(TTestNewInstance, []).AsObject);
+  Obj.Free;
+  AssertEquals('Calls to TTestNewInstance.NewInstance',1,TTestNewInstance.TestNewCount);
+  AssertEquals('Calls to TTestBaseNewInstance.NewInstance',1,TTestBaseNewInstance.BaseNewCount);
+end;
+
+procedure TTestInvoke.TestNewInstance2;
+var
+  obj: TTestBaseNewInstance;
+  lType: TRttiType;
+  lMethod : TRttiMethod;
+
+begin
+  TTestBaseNewInstance.BaseNewCount:=0;
+  TTestNewInstance.TestNewCount:=0;
+  lType:=TRttiContext.Create(False).GetType(TTestNewInstance);
+  AssertNotNull('Have type',lType);
+  lMethod:=lType.GetMethod('Create');
+  AssertNotNull('Have method',lMethod);
+  obj := TTestBaseNewInstance(lMethod.Invoke(TTestBaseNewInstance, []).AsObject);
+  Obj.Free;
+  AssertEquals('Calls to TTestNewInstance.NewInstance',0,TTestNewInstance.TestNewCount);
+  AssertEquals('Calls to TTestBaseNewInstance.NewInstance',1,TTestBaseNewInstance.BaseNewCount);
 end;
 
 procedure TTestInvoke.TestTObject;

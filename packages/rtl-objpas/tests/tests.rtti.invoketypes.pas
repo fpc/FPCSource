@@ -274,6 +274,25 @@ type
     function DoTest : String; override;
   end;
 
+  { test for newinstance 41090 }
+
+  { TTestBaseNewInstance }
+
+  TTestBaseNewInstance = class
+  public
+    // So it is found in every RTL
+    constructor create;
+    class var BaseNewCount : Integer;
+    class function NewInstance: TObject; override;
+  end;
+
+  TTestNewInstance = class(TTestBaseNewInstance)
+  public
+    class var TestNewCount : Integer;
+    class function NewInstance: TObject; override;
+  end;
+
+
 type
   TEnum1 = (en1_1, en1_2);
   TEnum2 = (en2_1);
@@ -1180,6 +1199,26 @@ end;
 function TTestInvokeCast.Test4(Arg: UInt8): UInt8;
 begin
   Result := Arg + 1;
+end;
+
+
+{ Test }
+
+constructor TTestBaseNewInstance.create;
+begin
+  //
+end;
+
+class function TTestBaseNewInstance.NewInstance: TObject;
+begin
+  Result := inherited NewInstance;
+  Inc(BaseNewCount);
+end;
+
+class function TTestNewInstance.NewInstance: TObject;
+begin
+  Result := inherited NewInstance;
+  Inc(TestNewCount);
 end;
 
 end.

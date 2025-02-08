@@ -2247,20 +2247,17 @@ var
 begin
   if IsConstructor then
   begin
-    if aInstance.IsEmpty or not aInstance.IsObject then
-    begin
-      MetaClass := Parent.AsInstance.GetMetaClassType;
-      pNewInst := PVmt(MetaClass)^.vNewInstance;
-    end;
     case aInstance.Kind of
-      { TValue.Empty }
-      tkUnknown:
+      tkUnknown, tkClassRef:
       begin
+        { TValue.Empty }
+        if aInstance.Kind = tkUnknown then
+          MetaClass := Parent.AsInstance.GetMetaClassType
+        else
+          MetaClass := aInstance.AsClass;
+
+        pNewInst := PVmt(MetaClass)^.vNewInstance;
         aInstance := TNewInstance(pNewInst)(MetaClass);
-      end;
-      tkClassRef:
-      begin
-        aInstance := TNewInstance(pNewInst)(aInstance.AsClass);
       end;
       tkClass:
         { late constructor of already created object };

@@ -105,7 +105,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="testrunner.rtlobjpas.js" ApplyConventions="False"/>
+      <Filename Value="testrunner.rtlobjpas"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
