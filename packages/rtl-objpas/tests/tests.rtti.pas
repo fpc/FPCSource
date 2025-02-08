@@ -44,6 +44,7 @@ type
     procedure TestPropGetValueDynArray;
     procedure TestPropGetValueEnumeration;
     procedure TestPropGetValueChars;
+    procedure TestPropGetValueRecord;
 
     procedure TestPropSetValueString;
     procedure TestPropSetValueInteger;
@@ -55,6 +56,7 @@ type
     procedure TestPropSetValueDynArray;
     procedure TestPropSetValueEnumeration;
     procedure TestPropSetValueChars;
+    procedure TestPropSetValueRecord;
 
     procedure TestGetValueStringCastError;
     procedure TestGetIsReadable;
@@ -687,6 +689,41 @@ begin
   end;
 end;
 
+procedure TTestRTTI.TestPropGetValueRecord;
+
+var
+  ATestClass : TRecordRttiClass;
+  c: TRttiContext;
+  ARttiType: TRttiType;
+  AProperty: TRttiProperty;
+  AValue: TValue;
+  R : TRTTIRecord;
+  P : PRTTIRecord;
+
+begin
+  R.a:=23;
+  r.B:=54;
+  c := TRttiContext.Create(False);
+  try
+    ATestClass := TRecordRttiClass.Create;
+    ATestClass.RecordProp:=R;
+    try
+      ARttiType := c.GetType(TRecordRttiClass);
+      CheckNotNull(ARttiType,'Type');
+      AProperty := ARttiType.GetProperty('RecordProp');
+      CheckNotNull(aProperty,'Prop');
+      AValue := AProperty.GetValue(ATestClass);
+      P:=PRTTIRecord(AValue.GetReferenceToRawData);
+      AssertEquals('a',23,P^.A);
+      AssertEquals('b',54,P^.B);
+    finally
+      AtestClass.Free;
+    end;
+  finally
+    c.Free;
+  end;
+end;
+
 procedure TTestRTTI.TestPropSetValueString;
 var
   ATestClass : TTestValueClass;
@@ -1071,6 +1108,39 @@ begin
     end;
       CheckEquals('C', AValueC.AsAnsiChar);
       CheckEquals('W', AValueW.AsWideChar);
+  finally
+    c.Free;
+  end;
+end;
+
+procedure TTestRTTI.TestPropSetValueRecord;
+var
+  ATestClass : TRecordRttiClass;
+  c: TRttiContext;
+  ARttiType: TRttiType;
+  AProperty: TRttiProperty;
+  AValue: TValue;
+  R : TRTTIRecord;
+  P : PRTTIRecord;
+
+begin
+  R.a:=23;
+  r.B:=54;
+  c := TRttiContext.Create(False);
+  try
+    ATestClass := TRecordRttiClass.Create;
+    ATestClass.RecordProp:=R;
+    try
+      ARttiType := c.GetType(TRecordRttiClass);
+      CheckNotNull(ARttiType,'Type');
+      AProperty := ARttiType.GetProperty('RecordProp');
+      CheckNotNull(aProperty,'Prop');
+      AProperty.SetValue(ATestClass,TValue.specialize From<TRttiRecord>(R));
+      AssertEquals('a',23,aTestClass.RecordProp.A);
+      AssertEquals('b',54,aTestClass.RecordProp.B);
+    finally
+      AtestClass.Free;
+    end;
   finally
     c.Free;
   end;

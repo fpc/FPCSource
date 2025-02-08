@@ -1388,7 +1388,9 @@ resourcestring
   SErrVirtIntfInvalidVirtIdx = 'Virtual index %2:d for method ''%1:s'' of ''%0:s'' is invalid';
   SErrVirtIntfMethodNil = 'Method %1:d of ''%0:s'' is Nil';
   SErrVirtIntfCreateVmt = 'Failed to create VMT for ''%s''';
-//  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks';  
+//  SErrVirtIntfIInterface = 'Failed to prepare IInterface method callbacks'; 
+  SErrCannotWriteToProperty = 'Cannot write to property "%s"';
+  SErrCannotReadProperty = 'Cannot read property "%s"'; 
   SErrCannotWriteToClassProperty = 'Cannot write to class property "%s"';
   SErrCannotReadClassProperty = 'Cannot read class property "%s"';
   SErrCannotWriteToIndexedProperty = 'Cannot write to indexed property "%s"';
@@ -7241,6 +7243,8 @@ var
   O: TObject;
   M: TMethod;
   Int: IUnknown;
+  getter: CodePointer;
+  Args: array of TValue;
 begin
   if FPropInfo^.IsStatic then
     begin
@@ -7350,7 +7354,26 @@ begin
         TValue.Make(@Values.A, FPropInfo^.PropType, Result);
       end
   else
-    result := TValue.Empty;
+    { tkRecord etc }
+    case FPropInfo^.PropProcs and 3 of
+      ptField:
+        TValue.Make(Pointer(Instance)+PtrUInt(FPropInfo^.GetProc), FPropInfo^.PropType, Result);
+      ptStatic,
+      ptVirtual:
+        begin
+          if (FPropInfo^.PropProcs and 3)=ptStatic then
+            getter:=FPropInfo^.GetProc
+          else
+            getter:=PCodePointer(Pointer(TObject(Instance).ClassType)+PtrUInt(FPropInfo^.GetProc))^;
+          if ((FPropInfo^.PropProcs shr 6) and 1)=0 then
+            Args := [Instance]
+          else
+            Args := [Instance, FPropInfo^.Index];
+          Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(getter, Args, ccReg, FPropInfo^.PropType, False, False);
+        end;
+    else
+      raise EPropertyError.CreateFmt(SErrCannotReadProperty, [FPropInfo^.Name]);
+    end;
   end
 end;
 
@@ -7389,6 +7412,9 @@ end;
 
 
 procedure TRttiProperty.SetValue(Instance: pointer; const AValue: TValue);
+var
+  setter: CodePointer;
+  Args: array of TValue;
 begin
   if FPropInfo^.IsStatic then
     begin
@@ -7422,7 +7448,31 @@ begin
     tkDynArray:
       SetDynArrayProp(TObject(Instance), FPropInfo, PPointer(AValue.GetReferenceToRawData)^);
   else
-    raise exception.createFmt(SErrUnableToSetValueForType, [PropertyType.Name]);
+    { tkRecord etc }
+    case (FPropInfo^.PropProcs shr 2) and 3 of
+      ptField:
+        {$ifdef cpu8086}
+        { convert to the correct pointer type }
+        AValue.Cast(FPropInfo^.PropType).ExtractRawData(PPointer(@(Pointer(Instance)+FPropInfo^.SetProc))^);
+        {$else}
+        AValue.Cast(FPropInfo^.PropType).ExtractRawData(Pointer(Instance)+PtrUInt(FPropInfo^.SetProc));
+        {$endif}
+      ptStatic,
+      ptVirtual:
+        begin
+          if ((FPropInfo^.PropProcs shr 2) and 3)=ptStatic then
+            setter:=FPropInfo^.SetProc
+          else
+            setter:=PCodePointer(Pointer(TObject(Instance).ClassType)+PtrUInt(FPropInfo^.SetProc))^;
+          if ((FPropInfo^.PropProcs shr 6) and 1)=0 then
+            Args := [Instance, AValue.Cast(FPropInfo^.PropType)]
+          else
+            Args := [Instance, FPropInfo^.Index, AValue.Cast(FPropInfo^.PropType)];
+          {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Rtti.Invoke(setter, Args, ccReg, nil, False, False);
+        end;
+    else
+      raise EPropertyError.CreateFmt(SErrCannotWriteToProperty, [FPropInfo^.Name]);
+    end;
   end
 end;
 

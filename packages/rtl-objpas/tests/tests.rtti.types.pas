@@ -181,6 +181,18 @@ Type
 
 Type
   { TFieldRTTI }
+  TRTTIRecord = Record
+    a,b : Integer;
+  end;
+  PRTTIRecord = ^TRTTIRecord;
+
+  TRecordRttiClass = Class(TObject)
+  Private
+    FRecordProp : TRTTIRecord;
+  Public
+    Property RecordProp : TRTTIRecord read FRecordProp write FRecordProp;
+  end;
+
   {$M+}
   TFieldRTTI = Class(TObject)
   private
