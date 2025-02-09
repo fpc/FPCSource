@@ -63,7 +63,7 @@ implementation
     function taarch64moddivnode.pass_1: tnode;
       begin
         result:=inherited pass_1;
-        if not assigned(result) then
+        if not assigned(result) and not(node_not_zero(right)) then
           include(current_procinfo.flags,pi_do_call);
       end;
 
