@@ -6001,7 +6001,7 @@ implementation
         Sec: TObjSection;
         IndirectFunctionTableMap: array of Integer;
 
-      procedure InvokeFuncType(typidx: Integer);
+      procedure InvokeFuncType(typidx: Integer; islast: Boolean);
         var
           ft: TWasmFuncType;
           i, nextofs: Integer;
@@ -6118,8 +6118,9 @@ implementation
                   internalerror(2025012501);
               end;
             end;
-          { return }
-          Sec.writeUInt8($0F);
+          if not islast then
+            { return }
+            Sec.writeUInt8($0F);
         end;
 
       function FuncIdx2TypeIdx(fi: Integer): Integer;
@@ -6252,7 +6253,7 @@ implementation
           begin
             { end }
             Sec.writeUInt8($0B);
-            InvokeFuncType(InvokableTypeIndices[i]);
+            InvokeFuncType(InvokableTypeIndices[i],i=(Length(InvokableTypeIndices)-1));
           end;
 
         { end }
