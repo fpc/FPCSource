@@ -1735,7 +1735,7 @@ implementation
        begin
          result:=(is_constintnode(n) and (get_int_value(n)<>0)) or
            ((n.resultdef.typ=orddef) and ((torddef(n.resultdef).low>0) or (torddef(n.resultdef).high<0))) or
-           ((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_int_2_int) and node_not_zero(ttypeconvnode(n).left)) or
+           ((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_int_2_int) and (n.resultdef.size>=ttypeconvnode(n).resultdef.size) and node_not_zero(ttypeconvnode(n).left)) or
            ((n.nodetype=orn) and (node_not_zero(taddnode(n).left) or node_not_zero(taddnode(n).right)));
        end;
 
