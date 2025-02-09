@@ -6143,11 +6143,35 @@ implementation
       var
         exesym: TExeSymbol;
         objsym: TObjSymbol;
-        i: Integer;
+        i, j, TypIdx: Integer;
+        IndirectFunctionTableMap: array of Integer;
+        InvokableTypeIndices: array of Integer;
       begin
         exesym:=TExeSymbol(ExeSymbolList.Find('fpc_wasm_invoke_helper'));
         if not Assigned(exesym) then
           exit;
+
+        SetLength(IndirectFunctionTableMap, Length(FIndirectFunctionTable));
+        SetLength(InvokableTypeIndices, 1);
+        InvokableTypeIndices[0] := -1;
+        for i:=1 to Length(FIndirectFunctionTable)-1 do
+          begin
+            IndirectFunctionTableMap[i]:=0;
+            TypIdx := FuncIdx2TypeIdx(FIndirectFunctionTable[i].FuncIdx);
+            for j := 1 to Length(InvokableTypeIndices)-1 do
+              if InvokableTypeIndices[j]=TypIdx then
+                begin
+                  IndirectFunctionTableMap[i]:=j;
+                  break;
+                end;
+            if IndirectFunctionTableMap[i]=0 then
+              begin
+                SetLength(InvokableTypeIndices,Length(InvokableTypeIndices)+1);
+                InvokableTypeIndices[High(InvokableTypeIndices)]:=TypIdx;
+                IndirectFunctionTableMap[i]:=High(InvokableTypeIndices);
+              end;
+          end;
+
         objsym:=exesym.ObjSymbol;
         Sec:=objsym.objsection;
         Sec.Size:=0;
@@ -6156,7 +6180,7 @@ implementation
         { locals }
         Sec.writeUInt8($00);
 
-        for i:=1 to Length(FIndirectFunctionTable)-1 do
+        for i:=1 to Length(InvokableTypeIndices)-1 do
           { block }
           Sec.writeUInt16BE($0240);
 
@@ -6168,18 +6192,18 @@ implementation
         Sec.writeUInt8($0E);
         WriteUleb(Sec,Length(FIndirectFunctionTable));
         for i:=0 to Length(FIndirectFunctionTable)-1 do
-          WriteUleb(Sec,i);
+          WriteUleb(Sec,IndirectFunctionTableMap[i]);
         Sec.writeUInt8($00);
         { end }
         Sec.writeUInt8($0B);
         { unreachable }
         Sec.writeUInt8($00);
 
-        for i:=1 to Length(FIndirectFunctionTable)-1 do
+        for i:=1 to Length(InvokableTypeIndices)-1 do
           begin
             { end }
             Sec.writeUInt8($0B);
-            InvokeFuncType(FuncIdx2TypeIdx(FIndirectFunctionTable[i].FuncIdx));
+            InvokeFuncType(InvokableTypeIndices[i]);
           end;
 
         { end }
