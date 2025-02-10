@@ -671,7 +671,7 @@ end;
 {$endif not FPC_SYSTEM_HAS_COMPARECHAR0}
 
 
-{$ifndef FPC_SYSTEM_HAS_MEMPOS_PBYTE}
+{$if not defined(FPC_SYSTEM_HAS_MEMPOS_PBYTE) and not defined(CPUJVM)}
 function MemPos(needle:PByte;nNeedle:SizeUint;haystack:PByte;nHaystack:SizeUint):SizeInt;
 var
   p,d,pmaxplus1,iNeedle : SizeUint;
