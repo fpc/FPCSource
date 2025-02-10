@@ -403,6 +403,64 @@ begin
   FloatToStr:=S;
 end;
 
+function CharToStr(C:AnsiChar):String;
+var S : string;
+begin
+  S:='';
+  if (C < #32) or (C>#127) then
+    S:='#'+inttostr(byte(C))
+  else if C<>'''' then
+    S:=''''+C+''''
+  else
+    S:='''''''''';
+  CharToStr:=S;
+end;
+
+function SetToStr(pSet:pnormalset): string;
+var C,cFrom,cTo : AnsiChar;
+    inSet,addToSet : boolean;
+    S: string;
+begin
+  S:='';
+  inSet:=false;
+  addToSet:=false;
+  cFrom:=#0;cTo:=#0;
+  for  C:=#0 to #255 do
+  begin
+    if byte(C) in pSet^ then
+      begin
+        if inSet then
+          cTo:=C
+        else
+          begin
+            inSet:=true;
+            cFrom:=C;
+            cTo:=C;
+          end;
+        if C=#255 then
+          addToSet:=true;
+      end
+    else  if inSet then
+      begin
+        addToSet:=true;
+        inSet:=false;
+      end;
+    if addToSet then
+      begin
+        addToSet:=false;
+        if length(S)>0 then S:=S+',';
+        if cFrom = cTo then
+          S:=S+CharToStr(cTo)
+        else if AnsiChar(byte(byte(cFrom)+1))=cTo then
+          S:=S+CharToStr(cFrom)+','+CharToStr(cTo)
+        else
+          S:=S+CharToStr(cFrom)+'..'+CharToStr(cTo);
+      end;
+  end;
+  S:='['+S+']';
+  SetToStr:=S;
+end;
+
 {****************************************************************************
                                 TStoreCollection
 ****************************************************************************}
@@ -1303,7 +1361,7 @@ end;
   end;
   function GetOrdDefStr(def: torddef): string;
   begin
-    GetOrdDefStr:=def.GetTypeName;;
+    GetOrdDefStr:=def.GetTypeName;
   end;
   function GetStringDefStr(def: tstringdef): string;
   var Name: string;
@@ -1460,7 +1518,7 @@ end;
         Name:=sym.definition.typesym.RealName;
         if Name<>'' then
           Name:=Name+'('+IntToStr(sym.value)+')';
-      end;
+      end else Name:=IntToStr(sym.value);
     GetEnumItemName:=Name;
   end;
   function GetConstValueName(sym: tconstsym): string;
@@ -1489,12 +1547,12 @@ end;
       constreal:
         Name:=FloatToStr(PBestReal(sym.value.valueptr)^);
       constset:
-{        Name:=SetToStr(pnormalset(sym.value.valueptr)) };
+        Name:=SetToStr(pnormalset(sym.value.valueptr));
       constnil: ;
     end;
     GetConstValueName:=Name;
   end;
-  procedure ProcessDefIfStruct(definition: tdef);
+  procedure ProcessDefIfStruct(Symbol: PSymbol; definition: tdef);
   begin
     { still led to infinite recursions
       only useful for unamed types PM }
@@ -1575,7 +1633,7 @@ end;
                    SetVType(Symbol,vardef.typesym.RealName)
                  else
                    SetVType(Symbol,GetDefinitionStr(vardef));
-               ProcessDefIfStruct(vardef);
+               ProcessDefIfStruct(Symbol,vardef);
                if assigned(vardef) then
                  if (vardef.typ=pointerdef) and
                     assigned(tpointerdef(vardef).pointeddef) then
@@ -1609,6 +1667,7 @@ end;
           fieldvarsym :
              with tfieldvarsym(sym) do
              begin
+               MemInfo.PushSize:=-1;
                if assigned(vardef) then
                  if assigned(vardef.typesym) then
                    SetVType(Symbol,vardef.typesym.RealName)
@@ -1699,6 +1758,10 @@ end;
                begin
                 Symbol^.TypeID:=Ptrint(typedef);
                 case typedef.typ of
+                  floatdef:
+                    SetDType(Symbol,tfloatdef(typedef).GetTypeName);
+                  classrefdef:
+                    SetDType(Symbol,tclassrefdef(typedef).GetTypeName);
                   orddef :
                     SetDType(Symbol,GetOrdDefStr(torddef(typedef)));
                   stringdef:
@@ -1706,7 +1769,10 @@ end;
                   arraydef :
                     SetDType(Symbol,GetArrayDefStr(tarraydef(typedef)));
                   enumdef :
-                    SetDType(Symbol,GetEnumDefStr(tenumdef(typedef)));
+                    begin
+                      SetDType(Symbol,GetEnumDefStr(tenumdef(typedef)));
+                      ProcessSymTable(Symbol,Symbol^.Items,tenumdef(typedef).symtable);
+                    end;
                   procdef :
                     SetDType(Symbol,GetProcDefStr(tprocdef(typedef)));
                   procvardef :
@@ -1721,7 +1787,8 @@ end;
                       if tobjectdef(typedef).objecttype=odt_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
                       if (trecorddef(typedef).symtable<>Table) then
-                        ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(typedef).symtable);
+                        if not(df_generic in typedef.defoptions) then
+                          ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(typedef).symtable);
                     end;
                   recorddef :
                     begin
@@ -1739,7 +1806,13 @@ end;
                   filedef :
                     SetDType(Symbol,GetFileDefStr(tfiledef(typedef)));
                   setdef :
-                    SetDType(Symbol,GetSetDefStr(tsetdef(typedef)));
+                    begin
+                      SetDType(Symbol,GetSetDefStr(tsetdef(typedef)));
+                      if assigned(tsetdef(typedef).elementdef) then
+                        if tsetdef(typedef).elementdef.typ=enumdef then
+                          if assigned(tenumdef(tsetdef(typedef).elementdef).symtable) then
+                            ProcessSymTable(Symbol,Symbol^.Items,tenumdef(tsetdef(typedef).elementdef).symtable);
+                    end;
                 end;
                end;
             end;
@@ -1858,7 +1931,10 @@ begin
   if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
-       t:=tsymtable(hp.globalsymtable);
+       if hp.is_unit then
+         t:=tsymtable(hp.globalsymtable)
+       else
+         t:=tsymtable(hp.localsymtable);
        if assigned(t) then
          begin
            name:=GetStr(T.Name);
