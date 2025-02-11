@@ -3750,7 +3750,7 @@ implementation
 {$endif JVM}
 
 begin
-{$ifndef WASM}
+{$if not defined(WASM) and not defined(LLVM)}
 {$push}{$warnings off}
   { taitype should fit into a 4 byte set for speed reasons }
   if ord(high(taitype))>31 then
