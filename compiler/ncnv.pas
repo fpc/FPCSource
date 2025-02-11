@@ -4667,6 +4667,7 @@ implementation
         if result and
            { don't try to check the size of an open array }
            (is_open_array(resultdef) or
+            is_open_array(left.resultdef) or
             (resultdef.size<left.resultdef.size) or
             ((resultdef.size=left.resultdef.size) and
              (left.resultdef.size<sizeof(aint)) and
