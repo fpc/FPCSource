@@ -1,5 +1,6 @@
 src/job.shared.pas=namespaced/Wasm.Job.Shared.pas
 src/job.js.pas=namespaced/Wasm.Job.Js.pas
 src/job.stub.pas=namespaced/Wasm.Job.Stub.pas
+src/job.threading.pas=namespaced/Wasm.Job.Threading.pas
 {s*:src/}=namespaced/
 {i+:src/}

@@ -30,6 +30,8 @@ begin
     T.Dependencies.AddUnit('job.shared');
     T:=P.Targets.AddUnit('job.js.pas',[wasm32],AllOSes);
     T.Dependencies.AddUnit('job.shared');
+    T:=P.Targets.AddUnit('job.threading.pas',[wasm32],AllOSes);
+    T.Dependencies.AddUnit('job.js');
     P.NamespaceMap:='namespaces.lst';
 {$ifndef ALLPACKAGES}
     Run;

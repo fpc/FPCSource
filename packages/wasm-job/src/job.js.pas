@@ -300,6 +300,7 @@ type
     procedure WriteJSPropertyValue(const aName: UTF8String; Value: TJOB_JSValue); virtual;
     procedure WriteJSPropertyVariant(const aName: UTF8String; const Value: Variant); virtual;
     procedure WriteJSPropertyMethod(const aName: UTF8String; const Value: TMethod); virtual;
+    procedure ShareObject(aThreadID : TThreadID);
     // create a new object using the new-operator
     function NewJSObject(Const Args: Array of const; aResultClass: TJSObjectClass): TJSObject; virtual;
     procedure ShowAsDebug(Const aMessage : string);
@@ -405,6 +406,7 @@ type
     procedure WriteJSPropertyMethod(const aName: UTF8String; const Value: TMethod); virtual;
     // create a new object using the new-operator
     function NewJSObject(Const Args: Array of const; aResultClass: TJSObjectClass): TJSObject; virtual;
+    procedure ShareObject(aThreadID : TThreadID);
     // JS members
     function getOwnPropertyNames(const Obj: IJSObject): TUnicodeStringDynArray;
     function getPrototypeOf(const Obj: IJSObject): IJSObject;
@@ -1492,11 +1494,12 @@ Procedure ShowLiveObjects(const Message: String);
 Type
   TJobCallbackErrorEvent = Procedure (E : Exception; M : TMethod; H : TJobCallbackHelper; Var ReRaise : Boolean) of Object;
   TJobCallBackErrorCallback = Procedure (E : Exception; M : TMethod; H : TJobCallbackHelper; Var ReRaise : Boolean);
+  TJobShareObjectCallback = Procedure (aObjID: TJOBObjectID; aThreadID: TThreadID; out aResult: TJOBResult);
 
 var
   JobCallbackErrorHandler : TJobCallbackErrorEvent;
   JobCallbackErrorCallBack : TJobCallBackErrorCallback;
-
+  JobShareObjectCallBack : TJobShareObjectCallback;
 
 implementation
 
@@ -1550,6 +1553,13 @@ begin
     Writeln(Message,': ',TJOB_Double(aObject).Value)
   else
     Writeln(Message,': ',TJOB_Double(aObject).AsString);
+end;
+
+Procedure NoShareSupport(aObjID: TJOBObjectID; aThreadID: TThreadID; out aResult: TJOBResult);
+
+begin
+  aResult:=0;
+  Raise EJSObject.CreateFmt('Cannot share object %d with thread %d, recompile your program with unit job.threading included in the uses clause.',[aObjId,PtrInt(aThreadId)]);
 end;
 
 procedure ShowLiveObjects(const Message: String);
@@ -5063,6 +5073,17 @@ begin
   Result:=InvokeJSObjectResult('',Args,aResultClass,jiNew);
 end;
 
+procedure TJSObject.ShareObject(aThreadID: TThreadID);
+var
+  Res : TJOBResult;
+begin
+  if not assigned(JobShareObjectCallBack) then
+    JobShareObjectCallBack:=@NoShareSupport;
+  JobShareObjectCallBack(JOBObjectID,aThreadID,Res);
+  if (Res<>JOBResult_Success) then
+    Raise EJSObject.CreateFmt('Failed to share object %d with thread %d',[JOBObjectID,PtrInt(aThreadID)]);
+end;
+
 function TJSObject.getOwnPropertyNames(const Obj: IJSObject
   ): TUnicodeStringDynArray;
 begin
@@ -5132,6 +5153,7 @@ end;
 exports JOBCallback;
 
 initialization
+  JobShareObjectCallBack:=@NoShareSupport;
   JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
   JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
   JSJSON:=TJSJSON.JOBCreateGlobal('JSON') as IJSJSON;

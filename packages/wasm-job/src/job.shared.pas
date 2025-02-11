@@ -70,6 +70,7 @@ const
   JOBFn_SetMemFromArray = 'set_mem_from_object';
   JOBFn_SetArrayFromMem = 'set_object_from_mem';
   JOBFn_DebugObject = 'debug_object';
+  JOBFn_ShareObject = 'share_object';
 
   JOBArgUndefined = 0;
   JOBArgLongint = 1;
