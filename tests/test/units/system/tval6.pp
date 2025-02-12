@@ -203,6 +203,8 @@ begin
   TestInt64;
   writeln;
   writeln('Errors: ',ErrCount);
+  if ErrCount<>0 then
+    halt(1);
 end.
 
 
