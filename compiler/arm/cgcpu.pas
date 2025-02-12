@@ -1841,12 +1841,15 @@ unit cgcpu;
           begin
             list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
-            a_reg_alloc(list,NR_DEFAULTFLAGS);
-            list.Concat(taicpu.op_reg_const(A_CMP,dst,32));
-            if GenerateThumb2Code then
-              list.Concat(taicpu.op_cond(A_IT, C_EQ));
-            list.Concat(setcondition(taicpu.op_reg_const(A_MOV,dst,$ff),C_EQ));
-            a_reg_dealloc(list,NR_DEFAULTFLAGS);
+            if not(not_zero) then
+              begin
+                a_reg_alloc(list,NR_DEFAULTFLAGS);
+                list.Concat(taicpu.op_reg_const(A_CMP,dst,32));
+                if GenerateThumb2Code then
+                  list.Concat(taicpu.op_cond(A_IT, C_EQ));
+                list.Concat(setcondition(taicpu.op_reg_const(A_MOV,dst,$ff),C_EQ));
+                a_reg_dealloc(list,NR_DEFAULTFLAGS);
+              end;
           end;
       end;
 
