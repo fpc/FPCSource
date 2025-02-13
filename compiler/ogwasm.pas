@@ -284,6 +284,7 @@ interface
           FuncIdx: Integer;
         end;
 
+        FRelocationPass: Integer;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
         FWasmNameSubsections: array [TWasmNameSubsectionType] of tdynamicarray;
@@ -5197,7 +5198,6 @@ implementation
         SetThreadVarGlobalsInitValues;
         GenerateCode_InitTls;
         GenerateCode_InitSharedMemory;
-        GenerateCode_InvokeHelper;
 
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
@@ -5286,8 +5286,11 @@ implementation
                     begin
                       if objsym.LinkingData.ExeFunctionIndex=-1 then
                         internalerror(2024010103);
-                      objsec.Data.seek(objreloc.DataOffset);
-                      WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
+                      if FRelocationPass=2 then
+                        begin
+                          objsec.Data.seek(objreloc.DataOffset);
+                          WriteUleb5(objsec.Data,objsym.LinkingData.ExeFunctionIndex);
+                        end;
                     end;
                   RELOC_ABSOLUTE:
                     begin
@@ -5297,40 +5300,58 @@ implementation
                             if objreloc.IsFunctionOffsetI32 then
                               begin
                                 { R_WASM_FUNCTION_OFFSET_I32 }
-                                objsec.Data.seek(objreloc.DataOffset);
-                                writeUInt32LE(UInt32(objsym.objsection.MemPos+objreloc.Addend));
+                                if FRelocationPass=2 then
+                                  begin
+                                    objsec.Data.seek(objreloc.DataOffset);
+                                    writeUInt32LE(UInt32(objsym.objsection.MemPos+objreloc.Addend));
+                                  end;
                               end
                             else
                               begin
                                 { R_WASM_TABLE_INDEX_I32 }
                                 if objsym.LinkingData.ExeFunctionIndex=-1 then
                                   internalerror(2024010103);
-                                if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
-                                  objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
-                                objsec.Data.seek(objreloc.DataOffset);
-                                writeUInt32LE(UInt32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                                case FRelocationPass of
+                                  1:
+                                    if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
+                                      objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
+                                  2:
+                                    begin
+                                      objsec.Data.seek(objreloc.DataOffset);
+                                      writeUInt32LE(UInt32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                                    end;
+                                end;
                               end;
                           end;
                         AT_DATA:
                           begin
                             if objreloc.IsFunctionOffsetI32 then
                               internalerror(2024010602);
-                            objsec.Data.seek(objreloc.DataOffset);
-                            writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                            if FRelocationPass=2 then
+                              begin
+                                objsec.Data.seek(objreloc.DataOffset);
+                                writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                              end;
                           end;
                         AT_TLS:
                           begin
                             if objreloc.IsFunctionOffsetI32 then
                               internalerror(2024010602);
-                            objsec.Data.seek(objreloc.DataOffset);
-                            writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos-objsym.objsection.ExeSection.MemPos)+objreloc.Addend));
+                            if FRelocationPass=2 then
+                              begin
+                                objsec.Data.seek(objreloc.DataOffset);
+                                writeUInt32LE(UInt32((objsym.offset+objsym.objsection.MemPos-objsym.objsection.ExeSection.MemPos)+objreloc.Addend));
+                              end;
                           end;
                         AT_WASM_GLOBAL:
                           begin
                             if objreloc.IsFunctionOffsetI32 then
                               internalerror(2024010602);
-                            objsec.Data.seek(objreloc.DataOffset);
-                            writeUInt32LE(UInt32(objsym.offset+objsym.objsection.MemPos));
+                            if FRelocationPass=2 then
+                              begin
+                                objsec.Data.seek(objreloc.DataOffset);
+                                writeUInt32LE(UInt32(objsym.offset+objsym.objsection.MemPos));
+                              end;
                           end;
                         else
                           internalerror(2024010108);
@@ -5340,8 +5361,11 @@ implementation
                     begin
                       if objsym.typ<>AT_DATA then
                         internalerror(2024010109);
-                      objsec.Data.seek(objreloc.DataOffset);
-                      WriteUleb5(objsec.Data,UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                      if FRelocationPass=2 then
+                        begin
+                          objsec.Data.seek(objreloc.DataOffset);
+                          WriteUleb5(objsec.Data,UInt32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                        end;
                     end;
                   RELOC_MEMORY_ADDR_OR_TABLE_INDEX_SLEB:
                     begin
@@ -5350,15 +5374,24 @@ implementation
                           begin
                             if objsym.LinkingData.ExeFunctionIndex=-1 then
                               internalerror(2024010103);
-                            if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
-                              objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
-                            objsec.Data.seek(objreloc.DataOffset);
-                            WriteSleb5(objsec.Data,Int32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                            case FRelocationPass of
+                              1:
+                                if objsym.LinkingData.ExeIndirectFunctionTableIndex=-1 then
+                                  objsym.LinkingData.ExeIndirectFunctionTableIndex:=AddOrGetIndirectFunctionTableIndex(objsym.LinkingData.ExeFunctionIndex);
+                              2:
+                                begin
+                                  objsec.Data.seek(objreloc.DataOffset);
+                                  WriteSleb5(objsec.Data,Int32(objsym.LinkingData.ExeIndirectFunctionTableIndex));
+                                end;
+                            end;
                           end;
                         AT_DATA:
                           begin
-                            objsec.Data.seek(objreloc.DataOffset);
-                            WriteSleb5(objsec.Data,Int32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                            if FRelocationPass=2 then
+                              begin
+                                objsec.Data.seek(objreloc.DataOffset);
+                                WriteSleb5(objsec.Data,Int32((objsym.offset+objsym.objsection.MemPos)+objreloc.Addend));
+                              end;
                           end;
                         else
                           internalerror(2024010110);
@@ -5367,8 +5400,11 @@ implementation
                   RELOC_GLOBAL_INDEX_LEB:
                     if objsym.typ=AT_WASM_GLOBAL then
                       begin
-                        objsec.Data.seek(objreloc.DataOffset);
-                        WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                        if FRelocationPass=2 then
+                          begin
+                            objsec.Data.seek(objreloc.DataOffset);
+                            WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                          end;
                       end
                     else if (ts_wasm_threads in current_settings.targetswitches) and
                             (objsym.typ=AT_TLS) then
@@ -5383,8 +5419,11 @@ implementation
                     begin
                       if objsym.typ<>AT_WASM_EXCEPTION_TAG then
                         internalerror(2024010708);
-                      objsec.Data.seek(objreloc.DataOffset);
-                      WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                      if FRelocationPass=2 then
+                        begin
+                          objsec.Data.seek(objreloc.DataOffset);
+                          WriteUleb5(objsec.Data,UInt32(objsym.offset+objsym.objsection.MemPos));
+                        end;
                     end;
                   else
                     internalerror(2024010109);
@@ -5394,14 +5433,23 @@ implementation
               begin
                 if objreloc.typ<>RELOC_ABSOLUTE then
                   internalerror(2024010601);
-                objsec.Data.seek(objreloc.DataOffset);
-                writeUInt32LE(UInt32((objreloc.objsection.MemPos)+objreloc.Addend));
+                if FRelocationPass=2 then
+                  begin
+                    objsec.Data.seek(objreloc.DataOffset);
+                    writeUInt32LE(UInt32((objreloc.objsection.MemPos)+objreloc.Addend));
+                  end;
               end
             else if objreloc.typ=RELOC_TYPE_INDEX_LEB then
               begin
-                objreloc.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(objreloc.FuncType);
-                objsec.Data.seek(objreloc.DataOffset);
-                WriteUleb5(objsec.Data,objreloc.ExeTypeIndex);
+                case FRelocationPass of
+                  1:
+                    objreloc.ExeTypeIndex:=FFuncTypes.AddOrGetFuncType(objreloc.FuncType);
+                  2:
+                    begin
+                      objsec.Data.seek(objreloc.DataOffset);
+                      WriteUleb5(objsec.Data,objreloc.ExeTypeIndex);
+                    end;
+                end;
               end
             else
               internalerror(2024010110);
@@ -5478,6 +5526,25 @@ implementation
         PrepareImports;
         PrepareFunctions;
         PrepareTags;
+
+        { we do an extra preliminary relocation pass, in order to prepare the
+          indices for the Type section and the Table section. This is required
+          by GenerateCode_InvokeHelper. }
+        FRelocationPass:=1;
+        FixupRelocations;
+
+        { in pass 2, we do the actual relocation fixups. No need to call
+          FixupRelocations here, since it'll be called in
+          TInternalLinker.RunLinkScript, after this method finishes. We only
+          set the FRelocationPass variable here, so DoRelocationFixup knows
+          which pass it is. }
+        FRelocationPass:=2;
+
+        { This needs to be done before pass 2 of the relocation fixups, because
+          it'll generate code, thus it'll move the offsets of the functions that
+          follow it in the Code section, and we want our DWARF debug info to
+          contain correct code offsets. }
+        GenerateCode_InvokeHelper;
       end;
 
     procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
