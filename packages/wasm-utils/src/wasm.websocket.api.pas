@@ -40,13 +40,14 @@ const
   wllError    = wasm.logger.api.wllError;
   wllCritical = wasm.logger.api.wllCritical;
 
+
 function __wasm_websocket_allocate(
     aURL : PByte;
     aUrlLen : Longint;
     aProtocols : PByte;
     aProtocolLen : Longint;
     aUserData : Pointer;
-    aWebsocketID : PWasmWebSocketID) : TWasmWebsocketResult; external websocketExportName name websocketFN_Allocate;
+    aWebsocketID : TWasmWebSocketID) : TWasmWebsocketResult; external websocketExportName name websocketFN_Allocate;
 
 function __wasm_websocket_close(
     aWebsocketID : TWasmWebSocketID;
@@ -71,9 +72,11 @@ Type
   TWasmWebsocketCloseCallback = procedure(aWebSocketID : TWasmWebSocketID; aUserData : Pointer; aCode: Longint; const aReason : String; aClean : Boolean);
   TWasmWebsocketOpenCallback = procedure(aWebSocketID : TWasmWebSocketID; aUserData : Pointer);
   TWasmWebsocketLogHook = procedure (Level : TWasmWebSocketLogLevel; const Msg : string) of object;
+  TWasmWebsocketReleasePacketCallback = procedure(aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aPacket : Pointer; var Result : boolean);
 
 // Callee is responsible for freeing incoming buffers
 Function __wasm_websocket_allocate_buffer(aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aBufferLen : Longint) : Pointer;
+Function __wasm_websocket_release_packet(aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aPacket : Pointer) : longint;
 Function __wasm_websocket_on_error (aWebsocketID : TWasmWebSocketID; aUserData : Pointer) : TWebsocketCallBackResult;
 Function __wasm_websocket_on_message (aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aMessageType : TWasmWebSocketMessageType; aMessage : Pointer; aMessageLen : Integer) : TWebsocketCallBackResult;
 Function __wasm_websocket_on_open (aWebsocketID : TWasmWebSocketID; aUserData : Pointer) : TWebsocketCallBackResult;
@@ -89,6 +92,7 @@ var
   WebSocketMessageCallback : TWasmWebsocketMessageCallback;
   WebSocketCloseCallback : TWasmWebsocketCloseCallback;
   WebSocketOpenCallback : TWasmWebsocketOpenCallback;
+  WebSocketReleasePackageCallBack : TWasmWebsocketReleasePacketCallback;
 
 implementation
 
@@ -112,7 +116,7 @@ end;
 Function __wasm_websocket_allocate_buffer(aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aBufferLen : Longint) : Pointer;
 
 begin
-    // Silence compiler warning
+  // Silence compiler warning
   if (aWebSocketID=0) or (aUserData=Nil) then ;
   Result:=GetMem(aBufferLen);
 end;
@@ -220,8 +224,21 @@ begin
   end;
 end;
 
+Function __wasm_websocket_release_packet(aWebsocketID : TWasmWebSocketID; aUserData : Pointer; aPacket : Pointer) : longint;
+
+var
+  lRes : Boolean;
+
+begin
+  lRes:=Assigned(WebSocketReleasePackageCallBack);
+  if lRes then
+    WebSocketReleasePackageCallBack(aWebsocketID,aUserData,aPacket,lRes);
+  Result:=Ord(Not lRes); // 0 is OK, 1 is error.
+end;
+
 exports
   __wasm_websocket_allocate_buffer,
+  __wasm_websocket_release_packet,
   __wasm_websocket_on_error,
   __wasm_websocket_on_message,
   __wasm_websocket_on_open,
