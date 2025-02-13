@@ -264,56 +264,57 @@ type
     function GetJSObjectID: TJOBObjectID;
     function GetJSObjectCastSrc: IJSObject;
     function GetPascalClassName: UTF8string;
-    function GetProperties(const PropName: UTF8String): Variant; virtual;
-    procedure SetProperties(const PropName: UTF8String; const AValue: Variant); virtual;
+    function GetProperties(const PropName: UTF8String): Variant;
+    procedure SetProperties(const PropName: UTF8String; const AValue: Variant);
     // call a function
-    procedure InvokeJSNoResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall); virtual;
-    function InvokeJSBooleanResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): Boolean; virtual;
-    function InvokeJSDoubleResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): Double; virtual;
-    function InvokeJSUnicodeStringResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): UnicodeString; virtual;
-    function InvokeJSObjectResult(const aName: UTF8String; Const Args: Array of const; aResultClass: TJSObjectClass; Invoke: TJOBInvokeType = jiCall): TJSObject; virtual;
-    function InvokeJSValueResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): TJOB_JSValue; virtual;
-    function InvokeJSVariantResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): Variant; virtual;
-    function InvokeJSUtf8StringResult(const aName: UTF8String; Const args: Array of const; Invoke: TJOBInvokeType = jiCall): UTF8String; virtual;
-    function InvokeJSLongIntResult(const aName: UTF8String; Const args: Array of const; Invoke: TJOBInvokeType = jiCall): LongInt; virtual;
-    function InvokeJSTypeOf(const aName: UTF8String; Const Args: Array of const): TJOBResult; virtual;
-    function InvokeJSUnicodeStringArrayResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): TUnicodeStringDynArray; virtual;
+    procedure InvokeJSNoResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall);
+    function InvokeJSBooleanResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): Boolean;
+    function InvokeJSDoubleResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): Double;
+    function InvokeJSUnicodeStringResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): UnicodeString;
+    function InvokeJSObjectResult(const aName: UTF8String; Const Args: Array of const; aResultClass: TJSObjectClass; Invoke: TJOBInvokeType = jiCall): TJSObject;
+    function InvokeJSValueResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): TJOB_JSValue;
+    function InvokeJSVariantResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): Variant;
+    function InvokeJSUtf8StringResult(const aName: UTF8String; Const args: Array of const; Invoke: TJOBInvokeType = jiCall): UTF8String;
+    function InvokeJSLongIntResult(const aName: UTF8String; Const args: Array of const; Invoke: TJOBInvokeType = jiCall): LongInt;
+    function InvokeJSTypeOf(const aName: UTF8String; Const Args: Array of const): TJOBResult;
+    function InvokeJSUnicodeStringArrayResult(const aName: UTF8String; Const Args: Array of const; Invoke: TJOBInvokeType = jiCall): TUnicodeStringDynArray;
     // read a property
-    function ReadJSPropertyBoolean(const aName: UTF8String): boolean; virtual;
-    function ReadJSPropertyDouble(const aName: UTF8String): double; virtual;
-    function ReadJSPropertyUnicodeString(const aName: UTF8String): UnicodeString; virtual;
-    function ReadJSPropertyObject(const aName: UTF8String; aResultClass: TJSObjectClass): TJSObject; virtual;
-    function ReadJSPropertyUtf8String(const aName: UTF8String): UTF8String; virtual;
-    function ReadJSPropertyLongInt(const aName: UTF8String): LongInt; virtual;
-    function ReadJSPropertyInt64(const aName: UTF8String): Int64; virtual;
-    function ReadJSPropertyValue(const aName: UTF8String): TJOB_JSValue; virtual;
-    function ReadJSPropertyVariant(const aName: UTF8String): Variant; virtual;
-    function ReadJSPropertyMethod(const aName: UTF8String):  TMethod; virtual;
+    function ReadJSPropertyBoolean(const aName: UTF8String): boolean;
+    function ReadJSPropertyDouble(const aName: UTF8String): double;
+    function ReadJSPropertyUnicodeString(const aName: UTF8String): UnicodeString;
+    function ReadJSPropertyObject(const aName: UTF8String; aResultClass: TJSObjectClass): TJSObject;
+    function ReadJSPropertyUtf8String(const aName: UTF8String): UTF8String;
+    function ReadJSPropertyLongInt(const aName: UTF8String): LongInt;
+    function ReadJSPropertyInt64(const aName: UTF8String): Int64;
+    function ReadJSPropertyValue(const aName: UTF8String): TJOB_JSValue;
+    function ReadJSPropertyVariant(const aName: UTF8String): Variant;
+    function ReadJSPropertyMethod(const aName: UTF8String):  TMethod;
     // write a property
-    procedure WriteJSPropertyBoolean(const aName: UTF8String; Value: Boolean); virtual;
-    procedure WriteJSPropertyDouble(const aName: UTF8String; Value: Double); virtual;
-    procedure WriteJSPropertyUnicodeString(const aName: UTF8String; const Value: UnicodeString); virtual;
-    procedure WriteJSPropertyUtf8String(const aName: UTF8String; const Value: UTF8String); virtual;
-    procedure WriteJSPropertyObject(const aName: UTF8String; Value: IJSObject); virtual;
-    procedure WriteJSPropertyLongInt(const aName: UTF8String; Value: LongInt); virtual;
-    procedure WriteJSPropertyInt64(const aName: UTF8String; Value: Int64); virtual;
-    procedure WriteJSPropertyValue(const aName: UTF8String; Value: TJOB_JSValue); virtual;
-    procedure WriteJSPropertyVariant(const aName: UTF8String; const Value: Variant); virtual;
-    procedure WriteJSPropertyMethod(const aName: UTF8String; const Value: TMethod); virtual;
-    procedure ShareObject(aThreadID : TThreadID);
+    procedure WriteJSPropertyBoolean(const aName: UTF8String; Value: Boolean);
+    procedure WriteJSPropertyDouble(const aName: UTF8String; Value: Double);
+    procedure WriteJSPropertyUnicodeString(const aName: UTF8String; const Value: UnicodeString);
+    procedure WriteJSPropertyUtf8String(const aName: UTF8String; const Value: UTF8String);
+    procedure WriteJSPropertyObject(const aName: UTF8String; Value: IJSObject);
+    procedure WriteJSPropertyLongInt(const aName: UTF8String; Value: LongInt);
+    procedure WriteJSPropertyInt64(const aName: UTF8String; Value: Int64);
+    procedure WriteJSPropertyValue(const aName: UTF8String; Value: TJOB_JSValue);
+    procedure WriteJSPropertyVariant(const aName: UTF8String; const Value: Variant);
+    procedure WriteJSPropertyMethod(const aName: UTF8String; const Value: TMethod);
+
+    procedure ShareObject(aThreadID : TThreadID = Nil);
     // create a new object using the new-operator
-    function NewJSObject(Const Args: Array of const; aResultClass: TJSObjectClass): TJSObject; virtual;
+    function NewJSObject(Const Args: Array of const; aResultClass: TJSObjectClass): TJSObject;
     procedure ShowAsDebug(Const aMessage : string);
     // JS members
     function getOwnPropertyNames(const Obj: IJSObject): TUnicodeStringDynArray;
     function getPrototypeOf(const Obj: IJSObject): IJSObject;
-    function hasOwnProperty(const PropName: UTF8String): boolean; virtual;
-    function isPrototypeOf(const Obj: IJSObject): boolean; virtual;
-    function propertyIsEnumerable(const PropName: UTF8String): boolean; virtual;
-    function toLocaleString: UnicodeString; virtual; overload;
+    function hasOwnProperty(const PropName: UTF8String): boolean;
+    function isPrototypeOf(const Obj: IJSObject): boolean;
+    function propertyIsEnumerable(const PropName: UTF8String): boolean;
+    function toLocaleString: UnicodeString; overload;
     function toString: RTLString; override; overload;
-    function toUString: UnicodeString; virtual; overload;
-    function valueOf: Variant; virtual; overload;
+    function toUString: UnicodeString; overload;
+    function valueOf: Variant;  overload;
     property Properties[const PropName: UTF8String]: Variant read GetProperties write SetProperties; default;
   end;
 
@@ -406,7 +407,8 @@ type
     procedure WriteJSPropertyMethod(const aName: UTF8String; const Value: TMethod); virtual;
     // create a new object using the new-operator
     function NewJSObject(Const Args: Array of const; aResultClass: TJSObjectClass): TJSObject; virtual;
-    procedure ShareObject(aThreadID : TThreadID);
+    // Share the javascript object with a thread (worker). 0 means share with all current and future threads (workers).
+    procedure ShareObject(aThreadID : TThreadID = Nil);
     // JS members
     function getOwnPropertyNames(const Obj: IJSObject): TUnicodeStringDynArray;
     function getPrototypeOf(const Obj: IJSObject): IJSObject;
@@ -1465,6 +1467,13 @@ function __job_create_object(
   ArgP: PByte
   ): TJOBObjectID; external JOBExportName name JOBFn_CreateObject;
 
+function __job_create_object_at(
+  NameP: PWideChar;
+  NameLen: longint;
+  ArgP: PByte;
+  ObjID: TJOBObjectID) : longint; external JOBExportName name JOBFn_CreateObjectAt;
+
+
 procedure __job_set_mem_from_array (
   aObjectID : integer; 
   aPointer : PByte;
@@ -1561,6 +1570,78 @@ begin
   aResult:=0;
   Raise EJSObject.CreateFmt('Cannot share object %d with thread %d, recompile your program with unit job.threading included in the uses clause.',[aObjId,PtrInt(aThreadId)]);
 end;
+
+{ ---------------------------------------------------------------------
+  Job ID handling
+  ---------------------------------------------------------------------}
+
+
+Type
+  TIDStack = record
+    Const GrowDelta = 32;
+  Private
+    IDs : Array of TJOBObjectID;
+    Count : Integer;
+  Public
+    // Not threadsafe
+    Function PopID : TJOBObjectID; // -1 if no id
+    procedure PushID(aID : TJOBObjectID);
+  end;
+
+
+Function TIDStack.PopID : TJOBObjectID;
+begin
+  if Count<=0 then
+    Result:=-1
+  else
+    begin
+    Dec(Count);
+    Result:=IDS[Count];
+    end;
+end;
+
+Procedure TIDStack.PushID(aID : TJOBObjectID);
+
+
+begin
+  If Count=Length(IDS) then
+    SetLength(IDS,Length(IDS)+GrowDelta);
+  IDS[Count]:=aID;
+  Inc(Count);
+end;
+
+var
+  Lock: TRTLCriticalSection;
+  Stack : TIDStack;
+  CurrentID : TJOBObjectID;
+
+Function AllocateJobObjectID : TJOBObjectID;
+
+begin
+  EnterCriticalSection(Lock);
+  try
+    Result:=Stack.PopID;
+    if Result=-1 then
+      begin
+      Inc(CurrentID);
+      Result:=CurrentID;
+      end;
+  finally
+    LeaveCriticalSection(Lock);
+  end;
+end;
+
+procedure ReleaseJobObjectID(aObjID : TJOBObjectID);
+
+begin
+  EnterCriticalSection(Lock);
+  try
+    Stack.PushID(aObjID);
+  finally
+    LeaveCriticalSection(Lock);
+  end;
+end;
+
 
 procedure ShowLiveObjects(const Message: String);
 var
@@ -4718,7 +4799,8 @@ begin
   else
     InvokeArgs:=Nil;
   FJOBObjectIDOwner:=aOwnsObjectID;
-  FJobObjectID:=__job_create_object(PWideChar(N),Length(N),InvokeArgs);
+  FJobObjectID:=AllocateJobObjectID;
+  __job_create_object_at(PWideChar(N),Length(N),InvokeArgs,FJobObjectID);
   {$IFDEF VERBOSEJOB}
   Writeln('[',ClassName,'] Created new object with ID: ',FJobObjectID);
   {$ENDIF}
@@ -5073,7 +5155,7 @@ begin
   Result:=InvokeJSObjectResult('',Args,aResultClass,jiNew);
 end;
 
-procedure TJSObject.ShareObject(aThreadID: TThreadID);
+procedure TJSObject.ShareObject(aThreadID: TThreadID = Nil);
 var
   Res : TJOBResult;
 begin
@@ -5150,13 +5232,17 @@ begin
 end;
 
 
-exports JOBCallback;
+exports JOBCallback, AllocateJobObjectID, ReleaseJobObjectID;
 
 initialization
+  CurrentID:=0;
+  InitCriticalSection(Lock);
   JobShareObjectCallBack:=@NoShareSupport;
   JSObject:=TJSObject.JOBCreateGlobal('Object') as IJSObject;
   JSDate:=TJSDate.JOBCreateGlobal('Date') as IJSDate;
   JSJSON:=TJSJSON.JOBCreateGlobal('JSON') as IJSJSON;
   JSAtomics:=TJSAtomics.JOBCreateGlobal('Atomics');
+finalization
+  DoneCriticalSection(Lock);
 end.
 
