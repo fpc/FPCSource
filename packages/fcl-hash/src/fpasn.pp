@@ -873,7 +873,7 @@ end;
 function ASNFetchOID(var Buffer: PByte; BufferEnd: PByte; out OID: AnsiString): Boolean; overload;
 
 Var
-  OIDS : String;
+  OIDS : UnicodeString;
 
 begin
   Result:=ASNFetchOID(Buffer,BufferEnd,OIDS);
