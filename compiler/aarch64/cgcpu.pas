@@ -1297,13 +1297,9 @@ implementation
         bitsize: longint;
       begin
         if srcsize in [OS_64,OS_S64] then
-          begin
-            bitsize:=64;
-          end
+          bitsize:=64
         else
-          begin
-            bitsize:=32;
-          end;
+          bitsize:=32;
         if not(not_zero) then
           { source is 0 -> dst will have to become 255 }
           list.concat(taicpu.op_reg_const(A_CMP,src,0));
