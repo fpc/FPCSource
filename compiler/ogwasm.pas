@@ -321,6 +321,7 @@ interface
         procedure GenerateCode_InvokeHelper;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
         procedure WriteMap_TypeSection;
+        procedure WriteMap_IndirectFunctionTable;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -5549,6 +5550,9 @@ implementation
           follow it in the Code section, and we want our DWARF debug info to
           contain correct code offsets. }
         GenerateCode_InvokeHelper;
+
+        if Assigned(exemap) then
+          WriteMap_IndirectFunctionTable;
       end;
 
     procedure TWasmExeOutput.MemPos_ExeSection(const aname: string);
@@ -6369,6 +6373,15 @@ implementation
         exemap.AddHeader('Type section');
         for i:=0 to FFuncTypes.Count-1 do
           exemap.Add('  Type[' + tostr(i) + '] ' + FFuncTypes.Items[i].ToString);
+      end;
+
+    procedure TWasmExeOutput.WriteMap_IndirectFunctionTable;
+      var
+        i: Integer;
+      begin
+        exemap.AddHeader('Indirect function table');
+        for i:=1 to High(FIndirectFunctionTable) do
+          exemap.Add('  Elem[' + tostr(i) + '] = Function[' + tostr(FIndirectFunctionTable[i].FuncIdx) + ']');
       end;
 
 
