@@ -1,6 +1,7 @@
 unit utcstrutils;
 
 {$mode ObjFPC}{$H+}
+{$COPERATORS ON}
 
 interface
 
