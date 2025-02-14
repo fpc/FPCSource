@@ -320,6 +320,7 @@ interface
         procedure GenerateCode_InitSharedMemory;
         procedure GenerateCode_InvokeHelper;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
+        procedure WriteMap_TypeSection;
       protected
         function writeData:boolean;override;
         procedure DoRelocationFixup(objsec:TObjSection);override;
@@ -5527,6 +5528,9 @@ implementation
         PrepareFunctions;
         PrepareTags;
 
+        if Assigned(exemap) then
+          WriteMap_TypeSection;
+
         { we do an extra preliminary relocation pass, in order to prepare the
           indices for the Type section and the Table section. This is required
           by GenerateCode_InvokeHelper. }
@@ -6356,6 +6360,15 @@ implementation
           end;
         if (dynarr.size-exesecdatapos)<>exesec.Size then
           internalerror(2024010107);
+      end;
+
+    procedure TWasmExeOutput.WriteMap_TypeSection;
+      var
+        i: Integer;
+      begin
+        exemap.AddHeader('Type section');
+        for i:=0 to FFuncTypes.Count-1 do
+          exemap.Add('  Type[' + tostr(i) + '] ' + FFuncTypes.Items[i].ToString);
       end;
 
 
