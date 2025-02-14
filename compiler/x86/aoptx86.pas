@@ -4041,7 +4041,25 @@ unit aoptx86;
                     end;
 
                   if (taicpu(hp1).opcode = A_MOV) and
-                    MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
+                    (
+                      MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^)
+{$ifdef x86_64}
+                      or (
+                        { Permit zero extension from 32- to 64-bit when writing
+                          a constant (it will be checked to see if it fits into
+                          a signed 32-bit integer) }
+                        (taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
+                        (
+                          { Valid situations... writing an unsigned 32-bit
+                            immediate, or the destination is a 64-bit register }
+                          (taicpu(p).oper[0]^.typ = top_const) or
+                          (taicpu(hp1).oper[1]^.typ = top_reg)
+                        ) and
+                        (taicpu(hp1).oper[0]^.typ = top_reg) and
+                        SuperRegistersEqual(p_TargetReg, taicpu(hp1).oper[0]^.reg)
+                      )
+{$endif x86_64}
+                    ) then
                     begin
                       { Remember that p_TargetReg contains taicpu(p).oper[1]^.reg }
                       TransferUsedRegs(TmpUsedRegs);
@@ -4073,7 +4091,18 @@ unit aoptx86;
                                 }
 {$ifdef x86_64}
                                 if (taicpu(hp1).oper[1]^.typ=top_reg) or
-                                  ((taicpu(p).oper[0]^.val>=low(longint)) and (taicpu(p).oper[0]^.val<=high(longint))) then
+                                  (
+                                    { For 32-to-64-bit zero-extension, the immediate
+                                      must be between 0 and 2^31 - 1}
+                                    (taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
+                                    ((taicpu(p).oper[0]^.val>=0) and (taicpu(p).oper[0]^.val<=high(longint)))
+                                  ) or
+                                  (
+                                    not ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q)) and
+                                    (
+                                      (taicpu(p).oper[0]^.val>=low(longint)) and (taicpu(p).oper[0]^.val<=high(longint))
+                                    )
+                                  ) then
 {$endif x86_64}
                                   begin
                                     taicpu(hp1).loadconst(0, taicpu(p).oper[0]^.val);
@@ -4096,7 +4125,14 @@ unit aoptx86;
                                   }
                                   if not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1) then
                                     begin
+{$ifdef x86_64}
+                                      { If zero extending from 32-bit to 64-bit,
+                                        we have to make sure the replaced
+                                        register is the right size }
+                                      taicpu(p).loadreg(1, newreg(R_INTREGISTER,getsupreg(taicpu(hp1).oper[1]^.reg),getsubreg(p_TargetReg)));
+{$else}
                                       taicpu(p).loadreg(1, taicpu(hp1).oper[1]^.reg);
+{$endif x86_64}
                                       DebugMsg(SPeepholeOptimization + 'MovMov2Mov 3a done', p);
                                       AllocRegBetween(taicpu(hp1).oper[1]^.reg, p, hp1, UsedRegs);
                                       RemoveInstruction(hp1);
@@ -4296,8 +4332,19 @@ unit aoptx86;
                           (taicpu(hp1).opsize = S_B)
                         ) and
                         (
-                          (taicpu(hp1).oper[1]^.typ = top_reg) or
-                          ((taicpu(p).oper[0]^.val >= low(longint)) and (taicpu(p).oper[0]^.val <= high(longint)))
+                          (taicpu(hp1).oper[1]^.typ=top_reg) or
+                          (
+                            { For 32-to-64-bit zero-extension, the immediate
+                              must be between 0 and 2^31 - 1}
+                            (taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q) and
+                            ((taicpu(p).oper[0]^.val>=0) and (taicpu(p).oper[0]^.val<=high(longint)))
+                          ) or
+                          (
+                            not ((taicpu(p).opsize=S_L) and (taicpu(hp1).opsize=S_Q)) and
+                            (
+                              (taicpu(p).oper[0]^.val>=low(longint)) and (taicpu(p).oper[0]^.val<=high(longint))
+                            )
+                          )
                         ) then
                         begin
                           DebugMsg(SPeepholeOptimization + debug_operstr(taicpu(hp1).oper[0]^) + ' = $' + debug_tostr(taicpu(p).oper[0]^.val) + '; changed to minimise pipeline stall (MovMov2Mov 6b)',hp1);
