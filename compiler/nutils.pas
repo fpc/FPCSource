@@ -730,10 +730,16 @@ implementation
                   result:=2;
                   exit;
                 end;
+              temprefn:
+                begin
+                  if (ttemprefnode(p).tempinfo^.typedef.needs_inittable) or
+                    not(ti_may_be_in_reg in ttemprefnode(p).tempflags) then
+                    result := 1;
+                  exit;
+                end;
               rttin,
               setconstn,
               stringconstn,
-              temprefn,
               loadvmtaddrn,
               { main reason for the next one: we can't take the address of }
               { loadparentfpnode, so replacing it by a temp which is the   }
