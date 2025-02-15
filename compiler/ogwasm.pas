@@ -5097,6 +5097,8 @@ implementation
           i: Integer;
           objsec: TWasmObjSection;
         begin
+          if assigned(exemap) then
+            exemap.AddHeader('Export section');
           FunctionExportsCount:=0;
           textsec:=FindExeSection('.text');
           if not assigned(textsec) then
@@ -5115,6 +5117,8 @@ implementation
           WriteName(FWasmSections[wsiExport],'memory');
           WriteByte(FWasmSections[wsiExport],$02);  { mem }
           WriteUleb(FWasmSections[wsiExport],0);    { memidx = 0 }
+          if assigned(exemap) then
+            exemap.Add('  Memory[0] -> "memory"');
 
           for i:=0 to textsec.ObjSectionList.Count-1 do
             begin
@@ -5124,6 +5128,8 @@ implementation
                   WriteName(FWasmSections[wsiExport],objsec.MainFuncSymbol.LinkingData.ExportName);
                   WriteByte(FWasmSections[wsiExport],$00);  { func }
                   WriteUleb(FWasmSections[wsiExport],objsec.MainFuncSymbol.LinkingData.ExeFunctionIndex);    { funcidx }
+                  if assigned(exemap) then
+                    exemap.Add('  Function['+tostr(objsec.MainFuncSymbol.LinkingData.ExeFunctionIndex)+'] -> "'+objsec.MainFuncSymbol.LinkingData.ExportName+'"');
                 end;
             end;
         end;
