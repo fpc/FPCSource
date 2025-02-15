@@ -2907,8 +2907,8 @@ asm
         jz      .Lquit
         movl    $0,(%eax)          // s:=nil
         cmpl    $1,-8(%edx)        // exit if refcount<1
-        jl      .Lquit
         je      .Lfree             // skip the decrement if refcount=1.
+        jl      .Lquit
   {$ifdef FPC_PIC}
         call	fpc_geteipasecx
         addl	$_GLOBAL_OFFSET_TABLE_,%ecx

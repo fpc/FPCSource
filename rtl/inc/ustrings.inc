@@ -195,9 +195,9 @@ Begin
   If p=Nil then
     exit;
   s:=nil;
-  If (PUnicodeRec(p-UnicodeFirstOff)^.ref>0) and { ref = -1 is constant string. }
-     ((PUnicodeRec(p-UnicodeFirstOff)^.ref=1) { Shortcut declocked on ref = 1. }
-      or declocked(PUnicodeRec(p-UnicodeFirstOff)^.ref)) then
+  If (PUnicodeRec(p-UnicodeFirstOff)^.ref=1) or { Shortcut declocked on ref = 1. }
+     (PUnicodeRec(p-UnicodeFirstOff)^.ref>0) { ref = -1 is constant string. }
+     and declocked(PUnicodeRec(p-UnicodeFirstOff)^.ref) then
     FreeMem(p-UnicodeFirstOff);
 end;
 

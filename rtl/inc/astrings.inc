@@ -123,9 +123,9 @@ Begin
   If p=Nil then
     exit;
   s:=nil;
-  If (PAnsiRec(p-AnsiFirstOff)^.ref>0) and { ref = -1 is constant string. }
-     ((PAnsiRec(p-AnsiFirstOff)^.ref=1) { Shortcut declocked on ref = 1. }
-      or declocked(PAnsiRec(p-AnsiFirstOff)^.ref)) then
+  If (PAnsiRec(p-AnsiFirstOff)^.ref=1) or { Shortcut declocked on ref = 1. }
+     (PAnsiRec(p-AnsiFirstOff)^.ref>0) { ref = -1 is constant string. }
+     and declocked(PAnsiRec(p-AnsiFirstOff)^.ref) then
     FreeMem(p-AnsiFirstOff);
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
@@ -138,11 +138,8 @@ Procedure fpc_ansistr_decr_ref (Var S : Pointer); [external name 'FPC_ANSISTR_DE
 {$define FPC_SYSTEM_HAS_ANSISTR_INCR_REF}
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc; inline;
 Begin
-  If S=Nil then
-    exit;
-  { Let's be paranoid : Constant string ??}
-  If PAnsiRec(S-AnsiFirstOff)^.Ref<0 then exit;
-  inclocked(PAnsiRec(S-AnsiFirstOff)^.Ref);
+  If (S<>Nil) and (PAnsiRec(S-AnsiFirstOff)^.Ref>0) then
+    inclocked(PAnsiRec(S-AnsiFirstOff)^.Ref);
 end;
 {$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 
@@ -156,16 +153,22 @@ Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer);[Public,Alias:'F
 {
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
+var
+  old : Pointer;
 begin
-  if DestS=S2 then
+  old:=DestS;
+  if old=S2 then
     exit;
-  If S2<>nil then
-    If PAnsiRec(S2-AnsiFirstOff)^.Ref>0 then
-      inclocked(PAnsiRec(S2-AnsiFirstOff)^.Ref);
-  { Decrease the reference count on the old S1 }
-  fpc_ansistr_decr_ref (DestS);
-  { And finally, have DestS pointing to S2 (or its copy) }
-  DestS:=S2;
+  DestS:=S2; { Doing this early frees the DestS register. }
+  { Inlined incr_ref(S2). }
+  If (S2<>nil) and (PAnsiRec(S2-AnsiFirstOff)^.Ref>0) then
+    inclocked(PAnsiRec(S2-AnsiFirstOff)^.Ref);
+  { Inlined decr_ref(old). }
+  If (old<>nil) and
+     ((PAnsiRec(old-AnsiFirstOff)^.ref=1) or { Shortcut declocked on ref = 1. }
+      (PAnsiRec(old-AnsiFirstOff)^.ref>0) { ref = -1 is constant string. }
+      and declocked(PAnsiRec(old-AnsiFirstOff)^.ref)) then
+    FreeMem(old-AnsiFirstOff);
 end;
 {$endif FPC_HAS_ANSISTR_ASSIGN}
 
