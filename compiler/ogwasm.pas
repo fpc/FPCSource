@@ -4850,6 +4850,8 @@ implementation
           memory_imports: SizeInt;
           i: Integer;
         begin
+          if assigned(exemap) then
+            exemap.AddHeader('Import section');
           if ts_wasm_threads in current_settings.targetswitches then
             memory_imports:=1
           else
@@ -4864,6 +4866,8 @@ implementation
               WriteByte(FWasmSections[wsiImport],$03);  { shared }
               WriteUleb(FWasmSections[wsiImport],FMinMemoryPages);
               WriteUleb(FWasmSections[wsiImport],Max(FMinMemoryPages,FMaxMemoryPages));  { max pages }
+              if assigned(exemap) then
+                exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages)+' max='+tostr(Max(FMinMemoryPages,FMaxMemoryPages))+' shared <- env.memory');
             end;
           for i:=0 to Length(FFunctionImports)-1 do
             with FFunctionImports[i] do
@@ -4872,6 +4876,8 @@ implementation
                 WriteName(FWasmSections[wsiImport],Name);
                 WriteByte(FWasmSections[wsiImport],$00);  { func }
                 WriteUleb(FWasmSections[wsiImport],TypeIdx);
+                if assigned(exemap) then
+                  exemap.Add('  Function['+tostr(i)+'] sig='+tostr(TypeIdx)+' <- '+ModName+'.'+Name);
               end;
         end;
 
