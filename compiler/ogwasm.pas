@@ -5220,7 +5220,6 @@ implementation
         WriteTableAndElemSections;
         WriteGlobalSection;
         WriteTagSection;
-        WriteExportSection;
 
         if not (ts_wasm_threads in current_settings.targetswitches) then
           begin
@@ -5243,6 +5242,8 @@ implementation
                   exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages));
               end;
           end;
+
+        WriteExportSection;
 
         if ts_wasm_threads in current_settings.targetswitches then
           WriteUleb(FWasmSections[wsiStart],FInitSharedMemoryFunctionSym.LinkingData.ExeFunctionIndex);
