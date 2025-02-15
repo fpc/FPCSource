@@ -5212,17 +5212,23 @@ implementation
 
         if not (ts_wasm_threads in current_settings.targetswitches) then
           begin
+            if assigned(exemap) then
+              exemap.AddHeader('Memory section');
             WriteUleb(FWasmSections[wsiMemory],1);
             if FMaxMemoryPages>=FMinMemoryPages then
               begin
                 WriteByte(FWasmSections[wsiMemory],1);
                 WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
                 WriteUleb(FWasmSections[wsiMemory],FMaxMemoryPages);
+                if assigned(exemap) then
+                  exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages)+' max='+tostr(FMaxMemoryPages));
               end
             else
               begin
                 WriteByte(FWasmSections[wsiMemory],0);
                 WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
+                if assigned(exemap) then
+                  exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages));
               end;
           end;
 
