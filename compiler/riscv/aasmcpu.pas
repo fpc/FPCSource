@@ -490,7 +490,7 @@ uses cutils, cclasses;
 
           // I type
           A_JALR,
-          A_LA,A_LB,A_LH,A_LW,A_LBU,A_LHU,
+          A_LA,A_LB,A_LH,A_LW,A_LBU,A_LHU,A_LI,
           A_ADDI,A_SLTI,A_SLTIU,
           A_XORI,A_ORI,A_ANDI,
           A_SLLI,A_SRLI,A_SRAI,
@@ -501,13 +501,6 @@ uses cutils, cclasses;
 
           A_FRCSR,A_FRRM,A_FRFLAGS,A_FSCSR,A_FSRM,
           A_FSFLAGS,A_FSRMI,A_FSFLAGSI:
-            if opnr=0 then
-              result:=operand_write
-            else
-              result:=operand_read;
-
-          A_FLW,
-          A_FLD:
             if opnr=0 then
               result:=operand_write
             else
@@ -546,7 +539,9 @@ uses cutils, cclasses;
           A_FMIN_D,A_FMAX_D,
           A_FEQ_D,A_FLT_D,A_FLE_D,A_FCLASS_D,
           A_FCVT_D_S,A_FCVT_S_D,
-          A_FCVT_W_D,A_FCVT_WU_D,A_FCVT_D_W,A_FCVT_D_WU:
+          A_FCVT_W_D,A_FCVT_WU_D,A_FCVT_D_W,A_FCVT_D_WU,
+          A_FLW,
+          A_FLD:
             if opnr=0 then
               result:=operand_write
             else
