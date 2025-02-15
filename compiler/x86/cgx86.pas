@@ -2513,7 +2513,10 @@ unit cgx86;
          If not_zero: just a lone bsx suffices. }
 
        if (not not_zero) and (CPUX86_HINT_BSX_DEST_UNCHANGED_ON_ZF_1 in cpu_optimization_hints[current_settings.optimizecputype]) then
-         list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,tmpreg));
+         begin
+           list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,tmpreg));
+           a_reg_alloc(list,NR_DEFAULTFLAGS);
+         end;
 
        if not reverse then
          list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,tmpreg))
@@ -2524,6 +2527,7 @@ unit cgx86;
          begin
            current_asmdata.getjumplabel(l);
            a_jmp_cond(list,OC_NE,l);
+           a_reg_dealloc(list,NR_DEFAULTFLAGS);
            list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,tmpreg));
            a_label(list,l);
          end;
