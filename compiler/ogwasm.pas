@@ -5015,7 +5015,10 @@ implementation
           exesec: TExeSection;
           globals_count, i: Integer;
           objsec: TWasmObjSection;
+          mapstr: string;
         begin
+          if assigned(exemap) then
+            exemap.AddHeader('Global section');
           exesec:=FindExeSection('.wasm_globals');
           if not assigned(exesec) then
             internalerror(2024010112);
@@ -5031,6 +5034,8 @@ implementation
                 WriteByte(FWasmSections[wsiGlobal],1)
               else
                 WriteByte(FWasmSections[wsiGlobal],0);
+              if assigned(exemap) then
+                WriteStr(mapstr,'  Global[',i,'] ',wasm_basic_type_str[objsec.MainFuncSymbol.LinkingData.GlobalType],' mutable=',objsec.MainFuncSymbol.LinkingData.GlobalIsMutable,' <',objsec.MainFuncSymbol.Name,'> - init ');
               { initializer expr }
               with objsec.MainFuncSymbol.LinkingData.GlobalInitializer do
                 case typ of
@@ -5038,27 +5043,37 @@ implementation
                     begin
                       WriteByte(FWasmSections[wsiGlobal],$41);  { i32.const }
                       WriteSleb(FWasmSections[wsiGlobal],init_i32);
+                      if assigned(exemap) then
+                        mapstr:=mapstr+'i32='+tostr(init_i32);
                     end;
                   wbt_i64:
                     begin
                       WriteByte(FWasmSections[wsiGlobal],$42);  { i64.const }
                       WriteSleb(FWasmSections[wsiGlobal],init_i64);
+                      if assigned(exemap) then
+                        mapstr:=mapstr+'i64='+tostr(init_i64);
                     end;
                   wbt_f32:
                     begin
                       WriteByte(FWasmSections[wsiGlobal],$43);  { f32.const }
                       WriteF32LE(FWasmSections[wsiGlobal],init_f32);
+                      if assigned(exemap) then
+                        WriteStr(mapstr,mapstr+'f32=',init_f32);
                     end;
                   wbt_f64:
                     begin
                       WriteByte(FWasmSections[wsiGlobal],$44);  { f64.const }
                       WriteF64LE(FWasmSections[wsiGlobal],init_f64);
+                      if assigned(exemap) then
+                        WriteStr(mapstr,mapstr+'f64=',init_f64);
                     end;
                   wbt_funcref,
                   wbt_externref:
                     begin
                       WriteByte(FWasmSections[wsiGlobal],$D0);  { ref.null }
                       WriteByte(FWasmSections[wsiGlobal],encode_wasm_basic_type(typ));
+                      if assigned(exemap) then
+                        mapstr:=mapstr+'ref.null '+wasm_basic_type_str[typ];
                     end;
                   else
                     internalerror(2024010114);
@@ -5066,6 +5081,8 @@ implementation
               WriteByte(FWasmSections[wsiGlobal],$0B);  { end }
               { add entry for the name section }
               AddToGlobalNameMap(i,objsec.MainFuncSymbol.Name);
+              if assigned(exemap) then
+                exemap.Add(mapstr);
             end;
         end;
 
