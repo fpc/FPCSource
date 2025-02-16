@@ -284,6 +284,13 @@ interface
           FuncIdx: Integer;
         end;
 
+        FImportedMemories: array of record
+          ModName: ansistring;
+          Name: ansistring;
+          MemType: TWasmMemoryType;
+        end;
+        FMemories: array of TWasmMemoryType;
+
         FRelocationPass: Integer;
         FWasmSections: array [TWasmSectionID] of tdynamicarray;
         FWasmCustomSections: array [TWasmCustomSectionType] of tdynamicarray;
@@ -320,6 +327,8 @@ interface
         procedure GenerateCode_InitSharedMemory;
         procedure GenerateCode_InvokeHelper;
         procedure WriteExeSectionToDynArray(exesec: TExeSection; dynarr: tdynamicarray);
+        procedure WriteMemoryTo(dest: tdynamicarray;const MemType:TWasmMemoryType);
+        function Memory2String(const MemType:TWasmMemoryType):string;
         procedure WriteMap_TypeSection;
         procedure WriteMap_IndirectFunctionTable;
       protected
@@ -4847,28 +4856,22 @@ implementation
       procedure WriteImportSection;
         var
           imports_count,
-          memory_imports: SizeInt;
           i: Integer;
         begin
           if assigned(exemap) then
             exemap.AddHeader('Import section');
-          if ts_wasm_threads in current_settings.targetswitches then
-            memory_imports:=1
-          else
-            memory_imports:=0;
-          imports_count:=Length(FFunctionImports)+memory_imports;
+          imports_count:=Length(FImportedMemories)+Length(FFunctionImports);
           WriteUleb(FWasmSections[wsiImport],imports_count);
-          if ts_wasm_threads in current_settings.targetswitches then
-            begin
-              WriteName(FWasmSections[wsiImport],'env');
-              WriteName(FWasmSections[wsiImport],'memory');
-              WriteByte(FWasmSections[wsiImport],$02);  { mem }
-              WriteByte(FWasmSections[wsiImport],$03);  { shared }
-              WriteUleb(FWasmSections[wsiImport],FMinMemoryPages);
-              WriteUleb(FWasmSections[wsiImport],Max(FMinMemoryPages,FMaxMemoryPages));  { max pages }
-              if assigned(exemap) then
-                exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages)+' max='+tostr(Max(FMinMemoryPages,FMaxMemoryPages))+' shared <- env.memory');
-            end;
+          for i:=0 to Length(FImportedMemories)-1 do
+            with FImportedMemories[i] do
+              begin
+                WriteName(FWasmSections[wsiImport],ModName);
+                WriteName(FWasmSections[wsiImport],Name);
+                WriteByte(FWasmSections[wsiImport],$02);  { mem }
+                WriteMemoryTo(FWasmSections[wsiImport],MemType);
+                if assigned(exemap) then
+                  exemap.Add('  Memory['+tostr(i)+'] '+Memory2String(MemType)+' <- '+ModName+'.'+Name);
+              end;
           for i:=0 to Length(FFunctionImports)-1 do
             with FFunctionImports[i] do
               begin
@@ -5214,6 +5217,21 @@ implementation
             end;
         end;
 
+      procedure WriteMemorySection;
+        var
+          i: Integer;
+        begin
+          if assigned(exemap) then
+            exemap.AddHeader('Memory section');
+          WriteUleb(FWasmSections[wsiMemory],Length(FMemories));
+          for i:=low(FMemories) to high(FMemories) do
+            begin
+              WriteMemoryTo(FWasmSections[wsiMemory],FMemories[i]);
+              if assigned(exemap) then
+                exemap.Add('  Memory['+tostr(i+Length(FImportedMemories))+'] '+Memory2String(FMemories[i]));
+            end;
+        end;
+
       var
         cust_sec: TWasmCustomSectionType;
       begin
@@ -5230,6 +5248,36 @@ implementation
         GenerateCode_InitTls;
         GenerateCode_InitSharedMemory;
 
+        if ts_wasm_threads in current_settings.targetswitches then
+          begin
+            SetLength(FImportedMemories,1);
+            with FImportedMemories[0] do
+              begin
+                ModName:='env';
+                Name:='memory';
+                with MemType do
+                  begin
+                    Flags:=[wmfShared,wmfHasMaximumBound];
+                    MinPages:=FMinMemoryPages;
+                    MaxPages:=Max(FMinMemoryPages,FMaxMemoryPages);
+                  end;
+              end;
+          end
+        else
+          begin
+            SetLength(FMemories,1);
+            with FMemories[0] do
+              begin
+                Flags:=[];
+                MinPages:=FMinMemoryPages;
+                if FMaxMemoryPages>=FMinMemoryPages then
+                  begin
+                    Include(Flags,wmfHasMaximumBound);
+                    MaxPages:=FMaxMemoryPages;
+                  end;
+              end;
+          end;
+
         FFuncTypes.WriteTo(FWasmSections[wsiType]);
         WriteImportSection;
         WriteCodeSegments;
@@ -5238,27 +5286,8 @@ implementation
         WriteGlobalSection;
         WriteTagSection;
 
-        if not (ts_wasm_threads in current_settings.targetswitches) then
-          begin
-            if assigned(exemap) then
-              exemap.AddHeader('Memory section');
-            WriteUleb(FWasmSections[wsiMemory],1);
-            if FMaxMemoryPages>=FMinMemoryPages then
-              begin
-                WriteByte(FWasmSections[wsiMemory],1);
-                WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
-                WriteUleb(FWasmSections[wsiMemory],FMaxMemoryPages);
-                if assigned(exemap) then
-                  exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages)+' max='+tostr(FMaxMemoryPages));
-              end
-            else
-              begin
-                WriteByte(FWasmSections[wsiMemory],0);
-                WriteUleb(FWasmSections[wsiMemory],FMinMemoryPages);
-                if assigned(exemap) then
-                  exemap.Add('  Memory[0] pages: initial='+tostr(FMinMemoryPages));
-              end;
-          end;
+        if Length(FMemories)>0 then
+          WriteMemorySection;
 
         WriteExportSection;
 
@@ -6400,6 +6429,32 @@ implementation
           end;
         if (dynarr.size-exesecdatapos)<>exesec.Size then
           internalerror(2024010107);
+      end;
+
+    procedure TWasmExeOutput.WriteMemoryTo(dest: tdynamicarray; const MemType: TWasmMemoryType);
+      begin
+        WriteByte(dest,Byte(MemType.Flags));
+        WriteUleb(dest,MemType.MinPages);
+        if wmfHasMaximumBound in MemType.Flags then
+          WriteUleb(dest,MemType.MaxPages);
+        { todo: wmfCustomPageSize }
+      end;
+
+    function TWasmExeOutput.Memory2String(const MemType: TWasmMemoryType): string;
+      begin
+        Result:='index type: ';
+        if wmfMemory64 in MemType.Flags then
+          Result:=Result+'i64'
+        else
+          Result:=Result+'i32';
+        Result:=Result+', pages: initial='+tostr(MemType.MinPages);
+        if wmfHasMaximumBound in MemType.Flags then
+          Result:=Result+' max='+tostr(MemType.MaxPages);
+        if wmfShared in MemType.Flags then
+          Result:=Result+', shared'
+        else
+          Result:=Result+', unshared';
+        { todo: wmfCustomPageSize }
       end;
 
     procedure TWasmExeOutput.WriteMap_TypeSection;

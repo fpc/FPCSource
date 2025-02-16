@@ -142,6 +142,19 @@ uses
       TWasmResultType = array of TWasmBasicType;
       TWasmLocalsDynArray = array of TWasmBasicType;
 
+      TWasmMemoryFlag = (
+        wmfHasMaximumBound,
+        wmfShared,
+        wmfMemory64,
+        wmfCustomPageSize
+      );
+      TWasmMemoryFlags = set of TWasmMemoryFlag;
+      TWasmMemoryType = record
+        Flags: TWasmMemoryFlags;
+        MinPages, MaxPages: UInt64;
+        PageSize: UInt32;
+      end;
+
       { TWasmFuncType }
 
       PWasmFuncType = ^TWasmFuncType;
