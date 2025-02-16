@@ -532,7 +532,7 @@ uses cutils, cclasses;
           A_FMIN_S,A_FMAX_S,
           A_FMV_X_S,A_FEQ_S,A_FLT_S,A_FLE_S,A_FCLASS_S,
           A_FCVT_W_S,A_FCVT_WU_S,A_FCVT_S_W,A_FCVT_S_WU,
-          A_FMV_S_X,
+          A_FMV_S_X,A_FMV_W_X,
 
           A_FADD_D,A_FSUB_D,A_FMUL_D,A_FDIV_D,
           A_FSQRT_D,A_FSGNJ_D,A_FSGNJN_D,A_FSGNJX_D,
@@ -541,7 +541,8 @@ uses cutils, cclasses;
           A_FCVT_D_S,A_FCVT_S_D,
           A_FCVT_W_D,A_FCVT_WU_D,A_FCVT_D_W,A_FCVT_D_WU,
           A_FLW,
-          A_FLD:
+          A_FLD,
+          A_FNEG_S,A_FNEG_D,A_FNEG_Q:
             if opnr=0 then
               result:=operand_write
             else
@@ -580,7 +581,8 @@ uses cutils, cclasses;
             result:=operand_read;
 {$endif RISCV64}
           else
-            ;
+            { got bitten already by this, so play safe and do not do nothing by default }
+            Internalerror(2025021601);
         end;
       end;
 
