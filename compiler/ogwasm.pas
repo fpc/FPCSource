@@ -5015,7 +5015,7 @@ implementation
           exesec: TExeSection;
           globals_count, i: Integer;
           objsec: TWasmObjSection;
-          mapstr: string;
+          mapstr: string='';
         begin
           if assigned(exemap) then
             exemap.AddHeader('Global section');
