@@ -253,6 +253,10 @@ type
       InOwnerCall: boolean;
       UnitInfoUsed: PSymbolScopeView;
       UnitInfoDependent: PSymbolScopeView;
+      UsedVSB: PScrollBar;
+      DependVSB: PScrollBar;
+      UsedCST: PColorStaticText;
+      DependCST: PColorStaticText;
       procedure SetState(AState: Word; Enable: Boolean); virtual;
       procedure HandleEvent(var Event: TEvent); virtual;
     end;
@@ -274,9 +278,11 @@ type
       function    GetFlags: longint; virtual;
       procedure   SetFlags(AFlags: longint); virtual;
       procedure   SizeLimits (Var Min, Max: TPoint); Virtual;
+      procedure   OnResize; Virtual; { called on window resize event }
       destructor  Done;virtual;
     private
       BrowserFlags  : Longint;
+      PrevSize      : TPoint;
       PageTab       : PBrowserTab;
       ST            : PStaticText;
       Sym           : PSymbol;
@@ -2330,6 +2336,8 @@ begin
         UnitInfoUsed^.MyBW:=@Self;
         UnitInfo^.Insert(UnitInfoUsed);
         UnitInfo^.UnitInfoUsed:=UnitInfoUsed;
+        UnitInfo^.UsedVSB:=VSB;
+        UnitInfo^.UsedCST:=CST;
       end;
 
       UnitInfo^.UnitInfoDependent:=nil;
@@ -2359,13 +2367,19 @@ begin
         UnitInfoDependent^.MyBW:=@Self;
         UnitInfo^.Insert(UnitInfoDependent);
         UnitInfo^.UnitInfoDependent:=UnitInfoDependent;
+        UnitInfo^.DependVSB:=VSB;
+        UnitInfo^.DependCST:=CST;
       end;
 
       if Assigned(UnitInfoText) then
         UnitInfoText^.Select;
 
+      PrevSize.Y:=0;
+      PrevSize.X:=0;
+      OnResize;
       Insert(UnitInfo);
     end;
+  PrevSize:=Size;
 
   { hide not active pages so that scrollbars do not overlap }
   if assigned(ScopeView) then ScopeView^.SetState(sfVisible,False);
@@ -2609,6 +2623,73 @@ begin
   Min.Y:=15; { Scrollbars in unit info page is still usable }
   Max.X:=ScreenWidth;
   Max.Y:=ScreenHeight-2;
+  if (PrevSize.X<>Size.X) or (PrevSize.Y<>Size.Y) then
+  begin
+    OnResize;
+    PrevSize:=Size;
+  end;
+end;
+
+procedure TBrowserWindow.OnResize;
+var Y, uL,dL,tL: sw_integer;
+    uMi,dMi,tMi: sw_integer;
+    T,U,D : sw_integer;
+    TotalLinesNeed : sw_integer;
+begin
+  if (PrevSize.Y<>Size.Y) then
+  begin
+    {-- unit info page resize manualy --}
+    if assigned(UnitInfo) then
+    begin
+      { get number of lines everyone needs }
+      Y:=UnitInfo^.Size.Y;
+      tL:=UnitInfoText^.GetLineCount;
+      tMi:=Min(tL,3);
+      uL:=0;dL:=0;uMi:=0;dMi:=0;
+      if assigned(UnitInfoUsed) then
+      begin
+        uMi:=4;
+        uL:=UnitInfoUsed^.FilteredSym^.Count+1;
+      end;
+      if assigned(UnitInfoDependent) then
+      begin
+        dMi:=4;
+        dL:=UnitInfoDependent^.FilteredSym^.Count+1;
+      end;
+      { proportional split amongst needy }
+      TotalLinesNeed:=Max(tL+uL+dL,1);
+      T:=Max(tMi,(tL*Y) div TotalLinesNeed);
+      T:=Min(T,Max(tMi,tL)); { don't give more than actual need }
+      TotalLinesNeed:=Max(uL+dL,1);
+      Y:=Y-T;
+      U:=Max(uMi,(uL*Y) div TotalLinesNeed);
+      Y:=Y-U;
+      D:=Y;
+      if D<dMi then
+      begin
+        U:=U-(dMi-D);
+        D:=dMi;
+      end;
+      { assign newly calculated positions and height for everyone }
+      UnitInfoText^.Size.Y:=T;
+      if assigned(UnitInfoUsed) then
+      begin
+        UnitInfo^.UsedCST^.Origin.Y:=T;
+        UnitInfoUsed^.Origin.Y:=T+1;
+        UnitInfo^.UsedVSB^.Origin.Y:=T+1;
+        UnitInfoUsed^.Size.Y:=U-1;
+        UnitInfo^.UsedVSB^.Size.Y:=U-1;
+      end;
+      if assigned(UnitInfoDependent) then
+      begin
+        UnitInfo^.DependCST^.Origin.Y:=T+U;
+        UnitInfoDependent^.Origin.Y:=T+U+1;
+        UnitInfo^.DependVSB^.Origin.Y:=T+U+1;
+        UnitInfoDependent^.Size.Y:=D-1;
+        UnitInfo^.DependVSB^.Size.Y:=D-1;
+      end;
+    end;
+  end;
 end;
 
 procedure TBrowserWindow.Close;
