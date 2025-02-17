@@ -27,7 +27,7 @@ interface
 
 {$I fpcdefs.inc}
 
-{ $define DEBUG_AOPTCPU}
+{$define DEBUG_AOPTCPU}
 
 uses
   cpubase,
@@ -335,6 +335,7 @@ implementation
           dealloc x
         To
           addi z, y, #+#
+          dealloc x
       }
       else if (taicpu(p).ops=3) and
          (taicpu(p).oper[2]^.typ=top_const) and
@@ -347,6 +348,7 @@ implementation
          (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
          RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
         begin
+          AllocRegBetween(taicpu(p).oper[1]^.reg,p,hp1,UsedRegs);
           taicpu(hp1).loadreg(1,taicpu(p).oper[1]^.reg);
           taicpu(hp1).loadconst(2, taicpu(p).oper[2]^.val+taicpu(hp1).oper[2]^.val);
 
