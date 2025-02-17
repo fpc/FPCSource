@@ -830,6 +830,8 @@ begin
           kbRight,kbLeft :
             if HScrollBar<>nil then
               HScrollBar^.HandleEvent(Event);
+          kbTab:
+            Message(Owner,evBroadcast,cmSymTabKeyPress,@Self);
         else DontClear:=true;
         end;
         if DontClear=false then ClearEvent(Event);
@@ -2027,7 +2029,17 @@ begin
       if Assigned(Owner) then
         Owner^.HandleEvent(Event);
       InOwnerCall:=false;
-    end;
+    end else
+  if (Event.What=evBroadcast) and (Event.Command=cmSymTabKeyPress) then
+  begin
+    if Event.InfoPtr = UnitInfoUsed then
+      if assigned(UnitInfoDependent) then
+        UnitInfoDependent^.Focus;
+    if Event.InfoPtr = UnitInfoDependent then
+      if assigned(UnitInfoUsed) then
+        UnitInfoUsed^.Focus;
+    ClearEvent(Event);
+  end;
   inherited HandleEvent(Event);
 end;
 
@@ -2147,17 +2159,18 @@ begin
       with UnitInfoText^ do
       begin
         GrowMode:=gfGrowHiX;
-        if Assigned(LoadedFrom) then
-        begin
+        if Assigned(LoadedFrom) then  {this will be false always because it is not set anymore in browcol unit}
           AddLine(FormatStrStr2('%s : %s',msg_usedfirstin,GetStr(LoadedFrom)));
+        if Assigned(MainSource) then
+        begin
           AddLine(FormatStrStr('%s : ',msg_mainsource));
           AddLine(FormatStrStr('  %s',GetStr(MainSource)));
-          if Assigned(SourceFiles) and (SourceFiles^.Count>1) then
-          begin
-            AddLine(FormatStrStr('%s : ',msg_sourcefiles));
-            for I:=0 to SourceFiles^.Count-1 do
-              AddLine(FormatStrStr('  %s',GetStr(SourceFiles^.At(I))));
-          end;
+        end;
+        if Assigned(SourceFiles) and (SourceFiles^.Count>1) then
+        begin
+          AddLine(FormatStrStr('%s : ',msg_sourcefiles));
+          for I:=0 to SourceFiles^.Count-1 do
+            AddLine(FormatStrStr('  %s',GetStr(SourceFiles^.At(I))));
         end;
       end;
       UnitInfo^.Insert(UnitInfoText);
@@ -2170,7 +2183,7 @@ begin
         CST^.GrowMode:=gfGrowHiX;
         UnitInfo^.Insert(CST);
 
-        Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R2.A.Y+3;
+        Inc(R2.A.Y,R2.B.Y-R2.A.Y); R2.B.Y:=R2.A.Y+Max(3,Size.Y-12);
         Dec(R2.B.X);  { make space for VSB inside Panel }
         if Assigned(DependentUnits)=false then R2.B.Y:=R3.B.Y;
         {HSB:=CreateHSB(R2); UnitInfo^.Insert(HSB); }
@@ -2178,7 +2191,7 @@ begin
         VSB:=CreateVSB(R2);
         {UnitInfo^.Insert(VSB);  this created crashes,
         that were difficult to findout PM }
-        { Maybe because it was outside Panle?  M }
+        { Maybe because it was outside Panel?  M }
         UnitInfo^.Insert(VSB); { lets try again with VSB inside Panel area }
         New(UnitInfoUsed, Init(R2,UsedUnits,HSB,VSB));
         Inc(R2.B.X); { restore R2 }
@@ -2204,7 +2217,7 @@ begin
         VSB:=CreateVSB(R2);
         { UnitInfo^.Insert(VSB);  this created crashes,
         that were difficult to findout PM }
-        { Maybe because it was outside Panle?  M }
+        { Maybe because it was outside Panel?  M }
         UnitInfo^.Insert(VSB); { lets try again with VSB inside Panel area }
         if Assigned(UsedUnits) then
           VSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowLoX+gfGrowHiY;

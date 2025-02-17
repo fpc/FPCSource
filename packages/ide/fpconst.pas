@@ -312,6 +312,8 @@ const
      cmSymTrackSource    = 2702;
      cmSymOptions        = 2703;
      cmSymSaveAs         = 2704;
+     cmSymTabKeyPress    = 2705;
+     {cmSymPrevious       = 249;}
 
      { Help constants }
      hcSourceWindow      = 8000;
