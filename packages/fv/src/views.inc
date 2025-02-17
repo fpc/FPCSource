@@ -2626,18 +2626,18 @@ END;
 {***************************************************************************}
 
 {--TGroup-------------------------------------------------------------------}
-{  IndexOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB           }
+{  IndexOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 14Feb2025 M           }
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.IndexOf (P: PView): Sw_Integer;
 VAR I: Sw_Integer; Q: PView;
 BEGIN
    Q := Last;                                         { Start on last view }
    If (Q <> Nil) Then Begin                           { Subviews exist }
-     I := 1;                                          { Preset value }
-     While (Q <> P) AND (Q^.Next <> Last) Do Begin
+     I := 0;                                          { Preset value }
+     Repeat
        Q := Q^.Next;                                  { Load next view }
        Inc(I);                                        { Increment count }
-     End;
+     Until (Q = P) or (Q = Last);
      If (Q <> P) Then IndexOf := 0 Else IndexOf := I; { Return index }
    End Else IndexOf := 0;                             { Return zero }
 END;
