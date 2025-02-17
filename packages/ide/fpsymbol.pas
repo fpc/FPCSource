@@ -1603,8 +1603,7 @@ var OK: boolean;
     procedure WriteSymbolTree(P:PObjectSymbol;Depth:Sw_Integer;grph:string);
     var
       Q : PObjectSymbol;
-      Nc,Des,Count : integer;
-      fl : word;
+      Des,Count : integer;
       Space : String;
     begin
       if not assigned(P) then
@@ -1616,11 +1615,10 @@ var OK: boolean;
         begin
           if not ok then exit;
           Q:=P^.GetDescendant(Des);
-          st:=GetText(Q);
+          st:=Q^.GetName;
           if (Des+1)=Count then
-            fl:=ovExpanded or ovChildren or ovLast
-          else fl:=ovExpanded or ovChildren;
-          Space:=grph+getgraph(0,1,fl);
+            Space:=grph+#32#192#196#196
+          else Space:=grph+#32#195#196#196;
           S^.Write(Space[1],Length(Space));
           if not OK then exit;
           S^.Write(St[1],length(St));
@@ -1645,7 +1643,7 @@ begin
   if OK then
     begin
       P:=Root;
-      st:=#32#192#196#196+GetText(P);
+      st:=#32#192#196#196+P^.GetName;
       S^.Write(St[1],length(St));
       OK:=(S^.Status=stOK);
       if OK then
