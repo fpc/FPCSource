@@ -42,6 +42,7 @@ end;
 
 procedure TIDEApp.FindProcedure;
 var R: TRect;
+    PB: PBrowserWindow;
     S: PSortedSymbolCollection;
     Overflow: boolean;
     ProcS : string;
@@ -102,16 +103,20 @@ begin
   if Overflow then
     WarningBox(msg_toomanysymbolscantdisplayall,nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
-  Desktop^.Insert(New(PBrowserWindow, Init(R,
-    label_sym_findprocedure,SearchFreeWindowNo,nil,label_sym_findprocedure2+ProcS,'',S,nil,nil,nil)));
+  PB:=New(PBrowserWindow, Init(R,
+    label_sym_findprocedure,SearchFreeWindowNo,nil,label_sym_findprocedure2+ProcS,'',S,nil,nil,nil));
+  Desktop^.Insert(PB);
+  BrowserRoot^.InsertWindow(PB);
 end;
 
 procedure TIDEApp.Objects;
+var PB : PBrowserWindow;
 begin
   if ObjectTree=nil then
      begin ErrorBox(msg_nodebuginfoavailable,nil); Exit; end;
 
-  OpenSymbolBrowser(0,0,label_sym_objects,label_sym_globalscope,nil,nil,nil,nil,ObjectTree,nil);
+  PB:=OpenSymbolBrowser(0,0,0,0,label_sym_objects,label_sym_globalscope,nil,nil,nil,nil,ObjectTree,nil);
+  BrowserRoot^.InsertWindow(PB);
 end;
 
 procedure TIDEApp.Globals;
@@ -119,6 +124,7 @@ var R: TRect;
     S: PSortedSymbolCollection;
     Overflow: boolean;
     Level : longint;
+    PB : PBrowserWindow;
 
   procedure InsertInS(P: PSymbol);
 
@@ -157,14 +163,17 @@ begin
   if Overflow then
     WarningBox(msg_toomanysymbolscantdisplayall,nil);
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
-  Desktop^.Insert(New(PBrowserWindow, Init(R,
-    label_sym_globals,SearchFreeWindowNo,nil,label_sym_globalscope,'',S,nil,nil,nil)));
+  PB:=New(PBrowserWindow, Init(R,
+    label_sym_globals,SearchFreeWindowNo,nil,label_sym_globalscope,'',S,nil,nil,nil));
+  Desktop^.Insert(PB);
+  BrowserRoot^.InsertWindow(PB);
 end;
 
 procedure TIDEApp.Modules;
 var
     R: TRect;
     S: PSortedSymbolCollection;
+    PB : PBrowserWindow;
 procedure InsertInS(P: PSymbol);
 begin
   S^.Insert(P);
@@ -181,8 +190,10 @@ begin
   ModulesCollection:=S;
   BrowCol.Modules^.ForEach(TCallbackProcParam(@InsertInS));
   Desktop^.GetExtent(R); R.A.X:=R.B.X-35;
-  Desktop^.Insert(New(PBrowserWindow, Init(R,
-    dialog_units,SearchFreeWindowNo,nil,label_sym_globalscope,'',S,nil,nil,nil)));
+  PB:=New(PBrowserWindow, Init(R,
+    dialog_units,SearchFreeWindowNo,nil,label_sym_globalscope,'',S,nil,nil,nil));
+  Desktop^.Insert(PB);
+  BrowserRoot^.InsertWindow(PB);
 end;
 
 function SymbolDialog(S : string) : PDialog;

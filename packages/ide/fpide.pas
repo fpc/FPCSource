@@ -270,6 +270,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_search_searchagain= '~S~earch again';
                 menu_search_jumpline   = '~G~o to line number...';
                 menu_search_findproc   = 'Find ~p~rocedure...';
+                menu_search_previous   = 'Previous ~b~rowser';
                 menu_search_objects    = '~O~bjects';
                 menu_search_modules    = 'Mod~u~les';
                 menu_search_globals    = 'G~l~obals';
@@ -962,12 +963,13 @@ begin
       NewItem(menu_search_jumpline,'', kbNoKey, cmJumpLine, hcGotoLine,
       NewItem(menu_search_findproc,'', kbNoKey, cmFindProcedure, hcFindProcedure,
       NewLine(
+      NewItem(menu_search_previous,'', kbNoKey, cmSymPrevious, hcSymPrevious,
       NewItem(menu_search_objects,'', kbNoKey, cmObjects, hcObjects,
       NewItem(menu_search_modules,'', kbNoKey, cmModules, hcModules,
       NewItem(menu_search_globals,'', kbNoKey, cmGlobals, hcGlobals,
       NewLine(
       NewItem(menu_search_symbol,'', kbNoKey, cmSymbol, hcSymbol,
-      nil))))))))))))),
+      nil)))))))))))))),
     NewSubMenu(menu_run,hcRunMenu, NewMenu(
       NewItem(menu_run_run,menu_key_run_run, kbCtrlF9, cmRun, hcRun,
       NewItem(menu_run_stepover,menu_key_run_stepover, kbF8, cmStepOver, hcRun,
@@ -1098,6 +1100,7 @@ begin
   LoadMenuBar;
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
   SetCmdState([cmTile,cmCascade],false);
+  SetCmdState([cmSymPrevious],false);
   // Update; Desktop is still nil at that point ...
 end;
 

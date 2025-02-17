@@ -225,6 +225,7 @@ const
      }
 
      cmPrint             = 248;
+     cmSymPrevious       = 249; {previous symbol browser window}
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -444,6 +445,7 @@ const
      hcSymTrackSource    = hcShift+cmSymTrackSource;
      hcSymOptions        = hcShift+cmSymOptions;
      hcSymSaveAs         = hcShift+cmSymSaveAs;
+     hcSymPrevious       = hcShift+cmSymPrevious;
      hcGotoCursor        = hcShift+cmGotoCursor;
      hcNewBreakpoint     = hcShift+cmNewBreakpoint;
      hcEditBreakpoint    = hcShift+cmEditBreakpoint;
