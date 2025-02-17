@@ -108,6 +108,7 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
                e.buttons := e.buttons and not (MouseButton4 or MouseButton5);
                e.Action := MouseActionUp;
                LastHandlermouseEvent:=e;
+               { do not put actual event (fake it just for LastHandlermouseEvent)
                while PendingMouseEvents>=MouseEventBufSize do
                begin
                  LeaveCriticalSection(ChangeMouseEvents);
@@ -115,6 +116,7 @@ procedure MouseEventHandler(var ir:INPUT_RECORD);
                  EnterCriticalSection(ChangeMouseEvents);
                end;
                PutMouseEvent(e);
+               }
              end;
            end;
          // this should be done in PutMouseEvent, now it is PM

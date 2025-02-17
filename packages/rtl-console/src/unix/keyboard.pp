@@ -494,11 +494,12 @@ const
     Action : 0;
   );
 
-  procedure GenFakeReleaseEvent(MouseEvent : TMouseEvent);
+  procedure GenFakeReleaseEvent(var MouseEvent : TMouseEvent);
   begin
     MouseEvent.action := MouseActionUp;
     MouseEvent.buttons := 0;
-    PutMouseEvent(MouseEvent);
+    { fake event is to decive LastMouseEvent
+    PutMouseEvent(MouseEvent); do not make real event }
   end;
 
   procedure GenMouseEvent;
@@ -566,7 +567,7 @@ const
        end;
 *)
      PutMouseEvent(MouseEvent);
-     if (MouseEvent.buttons and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+     if (MouseEvent.buttons and (MouseButton4 or MouseButton5)) <> 0 then
        GenFakeReleaseEvent(MouseEvent);
 {$ifdef DebugMouse}
      if MouseEvent.Action=MouseActionDown then
@@ -690,11 +691,11 @@ const
       end;
     end;
     PutMouseEvent(MouseEvent);
-    if (ButtonMask and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+    if (ButtonMask and (MouseButton4 or MouseButton5)) <> 0 then
     begin
-      MouseEvent.Action:=MouseActionUp;
+      MouseEvent.Action:=MouseActionUp; {to trick LastMouseEvent pretend that we have MouseActionUp event }
       MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
-      PutMouseEvent(MouseEvent);
+      {PutMouseEvent(MouseEvent); do not put actual event }
     end;
     LastMouseEvent:=MouseEvent;
   end;
