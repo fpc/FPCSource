@@ -172,6 +172,7 @@ begin
             else
             if (copy(Param,3,1)='-') then
               StartupOptions:=StartupOptions and not soHeapMonitor;
+            OverrideLastDirOption:=true;
           end else
 {$ifdef go32v2}
         if (UpcaseStr(Param)='NOLFN') or (UpcaseStr(Param)='N') then

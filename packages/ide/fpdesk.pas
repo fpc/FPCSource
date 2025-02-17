@@ -1037,7 +1037,12 @@ begin
       OK:=ReadCodeComplete(F) and OK;
     if ((DesktopFileFlags and dfCodeTemplates)<>0) then
       OK:=ReadCodeTemplates(F) and OK;
-    if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
+    if not OverrideLastDirOption then
+      if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
+        StartupOptions:=StartupOptions or soReturnToLastDir
+      else
+        StartupOptions:=StartupOptions and( not soReturnToLastDir);
+    if ((StartupOptions and soReturnToLastDir)<>0) then
       OK:=ReadReturnToLastDir(F) and OK;
 {$ifdef Unix}
     OK:=ReadKeys(F) and OK;
@@ -1084,7 +1089,8 @@ begin
         OK:=OK and WriteCodeComplete(F);
       if ((DesktopFileFlags and dfCodeTemplates)<>0) then
         OK:=OK and WriteCodeTemplates(F);
-      if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
+      {if ((DesktopFileFlags and dfReturnToLastDir)<>0) then
+        always write last dir }
         OK:=WriteReturnToLastDir(F) and OK;
 {$ifdef Unix}
       OK:=OK and WriteKeys(F);
