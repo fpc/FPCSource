@@ -13,6 +13,95 @@
 
  **********************************************************************}
 
+procedure TIDEApp.TileVertical;
+begin
+  if not assigned(Desktop) then exit;
+  Desktop^.TileColumnsFirst:=True;
+  Tile;
+  Desktop^.TileColumnsFirst:=False;
+end;
+
+FUNCTION Tileable (P: PView): Boolean;
+BEGIN
+   Tileable := (P^.Options AND ofTileable <> 0) AND   { View is tileable }
+     (P^.State AND sfVisible <> 0);                   { View is visible }
+END;
+
+{ This pritty much copy of window cascade }
+{ added extra variable `Count` }
+{ calculate one of `NR.A.Y` or `NR.A.X` in revers }
+procedure TIDEApp.Stepped(aDirection:boolean);
+var R: TRect;
+VAR CascadeNum, Count: SmallInt; LastView: PView; Min, Max: TPoint;
+
+   PROCEDURE DoCount (P: PView);
+   BEGIN
+     If Tileable(P) Then Begin
+       Inc(CascadeNum); LastView := P;                { Count steppable }
+     End;
+   END;
+
+   PROCEDURE DoCascade (P: PView);
+   VAR PState: Word; NR: TRect;
+   BEGIN
+     If Tileable(P) AND (CascadeNum >= 0) Then Begin  { View steppable }
+       NR.Copy(R);                                    { Copy rect area }
+       if aDirection then
+       begin
+         {option 1 active window in lowest position, window titles visible}
+         Inc(NR.A.X, Count*1-CascadeNum*1-1);         { Inc x position }
+         Inc(NR.A.Y, CascadeNum);                     { Inc y position }
+       end else
+       begin
+         {option 2 active window in highest position, window titles not visible}
+         Inc(NR.A.X, CascadeNum*1);                     { Inc x position }
+         Inc(NR.A.Y, Count-CascadeNum-1);               { Inc y position }
+       end;
+       PState := P^.State;                            { Hold view state }
+       P^.State := P^.State AND NOT sfVisible;        { Temp stop draw }
+       P^.Locate(NR);                                 { Locate the view }
+       P^.State := PState;                            { Now allow draws }
+       Dec(CascadeNum);                               { Dec count }
+     End;
+   END;
+
+begin
+   if not assigned(Desktop) then exit;
+   GetTileRect(R);                                    { Tileable area }
+   CascadeNum := 0;                                   { Zero step count }
+   Desktop^.ForEach(TCallbackProcParam(@DoCount));    { Count stepable }
+   Count:=CascadeNum;                                 { Keep count in Count }
+   If (CascadeNum>0) Then Begin
+     LastView^.SizeLimits(Min, Max);                  { Check size limits }
+     If (Min.X > R.B.X - R.A.X - CascadeNum) OR
+     (Min.Y > R.B.Y - R.A.Y - CascadeNum) Then
+     Desktop^.TileError Else Begin                    { Check for error }
+       Dec(CascadeNum);                               { One less view }
+       Desktop^.ForEach(TCallbackProcParam(@DoCascade)); { Stepped view }
+       Desktop^.DrawView;                             { Redraw now }
+     End;
+   End;
+end;
+
+
+procedure TIDEApp.UpdateTileMenu;
+var MenuItem : PMenuItem;
+    bFirst : boolean;
+begin
+  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmTileVertical);
+  bFirst:=assigned(MenuItem);
+  ChangeMenu(PAdvancedMenuBar(MenuBar),bFirst,cmTile,menu_window_tile,cmTileVertical,menu_window_tile_vertical);
+end;
+
+procedure TIDEApp.UpdateSteppedMenu;
+var MenuItem : PMenuItem;
+    bFirst : boolean;
+begin
+  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmSteppedRevers);
+  bFirst:=assigned(MenuItem);
+  ChangeMenu(PAdvancedMenuBar(MenuBar),bFirst,cmStepped,menu_window_stepped,cmSteppedRevers,menu_window_stepped_revers);
+end;
+
 procedure TIDEApp.CloseAll;
 
   procedure SendClose(P: PView);

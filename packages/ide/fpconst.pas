@@ -166,6 +166,9 @@ const
 
      { Command constants }
      cmShowClipboard     = 201;
+     cmStepped           = 203;
+     cmSteppedRevers     = 204;
+     cmTileVertical      = 205;
      cmFindProcedure     = 206;
      cmObjects           = 207;
      cmModules           = 208;
@@ -412,6 +415,9 @@ const
      hcTarget            = hcShift+cmTarget;
      hcPrimaryFile       = hcShift+cmPrimaryFile;
      hcClearPrimary      = hcShift+cmClearPrimary;
+     hcTileVertical      = hcShift+cmTileVertical;
+     hcStepped           = hcShift+cmStepped;
+     hcSteppedRevers     = hcShift+cmSteppedRevers;
      hcWindowList        = hcShift+cmWindowList;
      hcNewFromTemplate   = hcShift+cmNewFromTemplate;
      hcHelpTopicSearch   = hcShift+cmHelpTopicSearch;

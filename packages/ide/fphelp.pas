@@ -214,6 +214,7 @@ const
       hint_windowmenu        = 'Windows management commands';
       hint_tile              = 'Arrange windows on desktop by tiling';
       hint_cascade           = 'Arrange windows on desktop by cascading';
+      hint_stepped           = 'Arrange windows on desktop by stepping';
       hint_closeall          = 'Close all windows on the desktop';
       hint_resize            = 'Change the size/postion of the active window';
       hint_zoom              = 'Enlarge or restore the size of the active window';
@@ -391,6 +392,7 @@ begin
     hcWindowMenu    : S:=hint_windowmenu;
     hcTile          : S:=hint_tile;
     hcCascade       : S:=hint_cascade;
+    hcStepped       : S:=hint_stepped;
     hcCloseAll      : S:=hint_closeall;
     hcResize        : S:=hint_resize;
     hcZoom          : S:=hint_zoom;
