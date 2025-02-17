@@ -3399,13 +3399,13 @@ procedure TMessageListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
 begin
   case Event.What of
-    evMouseDown: Begin                                 { Mouse down event }
-        if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
+    evMouseWheel: Begin                                 { Mouse wheel event }
+        if (Event.Wheel=mwDown) then                    { Mouse scroll down }
           begin
             if Event.Double then ScrollTo(TopItem+7) else ScrollTo(TopItem+1);
             ClearEvent(Event);                         { Event was handled }
           end else
-        if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
+        if (Event.Wheel=mwUp) then                     { Mouse scroll up }
           begin
             if Event.Double then ScrollTo(TopItem-7) else ScrollTo(TopItem-1);
             ClearEvent(Event);                         { Event was handled }
@@ -5008,8 +5008,8 @@ begin
         end;
         if not DontClear then ClearEvent(Event);
       end;
-    evMouseDown:
-      if (Event.Buttons=mbScrollUp) then { mouse scroll up}
+    evMouseWheel:
+      if (Event.Wheel=mwDown) then { Mouse scroll down }
         begin
           LinesScroll:=1;
           if Event.Double then LinesScroll:=LinesScroll+4;
@@ -5017,7 +5017,7 @@ begin
           ScrollTo(Delta.X,Min(Max(0,LineCount-Size.Y),Delta.Y+LinesScroll));
           ClearEvent(Event);
         end else
-      if (Event.Buttons=mbScrollDown) then  { mouse scroll down }
+      if (Event.Wheel=mwUp) then  { Mouse scroll up }
         begin
           LinesScroll:=-1;
           if Event.Double then LinesScroll:=LinesScroll-4;
