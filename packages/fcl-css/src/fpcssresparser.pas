@@ -411,7 +411,7 @@ type
     property PseudoClassCount: TCSSNumericalID read FPseudoClassCount;
   public
     // pseudo functions lowercase (they are parsed case insensitive)
-    PseudoFunctions: TCSSStringArray;
+    PseudoFunctions: TCSSStringArray; // Note: PseudoFunctions[0] is nil to spot bugs easily
     function AddPseudoFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfPseudoFunction(const aName: TCSSString): TCSSNumericalID; overload;
     property PseudoFunctionCount: TCSSNumericalID read FPseudoFunctionCount;
@@ -426,7 +426,7 @@ type
     property TypeCount: TCSSNumericalID read FTypeCount;
   public
     // keywords
-    Keywords: TCSSStringArray;
+    Keywords: TCSSStringArray; // Note: Keywords[0] is nil to spot bugs easily
     kwFirstColor, kwLastColor, kwTransparent: TCSSNumericalID;
     function AddKeyword(const aName: TCSSString): TCSSNumericalID; overload;
     procedure AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID); overload;
@@ -437,7 +437,7 @@ type
     property KeywordCount: TCSSNumericalID read FKeywordCount;
   public
     // attribute functions
-    AttrFunctions: TCSSStringArray;
+    AttrFunctions: TCSSStringArray; // Note: AttrFunctions[0] is nil to spot bugs easily
     const afVar = CSSAttrFuncVar;
     function AddAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
