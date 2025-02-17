@@ -845,6 +845,31 @@ begin
   IDEUseTabsPattern:={(Editor^.FileName='') or }MatchesMaskList(NameAndExtOf(Editor^.FileName),TabsPattern);
 end;
 
+{replace menu entry one with other; bFirst=true switch to aCommand1 }
+procedure ChangeMenu(MenuBar:PAdvancedMenuBar; bFirst:Boolean;
+   aCommand1: sw_word; Const aName1: String; aCommand2: sw_word; Const aName2: String);
+var MenuItem : PMenuItem;
+begin
+  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(aCommand1);
+  if not assigned(MenuItem) then
+    MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(aCommand2);
+  if assigned(MenuItem) then
+    begin
+      If assigned(MenuItem^.Name) then
+        DisposeStr(MenuItem^.Name);
+      if bFirst then
+        begin
+          MenuItem^.Name:=NewStr(aName1);
+          MenuItem^.command:=aCommand1;
+        end
+      else
+        begin
+          MenuItem^.Name:=NewStr(aName2);
+          MenuItem^.command:=aCommand2;
+        end;
+    end;
+end;
+
 constructor TIDEApp.Init;
 var R: TRect;
 begin

@@ -295,25 +295,8 @@ end;
 procedure TIDEApp.UpdateRunMenu(DebuggeeRunning : boolean);
 var MenuItem : PMenuItem;
 begin
-  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmRun);
-  if not assigned(MenuItem) then
-    MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmContinue);
-
-  if assigned(MenuItem) then
-    begin
-      If assigned(MenuItem^.Name) then
-        DisposeStr(MenuItem^.Name);
-      if DebuggeeRunning then
-        begin
-          MenuItem^.Name:=NewStr(menu_run_continue);
-          MenuItem^.command:=cmContinue;
-        end
-      else
-        begin
-          MenuItem^.Name:=NewStr(menu_run_run);
-          MenuItem^.command:=cmRun;
-        end;
-    end;
+  ChangeMenu(PAdvancedMenuBar(MenuBar),DebuggeeRunning,
+    cmContinue,menu_run_continue,cmRun,menu_run_run);
   MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmResetDebugger);
   if assigned(MenuItem) then
     MenuItem^.Disabled:=not DebuggeeRunning;
