@@ -103,6 +103,7 @@ const INIFileName      : string = ININame;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
+      OverrideLastDirOption : boolean = false;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
       BackgroundPath   : string = BackgroundName;
