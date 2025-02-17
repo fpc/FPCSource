@@ -121,7 +121,7 @@ implementation
                   else
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                      if (current_settings.cputype = cpu_mc68000) and isaddressregister(left.location.register) then
+                      if (not (CPUM68K_HAS_TSTAREG in cpu_capabilities[current_settings.cputype])) and isaddressregister(left.location.register) then
                         begin
                           hreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                           cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,opsize,left.location.register,hreg);
