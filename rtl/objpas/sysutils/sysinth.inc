@@ -31,6 +31,8 @@ type
   TMonthNameArray = array[1..12] of string;
   TWeekNameArray = array[1..7] of string;
 
+  { TFormatSettings }
+
   TFormatSettings = record
     CurrencyFormat: Byte;
     NegCurrFormat: Byte;
@@ -55,8 +57,10 @@ type
     class function Invariant : TFormatSettings; static;
     class function Create: TFormatSettings; overload; static; inline;
     //  class function Create(Locale: TLocaleID): TFormatSettings; overload; platform; static;
-    //  class function Create(const LocaleName: string): TFormatSettings; overload; static;  
+    class function Create(const LocaleName: string): TFormatSettings; overload; static;
   end;
+
+  TInitFormatSettingsHook = Procedure(const aLocale : string; var aSettings : TFormatSettings);
 
 var
   DefaultFormatSettings : TFormatSettings = (
@@ -84,7 +88,10 @@ var
     TwoDigitYearCenturyWindow: 50;
   );
 
+
   FormatSettings : TFormatSettings absolute DefaultFormatSettings;
+  InitFormatSettingsHook : TInitFormatSettingsHook;
+
 { ---------------------------------------------------------------------
     Date formatting settings
   ---------------------------------------------------------------------}
