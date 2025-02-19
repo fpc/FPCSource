@@ -25,10 +25,10 @@ interface
 {$ifndef FPUNONE}
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Math;
+  System.SysUtils, System.Math, System.TimeSpan;
 {$ELSE}
 uses
-  SysUtils, Math;
+  SysUtils, Math, System.TimeSpan;
 {$ENDIF}
 
 { ---------------------------------------------------------------------
@@ -592,19 +592,64 @@ type
       Int64): Boolean; inline;
   end;
 
+type
+  ELocalTimeInvalid = class(Exception);
+  EDateTimeException = class(Exception);
+
+  TLocalTimeType = (lttStandard, lttDaylight, lttAmbiguous, lttInvalid);
+
+  TTimeZone = class abstract
+  private
+    class var _Local: TTimeZone;
+    function GetUtcOffsetInSeconds(const aDateTime: TDateTime; const aForceDaylight: Boolean): Int64;
+    function GetCurrentAbbreviation: string;
+    function GetCurrentDisplayName: string;
+    function GetCurrentUtcOffset: TTimeSpan;
+  protected
+    function DoGetID: string; virtual; abstract;
+    function DoGetDisplayName(const aDateTime: TDateTime; const aForceDaylight: Boolean): string; virtual; abstract;
+    procedure DoGetOffsetsAndType(const aDateTime: TDateTime; out aOffset, aDstSave: Int64; out aType: TLocalTimeType); virtual; abstract;
+  public
+    class constructor Init;
+    class destructor Done;
+    function GetUtcOffset(const aDateTime: TDateTime; const aForceDaylight: Boolean = False): TTimeSpan;
+    function ToUniversalTime(const aDateTime: TDateTime; const aForceDaylight: Boolean = False): TDateTime;
+    function ToLocalTime(const aDateTime: TDateTime): TDateTime;
+    function GetDisplayName(const aDateTime: TDateTime; const aForceDaylight: Boolean = False): string;
+    function GetAbbreviation(const aDateTime: TDateTime; const aForceDaylight: Boolean = False): string;
+    function GetLocalTimeType(const aDateTime: TDateTime): TLocalTimeType; inline;
+    function HasDST(const AYear: TDateTime): Boolean; overload;
+    function HasDST: Boolean; overload;
+    function IsStandardTime(const aDateTime: TDateTime; const aForceDaylight: Boolean = False): Boolean;
+    function IsInvalidTime(const aDateTime: TDateTime): Boolean;
+    function IsAmbiguousTime(const aDateTime: TDateTime): Boolean;
+    function IsDaylightTime(const aDateTime: TDateTime; const aForceDaylight: Boolean = False): Boolean;
+    { Returns the time zone identification string: e.g. Europe/Brussels }
+    property ID: string read DoGetID;
+    property DisplayName: string read GetCurrentDisplayName;
+    property Abbreviation: string read GetCurrentAbbreviation;
+    property UtcOffset: TTimeSpan read GetCurrentUtcOffset;
+    class property Local: TTimeZone read _Local;
+  end;
 
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysConst;
+uses
+  {$IFDEF UNIX} UnixApi.Unix, {$ENDIF}
+  {$IFDEF WINDOWS} WinApi.Windows, {$ENDIF}
+  System.SysConst;
 {$ELSE FPC_DOTTEDUNITS}
-uses sysconst;
+uses
+  {$IFDEF UNIX} Unix, {$ENDIF}
+  {$IFDEF WINDOWS} Windows, {$ENDIF}
+  sysconst;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
   TDateTimeEpsilon = 2.2204460493e-16;
   HalfMilliSecond = OneMillisecond /2 ;
-  
+  SErrLocalTimeInvalid = 'Invalid local time: %s';
 
 { ---------------------------------------------------------------------
     Auxiliary routines
@@ -1436,10 +1481,10 @@ begin
 end;
 
 
-function TimeInRange(ATime: TTime; AStartTime, AEndTime: TTime; AInclusive: Boolean = True): Boolean;
+function TimeInRange(ATime: System.TTime; AStartTime, AEndTime: System.TTime; AInclusive: Boolean = True): Boolean;
 
 var
- LTime, LStartTime, LEndTime: TTime;
+ LTime, LStartTime, LEndTime: System.TTime;
  
 begin
   LTime:=TimeOf(ATime);
@@ -3567,8 +3612,234 @@ begin
   Result:= ParseLocal(Date,local);
 end;
 
+type
+  TLocalTimeZone = class(TTimeZone)
+  protected
+    procedure DoGetOffsetsAndType(const aDateTime: TDateTime; out aOffset, aDstSave: Int64; out aType: TLocalTimeType); override;
+    function DoGetDisplayName(const aDateTime: TDateTime; const aForceDaylight: Boolean): string; override;
+    function DoGetID(): string; override;
+  end;
 
-{$else}
-implementation
-{$endif FPUNONE}
+{ TTimeZone }
+
+function TTimeZone.ToLocalTime(const aDateTime: TDateTime): TDateTime;
+
+var
+  ltt: TLocalTimeType;
+  lOffset,lDst: Int64;
+
+begin
+  { UTC -> Local }
+  DoGetOffsetsAndType(aDateTime,lOffset,lDst,ltt);
+  Result:=IncSecond(aDateTime,lOffset);
+  DoGetOffsetsAndType(Result,lOffset,lDst,ltt);
+  if (ltt in [lttInvalid,lttDaylight]) then
+    Result:=IncSecond(Result,lDst);
+end;
+
+function TTimeZone.ToUniversalTime(const aDateTime: TDateTime; const aForceDaylight: Boolean): TDateTime;
+var
+  lOffset: Int64;
+begin
+  LOffset:=GetUtcOffsetInSeconds(ADateTime,aForceDaylight);
+  Result:=IncSecond(ADateTime,-lOffset);
+end;
+
+class constructor TTimeZone.Init;
+
+begin
+  _Local:=TLocalTimeZone.Create;
+end;
+
+class destructor TTimeZone.Done;
+
+begin
+  FreeAndNil(_local);
+end;
+
+function TTimeZone.GetCurrentAbbreviation: string;
+
+begin
+  Result:=GetAbbreviation(Now);
+end;
+
+function TTimeZone.GetCurrentDisplayName: string;
+
+begin
+  Result:=GetDisplayName(Now);
+end;
+
+function TTimeZone.GetLocalTimeType(const ADateTime: TDateTime): TLocalTimeType;
+var
+  LOffset, LDSTSave: Int64;
+begin
+  DoGetOffsetsAndType(ADateTime, LOffset, LDSTSave, Result);
+end;
+
+
+function TTimeZone.GetDisplayName(const aDateTime: TDateTime; const aForceDaylight: Boolean): string;
+begin
+  if IsInvalidTime(aDateTime) then
+    raise ELocalTimeInvalid.CreateFmt(SErrLocalTimeInvalid,[DateTimeToStr(aDateTime)]);
+  Result:=DoGetDisplayName(aDateTime,aForceDaylight);
+end;
+
+function TTimeZone.GetAbbreviation(const aDateTime: TDateTime; const aForceDaylight: Boolean): string;
+
+const
+  SignChars : Array[Boolean] of Char = ('-','+');
+
+var
+  lHrs, LMins: Integer;
+  lOffset: Int64;
+  lSign: Char;
+
+begin
+  lOffset:=GetUtcOffsetInSeconds(aDateTime,aForceDaylight);
+  if lOffset=0 then
+    Exit('GMT');
+  // no divmod for int64
+  lHrs:=Abs(lOffset) div SecsPerHour;
+  lMins:=(Abs(lOffset) mod SecsPerHour) div SecsPerMin;
+  lSign:=SignChars[lOffset>0];
+  Result:='GMT'+lSign+Format('%.2d',[lHrs]);
+  Result:=Result+':'+Format('%.2d',[lMins]);
+end;
+
+function TTimeZone.GetUtcOffset(const aDateTime: TDateTime; const aForceDaylight: Boolean): TTimeSpan;
+begin
+  Result:=TTimeSpan.FromSeconds(GetUtcOffsetInSeconds(aDateTime,aForceDaylight));
+end;
+
+function TTimeZone.GetUtcOffsetInSeconds(const aDateTime: TDateTime; const aForceDaylight: Boolean): Int64;
+var
+  lOffset, lDst: Int64;
+  ltt: TLocalTimeType;
+begin
+  DoGetOffsetsAndType(aDateTime,lOffset,lDst,ltt);
+  Result:=lOffset;
+  Case ltt of
+  lttDaylight:
+    Result:=Result+lDst;
+  lttAmbiguous:
+    if aForceDaylight then
+      Result:=Result+lDst;
+  lttInvalid:
+    raise ELocalTimeInvalid.CreateFmt(SErrLocalTimeInvalid,[DateTimeToStr(aDateTime)]);
+  else
+    // nothing to do
+  end;
+end;
+
+function TTimeZone.IsAmbiguousTime(const aDateTime: TDateTime): Boolean;
+begin
+  Result:=(lttAmbiguous=GetLocalTimeType(aDateTime));
+end;
+
+function TTimeZone.IsDaylightTime(const aDateTime: TDateTime; const aForceDaylight: Boolean): Boolean;
+
+var
+  ltt : TLocalTimeType;
+
+begin
+  ltt:=GetLocalTimeType(aDateTime);
+  Result:=(ltt=lttDaylight) or ((ltt=lttAmbiguous) and aForceDaylight);
+end;
+
+function TTimeZone.IsStandardTime(const aDateTime: TDateTime; const aForceDaylight: Boolean): Boolean;
+var
+  ltt: TLocalTimeType;
+begin
+  ltt:=GetLocalTimeType(ADateTime);
+  Result:=(ltt=lttStandard) or ((ltt=lttAmbiguous) and not aForceDaylight);
+end;
+
+function TTimeZone.IsInvalidTime(const aDateTime: TDateTime): Boolean;
+begin
+  Result:=(lttInvalid=GetLocalTimeType(ADateTime));
+end;
+
+function TTimeZone.HasDST(const aYear: TDateTime): Boolean;
+
+var
+  ltt: TLocalTimeType;
+  lOffset,lDst: Int64;
+
+begin
+  DoGetOffsetsAndType(aYear,lOffset,lDst,ltt);
+  Result:=lDst<>0;
+end;
+
+function TTimeZone.HasDST: Boolean;
+begin
+  Result:=HasDST(Now);
+end;
+
+function TTimeZone.GetCurrentUtcOffset: TTimeSpan;
+begin
+  Result:=GetUtcOffset(Now);
+end;
+
+function TLocalTimeZone.DoGetID(): string;
+
+{$IFDEF WINDOWS}
+var
+  lInfo: TTimeZoneInformation;
+  Name : UnicodeString;
+{$ENDIF}
+{$IFDEF UNIX}
+var
+  lInfo : TTZInfoEx;
+{$ENDIF}
+{$IF NOT (DEFINED(WINDOWS) OR DEFINED(UNIX))}
+var
+  lTZEnv : String;
+  I : integer;
+{$ENDIF}
+begin
+  Result:='';
+  {$IFDEF UNIX}
+  lInfo:=GetTZInfoEx;
+  Result:=lInfo.Name[false];
+  {$ENDIF}
+  {$IFDEF WINDOWS}
+  lInfo:=Default(TTimeZoneInformation);
+  GetTimeZoneInformation(lInfo);
+  Name:=StrPas(@lInfo.StandardName);
+  {$IF SIZEOF(CHAR)=1}
+  Result:=UTF8Encode(Name);
+  {$ELSE}
+  Result:=Name;
+  {$ENDIF}
+  {$ENDIF}
+  {$IF NOT (DEFINED(WINDOWS) OR DEFINED(UNIX))}
+  lTZEnv:=GetEnvironmentVariable('TZ');
+  I:=1;
+  While (I<=Length(LTZEnv)) and (UpCase(LTZEnv[i]) in ['A'..'Z']) do
+    Result:=Result+LTZEnv[i];
+  {$ENDIF}
+end;
+
+
+function TLocalTimeZone.DoGetDisplayName(const aDateTime: TDateTime; const aForceDaylight: Boolean): string;
+
+begin
+  Result:=ID;// For the moment, it is not clear what this should do.
+end;
+
+procedure TLocalTimeZone.DoGetOffsetsAndType(const aDateTime: TDateTime;
+  out aOffset, aDstSave: Int64; out aType: TLocalTimeType);
+var
+  lOffset : Integer;
+  lDst : Boolean;
+begin
+  GetLocalTimeOffset(aDateTime,False,lOffset,lDst);
+  aOffSet:=lOffset;
+  if lDST then
+    aType:=lttDaylight
+  else
+    aType:=lttStandard;
+end;
+
+{$endif}
 end.
