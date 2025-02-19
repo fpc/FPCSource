@@ -992,7 +992,7 @@ type
 var
   GetTimeZoneInformationForYear:TGetTimeZoneInformationForYear=nil;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; Out IsDST : boolean): Boolean;
 var
   Year: Integer;
 const
@@ -1053,12 +1053,16 @@ begin
       DSTStart := DSTStart + (TZInfo.Bias+TZInfo.StandardBias)/MinsPerDay;
       DSTEnd := DSTEnd + (TZInfo.Bias+TZInfo.DaylightBias)/MinsPerDay;
     end;
-    if (DSTStart<=DateTime) and (DateTime<DSTEnd) then
+    IsDST:=(DSTStart<=DateTime) and (DateTime<DSTEnd);
+    if isDst then
       Offset := TZInfo.Bias+TZInfo.DaylightBias
     else
       Offset := TZInfo.Bias+TZInfo.StandardBias;
   end else // no DST
+    begin
     Offset := TZInfo.Bias;
+    IsDST := False;
+    end;
   Result := True;
 end;
 
