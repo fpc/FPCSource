@@ -40,7 +40,8 @@ type
     cpu_rv64i,
     cpu_rv64imafdc,
     cpu_rv64imafd,
-    cpu_rv64gc
+    cpu_rv64gc,
+    cpu_rv64gcb
   );
 
   tfputype =
@@ -96,7 +97,8 @@ Const
     'RV64I',
     'RV64IMAFDC',
     'RV64IMAFD',
-    'RV64GC'
+    'RV64GC',
+    'RV64GCB'
     );
 
   fputypestr: array[tfputype] of string[8] = (
@@ -157,7 +159,8 @@ Const
        { cpu_rv64i      } [],
        { cpu_rv64imafdc } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_F,CPURV_HAS_D],
        { cpu_rv64imafd  } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_F,CPURV_HAS_D],
-       { cpu_rv64gc     } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_CSR_INSTRUCTIONS,CPURV_HAS_FETCH_FENCE,CPURV_HAS_F,CPURV_HAS_D]
+       { cpu_rv64gc     } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_CSR_INSTRUCTIONS,CPURV_HAS_FETCH_FENCE,CPURV_HAS_F,CPURV_HAS_D],
+       { cpu_rv64gcb    } [CPURV_HAS_MUL,CPURV_HAS_ATOMIC,CPURV_HAS_COMPACT,CPURV_HAS_CSR_INSTRUCTIONS,CPURV_HAS_FETCH_FENCE,CPURV_HAS_F,CPURV_HAS_D,CPURV_HAS_ZBA,CPURV_HAS_ZBB,CPURV_HAS_ZBS]
      );
 
 implementation

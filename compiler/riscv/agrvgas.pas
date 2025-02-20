@@ -237,8 +237,8 @@ unit agrvgas;
           ('','rv32imafdc','rv32imafd','rv32imfd','rv32ifd','rv32efd','rv32imcfd','rv32imafdc','rv32imafd','rv32ecfd','rv32gc')
 {$endif RISCV32}
 {$ifdef RISCV64}
-          ('','rv64imac','rv64ima','rv64im','rv64i','rv64imafdc','rv64imafd','rv64gc'),
-          ('','rv64imafdc','rv64imafd','rv64imfd','rv64ifd','rv64imafdc','rv64imafd','rv64gc')
+          ('','rv64imac','rv64ima','rv64im','rv64i','rv64imafdc','rv64imafd','rv64gc','rv64gcb'),
+          ('','rv64imafdc','rv64imafd','rv64imfd','rv64ifd','rv64imafdc','rv64imafd','rv64gc','rv64gcb')
 {$endif RISCV64}
         );
       begin
