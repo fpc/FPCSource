@@ -25,6 +25,8 @@ begin
     P.Description := 'Headers for the JACK Audio Connection Kit library';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := AllUnixOSes+[win32,win64]-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [android];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

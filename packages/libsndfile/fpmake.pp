@@ -25,6 +25,8 @@ begin
     P.Description := 'Headers for the libsndfile library';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
     P.OSes := AllUnixOSes-[qnx];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [android];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('sndfile.pp');

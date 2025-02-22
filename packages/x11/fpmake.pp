@@ -19,6 +19,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix,dragonfly,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [android];
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
