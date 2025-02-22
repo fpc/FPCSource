@@ -7453,7 +7453,7 @@ begin
       ptField:
         {$ifdef cpu8086}
         { convert to the correct pointer type }
-        AValue.Cast(FPropInfo^.PropType).ExtractRawData(PPointer(@(Pointer(Instance)+FPropInfo^.SetProc))^);
+        AValue.Cast(FPropInfo^.PropType).ExtractRawData(Pointer(Instance)+CodePtrUInt(FPropInfo^.SetProc));
         {$else}
         AValue.Cast(FPropInfo^.PropType).ExtractRawData(Pointer(Instance)+PtrUInt(FPropInfo^.SetProc));
         {$endif}
