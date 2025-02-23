@@ -1781,7 +1781,11 @@ Begin
       begin
         if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
           begin
+{$ifndef LLVM}
+	    { LLVM compiler requires that the static label RawThunkEnd
+             in packages/rtl-objpas/src/rtti.pp unit is set to nonlocal }
             if (srsymtable.symtabletype=globalsymtable) or create_smartlink_library then
+{$endif LLVM}
               Tlabelsym(sym).nonlocal:=true;
             if emit then
               include(current_procinfo.flags,pi_has_interproclabel);
