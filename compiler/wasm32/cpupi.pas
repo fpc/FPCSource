@@ -714,10 +714,14 @@ implementation
                 asmlist.Remove(hp);
                 if hp.typ=ait_label then
                   begin
-                    curr_block:=TAsmList.Create;
-                    blocks.Add(tai_label(hp).labsym.Name,curr_block);
-                  end;
-                curr_block.Concat(hp);
+                    if (tai_label(hp).labsym.is_used) then
+                      begin
+                        curr_block:=TAsmList.Create;
+                        blocks.Add(tai_label(hp).labsym.Name,curr_block);
+                      end;
+                  end
+                else
+                  curr_block.Concat(hp);
               end;
           until not assigned(hp);
           { asmlist is now empty }
