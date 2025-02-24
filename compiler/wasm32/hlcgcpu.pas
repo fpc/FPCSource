@@ -1452,7 +1452,7 @@ implementation
       extra_slots:=prepare_stack_for_ref(list,tmpref,false);
       a_load_ref_stack(list,fromsize,tmpref,extra_slots);
 
-      if def2regtyp(fromsize)=R_INTREGISTER then
+      if def2regtyp(fromsize) in [R_INTREGISTER,R_ADDRESSREGISTER] then
         resize_stack_int_val(list,fromsize,tosize,false);
       a_load_stack_reg(list,tosize,register);
     end;
