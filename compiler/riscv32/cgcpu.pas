@@ -125,6 +125,8 @@ unit cgcpu;
             list.concat(ai);
             rg[R_INTREGISTER].add_move_instruction(ai);
           end
+        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_S8) then
+          list.Concat(taicpu.op_reg_reg(A_SEXT_B,reg2,reg1))
         else if (tcgsize2unsigned[tosize]=OS_32) and (fromsize=OS_8) then
           list.Concat(taicpu.op_reg_reg_const(A_ANDI,reg2,reg1,$FF))
         else if (tosize=OS_8) and (fromsize<>OS_8) then
