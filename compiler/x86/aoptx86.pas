@@ -4369,6 +4369,13 @@ unit aoptx86;
                               begin
                                 taicpu(hp2).loadreg(0, p_SourceReg);
 
+                                TransferUsedRegs(TmpUsedRegs);
+                                UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+                                { Make sure the register is allocated between these instructions
+                                  even though it doesn't change value, since it may cause
+                                  optimisations on a later pass to behave incorrectly. (Fixes #41155) }
+                                AllocRegBetween(p_SourceReg, hp1, hp2, TmpUsedRegs);
+
                                 DebugMsg(SPeepholeOptimization + 'Optimised register duplication and memory read (MovMovMov2MovMovMov)', p);
                                 Result := True;
                                 if taicpu(hp2).oper[1]^.reg = p_TargetReg then
@@ -4379,11 +4386,6 @@ unit aoptx86;
                                   end
                                 else
                                   begin
-                                    { Check to see if %reg2 is no longer in use }
-                                    TransferUsedRegs(TmpUsedRegs);
-                                    UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
-                                    UpdateUsedRegsBetween(TmpUsedRegs, tai(hp1.Next), hp2);
-
                                     if not RegUsedAfterInstruction(p_TargetReg, hp2, TmpUsedRegs) then
                                       begin
                                         DebugMsg(SPeepholeOptimization + 'Mov2Nop 5b done', p);
