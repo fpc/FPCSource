@@ -28,6 +28,9 @@ program msg2inc;
 {$ifdef macos}
   {$define EOL_ONE_CHAR}
 {$endif}
+{$ifdef wasi}
+  {$define EOL_ONE_CHAR}
+{$endif}
 
 const
   version='1.00';
