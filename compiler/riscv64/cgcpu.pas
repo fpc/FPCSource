@@ -106,6 +106,8 @@ implementation
           list.Concat(taicpu.op_reg_reg(A_ZEXT_W,reg2,reg1))
         else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S8) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_B,reg2,reg1))
+        else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_S8) and (tcgsize2unsigned[fromsize]=OS_64) then
+          list.Concat(taicpu.op_reg_reg(A_SEXT_B,reg2,reg1))
         else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tcgsize2unsigned[tosize]=OS_64) and (fromsize=OS_S16) then
           list.Concat(taicpu.op_reg_reg(A_SEXT_H,reg2,reg1))
         else if (CPURV_HAS_ZBB in cpu_capabilities[current_settings.cputype]) and (tosize=OS_S16) and (tcgsize2unsigned[fromsize]=OS_64) then
