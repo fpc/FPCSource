@@ -2239,7 +2239,7 @@ var
        end; *)
 
 const
-    targetswitchname : array[ttargetswitch] of string[37] =
+    targetswitchname : array[ttargetswitch] of string[77] =
        { global target-specific switches }
        ('Target None', {ts_none}
          { generate code that results in smaller TOCs than normal (AIX) }
@@ -2285,7 +2285,8 @@ const
         'Branchful exceptions support', {ts_wasm_bf_exceptions}
         'JavaScript-based exception support', {ts_wasm_js_exceptions}
         'Native WebAssembly exceptions support', {ts_wasm_native_exceptions}
-        'WebAssembly threads support' {ts_wasm_threads}
+        'WebAssembly threads support', {ts_wasm_threads}
+        'Use WebAssembly saturating (nontrapping) float to int conversion instructions' {ts_wasm_saturating_float_to_int}
        );
     moduleswitchname : array[tmoduleswitch] of string[40] =
        ('Module None', {cs_modulenone,}
