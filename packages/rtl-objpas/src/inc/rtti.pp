@@ -29,12 +29,14 @@ uses
   System.Types,
   System.Classes,
   System.SysUtils,
+  System.Math,
   System.TypInfo;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Types,
   Classes,
   SysUtils,
+  Math,
   typinfo;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -197,6 +199,8 @@ type
     class function FromArray(aArrayTypeInfo: PTypeInfo; const aValues: array of TValue): TValue; static;
     class function FromVarRec(const aValue: TVarRec): TValue; static;
     class function FromVariant(const aValue : Variant) : TValue; static;
+    class function Equals(const Left, Right: array of TValue): Boolean; static;
+    class function SameValue(const Left, Right: TValue): Boolean; static;
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     // Maybe we need to check these now that Cast<> is implemented.
@@ -212,6 +216,14 @@ type
     function IsOrdinal: boolean; inline;
     function AsOrdinal: Int64;
     function AsBoolean: boolean;
+    function IsNumeric : boolean;
+    function IsSingle : boolean; inline;
+    function IsCurrency : boolean; inline;
+    function IsDouble : boolean; inline;
+    function IsExtended : boolean; inline;
+    Function IsString : boolean; inline;
+    Function IsPointer : boolean; inline;
+    Function IsVariant : boolean; inline;
     function AsCurrency: Currency;
     function AsSingle : Single;
     function AsDateTime : TDateTime;
@@ -2657,7 +2669,7 @@ begin
   TValue.MakeOpenArray(arrdata, Length(aValue), PTypeInfo(System.TypeInfo(aValue)), Result);
 end;
 
-function TValue.IsType(ATypeInfo: PTypeInfo): boolean;
+function TValue.IsType(aTypeInfo: PTypeInfo): boolean;
 begin
   result := ATypeInfo = TypeInfo;
 end;
@@ -2670,7 +2682,7 @@ begin
 end;
 
 
-function TValue.IsType(ATypeInfo: PTypeInfo; const EmptyAsAnyType : Boolean): boolean;
+function TValue.IsType(aTypeInfo: PTypeInfo; const EmptyAsAnyType: Boolean): Boolean;
 begin
   Result:=IsEmpty;
   if Not Result then
@@ -2913,14 +2925,14 @@ begin
   end;
 end;
 
-Procedure TValue.CastAssign(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastAssign(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   aRes:=True;
   aDest:=Self;
 end;
 
-Procedure TValue.CastIntegerToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastIntegerToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : Integer;
@@ -2939,7 +2951,7 @@ begin
 end;
 
 
-Procedure TValue.CastIntegerToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastIntegerToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : Int64;
@@ -2967,7 +2979,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastIntegerToInt64(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastIntegerToInt64(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: Int64;
@@ -2978,7 +2990,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastIntegerToQWord(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastIntegerToQWord(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: QWord;
@@ -2990,7 +3002,7 @@ begin
 end;
 
 
-Procedure TValue.CastCharToString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastCharToString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: AnsiChar;
@@ -3019,7 +3031,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastWCharToString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastWCharToString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: WideChar;
@@ -3060,7 +3072,7 @@ begin
 
 end;
 
-Procedure TValue.CastEnumToEnum(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastEnumToEnum(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
   Function GetEnumBaseType(aType : PTypeInfo) : PTypeInfo;
 
@@ -3102,7 +3114,7 @@ begin
 end;
 
 
-Procedure TValue.CastFloatToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFloatToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Ti : PTypeInfo;
@@ -3172,7 +3184,7 @@ begin
   aDest.FData.FTypeInfo:=aDestType;
 end;
 
-Procedure TValue.CastStringToString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastStringToString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   US : UnicodeString;
@@ -3228,7 +3240,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastClassToClass(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastClassToClass(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : TObject;
@@ -3242,7 +3254,7 @@ begin
     TValue.Make(IntPtr(Tmp),aDestType,aDest);
 end;
 
-Procedure TValue.CastClassRefToClassRef(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastClassRefToClassRef(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Cfrom,Cto: TClass;
@@ -3255,7 +3267,7 @@ begin
     TValue.Make(PtrInt(cFrom),aDestType,aDest);
 end;
 
-Procedure TValue.CastClassToInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastClassToInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   aGUID : TGUID;
@@ -3274,7 +3286,7 @@ begin
     end;
 end;
 
-Procedure TValue.CastInterfaceToInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastInterfaceToInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Parent: PTypeData;
@@ -3298,7 +3310,7 @@ begin
   TValue.Make(@Tmp,aDestType,aDest);
 end;
 
-Procedure TValue.CastQWordToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastQWordToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : QWord;
@@ -3321,7 +3333,7 @@ begin
     TValue.Make(N, aDestType, aDest);
 end;
 
-Procedure TValue.CastInt64ToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastInt64ToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: Int64;
@@ -3344,7 +3356,7 @@ begin
     TValue.Make(N, aDestType, aDest);
 end;
 
-Procedure TValue.CastQWordToInt64(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastQWordToInt64(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : QWord;
@@ -3356,7 +3368,7 @@ begin
 end;
 
 
-Procedure TValue.CastInt64ToQWord(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastInt64ToQWord(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : Int64;
@@ -3368,7 +3380,7 @@ begin
 end;
 
 
-Procedure TValue.CastQWordToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastQWordToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : QWord;
@@ -3381,7 +3393,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastInt64ToFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastInt64ToFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : Int64;
@@ -3393,7 +3405,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastFloatToInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFloatToInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: Int64;
@@ -3427,7 +3439,7 @@ begin
     TValue.Make(@Tmp, aDestType, aDest);
 end;
 
-Procedure TValue.CastFromVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : Variant;
@@ -3486,7 +3498,7 @@ begin
 end;
 
 
-Procedure TValue.CastToVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastToVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: Variant;
@@ -3554,7 +3566,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastVariantToVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastVariantToVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp : Variant;
@@ -3574,7 +3586,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastSetToSet(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastSetToSet(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   sMax, dMax, sMin, dMin : Integer;
@@ -3598,7 +3610,7 @@ begin
     end
 end;
 
-Procedure TValue.CastFromInteger(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromInteger(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3612,7 +3624,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastFromAnsiChar(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromAnsiChar(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   case aDestType^.Kind of
@@ -3628,7 +3640,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastFromWideChar(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromWideChar(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   case aDestType^.Kind of
@@ -3645,7 +3657,7 @@ begin
 end;
 
 
-Procedure TValue.CastFromEnum(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromEnum(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   case aDestType^.Kind of
@@ -3657,7 +3669,7 @@ begin
 end;
 
 
-Procedure TValue.CastFromFloat(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromFloat(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   case aDestType^.Kind of
@@ -3672,7 +3684,7 @@ begin
 end;
 
 
-Procedure TValue.CastFromString(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromString(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3689,7 +3701,7 @@ begin
   end
 end;
 
-Procedure TValue.CastFromSet(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromSet(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3701,7 +3713,7 @@ begin
 end;
 
 
-Procedure TValue.CastFromClass(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromClass(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3715,7 +3727,7 @@ begin
 end;
 
 
-Procedure TValue.CastFromInterface(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromInterface(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3728,7 +3740,7 @@ begin
 end;
 
 
-Procedure TValue.DoCastFromVariant(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.DoCastFromVariant(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3750,7 +3762,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastPointerToClass(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastPointerToClass(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 var
   Tmp: Pointer;
@@ -3761,7 +3773,7 @@ begin
   aRes:=True;
 end;
 
-Procedure TValue.CastFromPointer(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromPointer(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3772,7 +3784,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastFromInt64(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromInt64(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3786,7 +3798,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastFromQWord(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromQWord(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case aDestType^.Kind of
@@ -3800,7 +3812,7 @@ begin
   end;
 end;
 
-Procedure TValue.CastFromType(out aRes : Boolean; out ADest: TValue; aDestType: PTypeInfo);
+procedure TValue.CastFromType(out aRes: Boolean; out ADest: TValue; aDestType: PTypeInfo);
 
 begin
   Case Kind of
@@ -4114,6 +4126,135 @@ begin
 end;
 
 
+class function TValue.SameValue(const Left, Right: TValue): Boolean;
+begin
+  if Left.IsNumeric and Right.IsNumeric then
+  begin
+    if Left.IsOrdinal then
+    begin
+      if Right.IsOrdinal then
+      begin
+        Result := Left.AsOrdinal = Right.AsOrdinal;
+      end else
+      if Right.IsSingle then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsOrdinal, Right.AsSingle);
+      end else
+      if Right.IsDouble then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsOrdinal, Right.AsDouble);
+      end
+      else
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsOrdinal, Right.AsExtended);
+      end;
+    end else
+    if Left.IsSingle then
+    begin
+      if Right.IsOrdinal then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsSingle, Right.AsOrdinal);
+      end else
+      if Right.IsSingle then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsSingle, Right.AsSingle);
+      end else
+      if Right.IsDouble then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsSingle, Right.AsDouble);
+      end
+      else
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsSingle, Right.AsExtended);
+      end;
+    end else
+    if Left.IsDouble then
+    begin
+      if Right.IsOrdinal then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsDouble, Right.AsOrdinal);
+      end else
+      if Right.IsSingle then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsDouble, Right.AsSingle);
+      end else
+      if Right.IsDouble then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsDouble, Right.AsDouble);
+      end
+      else
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsDouble, Right.AsExtended);
+      end;
+    end
+    else
+    begin
+      if Right.IsOrdinal then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsExtended, Right.AsOrdinal);
+      end else
+      if Right.IsSingle then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsExtended, Right.AsSingle);
+      end else
+      if Right.IsDouble then
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsExtended, Right.AsDouble);
+      end
+      else
+      begin
+        Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Math.SameValue(Left.AsExtended, Right.AsExtended);
+      end;
+    end;
+  end else
+  if Left.IsString and Right.IsString then
+  begin
+    Result := Left.AsString = Right.AsString;
+  end else
+  if Left.IsClass and Right.IsClass then
+  begin
+    Result := Left.AsClass = Right.AsClass;
+  end else
+  if Left.IsObject and Right.IsObject then
+  begin
+    Result := Left.AsObject = Right.AsObject;
+  end else
+  if Left.IsPointer and Right.IsPointer then
+  begin
+    Result := Left.AsPointer = Right.AsPointer;
+  end else
+  if Left.IsVariant and Right.IsVariant then
+  begin
+    Result := Left.AsVariant = Right.AsVariant;
+  end else
+  if Left.TypeInfo = Right.TypeInfo then
+  begin
+    Result := Left.AsPointer = Right.AsPointer;
+  end else
+  begin
+    Result := False;
+  end;
+end;
+
+class function TValue.Equals(const Left, Right: array of TValue): Boolean;
+
+var
+  i: Integer;
+begin
+  Result := Length(Left) = Length(Right);
+  if Result then
+  begin
+    for i := Low(Left) to High(Left) do
+    begin
+      if not SameValue(Left[i], Right[i]) then
+      begin
+        Result := False;
+        Break;
+      end;
+    end
+  end;
+end;
+
 
 function TValue.IsArray: boolean;
 begin
@@ -4290,6 +4431,50 @@ begin
     end
   else
     raise EInvalidCast.Create(SErrInvalidTypecast);
+end;
+
+function TValue.IsNumeric: boolean;
+
+begin
+  Result := Kind in [tkInteger, tkChar, tkEnumeration, tkFloat, tkWChar, tkInt64];
+end;
+
+function TValue.IsSingle : boolean;
+
+begin
+  Result:=(Kind=tkFloat) and (TypeData^.FloatType=ftSingle);
+end;
+
+function TValue.IsCurrency : boolean;
+
+begin
+  Result:=(Kind=tkFloat) and (TypeData^.FloatType=ftCurr);
+end;
+
+function TValue.IsDouble : boolean;
+
+begin
+  Result:=(Kind=tkFloat) and (TypeData^.FloatType=ftDouble);
+end;
+
+function TValue.IsExtended: boolean;
+begin
+  Result:=(Kind=tkFloat) and (TypeData^.FloatType=ftExtended);
+end;
+
+function TValue.IsString: boolean;
+begin
+  Result := Kind in [tkChar, tkSString, tkWChar, tkAString, tkWString, tkUString];
+end;
+
+function TValue.IsPointer: boolean;
+begin
+  Result:=kind=tkPointer;
+end;
+
+function TValue.IsVariant: boolean;
+begin
+  Result:=kind=tkVariant;
 end;
 
 function TValue.AsOrdinal: Int64;
