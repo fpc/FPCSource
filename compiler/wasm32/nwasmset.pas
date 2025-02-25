@@ -105,8 +105,6 @@ implementation
                   _Label := endlabel;
                   Exit;
                 end;
-              goton:
-                InternalError(2021011801);
               blockn:
                 begin
                   Block := TBlockNode(Block).Left;
