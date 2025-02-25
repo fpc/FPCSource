@@ -2679,7 +2679,14 @@ type
     property Current: IUnknown read GetCurrent;
   end;
 
-  TInterfaceList = class(TInterfacedObject,IInterfaceList)
+  IInterfaceListEx = interface(IInterfaceList)
+    ['{FDB39D70-65B9-4995-9436-6084ACA05DB3}']
+    function GetEnumerator: TInterfaceListEnumerator;
+  end;
+
+  { TInterfaceList }
+
+  TInterfaceList = class(TInterfacedObject,IInterfaceList,IInterfaceListEx)
   private
     FList : TThreadList;
   protected
