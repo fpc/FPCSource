@@ -73,6 +73,7 @@ interface
 implementation
 
     uses
+      globtype,globals,
       procinfo,
       ninl,ncal,compinnr,
       aasmbase,aasmdata,aasmcpu,
@@ -203,9 +204,15 @@ implementation
 
         case left.location.size of
           OS_F32:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
+            if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
+            else
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
           OS_F64:
-            current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
+            if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
+            else
+              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
           else
             internalerror(2021092904);
         end;
@@ -227,12 +234,18 @@ implementation
           OS_F32:
             begin
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f32_nearest));
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
+              if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f32_s))
+              else
+                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f32_s));
             end;
           OS_F64:
             begin
               current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_f64_nearest));
-              current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
+              if ts_wasm_saturating_float_to_int in current_settings.targetswitches then
+                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_sat_f64_s))
+              else
+                current_asmdata.CurrAsmList.Concat(taicpu.op_none(a_i64_trunc_f64_s));
             end
           else
             internalerror(2021092905);

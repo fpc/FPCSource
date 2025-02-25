@@ -4135,6 +4135,7 @@ W*3CTbfexceptions_        Enable the branchful exception support for WebAssembly
 W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly (experimental)
 W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
 W*3CTwasmthreads_         Enable WebAssembly threads support (experimental)
+W*3CTsaturatingfloattoint_ Use saturating (non-trapping) float-to-int conversion instructions
 J*2Cv_Var/out parameter copy-out checking
 A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
