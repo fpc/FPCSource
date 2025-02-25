@@ -358,7 +358,7 @@ type
 
   TCSSPseudoElementDesc = class(TCSSRegistryNamedItem)
   public
-    Attributes: array of TCSSAttributeDesc; // allowed attributes
+    Attributes: TCSSAttributeDescArray; // allowed attributes
     IsFunction: boolean;
   end;
   TCSSPseudoElementDescClass = class of TCSSPseudoElementDesc;
