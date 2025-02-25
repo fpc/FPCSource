@@ -216,7 +216,7 @@ type
     // computed by resolver:
     Rules: TCSSSharedRuleList; // owned by resolver
     Values: TCSSAttributeValues;
-
+    // explicit attributes: can be queried by CSS, e.g. div[foo=3px]
     ExplicitAttributes: array[TDemoNodeAttribute] of TCSSString;
 
     constructor Create(AOwner: TComponent); override;
@@ -232,22 +232,24 @@ type
     function GetCSSID: TCSSString; virtual;
     function GetCSSTypeName: TCSSString;
     function GetCSSTypeID: TCSSNumericalID;
-    function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
+    function GetCSSPseudoElementName: TCSSString; virtual;
+    function GetCSSPseudoElementID: TCSSNumericalID; virtual;
     function GetCSSParent: ICSSNode; virtual;
+    function GetCSSDepth: integer; virtual;
     function GetCSSIndex: integer; virtual;
     function GetCSSNextSibling: ICSSNode; virtual;
     function GetCSSPreviousSibling: ICSSNode; virtual;
-    function GetCSSChildCount: integer; virtual;
-    function GetCSSChild(const anIndex: integer): ICSSNode; virtual;
     function GetCSSNextOfType: ICSSNode; virtual;
     function GetCSSPreviousOfType: ICSSNode; virtual;
+    function GetCSSEmpty: boolean; virtual;
+    function GetCSSChildCount: integer; virtual;
+    function GetCSSChild(const anIndex: integer): ICSSNode; virtual;
+    function HasCSSClass(const aClassName: TCSSString): boolean; virtual;
     function GetCSSAttributeClass: TCSSString; virtual;
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; virtual;
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString; virtual;
     function HasCSSPseudoClass(const {%H-}AttrID: TCSSNumericalID): boolean; virtual;
-    function GetCSSEmpty: boolean; virtual;
-    function GetCSSDepth: integer; virtual;
 
     property Parent: TDemoNode read FParent write SetParent;
     property NodeCount: integer read GetNodeCount;
@@ -274,6 +276,35 @@ type
     property HasPseudoClass[PseudoClass: TDemoPseudoClass]: boolean read GetPseudoClasses write SetPseudoClasses;
   end;
   TDemoNodeClass = class of TDemoNode;
+
+  { TDemoPseudoElement }
+
+  TDemoPseudoElement = class(TDemoNode)
+  public
+    constructor Create(AOwner: TComponent); override;
+    function GetCSSTypeName: TCSSString;
+    function GetCSSTypeID: TCSSNumericalID;
+    function GetCSSParent: ICSSNode; override;
+    function GetCSSIndex: integer; override;
+    function GetCSSNextSibling: ICSSNode; override;
+    function GetCSSPreviousSibling: ICSSNode; override;
+    function GetCSSNextOfType: ICSSNode; override;
+    function GetCSSPreviousOfType: ICSSNode; override;
+    function GetCSSEmpty: boolean; override;
+    function GetCSSChildCount: integer; override;
+    function GetCSSChild(const anIndex: integer): ICSSNode; override;
+    function HasCSSClass(const aClassName: TCSSString): boolean; override;
+    function GetCSSAttributeClass: TCSSString; override;
+  end;
+
+  { TDemoFirstLine }
+
+  TDemoFirstLine = class(TDemoPseudoElement)
+  public
+    class var DemoFirstLineID: TCSSNumericalID;
+    function GetCSSPseudoElementName: TCSSString; override;
+    function GetCSSPseudoElementID: TCSSNumericalID; override;
+  end;
 
   { TDemoDiv }
 
@@ -342,7 +373,7 @@ type
   { TCustomTestNewCSSResolver }
 
   TCustomTestNewCSSResolver = class(TTestCase)
-  Private
+  private
     FDoc: TDemoDocument;
   protected
     procedure SetUp; override;
@@ -429,7 +460,7 @@ type
     // var()
     procedure Test_Var_NoDefault;
     procedure Test_Var_Inline_NoDefault;
-      procedure Test_Var_Defaults;
+    procedure Test_Var_Defaults;
 
     // skipping for forward compatibility
     // ToDo: invalid token in selector makes selector invalid
@@ -439,7 +470,10 @@ type
     // test skip invalid value  color: 3 red;
     // test skip invalid attribute  color: 3;
 
-    // pseudo elements
+    // pseudo elements (works like child combinator)
+    procedure Test_PseudoElement;
+    procedure Test_PseudoElement_Unary;
+    procedure Test_PseudoElement_PostfixSelectNothing;
   end;
 
 function LinesToStr(const Args: array of const): TCSSString;
@@ -833,6 +867,10 @@ begin
   if FindPseudoClass(DemoPseudoClassNames[pcHover]).Index<>DemoPseudoClassIDBase+ord(pcHover) then
     raise Exception.Create('20231008232201');
 
+  // register demo pseudo elements
+  TDemoFirstLine.DemoFirstLineID:=AddPseudoElement('first-line').Index;
+  AddPseudoElement('selection');
+
   // register demo element types
   for aType in TDemoElementType do
     AddDemoType(aType);
@@ -859,7 +897,7 @@ begin
   kwLTR:=AddKeyword('ltr');
   kwRTL:=AddKeyword('rtl');
 
-  // check parameters - - - - - - - - - - - - - - - - - - - - - - - -
+  // check attribute values - - - - - - - - - - - - - - - - - - - - - - - -
 
   // border-color
   DemoAttrs[naBorderColor].OnCheck:=@OnCheck_BorderColor;
@@ -1023,6 +1061,7 @@ begin
   Clear;
   FreeAndNil(FNodes);
   FreeAndNil(FCSSClasses);
+  FParent:=nil;
   inherited Destroy;
 end;
 
@@ -1300,9 +1339,107 @@ begin
   Result:=GetClassCSSTypeID;
 end;
 
+function TDemoNode.GetCSSPseudoElementName: TCSSString;
+begin
+  Result:='';
+end;
+
+function TDemoNode.GetCSSPseudoElementID: TCSSNumericalID;
+begin
+  Result:=CSSIDNone;
+end;
+
 class function TDemoNode.GetCSSTypeStyle: TCSSString;
 begin
   Result:='';
+end;
+
+{ TDemoPseudoElement }
+
+constructor TDemoPseudoElement.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  if not (AOwner is TDemoNode) then
+    raise Exception.Create('20250224153414');
+end;
+
+function TDemoPseudoElement.GetCSSTypeName: TCSSString;
+begin
+  Result:='';
+end;
+
+function TDemoPseudoElement.GetCSSTypeID: TCSSNumericalID;
+begin
+  Result:=CSSIDNone;
+end;
+
+function TDemoPseudoElement.GetCSSParent: ICSSNode;
+begin
+  Result:=TDemoNode(Owner);
+end;
+
+function TDemoPseudoElement.GetCSSIndex: integer;
+begin
+  Result:=-1;
+end;
+
+function TDemoPseudoElement.GetCSSNextSibling: ICSSNode;
+begin
+  Result:=nil;
+end;
+
+function TDemoPseudoElement.GetCSSPreviousSibling: ICSSNode;
+begin
+  Result:=nil;
+end;
+
+function TDemoPseudoElement.GetCSSNextOfType: ICSSNode;
+begin
+  Result:=nil;
+end;
+
+function TDemoPseudoElement.GetCSSPreviousOfType: ICSSNode;
+begin
+  Result:=nil;
+end;
+
+function TDemoPseudoElement.GetCSSEmpty: boolean;
+begin
+  Result:=true;
+end;
+
+function TDemoPseudoElement.GetCSSChildCount: integer;
+begin
+  Result:=0;
+end;
+
+function TDemoPseudoElement.GetCSSChild(const anIndex: integer): ICSSNode;
+begin
+  Result:=nil;
+  if anIndex=0 then ;
+end;
+
+function TDemoPseudoElement.HasCSSClass(const aClassName: TCSSString): boolean;
+begin
+  Result:=false;
+  if aClassName='' then ;
+end;
+
+function TDemoPseudoElement.GetCSSAttributeClass: TCSSString;
+begin
+  Result:='';
+end;
+
+{ TDemoFirstLine }
+
+function TDemoFirstLine.GetCSSPseudoElementName: TCSSString;
+begin
+  Result:='first-line';
+end;
+
+function TDemoFirstLine.GetCSSPseudoElementID: TCSSNumericalID;
+begin
+  Result:=DemoFirstLineID;
 end;
 
 { TCustomTestNewCSSResolver }
@@ -2732,6 +2869,97 @@ begin
   AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
   AssertEquals('Div1.BorderWidth','3px',Div1.BorderWidth);
   AssertEquals('Div1.Color','',Div1.Color);
+end;
+
+procedure TTestNewCSSResolver.Test_PseudoElement;
+var
+  Div1: TDemoDiv;
+  FirstLine: TDemoFirstLine;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  'div {',
+  '  border-color:red;',
+  '}',
+  '#Div1::first-line {',
+  '  color:red;',
+  '  border-color:white;',
+  '}',
+  'div {',
+  '  color: blue;',
+  '}']);
+  ApplyStyle;
+  FirstLine:=TDemoFirstLine.Create(Div1);
+  FirstLine.ApplyCSS(Doc.CSSResolver);
+
+  AssertEquals('Div1.BorderColor','red',Div1.BorderColor);
+  AssertEquals('Div1.Color','blue',Div1.Color);
+  AssertEquals('Div1::first-line.BorderColor','white',FirstLine.BorderColor);
+  AssertEquals('Div1::first-line.Color','red',FirstLine.Color);
+end;
+
+procedure TTestNewCSSResolver.Test_PseudoElement_Unary;
+var
+  Div1: TDemoDiv;
+  FirstLine: TDemoFirstLine;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+
+  Doc.Style:=LinesToStr([
+  '::first-line {',
+  '  color:red;',
+  '}',
+  'div {',
+  '  color: blue;',
+  '}']);
+  ApplyStyle;
+  FirstLine:=TDemoFirstLine.Create(Div1);
+  FirstLine.ApplyCSS(Doc.CSSResolver);
+
+  AssertEquals('Div1.Color','blue',Div1.Color);
+  AssertEquals('Div1::first-line.Color','red',FirstLine.Color);
+end;
+
+procedure TTestNewCSSResolver.Test_PseudoElement_PostfixSelectNothing;
+var
+  Div1: TDemoDiv;
+  FirstLine: TDemoFirstLine;
+begin
+  Doc.Root:=TDemoNode.Create(nil);
+
+  Div1:=TDemoDiv.Create(nil);
+  Div1.Name:='Div1';
+  Div1.Parent:=Doc.Root;
+  Div1.CSSClasses.Add('Big');
+
+  Doc.Style:=LinesToStr([
+  'div::first-line#Bird {',
+  '  color:red;',
+  '}',
+  'div::first-line.Big {',
+  '  border-color:red;',
+  '}',
+  'div {',
+  '  color: blue;',
+  '  border-color: blue;',
+  '}']);
+  ApplyStyle;
+  FirstLine:=TDemoFirstLine.Create(Div1);
+  FirstLine.ApplyCSS(Doc.CSSResolver);
+
+  AssertEquals('Div1.Color','blue',Div1.Color);
+  AssertEquals('Div1.BorderColor','blue',Div1.BorderColor);
+  AssertEquals('Div1::first-line.Color','',FirstLine.Color);
+  AssertEquals('Div1::first-line.BorderColor','',FirstLine.BorderColor);
 end;
 
 initialization
