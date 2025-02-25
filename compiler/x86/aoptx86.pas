@@ -15738,7 +15738,15 @@ unit aoptx86;
               (
                 { Instructions are guaranteed to be adjacent on -O2 and under }
                 not (cs_opt_level3 in current_settings.optimizerswitches) or
-                not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1)
+                (
+                  { If the flags are used, don't make the optimisation,
+                    otherwise they will be scrambled.  Fixes #41148 }
+                  (
+                    not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) or
+                    not RegUsedBetween(NR_DEFAULTFLAGS, p, hp1)
+                  ) and
+                  not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1)
+                )
               ) then
               begin
                 TransferUsedRegs(TmpUsedRegs);
@@ -16003,7 +16011,15 @@ unit aoptx86;
               (
                 { Instructions are guaranteed to be adjacent on -O2 and under }
                 not (cs_opt_level3 in current_settings.optimizerswitches) or
-                not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1)
+                (
+                  { If the flags are used, don't make the optimisation,
+                    otherwise they will be scrambled.  Fixes #41148 }
+                  (
+                    not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) or
+                    not RegUsedBetween(NR_DEFAULTFLAGS, p, hp1)
+                  ) and
+                  not RegUsedBetween(taicpu(hp1).oper[1]^.reg, p, hp1)
+                )
               ) then
               begin
                 TransferUsedRegs(TmpUsedRegs);
