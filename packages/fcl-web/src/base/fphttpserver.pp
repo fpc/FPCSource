@@ -945,7 +945,7 @@ begin
         Delete(FBuffer,1,1);
         Done:=True;
         end;
-      CheckLF:=False;  
+      CheckLF:=False;
       end;
     if not Done then
       begin
@@ -1053,9 +1053,9 @@ procedure TFPHTTPConnection.ParseStartLine(Request : TFPHTTPConnectionRequest;
 Var
   S : String;
   I : Integer;
-  
+
 begin
-  if aStartLine='' then 
+  if aStartLine='' then
     exit;
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
@@ -1065,7 +1065,7 @@ begin
     S:=Copy(S,1,I-1);
   If (Length(S)>1) and (S[1]<>'/') then
     S:='/'+S
-  else if S='/' then 
+  else if S='/' then
     S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
@@ -1114,7 +1114,7 @@ begin
         P:=P+R;
         L:=L-R;
         end;
-      end;  
+      end;
     end;
   ARequest.ContentBytes:=S;
 end;
@@ -1182,7 +1182,7 @@ begin
   if Assigned(FServer) then
     Result:=FServer.LookupHostNames
   else
-    Result:=False;  
+    Result:=False;
 end;
 
 procedure TFPHTTPConnection.AllocateConnectionID;
