@@ -134,7 +134,10 @@ implementation
              { :-(, we must generate a new entry }
              if not(assigned(lab_real)) then
                begin
-                  current_asmdata.getlocaldatalabel(lastlabel);
+                  if create_smartlink_library then
+                    current_asmdata.getglobaldatalabel(lastlabel)
+                  else
+                    current_asmdata.getlocaldatalabel(lastlabel);
                   entry^.Data:=lastlabel;
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
