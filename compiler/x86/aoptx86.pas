@@ -15634,26 +15634,21 @@ unit aoptx86;
                   UpdateUsedRegs(UsedRegs, tai(p.Next));
 
                 hp2 := hp1;
-                { if hp1 <> hp2 after the call, then hp1 got removed, so let
-                  OptPass2ADD get called again }
-                if OptPass2MOV(hp1) and (hp1 <> hp2) then
-                  begin
-                    { Reset the tracking to the current instruction }
-                    RestoreUsedRegs(TempTracking);
-                    ReleaseUsedRegs(TempTracking);
-
-                    Result := True;
-                    Exit;
-                  end;
+                if OptPass2MOV(hp1) then
+                  Include(OptsToCheck, aoc_ForceNewIteration);
 
                 { Reset the tracking to the current instruction }
                 RestoreUsedRegs(TempTracking);
                 ReleaseUsedRegs(TempTracking);
 
-                { If OptPass2MOV returned True, we don't need to set Result to
-                  True if hp1 didn't change because the ADD instruction didn't
-                  get modified and we'll be evaluating hp1 again when the
-                  peephole optimizer reaches it }
+                { if hp1 <> hp2 after the call, then hp1 got removed, so let
+                  OptPass2ADD get called again }
+
+                if (hp1 <> hp2) then
+                  begin
+                    Result := True;
+                    Exit;
+                  end;
               end;
 
             { Change:
@@ -15983,26 +15978,21 @@ unit aoptx86;
                   UpdateUsedRegs(UsedRegs, tai(p.Next));
 
                 hp2 := hp1;
-                { if hp1 <> hp2 after the call, then hp1 got removed, so let
-                  OptPass2SUB get called again }
-                if OptPass2MOV(hp1) and (hp1 <> hp2) then
-                  begin
-                    { Reset the tracking to the current instruction }
-                    RestoreUsedRegs(TempTracking);
-                    ReleaseUsedRegs(TempTracking);
-
-                    Result := True;
-                    Exit;
-                  end;
+                if OptPass2MOV(hp1) then
+                  Include(OptsToCheck, aoc_ForceNewIteration);
 
                 { Reset the tracking to the current instruction }
                 RestoreUsedRegs(TempTracking);
                 ReleaseUsedRegs(TempTracking);
+	 
+                { if hp1 <> hp2 after the call, then hp1 got removed, so let
+                  OptPass2SUB get called again }
 
-                { If OptPass2MOV returned True, we don't need to set Result to
-                  True if hp1 didn't change because the SUB instruction didn't
-                  get modified and we'll be evaluating hp1 again when the
-                  peephole optimizer reaches it }
+                if (hp1 <> hp2) then
+                  begin
+                    Result := True;
+                    Exit;
+                  end;
               end;
 
             { Change:
