@@ -31,7 +31,7 @@ unit i_wasi;
     const
         system_wasm32_wasi_info : tsysteminfo =
           (
-            system       : system_wasm32_wasi;
+            system       : system_wasm32_wasip1;
             name         : 'The WebAssembly System Interface (WASI)';
             shortname    : 'Wasi';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,

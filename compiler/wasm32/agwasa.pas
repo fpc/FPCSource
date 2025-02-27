@@ -1094,7 +1094,7 @@ implementation
          idtxt  : 'WASA';
          asmbin : 'wasa';
          asmcmd : '-r --no-canonicalize-leb128s -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [];
          labelprefix : 'L';
          labelmaxlen : -1;

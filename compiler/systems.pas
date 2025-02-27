@@ -296,7 +296,7 @@ interface
        systems_darwin = systems_ios + systems_iphonesim + systems_macosx;
 
        { all WebAssembly systems }
-       systems_wasm = [system_wasm32_embedded,system_wasm32_wasi];
+       systems_wasm = [system_wasm32_embedded,system_wasm32_wasip1];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
@@ -398,7 +398,7 @@ interface
                                    system_riscv32_linux,system_riscv64_linux,
                                    system_aarch64_win64,
                                    system_z80_zxspectrum,system_z80_msxdos,
-                                   system_wasm32_wasi,system_loongarch64_linux,
+                                   system_wasm32_wasip1,system_loongarch64_linux,
                                    system_mipsel_ps1
                                   ]+systems_darwin+systems_amigalike;
 
@@ -1182,7 +1182,7 @@ begin
 {$endif aarch64}
 
 {$ifdef wasm32}
-  default_target(system_wasm32_wasi);
+  default_target(system_wasm32_wasip1);
 {$endif wasm32}
 
 {$ifdef z80}

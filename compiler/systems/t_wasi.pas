@@ -396,8 +396,8 @@ end;
 
 initialization
   RegisterTarget(system_wasm32_wasi_info);
-  RegisterImport(system_wasm32_wasi, timportlibwasi);
-  RegisterExport(system_wasm32_wasi, texportlibwasi);
+  RegisterImport(system_wasm32_wasip1, timportlibwasi);
+  RegisterExport(system_wasm32_wasip1, texportlibwasi);
   RegisterLinker(ld_int_wasi,TInternalLinkerWasi);
   RegisterLinker(ld_wasi, tlinkerwasi);
   RegisterRes(res_wasm_info,TWinLikeResourceFile);

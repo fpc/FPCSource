@@ -438,7 +438,7 @@ implementation
          idtxt  : 'LLVM-MC-10';
          asmbin : 'llvm-mc-10';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics --filetype=obj -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -451,7 +451,7 @@ implementation
          idtxt  : 'LLVM-MC-11';
          asmbin : 'llvm-mc-11';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -464,7 +464,7 @@ implementation
          idtxt  : 'LLVM-MC-12';
          asmbin : 'llvm-mc-12';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -489,7 +489,7 @@ implementation
          idtxt  : 'LLVM-MC-13';
          asmbin : 'llvm-mc-13';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -506,7 +506,7 @@ implementation
          idtxt  : 'LLVM-MC-14';
          asmbin : 'llvm-mc-14';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -525,7 +525,7 @@ implementation
          idtxt  : 'LLVM-MC-15';
          asmbin : 'llvm-mc-15';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -541,7 +541,7 @@ implementation
          idtxt  : 'LLVM-MC-16';
          asmbin : 'llvm-mc-16';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -561,7 +561,7 @@ implementation
          idtxt  : 'LLVM-MC-17';
          asmbin : 'llvm-mc-17';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
@@ -577,7 +577,7 @@ implementation
          idtxt  : 'LLVM-MC';
          asmbin : 'llvm-mc';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasi];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
          flags : [af_smartlink_sections];
          labelprefix : '.L';
          labelmaxlen : -1;
