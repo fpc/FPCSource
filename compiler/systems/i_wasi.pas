@@ -29,7 +29,7 @@ unit i_wasi;
        systems,rescmn;
 
     const
-        system_wasm32_wasi_info : tsysteminfo =
+        system_wasm32_wasip1_info : tsysteminfo =
           (
             system       : system_wasm32_wasip1;
             name         : 'The WebAssembly System Interface Preview 1 (WASI 0.1)';
@@ -106,7 +106,7 @@ unit i_wasi;
 initialization
 {$ifdef CPUWASM32}
   {$ifdef wasi}
-    set_source_info(system_wasm32_wasi_info);
+    set_source_info(system_wasm32_wasip1_info);
   {$endif wasi}
 {$endif CPUWASM32}
 end.
