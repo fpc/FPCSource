@@ -240,7 +240,7 @@ const
   { 111 } 'Darwin-AArch64',
   { 112 } 'AmstradCPC-Z80',
   { 113 } 'SinclairQL-m68k',
-  { 114 } 'WASI-WASM32',
+  { 114 } 'WASIp1-WASM32',
   { 115 } 'FreeBSD-AArch64',
   { 116 } 'Embedded-aarch64',
   { 117 } 'Linux-MIPS64',
