@@ -105,8 +105,8 @@ unit i_wasi;
 
 initialization
 {$ifdef CPUWASM32}
-  {$ifdef wasi}
+  {$ifdef wasip1}
     set_source_info(system_wasm32_wasip1_info);
-  {$endif wasi}
+  {$endif wasip1}
 {$endif CPUWASM32}
 end.
