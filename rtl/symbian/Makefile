@@ -1382,7 +1382,7 @@ endif
 ifeq ($(OS_TARGET),zxspectrum)
 OEXT=.rel
 endif
-ifeq ($(OS_TARGET),wasi)
+ifeq ($(OS_TARGET),wasip1)
 EXEEXT=.wasm
 endif
 ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
