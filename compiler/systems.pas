@@ -298,7 +298,7 @@ interface
        systems_darwin = systems_ios + systems_iphonesim + systems_macosx;
 
        { all WebAssembly systems }
-       systems_wasm = [system_wasm32_embedded,system_wasm32_wasip1];
+       systems_wasm = [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
