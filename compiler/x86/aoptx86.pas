@@ -6425,7 +6425,12 @@ unit aoptx86;
                       (
                         { Don't optimise if size is a concern and the intermediate register remains in use }
                         IntermediateRegDiscarded or
-                        not (cs_opt_size in current_settings.optimizerswitches)
+                        (
+                          not (cs_opt_size in current_settings.optimizerswitches) and
+                          { If the intermediate register is not discarded, it must not
+                            appear in the first LEA's reference.  (Fixes #41166) }
+                          not RegInRef(taicpu(p).oper[1]^.reg, taicpu(p).oper[0]^.ref^)
+                        )
                       ) and
                       (taicpu(hp1).oper[0]^.ref^.index = taicpu(p).oper[1]^.reg) and
                       (
@@ -6522,7 +6527,12 @@ unit aoptx86;
                     if (
                         { Don't optimise if size is a concern and the intermediate register remains in use }
                         IntermediateRegDiscarded or
-                        not (cs_opt_size in current_settings.optimizerswitches)
+                        (
+                          not (cs_opt_size in current_settings.optimizerswitches) and
+                          { If the intermediate register is not discarded, it must not
+                            appear in the first LEA's reference.  (Fixes #41166) }
+                          not RegInRef(taicpu(p).oper[1]^.reg, taicpu(p).oper[0]^.ref^)
+                        )
                       ) and
                       (
                         (
