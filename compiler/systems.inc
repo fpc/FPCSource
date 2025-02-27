@@ -215,7 +215,8 @@
              system_loongarch64_linux,  { 120 }
              system_aarch64_iphonesim,  { 121 }
              system_m68k_human68k,      { 122 }
-             system_mipsel_ps1          { 123 }
+             system_mipsel_ps1,         { 123 }
+             system_wasm32_wasip1threads { 124 }
        );
 
      type

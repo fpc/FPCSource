@@ -181,14 +181,16 @@ interface
             { units are initialized by direct calls and not table driven,
               in particular for a small amount of units, this results in smaller
               executables }
-            tf_init_final_units_by_calls
+            tf_init_final_units_by_calls,
+            { indicates that the default value of the ts_wasm_threads target switch is 'on' for this target }
+            tf_wasm_threads
        );
 
        psysteminfo = ^tsysteminfo;
        { using packed causes bus errors on processors which require alignment }
        tsysteminfo = record
           system       : tsystem;
-          name         : string[53];
+          name         : string[88];
           shortname    : string[12];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;

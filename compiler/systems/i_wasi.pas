@@ -101,6 +101,79 @@ unit i_wasi;
           );
 
 
+        system_wasm32_wasip1threads_info : tsysteminfo =
+          (
+            system       : system_wasm32_wasip1threads;
+            name         : 'The WebAssembly System Interface Preview 1 with Multithreading (WASI 0.1 + wasi-threads)';
+            shortname    : 'Wasip1threads';
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
+                            tf_files_case_sensitive,
+                            tf_smartlink_sections,tf_has_winlike_resources,
+                            { avoid the creation of threadvar tables }
+                            tf_section_threadvars,
+                            tf_wasm_threads];
+            cpu          : cpu_wasm32;
+            unit_env     : '';
+            extradefines : 'WASI;WASIP1';
+            exeext       : '.wasm';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.wat';
+            objext       : '.o';
+            resext       : '';
+            resobjext    : '.or';
+            sharedlibext : ''; // keep it empty! The sharedlibext drives the export module name
+                               // if this is populated, then the name should be cleared when generating import
+            staticlibext : '.a';
+            staticlibprefix : '';
+            sharedlibprefix : '';
+            sharedClibext : '.wasm';
+            staticClibext : '.wasm';
+            staticClibprefix : '';
+            sharedClibprefix : '';
+            importlibprefix : '';
+            importlibext : '.wasm';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_wasm32_wasm;
+            assemextern  : as_wasm32_llvm_mc;
+            link         : ld_int_wasi;
+            linkextern   : ld_wasi;
+            ar           : ar_none;
+            res          : res_wasm;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 0;
+                loopalign       : 0;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 4;
+                constalignmax   : 16;
+                varalignmin     : 4;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 0;
+            stacksize   : 8*1024*1024;
+            stackalign   : 16;
+            abi          : abi_default;
+            llvmdatalayout : 'todo';
+          );
+
+
   implementation
 
 initialization
@@ -108,5 +181,8 @@ initialization
   {$ifdef wasip1}
     set_source_info(system_wasm32_wasip1_info);
   {$endif wasip1}
+  {$ifdef wasip1threads}
+    set_source_info(system_wasm32_wasip1threads_info);
+  {$endif wasip1threads}
 {$endif CPUWASM32}
 end.
