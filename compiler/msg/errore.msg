@@ -4414,7 +4414,7 @@ Z*2Tmsxdos_MSX-DOS
 Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
-W*2Twasi_The WebAssembly System Interface (WASI)
+W*2Twasip1_The WebAssembly System Interface Preview 1 (WASI 0.1)
 # end of targets section
 **1t<x>_Target architecture
 **2*_ * Defines FPC_SUBTARGET_<x> 
