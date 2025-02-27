@@ -86,7 +86,7 @@ interface
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
     win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
-    wasi,human68k,ps1
+    wasip1,human68k,ps1
   );}
   TOS = fpmkunit.TOS;
 {$else}
@@ -102,7 +102,7 @@ interface
         palmos,macosclassic,darwin,emx,watcom,morphos,netwlibc,
         win64,wince,gba,nds,embedded,symbian,nativent,iphonesim,
         wii,aix,java,android,msdos,aros,dragonfly,win16,freertos,
-        zxspectrum,msxdos,ios,amstradcpc,sinclairql,wasi,human68k,ps1
+        zxspectrum,msxdos,ios,amstradcpc,sinclairql,wasip1,human68k,ps1
       );
 {$endif}
 
@@ -134,7 +134,7 @@ interface
         'win64','wince','gba','nds','embedded','symbian','nativent',
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
         'dragonfly', 'win16', 'freertos', 'zxspectrum', 'msxdos',
-        'ios','amstradcpc','sinclairql','wasi','human68k','ps1'
+        'ios','amstradcpc','sinclairql','wasip1','human68k','ps1'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -144,7 +144,7 @@ interface
         '_win64','_wince','_gba','_nds','_embedded','_symbian','_nativent',
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
         '_dragonfly','_win16','_freertos','_zxspectrum','_msxdos',
-        '_ios','_amstradcpc','_sinclairql','_wasi','_human68k','_ps1'
+        '_ios','_amstradcpc','_sinclairql','_wasip1','_human68k','_ps1'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -202,7 +202,7 @@ interface
         { ios }     ( false, false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true ,  false, false, false,  false,  false, false, false),
         {amstradcpc}( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, true,  false),
         {sinclairql}( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false),
-        { wasi }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false),
+        { wasip1 }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false),
         { human68k }( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false),
         { ps1 }     ( false, false, false, false, false, false, false, false, false, false, false, false, true,  false, false,   false, false, false,  false, false, false,  false,  false, false, false)
       );
