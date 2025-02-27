@@ -191,7 +191,7 @@ interface
        tsysteminfo = record
           system       : tsystem;
           name         : string[88];
-          shortname    : string[12];
+          shortname    : string[13];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
