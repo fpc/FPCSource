@@ -564,7 +564,7 @@ asm
 end;
 
 {$IFDEF VER3_2}
-function InterLockedExchangeAdd (var Target: longint;Value : longint) : longint;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
 {$ELSE VER3_2}
 {$DEFINE FPC_SYSTEM_HAS_ATOMIC_ADD_32}
 function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
@@ -572,7 +572,11 @@ function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
 {$IFDEF CPUMIPS1}
 begin
     Result:=Target;
+{$IFDEF VER3_2}
+    Target:= Target + Source;
+{$ELSE VER3_2}
     Target:= Target + Value;
+{$ENDIF VER3_2}
 {$ELSE}
 assembler; nostackframe;
 asm
@@ -588,7 +592,7 @@ asm
 end;
 
 {$IFDEF VER3_2}
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comparand: longint): longint;
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
 {$ELSE VER3_2}
 {$DEFINE FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_32}
 function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Comparand: longint) : longint; [public,alias:'FPC_ATOMIC_CMP_XCHG_32'];
@@ -596,7 +600,11 @@ function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Compara
 {$IFDEF CPUMIPS1}
 begin
     Result:= Target;
+{$IFDEF VER3_2}
+    if Target = Comperand then
+{$ELSE VER3_2}
     if Target = Comparand then
+{$ENDIF VER3_2}
       Target:= NewValue;
 {$ELSE}
 assembler; nostackframe;
