@@ -19,7 +19,7 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Various non-visual VCL compatibility units.';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasi];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasip1];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -37,7 +37,7 @@ begin
     P.Dependencies.Add('fcl-hash');
     P.Dependencies.Add('hash');
     P.Dependencies.Add('libpcre',[Win64,Linux,darwin]);
-    P.Dependencies.Add('wasm-utils',[wasi]);
+    P.Dependencies.Add('wasm-utils',[wasip1]);
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -65,12 +65,12 @@ begin
     T.ResourceStrings := True;
     T:=P.Targets.AddUnit('system.credentials.pp');
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('system.regularexpressionsconsts.pp',[Win64,Linux,darwin,wasi]);
+    T:=P.Targets.AddUnit('system.regularexpressionsconsts.pp',[Win64,Linux,darwin,wasip1]);
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('system.regularexpressionscore.pp',[Win64,Linux,darwin,wasi]);
-    T.Dependencies.AddUnit('system.regularexpressionsconsts',[Win64,Linux,darwin,wasi]);
-    T:=P.Targets.AddUnit('system.regularexpressions.pp',[Win64,Linux,darwin,wasi]);
-    T.Dependencies.AddUnit('system.regularexpressionscore',[Win64,Linux,darwin,wasi]);
+    T:=P.Targets.AddUnit('system.regularexpressionscore.pp',[Win64,Linux,darwin,wasip1]);
+    T.Dependencies.AddUnit('system.regularexpressionsconsts',[Win64,Linux,darwin,wasip1]);
+    T:=P.Targets.AddUnit('system.regularexpressions.pp',[Win64,Linux,darwin,wasip1]);
+    T.Dependencies.AddUnit('system.regularexpressionscore',[Win64,Linux,darwin,wasip1]);
     T:=P.Targets.AddUnit('system.threading.pp',AllOSes-[go32v2,nativent,atari]);
     T.ResourceStrings := True;
 

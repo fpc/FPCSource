@@ -22,7 +22,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.OSes:=[wasi];
+    P.OSes:=[wasip1];
     P.CPUs:=[wasm32];
     P.SourcePath.Add('src');
     // Logger
