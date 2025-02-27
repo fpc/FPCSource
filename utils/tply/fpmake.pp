@@ -35,7 +35,7 @@ begin
     { wasm32 CPU does not support
       goto used in these sources }
     if Defaults.CPU=wasm32 then
-      P.OSes := P.OSes - [wasi,embedded];
+      P.OSes := P.OSes - [wasip1,embedded];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
