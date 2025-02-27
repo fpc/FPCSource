@@ -15,21 +15,21 @@ Const
 //  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,ios,aix,Android];
 //    unixlikes-[beos];
 //
-  StrUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,win32,win64,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
-  VarUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,win32,win64,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
-  ConvUtilsOSes = [nativent,netware,netwlibc,sinclairql,human68k,win32,win64,wince,wasip1]+AllAmigaLikeOSes+UnixLikes-[BeOS];
+  StrUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,win32,win64,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
+  VarUtilsOSes  = [atari,emx,gba,go32v2,msdos,nds,netware,wince,nativent,os2,netwlibc,sinclairql,human68k,symbian,watcom,wii,win32,win64,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
+  ConvUtilsOSes = [nativent,netware,netwlibc,sinclairql,human68k,win32,win64,wince,wasip1,wasip1threads]+AllAmigaLikeOSes+UnixLikes-[BeOS];
   ConvUtilOSes  = [atari,Go32v2,msdos,os2,emx,freertos,watcom];
-  DateUtilsOSes = [gba,nativent,nds,netware,netwlibc,sinclairql,human68k,symbian,wii,win32,win64,wince,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
+  DateUtilsOSes = [gba,nativent,nds,netware,netwlibc,sinclairql,human68k,symbian,wii,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
   DateUtilOSes  = [atari,Go32v2,msdos,os2,emx,freertos,watcom];
-  StdConvsOSes  = [NativeNT,Win32,win64,os2,msdos,go32v2,freertos,wasip1]+UnixLikes-[BeOS];
-  FmtBCDOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
-  VariantsOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
-  RttiOSes      = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
-  UItypesOSes   = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1]+UnixLikes+AllAmigaLikeOSes;
+  StdConvsOSes  = [NativeNT,Win32,win64,os2,msdos,go32v2,freertos,wasip1,wasip1threads]+UnixLikes-[BeOS];
+  FmtBCDOSes    = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
+  VariantsOSes  = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
+  RttiOSes      = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
+  UItypesOSes   = [atari,emx,gba,go32v2,msdos,nativent,nds,netware,netwlibc,os2,sinclairql,human68k,symbian,watcom,wii,win32,win64,wince,freertos,wasip1,wasip1threads]+UnixLikes+AllAmigaLikeOSes;
   AllTargetsObjPas = DateUtilsOses +DateUtilOSes+
                   VarutilsOses + ConvutilsOSes + ConvutilOSes + StdConvsOSes+
                   FmtBCDOSes + StrUtilsOSes + UITypesOSes;
-  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku]+[wasip1];
+  MonitorOSes   = [Win32,win64]+UnixLikes-[BeOS,Haiku]+[wasip1,wasip1threads];
 
 Var
   P : TPackage;

@@ -13,9 +13,9 @@ Const
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
   
-  NoSocketsOSes       = [wasip1];
-  NoApacheOSes        = [amiga,aros,morphos,wasip1];
-  NoCGIOSes           = [amiga,aros,morphos,wasip1];
+  NoSocketsOSes       = [wasip1,wasip1threads];
+  NoApacheOSes        = [amiga,aros,morphos,wasip1,wasip1threads];
+  NoCGIOSes           = [amiga,aros,morphos,wasip1,wasip1threads];
   
   ApacheOSes          = AllOSes - NoApacheOSes;
   SocketsOSes         = AllOSes - NoSocketsOSes;
@@ -33,7 +33,7 @@ begin
     P.ShortName:='fclw';
     P.Directory:=ADirectory;
     P.Version:='3.3.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasip1];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,ios,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly,android,wasip1,wasip1threads];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -359,13 +359,13 @@ begin
     T.Dependencies.AddUnit('fphttpwebclient');
     T:=P.Targets.AddUnit('fprpccodegen.pp');
     T:=P.Targets.AddUnit('fpdispextdirect.pp');
-    T.OSes:=AllOSes-[wasip1];
+    T.OSes:=AllOSes-[wasip1,wasip1threads];
     With T.Dependencies do
       begin
       AddUnit('fpjsonrpc');
       end;
     T:=P.Targets.AddUnit('fpextdirect.pp');
-    T.OSes:=AllOSes-[wasip1];
+    T.OSes:=AllOSes-[wasip1,wasip1threads];
     With T.Dependencies do
       begin
       AddUnit('fpdispextdirect');

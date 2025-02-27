@@ -28,7 +28,7 @@ begin
     P.Description := 'Free Pascal OpenAPI to pascal code generation utility.';
     P.NeedLibC:= false;
 
-    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macosclassic,palmos,atari,zxspectrum,msxdos,amstradcpc,watcom,sinclairql,wasip1,human68k,ps1];
+    P.OSes:=AllOSes-[embedded,msdos,win16,go32v2,nativent,macosclassic,palmos,atari,zxspectrum,msxdos,amstradcpc,watcom,sinclairql,wasip1,wasip1threads,human68k,ps1];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
