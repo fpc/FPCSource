@@ -33,7 +33,7 @@ unit i_wasi;
           (
             system       : system_wasm32_wasip1;
             name         : 'The WebAssembly System Interface Preview 1 (WASI 0.1)';
-            shortname    : 'Wasi';
+            shortname    : 'Wasip1';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
                             tf_files_case_sensitive,
                             tf_smartlink_sections,tf_has_winlike_resources,
@@ -41,7 +41,7 @@ unit i_wasi;
                             tf_section_threadvars];
             cpu          : cpu_wasm32;
             unit_env     : '';
-            extradefines : '';
+            extradefines : 'WASI';
             exeext       : '.wasm';
             defext       : '.def';
             scriptext    : '.sh';
