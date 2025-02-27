@@ -249,7 +249,8 @@ const
   { 120 } 'Linux-LoongArch64',
   { 121 } 'iPhoneSim-AArch64',
   { 122 } 'Human68k-m68k',
-  { 123 } 'PS1-mipsel'
+  { 123 } 'PS1-mipsel',
+  { 124 } 'WASIp1threads-WASM32'
   );
 
 const
