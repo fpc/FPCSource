@@ -35,7 +35,7 @@ unit i_wasi;
             name         : 'The WebAssembly System Interface Preview 1 (WASI 0.1)';
             shortname    : 'Wasip1';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
-                            tf_files_case_sensitive,
+                            tf_files_case_sensitive,tf_no_pic_supported,
                             tf_smartlink_sections,tf_has_winlike_resources,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars];
@@ -107,7 +107,7 @@ unit i_wasi;
             name         : 'The WebAssembly System Interface Preview 1 with Multithreading (WASI 0.1 + wasi-threads)';
             shortname    : 'Wasip1threads';
             flags        : [tf_under_development,tf_needs_symbol_size,tf_needs_symbol_type,
-                            tf_files_case_sensitive,
+                            tf_files_case_sensitive,tf_no_pic_supported,
                             tf_smartlink_sections,tf_has_winlike_resources,
                             { avoid the creation of threadvar tables }
                             tf_section_threadvars,
