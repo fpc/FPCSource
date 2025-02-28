@@ -23,6 +23,14 @@ interface
 {$ENDIF}
 
 {$define FPC_IS_SYSTEM}
+
+{$if defined(WASIp1threads) and not defined(FPC_WASM_THREADS)}
+  {$fatal The wasip1threads target requires that WebAssembly threads are turned on! Maybe you want to use the wasip1 target, instead?}
+{$endif}
+{$if defined(WASIp1) and not defined(WASIp1threads) and defined(FPC_WASM_THREADS)}
+  {$fatal The wasip1 target requires that WebAssembly threads are turned off! Maybe you want to use the wasip1threads target, instead?}
+{$endif}
+
 {$ifdef FPC_WASM_THREADS}
   {$define DISABLE_NO_THREAD_MANAGER}
 {$else FPC_WASM_THREADS}
