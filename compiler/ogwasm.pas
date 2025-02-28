@@ -6497,7 +6497,7 @@ implementation
             idtxt  : 'WASM';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_wasm32_embedded,system_wasm32_wasip1];
+            supported_targets : [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '..@';
             labelmaxlen : -1;

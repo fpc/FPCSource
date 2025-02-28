@@ -566,6 +566,7 @@ implementation
                writer.AsmWrite('.csect ');
            end;
          system_wasm32_wasip1,
+         system_wasm32_wasip1threads,
          system_wasm32_embedded:
            begin
              writer.AsmWrite('.section ');
