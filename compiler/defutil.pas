@@ -1551,12 +1551,12 @@ implementation
     function is_vector(p : tdef) : boolean;
       begin
         result:=(p.typ=arraydef) and
-                (tarraydef(p).is_hwvector or
+                (tarraydef(p).is_hwvector { or
                  (not(is_special_array(p)) and
-                  (tarraydef(p).elementdef.typ in [floatdef,orddef]) {and
+                  (tarraydef(p).elementdef.typ in [floatdef,orddef]) and
                   (tarraydef(p).elementdef.typ=floatdef) and
-                  (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real])}
-                 )
+                  (tfloatdef(tarraydef(p).elementdef).floattype in [s32real,s64real])
+                 ) }
                 );
       end;
 
