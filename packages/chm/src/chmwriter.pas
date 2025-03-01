@@ -1138,7 +1138,7 @@ end;
 
 procedure TChmWriter.WriteSTRINGS;
 begin
-  if FStringsStream.Size = 0 then;
+  if FStringsStream.Size = 0 then
     FStringsStream.WriteByte(0);
   FStringsStream.Position := 0;
   PostAddStreamToArchive('#STRINGS', '/', FStringsStream);

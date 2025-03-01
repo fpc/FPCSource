@@ -449,7 +449,7 @@ begin
   BlockWrite(f,maxalloc,2);
   close(f);
   {$pop}
-  if ioresult<>0 then;
+  if ioresult<>0 then
     Result:=true;
 end;
 

@@ -153,7 +153,7 @@ procedure TWinCEGAPIConsole.Close;
 begin
   LOG('TWinCEGAPIConsole.Close');
 
-  if FGXDisplayIsOpen Then;
+  if FGXDisplayIsOpen then
     GXCloseDisplay;
   FGXDisplayIsOpen := False;
 
