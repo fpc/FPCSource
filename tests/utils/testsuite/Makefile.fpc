@@ -7,7 +7,7 @@ name=testsuite
 version=3.3.1
 
 [require]
-packages=fcl-base fcl-db
+packages=fcl-base fcl-db fcl-web rtl-objpas pthreads fcl-net rtl-extra postgres fcl-image paszlib hash
 libc=y
 
 [compiler]
