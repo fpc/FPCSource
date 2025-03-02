@@ -46,7 +46,7 @@ Type
     // Update the test run statistics.
     procedure UpdateTestRun(const aData: TTestRunData);
     // Get contents from longlog
-    function GetContentsFromLongLog(Line: String): String;
+    function GetContentsFromLongLog(Line: String; out IsFOund : Boolean): String;
     // Get Log from file line
     function GetLog(Line, FN: String): String;
   public
@@ -173,7 +173,7 @@ end;
 const
    SeparationLine = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
-function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String): String;
+function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String; out IsFOund : Boolean): String;
 
   Function GetLongLogLine : String;
   begin
@@ -188,11 +188,12 @@ function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String): String;
 
 var
   S : String;
-  IsFirst, IsFound : boolean;
+  IsFirst : boolean;
   InternalErrorPos : Integer;
 
 begin
   Result:='';
+  IsFound:=False;
   { The "internalerror generated" message is not present in compilation log }
   InternalErrorPos:=pos(' internalerror generated',Line);
   if (InternalErrorPos>0) then
@@ -209,7 +210,7 @@ begin
           if (pos(Line,S)=0) and (pos(SeparationLine,S)>=1) then
             S:=GetLongLogLine
         end;
-      if pos(Line,S)=1 then
+      if pos(Line,S)>=1 then
         begin
           IsFound:=true;
           while HaveLongLogLine do
@@ -217,7 +218,16 @@ begin
               S:=GetLongLogLine;
               { End of file marker }
               if (Not HaveLongLogLine) or (pos(SeparationLine,S)=1) then
+                begin
+                { Do not skip separation line, if it also contains something else }
+                if HaveLongLogLine and (S<>SeparationLine) and (FCurlonglogline>0) then
+                  begin
+                  Verbose(V_Warning,'Line "'+S+'" is not a pure separation line');
+                  Dec(FCurlonglogline);
+                  end;
                 exit;
+                end;
+
               if length(Result)<MaxLogSize then
                 Result:=Result+S+LineEnding;
               if pos(SeparationLine,S)>1 then
@@ -232,7 +242,7 @@ begin
     end;
   if not IsFound then
     begin
-    Verbose(V_Warning,'Line "'+Line+'" not found');
+    Verbose(V_Warning,'Line "'+Line+'" not found. Starting over');
     FCurlongLogLine:=0; // Reset
     Inc(FLongLogRestartCount);
     end;
@@ -240,11 +250,16 @@ end;
 
 function TDBDigestAnalyzer.GetLog(Line, FN: String): String;
 
+var
+  IsFound : boolean;
+
 begin
   if UseLongLog then
     begin
-      Result:=GetContentsFromLongLog(Line);
-      exit;
+    Result:=GetContentsFromLongLog(Line,IsFound);
+    if not IsFound then
+      Result:=GetContentsFromLongLog(Line,IsFound);
+    exit;
     end;
   FN:=ChangeFileExt(FN,'.log');
   { packages tests have ../ replaced by root/ }
@@ -261,11 +276,16 @@ end;
 
 function TDBDigestAnalyzer.GetExecuteLog(Line, FN: String): String;
 
+var
+  IsFound : Boolean;
+
 begin
   if UseLongLog then
     begin
-      Result:=GetContentsFromLongLog(Line);
-      exit;
+    Result:=GetContentsFromLongLog(Line,IsFound);
+    if not IsFound then
+      Result:=GetContentsFromLongLog(Line,IsFound);
+    exit;
     end;
   FN:=ChangeFileExt(FN,'.elg');
   { packages tests have ../ replaced by root/ }
