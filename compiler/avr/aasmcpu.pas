@@ -482,7 +482,7 @@ implementation
                             (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-64*2)) then
                             begin
                               if inasmblock then
-                                MessagePos(taicpu(curtai).fileinfo,asmw_e_brxx_out_of_range)
+                                MessagePos1(taicpu(curtai).fileinfo,asmw_e_destination_out_of_range,'BR'+uppercond2str[taicpu(curtai).condition])
                               else
                                 begin
                                   current_asmdata.getjumplabel(l);
@@ -496,6 +496,14 @@ implementation
                                   taicpu(curtai).condition:=inverse_cond(taicpu(curtai).condition);
                                   again:=true;
                                 end;
+                            end;
+                        A_RJMP:
+                          if inasmblock and (taicpu(curtai).oper[0]^.typ=top_ref) and
+                            not(taicpu(curtai).oper[0]^.ref^.symbol.typ=AT_FUNCTION) and
+                            ((taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>2047*2) or
+                            (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<-2048*2)) then
+                            begin
+                              MessagePos1(taicpu(curtai).fileinfo,asmw_e_destination_out_of_range,'RJMP');
                             end;
                         A_JMP:
                           { replace JMP by RJMP? ...
