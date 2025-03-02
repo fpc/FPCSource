@@ -424,7 +424,7 @@ begin
   Case aType of
     mtCPU : lSQL:='SELECT TC_ID FROM TESTCPU order by TC_ID';
     mtOS  : lSQL:='SELECT TO_ID FROM TESTOS order by TO_ID';
-    mtVersion  : lSQL:='SELECT TV_ID FROM TESTVERSION order by TO_ID';
+    mtVersion  : lSQL:='SELECT TV_ID FROM TESTVERSION order by TV_ID';
   end;
   Qry:=CreateQuery(lSQL);
   try
