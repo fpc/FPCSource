@@ -31,6 +31,7 @@ Type
     UnknownLines : integer;
     UseLongLog : Boolean;
     FCurLongLogLine : Integer;
+    FLongLogRestartCount : Integer;
     FPrefix : String;
     // Call global verbose with prefix to message.
     procedure Verbose(aLevel : TVerboseLevel; const aMsg : string);
@@ -188,11 +189,17 @@ function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String): String;
 var
   S : String;
   IsFirst, IsFound : boolean;
+  InternalErrorPos : Integer;
 
 begin
   Result:='';
-  IsFirst:=true;
-  IsFound:=false;
+  { The "internalerror generated" message is not present in compilation log }
+  InternalErrorPos:=pos(' internalerror generated',Line);
+  if (InternalErrorPos>0) then
+    begin
+    Line:=Copy(Line,1,InternalErrorPos-1);
+    end;IsFirst:=true;
+   IsFound:=false;
   While HaveLongLogLine do
     begin
       S:=GetLongLogLine;
@@ -227,6 +234,7 @@ begin
     begin
     Verbose(V_Warning,'Line "'+Line+'" not found');
     FCurlongLogLine:=0; // Reset
+    Inc(FLongLogRestartCount);
     end;
 end;
 
