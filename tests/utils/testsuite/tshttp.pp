@@ -768,8 +768,7 @@ begin
       DumpLn(Format('Log of %s on run %d:',[FVars.TestFileName,aRunID]));
       HeaderEnd(2);
       PreformatStart;
-      system.Write(LLog);
-      system.flush(output);
+      Dump(LLog);
       PreformatEnd;
       end;
 end;
@@ -908,7 +907,13 @@ begin
           end;
       end; // FHTMLWriter;
     If FVars.Debug or FVars.ListAll then
+      begin
+      if Q.Active then
+        Q.First
+      else
+        Q.Open;
       ShowAllHistoryData(Q);
+      end;
     ShowSourceFile;
   Finally
     lTable.Free;
@@ -923,7 +928,7 @@ var
   lTable : TTableProducer;
 begin
   aQuery.First;
-  FL:='RUN,Date,OK,SKIP,Result';
+  FL:='Run,Date,OK,Skip,Result';
   if FVars.Submitter='' then
     FL:=FL+',Submitter';
   if FVars.Machine='' then
