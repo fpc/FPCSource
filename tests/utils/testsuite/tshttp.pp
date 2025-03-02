@@ -7,7 +7,7 @@ unit tshttp;
 interface
 
 uses
-   classes, httpdefs, fphttp, cgiapp, fpcgi, custcgi, inifiles, types,  sysutils,
+   classes, httpdefs, fphttp, inifiles, types,  sysutils,
    sqldb, whtml, db, dbwhtml,
    tsgraph, tsdb, tssql, tshistory, tstypes, tsconsts, tsutils, tshtml;
 
@@ -264,10 +264,13 @@ begin
   FInfo.AllCategoryID:=FSQL.GetCategoryID('All');
   FInfo.AllOSID:=FSQL.GetOSID('All');
   FInfo.AllCPUID:=FSQL.GetCPUID('All');
+  FInfo.AllVersionID:=FSQL.GetVersionID('All');
   if FVars.OSID <= 0 then
     FVars.OSID:=FInfo.AllOSID;
   if FVars.CPUID<=0 then
     FVars.CPUID:=FInfo.AllCPUID;
+  if FVars.VersionID<=0 then
+    FVars.VersionID:=FInfo.AllVersionID;
 end;
 
 

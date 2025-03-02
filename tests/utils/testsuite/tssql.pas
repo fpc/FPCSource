@@ -305,7 +305,7 @@ end;
 function TTestSuiteSQL.GetRunOverviewSQL: String;
 
 Const
-  SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
+  SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU, TO_NAME as OS,'+
                'TV_VERSION as Version, '+
                '(select count(*) from testresults where (TR_TESTRUN_FK=TU_ID)) as Count,'+
                'TU_COMPILERREVISION as CompRev,'+
@@ -334,7 +334,7 @@ begin
    S:='';
    S:=S+PointerIs('TP_CPU_FK',FVars.CPUID,FInfo.AllCPUID);
    S:=S+PointerIs('TP_CATEGORY_FK',FVars.CategoryID,FInfo.AllCategoryID);
-   S:=S+PointerIs('TP_VERSION_FK',FVars.VersionID);
+   S:=S+PointerIs('TP_VERSION_FK',FVars.VersionID,FInfo.AllVersionID);
    S:=S+PointerIs('TP_OS_FK',FVars.OSID,FInfo.ALLOSID);
    If (Round(FVars.Date)<>0) then
      S:=S+Format(' AND (TU_DATE=''%s'')',[FormatDateTime('YYYY-MM-DD',FVars.Date)]);
