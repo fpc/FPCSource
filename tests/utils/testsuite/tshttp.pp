@@ -619,7 +619,7 @@ begin
       Exit;
       end;
     HeaderStart(2);
-    DumpLn('Detailed test run results:');
+    DumpLn('ShowRunResults detailed test run results:');
     FL:='';
     If FVars.OnlyFailed or FVars.NoSkipped then
       begin
@@ -790,7 +790,7 @@ begin
       DumpTestInfo(lTestInfo);
     ParaGraphEnd;
     HeaderStart(2);
-    DumpLn('Detailed test run results:');
+    DumpLn('WriteTestInfo detailed test run results:');
     HeaderEnd(2);
     end;
 end;
@@ -1048,7 +1048,7 @@ begin
       exit;
       end;
     HeaderStart(2);
-    DumpLn('Detailed test run results:');
+    DumpLn('ShowRunComparison detailed test run results:');
     FL:='';
     If FVars.OnlyFailed or FVars.NoSkipped then
       begin
