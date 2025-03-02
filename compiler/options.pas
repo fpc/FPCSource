@@ -509,7 +509,7 @@ const
      begin
       if not abiinfo[abi].supported then
         continue;
-      if abiinfo[abi].name<>'' then;
+      if abiinfo[abi].name<>'' then
         WriteLn(xmloutput,'      <abi name="',abiinfo[abi].name, '"/>');
      end;
     WriteLn(xmloutput,'    </abis>');
