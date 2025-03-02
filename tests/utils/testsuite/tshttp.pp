@@ -492,10 +492,10 @@ begin
          '/'+aData.GetField('Ok')+
          '/'+aData.GetField('Total'),
       FRight);
-    EmitRow('Version:','VERSION');
-    EmitRow('Full version:','COMPILERFULLVERSION');
-    EmitRow('Config:','CONFIG');
-    EmitRow('Machine:','TP_MACHINE');
+    EmitRow('Version:','Version');
+    EmitRow('Full version:','CompilerFullVersion');
+    EmitRow('Config:','Config');
+    EmitRow('Machine:','Macgine');
     if (FVars.CategoryID>0) then
       EmitRow('Category:','TU_CATEGORY_FK');
     If (FVars.CategoryID=1) then
@@ -511,18 +511,18 @@ begin
           FRight:='';
         EmitOneRow('SVN revisions:',FLeft,FRight);
       end;
-    EmitRow('Submitter:','SUBMITTER');
-    Date1 := aData.GetField('date');
+    EmitRow('Submitter:','Submitter');
+    Date1 := aData.GetField('Date');
     if Not IsComp then
       FRight:=''
     else
       begin
-      Date2 := aCompData.GetField('date');
+      Date2 := aCompData.GetField('Date');
       FRight:=Date2;
       end;
     same_date:=(date1=Date2);
     EmitOneRow('Date:',Date1,FRight,same_date);
-    CompilerDate1 := aData.GetField('compilerdate');
+    CompilerDate1 := aData.GetField('CompilerDate');
     if Not IsComp then
       FRight:=''
     else
@@ -756,16 +756,16 @@ var
 begin
   LLog:=FSQL.StringQuery(Format('select TR_LOG from TESTLASTRESULTS left join testresults on (TL_TESTRESULTS_FK=TR_ID) where (TR_TEST_FK=%d) and (TL_PLATFORM_FK=%d)',[aTestID,aPlatformID]));
   With FHTMLWriter do
-    if LLog<>'' then
+    if LLog='' then
       begin
       HeaderStart(2);
-      DumpLn(Format('No log of %d:',[aRunId]));
+      DumpLn(Format('No log of %s on run %d:',[FVars.TestFileName,aRunId]));
       HeaderEnd(2);
       end
     else
       begin
       HeaderStart(2);
-      DumpLn(Format('Log of %d:',[aRunID]));
+      DumpLn(Format('Log of %s on run %d:',[FVars.TestFileName,aRunID]));
       HeaderEnd(2);
       PreformatStart;
       system.Write(LLog);
