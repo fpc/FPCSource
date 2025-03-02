@@ -41,7 +41,7 @@ Type
   private
     function FormatDetailURL(aRunID: Int64; aDate: TDateTime): string;
     procedure HandleCPU(aRunID: Int64; aCPUID: Integer; aStatus: TTestStatus; aDate: TDateTime);
-    procedure HandleDates(aRunID: Int64; aStatus: TTestStatus; aMap: TDatasetMap);
+    procedure HandleDates(aRunID: Int64; aStatus: TTestStatus; aDate: TDateTime);
     procedure HandleOS(aRunID: Int64; aOSID: Integer; aStatus: TTestStatus; aDate: TDateTime);
     procedure HandleVersion(aRunID: Int64; aVersionID: Integer; aStatus: TTestStatus; aDate: TDateTime);
     function MapCpu(aID: Integer): integer;
@@ -232,17 +232,13 @@ begin
 end;
 
 
-procedure TTestHistoryInfo.HandleDates(aRunID : Int64; aStatus : TTestStatus; aMap : TDatasetMap);
-
-var
-  lDate : TDateTime;
+procedure TTestHistoryInfo.HandleDates(aRunID : Int64; aStatus : TTestStatus; aDate : TDateTime);
 
 begin
-  lDate:=aMap.Date.AsDateTime;
   if Result_count[aStatus]=0 then
     begin
-      first_date[aStatus]:=lDate;
-      last_date[aStatus]:=lDate;
+      first_date[aStatus]:=aDate;
+      last_date[aStatus]:=aDate;
       first_date_id[aStatus]:=aRunID;
       last_date_id[aStatus]:=aRunID;
     end
@@ -250,12 +246,12 @@ begin
     begin
       if (date>last_date[aStatus]) then
         begin
-          last_date[aStatus]:=lDate;
+          last_date[aStatus]:=aDate;
           last_date_id[aStatus]:=aRunID;
         end;
       if date<first_date[aStatus] then
         begin
-          first_date[aStatus]:=lDate;
+          first_date[aStatus]:=aDate;
           first_date_id[aStatus]:=aRunID;
         end;
     end;
@@ -324,9 +320,10 @@ begin
     if (Resi>=longint(FirstStatus)) and  (Resi<=longint(LastStatus)) then
       begin
         TS:=TTestStatus(Resi);
-        inc(Result_count[TS]);
-        HandleDates(lRunID,ts,lMap);
         lDate:=lMap.Date.AsDateTime;
+        HandleDates(lRunID,ts,lDate);
+        // Do this only after the dates were handled, handleDates() has a 0=Result_count[TS] test.
+        Inc(Result_count[TS]);
         HandleCPU(lRunID,lMap.CPU.asInteger,ts,lDate);
         HandleOS(lRunID,lMap.OS.AsInteger,ts,lDate);
         HandleVersion(lRunID,lMap.Version.AsInteger,ts,lDate);
@@ -414,7 +411,7 @@ begin
         RowNext;
         CellStart;
         CellNext;
-        DumpLn(FSQL.GetOSName(i));
+        DumpLn(FSQL.GetOSName(FOSMap[i]));
         CellNext;
         DumpLn(Format('%d',[os_count[i,TS]]));
         CellNext;
@@ -444,7 +441,7 @@ begin
         RowNext;
         CellStart;
         CellNext;
-        DumpLn(FSQL.GetVersionName(i));
+        DumpLn(FSQL.GetVersionName(FVersionMap[i]));
         CellNext;
         DumpLn(Format('%d',[version_count[i,TS]]));
         CellNext;
