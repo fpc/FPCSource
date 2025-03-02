@@ -463,7 +463,8 @@ class function TTestSQL.EscapeSQL(const S: String): String;
 begin
 //  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
   Result:=StringReplace(S,'''','''''',[rfReplaceAll]);
-  tsutils.Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
+  if (Result<>S) then
+    tsutils.Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
 
