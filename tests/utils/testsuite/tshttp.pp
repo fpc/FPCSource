@@ -976,7 +976,7 @@ begin
   if Base='trunk' then
     Base:='main';
   lURL:=ViewGitHashURL+Base;
-  if FVars.CategoryID=1 then
+  if FVars.CategoryID<=1 then
     lURL:=lURL+TestsSubDir
   else
     begin
