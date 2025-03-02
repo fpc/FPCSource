@@ -315,9 +315,9 @@ begin
   'submitter' : Result:=submitter;
   'machine' : Result:=machine;
   'comment',
-  'config ' : Result:=config ;
-  'description ' : Result:=description ;
-  'date ' : Result:=DateToStr(Date);
+  'config' : Result:=config ;
+  'description' : Result:=description ;
+  'date' : Result:=DateToStr(Date);
   'compilerdate': Result:=CompilerDate;
   'compilerfullversion': Result:=CompilerFullVersion;
   'compilerrevision':  Result:=CompilerRevision;
