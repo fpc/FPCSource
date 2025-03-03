@@ -185,13 +185,12 @@ interface
             { indicates that the default value of the ts_wasm_threads target switch is 'on' for this target }
             tf_wasm_threads
        );
-
        psysteminfo = ^tsysteminfo;
        { using packed causes bus errors on processors which require alignment }
        tsysteminfo = record
           system       : tsystem;
           name         : string[88];
-          shortname    : string[13];
+          shortname    : string[14];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
