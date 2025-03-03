@@ -24,7 +24,6 @@ procedure testRjmp; assembler; nostackframe;
 label
   l1, l2;
 asm
-  rjmp l2
   l1:
   // A total of 2047 NOP instructions
   // 64 instructions per line
@@ -62,6 +61,7 @@ asm
   // 64 instructions below
   nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop;
   l2:
+  rjmp l1
 end;
 
 // Check conversion of JMP to RJMP instruction
