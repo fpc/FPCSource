@@ -643,7 +643,6 @@ begin
      target_os_string:=lower(target_info.shortname);
      target_cpu_string:=cpu2str[target_cpu];
      target_full_string:=target_cpu_string+'-'+target_os_string;
-     Writeln('Full target :',target_full_string);
      set_target:=true;
      exit;
    end;
