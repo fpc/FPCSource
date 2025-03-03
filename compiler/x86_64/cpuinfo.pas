@@ -220,6 +220,7 @@ type
        CPUX86_HAS_CMOV,         { CMOVcc instructions are available }
        CPUX86_HAS_SSEUNIT,      { SSE instructions are available }
        CPUX86_HAS_SSE2,         { SSE2 instructions are available }
+       CPUX86_HAS_SSSE3,        { SSSE3 instructions are available }
        CPUX86_HAS_SSE4_1,       { SSE 4.1 instructions are available }
        CPUX86_HAS_BMI1,         { BMI1 instructions are available }
        CPUX86_HAS_BMI2,         { BMI2 instructions are available }
@@ -269,7 +270,7 @@ type
 
  const
    cpu_x86_64_v1_flags = [CPUX86_HAS_BSWAP,CPUX86_HAS_BTX,CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_SSE2];
-   cpu_x86_64_v2_flags = cpu_x86_64_v1_flags+[CPUX86_HAS_CMPXCHG16B,CPUX86_HAS_LAHF_SAHF,CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT];
+   cpu_x86_64_v2_flags = cpu_x86_64_v1_flags+[CPUX86_HAS_CMPXCHG16B,CPUX86_HAS_LAHF_SAHF,CPUX86_HAS_SSSE3,CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT];
    cpu_x86_64_v3_flags = cpu_x86_64_v2_flags+[CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_OSXSAVE]; { most is in the fpu flags here }
    cpu_x86_64_v4_flags = cpu_x86_64_v3_flags; { everything is in the fpu flags here }
 
@@ -278,10 +279,10 @@ type
      { Athlon64      } cpu_x86_64_v1_flags,
      { cpu_x86_64    } cpu_x86_64_v1_flags,
      { cpu_x86_64_v1 } cpu_x86_64_v1_flags,
-     { cpu_core_i    } cpu_x86_64_v1_flags+[CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT],
+     { cpu_core_i    } cpu_x86_64_v1_flags+[CPUX86_HAS_SSSE3,CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT],
      { cpu_x86_64_v2 } cpu_x86_64_v2_flags,
      { cpu_bobcat    } cpu_x86_64_v1_flags+[CPUX86_HAS_POPCNT,CPUX86_HAS_LZCNT],
-     { cpu_core_avx  } cpu_x86_64_v1_flags+[CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT],
+     { cpu_core_avx  } cpu_x86_64_v1_flags+[CPUX86_HAS_SSSE3,CPUX86_HAS_SSE4_1,CPUX86_HAS_POPCNT],
      { cpu_jaguar    } cpu_x86_64_v2_flags+[CPUX86_HAS_BMI1,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_piledriver} cpu_x86_64_v2_flags+[CPUX86_HAS_BMI1,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE],
      { cpu_excavator } cpu_x86_64_v3_flags,
