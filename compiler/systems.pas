@@ -558,8 +558,8 @@ interface
        target_res  : tresinfo;
        target_dbg  : tdbginfo;
        target_cpu_string,
-       target_os_string   : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
-       target_full_string : string[24];
+       target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
+       target_full_string : string[28];
 
     function set_target(t:tsystem):boolean;
     function set_target_asm(t:tasm):boolean;
@@ -643,6 +643,7 @@ begin
      target_os_string:=lower(target_info.shortname);
      target_cpu_string:=cpu2str[target_cpu];
      target_full_string:=target_cpu_string+'-'+target_os_string;
+     Writeln('Full target :',target_full_string);
      set_target:=true;
      exit;
    end;
