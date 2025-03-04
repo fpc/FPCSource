@@ -133,6 +133,7 @@ type
     FArrayPrefix: String;
     FArraySuffix: String;
     FAutoTypes: TStrings;
+    FBanned: TStrings;
     FBaseOptions: TBaseConversionOptions;
     FClassPrefix: String;
     FClassSuffix: String;
@@ -161,6 +162,7 @@ type
     function GetUsed(D: TIDLDefinition): Boolean;
     function InUsedList(D: TIDLDefinition): Boolean;
     procedure ResolveCallbackInterfaces;
+    procedure SetBanned(AValue: TStrings);
     procedure SetGlobalVars(const AValue: TStrings);
     procedure SetIncludeImplementationCode(AValue: TStrings);
     procedure SetIncludeInterfaceCode(AValue: TStrings);
@@ -179,8 +181,8 @@ type
     Function CreateContext: TWebIDLContext; virtual;
     // Auxiliary routines
     function CheckChromeOnly(D: TIDLDefinition): Boolean;
-    function MarkUsed(D: TIDLDefinition; ParentIsUsed: Boolean): Boolean;
-    procedure MarkUsedDefinitions(aList: TIDLDefinitionList; ParentIsUsed: Boolean);
+    function MarkUsed(D: TIDLDefinition; ParentIsUsed: Boolean; aContext: string): Boolean;
+    procedure MarkUsedDefinitions(aList: TIDLDefinitionList; ParentIsUsed: Boolean; const aContext: string);
     procedure PropagateChromeOnly(aList: TIDLDefinitionList);
     procedure AddFullMemberList(aParent: TIDLStructuredDefinition; AddToList: TIDLDefinitionList);
     function GetFullMemberList(aParent: TIDLStructuredDefinition): TIDLDefinitionList;
@@ -328,6 +330,7 @@ type
     Property WebIDLVersion: TWebIDLVersion Read FWebIDLVersion Write FWebIDLVersion;
     Property TypeAliases: TStrings Read FTypeAliases Write SetTypeAliases;
     Property GlobalVars: TStrings Read FGlobalVars Write SetGlobalVars;
+    Property Banned: TStrings Read FBanned Write SetBanned;
     Property IncludeInterfaceCode: TStrings Read FIncludeInterfaceCode Write SetIncludeInterfaceCode;
     Property IncludeImplementationCode: TStrings Read FIncludeImplementationCode Write SetIncludeImplementationCode;
     Property DictionaryClassParent: String Read FDictionaryClassParent Write FDictionaryClassParent;
@@ -1235,11 +1238,13 @@ begin
   FIncludeInterfaceCode:=TStringList.Create;
   FIncludeImplementationCode:=TStringList.Create;
   FGlobalDefs:=TFPObjectHashTable.Create(False);
+  FBanned:=TStringList.Create;
 end;
 
 
 destructor TBaseWebIDLToPas.Destroy;
 begin
+  FreeAndNil(FBanned);
   FreeAndNil(FUsedDefs);
   FreeAndNil(FGlobalDefs);
   FreeAndNil(FIncludeInterfaceCode);
@@ -2996,17 +3001,11 @@ function TBaseWebIDLToPas.ConvertDef(D: TIDLDefinition): Boolean;
 
 
 var
-  AD : TIDLAttributeDefinition absolute D;
-  FD : TIDLFunctionDefinition;
-  A,RT : TIDLDefinition;
-  FAD : TIDLArgumentDefinition absolute A;
-  RN,N : String;
-  ANT : TPascalNativeType;
   isChrome : Boolean;
 
 begin
-  isChrome:=False;
-  Result:=(coChromeWindow in BaseOptions) or Not D.HasSimpleAttribute('ChromeOnly');
+  isChrome:=D.HasSimpleAttribute('ChromeOnly');
+  Result:=(coChromeWindow in BaseOptions) or Not IsChrome;
   if not Result then
     exit;
   if Result and (coOnlyUsed in BaseOptions) then
@@ -3142,6 +3141,12 @@ begin
 
 end;
 
+procedure TBaseWebIDLToPas.SetBanned(AValue: TStrings);
+begin
+  if FBanned=AValue then Exit;
+  FBanned.Assign(AValue);
+end;
+
 function TBaseWebIDLToPas.GetUsed(D: TIDLDefinition) : Boolean;
 
 begin
@@ -3155,7 +3160,16 @@ begin
   Result:=FUsedDefs.Items[D.Name]<>Nil;
 end;
 
-function TBaseWebIDLToPas.MarkUsed(D: TIDLDefinition; ParentIsUsed : Boolean) : Boolean;
+function TBaseWebIDLToPas.MarkUsed(D: TIDLDefinition; ParentIsUsed : Boolean; aContext : string) : Boolean;
+
+  function AddToContext(const aTerm : String) : string;
+
+  begin
+    if aContext<>'' then
+      Result:=aContext+'->'+aTerm
+    else
+      Result:=aTerm;
+  end;
 
   // Return true if the definition 'used' status was change to true
   function DoMark : Boolean;
@@ -3172,6 +3186,11 @@ function TBaseWebIDLToPas.MarkUsed(D: TIDLDefinition; ParentIsUsed : Boolean) : 
       exit;
     if ParentIsUsed or InUsedList(D) then
       begin
+      if (FBanned.IndexOf(D.Name)<>-1) then
+        begin
+        DoLog('Banned definition %s found in context: %s',[D.Name,aContext]);
+        Raise Exception.CreateFmt('Banned definition %s found. Check log for more detail',[D.Name]);
+        end;
       // Writeln('Marking ',D.GetNamePath,' as used');
       TPasData(D.Data).Used:=True;
       Result:=True;
@@ -3185,7 +3204,7 @@ function TBaseWebIDLToPas.MarkUsed(D: TIDLDefinition; ParentIsUsed : Boolean) : 
 
   begin
     lDef:=FindGlobalDef(aTypeName);
-    Result:=(lDef<>nil) and MarkUsed(lDef,True);
+    Result:=(lDef<>nil) and MarkUsed(lDef,True,AddToContext(aTypeName));
   end;
 
 var
@@ -3205,25 +3224,25 @@ begin
   // Mark sub-classes as used
   if D Is TIDLInterfaceDefinition then
     begin
-    MarkUsedDefinitions(TIDLInterfaceDefinition(D).Members,True);
+    MarkUsedDefinitions(TIDLInterfaceDefinition(D).Members,True,AddToContext(D.Name+'Members'));
     P:=TIDLInterfaceDefinition(D).ParentInterface;
     While Assigned(P) do
       begin
-      MarkUsed(P,True);
+      MarkUsed(P,True,AddToContext(D.Name+'.Parent'));
       P:=P.ParentInterface;
       end;
     P:=TIDLInterfaceDefinition(D);
     For I:=0 to P.Partials.Count-1 do
-      MarkUsed(P.Partial[i],True);
+      MarkUsed(P.Partial[i],True,AddToContext(D.Name));
     end
   else if D Is TIDLNamespaceDefinition then
     begin
-    MarkUsedDefinitions(TIDLNamespaceDefinition(D).Members,True);
+    MarkUsedDefinitions(TIDLNamespaceDefinition(D).Members,True,AddToContext(D.Name+'.Members'));
     end
   else if D Is TIDLDictionaryDefinition then
     begin
-    MarkUsedDefinitions(TIDLDictionaryDefinition(D).Members,True);
-    MarkUsed(TIDLDictionaryDefinition(D).ParentDictionary,True);
+    MarkUsedDefinitions(TIDLDictionaryDefinition(D).Members,True,AddToContext(D.Name+'.Members'));
+    MarkUsed(TIDLDictionaryDefinition(D).ParentDictionary,True,AddToContext(D.Name+'.parent'));
     end
   else if D is TIDLIncludesDefinition then
     begin
@@ -3232,23 +3251,23 @@ begin
   else if D Is TIDLFunctionDefinition then
     begin
     FD:=TIDLFunctionDefinition(D);
-    MarkUsedDefinitions(FD.Arguments,True);
-    MarkUsed(FD.ReturnType,True);
+    MarkUsedDefinitions(FD.Arguments,True,AddToContext(D.Name+'.Arguments'));
+    MarkUsed(FD.ReturnType,True,AddToContext(D.Name+'.ReturnType'));
     end
   else if D Is TIDLUnionTypeDefDefinition then
-    MarkUsedDefinitions(TIDLUnionTypeDefDefinition(D).Union,True)
+    MarkUsedDefinitions(TIDLUnionTypeDefDefinition(D).Union,True,AddToContext(D.Name+'.Elements'))
   else if D is TIDLAttributeDefinition then
-    MarkUsed(TIDLAttributeDefinition(D).AttributeType,True)
+    MarkUsed(TIDLAttributeDefinition(D).AttributeType,True,AddToContext(D.Name+'.AttributeType'))
   else if D is TIDLArgumentDefinition then
-    MarkUsed(TIDLArgumentDefinition(D).ArgumentType,True)
+    MarkUsed(TIDLArgumentDefinition(D).ArgumentType,True,AddToContext(D.Name+'.ArgumentType'))
   else if D is TIDLSequenceTypeDefDefinition then
-    MarkUsed(TIDLSequenceTypeDefDefinition(D).ElementType,True)
+    MarkUsed(TIDLSequenceTypeDefDefinition(D).ElementType,True,AddToContext(D.Name+'.ElementType'))
   else if D is TIDLPromiseTypeDefDefinition then
-    MarkUsed(TIDLPromiseTypeDefDefinition(D).ReturnType,True)
+    MarkUsed(TIDLPromiseTypeDefDefinition(D).ReturnType,True,AddToContext(D.Name+'.ReturnType'))
   else if D is TIDLMapLikeDefinition then
     begin
-    MarkUsed(TIDLMapLikeDefinition(D).KeyType,True);
-    MarkUsed(TIDLMapLikeDefinition(D).ValueType,True);
+    MarkUsed(TIDLMapLikeDefinition(D).KeyType,True,AddToContext(D.Name+'.KeyType'));
+    MarkUsed(TIDLMapLikeDefinition(D).ValueType,True,AddToContext(D.Name+'.ValueType'));
     end
   else if D is TIDLTypeDefDefinition then
     begin
@@ -3262,34 +3281,43 @@ begin
   else if D is TIDLSerializerDefinition then
     begin
     SerializerD:=TIDLSerializerDefinition(D);
-    MarkUsed(SerializerD.SerializerFunction,True);
+    MarkUsed(SerializerD.SerializerFunction,True,AddToContext(D.Name+'.SerializerFunction'));
     end
   else if D is TIDLDictionaryMemberDefinition then
     begin
     DMD:=TIDLDictionaryMemberDefinition(D);
-    MarkUsed(DMD.MemberType,True);
+    MarkUsed(DMD.MemberType,True,AddToContext(D.Name+'.MemberType'));
     // MarkUsed(DMD.DefaultValue,True);
     end
   else if D is TIDLEnumDefinition then
     //
   else if D is TIDLCallBackDefinition then
-    MarkUsed(TIDLCallBackDefinition(D).FunctionDef,True)
+    MarkUsed(TIDLCallBackDefinition(D).FunctionDef,True,AddToContext(D.Name+'.FunctionDef'))
   else if D is TIDLSetlikeDefinition then
-    MarkUsed(TIDLSetlikeDefinition(D).ElementType,True)
+    MarkUsed(TIDLSetlikeDefinition(D).ElementType,True,AddToContext(D.Name+'.SetElement') )
   else if D is TIDLImplementsOrIncludesDefinition then
     //
   else if D is TIDLIterableDefinition then
     begin
     IT:=TIDLIterableDefinition(D);
-    MarkUsed(IT.ValueType,True);
-    MarkUsed(IT.KeyType,True);
+    MarkUsed(IT.ValueType,True,AddToContext(D.Name+'.ValueType'));
+    MarkUsed(IT.KeyType,True,AddToContext(D.Name+'.KeyType'));
     end
   else {if Verbose then}
     raise EConvertError.Create('[20220725172214] TBaseWebIDLToPas.ResolveTypeDef unknown '+D.Name+':'+D.ClassName+' at '+GetDefPos(D));
 
 end;
 
-procedure TBaseWebIDLToPas.MarkUsedDefinitions(aList : TIDLDefinitionList; ParentIsUsed : Boolean);
+procedure TBaseWebIDLToPas.MarkUsedDefinitions(aList : TIDLDefinitionList; ParentIsUsed : Boolean; const aContext : string);
+
+  function AddToContext(aAdd : string) : string;
+
+  begin
+    if aContext<>'' then
+      Result:=aContext+'['+aAdd+']'
+    else
+      Result:=aAdd
+  end;
 
 var
   D : TIDLDefinition;
@@ -3297,11 +3325,11 @@ var
 begin
   For D In aList do
     begin
-    MarkUsed(D,ParentIsUsed);
+    MarkUsed(D,ParentIsUsed,AddToContext(D.Name));
     end;
 end;
 
-Function TBaseWebIDLToPas.CheckChromeOnly(D : TIDLDefinition) : Boolean;
+function TBaseWebIDLToPas.CheckChromeOnly(D: TIDLDefinition): Boolean;
 
   Function IsChromeOnly(D : TIDLDefinition) : boolean; inline;
 
@@ -3521,7 +3549,7 @@ begin
   if (coOnlyUsed in BaseOptions) then
     begin
     DoLog('Marking used type definitions.');
-    MarkUsedDefinitions(FContext.Definitions,False);
+    MarkUsedDefinitions(FContext.Definitions,False,'');
     end;
   if Not (coChromeWindow in BaseOptions) then
     begin
