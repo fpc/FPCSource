@@ -46,6 +46,7 @@ type
     procedure DebugMsg(const s: string; p: tai);
 
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+
     function OptPass1OP(var p: tai): boolean;
     function OptPass1FOP(var p: tai;mvop: tasmop): boolean;
     function OptPass1FSGNJ(var p: tai;mvop: tasmop): boolean;
@@ -53,9 +54,10 @@ type
     function OptPass1SLTI(var p: tai): boolean;
     function OptPass1Andi(var p: tai): boolean;
     function OptPass1SLTIU(var p: tai): boolean;
-
+    function OptPass1SxxI(var p: tai): boolean;
     function OptPass1Add(var p: tai): boolean;
     function OptPass1Sub(var p: tai): boolean;
+
     procedure RemoveInstr(var orig: tai; moveback: boolean=true);
   end;
 
@@ -747,6 +749,28 @@ implementation
     end;
 
 
+  function TRVCpuAsmOptimizer.OptPass1SxxI(var p: tai): boolean;
+    begin
+      result:=false;
+      if (taicpu(p).oper[2]^.val=0) and
+        MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
+        begin
+          DebugMsg('Peephole S*LI x,x,0 to nop performed', p);
+          RemoveInstr(p);
+          result:=true;
+        end
+      else if (taicpu(p).oper[2]^.val=0) then
+        begin
+          { this enables further optimizations }
+          DebugMsg('Peephole S*LI x,y,0 to addi performed', p);
+          taicpu(p).opcode:=A_ADDI;
+          result:=true;
+        end
+      else
+        result:=OptPass1OP(p);
+    end;
+
+
   function TRVCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       hp1: tai;
@@ -824,24 +848,7 @@ implementation
               A_SRAI,
               A_SRLI,
               A_SLLI:
-                begin
-                  if (taicpu(p).oper[2]^.val=0) and
-                    MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
-                    begin
-                      DebugMsg('Peephole S*LI x,x,0 to nop performed', p);
-                      RemoveInstr(p);
-                      result:=true;
-                    end
-                  else if (taicpu(p).oper[2]^.val=0) then
-                    begin
-                      { this enables further optimizations }
-                      DebugMsg('Peephole S*LI x,y,0 to addi performed', p);
-                      taicpu(p).opcode:=A_ADDI;
-                      result:=true;
-                    end
-                  else
-                    result:=OptPass1OP(p);
-                end;
+                result:=OptPass1SxxI(p);
               A_SLTI:
                 result:=OptPass1SLTI(p);
               A_FADD_S,
