@@ -408,6 +408,7 @@ begin
   If OpenQuery(Qry,Res,False) then
     try
       Result:=GetStrResultField(Res,0);
+      Verbose(V_SQL,'StringQuery: '+Result);
     finally
       FreeQueryResult(Res);
     end;
@@ -427,6 +428,7 @@ begin
     mtVersion  : lSQL:='SELECT TV_ID FROM TESTVERSION order by TV_ID';
   end;
   Qry:=CreateQuery(lSQL);
+  Verbose(V_SQL,'CreateMap: '+lSQL);
   try
     Qry.PacketRecords:=-1;
     Qry.Open;
@@ -637,6 +639,7 @@ var
 
 begin
   Qry:=CreateQuery(Format(SQLSelectRunData,[aID]));
+  Verbose(V_SQL,'GetRunData: '+Format(SQLSelectRunData,[aID]));
   try
     Qry.Open;
     Result:=Not Qry.IsEmpty;
@@ -1020,6 +1023,7 @@ begin
   Result.TestID:=aTestID;
   Result.PlatformID:=aPlatformID;
   Qry:=CreateQuery(Format(SQLSelect,[aTestID,aPlatformID]));
+  Verbose(V_SQL,'GetLastTestResult: '+Format(SQLSelect,[aTestID,aPlatformID]));
   try
     Qry.Open;
     If not Qry.IsEmpty then
