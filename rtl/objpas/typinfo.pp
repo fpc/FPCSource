@@ -1150,6 +1150,7 @@ unit TypInfo;
 
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+Function GetTypeName(aTypeInfo : PTypeInfo) : String;
 Function AlignTypeData(p : Pointer) : Pointer; inline;
 Function AlignTParamFlags(p : Pointer) : Pointer; inline;
 Function AlignPTypeInfo(p : Pointer) : Pointer; inline;
@@ -1161,6 +1162,7 @@ Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+Function GetPropName(aPropInfo : PPropInfo) : string;
 
 Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 Function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
@@ -1757,6 +1759,11 @@ begin
   ArrayToSet(PropInfo^.PropType, Value, Result);
 end;
 
+function GetTypeName(aTypeInfo: PTypeInfo): String;
+begin
+  Result:=aTypeInfo^.Name;
+end;
+
 Function AlignTypeData(p : Pointer) : Pointer;
 {$packrecords c}
   type
@@ -1937,6 +1944,11 @@ end;
 Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
 begin
   Result:=GetPropInfo(PTypeInfo(AClass.ClassInfo),PropName,AKinds);
+end;
+
+function GetPropName(aPropInfo: PPropInfo): string;
+begin
+  Result:=aPropInfo^.Name;
 end;
 
 
