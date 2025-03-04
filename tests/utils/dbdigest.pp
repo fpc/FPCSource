@@ -318,6 +318,7 @@ begin
   Writeln('-h --host=HOST                    database hostname');
   Writeln('-p --password=PWD                 database user password');
   Writeln('-P --port=NNN                     database connection port');
+  Writeln('-Q --sql                          be verbose about sql queries');
   Writeln('-r --relsrcdir                    relative source dir');
   Writeln('-S --testsrcdir                   test source dir');
   Writeln('-u --username=USER                database user name');
