@@ -1048,7 +1048,9 @@ implementation
         i: ttypeconvnodeflag;
       begin
         inherited printnodeinfo(t);
+        write(t,', totypedef = ',totypedef.GetTypeName);
         write(t,', convtype = ',convtype);
+        write(t,', assignment_side = ',assignment_side);
         write(t,', convnodeflags = [');
         first:=true;
         for i:=low(ttypeconvnodeflag) to high(ttypeconvnodeflag) do
