@@ -737,34 +737,54 @@ var
   // so I doubt an additional check like "if (RandSeed <> OldRandSeed) or not RngInitialized" is justified.
 
 function random(l:longint): longint;
+var
+  t: uint32;
+  m: uint64;
 begin
-  { otherwise we can return values = l (JM) }
-  if (l < 0) then
-    inc(l);
-  random := longint((int64(xsr128_32_u32rand)*l) shr 32);
+  result:=l;
+  if l<0 then
+    result:=-result-1; { from now on, uint32(result) is a bound. }
+
+  { https://lemire.me/blog/2019/06/06/nearly-divisionless-random-integer-generation-on-various-systems/ }
+  m:=uint64(xsr128_32_u32rand)*uint32(result);
+  if Lo(m)<uint32(result) then
+    begin
+      t:=uint32(-result) mod uint32(result);
+      while Lo(m)<t do
+        m:=uint64(xsr128_32_u32rand)*uint32(result);
+    end;
+  result:=Hi(m);
+
+  if l<-1 then
+    result:=-result-1;
 end;
 
 function random(l:int64): int64;
 var
+  t, ul, mLo: uint64;
   a: uint32;
-  neg: boolean;
 begin
-  if (l>=Low(int32)) and (l<=High(int32)) then
-    begin
-      { random(longint(l)), inlined. This makes random(NativeType) on 64-bit platforms match 32-bit when possible. }
-      if (l < 0) then
-        inc(l);
-      exit(longint(int64(xsr128_32_u32rand)*l shr 32));
-    end;
+  if l=int32(l) then
+    { This makes random(NativeType) on 64-bit platforms match 32-bit when possible. }
+    exit(random(longint(l)));
 
-  neg:=l<0;
-  if neg then
-    l:=-l-1;
+  ul:=l;
+  if l<0 then
+    ul:=-ul-1;
 
   a:=xsr128_32_u32rand;
-  UMul64x64_128(uint64(a) shl 32 or xsr128_32_u32rand, uint64(l), uint64(result));
+  mLo:=UMul64x64_128(uint64(a) shl 32 or xsr128_32_u32rand,ul,uint64(result));
+  if mLo<ul then
+    begin
+      t:=uint64(-ul) mod ul;
+      while mLo<t do
+        begin
+          a:=xsr128_32_u32rand;
+          mLo:=UMul64x64_128(uint64(a) shl 32 or xsr128_32_u32rand,ul,uint64(result));
+        end;
+    end;
 
-  if neg then
+  if l<-1 then
     result:=-result-1;
 end;
 
