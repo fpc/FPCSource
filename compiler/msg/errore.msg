@@ -4415,6 +4415,7 @@ Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
 W*2Twasip1_The WebAssembly System Interface Preview 1 (WASI 0.1)
+W*2Twasip1threads_The WebAssembly System Interface Preview 1 with Multithreading (WASI 0.1 + wasi-threads)
 # end of targets section
 **1t<x>_Target architecture
 **2*_ * Defines FPC_SUBTARGET_<x> 
