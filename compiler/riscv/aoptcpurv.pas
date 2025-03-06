@@ -729,23 +729,37 @@ implementation
       if (taicpu(p).ops=3) and
          (taicpu(p).oper[2]^.typ=top_const) and
          (taicpu(p).oper[2]^.val=1) and
-         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-         MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
-         (taicpu(hp1).ops=3) and
-         MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
-         MatchOperand(taicpu(hp1).oper[1]^,NR_X0) and
-         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
-        begin
-          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
-          taicpu(hp1).condition:=inverse_cond(taicpu(hp1).condition);
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
+         begin
+           if MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
+             (taicpu(hp1).ops=3) and
+             MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+             MatchOperand(taicpu(hp1).oper[1]^,NR_X0) and
+             (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+             RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+             begin
+               taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+               taicpu(hp1).condition:=inverse_cond(taicpu(hp1).condition);
 
-          DebugMsg('Peephole Sltiu0B2B performed', hp1);
+               DebugMsg('Peephole Sltiu0B2B performed', hp1);
 
-          RemoveInstr(p);
+               RemoveInstr(p);
 
-          result:=true;
-        end;
+               result:=true;
+             end
+           else if MatchInstruction(hp1,A_ANDI) and
+             (taicpu(hp1).ops=3) and
+             (taicpu(p).oper[2]^.val>0) and
+             MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+             MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) then
+             begin
+               DebugMsg('Peephole SltiuAndi2Sltiu performed', hp1);
+
+               RemoveInstr(hp1);
+
+               result:=true;
+             end;
+         end;
     end;
 
 
