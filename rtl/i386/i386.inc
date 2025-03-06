@@ -3054,3 +3054,52 @@ asm
         sarl   %cl,%eax // uses 5 lower bits of cl.
 end;
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
+
+{$ifndef FPC_SYSTEM_HAS_UMUL64X64_128}
+{$define FPC_SYSTEM_HAS_UMUL64X64_128}
+function UMul64x64_128(a,b: uint64; out rHi: uint64): uint64; assembler; nostackframe;
+{ [esp + 12] = a, [esp + 4] = b, eax = rHi }
+asm
+  {                                                   Hi(a)             Lo(a)
+                                                    x Hi(b)             Lo(b)
+    -------------------------------------------------------------------------
+                                          Hi(Lo(a) * Lo(b)) Lo(Lo(a) * Lo(b))
+    +                   Hi(Hi(a) * Lo(b)) Lo(Hi(a) * Lo(b))
+    +                   Hi(Lo(a) * Hi(b)) Lo(Lo(a) * Hi(b))
+    + Hi(Hi(a) * Hi(b)) Lo(Hi(a) * Hi(b))
+             edi               esi          ebx, then edx          eax        }
+  push %ebx
+  push %esi
+  push %edi
+  mov %eax, %ecx { ecx = rHi. }
+
+  mov 12+16(%esp), %eax
+  mull 12+8(%esp) { edx:eax = Hi(a) * Hi(b). }
+  mov %eax, %esi
+  mov %edx, %edi { edi:esi = Hi(a) * Hi(b). }
+
+  mov 12+16(%esp), %eax
+  mull 12+4(%esp) { edx:eax = Hi(a) * Lo(b). }
+  mov %eax, %ebx
+  add %edx, %esi { edi:esi += Hi(Hi(a) * Lo(b)). }
+  adc $0, %edi
+
+  mov 12+12(%esp), %eax
+  mull 12+8(%esp) { edx:eax = Lo(a) * Hi(b). }
+  add %eax, %ebx // edi:esi:ebx += Lo(a) * Hi(b).
+  adc %edx, %esi
+  adc $0, %edi
+
+  mov 12+12(%esp), %eax
+  mull 12+4(%esp) { edx:eax = Lo(a) * Lo(b). }
+  add %ebx, %edx { edi:esi:edx += Hi(Lo(a) * Lo(b)). }
+  adc $0, %esi
+  adc $0, %edi
+
+  mov %esi, (%ecx)
+  mov %edi, 4(%ecx)
+  pop %edi
+  pop %esi
+  pop %ebx
+end;
+{$endif FPC_SYSTEM_HAS_UMUL64X64_128}

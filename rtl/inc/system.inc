@@ -746,9 +746,8 @@ end;
 
 function random(l:int64): int64;
 var
- a, b, c, d: cardinal;
- q, bd, ad, bc, ac: qword;
- carry: qword;
+  a: uint32;
+  neg: boolean;
 begin
   if (l>=Low(int32)) and (l<=High(int32)) then
     begin
@@ -758,32 +757,15 @@ begin
       exit(longint(int64(xsr128_32_u32rand)*l shr 32));
     end;
 
-  if (l < 0) then
-    begin
-      inc(l);
-      q:=qword(-l)
-    end
-  else
-    q:=qword(l);
+  neg:=l<0;
+  if neg then
+    l:=-l-1;
 
   a:=xsr128_32_u32rand;
-  b:=xsr128_32_u32rand;
+  UMul64x64_128(uint64(a) shl 32 or xsr128_32_u32rand, uint64(l), uint64(result));
 
-  c:=q shr 32;
-  d:=cardinal(q);
-
-  bd:=qword(b)*d;
-  ad:=qword(a)*d;
-  bc:=qword(b)*c;
-  ac:=qword(a)*c;
-
-  // We only need the carry bit
-  carry:=((bd shr 32)+cardinal(ad)+cardinal(bc)) shr 32;
-
-  // Calculate the final result
-  result:=int64(carry+(ad shr 32)+(bc shr 32)+ac);
-  if l<0 then
-    result:=-result;
+  if neg then
+    result:=-result-1;
 end;
 
 {$ifndef FPUNONE}

@@ -2064,6 +2064,21 @@ function fpc_mod_shortint(n,z : shortint) : shortint; [public,alias: 'FPC_MOD_SH
 
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
+{$ifndef FPC_SYSTEM_HAS_UMUL64X64_128}
+{$push} {$q-,r-}
+function UMul64x64_128(a,b: uint64; out rHi: uint64): uint64;
+var
+  albl, albh, ahbl: uint64;
+begin
+  albl := uint64(uint32(a)) * uint32(b);
+  albh := uint64(uint32(a)) * (b shr 32);
+  ahbl := a shr 32 * uint32(b);
+  result := albl + albh shl 32 + ahbl shl 32;
+  rHi    := a shr 32 * (b shr 32) + albh shr 32 + ahbl shr 32 + (albl shr 32 + uint32(albh) + uint32(ahbl)) shr 32;
+end;
+{$pop}
+{$endif FPC_SYSTEM_HAS_UMUL64X64_128}
+
 {****************************************************************************}
 
 {$if defined(CPUINT8)}
