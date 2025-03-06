@@ -974,6 +974,10 @@ implementation
                    hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
                    location_copy(location,left.location);
                  end;
+               LOC_CONSTANT:  { Usually 'nil' }
+                 begin
+                   hlcg.reference_reset_base(location.reference,left.resultdef,NR_NO,left.location.value,ctempposinvalid,location.reference.alignment,[]);
+                 end;
                LOC_INVALID:
                  Internalerror(2019061101);
                else
