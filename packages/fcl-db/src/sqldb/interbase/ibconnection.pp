@@ -178,11 +178,6 @@ implementation
 uses
   StrUtils, FmtBCD;
 
-const
-  SQL_BOOLEAN_INTERBASE = 590;
-  SQL_BOOLEAN_FIREBIRD = 32764;
-  SQL_NULL = 32767;
-  INVALID_DATA = -1;
 
 procedure TIBConnection.CheckError(const ProcName : string; Status : PISC_STATUS);
 
@@ -789,6 +784,9 @@ begin
         TrType := ftFloat;
     SQL_BOOLEAN_INTERBASE, SQL_BOOLEAN_FIREBIRD :
         TrType := ftBoolean;
+    SQL_INT128,
+    SQL_DEC16, SQL_DEC34:
+        TrType := ftFmtBCD;
     else
         TrType := ftUnknown;
   end;
@@ -1186,6 +1184,7 @@ var
   li       : LargeInt;
   CurrBuff : pchar;
   w        : word;
+  i128     : Int128Rec;
 
 begin
   {$push}
@@ -1269,6 +1268,15 @@ begin
           SetDateTime(VSQLVar^.SQLData, AParam.AsDateTime, VSQLVar^.SQLType);
         SQL_BOOLEAN_FIREBIRD:
           PByte(VSQLVar^.SQLData)^ := Byte(AParam.AsBoolean);
+        SQL_INT128:
+          begin
+            i128 := BCDToInt128(AParam.AsFMTBCD);
+            Move(i128, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
+          end;
+        SQL_DEC16:
+          begin
+          // ToDo
+          end;
       else
         if (VSQLVar^.sqltype <> SQL_NULL) then
           DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
@@ -1280,12 +1288,14 @@ end;
 
 function TIBConnection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 
+type
+  PInt128Rec = ^Int128Rec;
 var
   VSQLVar    : PXSQLVAR;
   VarcharLen : word;
-  CurrBuff     : pchar;
-  c            : currency;
-  AFmtBcd      : tBCD;
+  CurrBuff   : PAnsiChar;
+  c          : currency;
+  AFmtBcd    : tBCD;
 
   function BcdDivPower10(Dividend: largeint; e: integer): TBCD;
   var d: double;
@@ -1344,15 +1354,22 @@ begin
           end;
         ftFMTBcd :
           begin
-            case VSQLVar^.SQLLen of
-              2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -VSQLVar^.SQLScale);
-              4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -VSQLVar^.SQLScale);
-              8 : if Dialect < 3 then
-                    AFmtBcd := PDouble(CurrBuff)^
-                  else
-                    AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -VSQLVar^.SQLScale);
+            case (VSQLVar^.sqltype and not 1) of
+              SQL_DEC16:
+                // ToDo
+                AFmtBcd := 0;
               else
-                Result := False; // Just to be sure, in principle this will never happen
+                case VSQLVar^.SQLLen of
+                  2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -VSQLVar^.SQLScale);
+                  4 : AFmtBcd := BcdDivPower10(PLongint(CurrBuff)^,  -VSQLVar^.SQLScale);
+                  8 : if Dialect < 3 then
+                        AFmtBcd := PDouble(CurrBuff)^
+                      else
+                        AFmtBcd := BcdDivPower10(PLargeint(CurrBuff)^, -VSQLVar^.SQLScale);
+                  16: AFmtBcd := Int128ToBcd(PInt128Rec(CurrBuff)^);
+                  else
+                    Result := False; // Just to be sure, in principle this will never happen
+                end; {case}
             end; {case}
             Move(AFmtBcd, buffer^ , sizeof(AFmtBcd));
           end;
