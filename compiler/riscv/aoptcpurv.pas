@@ -749,7 +749,7 @@ implementation
              end
            else if MatchInstruction(hp1,A_ANDI) and
              (taicpu(hp1).ops=3) and
-             (taicpu(p).oper[2]^.val>0) and
+             (taicpu(hp1).oper[2]^.val>0) and
              MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
              MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) then
              begin
