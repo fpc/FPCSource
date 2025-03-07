@@ -58,11 +58,11 @@
 { the next defines must be defined by hand,
   unless someone shows me a way how to to it with macros }
 
-{$define BCDgr4}   { define this if MCDMaxDigits is greater 4,   else undefine! }
-{$define BCDgr9}   { define this if MCDMaxDigits is greater 9,   else undefine! }
-{$define BCDgr18}  { define this if MCDMaxDigits is greater 18,  else undefine! }
-{ $define BCDgr64}  { define this if MCDMaxDigits is greater 64,  else undefine! }
-{ $define BCDgr180} { define this if MCDMaxDigits is greater 180, else undefine! }
+{$define BCDgr4}   { define this if BCDMaxDigits is greater 4,   else undefine! }
+{$define BCDgr9}   { define this if BCDMaxDigits is greater 9,   else undefine! }
+{$define BCDgr18}  { define this if BCDMaxDigits is greater 18,  else undefine! }
+{ $define BCDgr64}  { define this if BCDMaxDigits is greater 64,  else undefine! }
+{ $define BCDgr180} { define this if BCDMaxDigits is greater 180, else undefine! }
 
 {$ifdef BCDgr4}
  {$hint BCD Digits > 4}
@@ -348,6 +348,8 @@ INTERFACE
 
   function IntegerToBCD ( const aValue : myInttype ) : tBCD;
 
+  function Int128ToBCD ( const aValue : Int128Rec ) : tBCD;
+
   function VarToBCD ( const aValue : Variant ) : tBCD;
 
 { From DB.pas }
@@ -368,6 +370,8 @@ INTERFACE
 
   function BCDToInteger ( const BCD : tBCD;
                                 Truncate : Boolean = False ) : myInttype;
+
+  function BCDToInt128 ( const BCD : tBCD ) : Int128Rec;
 
 { From DB.pas }
   function BCDToCurr ( const BCD : tBCD;
@@ -1661,6 +1665,57 @@ IMPLEMENTATION
        _endSELECT;
      end;
 
+  function Int128ToBCD ( const aValue : Int128Rec ) : tBCD;
+
+    procedure DivMod(var Dividend: Int128Rec; const Divisor: DWord; out Remainder: DWord);
+    var v64: QWord; i: integer;
+    begin
+      Remainder:=0;
+      // little endian
+      for i:=3 downto 0 do begin
+        v64 := (QWord(Remainder) shl 32) or Dividend.DWords[i];
+        Dividend.DWords[i] := v64 div Divisor;
+        Remainder := v64 mod Divisor;
+      end;
+    end;
+
+  var
+    bh : tBCD_helper;
+    v128: Int128Rec;
+    digit: DWord;
+    p : {$ifopt r+} low ( bh.Singles ) - 1..0 {$else} Integer {$endif};
+    exitloop : Boolean;
+
+  begin
+    if aValue.Hi = 0 then
+      Result := IntegerToBCD(aValue.Lo)
+    else begin
+      v128 := aValue;
+      bh := null_.bh;
+      with bh do begin
+        Neg := v128.Hi and (1 shl 63) <> 0;
+        if Neg then begin
+          v128.Lo := not v128.Lo + 1;
+          v128.Hi := not v128.Hi + Ord(v128.Lo=0);
+        end;
+        LDig := 0;
+        p := 0;
+        repeat
+          DivMod(v128, 10, digit);
+          Singles[p] := digit;
+          exitloop := (v128.Hi = 0) and (v128.Lo = 0);
+          Dec(p);
+          if p < low(Singles) then begin
+            exitloop := True;
+            raise eBCDOverflowException.Create('in Int128ToBCD');
+          end;
+        until exitloop;
+        FDig := p + 1;
+      end;
+      pack_BCD ( bh, Result );
+    end;
+  end;
+
   function CurrToBCD ( const Curr : currency;
                          var BCD : tBCD;
                              Precision : Integer = 32;
@@ -1852,6 +1907,39 @@ IMPLEMENTATION
             else BCDToInteger := -res;
          end;
      end;
+
+  function BCDToInt128 ( const BCD : tBCD ) : Int128Rec;
+
+    procedure MulAdd(var v128: Int128Rec; Mul, Add: DWord);
+    var v64: QWord; i: integer;
+    begin
+      // little endian
+      for i:=0 to 3 do begin
+        v64 := QWord(v128.DWords[i])*Mul + Add;
+        v128.DWords[i] := v64 and $FFFFFFFF;
+        Add := v64 shr 32;
+      end;
+    end;
+
+  var
+    bh : tBCD_helper;
+    i : {$ifopt r+} low ( bh.FDig )..0 {$else} Integer {$endif};
+
+  begin
+    unpack_BCD ( BCD, bh );
+    Result.Lo := 0;
+    Result.Hi := 0;
+    with bh do begin
+      for i := FDig to 0 do
+        MulAdd(Result, 10, Singles[i]);
+      if Plac > 0 then
+        if Singles[1] > 4 then MulAdd(Result, 1, 1);
+      if Neg then begin
+        Result.Lo := not Result.Lo + 1;
+        Result.Hi := not Result.Hi + Ord(Result.Lo=0);
+      end;
+    end;
+  end;
 
 { From DB.pas }
   function BCDToCurr ( const BCD : tBCD;
@@ -2539,7 +2627,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
             break;
           end;
         end;
-      if d = 0 then dec(j); // if decimal separator is last AnsiChar then do not copy them
+      if d = 0 then dec(j); // if decimal separator is last char then do not copy them
       Result := copy(Result, 1, j);
     end;
 
