@@ -433,7 +433,7 @@ begin
     begin
       NewDestP:=GetMem((S1Len+S2Len)*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
       PUnicodeRec(NewDestP-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
-      PUnicodeRec(NewDestP-UnicodeFirstOff)^.ElementSize:=1;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.ElementSize:=sizeof(UnicodeChar);
       PUnicodeRec(NewDestP-UnicodeFirstOff)^.Ref:=1;
       Move(Pointer(S1)^,NewDestP^,S1Len*sizeof(UnicodeChar));
       Move(Pointer(S2)^,PUnicodeChar(NewDestP)[S1Len],S2Len*sizeof(UnicodeChar));
@@ -489,7 +489,7 @@ begin
       OldDestP:=nil; { This case is distinguished as "not assigned(olddestp)". Also prevents "if p=olddestp" in the loop below shared with the ReallocMem branch. }
       NewDestP:=GetMem(NewLen*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
       PUnicodeRec(NewDestP-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
-      PUnicodeRec(NewDestP-UnicodeFirstOff)^.ElementSize:=1;
+      PUnicodeRec(NewDestP-UnicodeFirstOff)^.ElementSize:=sizeof(UnicodeChar);
       PUnicodeRec(NewDestP-UnicodeFirstOff)^.Ref:=1;
     end;
   { Copy strings from last to the first, so that possible occurences of DestS could read from the beginning of the reallocated DestS. }
@@ -924,7 +924,7 @@ begin
       oldsp:=sp;
       sp:=GetMem(l*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
       PUnicodeRec(sp-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
-      PUnicodeRec(sp-UnicodeFirstOff)^.ElementSize:=1;
+      PUnicodeRec(sp-UnicodeFirstOff)^.ElementSize:=sizeof(UnicodeChar);
       PUnicodeRec(sp-UnicodeFirstOff)^.Ref:=1;
       if oldsp<>nil then
         begin
@@ -1137,7 +1137,7 @@ begin
    begin
      ResultAddress:=GetMem(Size*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
      PUnicodeRec(ResultAddress-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
-     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.ElementSize:=1;
+     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.ElementSize:=sizeof(UnicodeChar);
      PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Ref:=1;
      PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
      Move (PUnicodeChar(Pointer(S))[Index],ResultAddress^,Size*sizeof(UnicodeChar));
