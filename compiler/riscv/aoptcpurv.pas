@@ -751,10 +751,13 @@ implementation
              (taicpu(hp1).ops=3) and
              (taicpu(hp1).oper[2]^.val>0) and
              MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
-             MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^) then
+             (not RegModifiedBetween(taicpu(hp1).oper[0]^.reg, p,hp1)) then
              begin
                DebugMsg('Peephole SltiuAndi2Sltiu performed', hp1);
 
+               AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+
+               taicpu(p).loadreg(0,taicpu(hp1).oper[0]^.reg);
                RemoveInstr(hp1);
 
                result:=true;
