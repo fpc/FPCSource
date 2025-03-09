@@ -79,6 +79,7 @@ Type
 
     // create and open a query, return in Res.
     Function  OpenQuery (Qry : String; Out Res : TSQLQuery; Silent : Boolean) : Boolean ;
+
   Public
     { ---------------------------------------------------------------------
       High-level access
@@ -96,6 +97,8 @@ Type
     // Execute a query, return true if it executed without error.
     Function  ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
     // Run query, return first field as integer. -1 on error or no data.
+    function GetIDQueryResult(Qry: TSQLQuery): Int64;
+    // Run SQL, return first field as integer. -1 on error or no data.
     Function  IDQuery(Qry : String) : Integer;
     // Run query, return first field as int64. -1 on error or no data.
     Function  ID64Query(Qry : String) : Int64;
@@ -123,6 +126,10 @@ Type
     function AddLastResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
     // Add previousTestResult. If it exists already with given platform/test, update result ID.
     function AddPreviousResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
+    // Add Check-All-RTL results
+    Function AddCheckAllRtl(aData : TCheckAllRTL) : Int64;
+    // Add Check-All-RTL failed run log
+    function AddCheckAllRtlLog(aCheckAllRTLID: int64; aStep: Byte; const aLog: String): Int64;
     //
     // Get ID based on key. All keys are case sensitive. If a key does not exist, -1 is returned.
     //
@@ -367,6 +374,17 @@ begin
   if Assigned(aQry) and Assigned(aQry.Transaction) then
     aQry.SQLTransaction.Commit;
   FreeAndNil(aQry);
+end;
+
+function TTestSQL.GetIDQueryResult(Qry: TSQLQuery): Int64;
+
+
+begin
+  Result:=-1;
+  Qry.Open;
+  if Not Qry.IsEmpty then
+    Result:=Qry.Fields[0].AsLargeInt;
+  Qry.SQLTransaction.Commit;
 end;
 
 function TTestSQL.IDQuery(Qry: String): Integer;
@@ -1084,6 +1102,65 @@ const
 
 begin
   Result:=ExecuteQuery(Format(SQLInsert,[TestId,PlatFormID,ResultID]),False);
+end;
+
+function TTestSQL.AddCheckAllRtlLog(aCheckAllRTLID : int64; aStep : Byte; const aLog : String): Int64;
+
+const
+  SQLInsertLog = 'INSERT INTO public.checkallrtllog '+
+	'  (cal_checkallrtl_fk, cal_step, cal_log) '+
+	'VALUES '+
+        '  (:cal_checkallrtl_fk, :cal_step, :cal_log) '+
+	'returning cal_id';
+
+var
+  Qry : TSQLQuery;
+begin
+  Qry:=CreateQuery(SQLInsertLog);
+  try
+    Qry.ParamByName('cal_checkallrtl_fk').AsLargeInt:=aCheckAllRTLID;
+    Qry.ParamByName('cal_step').AsInteger:=aStep;
+    Qry.ParamByName('cal_log').AsString:=aLog;
+    Result:=GetIDQueryResult(Qry);
+  finally
+    Qry.Free;
+  end;
+end;
+
+function TTestSQL.AddCheckAllRtl(aData: TCheckAllRTL): Int64;
+
+const
+  SQLInsertCAR =
+             'INSERT INTO public.checkallrtl( '+
+             '  ca_platform_fk, ca_date, ca_step1, ca_step2, ca_step3, ca_step4, ca_step5, ca_step6)'+
+             'VALUES (:ca_platform_fk, :ca_date, :ca_step1, :ca_step2, :ca_step3, :ca_step4, :ca_step5, :ca_step6) '+
+             '  returning ca_id';
+var
+  Qry : TSQLQuery;
+  i : TCheckStage;
+
+begin
+  Qry:=CreateQuery(SQLInsertCar);
+  try
+    Qry.ParamByName('ca_platform_fk').AsInteger:=aData.Platform;
+    Qry.ParamByName('ca_date').AsDateTime:=aData.Date;
+    Qry.ParamByName('ca_step1').AsBoolean:=aData.Steps[1];
+    Qry.ParamByName('ca_step2').AsBoolean:=aData.Steps[2];
+    Qry.ParamByName('ca_step3').AsBoolean:=aData.Steps[3];
+    Qry.ParamByName('ca_step4').AsBoolean:=aData.Steps[4];
+    Qry.ParamByName('ca_step5').AsBoolean:=aData.Steps[5];
+    Qry.ParamByName('ca_step6').AsBoolean:=aData.Steps[6];
+    Qry.Open;
+    Result:=GetIDQueryResult(Qry);
+    if Result<>-1 then
+      begin
+      For I in TCheckStage do
+        if (not aData.Steps[i]) and (aData.Logs[i]<>'') then
+          AddCheckAllRtlLog(Result,i,aData.Logs[i]);
+      end;
+  finally
+    Qry.Free;
+  end;
 end;
 
 function TTestSQL.UpdateTestRun(aData: TTestRunData): Boolean;

@@ -305,6 +305,18 @@ Type
     function ResultDiffers(aResult : TTestResultData; CompareLog : Boolean = False) : Boolean;
   end;
 
+  TCheckStage = 1..6;
+  TStageResults = Array[TCheckStage] of Boolean;
+  TFailLogs = Array[TCheckStage] of String;
+
+  TCheckAllRTL = record
+    ID : Int64;
+    Platform : Integer;
+    Date : TDateTime;
+    Steps : TStageResults;
+    Logs : TFailLogs;
+  end;
+
 implementation
 
 uses sysutils;
