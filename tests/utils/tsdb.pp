@@ -636,10 +636,13 @@ const
 var
   Qry : TSQLQuery;
   ST : TTestStatus;
+  S : string;
 
 begin
-  Qry:=CreateQuery(Format(SQLSelectRunData,[aID]));
-  Verbose(V_SQL,'GetRunData: '+Format(SQLSelectRunData,[aID]));
+
+  S:=Format(SQLSelectRunData,[aID]);
+  Qry:=CreateQuery(S);
+  Verbose(V_SQL,'GetRunData: '+s);
   try
     Qry.Open;
     Result:=Not Qry.IsEmpty;
@@ -666,7 +669,7 @@ begin
         aData.TestsRevision:=FieldByName('TU_TESTSREVISION').AsString;
         aData.RTLRevision:=FieldByName('TU_RTLREVISION').AsString;
         aData.PackagesRevision:=FieldByName('TU_PACKAGESREVISION').AsString;
-        for ST in TTestStatus do
+        for ST in TValidTestStatus do
           aData.StatusCount[ST]:=FieldByName(SQLField[ST]).AsInteger;
         end;
   finally
@@ -1017,13 +1020,15 @@ Const
 
 var
   Qry : TSQLQuery;
+  S : String;
 
 begin
   Result:=Default(TTestResultData);
   Result.TestID:=aTestID;
   Result.PlatformID:=aPlatformID;
-  Qry:=CreateQuery(Format(SQLSelect,[aTestID,aPlatformID]));
-  Verbose(V_SQL,'GetLastTestResult: '+Format(SQLSelect,[aTestID,aPlatformID]));
+  S:=Format(SQLSelect,[aTestID,aPlatformID]);
+  Qry:=CreateQuery(S);
+  Verbose(V_SQL,'GetLastTestResult: '+s);
   try
     Qry.Open;
     If not Qry.IsEmpty then
@@ -1084,7 +1089,7 @@ end;
 function TTestSQL.UpdateTestRun(aData: TTestRunData): Boolean;
 var
   Qry : string;
-  I : TTestStatus;
+  I : TValidTestStatus;
 
   Procedure AddTo(S : String);
 
@@ -1096,7 +1101,7 @@ var
 
 begin
   Qry:='';
-  for i:=low(TTestStatus) to high(TTestStatus) do
+  for I in TValidTestStatus do
     AddTo(format('%s=%d',[SQLField[i],aData.StatusCount[i]]));
   qry:='UPDATE TESTRUN SET '+Qry+' WHERE TU_ID='+format('%d',[aData.RunID]);
   ExecuteQuery(Qry,False);

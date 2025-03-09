@@ -28,6 +28,7 @@ uses
 
 Type
   TTestStatus = (
+  stInvalid,
   stFailedToCompile,
   stSuccessCompilationFailed,
   stFailedCompilationsuccessful,
@@ -52,6 +53,7 @@ Const
   LastStatus = stskippingRunTest;
 
   TestOK : Array[TTestStatus] of Boolean = (
+    False, // stInvalid
     False, // stFailedToCompile,
     True,  // stSuccessCompilationFailed,
     False, // stFailedCompilationsuccessful,
@@ -70,7 +72,29 @@ Const
     False  // stskippingRunTest
   );
 
+  TestFailed : Array[TTestStatus] of Boolean = (
+      False, // stInvalid
+      True,  // stFailedToCompile,
+      False, // stSuccessCompilationFailed,
+      True,  // stFailedCompilationsuccessful,
+      False, // stSuccessfullyCompiled,
+      True,  // stFailedToRun,
+      False, // stKnownRunProblem,
+      False, // stSuccessFullyRun,
+      False, // stSkippingGraphTest,
+      False, // stSkippingInteractiveTest,
+      False, // stSkippingKnownBug,
+      False, // stSkippingCompilerVersionTooLow,
+      False, // stSkippingCompilerVersionTooHigh,
+      False, // stSkippingOtherCpu,
+      False, // stSkippingOtherTarget,
+      False, // stSkippingRunUnit,
+      False  // stskippingRunTest
+   );
+
+
   TestSkipped : Array[TTestStatus] of Boolean = (
+    False,  // stInvalid
     False,  // stFailedToCompile,
     False,  // stSuccessCompilationFailed,
     False,  // stFailedCompilationsuccessful,
@@ -90,6 +114,7 @@ Const
   );
 
   ExpectRun : Array[TTestStatus] of Boolean = (
+    False,  // stInvalid
     False,  // stFailedToCompile,
     False,  // stSuccessCompilationFailed,
     False,  // stFailedCompilationsuccessful,
@@ -109,6 +134,7 @@ Const
    );
 
   StatusText : Array[TTestStatus] of String = (
+    invalid_status,
     failed_to_compile,
     success_compilation_failed,
     failed_compilation_successful ,
@@ -128,6 +154,7 @@ Const
   );
 
   SQLField : Array[TTestStatus] of String = (
+    '',
     'TU_FAILEDTOCOMPILE',
     'TU_SUCCESSFULLYFAILED',
     'TU_FAILEDTOFAIL',
@@ -162,6 +189,8 @@ Const
   faction_compare_both_with_next = 10;
 
 Type
+
+  TValidTestStatus = FirstStatus .. LastStatus;
   TCharSet = set of char;
 
   TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug,V_SQL);
@@ -258,6 +287,7 @@ Type
     StatusCount : Array[TTestStatus] of Integer;
     Function GetField(const aField : String) : String;
     function FailedCount: Integer;
+    function SkippedCount : Integer;
     function OKCount: Integer;
     function TotalCount: Integer;
   end;
@@ -282,24 +312,45 @@ uses sysutils;
 { TTestRunData }
 
 function TTestRunData.OKCount : Integer;
-begin
-  Result:=StatusCount[stSuccessCompilationFailed] +
-          StatusCount[stSUCCESSFULLYCOMPILED] +
-          StatusCount[stSUCCESSFULLYRUN]
-end;
 
+var
+  TS : TTestStatus;
+
+begin
+  Result:=0;
+  for TS:=FirstStatus to LastStatus do
+    if TestOK[TS] then
+      Inc(Result,StatusCount[TS]);
+end;
 
 function TTestRunData.FailedCount : Integer;
 
+var
+  TS : TTestStatus;
 begin
-  Result:=StatusCount[stFAILEDTOCOMPILE] +
-          StatusCount[stFAILEDTORUN] +
-          StatusCount[stFailedCompilationsuccessful];
+  Result:=0;
+  for TS:=FirstStatus to LastStatus do
+    if TestFailed[TS] then
+      Inc(Result,StatusCount[TS]);
+end;
+
+function TTestRunData.SkippedCount: Integer;
+var
+  TS : TTestStatus;
+begin
+  Result:=0;
+  for TS:=FirstStatus to LastStatus do
+    if TestSkipped[TS] then
+      Inc(Result,StatusCount[TS]);
 end;
 
 function TTestRunData.TotalCount: Integer;
+var
+  TS : TTestStatus;
 begin
-  Result:=OKCount+FailedCount;
+  Result:=0;
+  for TS:=FirstStatus to LastStatus do
+    Result:=Result+StatusCount[TS];
 end;
 
 
