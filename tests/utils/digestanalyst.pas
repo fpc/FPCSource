@@ -356,7 +356,7 @@ begin
     For FullLine in LogFile do
       begin
         line:=fullline;
-        TS:=stFailedToCompile;
+        TS:=stInvalid;
         lResult.TestResult:=TS;
         If not AnalyseLine(line,TS) then
           begin
@@ -374,8 +374,11 @@ begin
             end;
           If ExpectRun[TS] then
             begin
-            // We expect a log line with log result, save
-            Inc(aData.StatusCount[TS]);
+            { Count multiple compilation only once,
+              will be decremented later unless test is orphan }
+            if lPrev.TestID<>lResult.TestID then
+              Inc(aData.StatusCount[TS]);
+            // We expect a log line with log result, save info in lPrev
             lPrev.TestResult:=TS;
             lPrev.TestID:=lResult.TestID;
             PrevLine:=line;
@@ -383,13 +386,18 @@ begin
           else
             begin
             // New test, insert previous result
-            if (lPrev.TestID<>-1) and (lPrev.TestID<>lResult.TestID) then
+            if (lPrev.TestID<>-1)
+               and ExpectRun[lPrev.TestResult]
+               and (lPrev.TestID<>lResult.TestID) then
               begin
               { This can only happen if a Successfully compiled message
                 is not followed by any other line about the same test }
               SaveTestResult(lPrev);
               Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
               end;
+            { Remove previous count if same test appears once more }
+            if (lPrev.TestID<>-1) and (lPrev.TestID=lResult.TestID) then
+              Dec(aData.StatusCount[lprev.testResult]);
             // same test, so now we have run result
             lPrev.TestID:=-1;
             lResult.TestResult:=TS;
@@ -404,7 +412,10 @@ begin
               else
                 lResult.Log:='';
               if SaveTestResult(lResult) then
-                Inc(aData.StatusCount[TS]);
+                Verbose(V_Debug,'New result '+StatusText[lResult.TestResult]+' for line '+line);
+              Inc(aData.StatusCount[TS]);
+              lPrev.TestResult:=TS;
+              lPrev.TestID:=lResult.TestID;
               end;
             end
           end
