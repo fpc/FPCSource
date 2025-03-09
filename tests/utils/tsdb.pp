@@ -126,7 +126,7 @@ Type
     function AddLastResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
     // Add previousTestResult. If it exists already with given platform/test, update result ID.
     function AddPreviousResult(TestID, PlatformID: Integer; ResultID: Int64): Boolean;
-    // Add Check-All-RTL results
+    // Add Check-All-RTL results. Adds logs for failed tests, if available.
     Function AddCheckAllRtl(aData : TCheckAllRTL) : Int64;
     // Add Check-All-RTL failed run log
     function AddCheckAllRtlLog(aCheckAllRTLID: int64; aStep: Byte; const aLog: String): Int64;
