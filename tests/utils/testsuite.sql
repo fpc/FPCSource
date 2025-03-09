@@ -29,7 +29,7 @@ CREATE SEQUENCE SEQ_TESTCPU as INT start with 1;
 
 CREATE TABLE TESTCPU (
   TC_ID INT NOT NULL DEFAULT nextval('SEQ_TESTCPU'),
-  TC_NAME varchar(10),
+  TC_NAME varchar(20),
   constraint PK_TESTCPU PRIMARY KEY (TC_ID)
 );
 
@@ -39,7 +39,7 @@ CREATE SEQUENCE SEQ_TESTOS as INT start with 1;
 
 CREATE TABLE TESTOS (
   TO_ID INT DEFAULT nextval('SEQ_TESTOS'),
-  TO_NAME varchar(10),
+  TO_NAME varchar(20),
   constraint PK_TESTOS PRIMARY KEY (TO_ID)
 );
 
