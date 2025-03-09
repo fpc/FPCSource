@@ -498,7 +498,7 @@ begin
     EmitRow('Version:','Version');
     EmitRow('Full version:','CompilerFullVersion');
     EmitRow('Config:','Config');
-    EmitRow('Machine:','Macgine');
+    EmitRow('Machine:','Machine');
     if (FVars.CategoryID>0) then
       EmitRow('Category:','TU_CATEGORY_FK');
     If (FVars.CategoryID=1) then
@@ -644,7 +644,7 @@ begin
       S:=S+' AND (not TR_OK)';
     If FVars.NoSkipped then
       S:=S+' AND (not TR_SKIP)';
-    S:=S+' ORDER BY TR_ID ';
+    S:=S+' ORDER BY T_ID ';
     Qry:=S;
     If FVars.Debug then
       begin
@@ -853,11 +853,11 @@ begin
       if (FVars.TestFileName<>'') then
         WriteTestInfo;
       ParaGraphStart;
-      If not FInfo.IsAllCPU(FVars.CPUID) then
+      If FInfo.IsAllCPU(FVars.CPUID) then
         lCPUMap:=FSQL.CreateMap(mtCPU);
-      If not FInfo.IsAllOS(FVars.OSID) then
+      If FInfo.IsAllOS(FVars.OSID) then
         lOSMap:=FSQL.CreateMap(mtOS);
-      if not FInfo.IsAllVersion(fVars.VersionID) then
+      if FInfo.IsAllVersion(fVars.VersionID) then
         lVersionMap:=FSQL.CreateMap(mtVersion);
       lHistory:=TTestHistoryInfo.Create(FSQL,lOSMap,lCPUMap,lVersionMap);
       lHistory.OnGetDetailURL:=@DoDetailURL;
