@@ -623,31 +623,47 @@ implementation
       if (taicpu(p).ops=3) and
          (taicpu(p).oper[2]^.typ=top_const) and
          (taicpu(p).oper[2]^.val=0) and
-         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-         (hp1.typ=ait_instruction) and
-         (taicpu(hp1).opcode=A_Bxx) and
-         (taicpu(hp1).ops=3) and
-         (taicpu(hp1).oper[0]^.typ=top_reg) and
-         (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
-         (taicpu(hp1).oper[1]^.typ=top_reg) and
-         (taicpu(hp1).oper[1]^.reg=NR_X0) and
-         (taicpu(hp1).condition in [C_NE,C_EQ]) and
-         (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
-         RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+         GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
         begin
-          taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
-          taicpu(hp1).loadreg(1,NR_X0);
+          if MatchInstruction(hp1,A_Bxx) and
+            (taicpu(hp1).ops=3) and
+            (taicpu(hp1).oper[0]^.typ=top_reg) and
+            (taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+            (taicpu(hp1).oper[1]^.typ=top_reg) and
+            (taicpu(hp1).oper[1]^.reg=NR_X0) and
+            (taicpu(hp1).condition in [C_NE,C_EQ]) and
+            (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+            RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+            begin
+              taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+              taicpu(hp1).loadreg(1,NR_X0);
 
-          if taicpu(hp1).condition=C_NE then
-            taicpu(hp1).condition:=C_LT
-          else
-            taicpu(hp1).condition:=C_GE;
+              if taicpu(hp1).condition=C_NE then
+                taicpu(hp1).condition:=C_LT
+              else
+                taicpu(hp1).condition:=C_GE;
 
-          DebugMsg('Peephole Slti0B2B performed', hp1);
+              DebugMsg('Peephole Slti0B2B performed', hp1);
 
-          RemoveInstr(p);
+              RemoveInstr(p);
 
-          result:=true;
+              result:=true;
+            end
+          else if MatchInstruction(hp1,A_ANDI) and
+            (taicpu(hp1).ops=3) and
+            (taicpu(hp1).oper[2]^.val>0) and
+            MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+            (not RegModifiedBetween(taicpu(hp1).oper[0]^.reg, p,hp1)) then
+            begin
+              DebugMsg('Peephole SltiAndi2Slti performed', hp1);
+
+              AllocRegBetween(taicpu(hp1).oper[0]^.reg,p,hp1,UsedRegs);
+
+              taicpu(p).loadreg(0,taicpu(hp1).oper[0]^.reg);
+              RemoveInstr(hp1);
+
+              result:=true;
+            end;
         end;
     end;
 
