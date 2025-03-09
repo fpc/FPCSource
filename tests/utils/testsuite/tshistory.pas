@@ -244,12 +244,12 @@ begin
     end
   else
     begin
-      if (date>last_date[aStatus]) then
+      if (aDate>last_date[aStatus]) then
         begin
           last_date[aStatus]:=aDate;
           last_date_id[aStatus]:=aRunID;
         end;
-      if date<first_date[aStatus] then
+      if (aDate<first_date[aStatus]) then
         begin
           first_date[aStatus]:=aDate;
           first_date_id[aStatus]:=aRunID;
@@ -387,10 +387,10 @@ begin
         DumpLn(Format('%3.1f',[cpu_count[i,TS]*100/result_count[TS]]));
         CellNext;
         DumpLn(FormatDetailURL(cpu_first_date_id[i,TS], cpu_first_date[i,TS]));
-        DumpLn(' '+IntToStr(FSQL.GetFailCount(cpu_first_date_id[i,TS])));
+        DumpLn(' : '+IntToStr(FSQL.GetFailCount(cpu_first_date_id[i,TS])));
         CellNext;
         DumpLn(FormatDetailURL(cpu_last_date_id[i,TS], cpu_last_date[i,TS]));
-        DumpLn(' '+IntToStr(FSQL.GetFailCount(cpu_last_date_id[i,TS])));
+        DumpLn(' : '+IntToStr(FSQL.GetFailCount(cpu_last_date_id[i,TS])));
         CellEnd;
         end;
 end;
@@ -418,10 +418,10 @@ begin
         DumpLn(Format('%3.1f',[os_count[i,TS]*100/result_count[TS]]));
         CellNext;
         DumpLn(FormatDetailURL(os_first_date_id[i,TS],os_first_date[i,TS]));
-        DumpLn(' '+IntToStr(FSQL.GetFailCount(os_first_date_id[i,TS])));
+        DumpLn(' : '+IntToStr(FSQL.GetFailCount(os_first_date_id[i,TS])));
         CellNext;
         DumpLn(FormatDetailURL(os_last_date_id[i,TS],os_last_date[i,TS]));
-        DumpLn(' '+IntToStr(FSQL.GetFailCount(os_last_date_id[i,TS])));
+        DumpLn(' : '+IntToStr(FSQL.GetFailCount(os_last_date_id[i,TS])));
         CellEnd;
         end;
 end;
@@ -448,10 +448,10 @@ begin
         DumpLn(Format('%3.1f',[version_count[i,TS]*100/result_count[TS]]));
         CellNext;
         DumpLn(FormatDetailURL(version_first_date_id[i,TS],version_first_date[i,TS]));
-        DumpLn(' '+IntToStr(FSQL.GetFailCount(version_first_date_id[i,TS])));
+        DumpLn(' : '+IntToStr(FSQL.GetFailCount(version_first_date_id[i,TS])));
         CellNext;
         DumpLn(FormatDetailURL(version_last_date_id[i,TS], version_last_date[i,TS]));
-        DumpLn(' '+IntToStr(FSQL.GetFailCount(version_last_date_id[i,TS])));
+        DumpLn(' : '+IntToStr(FSQL.GetFailCount(version_last_date_id[i,TS])));
         CellEnd;
         end;
 end;
