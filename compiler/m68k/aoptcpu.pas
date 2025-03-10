@@ -25,7 +25,9 @@ unit aoptcpu;
 
 {$i fpcdefs.inc}
 
+{$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
+{$endif EXTDEBUG}
 
   Interface
 

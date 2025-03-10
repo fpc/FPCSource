@@ -27,7 +27,9 @@ interface
 
 {$I fpcdefs.inc}
 
+{$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
+{$endif EXTDEBUG}
 
 uses
   cpubase,
