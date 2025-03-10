@@ -166,7 +166,7 @@ Type
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
     win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
-    wasip1,human68k,ps1,wasip1threads
+    wasip1,human68k,ps1,wasip1threads,wasip2
   );
   TOSes = Set of TOS;
 
@@ -295,7 +295,8 @@ Const
     { wasip1 }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false, false),
     { human68k }( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
     { ps1 }     ( false, false, false, false, false, false, false, false, false, false, false, true,  false, false,   false, false, false, false, false,  false,  false,   false, false, false),
- {wasip1threads}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false, false)
+ {wasip1threads}( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false, false),
+    { wasip2 }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, true,  false,  false,  false,   false, false, false)
   );
 
   // Useful
