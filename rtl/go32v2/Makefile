@@ -1378,6 +1378,9 @@ endif
 ifeq ($(OS_TARGET),wasip1threads)
 EXEEXT=.wasm
 endif
+ifeq ($(OS_TARGET),wasip2)
+EXEEXT=.wasm
+endif
 ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
 ZIPSUFFIX=$(SHORTSUFFIX)
