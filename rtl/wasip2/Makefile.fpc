@@ -1,0 +1,121 @@
+#
+#   Makefile.fpc for WASI
+#
+[package]
+main=rtl
+[target]
+loaders=
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(RESUNIT) $(OBJPASUNIT)
+#units=$(SYSTEMUNIT) $(SYSINIT_UNITS) $(OBJPASUNIT) $(EXTPASUNIT) $(MACPASUNIT) $(ISO7185UNIT) $(UUCHARUNIT) \
+#      $(WASIAPIUNIT) $(CTYPESUNIT) $(STRINGSUNIT) $(SYSCONSTUNIT)  $(SYSUTILSUNIT) \
+#      $(SORTBASEUNIT) $(MATHUNIT) $(RTLCONSTSUNIT) $(TYPESUNIT)  $(TYPINFOUNIT)  $(FGLUNIT) $(GETOPTSUNIT) \
+#      $(CHARSETUNIT)  $(CPALLUNIT) $(CHARACTERUNIT) $(FPWIDESTRINGUNIT) $(NOTHREADSUNIT) \
+#      $(CLASSESUNIT) $(DOSUNIT) $(RESUNIT) $(HEAPTRCUNIT) $(WASIUTILUNIT)  $(WEBASSEMBLYUNIT)
+
+implicitunits= $(CP_UNITS) $(UNICODEDATAUNIT)
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+target=wasip1
+cpu=wasm32
+
+[compiler]
+includedir=$(INC) $(PROCINC)
+#includedir=$(INC) $(PROCINC) $(WASICOMMONINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+
+[prerules]
+RTL=..
+INC=../inc
+#WASICOMMONINC=$(RTL)/wasicommon
+#SYSTEMDIR=$(WASICOMMONINC)
+#DOSDIR=$(WASICOMMONINC)
+NSOSDIR=$(NSDIR)/wasi
+COMMON=$(RTL)/common
+PROCINC=../$(CPU_TARGET)
+UNITPREFIX=rtl
+SYSINIT_UNITS=si_prc si_dll
+RESUNIT=$(FPINTRESUNIT)
+# Paths
+OBJPASDIR=$(RTL)/objpas
+# Insert exception handler in system unit
+ifdef EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
+endif
+# Insert exception handler in system unit
+ifdef NO_EXCEPTIONS_IN_SYSTEM
+override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
+endif
+
+#override FPC_SYSTEM_OPT += -Fi$(WASICOMMONINC)/wasiinc
+
+DOS_DEPS_OS=$(WASIAPIUNIT)$(PPUEXT) $(WASIUTILUNIT)$(PPUEXT)
+
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+# Put system unit dependencies together.
+#SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+SYSUTILS_DEPS_OS=$(WASIUTILUNIT)$(PPUEXT)
+
+#
+# $(SYSINIT_UNITS) Units
+#
+si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+#
+# Other $(SYSTEMUNIT)-dependent RTL Units
+#
+
+WEBASSEMBLYDEPS=$(PROCINC)/webassembly.pp $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc $(OBJPASUNIT)$(PPUEXT)
+
+webassembly$(PPUEXT) : $(WEBASSEMBLYDEPS)
+        $(COMPILER) $<
+
+Wasm.Api$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Api.pp $(WEBASSEMBLYDEPS)
+        $(COMPILER) $<
+
+#
+# WASIAPI
+#
+
+WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
+
+wasiapi$(PPUEXT) : wasiapi.pp $(WASIAPIDEPS)
+        $(COMPILER) $< -Fiwasiinc
+
+WASIApi.WASIApi$(PPUEXT) : $(NSOSDIR)/WASIApi.WASIApi.pp $(WASIAPIDEPS)
+        $(COMPILER) $< -Fiwasiinc
+
+#
+# wasiutils
+#
+
+WASIUTILDEPS=$(WASIAPIUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+wasiutil$(PPUEXT) : wasiutil.pp $(WASIUTILDEPS)
+        $(COMPILER) $<
+
+WASIApi.WASIUtil$(PPUEXT) :  $(NSOSDIR)/WASIApi.WASIUtil.pp $(WASIUTILDEPS)
+	$(COMPILER) $<
+
+

@@ -668,6 +668,9 @@ endif
 ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
 override TARGET_DIRS+=wasip1threads
 endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
+override TARGET_DIRS+=wasip2
+endif
 ifeq ($(CPU_OS_TARGET),sparc64-linux)
 override TARGET_DIRS+=linux
 endif
@@ -2340,6 +2343,9 @@ TARGET_DIRS_WASIP1=1
 endif
 ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
 TARGET_DIRS_WASIP1THREADS=1
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
+TARGET_DIRS_WASIP2=1
 endif
 ifeq ($(CPU_OS_TARGET),sparc64-linux)
 TARGET_DIRS_LINUX=1
@@ -4269,6 +4275,51 @@ wasip1threads_makefiles:
 wasip1threads:
 	$(MAKE) -C wasip1threads all
 .PHONY: wasip1threads_all wasip1threads_debug wasip1threads_smart wasip1threads_release wasip1threads_units wasip1threads_examples wasip1threads_shared wasip1threads_install wasip1threads_sourceinstall wasip1threads_exampleinstall wasip1threads_distinstall wasip1threads_zipinstall wasip1threads_zipsourceinstall wasip1threads_zipexampleinstall wasip1threads_zipdistinstall wasip1threads_clean wasip1threads_distclean wasip1threads_cleanall wasip1threads_info wasip1threads_makefiles wasip1threads
+endif
+ifdef TARGET_DIRS_WASIP2
+wasip2_all:
+	$(MAKE) -C wasip2 all
+wasip2_debug:
+	$(MAKE) -C wasip2 debug
+wasip2_smart:
+	$(MAKE) -C wasip2 smart
+wasip2_release:
+	$(MAKE) -C wasip2 release
+wasip2_units:
+	$(MAKE) -C wasip2 units
+wasip2_examples:
+	$(MAKE) -C wasip2 examples
+wasip2_shared:
+	$(MAKE) -C wasip2 shared
+wasip2_install:
+	$(MAKE) -C wasip2 install
+wasip2_sourceinstall:
+	$(MAKE) -C wasip2 sourceinstall
+wasip2_exampleinstall:
+	$(MAKE) -C wasip2 exampleinstall
+wasip2_distinstall:
+	$(MAKE) -C wasip2 distinstall
+wasip2_zipinstall:
+	$(MAKE) -C wasip2 zipinstall
+wasip2_zipsourceinstall:
+	$(MAKE) -C wasip2 zipsourceinstall
+wasip2_zipexampleinstall:
+	$(MAKE) -C wasip2 zipexampleinstall
+wasip2_zipdistinstall:
+	$(MAKE) -C wasip2 zipdistinstall
+wasip2_clean:
+	$(MAKE) -C wasip2 clean
+wasip2_distclean:
+	$(MAKE) -C wasip2 distclean
+wasip2_cleanall:
+	$(MAKE) -C wasip2 cleanall
+wasip2_info:
+	$(MAKE) -C wasip2 info
+wasip2_makefiles:
+	$(MAKE) -C wasip2 makefiles
+wasip2:
+	$(MAKE) -C wasip2 all
+.PHONY: wasip2_all wasip2_debug wasip2_smart wasip2_release wasip2_units wasip2_examples wasip2_shared wasip2_install wasip2_sourceinstall wasip2_exampleinstall wasip2_distinstall wasip2_zipinstall wasip2_zipsourceinstall wasip2_zipexampleinstall wasip2_zipdistinstall wasip2_clean wasip2_distclean wasip2_cleanall wasip2_info wasip2_makefiles wasip2
 endif
 ifdef TARGET_DIRS_ZXSPECTRUM
 zxspectrum_all:
