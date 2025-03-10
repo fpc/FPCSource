@@ -590,7 +590,7 @@ implementation
          idtxt  : 'BINARYEN';
          asmbin : 'wasm-as';
          asmcmd : '$ASM $EXTRAOPT';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads];
+         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads,system_wasm32_wasip2];
          flags : [];
          labelprefix : 'L';
          labelmaxlen : -1;
