@@ -51,7 +51,6 @@ program pp;
   Other compiler switches
   -----------------------------------------------------------------
   CMEM                use cmem unit for better memory debugging
-  MMM                 use Mormot Memory Manager for faster memory management. x86_64 only.
 =======
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
@@ -242,11 +241,6 @@ uses
 {$ifdef heaptrc}
   ppheap,
 {$endif heaptrc}
-{$IFDEF CPUX86_64}
-{$IFDEF MMM}
-  mormot.core.fpcx64mm,
-{$ENDIF}
-{$ENDIF}
 {$ifdef cmem}
   cmem,
 {$endif cmem}
