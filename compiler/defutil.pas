@@ -1068,7 +1068,7 @@ implementation
                     is_chararray(tpointerdef(p).pointeddef)));
       end;
 
-    { true if p is a pchar def }
+    { true if p is a pwidechar def }
     function is_pwidechar(p : tdef) : boolean;
       begin
         is_pwidechar:=(p.typ=pointerdef) and
