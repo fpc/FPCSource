@@ -30,6 +30,7 @@ begin
     { avr-embedded and i8086-embedded do not meet needed requirements }
     if Defaults.CPU in [avr,i8086] then
       P.OSes := P.OSes - [embedded];
+    P.OSes := P.OSes - [wasip2];
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
