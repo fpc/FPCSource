@@ -439,7 +439,7 @@ implementation
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
          ((MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SRL,A_SLT,A_AND,A_OR,
             A_ADDI,A_ANDI,A_ORI,A_SRAI,A_SRLI,A_SLLI,A_XORI,A_MUL,
-            A_DIV,A_DIVU,A_REM,A_REMU
+            A_DIV,A_DIVU,A_REM,A_REMU,A_SLTI,A_SLTIU
             {$ifdef riscv64},A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
             A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW,
             A_DIVUW,A_DIVW,A_REMW,A_REMUW{$endif}]
@@ -650,6 +650,7 @@ implementation
               RemoveInstr(p);
 
               result:=true;
+              exit;
             end
           else if MatchInstruction(hp1,A_ANDI) and
             (taicpu(hp1).ops=3) and
@@ -665,8 +666,11 @@ implementation
               RemoveInstr(hp1);
 
               result:=true;
+              exit;
             end;
         end;
+      { in all other branches we exit before }
+      result:=OptPass1OP(p);
     end;
 
 
@@ -749,6 +753,9 @@ implementation
          (taicpu(p).oper[2]^.val=1) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
          begin
+{
+           we cannot do this optimization yet as we don't know if taicpu(p).oper[0]^.reg isn't used after taking the branch
+
            if MatchInstruction(hp1,A_Bxx,[C_NE,C_EQ]) and
              (taicpu(hp1).ops=3) and
              MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
@@ -764,8 +771,9 @@ implementation
                RemoveInstr(p);
 
                result:=true;
+               exit;
              end
-           else if MatchInstruction(hp1,A_ANDI) and
+           else } if MatchInstruction(hp1,A_ANDI) and
              (taicpu(hp1).ops=3) and
              (taicpu(hp1).oper[2]^.val>0) and
              MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
@@ -779,8 +787,11 @@ implementation
                RemoveInstr(hp1);
 
                result:=true;
+               exit;
              end;
          end;
+      { in all other branches we exit before }
+      result:=OptPass1OP(p);
     end;
 
 
