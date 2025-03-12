@@ -627,6 +627,9 @@ implementation
          (taicpu(p).oper[2]^.val=0) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
         begin
+{
+           we cannot do this optimization yet as we don't know if taicpu(p).oper[0]^.reg isn't used after taking the branch
+
           if MatchInstruction(hp1,A_Bxx) and
             (taicpu(hp1).ops=3) and
             (taicpu(hp1).oper[0]^.typ=top_reg) and
@@ -652,7 +655,7 @@ implementation
               result:=true;
               exit;
             end
-          else if MatchInstruction(hp1,A_ANDI) and
+          else } if MatchInstruction(hp1,A_ANDI) and
             (taicpu(hp1).ops=3) and
             (taicpu(hp1).oper[2]^.val>0) and
             MatchOperand(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
