@@ -1538,7 +1538,7 @@ CompareByte_1OrLess:
         or       $1, %eax
 end;
 
-function {$ifdef CPUX86_HAS_BMI1} CompareByte {$else} CompareByte_AVX2 {$endif} (const buf1, buf2; len: SizeInt): SizeInt; assembler; nostackframe;
+function {$ifdef CPUX86_HAS_BMI2} CompareByte {$else} CompareByte_AVX2 {$endif} (const buf1, buf2; len: SizeInt): SizeInt; assembler; nostackframe;
 asm
         { eax = buf1, edx = buf2, ecx = len }
         cmp       $1, %ecx
@@ -1657,7 +1657,7 @@ asm
         pop      %ebx
 end;
 
-{$ifndef CPUX86_HAS_BMI1}
+{$ifndef CPUX86_HAS_BMI2}
 function CompareByte_Dispatch(const buf1, buf2; len: SizeInt): SizeInt; forward;
 
 var
@@ -1682,7 +1682,7 @@ function CompareByte(const buf1, buf2; len: SizeInt): SizeInt;
 begin
   result:=CompareByte_Impl(buf1, buf2, len);
 end;
-{$endif ndef CPUX86_HAS_BMI1 (need CompareByte dispatcher)}
+{$endif ndef CPUX86_HAS_BMI2 (need CompareByte dispatcher)}
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
 
 

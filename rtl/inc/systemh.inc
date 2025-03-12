@@ -917,7 +917,7 @@ function  Indexword(const buf;len:SizeInt;b:word):SizeInt; {$if defined(cpui386)
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
 function  IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt; {$if (defined(cpui386) or defined(cpux86_64)) and not defined(CPUX86_HAS_SSE4_1)} inline; {$endif}
 function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
-function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_BMI1)} inline; {$endif}
+function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_BMI2)} inline; {$endif}
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
 function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt; {$if defined(cpui386) and not defined(CPUX86_HAS_SSE2)} inline; {$endif}
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
