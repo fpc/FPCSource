@@ -1339,10 +1339,20 @@ implementation
                         begin
                            if is_constcharnode(p) then
                              begin
-                                getmem(sp,2);
-                                sp[0]:=chr(tordconstnode(p).value.svalue);
-                                sp[1]:=#0;
-                                sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil);
+                                if not is_systemunit_unicode then
+                                  begin
+                                  getmem(sp,2);
+                                  sp[0]:=chr(tordconstnode(p).value.svalue);
+                                  sp[1]:=#0;
+                                  sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil);
+                                  end
+                                else
+                                  begin
+                                  initwidestring(pw);
+                                  setlengthwidestring(pw,1);
+                                  pw^.data^:=tordconstnode(p).value.svalue;
+                                  sym:=cconstsym.create_wstring(orgname,constwresourcestring,pw);
+                                  end;
                              end
                            else
                              Message(parser_e_illegal_expression);
