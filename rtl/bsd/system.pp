@@ -77,6 +77,9 @@ Implementation
 
 {$endif defined(CPUARM) or defined(CPUM68K)}
 
+{$ifdef darwin}
+{$define HAS_GETCPUCOUNT}
+{$endif darwin}
 
 {$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}
 {$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
@@ -105,6 +108,19 @@ end;
 
 {$ifdef darwin}
 procedure normalexit(status: cint); cdecl; external 'c' name 'exit';
+
+function sysctlbyname (Name: PAnsiChar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctlbyname';
+
+function GetCPUCount: LongWord;
+var
+  oldp: int64;
+  oldlenp: size_t;
+begin
+  oldlenp:=sizeof(oldp);
+  sysctlbyname('machdep.cpu.core_count',@oldp,@oldlenp,nil,0);
+  Result:=oldp;
+end;
+
 {$endif}
 
 {$if defined(openbsd)}
