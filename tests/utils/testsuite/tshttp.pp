@@ -7,7 +7,7 @@ unit tshttp;
 interface
 
 uses
-   classes, httpdefs, fphttp, cgiapp, fpcgi, custcgi, inifiles, types,  sysutils,
+   classes, httpdefs, fphttp, inifiles, types,  sysutils,
    sqldb, whtml, db, dbwhtml,
    tsgraph, tsdb, tssql, tshistory, tstypes, tsconsts, tsutils, tshtml;
 
@@ -264,10 +264,13 @@ begin
   FInfo.AllCategoryID:=FSQL.GetCategoryID('All');
   FInfo.AllOSID:=FSQL.GetOSID('All');
   FInfo.AllCPUID:=FSQL.GetCPUID('All');
+  FInfo.AllVersionID:=FSQL.GetVersionID('All');
   if FVars.OSID <= 0 then
     FVars.OSID:=FInfo.AllOSID;
   if FVars.CPUID<=0 then
     FVars.CPUID:=FInfo.AllCPUID;
+  if FVars.VersionID<=0 then
+    FVars.VersionID:=FInfo.AllVersionID;
 end;
 
 
@@ -492,10 +495,10 @@ begin
          '/'+aData.GetField('Ok')+
          '/'+aData.GetField('Total'),
       FRight);
-    EmitRow('Version:','VERSION');
-    EmitRow('Full version:','COMPILERFULLVERSION');
-    EmitRow('Config:','CONFIG');
-    EmitRow('Machine:','TP_MACHINE');
+    EmitRow('Version:','Version');
+    EmitRow('Full version:','CompilerFullVersion');
+    EmitRow('Config:','Config');
+    EmitRow('Machine:','Machine');
     if (FVars.CategoryID>0) then
       EmitRow('Category:','TU_CATEGORY_FK');
     If (FVars.CategoryID=1) then
@@ -511,18 +514,18 @@ begin
           FRight:='';
         EmitOneRow('SVN revisions:',FLeft,FRight);
       end;
-    EmitRow('Submitter:','SUBMITTER');
-    Date1 := aData.GetField('date');
+    EmitRow('Submitter:','Submitter');
+    Date1 := aData.GetField('Date');
     if Not IsComp then
       FRight:=''
     else
       begin
-      Date2 := aCompData.GetField('date');
+      Date2 := aCompData.GetField('Date');
       FRight:=Date2;
       end;
     same_date:=(date1=Date2);
     EmitOneRow('Date:',Date1,FRight,same_date);
-    CompilerDate1 := aData.GetField('compilerdate');
+    CompilerDate1 := aData.GetField('CompilerDate');
     if Not IsComp then
       FRight:=''
     else
@@ -619,7 +622,7 @@ begin
       Exit;
       end;
     HeaderStart(2);
-    DumpLn('Detailed test run results:');
+    DumpLn('ShowRunResults detailed test run results:');
     FL:='';
     If FVars.OnlyFailed or FVars.NoSkipped then
       begin
@@ -641,7 +644,7 @@ begin
       S:=S+' AND (not TR_OK)';
     If FVars.NoSkipped then
       S:=S+' AND (not TR_SKIP)';
-    S:=S+' ORDER BY TR_ID ';
+    S:=S+' ORDER BY T_ID ';
     Qry:=S;
     If FVars.Debug then
       begin
@@ -756,20 +759,19 @@ var
 begin
   LLog:=FSQL.StringQuery(Format('select TR_LOG from TESTLASTRESULTS left join testresults on (TL_TESTRESULTS_FK=TR_ID) where (TR_TEST_FK=%d) and (TL_PLATFORM_FK=%d)',[aTestID,aPlatformID]));
   With FHTMLWriter do
-    if LLog<>'' then
+    if LLog='' then
       begin
       HeaderStart(2);
-      DumpLn(Format('No log of %d:',[aRunId]));
+      DumpLn(Format('No log of %s on run %d:',[FVars.TestFileName,aRunId]));
       HeaderEnd(2);
       end
     else
       begin
       HeaderStart(2);
-      DumpLn(Format('Log of %d:',[aRunID]));
+      DumpLn(Format('Log of %s on run %d:',[FVars.TestFileName,aRunID]));
       HeaderEnd(2);
       PreformatStart;
-      system.Write(LLog);
-      system.flush(output);
+      Dump(LLog);
       PreformatEnd;
       end;
 end;
@@ -790,7 +792,7 @@ begin
       DumpTestInfo(lTestInfo);
     ParaGraphEnd;
     HeaderStart(2);
-    DumpLn('Detailed test run results:');
+    DumpLn('WriteTestInfo detailed test run results:');
     HeaderEnd(2);
     end;
 end;
@@ -851,11 +853,11 @@ begin
       if (FVars.TestFileName<>'') then
         WriteTestInfo;
       ParaGraphStart;
-      If not FInfo.IsAllCPU(FVars.CPUID) then
+      If FInfo.IsAllCPU(FVars.CPUID) then
         lCPUMap:=FSQL.CreateMap(mtCPU);
-      If not FInfo.IsAllOS(FVars.OSID) then
+      If FInfo.IsAllOS(FVars.OSID) then
         lOSMap:=FSQL.CreateMap(mtOS);
-      if not FInfo.IsAllVersion(fVars.VersionID) then
+      if FInfo.IsAllVersion(fVars.VersionID) then
         lVersionMap:=FSQL.CreateMap(mtVersion);
       lHistory:=TTestHistoryInfo.Create(FSQL,lOSMap,lCPUMap,lVersionMap);
       lHistory.OnGetDetailURL:=@DoDetailURL;
@@ -908,7 +910,13 @@ begin
           end;
       end; // FHTMLWriter;
     If FVars.Debug or FVars.ListAll then
+      begin
+      if Q.Active then
+        Q.First
+      else
+        Q.Open;
       ShowAllHistoryData(Q);
+      end;
     ShowSourceFile;
   Finally
     lTable.Free;
@@ -923,7 +931,7 @@ var
   lTable : TTableProducer;
 begin
   aQuery.First;
-  FL:='RUN,Date,OK,SKIP,Result';
+  FL:='Run,Date,OK,Skip,Result';
   if FVars.Submitter='' then
     FL:=FL+',Submitter';
   if FVars.Machine='' then
@@ -976,7 +984,7 @@ begin
   if Base='trunk' then
     Base:='main';
   lURL:=ViewGitHashURL+Base;
-  if FVars.CategoryID=1 then
+  if FVars.CategoryID<=1 then
     lURL:=lURL+TestsSubDir
   else
     begin
@@ -1048,7 +1056,7 @@ begin
       exit;
       end;
     HeaderStart(2);
-    DumpLn('Detailed test run results:');
+    DumpLn('ShowRunComparison detailed test run results:');
     FL:='';
     If FVars.OnlyFailed or FVars.NoSkipped then
       begin

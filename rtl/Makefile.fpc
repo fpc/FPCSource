@@ -55,7 +55,9 @@ dirs_freertos=freertos
 dirs_zxspectrum=zxspectrum
 dirs_msxdos=msxdos
 dirs_sinclairql=sinclairql
-dirs_wasi=wasi
+dirs_wasip1=wasip1
+dirs_wasip1threads=wasip1threads
+dirs_wasip2=wasip2
 dirs_human68k=human68k
 dirs_ps1=ps1
 

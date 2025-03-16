@@ -23,8 +23,8 @@
 {$IFNDEF FPC_DOTTEDUNITS}
 unit ColorSel;
 {$ENDIF FPC_DOTTEDUNITS}
-{$mode fpc}
-{$h-}
+{====Include file to sort compiler platform out =====================}
+{$I platform.inc}
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -134,8 +134,6 @@ type
   TColorItemList = object(TListViewer)
     Items: PColorItem;
     constructor Init(var Bounds: TRect; AScrollBar: PScrollBar; AItems: PColorItem);
-    constructor Load(var S: TStream);
-    procedure Store(var S: TStream);
     procedure FocusItem(Item: Sw_Integer); virtual;
     function GetText(Item: Sw_Integer; MaxLen: Sw_Integer): String; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
@@ -192,7 +190,7 @@ type
   end;
 
 
-var Colorlndexes : TColorIndex;
+const ColorIndexes : PColorIndex = nil;
 
 procedure RegisterColorsel;
 
@@ -284,11 +282,25 @@ begin
 end;
 
 procedure LoadIndexes(var S: TStream);
+var A: TColorIndex;
 begin
+  fillchar(A,sizeof(A),0);
+  S.Read(A.GroupIndex, SizeOf(A.GroupIndex));
+  S.Read(A.ColorSize, SizeOf(A.ColorSize));
+  if A.ColorSize > 0 then
+    S.Read(A.ColorIndex, SizeOf(A.ColorSize));
+  if ColorIndexes<>nil then ColorIndexes^:=A;
 end;
 
 procedure StoreIndexes(var S: TStream);
+var A: TColorIndex;
 begin
+  fillchar(A,sizeof(A),0);
+  if ColorIndexes<>nil then A:=ColorIndexes^;
+  S.Write(A.GroupIndex, SizeOf(A.GroupIndex));
+  S.Write(A.ColorSize, SizeOf(A.ColorSize));
+  if A.ColorSize>0 then
+    S.Write(A.ColorIndex, SizeOf(A.ColorSize));
 end;
 
 {--------------------------------------------------------------------}
@@ -305,10 +317,16 @@ end;
 
 constructor TColorSelector.Load(var S: TStream);
 begin
+  inherited Load(S);
+  S.Read(Color, SizeOf(Color));
+  S.Read(SelType, SizeOf(SelType));
 end;
 
 procedure TColorSelector.Store(var S: TStream);
 begin
+  inherited Store(S);
+  S.Write(Color, SizeOf(Color));
+  S.Write(SelType, SizeOf(SelType));
 end;
 
 procedure TColorSelector.HandleEvent(var Event: TEvent);
@@ -454,10 +472,21 @@ end;
 
 constructor TColorDisplay.Load(var S: TStream);
 begin
+  inherited Load(S);
+  if not Assigned(Color) then
+    GetMem(Color,1);
+  S.Read(Color^, SizeOf(Color^));
+  Text:=S.ReadStr;
 end;
 
 procedure TColorDisplay.Store(var S: TStream);
+var vColor : byte;
 begin
+  inherited Store(S);
+  S.WriteStr(Text);
+  vColor:=0;
+  if Assigned(Color) then vColor:=Color^;
+  S.Write(vColor, SizeOf(vColor));
 end;
 
 procedure TColorDisplay.HandleEvent(var Event: TEvent);
@@ -549,11 +578,76 @@ begin
 end;
 
 constructor TColorGroupList.Load(var S: TStream);
+var x,z: PColorGroup;
+  R,Q: PColorItem;
+  num,numItems,iG,iI : word;
 begin
+  inherited Load(S);
+  S.Read(num, SizeOf(num));
+  Groups:=nil;
+  { read PColorGroup linked list }
+  z:=nil;
+  for iG:=1 to num do
+  begin
+    S.Read(numItems, SizeOf(numItems));
+    new(x);
+    x^.Items:=nil;
+    Q:=nil;
+    {read items}
+    for iI:=1 to numItems do
+    begin
+      New(R);
+      R^.Name:=S.ReadStr;
+      S.Read(R^.Index, SizeOf(R^.Index));
+      R^.Next:=nil;
+      if assigned(Q) then
+        Q^.Next:=R;
+      Q:=R;
+      if iI=1 then x^.Items:=R;
+    end;
+    {read group}
+    x^.Name:=S.ReadStr;
+    S.Read(x^.Index, SizeOf(x^.Index));
+    x^.Next:=nil;
+    if assigned(z) then
+      z^.Next:=x;
+    z:=x;
+    if iG = 1 then
+      Groups:=x; { Group starts with first entry }
+  end;
 end;
 
 procedure TColorGroupList.Store(var S: TStream);
+var x,z: PColorGroup;
+  R,Q: PColorItem;
+  num,numItems : word;
 begin
+  inherited Store(S);
+  num:=GetNumGroups;
+  S.Write(num,Sizeof(num));
+  x := Groups;
+  {Write PColorGroup linked list}
+  while Assigned(x) do begin
+    R:=x^.Items;
+    {count items}
+    Q:=R;
+    numItems:=0;
+    while Assigned(Q) do begin
+      inc(numItems);
+      Q:=Q^.Next;
+    end;
+    S.Write(numItems,Sizeof(numItems)); {  write Item count }
+    {write items}
+    while Assigned(R) do begin
+      S.WriteStr(R^.Name);
+      S.Write(R^.Index,Sizeof(R^.Index));
+      R := R^.Next;
+    end;
+    {write gropu}
+    S.WriteStr(x^.Name);
+    S.Write(x^.Index,Sizeof(x^.Index));
+    x := x^.Next;
+  end;
 end;
 
 procedure TColorGroupList.FocusItem(Item: Sw_Integer);
@@ -682,14 +776,6 @@ begin
   SetItems(AItems);
 end;
 
-constructor TColorItemList.Load(var S: TStream);
-begin
-end;
-
-procedure TColorItemList.Store(var S: TStream);
-begin
-end;
-
 procedure TColorItemList.FocusItem(Item: Sw_Integer);
 var oFocus:sw_integer;
 begin
@@ -762,15 +848,12 @@ begin
   Items:=AItems;
   Focused:=-1;
   count:=0;
-  if Assigned(Items) then
-  begin
     x:=Items;
     while Assigned(x) do
     begin
       inc(count);
       x:=x^.Next;
     end;
-  end;
   SetRange(count);
 end;
 
@@ -868,10 +951,39 @@ end;
 
 constructor TColorDialog.Load(var S: TStream);
 begin
+  if not TDialog.Load(S) then
+    Fail;
+  S.Read(GroupIndex, SizeOf(GroupIndex));
+  S.Read(Pal, SizeOf(Pal));
+  if (S.Status <> stOk) then
+  begin
+    TDialog.Done;
+    Fail;
+  end;
+  GetSubViewPtr(S,BakLabel);
+  GetSubViewPtr(S,BakSel);
+  GetSubViewPtr(S,ForLabel);
+  GetSubViewPtr(S,ForSel);
+  GetSubViewPtr(S,Groups);
+  GetSubViewPtr(S,Items);
+  GetSubViewPtr(S,Display);
+  if assigned(Items) then
+    if assigned(Groups) then
+      Items^.Items:=Groups^.GetGroup(Groups^.Focused)^.Items;
 end;
 
 procedure TColorDialog.Store(var S: TStream);
 begin
+  inherited Store(S);
+  S.Write(GroupIndex, SizeOf(GroupIndex));
+  S.Write(Pal, SizeOf(Pal));
+  PutSubViewPtr(S,BakLabel);
+  PutSubViewPtr(S,BakSel);
+  PutSubViewPtr(S,ForLabel);
+  PutSubViewPtr(S,ForSel);
+  PutSubViewPtr(S,Groups);
+  PutSubViewPtr(S,Items);
+  PutSubViewPtr(S,Display);
 end;
 
 procedure TColorDialog.ItemChanged;

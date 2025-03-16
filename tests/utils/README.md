@@ -45,17 +45,17 @@ Other than the database connection, the following global options can be
 given:
 - `-r --relsrcdir=DIR` the relative source dir for getting test files.
 - `-S --testsrcdir=DIR` the absolute test source dir
-- `-T --threadlist=FILE`  file with configuration file names to import.
-- `-j --threadcount=N` Maximum number of threads to use when importing.
+- `-T --tasklist=FILE`  file with configuration file names to import.
+- `-j --taskcount=N` Maximum number of threads to use when importing.
 - `-V --verbose` be more verbose (writes lots of debug info)
 - `-f --config=FILENAME` in case a single digest file is imported, the name of the config file. 
     If not set, dbdigest.cfg is used.
 
-If the -T --threadlist option is given, then -f/--config is ignored: no
+If the -T --tasklist option is given, then -f/--config is ignored: no
 default file will be read. Only the files in the threadlist file will be
 treated.
 
-Example of a thread list file:
+Example of a thread list file (mytests.lst):
 ```
 2025-05-01-i386/gcc-dbdigest.cfg
 2025-05-01-arm/llvm-dbdigest.cfg
@@ -96,17 +96,17 @@ and you can specify comments using the usual # sign.
 ## Examples
 Import data from a single testrun, with testrun data in `mytest.cfg`:
 ```text
-dbdigest -f mytest.cfg
+dbdigest -f mytest.lst
 ```
 The database connection data will be read from the global configuration.
 
 Import data from a list of testruns in `mytests.lst` (4 threads):
 ```text
-dbdigest -T mytests.cfg
+dbdigest -T mytests.lst
 ```
 Import data from a list of testruns in `mytests.lst` (8 threads):
 ```text
-dbdigest -T mytests.cfg -j 8
+dbdigest -T mytests.lst -j 8
 ```
 
 # DBAdd tool.

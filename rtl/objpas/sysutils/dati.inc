@@ -1613,7 +1613,7 @@ begin
   Result:=0;
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out isDST : Boolean): Boolean;
 begin
   Result:=False;
 end;
@@ -1624,9 +1624,21 @@ begin
 end;
 {$ENDIF}
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+var
+  dst : Boolean;
+
 begin
-  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result) then
+  Result:=GetLocalTimeOffset(DateTime,InputIsUTC,Offset,dst);
+end;
+
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean): Integer;
+var
+  dst : Boolean;
+begin
+  if not GetLocalTimeOffset(DateTime, InputIsUTC, Result,dst) then
     Result:=GetLocalTimeOffset();
 end;
 

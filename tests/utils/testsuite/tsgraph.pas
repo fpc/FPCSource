@@ -150,7 +150,7 @@ begin
       Writeln(stdout,'Setting brush style');
       system.flush(stdout);
     end;
-  cnv.brush.FPColor:=colDkGray;
+  cnv.brush.FPColor:=colYellow;
   SR:=Skipped/Total;
   FR:=Failed/Total;
   PR:=1-SR-FR;

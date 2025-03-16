@@ -1797,7 +1797,7 @@ implementation
         freemem(zerobuf,maxfillsize);
         close(f);
         {$pop}
-        if ioresult<>0 then;
+        if ioresult<>0 then
           postprocessexecutable:=true;
       end;
 

@@ -130,8 +130,9 @@ begin
      begin
      if (LastMouseEvent.Buttons=0) then
        MouseEvent.Action:=MouseActionDown
-       else
-        MouseEvent.Action:=MouseActionUp;
+       else           { MouseButton4 or MouseButton5 has no Up event, weed them out }
+     if ((LastMouseEvent.Buttons and (MouseButton4 or MouseButton5)) = 0) then
+       MouseEvent.Action:=MouseActionUp;
      end;
   LastMouseEvent:=MouseEvent;
 end;

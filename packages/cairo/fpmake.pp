@@ -21,6 +21,8 @@ begin
     P.License := 'Library: MPL 1.1 + LGPL-2.1, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,win32,win64,aix,dragonfly,android];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [android];
     // Do not build cairo on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];

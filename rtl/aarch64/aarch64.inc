@@ -582,3 +582,10 @@ asm
   rev x0, x0
 end;
 
+{$define FPC_SYSTEM_HAS_UMUL64X64_128}
+function UMul64x64_128(a,b: uint64; out rHi: uint64): uint64; assembler; nostackframe;
+asm
+  umulh x3,x0,x1
+  mul x0,x0,x1
+  str x3,[x2]
+end;

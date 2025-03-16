@@ -1810,3 +1810,18 @@ dodiv:
   movl $1,%eax
 end;
 {$endif win64}
+
+{$ifndef FPC_SYSTEM_HAS_UMUL64X64_128}
+{$define FPC_SYSTEM_HAS_UMUL64X64_128}
+function UMul64x64_128(a,b: uint64; out rHi: uint64): uint64; assembler; nostackframe;
+{ Win64: rcx = a, rdx = b, r8 = rHi.
+  SysV:  rdi = a, rsi = b, rdx = rHi. }
+asm
+{$ifndef win64}
+  mov %rdx, %rcx { rcx = rHi, as rdx is used for mul. }
+{$endif}
+  mov a, %rax
+  mul b
+  mov %rdx, {$ifdef win64} (%r8) {$else} (%rcx) {$endif}
+end;
+{$endif FPC_SYSTEM_HAS_UMUL64X64_128}

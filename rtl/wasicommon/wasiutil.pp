@@ -294,6 +294,9 @@ Begin
          DirName:=Copy(f.SearchSpec,1,f.NamePos);
         if ConvertToFdRelativePath(DirName,fd,pr)=0 then
          begin
+           { WasmTime doesn't like opening an empty path }
+           if pr='' then
+             pr:='.';
            repeat
              res:=__wasi_path_open(fd,
                                    0,

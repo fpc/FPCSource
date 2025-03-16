@@ -329,7 +329,10 @@ interface
          ts_wasm_native_exceptions,
          { support multithreading via the WebAssembly threading proposal:
            https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md }
-         ts_wasm_threads
+         ts_wasm_threads,
+         { use saturating (nontrapping) float to int conversion instructions:
+           https://github.com/WebAssembly/spec/blob/main/proposals/nontrapping-float-to-int-conversion/Overview.md }
+         ts_wasm_saturating_float_to_int
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -432,7 +435,7 @@ interface
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
-          define: string[30];
+          define: string[32];
        end;
 
     const
@@ -469,7 +472,8 @@ interface
          (name: 'BFEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_BRANCHFUL_EXCEPTIONS'),
          (name: 'JSEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_JS_EXCEPTIONS'),
          (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS'),
-         (name: 'WASMTHREADS';         hasvalue: false; isglobal: true ; define: 'FPC_WASM_THREADS')
+         (name: 'WASMTHREADS';         hasvalue: false; isglobal: true ; define: 'FPC_WASM_THREADS'),
+         (name: 'SATURATINGFLOATTOINT';hasvalue: false; isglobal: false; define: 'FPC_WASM_SATURATING_FLOAT_TO_INT')
        );
 
        { switches being applied to all CPUs at the given level }

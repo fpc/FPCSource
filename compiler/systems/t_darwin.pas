@@ -111,7 +111,14 @@ implementation
 
 
     procedure tlinkerdarwin.SetDefaultInfo;
+      var
+        LdProgram : string;
       begin
+        if cs_link_lld in current_settings.globalswitches then
+          LdProgram:='ld64.lld'
+        else
+          LdProgram:='ld';
+
         with Info do
          begin
   {$ifndef cpu64bitaddr}
@@ -129,16 +136,16 @@ implementation
              programs with problems that require Valgrind will have more
              than 60KB of data (first 4KB of address space is always invalid)
            }
-           ExeCmd[1]:='ld $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
+           ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
            if not(cs_gdb_valgrind in current_settings.globalswitches) then
              ExeCmd[1]:=ExeCmd[1]+' -pagezero_size 0x10000';
   {$else ndef cpu64bitaddr}
-           ExeCmd[1]:='ld $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
+           ExeCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $STATIC $GCSECTIONS $STRIP $MAP $LTO $ORDERSYMS $RPATH -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
   {$endif ndef cpu64bitaddr}
            if (apptype<>app_bundle) then
-             DllCmd[1]:='ld $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -dylib -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES'
+             DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -dylib -L. -o $EXE $ARCH $VERSION $SYSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES'
            else
-             DllCmd[1]:='ld $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -bundle -L. -o $EXE $ARCH $VERSION $SYRSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
+             DllCmd[1]:=LdProgram+' $PRTOBJ $TARGET $OPT $GCSECTIONS $MAP $LTO $ORDERSYMS $RPATH -dynamic -bundle -L. -o $EXE $ARCH $VERSION $SYRSROOT $LIBSEARCHPATH $FILELIST $LIBRARIES';
            DllCmd[2]:='strip -x $EXE';
            DynamicLinker:='';
          end;

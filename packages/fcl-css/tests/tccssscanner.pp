@@ -519,7 +519,7 @@ end;
 
 procedure TTestCSSScanner.TestPSEUDO2;
 begin
-  CheckToken(ctkPSEUDO,'::name');
+  CheckTokens('::name',[ctkDOUBLECOLON,ctkIDENTIFIER]);
 end;
 
 procedure TTestCSSScanner.TestPSEUDOMinus;
@@ -529,7 +529,7 @@ end;
 
 procedure TTestCSSScanner.TestPSEUDO2Minus;
 begin
-  CheckToken(ctkPSEUDO,'::-name');
+  CheckTokens('::-name',[ctkDOUBLECOLON,ctkIDENTIFIER]);
 end;
 
 procedure TTestCSSScanner.TestPSEUDODisabled;
@@ -561,10 +561,8 @@ end;
 
 procedure TTestCSSScanner.TestPSEUDOFUNCTION2;
 begin
-  CheckToken(ctkPSEUDOFUNCTION,'::name(');
+  CheckTokens('::name(',[ctkDOUBLECOLON,ctkFUNCTION]);
 end;
-
-
 
 procedure TTestCSSScanner.TestJUNK;
 var

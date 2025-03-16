@@ -2292,7 +2292,7 @@ end;
 {$define FString:=AnsiString}
 
 
-Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; const FormatSettings : TFormatSettings): Integer;
 
 begin
   Result:=IntFloatToTextFmt(Buffer,Value,fvExtended,Format,FormatSettings);

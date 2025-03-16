@@ -352,13 +352,12 @@ begin
   New(W,Init);
   ExecView(W);
   Dispose(W,Done);
+  Desktop^.Lock;
+  { force correct commands to be enabled }
+  Desktop^.SetState(sfActive,true);  { activate everything }
+  Desktop^.SetState(sfActive,false); { deactivate everything }
   if assigned(Desktop^.Current) then
-    begin
-      Desktop^.Lock;
-      { force correct commands to be enabled }
-      Desktop^.Current^.SetState(sfActive,false);
-      Desktop^.Current^.SetState(sfActive,true);
-      Desktop^.UnLock;
-    end;
+    Desktop^.Current^.SetState(sfActive,true); { set active only current }
+  Desktop^.UnLock;
 end;
 

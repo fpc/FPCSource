@@ -140,6 +140,16 @@ type
     cssoUser,
     cssoAuthor
     );
+const
+  CSSOriginToSpecifity: array[TCSSOrigin] of TCSSNumericalID = (
+    CSSSpecificityUserAgent,
+    CSSSpecificityUser,
+    CSSSpecificityAuthor
+    );
+
+type
+
+  { ECSSResolver }
 
   ECSSResolver = class(ECSSException)
   end;
@@ -159,22 +169,28 @@ type
     function GetCSSID: TCSSString;
     function GetCSSTypeName: TCSSString;
     function GetCSSTypeID: TCSSNumericalID;
-    function HasCSSClass(const aClassName: TCSSString): boolean;
-    function GetCSSAttributeClass: TCSSString; // get the 'class' attribute
+    function GetCSSPseudoElementName: TCSSString;
+    function GetCSSPseudoElementID: TCSSNumericalID;
+    // parent
     function GetCSSParent: ICSSNode;
+    function GetCSSDepth: integer;
     function GetCSSIndex: integer; // node index in parent's children
+    // siblings
     function GetCSSNextSibling: ICSSNode;
     function GetCSSPreviousSibling: ICSSNode;
-    function GetCSSChildCount: integer;
-    function GetCSSChild(const anIndex: integer): ICSSNode;
     function GetCSSNextOfType: ICSSNode;
     function GetCSSPreviousOfType: ICSSNode;
+    // children
+    function GetCSSEmpty: boolean;
+    function GetCSSChildCount: integer;
+    function GetCSSChild(const anIndex: integer): ICSSNode;
+    // attributes
+    function HasCSSClass(const aClassName: TCSSString): boolean;
+    function GetCSSAttributeClass: TCSSString; // get the 'class' attribute
     function GetCSSCustomAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSExplicitAttribute(const AttrID: TCSSNumericalID): boolean; // e.g. if the HTML has the attribute
     function GetCSSExplicitAttribute(const AttrID: TCSSNumericalID): TCSSString;
     function HasCSSPseudoClass(const AttrID: TCSSNumericalID): boolean;
-    function GetCSSEmpty: boolean;
-    function GetCSSDepth: integer;
   end;
 
 type
@@ -386,9 +402,11 @@ type
     function SelectorIdentifierMatches(Identifier: TCSSResolvedIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorHashIdentifierMatches(Identifier: TCSSHashIdentifierElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorClassNameMatches(aClassName: TCSSClassNameElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
-    function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; var TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorListMatches(aList: TCSSListElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorUnaryMatches(aUnary: TCSSUnaryElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
+    function SelectorPseudoElementMatches(aLeft, aRight: TCSSElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorArrayMatches(anArray: TCSSArrayElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
     function SelectorArrayBinaryMatches(aBinary: TCSSBinaryElement; const TestNode: ICSSNode): TCSSSpecificity; virtual;
     function SelectorCallMatches(aCall: TCSSResolvedCallElement; const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity; virtual;
@@ -401,7 +419,7 @@ type
     function GetSiblingOfIndex(SiblingIDs: TIntegerDynArray; Index: integer): integer; virtual;
     function ComputeValue(El: TCSSElement): TCSSString; virtual;
     function SameValueText(const A, B: TCSSString): boolean; virtual;
-    function SameValueText(A: PAnsiChar; ALen: integer; B: PAnsiChar; BLen: integer): boolean; virtual;
+    function SameValueText(A: PCSSChar; ALen: integer; B: PCSSChar; BLen: integer): boolean; virtual;
     function PosSubString(const SearchStr, Str: TCSSString): integer; virtual;
     function PosWord(const SearchWord, Words: TCSSString): integer; virtual;
     function GetSiblingCount(aNode: ICSSNode): integer; virtual;
@@ -1160,15 +1178,6 @@ end;
 
 function TCSSResolver.SelectorMatches(aSelector: TCSSElement;
   const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
-
-  procedure MatchPseudo;
-  var
-    aNode: ICSSNode;
-  begin
-    aNode:=TestNode;
-    Result:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(aSelector),aNode,OnlySpecificity);
-  end;
-
 var
   C: TClass;
 begin
@@ -1182,7 +1191,9 @@ begin
   else if C=TCSSClassNameElement then
     Result:=SelectorClassNameMatches(TCSSClassNameElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSResolvedPseudoClassElement then
-    MatchPseudo
+    Result:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(aSelector),TestNode,OnlySpecificity)
+  else if C=TCSSUnaryElement then
+    Result:=SelectorUnaryMatches(TCSSUnaryElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSBinaryElement then
     Result:=SelectorBinaryMatches(TCSSBinaryElement(aSelector),TestNode,OnlySpecificity)
   else if C=TCSSArrayElement then
@@ -1256,9 +1267,8 @@ begin
   //writeln('TCSSResolver.SelectorClassNameMatches ',aValue,' ',Result);
 end;
 
-function TCSSResolver.SelectorPseudoClassMatches(
-  aPseudoClass: TCSSResolvedPseudoClassElement; var TestNode: ICSSNode;
-  OnlySpecificity: boolean): TCSSSpecificity;
+function TCSSResolver.SelectorPseudoClassMatches(aPseudoClass: TCSSResolvedPseudoClassElement;
+  const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   PseudoID: TCSSNumericalID;
 begin
@@ -1336,10 +1346,6 @@ begin
       Log(etWarning,20240625154031,'Type selector must be first',aList);
       {$ENDIF}
       exit(CSSSpecificityInvalid);
-    end
-    else if C=TCSSResolvedPseudoClassElement then
-    begin
-      Specificity:=SelectorPseudoClassMatches(TCSSResolvedPseudoClassElement(El),aNode,OnlySpecificity);
     end else
       Specificity:=SelectorMatches(El,aNode,OnlySpecificity);
     if Specificity<0 then
@@ -1348,11 +1354,35 @@ begin
   end;
 end;
 
+function TCSSResolver.SelectorUnaryMatches(aUnary: TCSSUnaryElement; const TestNode: ICSSNode;
+  OnlySpecificity: boolean): TCSSSpecificity;
+begin
+  Result:=CSSSpecificityInvalid;
+  case aUnary.Operation of
+  uoDoubleColon:
+    begin
+      // ::PseudoElement
+      if OnlySpecificity then
+        // treat as Type::PseudoElement
+        Result:=CSSSpecificityType+FSourceSpecificity
+               +CSSSpecificityType+FSourceSpecificity
+      else
+        Result:=SelectorPseudoElementMatches(nil,aUnary.Right,TestNode);
+    end;
+  else
+    // already warned by parser
+    {$IFDEF VerboseCSSResolver}
+    Log(etWarning,20250225103026,'Invalid CSS unary selector '+UnaryOperators[aUnary.Operation],aUnary);
+    {$ENDIF}
+  end;
+end;
+
 function TCSSResolver.SelectorBinaryMatches(aBinary: TCSSBinaryElement;
   const TestNode: ICSSNode; OnlySpecificity: boolean): TCSSSpecificity;
 var
   aParent, Sibling: ICSSNode;
   aSpecificity: TCSSSpecificity;
+  PseudoEl: TCSSElement;
 begin
   if OnlySpecificity then
   begin
@@ -1411,30 +1441,91 @@ begin
     end;
   boWhiteSpace:
     begin
-    // descendant combinator
-    Result:=SelectorMatches(aBinary.Right,TestNode,false);
-    if Result<0 then exit;
-    aParent:=TestNode;
-    repeat
-      aParent:=aParent.GetCSSParent;
-      if aParent=nil then
-        exit(CSSSpecificityNoMatch);
-      aSpecificity:=SelectorMatches(aBinary.Left,aParent,false);
-      if aSpecificity>=0 then
-      begin
-        inc(Result,aSpecificity);
-        exit;
-      end
-      else if aSpecificity=CSSSpecificityInvalid then
-        exit(CSSSpecificityInvalid);
-    until false;
-    end
+      // descendant combinator
+      Result:=SelectorMatches(aBinary.Right,TestNode,false);
+      if Result<0 then exit;
+      aParent:=TestNode;
+      repeat
+        aParent:=aParent.GetCSSParent;
+        if aParent=nil then
+          exit(CSSSpecificityNoMatch);
+        aSpecificity:=SelectorMatches(aBinary.Left,aParent,false);
+        if aSpecificity>=0 then
+        begin
+          inc(Result,aSpecificity);
+          exit;
+        end
+        else if aSpecificity=CSSSpecificityInvalid then
+          exit(CSSSpecificityInvalid);
+      until false;
+    end;
+  boDoubleColon:
+    Result:=SelectorPseudoElementMatches(aBinary.Left,aBinary.Right,TestNode);
   else
     // already warned by parser
     {$IFDEF VerboseCSSResolver}
     Log(etWarning,20240625154050,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
     {$ENDIF}
   end;
+end;
+
+function TCSSResolver.SelectorPseudoElementMatches(aLeft, aRight: TCSSElement;
+  const TestNode: ICSSNode): TCSSSpecificity;
+// pseudo element (function)
+var
+  ID: TCSSNumericalID;
+  aParent: ICSSNode;
+  aSpecificity: TCSSSpecificity;
+begin
+  Result:=CSSSpecificityInvalid;
+  if aRight is TCSSResolvedIdentifierElement then
+  begin
+    // pseudo element
+    ID:=TCSSResolvedIdentifierElement(aRight).NumericalID;
+    if ID<=0 then
+    begin
+      // already warned by parser
+      {$IFDEF VerboseCSSResolver}
+      Log(etWarning,20250224211914,'Invalid CSS pseudo element',aRight);
+      {$ENDIF}
+      exit;
+    end;
+    if ID<>TestNode.GetCSSPseudoElementID then
+      exit(CSSSpecificityNoMatch);
+    Result:=CSSSpecificityIdentifier;
+  end else if aRight is TCSSResolvedCallElement then begin
+    // pseudo element function
+    ID:=TCSSResolvedCallElement(aRight).NameNumericalID;
+    if ID<0 then
+    begin
+      // already warned by parser
+      {$IFDEF VerboseCSSResolver}
+      Log(etWarning,20250224212143,'Invalid CSS pseudo element function',aRight);
+      {$ENDIF}
+      exit;
+    end;
+    if ID<>TestNode.GetCSSPseudoElementID then
+      exit(CSSSpecificityNoMatch);
+    // todo: check parameters
+    Result:=CSSSpecificityIdentifier;
+  end else begin
+    // already warned by parser
+    {$IFDEF VerboseCSSResolver}
+    Log(etWarning,20250224212301,'Invalid CSS pseudo element',aRight);
+    {$ENDIF}
+  end;
+
+  if aLeft=nil then
+    exit; // unary ::Name
+
+  // test left side
+  aParent:=TestNode.GetCSSParent;
+  if aParent=nil then
+    exit(CSSSpecificityNoMatch);
+  aSpecificity:=SelectorMatches(aLeft,aParent,false);
+  if aSpecificity<0 then
+    exit(aSpecificity);
+  inc(Result,aSpecificity);
 end;
 
 function TCSSResolver.SelectorArrayMatches(anArray: TCSSArrayElement;
@@ -1976,10 +2067,10 @@ begin
     Result:=A=B;
 end;
 
-function TCSSResolver.SameValueText(A: PAnsiChar; ALen: integer; B: PAnsiChar;
-  BLen: integer): boolean;
+function TCSSResolver.SameValueText(A: PCSSChar; ALen: integer; B: PCSSChar; BLen: integer
+  ): boolean;
 var
-  AC, BC: AnsiChar;
+  AC, BC: TCSSChar;
   i: Integer;
 begin
   if ALen<>BLen then exit(false);
@@ -1990,8 +2081,13 @@ begin
     begin
       AC:=A^;
       BC:=B^;
-      if (AC<>BC) and (UpCase(AC)<>UpCase(BC)) then
-        exit(false);
+      if (AC<>BC) then
+      begin
+        if (AC in ['a'..'z']) then AC:=TCSSChar(ord(AC)-32);
+        if (BC in ['a'..'z']) then BC:=TCSSChar(ord(BC)-32);
+        if AC<>BC then
+          exit(false);
+      end;
       inc(A);
       inc(B);
     end;
@@ -2004,22 +2100,24 @@ function TCSSResolver.PosSubString(const SearchStr, Str: TCSSString): integer;
 var
   SearchLen: SizeInt;
   i: Integer;
-  SearchP, StrP: PAnsiChar;
-  AC, BC: AnsiChar;
+  SearchP, StrP: PCSSChar;
+  AC, BC: TCSSChar;
 begin
   Result:=0;
   if SearchStr='' then exit;
   if Str='' then exit;
   if StringComparison=crscCaseInsensitive then
   begin
-    SearchP:=PAnsiChar(SearchStr);
-    StrP:=PAnsiChar(Str);
+    SearchP:=PCSSChar(SearchStr);
+    StrP:=PCSSChar(Str);
     SearchLen:=length(SearchStr);
     AC:=SearchP^;
+    if AC in ['a'..'z'] then AC:=TCSSChar(ord(AC)-32);
     for i:=0 to length(Str)-SearchLen do
     begin
       BC:=StrP^;
-      if (upcase(AC)=upcase(BC)) and SameValueText(SearchP,SearchLen,StrP,SearchLen) then
+      if BC in ['a'..'z'] then BC:=TCSSChar(ord(BC)-32);
+      if (AC=BC) and SameValueText(SearchP,SearchLen,StrP,SearchLen) then
         exit(i+1);
       inc(StrP);
     end;
@@ -2689,9 +2787,9 @@ begin
   begin
     // not yet resolved
     aName:=El.Name;
-    if Kind=nikPseudoClass then
+    if Kind in [nikPseudoClass,nikPseudoElement] then
     begin
-      // pseudo attributes are ASCII case insensitive
+      // pseudo attributes and elements are ASCII case insensitive
       System.Delete(aName,1,1);
       aName:=lowercase(aName);
     end;
@@ -2903,13 +3001,7 @@ begin
   // find all matching rules in all stylesheets
   for aLayerIndex:=0 to length(FLayers)-1 do
     with FLayers[aLayerIndex] do begin
-      case Origin of
-      cssoUserAgent: FSourceSpecificity:=CSSSpecificityUserAgent;
-      cssoUser: FSourceSpecificity:=CSSSpecificityUser;
-      else
-        FSourceSpecificity:=CSSSpecificityAuthor;
-      end;
-
+      FSourceSpecificity:=CSSOriginToSpecifity[Origin];
       for i:=0 to ElementCount-1 do
         ComputeElement(Elements[i].Element);
     end;

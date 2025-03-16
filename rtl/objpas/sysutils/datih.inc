@@ -209,6 +209,7 @@ procedure ReplaceDate(var DateTime: TDateTime; const NewDate: TDateTime); inline
 
 function GetLocalTimeOffset: Integer;
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out IsDST : Boolean): Boolean;
 function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean = False): Integer;
 
 { UTC <-> Local time }

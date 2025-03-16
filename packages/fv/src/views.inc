@@ -2626,18 +2626,18 @@ END;
 {***************************************************************************}
 
 {--TGroup-------------------------------------------------------------------}
-{  IndexOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB           }
+{  IndexOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 14Feb2025 M           }
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.IndexOf (P: PView): Sw_Integer;
 VAR I: Sw_Integer; Q: PView;
 BEGIN
    Q := Last;                                         { Start on last view }
    If (Q <> Nil) Then Begin                           { Subviews exist }
-     I := 1;                                          { Preset value }
-     While (Q <> P) AND (Q^.Next <> Last) Do Begin
+     I := 0;                                          { Preset value }
+     Repeat
        Q := Q^.Next;                                  { Load next view }
        Inc(I);                                        { Increment count }
-     End;
+     Until (Q = P) or (Q = Last);
      If (Q <> P) Then IndexOf := 0 Else IndexOf := I; { Return index }
    End Else IndexOf := 0;                             { Return zero }
 END;
@@ -3111,6 +3111,7 @@ const
 {$endif FV_UNICODE}
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
+   EventMask:=EventMask or evMouseWheel;              { Respond to mouse scroll}
    PgStep := 1;                                       { Page step size = 1 }
    ArStep := 1;                                       { Arrow step sizes = 1 }
    If (Size.X = 1) Then Begin                         { Vertical scrollbar }
@@ -3321,6 +3322,25 @@ BEGIN
          SetValue(I);                                 { Set new item }
          ClearEvent(Event);                           { Event now handled }
      End;
+     evMouseWheel: Begin
+        Clicked;
+        if Event.Wheel=mwDown then                    { Mouse scroll down}
+        begin
+          if (arStep<>1) or not Event.double then
+            SetValue(Value+arStep)
+          else
+            SetValue(Value+6); {fixed step is bad, use it for now. Yet to be implemented ScrollSetp}
+          ClearEvent(Event);                           { Event now handled }
+        end else
+        if Event.Wheel=mwUp then                       { Mouse scroll up}
+        begin
+          if (arStep<>1) or not Event.double then
+            SetValue(Value-arStep)
+          else
+            SetValue(Value-6); {fixed step is bad, use it for now. Yet to be implemented ScrollSetp}
+          ClearEvent(Event);                           { Event now handled }
+        end;
+      end;
      evMouseDown: Begin                               { Mouse press event }
          Clicked;                                     { Scrollbar clicked }
          MakeLocal(Event.Where, Mouse);                 { Localize mouse }
@@ -3436,7 +3456,7 @@ CONSTRUCTOR TScroller.Init (Var Bounds: TRect; AHScrollBar, AVScrollBar: PScroll
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    Options := Options OR ofSelectable;                { View is selectable }
-   EventMask := EventMask OR evBroadcast;             { See broadcasts }
+   EventMask := EventMask OR evBroadcast OR evMouseWheel; { See broadcasts and mouse wheel }
    HScrollBar := AHScrollBar;                         { Hold horz scrollbar }
    VScrollBar := AVScrollBar;                         { Hold vert scrollbar }
 END;
@@ -3526,19 +3546,21 @@ var LinesScroll  : Sw_Integer;
 BEGIN
    Inherited HandleEvent(Event);                      { Call ancestor }
    case Event.What of
-    evMouseDown:
+    evMouseWheel:
       begin
-        if (Event.Buttons=mbScrollUp) then { mouse scroll up}
+        if (Event.Wheel=mwDown) then                  { Mouse scroll down}
           begin
             LinesScroll:=1;
             if Event.Double then LinesScroll:=LinesScroll+4;
             ScrollTo(Delta.X, Delta.Y + LinesScroll);
+            ClearEvent(Event);                        { Event was handled }
           end else
-        if (Event.Buttons=mbScrollDown) then  { mouse scroll down }
+        if (Event.Wheel=mwUp) then                    { Mouse scroll up }
           begin
             LinesScroll:=-1;
             if Event.Double then LinesScroll:=LinesScroll-4;
             ScrollTo(Delta.X, Delta.Y + LinesScroll);
+            ClearEvent(Event);                        { Event was handled }
           end;
       end;
    end;
@@ -3575,7 +3597,7 @@ CONSTRUCTOR TListViewer.Init (Var Bounds: TRect; ANumCols: Sw_Word; AHScrollBar,
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    Options := Options OR (ofFirstClick+ofSelectable); { Set options }
-   EventMask := EventMask OR evBroadcast;             { Set event mask }
+   EventMask := EventMask OR evBroadcast OR evMouseWheel; { Set event mask }
    NumCols := ANumCols;                               { Hold column number }
    LastY:=0;
    If (AHScrollBar <> Nil) Then
@@ -3867,18 +3889,20 @@ BEGIN
              Then DrawView;                           { Redraw the view }
          End;
      End;
-     evMouseDown: Begin                               { Mouse down event }
-       if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
+     evMouseWheel:                                    { Mouse wheel event }
+       if (Event.Wheel=mwDown) then                   { Mouse scroll down }
          begin
            if NumCols>1 then ScrollTo(TopItem+Size.Y)
            else if Event.Double then ScrollTo(TopItem+4) else ScrollTo(TopItem+1);
+           ClearEvent(Event);                         { Event was handled }
          end else
-       if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
+       if (Event.Wheel=mwUp) then                     { Mouse scroll up }
          begin
            if NumCols>1 then ScrollTo(TopItem-Size.Y)
            else if Event.Double then ScrollTo(TopItem-4) else ScrollTo(TopItem-1);
-         end else
-       begin
+           ClearEvent(Event);                         { Event was handled }
+         end;
+     evMouseDown: Begin                               { Mouse down event }
        Cw := Size.X DIV NumCols + 1;                  { Column width }
        Oi := Focused;                                 { Hold focused item }
        MakeLocal(Event.Where, Mouse);                 { Localize mouse }
@@ -3919,7 +3943,6 @@ BEGIN
        If (Oi <> Ni) Then MoveFocus(Ni);              { Focus moved again }
        If (Event.Double AND (Range > Focused)) Then
          SelectItem(Focused);                         { Select the item }
-       end;
        ClearEvent(Event);                             { Event was handled }
      End;
    End;

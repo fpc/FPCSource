@@ -509,7 +509,7 @@ const
      begin
       if not abiinfo[abi].supported then
         continue;
-      if abiinfo[abi].name<>'' then;
+      if abiinfo[abi].name<>'' then
         WriteLn(xmloutput,'      <abi name="',abiinfo[abi].name, '"/>');
      end;
     WriteLn(xmloutput,'    </abis>');
@@ -4956,6 +4956,9 @@ begin
   if tf_x86_far_procs_push_odd_bp in target_info.flags then
     if not UpdateTargetSwitchStr('FARPROCSPUSHODDBP', init_settings.targetswitches, true) then
       InternalError(2013092802);
+  if tf_wasm_threads in target_info.flags then
+    if not UpdateTargetSwitchStr('WASMTHREADS', init_settings.targetswitches, true) then
+      InternalError(2025022701);
 
   { Use standard Android NDK prefixes when cross-compiling }
   if (source_info.system<>target_info.system) and (target_info.system in systems_android) then

@@ -1022,8 +1022,7 @@ var
   K : pointer;
   Value : Sw_integer;
 begin
-  if (Event.What = evMouseDown) and (Event.Double) { double click and not scroll}
-      and ((Event.Buttons and (mbScrollUp or mbScrollDown))=0) then
+  if (Event.What = evMouseDown) and (Event.Double) then
   begin
     Event.What := evCommand;
     Event.Command := cmOK;
@@ -1868,7 +1867,7 @@ procedure TDirListBox.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
     evMouseDown:
-      if Event.Double and ((Event.Buttons and (mbScrollUp or mbScrollDown))=0) then
+      if Event.Double then
       begin
    Event.What := evCommand;
    Event.Command := cmChangeDir;

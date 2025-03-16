@@ -199,9 +199,15 @@ uses
             if not Result then
               begin
                 if (p.typ in SkipInstr) then
-                  UpdateUsedRegs(p);
-
-                p := tai(p.Next);
+                  begin
+                    UpdateUsedRegs(p);
+                    p := tai(p.Next);
+                  end
+                else
+                  begin
+                    p := tai(p.Next);
+                    UpdateUsedRegs(p);
+                  end;
                 Result := True;
               end;
           end;
@@ -259,9 +265,15 @@ uses
             if not Result then
               begin
                 if (p.typ in SkipInstr) then
-                  UpdateUsedRegs(p);
-
-                p := tai(p.Next);
+                  begin
+                    UpdateUsedRegs(p);
+                    p := tai(p.Next);
+                  end
+                else
+                  begin
+                    p := tai(p.Next);
+                    UpdateUsedRegs(p);
+                  end;
                 Result := True;
               end;
           end;

@@ -13,7 +13,7 @@ procedure add_pas2js(const ADirectory: string);
 
 Const
   DefaultOSes = AllUnixOSes+AllBSDOSes+AllWindowsOSes-[WinCE];
-  AllPas2JSOses = DefaultOSes+[wasi];
+  AllPas2JSOses = DefaultOSes+[wasip1,wasip1threads];
 
 Var
   P : TPackage;

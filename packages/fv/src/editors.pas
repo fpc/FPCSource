@@ -1354,7 +1354,7 @@ begin
   GrowMode := gfGrowHiX + gfGrowHiY;
   Options := Options or ofSelectable;
   Flags := EditorFlags;
-  EventMask := evMouseDown + evKeyDown + evCommand + evBroadcast;
+  EventMask := evMouseWheel + evMouseDown + evKeyDown + evCommand + evBroadcast;
   ShowCursor;
 
   HScrollBar := AHScrollBar;
@@ -2046,21 +2046,24 @@ begin
   if Selecting or (ShiftState and $03 <> 0) then
     SelectMode := smExtend;
   case Event.What of
-    {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.evMouseDown:
+    evMouseWheel:
       begin
-        if (Event.Buttons=mbScrollUp) then { mouse scroll up}
+        if (Event.Wheel=mwDown) then { Mouse scroll down}
           begin
             LinesScroll:=1;
             if Event.Double then LinesScroll:=LinesScroll+4;
             ScrollTo(Delta.X, Delta.Y + LinesScroll);
           end else
-        if (Event.Buttons=mbScrollDown) then  { mouse scroll down }
+        if (Event.Wheel=mwUp) then  { Mouse scroll up }
           begin
             LinesScroll:=-1;
             if Event.Double then LinesScroll:=LinesScroll-4;
             ScrollTo(Delta.X, Delta.Y + LinesScroll);
-          end else
-        begin
+          end
+        else exit;
+      end;
+    evMouseDown:
+      begin
         if Event.Double then
           SelectMode := SelectMode or smDouble;
         repeat
@@ -2083,10 +2086,9 @@ begin
           SelectMode := SelectMode or smExtend;
           Unlock;
         until not MouseEvent (Event, evMouseMove + evMouseAuto);
-        end;
-      end; { {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.evMouseDown }
+      end; { evMouseDown }
 
-    {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.evKeyDown:
+    evKeyDown:
       case Event.CharCode of
         #32..#255:
           begin

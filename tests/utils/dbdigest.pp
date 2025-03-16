@@ -61,7 +61,7 @@ Type
       'C'+ {  Comment }
       'S'+ {  TestSrcDir }
       'r'+ {  RelSrcDir }
-      'T'+ {  ThreadList }
+      'T'+ {  TaskList }
       'j'+ {  ThreadCount }
       'V'+ {  Verbose }
       'Q'  {  SQL }
@@ -85,7 +85,7 @@ Type
       'comment',
       'testsrcdir',
       'relsrcdir',
-      'threadlist',
+      'tasklist',
       'threadcount',
       'verbose',
       'sql',
@@ -210,6 +210,11 @@ begin
         begin
         hour:=StrToInt(Copy(aValue,9,2));
         min:=StrToInt(Copy(aValue,11,2));
+        end
+      else
+        begin
+        hour:=0;
+        min:=0;
         end;
       Result:=EncodeDate(year,month,day)+EncodeTime(hour,min,0,0);
     end
@@ -313,10 +318,11 @@ begin
   Writeln('-h --host=HOST                    database hostname');
   Writeln('-p --password=PWD                 database user password');
   Writeln('-P --port=NNN                     database connection port');
+  Writeln('-Q --sql                          be verbose about sql queries');
   Writeln('-r --relsrcdir                    relative source dir');
   Writeln('-S --testsrcdir                   test source dir');
   Writeln('-u --username=USER                database user name');
-  Writeln('-T --tasklist=FILE              file with configuration file names to imports.');
+  Writeln('-T --tasklist=FILE                file with configuration file names to imports.');
   Writeln('-j --threadcount=N                Number of threads to use');
   Writeln('-V --verbose                      be more verbose');
   Writeln('Test run data:');
@@ -404,8 +410,6 @@ begin
     if I<=Length(ShortOpts) then
       begin
       Short:=ShortOpts[I];
-      if Short='r' then
-        Writeln('ag');
       lHas:=HasOption(Short,Long);
       lValue:=GetOptionValue(Short,Long);
       end
@@ -610,7 +614,7 @@ begin
   lConfig:=Default(TDigestConfig);
   lConfig.RelSrcDir:='tests/';
   ReadSystemDBConfig(lConfig);
-  if not HasOption('T','threadlist') then
+  if not HasOption('T','tasklist') then
     begin
     lData:=Default(TTestRunData);
     ProcessConfigFile(lConfigFile,lConfig,lData);

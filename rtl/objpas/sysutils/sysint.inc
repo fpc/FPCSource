@@ -54,6 +54,17 @@ begin
   Result:=DefaultFormatSettings;
 end;
 
+class function TFormatSettings.Create(const LocaleName: string): TFormatSettings;
+begin
+  // Catch
+  if LocaleName.StartsWith('en-US') then
+    Result:=TFormatSettings.Invariant
+  else if assigned(InitFormatSettingsHook) then
+    InitFormatSettingsHook(LocaleName,Result)
+  else
+    Raise ENotSupportedException.Create('No support for transforming locale name to format settings')
+end;
+
 procedure InitInternationalGeneric;
   begin
     fillchar(SysLocale,sizeof(SysLocale),0);

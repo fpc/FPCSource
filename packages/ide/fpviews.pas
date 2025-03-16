@@ -204,9 +204,6 @@ type
       function    GetPalette: PPalette; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
-      procedure   Show; virtual;
-      procedure   Hide; virtual;
-      procedure   Close; virtual;
       destructor  Done; virtual;
     end;
 
@@ -2674,15 +2671,17 @@ begin
 end;
 
 procedure TSourceWindow.UpdateCommands;
-var Active: boolean;
+var Active, Visible: boolean;
 begin
-  Active:=GetState(sfActive);
+  Visible:=GetState(sfVisible);
+  Active:=GetState(sfActive) and Visible;
   if Editor^.IsClipboard=false then
   begin
     SetCmdState(SourceCmds+CompileCmds,Active);
     SetCmdState(EditorCmds,Active);
   end;
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd+[cmHide],Active);
+  SetCmdState([cmTile,cmCascade],Visible or IsThereAnyVisibleEditorWindow);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -2721,23 +2720,6 @@ begin
   PutSubViewPtr(S,Indicator);
   PutSubViewPtr(S,Editor);
   PopStatus;
-end;
-
-procedure TSourceWindow.Show;
-begin
-  inherited Show;
-  IDEApp.SetCmdState([cmTile,cmCascade],true);
-end;
-
-procedure TSourceWindow.Hide;
-begin
-  inherited Hide;
-  IDEApp.SetCmdState([cmTile,cmCascade],IsThereAnyVisibleEditorWindow);
-end;
-
-procedure TSourceWindow.Close;
-begin
-  inherited Close;
 end;
 
 destructor TSourceWindow.Done;
@@ -3417,13 +3399,13 @@ procedure TMessageListBox.HandleEvent(var Event: TEvent);
 var DontClear: boolean;
 begin
   case Event.What of
-    evMouseDown: Begin                                 { Mouse down event }
-        if (Event.Buttons=mbScrollUp) then             { mouse scroll up}
+    evMouseWheel: Begin                                 { Mouse wheel event }
+        if (Event.Wheel=mwDown) then                    { Mouse scroll down }
           begin
             if Event.Double then ScrollTo(TopItem+7) else ScrollTo(TopItem+1);
             ClearEvent(Event);                         { Event was handled }
           end else
-        if (Event.Buttons=mbScrollDown) then           { mouse scroll down }
+        if (Event.Wheel=mwUp) then                     { Mouse scroll up }
           begin
             if Event.Double then ScrollTo(TopItem-7) else ScrollTo(TopItem-1);
             ClearEvent(Event);                         { Event was handled }
@@ -4322,10 +4304,7 @@ begin
     { this makes loading a lot slower and is not needed as far as I can see (FK)
     Message(Application,evBroadcast,cmUpdate,nil);
     }
-    if ShowIt then
-      W^.SetCmdState([cmTile,cmCascade,cmSaveAll],true)
-    else
-      W^.SetCmdState([cmSaveAll],true);
+    W^.SetCmdState([cmSaveAll],true);
   end;
   PopStatus;
   IOpenEditorWindow:=W;
@@ -5029,8 +5008,8 @@ begin
         end;
         if not DontClear then ClearEvent(Event);
       end;
-    evMouseDown:
-      if (Event.Buttons=mbScrollUp) then { mouse scroll up}
+    evMouseWheel:
+      if (Event.Wheel=mwDown) then { Mouse scroll down }
         begin
           LinesScroll:=1;
           if Event.Double then LinesScroll:=LinesScroll+4;
@@ -5038,7 +5017,7 @@ begin
           ScrollTo(Delta.X,Min(Max(0,LineCount-Size.Y),Delta.Y+LinesScroll));
           ClearEvent(Event);
         end else
-      if (Event.Buttons=mbScrollDown) then  { mouse scroll down }
+      if (Event.Wheel=mwUp) then  { Mouse scroll up }
         begin
           LinesScroll:=-1;
           if Event.Double then LinesScroll:=LinesScroll-4;

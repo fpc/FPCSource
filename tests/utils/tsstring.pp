@@ -23,6 +23,7 @@ const
   Bools : Array[Boolean] of string = ('f','t');
 
 const
+  invalid_status = 'invalid';
   failed_to_compile = 'Failed to compile ';
   success_compilation_failed = 'Success, compilation failed ';
   failed_compilation_successful = 'Failed, compilation successful ';

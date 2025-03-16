@@ -62,6 +62,7 @@ type
     procedure TestHistoryWithHistory;
     Procedure TestGetPreviousTestRun;
     Procedure TestGetNextTestRun;
+    procedure TestAddCheckAllRtl;
   end;
 
 
@@ -133,7 +134,7 @@ begin
     AssertEquals('Date',DATE,FieldByName('TU_DATE').AsDateTime);
     AssertEquals('Platform',PlatformID,FieldByName('TU_PLATFORM_FK').AsInteger);
     AssertEquals('Submitter',Submitter,FieldByName('TU_SUBMITTER').AsString);
-    For St in TTestStatus do
+    For St in TValidTestStatus do
       AssertEquals(StatusText[St],StatusCount[st],FieldByName(SQLField[ST]).AsInteger);
     AssertEquals('CompilerDate',CompilerDate,FieldByName('TU_COMPILERDATE').AsString);
     AssertEquals('CompilerFullVersion',CompilerFullVersion,FieldByName('TU_COMPILERFULLVERSION').AsString);
@@ -526,7 +527,7 @@ begin
   lData:=Default(TTestRunData);
   lData.PlatformID:=PreparePlatform(lData);
   lData.RunID:=SQL.AddRun(lData);
-  for St in TTestStatus do
+  for St in TValidTestStatus do
     lData.StatusCount[st]:=(Ord(st)+1)*100;
   AssertTrue('Update',SQL.UpdateTestRun(lData));
   Qry:=TDBHelper.CreateQuery(Format('Select * from testrun where (tu_id=%d)',[lData.RunID]));
@@ -680,6 +681,29 @@ begin
   AssertEquals('Second',3,SQL.GetNextRunID(2));
   AssertEquals('third',4,SQL.GetNextRunID(3));
   AssertEquals('last',-1,SQL.GetNextRunID(4));
+end;
+
+procedure TTestSQLCase.TestAddCheckAllRtl;
+
+var
+  lData : TCheckAllRTL;
+  lTestRunData: TTestRunData;
+  I : integer;
+
+begin
+  lTestRunData:=Default(TTestRunData);
+  lData:=Default(TCheckAllRTL);
+  lData.Platform:=PreparePlatform(lTestRunData);
+  lData.Date:=Date;
+  for I:=Low(TCheckStage) to High(TCheckStage) do
+    begin
+    lData.Steps[i]:=(I mod 2)=0;
+    lData.Logs[i]:='Step '+IntToStr(i)+' log';
+    end;
+  lData.ID:=SQL.AddCheckAllRtl(lData);
+  AssertEquals('count CheckAllRTL', 1, TDBHelper.CountRecords('CHECKALLRTL',Format('(CA_ID=%d)',[lData.ID])));
+  AssertEquals('count CheckAllRTLLog', 3, TDBHelper.CountRecords('CHECKALLRTLLOG',Format('CAL_CHECKALLRTL_FK=%d',[lData.ID])));
+
 end;
 
 

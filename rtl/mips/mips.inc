@@ -572,7 +572,11 @@ function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint;
 {$IFDEF CPUMIPS1}
 begin
     Result:=Target;
+{$IFDEF VER3_2}
     Target:= Target + Source;
+{$ELSE VER3_2}
+    Target:= Target + Value;
+{$ENDIF VER3_2}
 {$ELSE}
 assembler; nostackframe;
 asm
@@ -596,7 +600,11 @@ function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue: longint; Compara
 {$IFDEF CPUMIPS1}
 begin
     Result:= Target;
+{$IFDEF VER3_2}
     if Target = Comperand then
+{$ELSE VER3_2}
+    if Target = Comparand then
+{$ENDIF VER3_2}
       Target:= NewValue;
 {$ELSE}
 assembler; nostackframe;

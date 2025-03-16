@@ -305,17 +305,23 @@ end;
 function TTestSuiteSQL.GetRunOverviewSQL: String;
 
 Const
-  SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
+  SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU, TO_NAME as OS,'+
                'TV_VERSION as Version, '+
                '(select count(*) from testresults where (TR_TESTRUN_FK=TU_ID)) as Count,'+
                'TU_COMPILERREVISION as CompRev,'+
                'TU_RTLREVISION as RTLRev,'+
                'TU_PACKAGESREVISION as PackRev,'+
                'TU_TESTSREVISION as TestsRev,'+
-               '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
+
+               '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+TU_UNIT+TU_SKIPPINGRUNTEST) AS OK,'+
+
                '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
-               '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
-                'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
+
+               '(TU_FAILEDTOCOMPILE+TU_SUCCESSFULLYFAILED+TU_FAILEDTOFAIL+TU_SUCCESFULLYCOMPILED+'+
+               ' TU_FAILEDTORUN+TU_KNOWNPROBLEM+TU_SUCCESSFULLYRUN+TU_SKIPPEDGRAPHTEST+'+
+               ' TU_SKIPPEDINTERACTIVETEST+TU_KNOWNBUG+TU_COMPILERVERIONTOOLOW+TU_COMPILERVERIONTOOHIGH+'+
+               ' TU_OTHERCPU+TU_OTHERTARGET+TU_UNIT+TU_SKIPPINGRUNTEST) as Total,'+
+
                'TU_SUBMITTER as Submitter, TP_MACHINE as Machine, TP_CONFIG as Comment %s '+
               'FROM '+
                ' TESTRUN '+
@@ -334,7 +340,7 @@ begin
    S:='';
    S:=S+PointerIs('TP_CPU_FK',FVars.CPUID,FInfo.AllCPUID);
    S:=S+PointerIs('TP_CATEGORY_FK',FVars.CategoryID,FInfo.AllCategoryID);
-   S:=S+PointerIs('TP_VERSION_FK',FVars.VersionID);
+   S:=S+PointerIs('TP_VERSION_FK',FVars.VersionID,FInfo.AllVersionID);
    S:=S+PointerIs('TP_OS_FK',FVars.OSID,FInfo.ALLOSID);
    If (Round(FVars.Date)<>0) then
      S:=S+Format(' AND (TU_DATE=''%s'')',[FormatDateTime('YYYY-MM-DD',FVars.Date)]);

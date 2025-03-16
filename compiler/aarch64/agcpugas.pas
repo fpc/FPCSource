@@ -895,7 +895,7 @@ unit agcpugas;
             idtxt  : 'AS-CLANG';
             asmbin : 'clang';
             asmcmd : '-x assembler -c -target $TRIPLET -o $OBJ $MARCHOPT $EXTRAOPT -x assembler $ASM';
-            supported_targets : [system_aarch64_win64];
+            supported_targets : [system_aarch64_freebsd,system_aarch64_linux,system_aarch64_android,system_aarch64_embedded,system_aarch64_win64];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_llvm,af_supports_hlcfi];
             labelprefix : '.L';
             labelmaxlen : -1;

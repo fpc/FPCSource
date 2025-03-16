@@ -183,6 +183,8 @@ CONST
    evMouseUp   = $0002;                               { Mouse up event }
    evMouseMove = $0004;                               { Mouse move event }
    evMouseAuto = $0008;                               { Mouse auto event }
+   { Idea of evMouseWheel to be separate event type comes from https://github.com/magiblot/tvision }
+   evMouseWheel= $0020;                               { Mouse wheel event }
    evKeyDown   = $0010;                               { Key down event }
    evCommand   = $0100;                               { Command event }
    evBroadcast = $0200;                               { Broadcast event }
@@ -192,7 +194,7 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    evNothing   = $0000;                               { Empty event }
-   evMouse     = $000F;                               { Mouse event }
+   evMouse     = $002F;                               { Mouse event }
    evKeyboard  = $0010;                               { Keyboard event }
    evMessage   = $FF00;                               { Message event }
 
@@ -297,13 +299,19 @@ CONST
    mbLeftButton      = $01;                           { Left mouse button }
    mbRightButton     = $02;                           { Right mouse button }
    mbMiddleButton    = $04;                           { Middle mouse button }
-   mbScrollWheelDown = $08 deprecated 'use mbScrollDown instead';
-   mbScrollWheelUp   = $10 deprecated 'use mbScrollUp instead';
-   mbScrollDown      = $08;                           { Scroll down - turn the wheel downward (toward you) }
-   mbScrollUp        = $10;                           { Scroll up - turn the wheel upward (away from you) }
+   mbScrollWheelDown = $08 deprecated 'use evMouseWheel event and mwDown instead';
+   mbScrollWheelUp   = $10 deprecated 'use evMouseWheel event and mwUp instead';
    mbXButton1        = $20;                           { 4th mouse button. Browser_Back }
    mbXButton2        = $40;                           { 5th mouse button. Browser_Forward }
 
+{---------------------------------------------------------------------------}
+{                         MOUSE WHEEL STATES                                }
+{---------------------------------------------------------------------------}
+CONST
+   mwUp     = $01;      { Scroll up - turn the wheel upward (away from you) }
+   mwDown   = $02;      { Scroll down - turn the wheel downward (toward you) }
+   mwLeft   = $04;      { not implemented }
+   mwRight  = $08;      { not implemented }
 
 {---------------------------------------------------------------------------}
 {                         SCREEN CRT MODE CONSTANTS                         }
@@ -338,6 +346,7 @@ TYPE
         evNothing: ();                                { ** NO EVENT ** }
         evMouse: (
           Buttons: Byte;                              { Mouse buttons }
+          Wheel:   Byte;                              { Mouse wheel }
           Double: Boolean;                            { Double click state }
           Triple: Boolean;                            { Triple click state }
           Where: TPoint);                             { Mouse position }
@@ -804,8 +813,8 @@ CONST
 {---------------------------------------------------------------------------}
 VAR
    LastDouble : Boolean;                              { Last double buttons }
-   LastButtons: Byte;                                 { Last button state }
-   DownButtons: Byte;                                 { Last down buttons }
+   LastButtons: Word;                                 { Last button state }
+   DownButtons: Word;                                 { Last down buttons }
    EventCount : Sw_Word;                                 { Events in queue }
    AutoDelay  : Sw_Word;                                 { Delay time count }
    DownTicks  : Sw_Word;                                 { Down key tick count }
@@ -1411,7 +1420,7 @@ begin
               (GetDosTicks-DownTicks<=DoubleDelay) then
            begin
              Event.Double:=true;
-             if LastDouble and ((e.Buttons and( mbScrollUp or mbScrollDown)) = 0) then
+             if LastDouble and ((e.Buttons and( MouseButton4 or MouseButton5)) = 0) then
              begin              {only "normal" buttons can produce triple click}
                Event.Double:=false;
                Event.Triple:=true;
@@ -1428,6 +1437,16 @@ begin
            if AutoTicks=0 then
              AutoTicks:=1;
            AutoDelay:=RepeatDelay;
+           if (e.Buttons and (MouseButton4 or MouseButton5))<>0 then
+           begin
+             Event.What:=evMouseWheel; { Mouse wheel event not mouse down }
+             case e.Buttons and (MouseButton4 or MouseButton5) of
+               MouseButton4: Event.Wheel:=mwUp;
+               MouseButton5: Event.Wheel:=mwDown;
+             end;
+             e.Buttons:=e.Buttons and( not word( MouseButton4 or MouseButton5)); {remove wheel buttons for Buttons}
+             AutoTicks:=0;  {there is no "holding down" mouse wheel }
+           end;
          end;
        MouseActionUp :
          begin

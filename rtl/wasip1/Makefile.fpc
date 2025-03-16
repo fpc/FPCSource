@@ -20,16 +20,19 @@ nortl=y
 fpcpackage=y
 
 [default]
-target=wasi
+target=wasip1
 cpu=wasm32
 
 [compiler]
-includedir=$(INC) $(PROCINC)
+includedir=$(INC) $(PROCINC) $(WASICOMMONINC)
 sourcedir=$(INC) $(PROCINC) $(COMMON)
 
 [prerules]
 RTL=..
 INC=../inc
+WASICOMMONINC=$(RTL)/wasicommon
+SYSTEMDIR=$(WASICOMMONINC)
+DOSDIR=$(WASICOMMONINC)
 NSOSDIR=$(NSDIR)/wasi
 COMMON=$(RTL)/common
 PROCINC=../$(CPU_TARGET)
@@ -47,7 +50,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 
-override FPC_SYSTEM_OPT += -Fiwasiinc
+override FPC_SYSTEM_OPT += -Fi$(WASICOMMONINC)/wasiinc
 
 DOS_DEPS_OS=$(WASIAPIUNIT)$(PPUEXT) $(WASIUTILUNIT)$(PPUEXT)
 
@@ -63,17 +66,17 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) wasiinc/wasitypes.inc wasiinc/wasiprocs.inc
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) $(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc
 
 SYSUTILS_DEPS_OS=$(WASIUTILUNIT)$(PPUEXT)
 
 #
 # $(SYSINIT_UNITS) Units
 #
-si_prc$(PPUEXT) : si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
+si_prc$(PPUEXT) : $(WASICOMMONINC)/si_prc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-si_dll$(PPUEXT) : si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
+si_dll$(PPUEXT) : $(WASICOMMONINC)/si_dll.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
 #
@@ -92,7 +95,7 @@ Wasm.Api$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Api.pp $(WEBASSEMBLYDEPS)
 # WASIAPI
 #
 
-WASIAPIDEPS=wasiinc/wasitypes.inc wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
+WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 
 wasiapi$(PPUEXT) : wasiapi.pp $(WASIAPIDEPS)
         $(COMPILER) $< -Fiwasiinc

@@ -199,7 +199,9 @@ implementation
                if heapsize=0 then
                  heapsize:=65536;
              end;
-           system_wasm32_wasi:
+           system_wasm32_wasip1,
+           system_wasm32_wasip1threads,
+           system_wasm32_wasip2:
              begin
                if ts_wasm_threads in init_settings.targetswitches then
                  maxheapsize:=256*1024*1024

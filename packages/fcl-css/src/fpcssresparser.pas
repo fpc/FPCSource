@@ -119,6 +119,7 @@ type
   TCSSNumericalIDKind = (
     nikAttribute,
     nikPseudoClass, // e.g. "hover" of ":hover"
+    nikPseudoElement, // e.g. "first-line" of "::first-line"
     nikPseudoFunction, // e.g. "is" of ":is()"
     nikType,
     nikKeyword,
@@ -132,6 +133,7 @@ const
   CSSNumericalIDKindNames: array[TCSSNumericalIDKind] of TCSSString = (
     'Type',
     'PseudoClass',
+    'PseudoElement',
     'PseudoFunction',
     'Attribute',
     'Keyword',
@@ -309,22 +311,6 @@ type
     Index: TCSSNumericalID;
   end;
 
-  { TCSSPseudoClassDesc }
-
-  TCSSPseudoClassDesc = class(TCSSRegistryNamedItem)
-  public
-  end;
-  TCSSPseudoClassDescClass = class of TCSSPseudoClassDesc;
-  TCSSPseudoClassDescArray = array of TCSSPseudoClassDesc;
-
-  { TCSSTypeDesc }
-
-  TCSSTypeDesc = class(TCSSRegistryNamedItem)
-  public
-  end;
-  TCSSTypeDescClass = class of TCSSTypeDesc;
-  TCSSTypeDescArray = array of TCSSTypeDesc;
-
   { TCSSAttributeKeyData }
 
   TCSSAttributeKeyData = class(TCSSElementOwnedData)
@@ -355,10 +341,36 @@ type
       // used by the cascade algorithm to delete all overwritten properties
     OnCheck: TCheckEvent; // called by the parser after reading a declaration and there is no var()
       // return false if invalid, so the resolver skips this declaration
-    OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var(), if any value is empty, the initialvalue is used
+    OnSplitShorthand: TSplitShorthandEvent; // called by resolver after resolving var(), if any value is empty, the InitialValue is used
   end;
   TCSSAttributeDescClass = class of TCSSAttributeDesc;
   TCSSAttributeDescArray = array of TCSSAttributeDesc;
+
+  { TCSSPseudoClassDesc }
+
+  TCSSPseudoClassDesc = class(TCSSRegistryNamedItem)
+  public
+  end;
+  TCSSPseudoClassDescClass = class of TCSSPseudoClassDesc;
+  TCSSPseudoClassDescArray = array of TCSSPseudoClassDesc;
+
+  { TCSSPseudoElementDesc }
+
+  TCSSPseudoElementDesc = class(TCSSRegistryNamedItem)
+  public
+    Attributes: TCSSAttributeDescArray; // allowed attributes
+    IsFunction: boolean;
+  end;
+  TCSSPseudoElementDescClass = class of TCSSPseudoElementDesc;
+  TCSSPseudoElementDescArray = array of TCSSPseudoElementDesc;
+
+  { TCSSTypeDesc }
+
+  TCSSTypeDesc = class(TCSSRegistryNamedItem)
+  public
+  end;
+  TCSSTypeDescClass = class of TCSSTypeDesc;
+  TCSSTypeDescArray = array of TCSSTypeDesc;
 
   { TCSSRegistry }
 
@@ -369,6 +381,7 @@ type
     FHashLists: array[TCSSNumericalIDKind] of TFPHashList; // name to TCSSRegistryNamedItem
     FKeywordCount: TCSSNumericalID;
     FPseudoClassCount: TCSSNumericalID;
+    FPseudoElementCount: TCSSNumericalID;
     FPseudoFunctionCount: TCSSNumericalID;
     FStamp, FModifiedStamp: TCSSNumericalID;
     FTypeCount: TCSSNumericalID;
@@ -401,7 +414,7 @@ type
       TopLeftID, TopRightID, BottomLeftID, BottomRightID: TCSSNumericalID; const Found: TCSSStringArray); overload;
     property AttributeCount: TCSSNumericalID read FAttributeCount;
   public
-    // pseudo classes
+    // pseudo classes, e.g. :hover
     PseudoClasses: TCSSPseudoClassDescArray; // Note: PseudoClasses[0] is nil to spot bugs easily
     PseudoClass_ClassOf: TCSSPseudoClassDescClass;
     function AddPseudoClass(aPseudo: TCSSPseudoClassDesc): TCSSPseudoClassDesc; overload;
@@ -410,13 +423,22 @@ type
     function IndexOfPseudoClassName(const aName: TCSSString): TCSSNumericalID; overload;
     property PseudoClassCount: TCSSNumericalID read FPseudoClassCount;
   public
-    // pseudo functions lowercase (they are parsed case insensitive)
-    PseudoFunctions: TCSSStringArray;
+    // pseudo element, e.g. ::first-line
+    PseudoElements: TCSSPseudoElementDescArray;
+    PseudoElement_ClassOf: TCSSPseudoElementDescClass;
+    function AddPseudoElement(aPseudo: TCSSPseudoElementDesc): TCSSPseudoElementDesc; overload;
+    function AddPseudoElement(const aName: TCSSString; aClass: TCSSPseudoElementDescClass = nil): TCSSPseudoElementDesc; overload;
+    function FindPseudoElement(const aName: TCSSString): TCSSPseudoElementDesc; overload;
+    function IndexOfPseudoElementName(const aName: TCSSString): TCSSNumericalID; overload;
+    property PseudoElementCount: TCSSNumericalID read FPseudoElementCount;
+  public
+    // pseudo functions lowercase (they are parsed case insensitive), e.g. :not()
+    PseudoFunctions: TCSSStringArray; // Note: PseudoFunctions[0] is nil to spot bugs easily
     function AddPseudoFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfPseudoFunction(const aName: TCSSString): TCSSNumericalID; overload;
     property PseudoFunctionCount: TCSSNumericalID read FPseudoFunctionCount;
   public
-    // types
+    // types, e.g. div
     Types: TCSSTypeDescArray; // Note: Types[0] is nil to spot bugs easily
     Type_ClassOf: TCSSTypeDescClass;
     function AddType(aType: TCSSTypeDesc): TCSSTypeDesc; overload;
@@ -426,7 +448,7 @@ type
     property TypeCount: TCSSNumericalID read FTypeCount;
   public
     // keywords
-    Keywords: TCSSStringArray;
+    Keywords: TCSSStringArray; // Note: Keywords[0] is nil to spot bugs easily
     kwFirstColor, kwLastColor, kwTransparent: TCSSNumericalID;
     function AddKeyword(const aName: TCSSString): TCSSNumericalID; overload;
     procedure AddKeywords(const Names: TCSSStringArray; out First, Last: TCSSNumericalID); overload;
@@ -436,8 +458,8 @@ type
     function GetKeywordColor(KeywordID: TCSSNumericalID): TCSSAlphaColor; virtual; overload;
     property KeywordCount: TCSSNumericalID read FKeywordCount;
   public
-    // attribute functions
-    AttrFunctions: TCSSStringArray;
+    // attribute functions, e.g. var()
+    AttrFunctions: TCSSStringArray; // Note: AttrFunctions[0] is nil to spot bugs easily
     const afVar = CSSAttrFuncVar;
     function AddAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
     function IndexOfAttrFunction(const aName: TCSSString): TCSSNumericalID; overload;
@@ -575,6 +597,8 @@ type
     function GetAttributeDesc(AttrID: TCSSNumericalID): TCSSAttributeDesc; virtual;
     function GetTypeID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoClassID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetPseudoElementID(const aName: TCSSString): TCSSNumericalID; virtual;
+    function GetPseudoElFuncID(const aName: TCSSString): TCSSNumericalID; virtual;
     function GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID; virtual;
 
     property CSSRegistry: TCSSRegistry read FCSSRegistry write SetCSSRegistry;
@@ -592,13 +616,17 @@ type
     function ResolveAttribute(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolveType(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
     function ResolvePseudoClass(El: TCSSResolvedPseudoClassElement): TCSSNumericalID; virtual;
+    function ResolvePseudoElement(El: TCSSResolvedIdentifierElement): TCSSNumericalID; virtual;
+    function ResolvePseudoElementFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ResolvePseudoFunction(El: TCSSResolvedCallElement): TCSSNumericalID; virtual;
     function ParseCall(aName: TCSSString; IsSelector: boolean): TCSSCallElement; override;
     function ParseDeclaration(aIsAt: Boolean): TCSSDeclarationElement; override;
+    function ParsePseudoElement: TCSSElement; override;
     function ParseSelector: TCSSElement; override;
     procedure CheckSelector(El: TCSSElement); virtual;
     procedure CheckSelectorArray(anArray: TCSSArrayElement); virtual;
     procedure CheckSelectorArrayBinary(aBinary: TCSSBinaryElement); virtual;
+    procedure CheckSelectorUnary(aUnary: TCSSUnaryElement); virtual;
     procedure CheckSelectorBinary(aBinary: TCSSBinaryElement); virtual;
     procedure CheckSelectorList(aList: TCSSListElement); virtual;
     procedure CheckNthChildParams(aCall: TCSSResolvedCallElement); virtual;
@@ -653,6 +681,8 @@ begin
     Attribute_ClassOf:=TCSSAttributeDesc;
   if PseudoClass_ClassOf=nil then
     PseudoClass_ClassOf:=TCSSPseudoClassDesc;
+  if PseudoElement_ClassOf=nil then
+    PseudoElement_ClassOf:=TCSSPseudoElementDesc;
   if Type_ClassOf=nil then
     Type_ClassOf:=TCSSTypeDesc;
 
@@ -665,6 +695,11 @@ begin
   SetLength(PseudoClasses,32);
   for i:=0 to length(PseudoClasses)-1 do PseudoClasses[i]:=nil;
   FPseudoClassCount:=1; // index 0 is CSSIDNone
+
+  // init pseudo elements
+  SetLength(PseudoElements,32);
+  for i:=0 to length(PseudoElements)-1 do PseudoElements[i]:=nil;
+  FPseudoElementCount:=1; // index 0 is CSSIDNone
 
   // init pseudo functions
   SetLength(PseudoFunctions,16);
@@ -711,6 +746,9 @@ begin
     raise Exception.Create('20240623170558');
   if AddPseudoClass('only-of-type').Index<>CSSPseudoID_OnlyOfType then
     raise Exception.Create('20240623170609');
+
+  // init pseudo elements
+  // none by default
 
   // init pseudo functions
   if AddPseudoFunction('not')<>CSSCallID_Not then
@@ -776,6 +814,12 @@ begin
   PseudoClasses:=nil;
   FPseudoClassCount:=0;
 
+  // pseudo elements
+  for i:=1 to PseudoElementCount-1 do
+    FreeAndNil(PseudoElements[i]);
+  PseudoElements:=nil;
+  FPseudoElementCount:=0;
+
   // types
   for i:=1 to TypeCount-1 do
     FreeAndNil(Types[i]);
@@ -827,6 +871,7 @@ var
   TypeDesc: TCSSTypeDesc;
   i: Integer;
   aName: TCSSString;
+  PseudoElementDesc: TCSSPseudoElementDesc;
 begin
   if AttributeCount>length(Attributes) then
     raise Exception.Create('20240629102438');
@@ -883,6 +928,27 @@ begin
     ID2:=IndexOfPseudoClassName(PseudoClassDesc.Name);
     if ID2<>ID then
       raise Exception.Create('20240629101227 pseudo class ID='+IntToStr(ID)+' "'+aName+'" IndexOf failed: '+IntToStr(ID2));
+  end;
+
+  if PseudoElementCount>length(PseudoElements) then
+    raise Exception.Create('20250220140108');
+  for ID:=1 to PseudoElementCount-1 do
+  begin
+    PseudoElementDesc:=PseudoElements[ID];
+    if PseudoElementDesc=nil then
+      raise Exception.Create('20250220140126 pseudo element ID='+IntToStr(ID)+' Desc=nil');
+    aName:=PseudoElementDesc.Name;
+    if aName='' then
+      raise Exception.Create('20250220140201 pseudo element ID='+IntToStr(ID)+' missing name');
+    if length(aName)>255 then
+      raise Exception.Create('20250220140202 pseudo element ID='+IntToStr(ID)+' name too long "'+aName+'"');
+    if aName[1]=':' then
+      raise Exception.Create('20250220140204 pseudo element ID='+IntToStr(ID)+' invalid name "'+aName+'"');
+    if PseudoElementDesc.Index<>ID then
+      raise Exception.Create('20250220140205 pseudo element ID='+IntToStr(ID)+' Desc.Index='+IntToStr(PseudoElementDesc.Index)+' "'+aName+'"');
+    ID2:=IndexOfPseudoElementName(PseudoElementDesc.Name);
+    if ID2<>ID then
+      raise Exception.Create('20250220140207 pseudo element ID='+IntToStr(ID)+' "'+aName+'" IndexOf failed: '+IntToStr(ID2));
   end;
 
   if PseudoFunctionCount>length(PseudoFunctions) then
@@ -1152,6 +1218,8 @@ function TCSSRegistry.AddPseudoClass(const aName: TCSSString;
 begin
   if aName='' then
     raise ECSSParser.Create('missing name');
+  if aName<>lowercase(aName) then
+    raise ECSSParser.Create('name not lowercase');
   if FindPseudoClass(aName)<>nil then
     raise ECSSParser.Create('duplicate pseudo class "'+aName+'"');
   if aClass=nil then
@@ -1174,6 +1242,62 @@ var
   aPseudo: TCSSPseudoClassDesc;
 begin
   aPseudo:=TCSSPseudoClassDesc(FHashLists[nikPseudoClass].Find(aName));
+  if aPseudo<>nil then
+    Result:=aPseudo.Index
+  else
+    Result:=-1;
+end;
+
+function TCSSRegistry.AddPseudoElement(aPseudo: TCSSPseudoElementDesc): TCSSPseudoElementDesc;
+begin
+  Result:=aPseudo;
+  if aPseudo.Name='' then
+    raise ECSSParser.Create('missing name');
+  if FindPseudoElement(aPseudo.Name)<>nil then
+    raise ECSSParser.Create('duplicate pseudo element "'+aPseudo.Name+'"');
+
+  if PseudoElementCount=length(PseudoElements) then
+  begin
+    if PseudoElementCount<32 then
+      SetLength(PseudoElements,32)
+    else
+      SetLength(PseudoElements,2*PseudoElementCount);
+    FillByte(PseudoElements[PseudoElementCount],SizeOf(Pointer)*(length(PseudoElements)-PseudoElementCount),0);
+  end;
+  PseudoElements[PseudoElementCount]:=aPseudo;
+  aPseudo.Index:=PseudoElementCount;
+  FHashLists[nikPseudoElement].Add(aPseudo.Name,aPseudo);
+  inc(FPseudoElementCount);
+  ChangeStamp;
+end;
+
+function TCSSRegistry.AddPseudoElement(const aName: TCSSString; aClass: TCSSPseudoElementDescClass
+  ): TCSSPseudoElementDesc;
+begin
+  if aName='' then
+    raise ECSSParser.Create('missing name');
+  if aName<>lowercase(aName) then
+    raise ECSSParser.Create('name not lowercase');
+  if FindPseudoElement(aName)<>nil then
+    raise ECSSParser.Create('duplicate pseudo element "'+aName+'"');
+  if aClass=nil then
+    aClass:=PseudoElement_ClassOf;
+
+  Result:=aClass.Create;
+  Result.Name:=aName;
+  AddPseudoElement(Result);
+end;
+
+function TCSSRegistry.FindPseudoElement(const aName: TCSSString): TCSSPseudoElementDesc;
+begin
+  Result:=TCSSPseudoElementDesc(FHashLists[nikPseudoElement].Find(aName));
+end;
+
+function TCSSRegistry.IndexOfPseudoElementName(const aName: TCSSString): TCSSNumericalID;
+var
+  aPseudo: TCSSPseudoElementDesc;
+begin
+  aPseudo:=TCSSPseudoElementDesc(FHashLists[nikPseudoElement].Find(aName));
   if aPseudo<>nil then
     Result:=aPseudo.Index
   else
@@ -2121,6 +2245,20 @@ begin
   Result:=CSSRegistry.IndexOfPseudoClassName(aName);
 end;
 
+function TCSSBaseResolver.GetPseudoElementID(const aName: TCSSString): TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfPseudoElementName(aName);
+  if (Result>=0) and CSSRegistry.PseudoElements[Result].IsFunction then
+    Result:=-1;
+end;
+
+function TCSSBaseResolver.GetPseudoElFuncID(const aName: TCSSString): TCSSNumericalID;
+begin
+  Result:=CSSRegistry.IndexOfPseudoElementName(aName);
+  if (Result>=0) and not CSSRegistry.PseudoElements[Result].IsFunction then
+    Result:=-1;
+end;
+
 function TCSSBaseResolver.GetPseudoFunctionID(const aName: TCSSString): TCSSNumericalID;
 begin
   Result:=CSSRegistry.IndexOfPseudoFunction(aName);
@@ -2184,6 +2322,50 @@ begin
     Log(etWarning,20240822172826,'unknown pseudo class "'+aName+'"',El);
   end else
     El.NumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolvePseudoElement(El: TCSSResolvedIdentifierElement
+  ): TCSSNumericalID;
+var
+  aName: TCSSString;
+begin
+  // pseudo elements are ASCII case insensitive
+  aName:=lowercase(El.Name);
+
+  if El.NumericalID<>CSSIDNone then
+    raise Exception.Create('20250224203646');
+
+  El.Kind:=nikPseudoElement;
+  Result:=Resolver.GetPseudoElementID(aName);
+  //writeln('TCSSResolverParser.ResolvePseudoElement ',aName,' ID=',Result);
+  if Result<=CSSIDNone then
+  begin
+    El.NumericalID:=-1;
+    Log(etWarning,20250224203703,'unknown pseudo element "'+aName+'"',El);
+  end else
+    El.NumericalID:=Result;
+end;
+
+function TCSSResolverParser.ResolvePseudoElementFunction(El: TCSSResolvedCallElement
+  ): TCSSNumericalID;
+var
+  aName: TCSSString;
+begin
+  // pseudo elements are ASCII case insensitive
+  aName:=lowercase(El.Name);
+
+  if El.NameNumericalID<>CSSIDNone then
+    raise Exception.Create('20250224210628');
+
+  El.Kind:=nikPseudoElement;
+  Result:=Resolver.GetPseudoElFuncID(aName);
+  //writeln('TCSSResolverParser.ResolvePseudoElement ',aName,' ID=',Result);
+  if Result<=CSSIDNone then
+  begin
+    El.NameNumericalID:=-1;
+    Log(etWarning,20250224203703,'unknown pseudo element function "'+aName+'"',El);
+  end else
+    El.NameNumericalID:=Result;
 end;
 
 function TCSSResolverParser.ResolvePseudoFunction(El: TCSSResolvedCallElement
@@ -2300,6 +2482,17 @@ begin
   end;
 end;
 
+function TCSSResolverParser.ParsePseudoElement: TCSSElement;
+begin
+  Result:=inherited ParsePseudoElement;
+  if Result is TCSSResolvedIdentifierElement then
+    ResolvePseudoElement(TCSSResolvedIdentifierElement(Result))
+  else if Result is TCSSResolvedCallElement then
+    ResolvePseudoElementFunction(TCSSResolvedCallElement(Result))
+  else
+    Log(etWarning,20250224210802,'Unknown CSS selector pseudo element',Result);
+end;
+
 function TCSSResolverParser.ParseSelector: TCSSElement;
 begin
   Result:=inherited ParseSelector;
@@ -2321,6 +2514,8 @@ begin
   else if C=TCSSResolvedPseudoClassElement then
     // e.g. :pseudoclass {}
     ResolvePseudoClass(TCSSResolvedPseudoClassElement(El))
+  else if C=TCSSUnaryElement then
+    CheckSelectorUnary(TCSSUnaryElement(El))
   else if C=TCSSBinaryElement then
     CheckSelectorBinary(TCSSBinaryElement(El))
   else if C=TCSSArrayElement then
@@ -2430,13 +2625,30 @@ begin
   end;
 end;
 
+procedure TCSSResolverParser.CheckSelectorUnary(aUnary: TCSSUnaryElement);
+begin
+  case aUnary.Operation of
+  uoDoubleColon:
+    ; // right side was done in ParsePseudoElement
+  else
+    Log(etWarning,20250225103443,'Invalid CSS unary selector '+UnaryOperators[aUnary.Operation],aUnary);
+  end;
+end;
+
 procedure TCSSResolverParser.CheckSelectorBinary(aBinary: TCSSBinaryElement);
 begin
   case aBinary.Operation of
   boGT,
   boPlus,
   boTilde,
-  boWhiteSpace: ;
+  boWhiteSpace:
+    ;
+  boDoubleColon:
+    begin
+    CheckSelector(aBinary.Left);
+    // right side was done in ParsePseudoElement
+    exit;
+    end
   else
     Log(etWarning,20240625153307,'Invalid CSS binary selector '+BinaryOperators[aBinary.Operation],aBinary);
   end;

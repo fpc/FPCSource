@@ -499,7 +499,7 @@ begin
    end;
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out isDst : boolean): Boolean;
 
 begin
   Result := False; // not supported

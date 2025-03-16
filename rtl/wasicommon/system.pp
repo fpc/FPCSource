@@ -23,6 +23,14 @@ interface
 {$ENDIF}
 
 {$define FPC_IS_SYSTEM}
+
+{$if defined(WASIp1threads) and not defined(FPC_WASM_THREADS)}
+  {$fatal The wasip1threads target requires that WebAssembly threads are turned on! Maybe you want to use the wasip1 target, instead?}
+{$endif}
+{$if defined(WASIp1) and not defined(WASIp1threads) and defined(FPC_WASM_THREADS)}
+  {$fatal The wasip1 target requires that WebAssembly threads are turned off! Maybe you want to use the wasip1threads target, instead?}
+{$endif}
+
 {$ifdef FPC_WASM_THREADS}
   {$define DISABLE_NO_THREAD_MANAGER}
 {$else FPC_WASM_THREADS}
@@ -217,6 +225,65 @@ begin
   __wasi_proc_exit(ExitCode);
 End;
 
+function StripLeadingDirSep(const path: RawByteString): RawByteString;
+var
+  chridx: longint;
+begin
+  if path='' then
+  begin
+    Result:='';
+    exit;
+  end;
+
+  chridx:=1;
+  while (chridx<=Length(path)) and (path[chridx] in AllowDirectorySeparators) do
+    Inc(chridx);
+  Result:=Copy(path,chridx);
+end;
+
+function EscapesToParent(const relpath: RawByteString): Boolean;
+var
+  balance: longint;
+  item: RawByteString;
+
+  procedure FinishItem;
+  begin
+    case item of
+      '', '.':
+        {nothing};
+      '..':
+        Dec(balance);
+      else
+        Inc(balance);
+    end;
+  end;
+
+var
+  i: longint;
+begin
+  balance:=0;
+  item:='';
+  i:=1;
+  while i<=Length(relpath) do
+  begin
+    if relpath[i] in AllowDirectorySeparators then
+    begin
+      FinishItem;
+      if balance<0 then
+      begin
+        Result:=True;
+        exit;
+      end;
+      item:='';
+    end
+    else
+      item:=item+relpath[i];
+    Inc(i);
+  end;
+  FinishItem;
+  Result:=balance<0;
+end;
+
 function Do_ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word;
 var
   drive_nr,I,pdir_drive,longest_match,chridx: longint;
@@ -265,6 +332,8 @@ begin
     chridx:=Length(pdir)+1;
     if ((Length(pdir)<>1) or ((Length(pdir)=1) and not (pdir[1] in AllowDirectorySeparators))) and
        ((chridx>Length(path)) or not (path[chridx] in AllowDirectorySeparators)) then
+      continue;
+    if EscapesToParent(StripLeadingDirSep(Copy(path,chridx))) then
       continue;
     if Length(pdir)>longest_match then
     begin

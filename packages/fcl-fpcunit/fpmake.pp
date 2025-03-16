@@ -30,7 +30,7 @@ begin
     P.Email := '';
     P.Description := 'Unit testing system inspired by JUnit of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,human68k,ps1];
+    P.OSes := P.OSes - [embedded,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,human68k,ps1,wasip2];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
@@ -38,7 +38,7 @@ begin
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('digesttestreport.pp');
-    T.OSes := P.OSes - [wasi];
+    T.OSes := P.OSes - [wasip1,wasip1threads];
       with T.Dependencies do
         begin
           AddUnit('fpcunit');

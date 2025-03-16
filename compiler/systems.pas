@@ -181,15 +181,16 @@ interface
             { units are initialized by direct calls and not table driven,
               in particular for a small amount of units, this results in smaller
               executables }
-            tf_init_final_units_by_calls
+            tf_init_final_units_by_calls,
+            { indicates that the default value of the ts_wasm_threads target switch is 'on' for this target }
+            tf_wasm_threads
        );
-
        psysteminfo = ^tsysteminfo;
        { using packed causes bus errors on processors which require alignment }
        tsysteminfo = record
           system       : tsystem;
-          name         : string[39];
-          shortname    : string[12];
+          name         : string[88];
+          shortname    : string[14];
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
@@ -296,7 +297,8 @@ interface
        systems_darwin = systems_ios + systems_iphonesim + systems_macosx;
 
        { all WebAssembly systems }
-       systems_wasm = [system_wasm32_embedded,system_wasm32_wasi];
+       systems_wasm = [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads,
+                       system_wasm32_wasip2];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
@@ -398,8 +400,8 @@ interface
                                    system_riscv32_linux,system_riscv64_linux,
                                    system_aarch64_win64,
                                    system_z80_zxspectrum,system_z80_msxdos,
-                                   system_wasm32_wasi,system_loongarch64_linux,
-                                   system_mipsel_ps1
+                                   system_wasm32_wasip1,system_wasm32_wasip1threads,system_wasm32_wasip2,
+                                   system_loongarch64_linux,system_mipsel_ps1
                                   ]+systems_darwin+systems_amigalike;
 
        { all systems that use the PE+ header in the PE/COFF file
@@ -557,8 +559,8 @@ interface
        target_res  : tresinfo;
        target_dbg  : tdbginfo;
        target_cpu_string,
-       target_os_string   : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
-       target_full_string : string[24];
+       target_os_string   : string[14]; { for rtl/<X>/,fcl/<X>/, etc. }
+       target_full_string : string[28];
 
     function set_target(t:tsystem):boolean;
     function set_target_asm(t:tasm):boolean;
@@ -1182,7 +1184,7 @@ begin
 {$endif aarch64}
 
 {$ifdef wasm32}
-  default_target(system_wasm32_wasi);
+  default_target(system_wasm32_wasip1);
 {$endif wasm32}
 
 {$ifdef z80}

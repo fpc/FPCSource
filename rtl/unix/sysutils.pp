@@ -1886,7 +1886,8 @@ begin
  Result := -Tzseconds div 60; 
 end;
 
-function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer): Boolean;
+
+function GetLocalTimeOffset(const DateTime: TDateTime; const InputIsUTC: Boolean; out Offset: Integer; out IsDST : Boolean): Boolean;
 
 var
   Year, Month, Day, Hour, Minute, Second, MilliSecond: word;
@@ -1896,9 +1897,9 @@ begin
   DecodeDate(DateTime, Year, Month, Day);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   UnixTime:=UniversalToEpoch(Year, Month, Day, Hour, Minute, Second);
-
   {$if declared(GetLocalTimezone)}
   GetLocalTimeOffset:=GetLocalTimezone(UnixTime,InputIsUTC,lTZInfo);
+  isDST:=lTZInfo.daylight;
   if GetLocalTimeOffset then
     Offset:=-lTZInfo.seconds div 60;
   {$else}

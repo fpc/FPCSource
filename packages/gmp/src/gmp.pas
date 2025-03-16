@@ -26,7 +26,7 @@ unit gmp;
 {$endif}
 
 {$ifdef darwin}
-  {$linklib gmp.3}
+  {$linklib gmp.dylib}
 {$endif}
 { Unused symbols exported from GMP:
 

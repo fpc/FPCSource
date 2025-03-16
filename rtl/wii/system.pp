@@ -148,7 +148,7 @@ var
 
   procedure AddBuf;
   begin
-    reallocmem(calculated_cmdline,size+bufsize);
+    sysreallocmem(calculated_cmdline,size+bufsize);
     move(buf^,calculated_cmdline[size],bufsize);
     inc(size,bufsize);
     bufsize:=0;

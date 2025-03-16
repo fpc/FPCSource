@@ -571,7 +571,8 @@ uses cutils, cclasses;
 
           A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
           A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW,
-          A_LD,A_LWU:
+          A_LD,A_LWU,
+          A_ZEXT_B,A_ZEXT_H,A_ZEXT_W,A_SEXT_B,A_SEXT_H,A_SEXT_W:
             if opnr=0 then
               result:=operand_write
             else

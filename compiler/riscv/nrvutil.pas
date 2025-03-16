@@ -90,7 +90,7 @@ implementation
           if CPURV_HAS_ZICOND in cpu_capabilities[current_settings.cputype] then
             attr_arch:=attr_arch+'_zicond1p0';
           if CPURV_HAS_CSR_INSTRUCTIONS in cpu_capabilities[current_settings.cputype] then
-            attr_arch:=attr_arch+'_zicrs2p0';
+            attr_arch:=attr_arch+'_zicsr2p0';
           if CPURV_HAS_FETCH_FENCE in cpu_capabilities[current_settings.cputype] then
             attr_arch:=attr_arch+'_zifencei2p0';
           if CPURV_HAS_ZMMUL in cpu_capabilities[current_settings.cputype] then

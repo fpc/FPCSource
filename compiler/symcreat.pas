@@ -1229,8 +1229,13 @@ implementation
     end;
 
   function get_method_paramtype(vardef  : Tdef; asPointer : Boolean; out isAnonymousArrayDef : Boolean) : ansistring; forward;
-  function str_parse_method(str: ansistring): tprocdef; forward;
 
+  function str_parse_method(str: ansistring; allowgenericid : boolean): tprocdef; forward;
+
+  function str_parse_method(str: ansistring): tprocdef;
+  begin
+     Result:=str_parse_method(str,false);
+  end;
 
   procedure implement_invoke_helper(cn : string;pd: tprocdef; idx : integer);
 
@@ -1299,7 +1304,7 @@ implementation
         end;
       str:=str+');'#10;
       str:=str+'end;'#10;
-      pd.invoke_helper:=str_parse_method(str);
+      pd.invoke_helper:=str_parse_method(str,true);
   end;
 
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
@@ -1638,11 +1643,12 @@ implementation
     objdef.hiddenclassdef:=def;
   end;
 
-  function str_parse_method(str: ansistring): tprocdef;
+  function str_parse_method(str: ansistring; allowgenericid : boolean): tprocdef;
    var
      oldparse_only: boolean;
      tmpstr: ansistring;
      flags : tread_proc_flags;
+     oldallow : boolean;
 
    begin
     Message1(parser_d_internal_parser_string,str);
@@ -1652,6 +1658,8 @@ implementation
     str:=str+'const;';
     block_type:=bt_none;
     { inject the string in the scanner }
+    oldallow:=current_scanner.allowgenericid;
+    current_scanner.allowgenericid:=allowgenericid;
     current_scanner.substitutemacro('hidden_interface_method',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index,true);
     current_scanner.readtoken(false);
     Result:=read_proc([],Nil);
@@ -1660,6 +1668,7 @@ implementation
     current_scanner.closeinputfile;
     current_scanner.nextfile;
     current_scanner.tempopeninputfile;
+    current_scanner.allowgenericid:=oldallow;
    end;
 
 
@@ -1744,7 +1753,7 @@ implementation
     if HaveResult then
       str:=str+'  Result:=res;'#10;
     str:=str+'end;'#10;
-    pd:=str_parse_method(str);
+    pd:=str_parse_method(str,true);
   end;
 
   procedure implement_thunkclass_interfacevmtoffset(cn : shortstring; objdef : tobjectdef; offs : integer);

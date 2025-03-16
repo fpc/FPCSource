@@ -952,12 +952,7 @@ begin
       if csoDisablePseudo in Options then
         CharToken(ctkCOLON)
       else if (TokenStr[1]=':') then
-        begin
-        if (TokenStr[2] in AlNumIden) then
-          Result:=DoIdentifierLike
-        else
-          Result:=ctkDoubleCOLON
-        end
+        TwoCharsToken(ctkDoubleCOLON)
       else if (TokenStr[1] in AlNumIden) then
         Result:=DoIdentifierLike
       else

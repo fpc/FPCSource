@@ -468,7 +468,10 @@ begin
 
   if target_info.system=system_i386_freebsd then
     begin
-      targetstr:='-b elf32-i386-freebsd';
+      if cs_link_lld in current_settings.globalswitches then
+        targetstr:='-b elf'
+      else
+        targetstr:='-b elf32-i386-freebsd';
       emulstr:='-m elf_i386_fbsd';
     end
   else

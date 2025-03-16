@@ -3724,7 +3724,7 @@ var DontClear : boolean;
   end;
 type TCCAction = (ccCheck,ccClear,ccDontCare);
 var
-  StartP,P: TPoint;
+  StartP,P,PrevP: TPoint;
   E: TEvent;
   OldEvent : PEvent;
   CCAction: TCCAction;
@@ -3753,13 +3753,20 @@ begin
           GetMousePos(P);
           StartP:=P;
           SetCurPtr(P.X,P.Y);
+          PrevP.X:=-1; { first time previous point is different }
           repeat
             GetMousePos(P);
-            SetCurPtr(P.X,P.Y);
-            if PointOfs(P)<PointOfs(StartP)
-               then SetSelection(P,StartP)
-               else SetSelection(StartP,P);
-            DrawView;
+            if (P.X<>PrevP.X) or (P.Y<>PrevP.Y) then
+            begin
+              Lock;
+              SetCurPtr(P.X,P.Y);
+              PrevP:=P;
+              if PointOfs(P)<PointOfs(StartP)
+                 then SetSelection(P,StartP)
+                 else SetSelection(StartP,P);
+              DrawView;
+              UnLock;
+            end;
           until not MouseEvent(Event, evMouseMove+evMouseAuto);
           DrawView;
           ClearEvent(Event);

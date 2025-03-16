@@ -1303,7 +1303,7 @@ begin
       raise EXsdParserException.CreateFmt(SERR_ExpectedTypeDefinition,[FTypeName]);
     locContinue := locSym.getBoolean(s_Unresolved) or
                    (IsEmbeddedType(locSym) <> FEmbededDef);
-    if not locContinue then;
+    if not locContinue then
       Result := locSym;
   end;
   if locContinue then begin

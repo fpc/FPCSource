@@ -1244,7 +1244,7 @@ begin
       begin
         eEvent:=Event; {save for later use after inherited call}
         inherited HandleEvent(Event);
-        if (eEvent.Double) and ((eEvent.Buttons and (mbScrollUp or mbScrollDown))=0) then
+        if eEvent.Double then
           if Range>Focused then
             SelectItem(Focused);
       end;
@@ -2391,7 +2391,7 @@ var Y : sw_word;
 begin
   inherited init (Bounds, AStrings);
   VScrollBar:=aVScrollBar;
-  EventMask := evMouseDown + evKeyDown + evCommand + evBroadcast;
+  EventMask := evMouseWheel + evMouseDown + evKeyDown + evCommand + evBroadcast;
   Y:=Strings.count;
   if (VScrollBar<> nil) and (Y>=size.Y) and (Size.Y>0) then
     VScrollBar^.SetParams(0, 0,Y-Size.Y, Size.Y-1, VScrollBar^.ArStep);       { Set vert scrollbar }
@@ -2403,21 +2403,23 @@ VAR I: Sw_Integer; Mouse: TPoint;
 begin
    If ((Options AND ofSelectable) <> 0) Then
    begin
-     If (Event.What = evMouseDown) Then Begin             { MOUSE EVENT }
-      if (Event.Buttons=mbScrollUp) then                  { mouse scroll up}
+     If (Event.What = evMouseWheel) Then Begin            { Mouse wheel event }
+       if (Event.Wheel=mwDown) then                       { Mouse scroll down }
          begin
            LinesScroll:=1;
            if Event.Double then LinesScroll:=LinesScroll+4;
            ScrollTo(Delta.X, Delta.Y + LinesScroll);
            ClearEvent(Event);                             { Event was handled }
          end else
-       if (Event.Buttons=mbScrollDown) then               { mouse scroll down }
+       if (Event.Wheel=mwUp) then                         { Mouse scroll up }
          begin
            LinesScroll:=-1;
            if Event.Double then LinesScroll:=LinesScroll-4;
            ScrollTo(Delta.X, Delta.Y + LinesScroll);
            ClearEvent(Event);                             { Event was handled }
-         end else
+         end;
+     end else
+     if (Event.What = evMouseDown) Then Begin             { Mouse down event }
        if (VScrollBar<>nil) then begin       { mouse click if we have scrollbar}
          MakeLocal(Event.Where, Mouse);                   { Make point local }
          I := FindSel(Mouse);                             { Find selected item }

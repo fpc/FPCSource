@@ -21031,7 +21031,7 @@ begin
     Call.AddArg(CreateRTTIArgList(Proc,Proc.ProcType.Args,AContext));
 
     // add visibility
-    ExtVis:=GetExtRTTIVisibilityParam(Proc,ParentEl.RTTIVisibility.Fields);
+    ExtVis:=GetExtRTTIVisibilityParam(Proc,ParentEl.RTTIVisibility.Methods);
     if ExtVis<>ExtRTTIVisDefaultMethod then
       AddExtRTTIVisibility;
 
@@ -21208,7 +21208,7 @@ begin
       Call.AddArg(CreateLiteralString(Prop,GetAccessorName(SetterPas)));
 
     // add visibility
-    ExtVis:=GetExtRTTIVisibilityParam(Prop,ParentEl.RTTIVisibility.Fields);
+    ExtVis:=GetExtRTTIVisibilityParam(Prop,ParentEl.RTTIVisibility.Properties);
     if ExtVis<>ExtRTTIVisDefaultProperty then
       AddExtRTTIVisibility;
 

@@ -284,28 +284,6 @@ begin
   Result := Borrow;
 end;
 
-procedure mul_64_64(const Left, Right: UInt64; out Result: UInt128);
-var
-  a0, a1, b0, b1, m0, m1, m2, m3: UInt64;
-begin
-  a0 := Left and $FFFFFFFF;
-  a1 := Left shr 32;
-  b0 := Right and $FFFFFFFF;
-  b1 := Right shr 32;
-  m0 := a0 * b0;
-  m1 := a0 * b1;
-  m2 := a1 * b0;
-  m3 := a1 * b1;
-    
-  m2 := m2 + (m0 shr 32);
-  m2 := m2+m1;
-  if m2 < m1 then
-    m3 := m3+UInt64($100000000); // overflow
-
-  Result.m_low := (m0 and $FFFFFFFF) or (m2 shl 32);
-  Result.m_high := m3 + (m2 shr 32);
-end;
-
 function add_128_128(var a, b: UInt128): UInt128;
 begin
   Result.m_low := a.m_low + b.m_low;
@@ -334,7 +312,7 @@ begin
     begin
       if i >= NUM_ECC_DIGITS then
         Break;
-      mul_64_64(Left[I], Right[K-I], Product);
+      Product.m_low := UMul64x64_128(Left[I], Right[K-I], Product.m_high);
       r01 := add_128_128(r01, Product);
       if r01.m_high < Product.m_high then
         Inc(r2);
@@ -366,7 +344,7 @@ begin
     begin
       if I > K-I then
         Break;
-      mul_64_64(Left[I], Left[K-I], Product);
+      Product.m_low := UMul64x64_128(Left[I], Left[K-I], Product.m_high);
       if I < K-I then
       begin
         Inc(r2, Product.m_high shr 63);

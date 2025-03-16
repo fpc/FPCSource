@@ -25,7 +25,9 @@ unit aoptcpu;
 
 {$i fpcdefs.inc}
 
+{$ifdef EXTDEBUG}
 {$define DEBUG_AOPTCPU}
+{$endif EXTDEBUG}
 
   Interface
 
@@ -570,8 +572,12 @@ unit aoptcpu;
                 end;
               { CMP #0,<ea> equals to TST <ea>, just shorter and TST is more flexible anyway }
               A_CMP,A_CMPI:
-                if (taicpu(p).oper[0]^.typ = top_const) and
-                   (taicpu(p).oper[0]^.val = 0) then
+                if ((taicpu(p).oper[0]^.typ = top_const) and
+                    (taicpu(p).oper[0]^.val = 0)) and
+                   ((taicpu(p).oper[1]^.typ = top_ref) or
+                    ((taicpu(p).oper[1]^.typ = top_reg) and
+                     not (isaddressregister(taicpu(p).oper[1]^.reg) and
+                      not (CPUM68K_HAS_TSTAREG in cpu_capabilities[current_settings.cputype])))) then
                   begin
                     DebugMsg('Optimizer: CMP #0 to TST',p);
                     taicpu(p).opcode:=A_TST;

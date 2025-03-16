@@ -20,7 +20,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
-    P.OSes:=[wasi];
+    P.OSes:=[wasip1,wasip1threads];
     P.CPUs:=[wasm32];
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('wasm.debuginspector.shared.pas');

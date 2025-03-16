@@ -86,8 +86,9 @@ Type
     function ParseHashIdentifier : TCSSHashIdentifierElement; virtual;
     function ParseClassName : TCSSClassNameElement; virtual;
     function ParseParenthesis: TCSSElement; virtual;
-    function ParsePseudo: TCSSElement; virtual;
-    Function ParseRuleBody(aRule: TCSSRuleElement; aIsAt : Boolean = False) : integer; virtual;
+    function ParsePseudoClass: TCSSElement; virtual;
+    function ParsePseudoElement: TCSSElement; virtual;
+    function ParseRuleBody(aRule: TCSSRuleElement; aIsAt : Boolean = False) : integer; virtual;
     function ParseInteger: TCSSElement; virtual;
     function ParseFloat: TCSSElement; virtual;
     function ParseString: TCSSElement; virtual;
@@ -928,7 +929,7 @@ begin
   GetNextToken;
 end;
 
-function TCSSParser.ParsePseudo: TCSSElement;
+function TCSSParser.ParsePseudoClass: TCSSElement;
 
 Var
   aPseudo : TCSSPseudoClassElement;
@@ -944,6 +945,20 @@ begin
     aPseudo:=nil;
   finally
     aPseudo.Free;
+  end;
+end;
+
+function TCSSParser.ParsePseudoElement: TCSSElement;
+begin
+  if CurrentToken<>ctkDOUBLECOLON then
+    raise Exception.Create('20250224201230');
+  GetNextToken;
+  case CurrentToken of
+  ctkIDENTIFIER: Result:=ParseIdentifier;
+  ctkFUNCTION: Result:=ParseCall('',false);
+  else
+    DoWarnExpectedButGot('pseudo element name');
+    Result:=nil;
   end;
 end;
 
@@ -1162,7 +1177,7 @@ begin
     ctkEOF: exit(nil);
     ctkLPARENTHESIS: Result:=ParseParenthesis;
     ctkURL: Result:=ParseURL;
-    ctkPSEUDO: Result:=ParsePseudo;
+    ctkPSEUDO: Result:=ParsePseudoClass;
     ctkLBRACE: Result:=ParseRule;
     ctkLBRACKET: Result:=ParseArray(Nil);
     ctkMinus,
@@ -1191,6 +1206,28 @@ end;
 
 function TCSSParser.ParseSelector: TCSSElement;
 
+  function ParseBinaryPseudoElement(var El: TCSSElement): boolean;
+  var
+    Bin: TCSSBinaryElement;
+  begin
+    Bin:=TCSSBinaryElement(CreateElement(CSSBinaryElementClass));
+    Bin.Left:=El;
+    El:=Bin;
+    Bin.Operation:=boDoubleColon;
+    Bin.Right:=ParsePseudoElement;
+    Result:=Bin.Right<>nil;
+  end;
+
+  function ParseUnaryPseudoElement: TCSSElement;
+  var
+    Un: TCSSUnaryElement;
+  begin
+    Un:=TCSSUnaryElement(CreateElement(CSSUnaryElementClass));
+    Result:=Un;
+    Un.Operation:=uoDoubleColon;
+    Un.Right:=ParsePseudoElement;
+  end;
+
   function ParseSub: TCSSElement;
   begin
     Result:=nil;
@@ -1200,8 +1237,9 @@ function TCSSParser.ParseSelector: TCSSElement;
       ctkHASH : Result:=ParseHashIdentifier;
       ctkCLASSNAME : Result:=ParseClassName;
       ctkLBRACKET: Result:=ParseAttributeSelector;
-      ctkPSEUDO: Result:=ParsePseudo;
+      ctkPSEUDO: Result:=ParsePseudoClass;
       ctkPSEUDOFUNCTION: Result:=ParseCall('',true);
+      ctkDOUBLECOLON: Result:=ParseUnaryPseudoElement;
     else
       DoWarn(SErrUnexpectedToken ,[
                GetEnumName(TypeInfo(TCSSToken),Ord(CurrentToken)),
@@ -1218,8 +1256,8 @@ function TCSSParser.ParseSelector: TCSSElement;
 
 var
   ok, OldReturnWhiteSpace: Boolean;
-  Bin: TCSSBinaryElement;
-  El: TCSSElement;
+  Bin, PseudoBin: TCSSBinaryElement;
+  El, Sub: TCSSElement;
   List: TCSSListElement;
 begin
   Result:=nil;
@@ -1234,15 +1272,18 @@ begin
   Scanner.ReturnWhiteSpace:=true;
   try
     repeat
-      {$IFDEF VerbosecSSParser}
+      {$IFDEF VerboseCSSParser}
       writeln('TCSSParser.ParseSelector LIST START ',CurrentToken,' ',CurrentTokenString);
       {$ENDIF}
       // read list
       List:=nil;
       El:=ParseSub;
-      {$IFDEF VerbosecSSParser}
+      {$IFDEF VerboseCSSParser}
       writeln('TCSSParser.ParseSelector LIST NEXT ',CurrentToken,' ',CurrentTokenString,' El=',GetCSSObj(El));
       {$ENDIF}
+      if El=nil then
+        exit;
+
       while CurrentToken in [ctkSTAR,ctkHASH,ctkIDENTIFIER,ctkCLASSNAME,ctkLBRACKET,ctkPSEUDO,ctkPSEUDOFUNCTION] do
         begin
         if List=nil then
@@ -1251,9 +1292,15 @@ begin
           List.AddChild(El);
           El:=List;
           end;
-        List.AddChild(ParseSub);
+        Sub:=ParseSub;
+        if Sub=nil then break;
+        List.AddChild(Sub);
         end;
       List:=nil;
+
+      // read postfix pseudo elements
+      while CurrentToken=ctkDOUBLECOLON do
+        if not ParseBinaryPseudoElement(El) then break;
 
       // use element
       if Bin<>nil then
@@ -1263,7 +1310,7 @@ begin
       El:=nil;
 
       SkipWhiteSpace;
-      {$IFDEF VerbosecSSParser}
+      {$IFDEF VerboseCSSParser}
       writeln('TCSSParser.ParseSelector LIST END ',CurrentToken,' ',CurrentTokenString);
       {$ENDIF}
 
@@ -1282,7 +1329,7 @@ begin
         end;
       ctkSTAR,ctkHASH,ctkIDENTIFIER,ctkCLASSNAME,ctkLBRACKET,ctkPSEUDO,ctkPSEUDOFUNCTION:
         begin
-        // decendant combinator
+        // descendant combinator
         Bin:=TCSSBinaryElement(CreateElement(CSSBinaryElementClass));
         Bin.Left:=Result;
         Result:=Bin;
@@ -1297,6 +1344,9 @@ begin
     Scanner.ReturnWhiteSpace:=OldReturnWhiteSpace;
     if not ok then
       begin
+      if Result=Bin then Bin:=nil;
+      if El=List then List:=nil;
+      if Result=El then El:=nil;
       Result.Free;
       El.Free;
       List.Free;
@@ -1470,7 +1520,6 @@ var
   l : Integer;
   aValue: TCSSElement;
 begin
-  if IsSelector then ;
   aCall:=TCSSCallElement(CreateElement(CSSCallElementClass));
   try
     if (aName='') then

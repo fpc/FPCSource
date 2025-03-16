@@ -1657,6 +1657,15 @@ type
      SQL_INT64 = 580;
   { Historical alias for pre V6 applications  }
      SQL_DATE = SQL_TIMESTAMP;
+     // Moved here from ibconnection  
+     SQL_BOOLEAN_INTERBASE = 590;
+     SQL_INT128 = 32752;
+     SQL_DEC16 = 32760;
+     SQL_DEC34 = 32762;
+     SQL_BOOLEAN_FIREBIRD = 32764;
+     SQL_NULL = 32767;
+     INVALID_DATA = -1;
+       
   {                }
   { Blob Subtypes  }
   {                }

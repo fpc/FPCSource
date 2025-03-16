@@ -3079,7 +3079,7 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32 bit references not supported
 asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
 asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
-asmw_e_brxx_out_of_range=08033_E_Asm: conditional branch destination is out of range
+asmw_e_destination_out_of_range=08033_E_Asm: $1 destination is out of range
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or with another register in a reference
 asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
@@ -4135,6 +4135,7 @@ W*3CTbfexceptions_        Enable the branchful exception support for WebAssembly
 W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly (experimental)
 W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
 W*3CTwasmthreads_         Enable WebAssembly threads support (experimental)
+W*3CTsaturatingfloattoint_ Use saturating (non-trapping) float-to-int conversion instructions
 J*2Cv_Var/out parameter copy-out checking
 A*2CV<x>_Set section threadvar model to <x>
 **2CX_Create also smartlinked library
@@ -4413,7 +4414,9 @@ Z*2Tmsxdos_MSX-DOS
 Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
-W*2Twasi_The WebAssembly System Interface (WASI)
+W*2Twasip1_The WebAssembly System Interface Preview 1 (WASI 0.1)
+W*2Twasip1threads_The WebAssembly System Interface Preview 1 with Multithreading (WASI 0.1 + wasi-threads)
+W*2Twasip2_The WebAssembly System Interface Preview 2 (WASI 0.2) (experimental)
 # end of targets section
 **1t<x>_Target architecture
 **2*_ * Defines FPC_SUBTARGET_<x> 

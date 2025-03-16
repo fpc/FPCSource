@@ -159,6 +159,16 @@ begin
   else
     FWebIDLToPas.GlobalVars.CommaText:=A;
 
+  A:=GetOptionValue('b','banned');
+  if (Copy(A,1,1)='@') then
+    begin
+    Delete(A,1,1);
+    FWebIDLToPas.Banned.LoadFromFile(A);
+    end
+  else
+    FWebIDLToPas.Banned.CommaText:=A;
+
+
   if HasOption('l','list') then
     begin
     L:=TStringList.Create;
@@ -230,7 +240,7 @@ end;
 procedure TWebIDLToPasApplication.DoRun;
 
 const
-  Short = 'ced::f:g:hi:m:n:o:pt:u:vw:x:rl:a';
+  Short = 'ced::f:g:hi:m:n:o:pt:u:vw:x:rl:ab';
   Long : Array of string = (
     'help',
     'constexternal',
@@ -250,7 +260,8 @@ const
     'extra:',
     'chrome',
     'list:',
-    'private'
+    'private',
+    'banned:'
     );
 
 
@@ -354,6 +365,7 @@ begin
   Writeln(StdErr,'-v  --verbose              Output some diagnostic information.');
   Writeln(StdErr,'-w  --webidlversion=V      Set web IDL version. Allowed values: v1 or v2.');
   Writeln(StdErr,'-x  --extra=units          Extra units to put in uses clause (comma separated list).');
+  Writeln(StdErr,'-b  --banned=list          List of classes that may not be added to the final file (exclude e.g. window classes for workers)');
   ExitCode:=Ord(Msg<>'');
   {AllowWriteln-}
 end;

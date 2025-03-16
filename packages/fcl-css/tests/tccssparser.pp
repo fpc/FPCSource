@@ -581,14 +581,13 @@ var
   List : TCSSListElement;
 
 begin
-  R:=ParseRule('input:enabled:read-write:-webkit-any(:focus,:hover)::-webkit-clear-button {  }');
+  R:=ParseRule('input:enabled:read-write:-webkit-any(:focus,:hover) {  }');
   AssertEquals('No rule children',0,R.ChildCount);
   AssertEquals('selector count',1,R.SelectorCount);
   List:=TCSSListElement(CheckClass('List',TCSSListElement,R.Selectors[0]));
   CheckList(List,0,'input');
   CheckList(List,1,':enabled');
   CheckList(List,2,':read-write');
-  CheckList(List,4,'::-webkit-clear-button');
 end;
 
 procedure TTestCSSParser.TestQueryPrefixedEmptyRule;

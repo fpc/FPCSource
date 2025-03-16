@@ -9,7 +9,7 @@
 program testsuite;
 
 uses
-  sysutils, httproute, fpweb, tshttp, tsconsts, tshtml,
+  sysutils, httproute, fpweb, tshttp, tsconsts, tshtml, tsutils,
   {$ifdef httpserver}
   fphttpapp
   {$else}

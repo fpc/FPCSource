@@ -31,6 +31,7 @@ Type
     UnknownLines : integer;
     UseLongLog : Boolean;
     FCurLongLogLine : Integer;
+    FLongLogRestartCount : Integer;
     FPrefix : String;
     // Call global verbose with prefix to message.
     procedure Verbose(aLevel : TVerboseLevel; const aMsg : string);
@@ -45,7 +46,7 @@ Type
     // Update the test run statistics.
     procedure UpdateTestRun(const aData: TTestRunData);
     // Get contents from longlog
-    function GetContentsFromLongLog(Line: String): String;
+    function GetContentsFromLongLog(Line: String; out IsFOund : Boolean): String;
     // Get Log from file line
     function GetLog(Line, FN: String): String;
   public
@@ -172,7 +173,7 @@ end;
 const
    SeparationLine = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>';
 
-function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String): String;
+function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String; out IsFOund : Boolean): String;
 
   Function GetLongLogLine : String;
   begin
@@ -187,12 +188,19 @@ function TDBDigestAnalyzer.GetContentsFromLongLog(Line: String): String;
 
 var
   S : String;
-  IsFirst, IsFound : boolean;
+  IsFirst : boolean;
+  InternalErrorPos : Integer;
 
 begin
   Result:='';
-  IsFirst:=true;
-  IsFound:=false;
+  IsFound:=False;
+  { The "internalerror generated" message is not present in compilation log }
+  InternalErrorPos:=pos(' internalerror generated',Line);
+  if (InternalErrorPos>0) then
+    begin
+    Line:=Copy(Line,1,InternalErrorPos-1);
+    end;IsFirst:=true;
+   IsFound:=false;
   While HaveLongLogLine do
     begin
       S:=GetLongLogLine;
@@ -202,7 +210,7 @@ begin
           if (pos(Line,S)=0) and (pos(SeparationLine,S)>=1) then
             S:=GetLongLogLine
         end;
-      if pos(Line,S)=1 then
+      if pos(Line,S)>=1 then
         begin
           IsFound:=true;
           while HaveLongLogLine do
@@ -210,7 +218,16 @@ begin
               S:=GetLongLogLine;
               { End of file marker }
               if (Not HaveLongLogLine) or (pos(SeparationLine,S)=1) then
+                begin
+                { Do not skip separation line, if it also contains something else }
+                if HaveLongLogLine and (S<>SeparationLine) and (FCurlonglogline>0) then
+                  begin
+                  Verbose(V_Warning,'Line "'+S+'" is not a pure separation line');
+                  Dec(FCurlonglogline);
+                  end;
                 exit;
+                end;
+
               if length(Result)<MaxLogSize then
                 Result:=Result+S+LineEnding;
               if pos(SeparationLine,S)>1 then
@@ -225,18 +242,24 @@ begin
     end;
   if not IsFound then
     begin
-    Verbose(V_Warning,'Line "'+Line+'" not found');
+    Verbose(V_Warning,'Line "'+Line+'" not found. Starting over');
     FCurlongLogLine:=0; // Reset
+    Inc(FLongLogRestartCount);
     end;
 end;
 
 function TDBDigestAnalyzer.GetLog(Line, FN: String): String;
 
+var
+  IsFound : boolean;
+
 begin
   if UseLongLog then
     begin
-      Result:=GetContentsFromLongLog(Line);
-      exit;
+    Result:=GetContentsFromLongLog(Line,IsFound);
+    if not IsFound then
+      Result:=GetContentsFromLongLog(Line,IsFound);
+    exit;
     end;
   FN:=ChangeFileExt(FN,'.log');
   { packages tests have ../ replaced by root/ }
@@ -253,11 +276,16 @@ end;
 
 function TDBDigestAnalyzer.GetExecuteLog(Line, FN: String): String;
 
+var
+  IsFound : Boolean;
+
 begin
   if UseLongLog then
     begin
-      Result:=GetContentsFromLongLog(Line);
-      exit;
+    Result:=GetContentsFromLongLog(Line,IsFound);
+    if not IsFound then
+      Result:=GetContentsFromLongLog(Line,IsFound);
+    exit;
     end;
   FN:=ChangeFileExt(FN,'.elg');
   { packages tests have ../ replaced by root/ }
@@ -328,7 +356,7 @@ begin
     For FullLine in LogFile do
       begin
         line:=fullline;
-        TS:=stFailedToCompile;
+        TS:=stInvalid;
         lResult.TestResult:=TS;
         If not AnalyseLine(line,TS) then
           begin
@@ -346,8 +374,11 @@ begin
             end;
           If ExpectRun[TS] then
             begin
-            // We expect a log line with log result, save
-            Inc(aData.StatusCount[TS]);
+            { Count multiple compilation only once,
+              will be decremented later unless test is orphan }
+            if lPrev.TestID<>lResult.TestID then
+              Inc(aData.StatusCount[TS]);
+            // We expect a log line with log result, save info in lPrev
             lPrev.TestResult:=TS;
             lPrev.TestID:=lResult.TestID;
             PrevLine:=line;
@@ -355,13 +386,18 @@ begin
           else
             begin
             // New test, insert previous result
-            if (lPrev.TestID<>-1) and (lPrev.TestID<>lResult.TestID) then
+            if (lPrev.TestID<>-1)
+               and ExpectRun[lPrev.TestResult]
+               and (lPrev.TestID<>lResult.TestID) then
               begin
               { This can only happen if a Successfully compiled message
                 is not followed by any other line about the same test }
               SaveTestResult(lPrev);
               Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
               end;
+            { Remove previous count if same test appears once more }
+            if (lPrev.TestID<>-1) and (lPrev.TestID=lResult.TestID) then
+              Dec(aData.StatusCount[lprev.testResult]);
             // same test, so now we have run result
             lPrev.TestID:=-1;
             lResult.TestResult:=TS;
@@ -376,7 +412,10 @@ begin
               else
                 lResult.Log:='';
               if SaveTestResult(lResult) then
-                Inc(aData.StatusCount[TS]);
+                Verbose(V_Debug,'New result '+StatusText[lResult.TestResult]+' for line '+line);
+              Inc(aData.StatusCount[TS]);
+              lPrev.TestResult:=TS;
+              lPrev.TestID:=lResult.TestID;
               end;
             end
           end

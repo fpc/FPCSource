@@ -34,6 +34,11 @@ interface
        { twasmcallparanode }
 
        twasmcallparanode = class(tcgcallparanode)
+       private
+         procedure secondpass_all;
+         procedure push_all;
+       public
+         procedure secondcallparan;override;
        end;
 
        { twasmcallnode }
@@ -51,6 +56,46 @@ implementation
 
     uses
       globals, globtype, verbose, aasmdata, defutil, tgobj, hlcgcpu, symconst, symsym, symcpu;
+
+      { twasmcallparanode }
+
+        procedure twasmcallparanode.secondpass_all;
+          begin
+            { Skip nothingn nodes which are used after disabling
+              a parameter }
+            if (left.nodetype<>nothingn) then
+              secondcallparan_do_secondpass;
+
+            { next parameter }
+            if assigned(right) then
+              twasmcallparanode(right).secondpass_all;
+          end;
+
+        procedure twasmcallparanode.push_all;
+          begin
+            { Skip nothingn nodes which are used after disabling
+              a parameter }
+            if (left.nodetype<>nothingn) then
+              secondcallparan_after_secondpass;
+
+            { next parameter }
+            if assigned(right) then
+              twasmcallparanode(right).push_all;
+          end;
+
+        procedure twasmcallparanode.secondcallparan;
+          begin
+            if not(assigned(parasym)) then
+              internalerror(200304242);
+
+            { On WebAssembly we generate code for evaluating all the parameters
+              first, and then we push them only after we've evaluated them all.
+              This is because the evaluation phase can generate labels, which
+              wreaks havoc in our 'goto' label resolution algorithm, when there
+              are labels at different stack heights. }
+            secondpass_all;
+            push_all;
+          end;
 
       { twasmcallnode }
 

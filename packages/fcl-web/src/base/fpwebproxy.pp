@@ -248,7 +248,7 @@ end;
 
 procedure TProxyWebModule.DoLog(const aMethod,aLocation, aFromURL, aToURL: String);
 begin
-  If Assigned(ProxyManager) and Assigned(ProxyManager.OnLog) then;
+  If Assigned(ProxyManager) and Assigned(ProxyManager.OnLog) then
     ProxyManager.OnLog(Self,aMethod,aLocation,aFromURl,aToURL);
 end;
 

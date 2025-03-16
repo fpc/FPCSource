@@ -266,6 +266,7 @@ type
     constructor Create; overload;
     constructor Create(const AComparer: IComparer<T>); overload;
     constructor Create(ACollection: TEnumerable<T>); overload;
+    constructor Create(aValues : Array of T); overload;
     {$IFDEF ENABLE_METHODS_WITH_TEnumerableWithPointers}
     constructor Create(ACollection: TEnumerableWithPointers<T>); overload;
     {$ENDIF}
@@ -1614,6 +1615,16 @@ var
 begin
   Create;
   for LItem in ACollection do
+    Add(LItem);
+end;
+
+constructor TList<T>.Create(aValues : Array of T);
+
+var
+  LItem: T;
+begin
+  Create;
+  for LItem in aValues do
     Add(LItem);
 end;
 

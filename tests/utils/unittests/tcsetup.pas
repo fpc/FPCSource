@@ -172,6 +172,8 @@ begin
   ClearTable('TESTLASTRESULTS');
   ClearTable('TESTRESULTS');
   ClearTable('TESTRUN');
+  ClearTable('CHECKALLRTLLOG');
+  ClearTable('CHECKALLRTL');
   ClearTable('TESTPLATFORM');
   ClearTable('TESTOS');
   ClearTable('TESTCPU');

@@ -3257,7 +3257,7 @@ var DontClear: boolean;
 begin
   case Event.What of
     evMouseDown :
-      if Event.Double and ((Event.Buttons and (mbScrollUp or mbScrollDown))=0) {not scroll} then
+      if Event.Double then
         begin
           Message(@Self,evCommand,cmEdit,nil);
           ClearEvent(Event);

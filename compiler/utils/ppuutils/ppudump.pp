@@ -240,7 +240,7 @@ const
   { 111 } 'Darwin-AArch64',
   { 112 } 'AmstradCPC-Z80',
   { 113 } 'SinclairQL-m68k',
-  { 114 } 'WASI-WASM32',
+  { 114 } 'WASIp1-WASM32',
   { 115 } 'FreeBSD-AArch64',
   { 116 } 'Embedded-aarch64',
   { 117 } 'Linux-MIPS64',
@@ -249,7 +249,9 @@ const
   { 120 } 'Linux-LoongArch64',
   { 121 } 'iPhoneSim-AArch64',
   { 122 } 'Human68k-m68k',
-  { 123 } 'PS1-mipsel'
+  { 123 } 'PS1-mipsel',
+  { 124 } 'WASIp1threads-WASM32',
+  { 125 } 'WASIp2-WASM32'
   );
 
 const
@@ -2239,7 +2241,7 @@ var
        end; *)
 
 const
-    targetswitchname : array[ttargetswitch] of string[37] =
+    targetswitchname : array[ttargetswitch] of string[77] =
        { global target-specific switches }
        ('Target None', {ts_none}
          { generate code that results in smaller TOCs than normal (AIX) }
@@ -2285,7 +2287,8 @@ const
         'Branchful exceptions support', {ts_wasm_bf_exceptions}
         'JavaScript-based exception support', {ts_wasm_js_exceptions}
         'Native WebAssembly exceptions support', {ts_wasm_native_exceptions}
-        'WebAssembly threads support' {ts_wasm_threads}
+        'WebAssembly threads support', {ts_wasm_threads}
+        'Use WebAssembly saturating (nontrapping) float to int conversion instructions' {ts_wasm_saturating_float_to_int}
        );
     moduleswitchname : array[tmoduleswitch] of string[40] =
        ('Module None', {cs_modulenone,}

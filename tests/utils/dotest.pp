@@ -125,7 +125,7 @@ const
   NoWorkingUnicodeSupport='$nounicode';
   TargetHasNoWorkingUnicodeSupport = 'msdos';
   NoWorkingThread='$nothread';
-  TargetHasNoWorkingThreadSupport = 'go32v2,msdos,wasi';
+  TargetHasNoWorkingThreadSupport = 'go32v2,msdos,wasip1';
 
 procedure TranslateConfig(var AConfig: TConfig);
 begin
@@ -639,7 +639,7 @@ begin
     end
   else if LTarget='wii' then
     ExeExt:='.dol'
-  else if LTarget='wasi' then
+  else if (LTarget='wasip1') or (LTarget='wasip1threads') then
     ExeExt:='.wasm';
 end;
 
@@ -1132,7 +1132,7 @@ begin
   if ioresult<>0 then
    exit;
   GetCompilerTarget;
-  is_wasi:=(CompilerTarget='wasi');
+  is_wasi:=(CompilerTarget='wasip1') or (CompilerTarget='wasip1threads');
   while not eof(t) do
    begin
      readln(t,s);
@@ -1443,7 +1443,7 @@ begin
        ChDir(OldDir);
       {$I+}
       GetCompilerTarget;
-      if (CompilerTarget='wasi') then
+      if (CompilerTarget='wasip1') or (CompilerTarget='wasip1threads') then
        begin
          CheckTestExitCode(FullEXELogFile);
        end;
