@@ -311,6 +311,7 @@ Const
   RsjExt  = '.rsj';
   LibExt  = '.a';
   SharedLibExt = '.so';
+  WasiSharedLibExt = '';
   DyLibExt = '.dylib';
   DLLExt  = '.dll';
   AIXSharedLibExt = '.a';
@@ -2973,6 +2974,8 @@ begin
     Result:=LibraryName+DyLibExt
   else if aOS = Aix then
     Result:=LibraryName+AIXSharedLibExt
+  else if AOS in [wasip1,wasip1threads,wasip2] then
+    Result:=LibraryName+WasiSharedLibExt
   else
     Result:=LibraryName+SharedLibExt;
 end;
