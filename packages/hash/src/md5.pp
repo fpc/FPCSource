@@ -630,17 +630,20 @@ begin
   Reset(F, 1);
   {$pop}
 
-  if IOResult = 0 then
-  begin
-    GetMem(Buf, BufSize);
-    repeat
-      BlockRead(F, Buf^, Bufsize, Count);
-      if Count > 0 then
-        MDUpdate(Context, Buf^, Count);
-    until Count < BufSize;
-    FreeMem(Buf, BufSize);
-    Close(F);
-  end;
+  if IOResult <> 0 then
+    begin
+    Result:=Default(TMDDigest);
+    Exit;
+    end;
+
+  GetMem(Buf, BufSize);
+  repeat
+    BlockRead(F, Buf^, Bufsize, Count);
+    if Count > 0 then
+      MDUpdate(Context, Buf^, Count);
+  until Count < BufSize;
+  FreeMem(Buf, BufSize);
+  Close(F);
 
   MDFinal(Context, Result);
   FileMode := ofm;
@@ -663,17 +666,19 @@ begin
   Reset(F, 1);
   {$pop}
 
-  if IOResult = 0 then
-  begin
-    GetMem(Buf, BufSize);
-    repeat
-      BlockRead(F, Buf^, Bufsize, Count);
-      if Count > 0 then
-        MDUpdate(Context, Buf^, Count);
-    until Count < BufSize;
-    FreeMem(Buf, BufSize);
-    Close(F);
-  end;
+  if IOResult <> 0 then
+    begin
+    Result:=Default(TMDDigest);
+    Exit;
+    end;
+  GetMem(Buf, BufSize);
+  repeat
+    BlockRead(F, Buf^, Bufsize, Count);
+    if Count > 0 then
+      MDUpdate(Context, Buf^, Count);
+  until Count < BufSize;
+  FreeMem(Buf, BufSize);
+  Close(F);
 
   MDFinal(Context, Result);
   FileMode := ofm;
