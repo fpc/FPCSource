@@ -76,7 +76,6 @@ Type
   Public
     Constructor Create(const AKey : UTF8String; Dest: TStream); overload; virtual;
     Constructor Create(AKey : TBytes; Dest: TStream); overload; virtual;
-    Destructor Destroy; override;
   end;
 
   TBlowFish2EncryptStream = Class(TBlowFish2Stream)
@@ -1044,12 +1043,6 @@ begin
   FPos:=0;
 end;
 
-destructor TBlowFish2Stream.Destroy;
-
-begin
-  FreeAndNil(FBF);
-  Inherited;
-end;
 
 { ---------------------------------------------------------------------
     TBlowFish2EncryptStream
