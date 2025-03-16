@@ -2681,7 +2681,7 @@ begin
     SetCmdState(EditorCmds,Active);
   end;
   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd+[cmHide],Active);
-  SetCmdState([cmTile,cmCascade],Visible or IsThereAnyVisibleEditorWindow);
+  SetCmdState([cmTile,cmCascade,cmTileVertical,cmStepped,cmSteppedReverse],Visible or IsThereAnyVisibleEditorWindow);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 

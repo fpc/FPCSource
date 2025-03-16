@@ -27,9 +27,9 @@ BEGIN
      (P^.State AND sfVisible <> 0);                   { View is visible }
 END;
 
-{ This pritty much copy of window cascade }
+{ This pretty much copy of window cascade }
 { added extra variable `Count` }
-{ calculate one of `NR.A.Y` or `NR.A.X` in revers }
+{ calculate one of `NR.A.Y` or `NR.A.X` in reverse }
 procedure TIDEApp.Stepped(aDirection:boolean);
 var R: TRect;
 VAR CascadeNum, Count: SmallInt; LastView: PView; Min, Max: TPoint;
@@ -37,14 +37,14 @@ VAR CascadeNum, Count: SmallInt; LastView: PView; Min, Max: TPoint;
    PROCEDURE DoCount (P: PView);
    BEGIN
      If Tileable(P) Then Begin
-       Inc(CascadeNum); LastView := P;                { Count steppable }
+       Inc(CascadeNum); LastView := P;                { Count tileable }
      End;
    END;
 
    PROCEDURE DoCascade (P: PView);
    VAR PState: Word; NR: TRect;
    BEGIN
-     If Tileable(P) AND (CascadeNum >= 0) Then Begin  { View steppable }
+     If Tileable(P) AND (CascadeNum >= 0) Then Begin  { View tileable }
        NR.Copy(R);                                    { Copy rect area }
        if aDirection then
        begin
@@ -69,7 +69,7 @@ begin
    if not assigned(Desktop) then exit;
    GetTileRect(R);                                    { Tileable area }
    CascadeNum := 0;                                   { Zero step count }
-   Desktop^.ForEach(TCallbackProcParam(@DoCount));    { Count stepable }
+   Desktop^.ForEach(TCallbackProcParam(@DoCount));    { Count tileable }
    Count:=CascadeNum;                                 { Keep count in Count }
    If (CascadeNum>0) Then Begin
      LastView^.SizeLimits(Min, Max);                  { Check size limits }
@@ -81,25 +81,6 @@ begin
        Desktop^.DrawView;                             { Redraw now }
      End;
    End;
-end;
-
-
-procedure TIDEApp.UpdateTileMenu;
-var MenuItem : PMenuItem;
-    bFirst : boolean;
-begin
-  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmTileVertical);
-  bFirst:=assigned(MenuItem);
-  ChangeMenu(PAdvancedMenuBar(MenuBar),bFirst,cmTile,menu_window_tile,cmTileVertical,menu_window_tile_vertical);
-end;
-
-procedure TIDEApp.UpdateSteppedMenu;
-var MenuItem : PMenuItem;
-    bFirst : boolean;
-begin
-  MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmSteppedRevers);
-  bFirst:=assigned(MenuItem);
-  ChangeMenu(PAdvancedMenuBar(MenuBar),bFirst,cmStepped,menu_window_stepped,cmSteppedRevers,menu_window_stepped_revers);
 end;
 
 procedure TIDEApp.CloseAll;
