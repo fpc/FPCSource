@@ -453,6 +453,7 @@ type
          Next : pdynamicblock;
          data : tdynamicblockdata;
        end;
+       tdynamicblockarray = array of tdynamicblock;
 
      const
        dynamicblockbasesize = sizeof(tdynamicblock)-sizeof(tdynamicblockdata);
@@ -566,10 +567,12 @@ type
                              tbitset
 *******************************************************************}
 
+       { tbitset }
+
        tbitset = class
        private
-         fdata: pbyte;
-         fdatasize: longint;
+         fdata: TByteDynArray;
+         function getdatasize: longint;
        public
          constructor create(initsize: longint);
          constructor create_bytesize(bytesize: longint);
@@ -586,8 +589,8 @@ type
          procedure addset(aset: tbitset);
          procedure subset(aset: tbitset);
 
-         property data: pbyte read fdata;
-         property datasize: longint read fdatasize;
+         property data: TByteDynArray read fdata;
+         property datasize: longint read getdatasize;
       end;
 
 
@@ -3228,6 +3231,11 @@ end;
                                 tbitset
 ****************************************************************************}
 
+    function tbitset.getdatasize: longint;
+      begin
+        result:=length(fdata);
+      end;
+
     constructor tbitset.create(initsize: longint);
       begin
         create_bytesize((initsize+7) div 8);
@@ -3236,30 +3244,27 @@ end;
 
     constructor tbitset.create_bytesize(bytesize: longint);
       begin
-        fdatasize:=bytesize;
-        getmem(fdata,fdataSize);
+        setLength(fdata,bytesize);
         clear;
       end;
 
 
     destructor tbitset.destroy;
       begin
-        freemem(fdata,fdatasize);
+        fdata:=Nil;
         inherited destroy;
       end;
 
 
     procedure tbitset.clear;
       begin
-        fillchar(fdata^,fdatasize,0);
+        fillchar(fdata[0],length(fdata),0);
       end;
 
 
     procedure tbitset.grow(nsize: longint);
       begin
-        reallocmem(fdata,nsize);
-        fillchar(fdata[fdatasize],nsize-fdatasize,0);
-        fdatasize:=nsize;
+        setlength(fdata,nsize);
       end;
 
 
