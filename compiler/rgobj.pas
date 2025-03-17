@@ -42,22 +42,25 @@ unit rgobj;
       aasmtai,aasmdata,aasmsym,aasmcpu,
       cclasses,globtype,cgbase,cgutils;
 
+    const
+      interferenceBitmap2Size = 256;
+
     type
       {
         The interference bitmap contains of 2 layers:
           layer 1 - 256*256 blocks with pointers to layer 2 blocks
           layer 2 - blocks of 32*256 (32 bytes = 256 bits)
       }
-      Tinterferencebitmap2 = array[byte] of set of byte;
-      Pinterferencebitmap2 = ^Tinterferencebitmap2;
-      Tinterferencebitmap1 = array[byte] of Pinterferencebitmap2;
-      pinterferencebitmap1 = ^tinterferencebitmap1;
+
+      Tinterferencebitmap2 = array of set of byte;
+      Tinterferencebitmap1 = array[byte] of Tinterferencebitmap2;
+      tinterferencebitmap1Array = array of tinterferencebitmap1;
 
       Tinterferencebitmap=class
       private
         maxx1,
         maxy1    : byte;
-        fbitmap  : pinterferencebitmap1;
+        fbitmap  : tinterferencebitmap1Array;
         function getbitmap(x,y:tsuperregister):boolean;
         procedure setbitmap(x,y:tsuperregister;b:boolean);
       public
@@ -367,7 +370,7 @@ unit rgobj;
       begin
         inherited create;
         maxx1:=1;
-        fbitmap:=AllocMem(sizeof(tinterferencebitmap1)*2);
+        SetLength(fbitmap,2);
       end;
 
 
@@ -379,21 +382,21 @@ unit rgobj;
       for i:=0 to maxx1 do
         for j:=0 to maxy1 do
           if assigned(fbitmap[i,j]) then
-            dispose(fbitmap[i,j]);
-      freemem(fbitmap);
+            fbitmap[i,j]:=nil;
+      fbitmap:=nil;
     end;
 
 
     function tinterferencebitmap.getbitmap(x,y:tsuperregister):boolean;
       var
-        page : pinterferencebitmap2;
+        page : TInterferencebitmap2;
       begin
         result:=false;
         if (x shr 8>maxx1) then
           exit;
         page:=fbitmap[x shr 8,y shr 8];
         result:=assigned(page) and
-          ((x and $ff) in page^[y and $ff]);
+          ((x and $ff) in page[y and $ff]);
       end;
 
 
@@ -405,21 +408,19 @@ unit rgobj;
         y1:=y shr 8;
         if x1>maxx1 then
           begin
-            reallocmem(fbitmap,sizeof(tinterferencebitmap1)*(x1+1));
-            fillchar(fbitmap[maxx1+1],sizeof(tinterferencebitmap1)*(x1-maxx1),0);
+            Setlength(fbitmap,x1+1);
             maxx1:=x1;
           end;
         if not assigned(fbitmap[x1,y1]) then
           begin
             if y1>maxy1 then
               maxy1:=y1;
-            new(fbitmap[x1,y1]);
-            fillchar(fbitmap[x1,y1]^,sizeof(tinterferencebitmap2),0);
+            SetLength(fbitmap[x1,y1],interferenceBitmap2Size);
           end;
         if b then
-          include(fbitmap[x1,y1]^[y and $ff],(x and $ff))
+          include(fbitmap[x1,y1][y and $ff],(x and $ff))
         else
-          exclude(fbitmap[x1,y1]^[y and $ff],(x and $ff));
+          exclude(fbitmap[x1,y1][y and $ff],(x and $ff));
       end;
 
 
