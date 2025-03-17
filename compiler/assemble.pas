@@ -2955,7 +2955,7 @@ Implementation
         if assigned(asminfos[t]) then
           writeln('Warning: Assembler is already registered!')
         else
-          Getmem(asminfos[t],sizeof(tasminfo));
+          new(asminfos[t]);
         asminfos[t]^:=r;
         CAssembler[t]:=c;
       end;
