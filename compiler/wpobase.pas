@@ -822,7 +822,7 @@ implementation
       calledentries:=tbitset.create_bytesize(len);
       if (len <> calledentries.datasize) then
         internalerror(2009060301);
-      ppufile.readdata(calledentries.data^,len);
+      ppufile.readdata(calledentries.data);
     end;
 
 
@@ -837,7 +837,7 @@ implementation
     begin
       ppufile.putderef(objdefderef);
       ppufile.putlongint(calledentries.datasize);
-      ppufile.putdata(calledentries.data^,calledentries.datasize);
+      ppufile.putdata(calledentries.data);
     end;
 
 
