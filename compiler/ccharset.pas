@@ -36,12 +36,13 @@ unit ccharset;
           flag : tunicodecharmappingflag;
           reserved : byte;
        end;
+       tunicodecharmappingdynarray = array of tunicodecharmapping;
 
        punicodemap = ^tunicodemap;
        tunicodemap = record
           cpname : string[20];
           cp : word;
-          map : punicodecharmapping;
+          map : tunicodecharmappingarray;
           lastchar : longint;
           next : punicodemap;
           internalmap : boolean;
@@ -84,14 +85,14 @@ unit ccharset;
          lastchar:=-1;
          loadunicodemapping:=nil;
          datasize:=256;
-         getmem(data,sizeof(tunicodecharmapping)*datasize);
+         setlength(data,datasize);
          assign(t,f);
          {$I-}
          reset(t);
          {$I+}
          if ioresult<>0 then
            begin
-              freemem(data,sizeof(tunicodecharmapping)*datasize);
+              data:=nil;
               exit;
            end;
          while not(eof(t)) do
@@ -110,7 +111,7 @@ unit ccharset;
                    val(hs,charpos,code);
                    if code<>0 then
                      begin
-                        freemem(data,sizeof(tunicodecharmapping)*datasize);
+                        data:=nil;
                         close(t);
                         exit;
                      end;
@@ -137,7 +138,7 @@ unit ccharset;
                         val(hs,unicodevalue,code);
                         if code<>0 then
                           begin
-                             freemem(data,sizeof(tunicodecharmapping)*datasize);
+                             data:=Nil;
                              close(t);
                              exit;
                           end;
@@ -148,7 +149,7 @@ unit ccharset;
                              { probably a mbcs with a lot of            }
                              { entries                                  }
                              datasize:=charpos+1024;
-                             reallocmem(data,sizeof(tunicodecharmapping)*datasize);
+                             setLength(data,datasize);
                           end;
                         flag:=umf_noinfo;
                      end;
@@ -277,7 +278,7 @@ unit ccharset;
       end;
 
    const
-     map : array[0..255] of tunicodecharmapping = (
+     map : tunicodecharmappingarray = (
        (unicode : 0; flag : umf_noinfo; reserved: 0),
        (unicode : 1; flag : umf_noinfo; reserved: 0),
        (unicode : 2; flag : umf_noinfo; reserved: 0),
@@ -557,7 +558,7 @@ finalization
        hp:=mappings^.next;
        if not(mappings^.internalmap) then
          begin
-            freemem(mappings^.map);
+            mappings^.map:=nil;
             dispose(mappings);
          end;
        mappings:=hp;
