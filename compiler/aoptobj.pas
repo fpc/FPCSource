@@ -222,8 +222,7 @@ Unit AoptObj;
         PaiObj: Tai;
       End;
 
-      TLabelTable = Array[0..2500000] Of TLabelTableItem;
-      PLabelTable = ^TLabelTable;
+      TLabelTable = Array Of TLabelTableItem;
       PLabelInfo = ^TLabelInfo;
       TLabelInfo = Record
         { the highest and lowest label number occurring in the current code }
@@ -232,7 +231,7 @@ Unit AoptObj;
         LabelDif: cardinal;
         { table that contains the addresses of the Pai_Label objects associated
           with each label number                                                }
-        LabelTable: PLabelTable;
+        LabelTable: TLabelTable;
       End;
 
     { ************************************************************************* }
@@ -1667,7 +1666,7 @@ Unit AoptObj;
       begin
         if (int64(sym.labelnr) >= int64(labelinfo^.lowlabel)) and
            (int64(sym.labelnr) <= int64(labelinfo^.highlabel)) then   { range check, a jump can go past an assembler block! }
-          getlabelwithsym := labelinfo^.labeltable^[sym.labelnr-labelinfo^.lowlabel].paiobj
+          getlabelwithsym := labelinfo^.labeltable[sym.labelnr-labelinfo^.lowlabel].paiobj
         else
           getlabelwithsym := nil;
       end;

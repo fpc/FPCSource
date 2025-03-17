@@ -142,8 +142,7 @@ Unit aopt;
         begin
           If (LabelDif <> 0) Then
             Begin
-              GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
-              FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
+              SetLength(LabelTable, LabelDif);
             end;
           p := BlockStart;
           While (P <> BlockEnd) Do
@@ -158,7 +157,7 @@ Unit aopt;
                         LabelIdx:=tai_label(p).labsym.labelnr-LowLabel;
                         if LabelIdx>int64(LabelDif) then
                           internalerror(200604202);
-                        LabelTable^[LabelIdx].PaiObj := p;
+                        LabelTable[LabelIdx].PaiObj := p;
                       end;
                   end;
                 ait_regAlloc:
@@ -255,8 +254,7 @@ Unit aopt;
       begin
         if assigned(LabelInfo^.labeltable) then
           begin
-            freemem(LabelInfo^.labeltable);
-            LabelInfo^.labeltable := nil;
+            LabelInfo^.labeltable:=Nil;
           end;
         LabelInfo^.labeldif:=0;
         LabelInfo^.lowlabel:=high(longint);
@@ -317,8 +315,7 @@ Unit aopt;
     Destructor TAsmOptimizer.Destroy;
       Begin
         ReleaseUsedRegs(TmpUsedRegs);
-        if assigned(LabelInfo^.LabelTable) then
-          Freemem(LabelInfo^.LabelTable);
+        LabelInfo^.LabelTable:=nil;
         Dispose(LabelInfo);
         inherited Destroy;
       End;
