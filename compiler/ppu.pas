@@ -26,7 +26,7 @@ unit ppu;
 interface
 
   uses
-    constexp,entfile;
+    globtype,constexp,entfile;
 
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
@@ -167,6 +167,7 @@ type
     function  createfile:boolean;override;
     procedure writeheader;override;
     procedure putdata(const b;len:integer);override;
+    procedure putdata(b : tbytedynarray);
   end;
 
 implementation
@@ -520,6 +521,11 @@ begin
   (*if not crc_only then
     writedata(b,len);
   inc(entryidx,len);*)
+end;
+
+procedure tppufile.putdata(b: tbytedynarray);
+begin
+  putdata(b[0],length(b));
 end;
 
 function tppufile.getheadersize: longint;
