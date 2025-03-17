@@ -41,6 +41,9 @@ interface
 {$endif symansistr}
        PSymStr = ^TSymStr;
 
+       TByteDynArray = array of byte;
+       TAnsiCharDynArray = array of ansichar;
+
        Int32 = Longint;
 
        { Integer type corresponding to pointer size }

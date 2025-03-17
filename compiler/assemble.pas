@@ -2384,7 +2384,7 @@ Implementation
 		   end;
                end;
              ait_string :
-               ObjData.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
+               ObjData.writebytes(Tai_string(hp).str,Tai_string(hp).len);
              ait_const :
                begin
                  { Recalculate relative symbols, addresses of forward references

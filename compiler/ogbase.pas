@@ -458,6 +458,8 @@ interface
        procedure alloc(len:TObjSectionOfs);
        procedure allocalign(len:longint);
        procedure writebytes(const Data;len:TObjSectionOfs);
+       procedure writebytes(const Data : TByteDynArray;len:TObjSectionOfs);
+       procedure writebytes(const Data : TAnsiCharDynArray;len:TObjSectionOfs);
        procedure writeInt8(v: int8);
        procedure writeInt16LE(v: int16);
        procedure writeInt16BE(v: int16);
@@ -1601,7 +1603,7 @@ implementation
       end;
 
 
-    function TObjData.FindSection(const aname:string):TObjSection;
+    function TObjData.Findsection(const aname:string):TObjSection;
       begin
         result:=TObjSection(FObjSectionList.Find(aname));
       end;
@@ -1723,6 +1725,16 @@ implementation
           internalerror(200402251);
         CurrObjSec.write(Data,len);
       end;
+
+    procedure TObjData.writebytes(const Data: TByteDynArray; len: TObjSectionOfs);
+    begin
+      WriteBytes(Data[0],len);
+    end;
+
+    procedure TObjData.writebytes(const Data: TAnsiCharDynArray; len: TObjSectionOfs);
+    begin
+      WriteBytes(Data[0],len);
+    end;
 
 
     procedure TObjData.writeInt8(v: int8);

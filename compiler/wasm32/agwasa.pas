@@ -69,6 +69,8 @@ interface
        procedure WriteImports;
 
        procedure WriteOutPChar(p: pchar; ofs, len: integer);
+       procedure WriteOutPChar(p: TByteDynArray; ofs, len: integer);
+       procedure WriteOutPChar(p: TAnsicharDynArray; ofs, len: integer);
        procedure WriteConstString(lbl: tai_label; str: tai_string);
        procedure WriteConstants(p: TAsmList);
      public
@@ -1024,6 +1026,16 @@ implementation
                 writer.AsmWrite(s);
             end;
         end;
+
+    procedure TWasaTextAssembler.WriteOutPChar(p: TByteDynArray; ofs, len: integer);
+    begin
+      WriteOutPChar(PAnsiChar(p),ofs,len);
+    end;
+
+    procedure TWasaTextAssembler.WriteOutPChar(p: TAnsicharDynArray; ofs, len: integer);
+    begin
+      WriteOutPChar(PAnsiChar(p),ofs,len);
+    end;
 
         procedure TWasaTextAssembler.WriteConstString(lbl: tai_label;
             str: tai_string);

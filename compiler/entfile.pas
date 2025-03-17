@@ -295,6 +295,8 @@ type
     function  openstream(strm:TCStream):boolean;
     procedure reloadbuf;
     procedure readdata(out b;len:integer);
+    procedure readdata(const b : TByteDynArray);
+    procedure readdata(const b : TAnsiCharDynArray);
     procedure skipdata(len:integer);
     function  readentry:byte;
     function  EndOfEntry:boolean; {$ifdef USEINLINE}inline;{$endif}
@@ -302,6 +304,8 @@ type
     function  entryleft:longint; {$ifdef USEINLINE}inline;{$endif}
     procedure getdatabuf(out b;len:integer;out res:integer);
     procedure getdata(out b;len:integer);
+    procedure getdata(b : TByteDynArray);
+    procedure getdata(b : TAnsiCharDynArray);
     function  getbyte:byte;
     function  getword:word;
     function  getdword:dword;
@@ -736,6 +740,16 @@ begin
   inc(bufidx,len);
 end;
 
+procedure tentryfile.readdata(const b: TByteDynArray);
+begin
+  ReadData(B[0],Length(B));
+end;
+
+procedure tentryfile.readdata(const b: TAnsiCharDynArray);
+begin
+  ReadData(B[0],Length(B));
+end;
+
 
 procedure tentryfile.skipdata(len:integer);
 var
@@ -800,7 +814,7 @@ begin
 end;
 
 
-function tentryfile.endofentry:boolean;
+function tentryfile.endofentry: boolean;
 begin
 {$ifdef generic_cpu}
   endofentry:=(entryidx=entry.size);
@@ -841,6 +855,28 @@ begin
    end;
   readdata(b,len);
   inc(entryidx,len);
+end;
+
+procedure tentryfile.getdata(b: TByteDynArray);
+begin
+  if entryidx+Length(b)>entry.size then
+   begin
+     error:=true;
+     exit;
+   end;
+  readdata(b);
+  inc(entryidx,length(b));
+end;
+
+procedure tentryfile.getdata(b: TAnsiCharDynArray);
+begin
+  if entryidx+Length(b)>entry.size then
+   begin
+     error:=true;
+     exit;
+   end;
+  readdata(b);
+  inc(entryidx,length(b));
 end;
 
 

@@ -604,10 +604,11 @@ interface
        taiclassarray = array[taitype] of taiclass;
 
        { Generates an assembler string }
+
+       { tai_string }
+
        tai_string = class(tailineinfo)
-          str : pchar;
-          { extra len so the string can contain an \0 }
-          len : longint;
+          str : TAnsiCharDynArray;
           constructor Create(const _str : string);
           constructor Create(const _str : ansistring);
           constructor Create_pchar(_str : pchar;length : longint);
@@ -615,6 +616,7 @@ interface
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy:tlinkedlistitem;override;
+          function len : integer; inline;
        end;
 
        { Generates a common label }
@@ -2416,26 +2418,30 @@ implementation
  ****************************************************************************}
 
      constructor tai_string.Create(const _str : string);
+       var
+         lNewLen : Integer;
        begin
           inherited Create;
           typ:=ait_string;
-          len:=length(_str);
-          getmem(str,len+1);
-          if len>0 then
-            move(_str[1],str^,len);
-          str[len]:=#0;
+          lNewLen:=length(_str);
+          setlength(str,lNewLen+1);
+          if lNewLen>0 then
+            move(_str[1],str[0],lNewLen);
+          str[lNewLen]:=#0;
        end;
 
 
      constructor tai_string.Create(const _str: ansistring);
+       var
+         lNewLen : Integer;
        begin
          inherited Create;
          typ:=ait_string;
-         len:=length(_str);
-         getmem(str,len+1);
-         if len>0 then
-           move(_str[1],str^,len);
-         str[len]:=#0;
+         lNewLen:=length(_str);
+         setlength(str,lNewlen+1);
+         if lNewLen>0 then
+           move(_str[1],str[0],lNewLen);
+         str[lNewLen]:=#0;
        end;
 
 
@@ -2443,46 +2449,60 @@ implementation
        begin
           inherited Create;
           typ:=ait_string;
-          str:=_str;
-          len:=length;
+          setlength(str,length+1);
+          move(_str^,str[0],length);
+          str[length]:=#0;
        end;
 
 
-    destructor tai_string.destroy;
+        destructor tai_string.Destroy;
       begin
-         if str<>nil then
-           freemem(str);
          inherited Destroy;
       end;
 
 
     constructor tai_string.ppuload(t:taitype;ppufile:tcompilerppufile);
+      var
+        lNewLen : integer;
       begin
         inherited ppuload(t,ppufile);
-        len:=ppufile.getlongint;
-        getmem(str,len+1);
-        ppufile.getdata(str^,len);
-        str[len]:=#0
+        lNewLen:=ppufile.getlongint;
+        setlength(str,lNewLen+1);
+        ppufile.getdata(str);
+        str[lNewLen]:=#0;
       end;
 
 
     procedure tai_string.ppuwrite(ppufile:tcompilerppufile);
+      var
+        lWriteLen : integer;
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putlongint(len);
-        ppufile.putdata(str^,len);
+        lWriteLen:=length(str);
+        ppufile.putlongint(lWriteLen);
+        ppufile.putdata(str[0],lWriteLen);
       end;
 
 
     function tai_string.getcopy : tlinkedlistitem;
       var
         p : tlinkedlistitem;
+        lWriteLen : integer;
       begin
         p:=inherited getcopy;
-        getmem(tai_string(p).str,len);
-        move(str^,tai_string(p).str^,len);
+        lWriteLen:=length(str);
+        setlength(tai_string(p).str,lWriteLen);
+        // move #0 at the end too.
+        move(str[0],tai_string(p).str[0],lWriteLen);
         getcopy:=p;
       end;
+
+    function tai_string.len: integer;
+    begin
+      Result:=Length(str);
+      if Result>0 then
+        Result:=Result-1;
+    end;
 
 
 {****************************************************************************

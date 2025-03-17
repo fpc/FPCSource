@@ -727,25 +727,30 @@ implementation
      end;
 
    procedure tai_aggregatetypedconst.add_to_string(strtai: tai_string; othertai: tai);
+     var
+       len1,len2,lent : Integer;
+       lother_string : tai_string absolute othertai;
      begin
        case othertai.typ of
          ait_string:
            begin
-             strtai.str:=reallocmem(strtai.str,strtai.len+tai_string(othertai).len+1);
+             // lengths without terminating 0
+             len1:=length(strtai.str)-1;
+             len2:=length(lother_string.str)-1;
+             lent:=len1+len2;
+             SetLength(strtai.str,lent+1);
              { also copy null terminator }
-             move(tai_string(othertai).str[0],strtai.str[strtai.len],tai_string(othertai).len+1);
-             { the null terminator is not part of the string data }
-             strtai.len:=strtai.len+tai_string(othertai).len;
+             move(lother_string.str[0],strtai.str[len1+1],len2+1);
            end;
          ait_const:
            begin
              if tai_const(othertai).size<>1 then
                internalerror(2014070101);
              { it was already len+1 to hold the #0 -> realloc to len+2 }
-             strtai.str:=reallocmem(strtai.str,strtai.len+2);
-             strtai.str[strtai.len]:=ansichar(tai_const(othertai).value);
-             strtai.str[strtai.len+1]:=#0;
-             inc(strtai.len);
+             len1:=length(strtai.str);
+             SetLength(strtai.str,len1+1);
+             strtai.str[len1]:=ansichar(tai_const(othertai).value);
+             strtai.str[len1+1]:=#0;
            end;
          else
            internalerror(2014070102);
@@ -826,6 +831,9 @@ implementation
 
 
    procedure tai_aggregatetypedconst.finish;
+     var
+       lString : tai_string;
+       len : integer;
      begin
        if fisstring then
          begin
@@ -833,9 +841,9 @@ implementation
              data }
            if fvalues.count<>1 then
              internalerror(2014070105);
-           tai_simpletypedconst(fvalues[0]).fdef:=
-             carraydef.getreusable(cansichartype,
-               tai_string(tai_simpletypedconst(fvalues[0]).val).len);
+           lString:=tai_string(tai_simpletypedconst(fvalues[0]).val);
+           len:=length(lString.str)-1;
+           tai_simpletypedconst(fvalues[0]).fdef:=carraydef.getreusable(cansichartype,len);
          end;
      end;
 
