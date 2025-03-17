@@ -745,7 +745,7 @@ unit rgobj;
       with live_registers do
         if length>0 then
           for i:=0 to length-1 do
-            add_edge(u,get_alias(buf^[i]));
+            add_edge(u,get_alias(buf[i]));
     end;
 
 {$ifdef EXTDEBUG}
@@ -1015,22 +1015,22 @@ unit rgobj;
             for h:=p to length-1 do
               begin
                 i:=h;
-                t:=buf^[i];
-                adjt:=reginfo[buf^[i]].adjlist;
+                t:=buf[i];
+                adjt:=reginfo[buf[i]].adjlist;
                 lent:=0;
                 if adjt<>nil then
                   lent:=adjt^.length;
                 repeat
-                  adji:=reginfo[buf^[i-p]].adjlist;
+                  adji:=reginfo[buf[i-p]].adjlist;
                   leni:=0;
                   if adji<>nil then
                     leni:=adji^.length;
                   if leni>=lent then
                     break;
-                  buf^[i]:=buf^[i-p];
+                  buf[i]:=buf[i-p];
                   dec(i,p)
                 until i<p;
-                buf^[i]:=t;
+                buf[i]:=t;
               end;
             p:=p shr 1;
           until p=0;
@@ -1054,22 +1054,22 @@ unit rgobj;
               for h:=p to length-1 do
                 begin
                   i:=h;
-                  t:=buf^[i];
-                  adjt:=reginfo[buf^[i]].adjlist;
+                  t:=buf[i];
+                  adjt:=reginfo[buf[i]].adjlist;
                   lent:=0;
                   if adjt<>nil then
                     lent:=adjt^.length;
                   repeat
-                    adji:=reginfo[buf^[i-p]].adjlist;
+                    adji:=reginfo[buf[i-p]].adjlist;
                     leni:=0;
                     if adji<>nil then
                       leni:=adji^.length;
                     if leni<=lent then
                       break;
-                    buf^[i]:=buf^[i-p];
+                    buf[i]:=buf[i-p];
                     dec(i,p)
                   until i<p;
-                  buf^[i]:=t;
+                  buf[i]:=t;
                 end;
               p:=p shr 1;
             until p=0;
@@ -1155,7 +1155,7 @@ unit rgobj;
               if adj<>nil then
                 for i:=1 to adj^.length do
                   begin
-                    n:=adj^.buf^[i-1];
+                    n:=adj^.buf[i-1];
                     if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
                       enable_moves(n);
                   end;
@@ -1192,7 +1192,7 @@ unit rgobj;
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            n:=adj^.buf^[i-1];
+            n:=adj^.buf[i-1];
             if (n>=first_imaginary) and
                (reginfo[n].flags*[ri_selected,ri_coalesced]=[]) then
               decrement_degree(n);
@@ -1246,7 +1246,7 @@ unit rgobj;
           if adj<>nil then
             for i:=1 to adj^.length do
               begin
-                n:=adj^.buf^[i-1];
+                n:=adj^.buf[i-1];
                 if (reginfo[n].flags*[ri_coalesced]=[]) and not ok(n,u) then
                   begin
                     adjacent_ok:=false;
@@ -1272,7 +1272,7 @@ unit rgobj;
           if adj<>nil then
             for i:=1 to adj^.length do
               begin
-                n:=adj^.buf^[i-1];
+                n:=adj^.buf[i-1];
                 if reginfo[n].flags*[ri_coalesced,ri_selected]=[] then
                   begin
                     supregset_include(done,n);
@@ -1285,7 +1285,7 @@ unit rgobj;
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            n:=adj^.buf^[i-1];
+            n:=adj^.buf[i-1];
             if (u<first_imaginary) and
                (n>=first_imaginary) and
                not ibitmap[u,n] and
@@ -1407,7 +1407,7 @@ unit rgobj;
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            t:=adj^.buf^[i-1];
+            t:=adj^.buf[i-1];
             with reginfo[t] do
               if not(ri_coalesced in flags) then
                 begin
@@ -1638,18 +1638,18 @@ unit rgobj;
           {Safe: This procedure is only called if length<>0}
           { Search for a candidate to be spilled, ignoring nodes with the ri_spill_helper flag set. }
           for i:=0 to length-1 do
-            if not(ri_spill_helper in reginfo[buf^[i]].flags) then
+            if not(ri_spill_helper in reginfo[buf[i]].flags) then
               begin
-                adj:=reginfo[buf^[i]].adjlist;
+                adj:=reginfo[buf[i]].adjlist;
                 if assigned(adj) and
                    (
                     (adj^.length>maxlength) or
-                    ((adj^.length=maxlength) and (reginfo[buf^[i]].weight<minweight))
+                    ((adj^.length=maxlength) and (reginfo[buf[i]].weight<minweight))
                    ) then
                   begin
                     p:=i;
                     maxlength:=adj^.length;
-                    minweight:=reginfo[buf^[i]].weight;
+                    minweight:=reginfo[buf[i]].weight;
                   end;
               end;
 
@@ -1667,20 +1667,20 @@ unit rgobj;
               p:=0;
               for i:=0 to length-1 do
                 begin
-                  adj:=reginfo[buf^[i]].adjlist;
+                  adj:=reginfo[buf[i]].adjlist;
                   if assigned(adj) and
                      (
                       (adj^.length<minlength) or
-                      ((adj^.length=minlength) and (reginfo[buf^[i]].weight<minweight))
+                      ((adj^.length=minlength) and (reginfo[buf[i]].weight<minweight))
                      ) then
                     begin
                       p:=i;
                       minlength:=adj^.length;
-                      minweight:=reginfo[buf^[i]].weight;
+                      minweight:=reginfo[buf[i]].weight;
                     end;
                 end;
             end;
-          n:=buf^[p];
+          n:=buf[p];
           deleteidx(p);
         end;
 {$endif SPILLING_OLD}
@@ -1725,7 +1725,7 @@ unit rgobj;
         if adj<>nil then
           for j:=0 to adj^.length-1 do
             begin
-              a:=get_alias(adj^.buf^[j]);
+              a:=get_alias(adj^.buf[j]);
               if supregset_in(colourednodes,a) and (reginfo[a].colour<=255) then
                 include(adj_colours,reginfo[a].colour);
             end;
@@ -1765,7 +1765,7 @@ unit rgobj;
       spill_loop:=false;
       for i:=selectstack.length downto 1 do
         begin
-          n:=selectstack.buf^[i-1];
+          n:=selectstack.buf[i-1];
           if not colour_register(n) and
             (ri_spill_helper in reginfo[n].flags) then
             begin
@@ -1785,7 +1785,7 @@ unit rgobj;
           { To prevent spilling of helper registers it is needed to assign colours to them first. }
           for i:=selectstack.length downto 1 do
             begin
-              n:=selectstack.buf^[i-1];
+              n:=selectstack.buf[i-1];
               if ri_spill_helper in reginfo[n].flags then
                 if not colour_register(n) then
                   { Can't colour the spill helper register n.
@@ -1796,7 +1796,7 @@ unit rgobj;
           { Assign colours for the rest of the registers }
           for i:=selectstack.length downto 1 do
             begin
-              n:=selectstack.buf^[i-1];
+              n:=selectstack.buf[i-1];
               if not (ri_spill_helper in reginfo[n].flags) then
                 colour_register(n);
             end;
@@ -1805,7 +1805,7 @@ unit rgobj;
       {Finally colour the nodes that were coalesced.}
       for i:=1 to coalescednodes.length do
         begin
-          n:=coalescednodes.buf^[i-1];
+          n:=coalescednodes.buf[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
         end;
@@ -1869,7 +1869,7 @@ unit rgobj;
         begin
           for i:=1 to adj^.length do
             begin
-              v:=adj^.buf^[i-1];
+              v:=adj^.buf[i-1];
               {Remove (u,v) and (v,u) from bitmap.}
               ibitmap[u,v]:=false;
               ibitmap[v,u]:=false;
@@ -2173,8 +2173,8 @@ unit rgobj;
             for i:=0 to live_registers.length-1 do
               begin
                 { Only report for imaginary registers }
-                if live_registers.buf^[i]>=first_imaginary then
-                  Comment(V_Warning,'Register '+std_regname(newreg(regtype,live_registers.buf^[i],defaultsub))+' not released');
+                if live_registers.buf[i]>=first_imaginary then
+                  Comment(V_Warning,'Register '+std_regname(newreg(regtype,live_registers.buf[i],defaultsub))+' not released');
               end;
           end;
 {$endif}
@@ -2444,7 +2444,7 @@ unit rgobj;
           { the node with the highest interferences is the last one }
           for i:=length-1 downto 0 do
             begin
-              t:=buf^[i];
+              t:=buf[i];
 
 {$ifdef DEBUG_SPILLCOALESCE}
               writeln('trgobj.spill_registers: Spilling ',t);
@@ -2578,7 +2578,7 @@ unit rgobj;
         with spillednodes do
           for i:=0 to length-1 do
             begin
-              j:=buf^[i];
+              j:=buf[i];
               if tg.istemp(spill_temps^[j]) then
                 tg.ungettemp(list,spill_temps^[j]);
             end;

@@ -368,14 +368,13 @@ interface
         shuffles : array[1..1] of word;
       end;
 
-      Tsuperregisterarray=array[0..$ffff] of Tsuperregister;
-      Psuperregisterarray=^Tsuperregisterarray;
+      Tsuperregisterarray=array of Tsuperregister;
 
       Tsuperregisterworklist=object
         buflength,
         buflengthinc,
         length:word;
-        buf:Psuperregisterarray;
+        buf:tsuperregisterarray;
         constructor init;
         constructor copyfrom(const x:Tsuperregisterworklist);
         destructor  done;
@@ -557,19 +556,21 @@ implementation
     constructor Tsuperregisterworklist.copyfrom(const x:Tsuperregisterworklist);
 
     begin
-      self:=x;
+      // self.x cannot be used, we'd copy over the dyn array
+      buflength:=x.buflength;
+      buflengthinc:=x.buflengthinc;
+      length:=x.length;
       if x.buf<>nil then
         begin
-          getmem(buf,buflength*sizeof(Tsuperregister));
-          move(x.buf^,buf^,length*sizeof(Tsuperregister));
+          setlength(buf,buflength);
+          move(x.buf[0],buf[0],length*sizeof(Tsuperregister));
         end;
     end;
 
     destructor tsuperregisterworklist.done;
 
     begin
-      if assigned(buf) then
-        freemem(buf);
+      buf:=nil;
     end;
 
 
@@ -584,9 +585,9 @@ implementation
           buflengthinc:=buflengthinc*2;
           if buflengthinc>256 then
              buflengthinc:=256;
-          reallocmem(buf,buflength*sizeof(Tsuperregister));
+          setlength(buf,buflength);
         end;
-      buf^[length-1]:=s;
+      buf[length-1]:=s;
     end;
 
 
@@ -594,7 +595,7 @@ implementation
 
     begin
       addnodup := false;
-      if indexword(buf^,length,s) = -1 then
+      if indexword(buf[0],length,s) = -1 then
         begin
           add(s);
           addnodup := true;
@@ -614,7 +615,7 @@ implementation
     begin
       if i>=length then
         internalerror(200310144);
-      buf^[i]:=buf^[length-1];
+      buf[i]:=buf[length-1];
       dec(length);
     end;
 
@@ -623,7 +624,7 @@ implementation
       begin
         if (i >= length) then
           internalerror(2005010601);
-        result := buf^[i];
+        result := buf[i];
       end;
 
 
@@ -633,7 +634,7 @@ implementation
       if length=0 then
         internalerror(200310142);
       dec(length);
-      get:=buf^[length];
+      get:=buf[length];
     end;
 
 
@@ -645,7 +646,7 @@ implementation
     begin
       delete:=false;
       { indexword in 1.0.x and 1.9.4 is broken }
-      i:=indexword(buf^,length,s);
+      i:=indexword(buf[0],length,s);
       if i<>-1 then
         begin
           deleteidx(i);
