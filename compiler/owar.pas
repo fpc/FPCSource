@@ -64,7 +64,7 @@ type
   tarobjectreader=class(tobjectreader)
   private
     ArSymbols : TFPHashObjectList;
-    LFNStrs   : PChar;
+    LFNStrs   : TAnsiCharDynArray;
     LFNSize   : longint;
     CurrMemberPos,
     CurrMemberSize : longint;
@@ -353,8 +353,7 @@ implementation
       begin
         inherited closefile;
         ArSymbols.Free;
-        if assigned(LFNStrs) then
-          FreeMem(LFNStrs);
+        LFNStrs:=nil;
         inherited Destroy;
       end;
 
@@ -515,8 +514,8 @@ implementation
         if DecodeMemberName(currarhdr)='/' then
           begin
             lfnsize:=DecodeMemberSize(currarhdr);
-            getmem(lfnstrs,lfnsize);
-            Read(lfnstrs^,lfnsize);
+            setLength(lfnstrs,lfnsize);
+            Read(lfnstrs[0],lfnsize);
           end;
       end;
 
