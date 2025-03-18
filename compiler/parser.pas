@@ -325,7 +325,8 @@ implementation
          set_current_module(tppumodule.create(nil,'',filename,false));
          macrosymtablestack:=TSymtablestack.create;
 
-         current_scanner:=tscannerfile.Create(filename);
+
+         set_current_scanner(tscannerfile.Create(filename));
          current_scanner.firstfile;
          current_module.scanner:=current_scanner;
 
@@ -387,7 +388,7 @@ implementation
          until false;
        { free scanner }
          current_scanner.destroy;
-         current_scanner:=nil;
+         set_current_scanner(nil);
        { close }
          preprocfile.destroy;
       end;

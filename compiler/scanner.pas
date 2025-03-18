@@ -270,7 +270,7 @@ interface
 {$ifdef PREPROCWRITE}
        tpreprocfile=class
          f   : text;
-         buf : pointer;
+         buf : TByteDynArray;
          spacefound,
          eolfound : boolean;
          constructor create(const fn:string);
@@ -2920,8 +2920,8 @@ type
         {$pop}
         if ioresult<>0 then
          Comment(V_Fatal,'can''t create file '+fn);
-        getmem(buf,preprocbufsize);
-        settextbuf(f,buf^,preprocbufsize);
+        setlength(buf,preprocbufsize);
+        settextbuf(f,buf[0],preprocbufsize);
       { reset }
         eolfound:=false;
         spacefound:=false;
@@ -2931,7 +2931,7 @@ type
     destructor tpreprocfile.destroy;
       begin
         close(f);
-        freemem(buf,preprocbufsize);
+        buf:=nil;
       end;
 
 
