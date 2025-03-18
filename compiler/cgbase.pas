@@ -645,6 +645,8 @@ implementation
 
     begin
       delete:=false;
+      if (system.length(buf)=0) then
+        exit;
       { indexword in 1.0.x and 1.9.4 is broken }
       i:=indexword(buf[0],length,s);
       if i<>-1 then
