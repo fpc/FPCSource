@@ -103,7 +103,7 @@ interface
         { modulename, used during ppu load }
         modulename  : pshortstring;
       end;
-      pderefmap = ^tderefmaprec;
+      tderefmaparray = array of tderefmaprec;
 
       { tmodule }
 
@@ -141,7 +141,7 @@ interface
         moduleid      : longint;
         unitmap       : punitmap; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
-        derefmap      : pderefmap; { mapping of all units needed for deref }
+        derefmap      : tderefmaparray; { mapping of all units needed for deref }
         derefmapcnt   : longint;  { number of units in the map }
         derefmapsize  : longint;  { number of units in the map }
         derefdataintflen : longint;
@@ -688,8 +688,8 @@ implementation
           begin
             for i:=0 to derefmapcnt-1 do
               stringdispose(derefmap[i].modulename);
-            freemem(derefmap);
           end;
+        derefmap:=nil;
         if assigned(_exports) then
          _exports.free;
         if assigned(dllscannerinputlist) then
@@ -885,9 +885,8 @@ implementation
           begin
             for i:=0 to derefmapcnt-1 do
               stringdispose(derefmap[i].modulename);
-            freemem(derefmap);
-            derefmap:=nil;
           end;
+        derefmap:=nil;
         unitmapsize:=0;
         derefmapsize:=0;
         derefmapcnt:=0;
@@ -1156,9 +1155,7 @@ implementation
         { Extend Derefmap }
         oldmapsize:=derefmapsize;
         derefmapsize:=loaded_units.count;
-        reallocmem(derefmap,derefmapsize*sizeof(tderefmaprec));
-        fillchar(derefmap[oldmapsize],(derefmapsize-oldmapsize)*sizeof(tderefmaprec),0);
-
+        setlength(derefmap,derefmapsize);
         { Add all units to unitmap }
         hp:=tmodule(loaded_units.first);
         i:=0;

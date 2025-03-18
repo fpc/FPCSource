@@ -1369,8 +1369,7 @@ var
         { Load unit map used for resolving }
         derefmapsize:=ppufile.getlongint;
         derefmapcnt:=derefmapsize;
-        getmem(derefmap,derefmapsize*sizeof(tderefmaprec));
-        fillchar(derefmap^,derefmapsize*sizeof(tderefmaprec),0);
+        setlength(derefmap,derefmapsize);
         for i:=0 to derefmapsize-1 do
           derefmap[i].modulename:=ppufile.getpshortstring;
       end;
