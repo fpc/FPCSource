@@ -64,7 +64,7 @@ unit rabase;
         if assigned(asmmodeinfos[t]) then
           writeln('Warning: Asmmode is already registered!')
         else
-          Getmem(asmmodeinfos[t],sizeof(tasmmodeinfo));
+          new(asmmodeinfos[t]);
         asmmodeinfos[t]^:=r;
       end;
 
@@ -101,7 +101,7 @@ finalization
   for asmmode:=low(tasmmode) to high(tasmmode) do
    if assigned(asmmodeinfos[asmmode]) then
     begin
-      freemem(asmmodeinfos[asmmode],sizeof(tasmmodeinfo));
+      dispose(asmmodeinfos[asmmode]);
       asmmodeinfos[asmmode]:=nil;
     end;
 end.
