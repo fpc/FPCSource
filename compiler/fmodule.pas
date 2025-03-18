@@ -96,7 +96,7 @@ interface
         { index in the derefmap }
         derefidx : longint;
       end;
-      punitmap = ^tunitmaprec;
+      tunitmaparray = array of tunitmaprec;
 
       tderefmaprec = record
         u           : tmodule;
@@ -139,7 +139,7 @@ interface
         IsPackage     : boolean;
         change_endian : boolean;  { if the unit is loaded on a system with a different endianess than it was compiled on }
         moduleid      : longint;
-        unitmap       : punitmap; { mapping of all used units }
+        unitmap       : tunitmaparray; { mapping of all used units }
         unitmapsize   : longint;  { number of units in the map }
         derefmap      : tderefmaparray; { mapping of all units needed for deref }
         derefmapcnt   : longint;  { number of units in the map }
@@ -682,8 +682,7 @@ implementation
         i : longint;
         current_debuginfo_reset : boolean;
       begin
-        if assigned(unitmap) then
-          freemem(unitmap);
+        unitmap:=nil;
         if assigned(derefmap) then
           begin
             for i:=0 to derefmapcnt-1 do
@@ -876,11 +875,7 @@ implementation
         unitimportsyms:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
-        if assigned(unitmap) then
-          begin
-            freemem(unitmap);
-            unitmap:=nil;
-          end;
+        unitmap:=nil;
         if assigned(derefmap) then
           begin
             for i:=0 to derefmapcnt-1 do
@@ -1149,8 +1144,7 @@ implementation
         { Extend unitmap }
         oldmapsize:=unitmapsize;
         unitmapsize:=loaded_units.count;
-        reallocmem(unitmap,unitmapsize*sizeof(tunitmaprec));
-        fillchar(unitmap[oldmapsize],(unitmapsize-oldmapsize)*sizeof(tunitmaprec),0);
+        setlength(unitmap,unitmapsize);
 
         { Extend Derefmap }
         oldmapsize:=derefmapsize;
