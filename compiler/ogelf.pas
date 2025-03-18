@@ -135,7 +135,7 @@ interface
          symtaboffset: aword;
          syms: longword;
          localsyms: longword;
-         symversions: PWord;
+         symversions: TWordDynArray;
          dynobj: boolean;
          CObjSymbol: TObjSymbolClass;
          verdefs: TFPHashObjectList;
@@ -1168,8 +1168,7 @@ implementation
           FreeMem(FSecTbl);
         strtab:=nil;
         shstrtab:=nil;
-        if Assigned(symversions) then
-          FreeMem(symversions);
+        symversions:=nil;
         inherited Destroy;
       end;
 
@@ -1660,9 +1659,9 @@ implementation
                         InternalError(2012102004);
                       if shdrs[i].sh_size<>syms*sizeof(word) then
                         InternalError(2012102005);
-                      GetMem(symversions,shdrs[i].sh_size);
+                      SetLength(symversions,shdrs[i].sh_size);
                       FReader.seek(shdrs[i].sh_offset);
-                      FReader.read(symversions^,shdrs[i].sh_size);
+                      FReader.read(symversions[0],shdrs[i].sh_size);
                       if source_info.endian<>target_info.endian then
                         for j:=0 to syms-1 do
                           symversions[j]:=SwapEndian(symversions[j]);
@@ -2906,9 +2905,9 @@ implementation
         ver: TElfVersionDef;
         vn: TElfverneed;
         vna: TElfvernaux;
-        symversions: pword;
+        symversions: TWordDynArray;
       begin
-        symversions:=AllocMem((dynsymlist.count+1)*sizeof(word));
+        SetLength(symversions,(dynsymlist.count+1));
         { Assign version indices }
         idx:=VER_NDX_GLOBAL+1;
         for i:=0 to dynsymlist.count-1 do
@@ -2989,9 +2988,9 @@ implementation
             if source_info.endian<>target_info.endian then
               for i:=0 to dynsymlist.count+1 do
                 symversions[i]:=swapendian(symversions[i]);
-            symversec.write(symversions^,(dynsymlist.count+1)*sizeof(word));
+            symversec.write(symversions[0],(dynsymlist.count+1)*sizeof(word));
           end;
-        FreeMem(symversions);
+        symversions:=nil;
       end;
 
 
