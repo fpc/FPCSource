@@ -129,7 +129,7 @@ interface
          shstrndx: longword;
          symtabndx: longword;
          shstrtab: TAnsiCharDynarray;
-         strtab: PChar;
+         strtab: TAnsiCharDynarray;
          shstrtablen: longword;
          strtablen: longword;
          symtaboffset: aword;
@@ -1166,8 +1166,7 @@ implementation
           FreeMem(FSymTbl);
         if Assigned(FSecTbl) then
           FreeMem(FSecTbl);
-        if Assigned(strtab) then
-          FreeMem(strtab);
+        strtab:=nil;
         shstrtab:=nil;
         if Assigned(symversions) then
           FreeMem(symversions);
@@ -1615,9 +1614,9 @@ implementation
             if shdrs[strndx].sh_type<>SHT_STRTAB then
               InternalError(2012062703);
             strtablen:=shdrs[strndx].sh_size;
-            GetMem(strtab,strtablen);
+            setLength(strtab,strtablen);
             FReader.seek(shdrs[strndx].sh_offset);
-            FReader.read(strtab^,strtablen);
+            FReader.read(strtab[0],strtablen);
 
             symtaboffset:=shdrs[i].sh_offset;
             syms:=shdrs[i].sh_size div sizeof(TElfSymbol);
