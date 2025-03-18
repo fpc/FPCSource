@@ -24,7 +24,9 @@ unit owbase;
 {$i fpcdefs.inc}
 
 interface
+
 uses
+  globtype,
   cstreams,
   cclasses;
 
@@ -33,7 +35,7 @@ type
   private
     f      : TCCustomFileStream;
     opened : boolean;
-    buf    : pchar;
+    buf    : TAnsiCharDynArray;
     bufidx : longword;
     procedure writebuf;
   protected
@@ -61,7 +63,7 @@ type
   private
     f      : TCCustomFileStream;
     opened : boolean;
-    buf    : pchar;
+    buf    : TAnsiCharDynArray;
     ffilename : string;
     bufidx,
     bufmax : longint;
@@ -104,7 +106,7 @@ const
 
 constructor tobjectwriter.create;
 begin
-  getmem(buf,bufsize);
+  setlength(buf,bufsize);
   bufidx:=0;
   opened:=false;
   fsize:=0;
@@ -115,7 +117,7 @@ destructor tobjectwriter.destroy;
 begin
   if opened then
    closefile;
-  freemem(buf,bufsize);
+  buf:=nil;
 end;
 
 constructor tobjectwriter.createAr(const Aarfn:string);
@@ -160,7 +162,7 @@ end;
 
 procedure tobjectwriter.writebuf;
 begin
-  f.write(buf^,bufidx);
+  f.write(buf[0],bufidx);
   bufidx:=0;
 end;
 
@@ -183,6 +185,8 @@ begin
   while len>0 do
    begin
      bufleft:=bufsize-bufidx;
+     if bufleft=0 then
+       Writebuf;
      if len>bufleft then
       begin
         move(p[idx],buf[bufidx],bufleft);
@@ -275,8 +279,8 @@ begin
     end;
   ffilename:=fn;
   bufmax:=f.Size;
-  getmem(buf,bufmax);
-  f.read(buf^,bufmax);
+  setlength(buf,bufmax);
+  f.read(buf[0],bufmax);
   f.free;
   bufidx:=0;
   opened:=true;
@@ -289,7 +293,7 @@ begin
   opened:=false;
   bufidx:=0;
   bufmax:=0;
-  freemem(buf);
+  buf:=Nil;
 end;
 
 
