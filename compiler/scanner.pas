@@ -3097,11 +3097,11 @@ type
         openinputfile:=inputfile.open;
       { load buffer }
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
-        hidden_inputbuffer:=inputfile.buf;
-        hidden_inputpointer:=inputfile.buf;
+        hidden_inputbuffer:=PAnsiChar(inputfile.buf);
+        hidden_inputpointer:=PAnsiChar(inputfile.buf);
 {$else not CHECK_INPUTPOINTER_LIMITS}
-        inputbuffer:=inputfile.buf;
-        inputpointer:=inputfile.buf;
+        inputbuffer:=PAnsiChar(inputfile.buf);
+        inputpointer:=PAnsiChar(inputfile.buf);
 {$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=inputfile.bufstart;
       { line }
@@ -3140,11 +3140,11 @@ type
         tempopeninputfile:=inputfile.tempopen;
       { reload buffer }
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
-        hidden_inputbuffer:=inputfile.buf;
-        hidden_inputpointer:=inputfile.buf;
+        hidden_inputbuffer:=PAnsiChar(inputfile.buf);
+        hidden_inputpointer:=PAnsiChar(inputfile.buf);
 {$else not CHECK_INPUTPOINTER_LIMITS}
-        inputbuffer:=inputfile.buf;
-        inputpointer:=inputfile.buf;
+        inputbuffer:=PAnsiChar(inputfile.buf);
+        inputpointer:=PAnsiChar(inputfile.buf);
 {$endif CHECK_INPUTPOINTER_LIMITS}
         inputstart:=inputfile.bufstart;
       end;
@@ -3187,10 +3187,10 @@ type
     procedure tscannerfile.restoreinputfile;
       begin
 {$ifdef check_inputpointer_limits}
-        hidden_inputbuffer:=inputfile.buf;
+        hidden_inputbuffer:=PAnsiChar(inputfile.buf);
         hidden_inputpointer:=inputfile.saveinputpointer;
 {$else not check_inputpointer_limits}
-        inputbuffer:=inputfile.buf;
+        inputbuffer:=PAnsiChar(inputfile.buf);
         inputpointer:=inputfile.saveinputpointer;
 {$endif check_inputpointer_limits}
         lastlinepos:=inputfile.savelastlinepos;
@@ -3980,11 +3980,11 @@ type
               begin
                 readbuf;
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
-                hidden_inputpointer:=buf;
-                hidden_inputbuffer:=buf;
+                hidden_inputpointer:=PAnsiChar(buf);
+                hidden_inputbuffer:=PAnsiChar(buf);
 {$else not CHECK_INPUTPOINTER_LIMITS}
-                inputpointer:=buf;
-                inputbuffer:=buf;
+                inputpointer:=PAnsiChar(buf);
+                inputbuffer:=PAnsiChar(buf);
 {$endif CHECK_INPUTPOINTER_LIMITS}
                 inputstart:=bufstart;
               { first line? }
@@ -4096,11 +4096,11 @@ type
            setmacro(p,len);
          { local buffer }
 {$ifdef CHECK_INPUTPOINTER_LIMITS}
-           hidden_inputbuffer:=buf;
-           hidden_inputpointer:=buf;
+           hidden_inputbuffer:=PAnsiChar(buf);
+           hidden_inputpointer:=PAnsiChar(buf);
 {$else not CHECK_INPUTPOINTER_LIMITS}
-           inputbuffer:=buf;
-           inputpointer:=buf;
+           inputbuffer:=PAnsiChar(buf);
+           inputpointer:=PAnsiChar(buf);
 {$endif CHECK_INPUTPOINTER_LIMITS}
            inputstart:=bufstart;
            ref_index:=fileindex;
