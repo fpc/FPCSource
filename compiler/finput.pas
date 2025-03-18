@@ -33,8 +33,7 @@ interface
        linebufincrease=512;
 
     type
-       tlongintarr = array[0..1000000] of longint;
-       plongintarr = ^tlongintarr;
+       tlongintarr = array of longint;
 
        tinputfile = class
          path,name : TPathStr;       { path and filename }
@@ -50,7 +49,7 @@ interface
          savelastlinepos,
          saveline_no      : longint;
 
-         linebuf    : plongintarr;  { line buffer to retrieve lines }
+         linebuf    : tlongintarr;  { line buffer to retrieve lines }
          maxlinebuf : longint;
 
          ref_index  : longint;
@@ -248,9 +247,7 @@ uses
       begin
         if not closed then
          close;
-      { free memory }
-        if assigned(linebuf) then
-         freemem(linebuf,maxlinebuf*sizeof(linebuf^[0]));
+        linebuf:=Nil;
       end;
 
 
@@ -387,11 +384,10 @@ uses
         while (line>=maxlinebuf) do
           begin
             { create new linebuf and move old info }
-            linebuf:=reallocmem(linebuf,(maxlinebuf+linebufincrease)*sizeof(linebuf^[0]));
-            fillchar(linebuf^[maxlinebuf],linebufincrease*sizeof(linebuf^[0]),0);
+            SetLength(linebuf,(maxlinebuf+linebufincrease));
             inc(maxlinebuf,linebufincrease);
           end;
-        linebuf^[line]:=linepos;
+        linebuf[line]:=linepos;
       end;
 
 
@@ -405,7 +401,7 @@ uses
         getlinestr:='';
         if l<maxlinebuf then
          begin
-           fpos:=linebuf^[l];
+           fpos:=linebuf[l];
            { fpos is set negativ if the line was already written }
            { but we still know the correct value                 }
            if fpos<0 then

@@ -1039,8 +1039,8 @@ Implementation
           if not assigned(f) then
             exit;
           for i:=0 to f.maxlinebuf-1 do
-            if f.linebuf^[i]<0 then
-              f.linebuf^[i]:=-f.linebuf^[i]-1;
+            if f.linebuf[i]<0 then
+              f.linebuf[i]:=-f.linebuf[i]-1;
         end;
 
       begin
@@ -1094,13 +1094,13 @@ Implementation
               (hp.fileinfo.line<infile.maxlinebuf) then
               begin
                 if (hp.fileinfo.line<>0) and
-                  (infile.linebuf^[hp.fileinfo.line]>=0) then
+                  (infile.linebuf[hp.fileinfo.line]>=0) then
                   writer.AsmWriteLn(asminfo^.comment+'['+tostr(hp.fileinfo.line)+'] '+
                   fixline(infile.GetLineStr(hp.fileinfo.line)));
                 { set it to a negative value !
                   to make that is has been read already !! PM }
-                if (infile.linebuf^[hp.fileinfo.line]>=0) then
-                  infile.linebuf^[hp.fileinfo.line]:=-infile.linebuf^[hp.fileinfo.line]-1;
+                if (infile.linebuf[hp.fileinfo.line]>=0) then
+                  infile.linebuf[hp.fileinfo.line]:=-infile.linebuf[hp.fileinfo.line]-1;
               end;
           end;
         lastfileinfo:=hp.fileinfo;

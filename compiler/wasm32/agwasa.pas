@@ -455,13 +455,13 @@ implementation
                         ((hp1.fileinfo.line<infile.maxlinebuf) or (InlineLevel>0)) then
                        begin
                          if (hp1.fileinfo.line<>0) and
-                            ((infile.linebuf^[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
+                            ((infile.linebuf[hp1.fileinfo.line]>=0) or (InlineLevel>0)) then
                            writer.AsmWriteLn(asminfo^.comment+'['+tostr(hp1.fileinfo.line)+'] '+
                              fixline(infile.GetLineStr(hp1.fileinfo.line)));
                          { set it to a negative value !
                          to make that is has been read already !! PM }
-                         if (infile.linebuf^[hp1.fileinfo.line]>=0) then
-                           infile.linebuf^[hp1.fileinfo.line]:=-infile.linebuf^[hp1.fileinfo.line]-1;
+                         if (infile.linebuf[hp1.fileinfo.line]>=0) then
+                           infile.linebuf[hp1.fileinfo.line]:=-infile.linebuf[hp1.fileinfo.line]-1;
                        end;
                    end;
                   lastfileinfo:=hp1.fileinfo;
