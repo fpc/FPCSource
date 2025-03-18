@@ -191,7 +191,7 @@ Implementation
         fs : TCStream;
         bufcount,
         bufsize  : Integer;
-        buf      : pbyte;
+        buf      : TByteDynArray;
       begin
         result:=0;
         bufsize:=64*1024;
@@ -202,12 +202,12 @@ Implementation
             Comment(V_Error,'Can''t open file: '+fn);
             exit;
           end;
-        getmem(buf,bufsize);
+        setlength(buf,bufsize);
         repeat
-          bufcount:=fs.Read(buf^,bufsize);
-          result:=UpdateCrc32(result,buf^,bufcount);
+          bufcount:=fs.Read(buf[0],bufsize);
+          result:=UpdateCrc32(result,buf[0],bufcount);
         until bufcount<bufsize;
-        freemem(buf);
+        buf:=nil;
         fs.Free;
       end;
 
