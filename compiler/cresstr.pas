@@ -44,7 +44,7 @@ uses
       TResourceStringItem = class(TLinkedListItem)
         Sym   : TConstSym;
         Name  : String;
-        AValue : PAnsiChar;
+        AValue : TAnsiCharDynArray;
         WValue : pcompilerwidestring; // just a reference, do not free.
         Len   : Longint; // in bytes, not characters
         hash  : Cardinal;
@@ -92,8 +92,8 @@ uses
         else
           begin
           Len:=asym.value.len;
-          GetMem(AValue,Len);
-          Move(asym.value.valueptr^,AValue^,Len);
+          SetLength(AValue,Len);
+          Move(asym.value.valueptr^,AValue[0],Len);
           end;
         CalcHash;
       end;
@@ -101,8 +101,7 @@ uses
 
     destructor TResourceStringItem.Destroy;
       begin
-        if Assigned(AValue) then
-          FreeMem(AValue);
+        AValue:=nil;
       end;
 
 
@@ -209,7 +208,7 @@ uses
               else
                 begin
                 if assigned(R.AValue) then
-                  valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],R.AValue,R.Len,getansistringcodepage)
+                  valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],PAnsiChar(R.AValue),R.Len,getansistringcodepage)
                 end;
               end;
             current_asmdata.asmlists[al_const].concat(cai_align.Create(sizeof(pint)));
@@ -293,7 +292,7 @@ uses
             if Not r.isUnicode then
               begin
               initwidestring(W);
-              ascii2unicode(R.AValue,R.Len,current_settings.sourcecodepage,W);
+              ascii2unicode(PAnsiChar(R.AValue),R.Len,current_settings.sourcecodepage,W);
               end
             else
               begin
