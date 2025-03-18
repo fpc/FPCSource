@@ -43,6 +43,7 @@ interface
 
        TByteDynArray = array of byte;
        TAnsiCharDynArray = array of ansichar;
+       TBooleanDynArray = array of boolean;
 
        Int32 = Longint;
 

@@ -129,7 +129,7 @@ interface
       protected
          linkscript : TCmdStrList;
          ScriptCount : longint;
-         IsHandled : PBooleanArray;
+         IsHandled : TBooleanDynArray;
          property CArObjectReader:TObjectReaderClass read FCArObjectReader write FCArObjectReader;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
@@ -1548,7 +1548,6 @@ Implementation
         ImportLibraryList.Free;
         if assigned(IsHandled) then
           begin
-            FreeMem(IsHandled,sizeof(boolean)*ScriptCount);
             IsHandled:=nil;
             ScriptCount:=0;
           end;
@@ -1821,11 +1820,7 @@ Implementation
             hp:=TCmdStrListItem(hp.next);
           end;
         ScriptCount:=i;
-        if ScriptCount>0 then
-          begin
-            GetMem(IsHandled,sizeof(boolean)*ScriptCount);
-            Fillchar(IsHandled^,sizeof(boolean)*ScriptCount,#0);
-          end;
+        SetLength(IsHandled,ScriptCount);
       end;
 
     procedure TInternalLinker.ParseScript_PostCheck;
@@ -1838,7 +1833,7 @@ Implementation
         while assigned(hp) do
           begin
             inc(i);
-            if not IsHandled^[i] then
+            if not IsHandled[i] then
               begin
                 Comment(V_Warning,'"'+hp.str+
                   '" internal linker script not handled');
@@ -1877,7 +1872,7 @@ Implementation
             s:=hp.str;
             if (s='') or (s[1]='#') then
               begin
-                IsHandled^[i]:=true;
+                IsHandled[i]:=true;
                 hp:=TCmdStrListItem(hp.next);
                 continue;
               end;
@@ -1907,7 +1902,7 @@ Implementation
             else
               handled:=false;
             if handled then
-              IsHandled^[i]:=true;
+              IsHandled[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
@@ -1961,7 +1956,7 @@ Implementation
             else
               handled:=false;
             if handled then
-              IsHandled^[i]:=true;
+              IsHandled[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
         exeoutput.Order_End;
@@ -2001,7 +1996,7 @@ Implementation
             else
               handled:=false;
             if handled then
-              IsHandled^[i]:=true;
+              IsHandled[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
@@ -2042,7 +2037,7 @@ Implementation
             else
               handled:=false;
             if handled then
-              IsHandled^[i]:=true;
+              IsHandled[i]:=true;
             hp:=TCmdStrListItem(hp.next);
           end;
       end;
