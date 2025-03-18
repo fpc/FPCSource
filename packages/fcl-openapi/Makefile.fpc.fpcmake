@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for OpenAPI (swagger) spec reader & code generator.
+#
+
+[package]
+name=fcl-openapi
+version=3.3.1
+
+[target]
+units=fpopenapi.codegen.pp fpopenapi.consts.pp fpopenapi.generators.pp fpopenapi.objects.pp \
+fpopenapi.pascaltypes.pp fpopenapi.reader.pp fpopenapi.types.pp fpopenapi.writer.pp
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+
