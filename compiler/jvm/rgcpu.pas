@@ -32,7 +32,7 @@ unit rgcpu;
       rgobj;
 
     type
-      tspilltemps = array[tregistertype] of ^Tspill_temp_list;
+      tspilltemps = array[tregistertype] of Tspill_temp_list;
 
       { trgcpu }
 
@@ -67,7 +67,7 @@ implementation
           if instr.oper[l]^.typ=top_reg then
             begin
               reg:=instr.oper[l]^.reg;
-              instr.loadref(l,spilltemps[getregtype(reg)]^[getsupreg(reg)]);
+              instr.loadref(l,spilltemps[getregtype(reg)][getsupreg(reg)]);
             end;
       end;
 
@@ -350,8 +350,8 @@ implementation
         { remove some simple useless store/load sequences }
         remove_dummy_load_stores(list,headertai);
         { allocate room to store the virtual register -> temp mapping }
-        spill_temps[R_INTREGISTER]:=allocmem(sizeof(treference)*intrg.maxreg);
-        spill_temps[R_FPUREGISTER]:=allocmem(sizeof(treference)*fprg.maxreg);
+        setlength(spill_temps[R_INTREGISTER],intrg.maxreg);
+        setlength(spill_temps[R_FPUREGISTER],fprg.maxreg);
         { List to insert temp allocations into }
         templist:=TAsmList.create;
         { allocate/replace all registers }
@@ -385,10 +385,10 @@ implementation
                           ra_alloc :
                             tg.gettemp(templist,
                                        size,1,
-                                       tt_regallocator,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+                                       tt_regallocator,spill_temps[getregtype(reg)][getsupreg(reg)]);
                           ra_dealloc :
                             begin
-                              tg.ungettemp(templist,spill_temps[getregtype(reg)]^[getsupreg(reg)]);
+                              tg.ungettemp(templist,spill_temps[getregtype(reg)][getsupreg(reg)]);
                               { don't invalidate the temp reference, may still be used one instruction
                                 later }
                             end;
@@ -413,8 +413,8 @@ implementation
             end;
             p:=Tai(p.next);
           end;
-        freemem(spill_temps[R_INTREGISTER]);
-        freemem(spill_temps[R_FPUREGISTER]);
+        spill_temps[R_INTREGISTER]:=nil;
+        spill_temps[R_FPUREGISTER]:=nil;
         templist.free;
       end;
 

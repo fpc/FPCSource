@@ -33,7 +33,7 @@ unit rgcpu;
       rgobj;
 
     type
-      tspilltemps = array[tregistertype] of ^Tspill_temp_list;
+      tspilltemps = array[tregistertype] of Tspill_temp_list;
 
       { trgcpu }
 
@@ -69,7 +69,7 @@ implementation
           if (instr.oper[l]^.typ=top_reg) and (instr.oper[l]^.reg<>NR_LOCAL_FRAME_POINTER_REG) then
             begin
               reg:=instr.oper[l]^.reg;
-              instr.loadref(l,spilltemps[getregtype(reg)]^[getsupreg(reg)]);
+              instr.loadref(l,spilltemps[getregtype(reg)][getsupreg(reg)]);
             end;
       end;
 
@@ -366,10 +366,10 @@ implementation
         { remove some simple useless store/load sequences }
         remove_dummy_load_stores(list,headertai);
         { allocate room to store the virtual register -> temp mapping }
-        spill_temps[R_INTREGISTER]:=allocmem(sizeof(treference)*intrg.maxreg);
-        spill_temps[R_FPUREGISTER]:=allocmem(sizeof(treference)*fprg.maxreg);
-        spill_temps[R_FUNCREFREGISTER]:=allocmem(sizeof(treference)*frrg.maxreg);
-        spill_temps[R_EXTERNREFREGISTER]:=allocmem(sizeof(treference)*errg.maxreg);
+        SetLength(spill_temps[R_INTREGISTER],intrg.maxreg);
+        SetLength(spill_temps[R_FPUREGISTER],fprg.maxreg);
+        SetLength(spill_temps[R_FUNCREFREGISTER],frrg.maxreg);
+        SetLength(spill_temps[R_EXTERNREFREGISTER],errg.maxreg);
         { List to insert temp allocations into }
         templist:=TAsmList.create;
         {  }
@@ -437,10 +437,10 @@ implementation
                       ra_alloc :
                         tg.gethltemp(templist,def,
                                      size,
-                                     tt_regallocator,spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
+                                     tt_regallocator,spill_temps[getregtype(ra.reg)][getsupreg(ra.reg)]);
                       ra_dealloc :
                         begin
-                          tg.ungettemp(templist,spill_temps[getregtype(ra.reg)]^[getsupreg(ra.reg)]);
+                          tg.ungettemp(templist,spill_temps[getregtype(ra.reg)][getsupreg(ra.reg)]);
                           { don't invalidate the temp reference, may still be used one instruction
                             later }
                         end;
@@ -465,10 +465,10 @@ implementation
           end;
         if templist.count>0 then
           list.insertListBefore(nil, templist);
-        freemem(spill_temps[R_INTREGISTER]);
-        freemem(spill_temps[R_FPUREGISTER]);
-        freemem(spill_temps[R_FUNCREFREGISTER]);
-        freemem(spill_temps[R_EXTERNREFREGISTER]);
+        spill_temps[R_INTREGISTER]:=Nil;
+        spill_temps[R_FPUREGISTER]:=Nil;
+        spill_temps[R_FUNCREFREGISTER]:=Nil;
+        spill_temps[R_EXTERNREFREGISTER]:=Nil;
         templist.free;
         { Not needed anymore }
         wasmfuncreftype.owner.deletedef(wasmfuncreftype);

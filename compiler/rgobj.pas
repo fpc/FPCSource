@@ -123,7 +123,8 @@ unit rgobj;
         total_interferences : longint;
         real_reg_interferences: word;
       end;
-      Preginfo=^TReginfo;
+      // Preginfo=^TReginfo;
+      TReginfoArray = Array of TReginfo;
 
       tspillreginfo = record
         { a single register may appear more than once in an instruction,
@@ -141,8 +142,9 @@ unit rgobj;
         spillreginfo: array[0..3] of tspillreginfo;
       end;
 
-      Pspill_temp_list=^Tspill_temp_list;
-      Tspill_temp_list=array[tsuperregister] of Treference;
+//      Pspill_temp_list=^Tspill_temp_list;
+      Tspill_temp_list = array of Treference;
+
 
       { used to store where a register is spilled and what interferences it has at the point of being spilled }
       tspillinfo = record
@@ -229,10 +231,10 @@ unit rgobj;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
         procedure insert_regalloc_info_all(list:TAsmList);
         procedure determine_spill_registers(list:TAsmList;headertail:tai); virtual;
-        procedure get_spill_temp(list:TAsmlist;spill_temps: Pspill_temp_list; supreg: tsuperregister);virtual;
+        procedure get_spill_temp(list:TAsmlist;spill_temps: Tspill_temp_list; supreg: tsuperregister);virtual;
       strict protected
         { Highest register allocated until now.}
-        reginfo           : PReginfo;
+        reginfo           : TReginfoArray;
         usable_registers_cnt : word;
       private
         int_live_range_direction: TRADirection;
@@ -455,7 +457,7 @@ unit rgobj;
          moveins_id_counter:=0;
          worklist_moves:=Tlinkedlist.create;
          move_garbage:=TLinkedList.Create;
-         reginfo:=allocmem(first_imaginary*sizeof(treginfo));
+         SetLength(reginfo,first_imaginary);
          for i:=0 to first_imaginary-1 do
            begin
              reginfo[i].degree:=high(tsuperregister);
@@ -513,7 +515,6 @@ unit rgobj;
                   if movelist<>nil then
                     dispose(movelist);
                 end;
-            freemem(reginfo);
             reginfo:=nil;
           end;
       end;
@@ -539,9 +540,7 @@ unit rgobj;
                 if maxreginfoinc<256 then
                   maxreginfoinc:=maxreginfoinc*2;
               end;
-            reallocmem(reginfo,maxreginfo*sizeof(treginfo));
-            { Do we really need it to clear it ? At least for 1.0.x (PFV) }
-            fillchar(reginfo[oldmaxreginfo],(maxreginfo-oldmaxreginfo)*sizeof(treginfo),0);
+            SetLength(reginfo,maxreginfo);
           end;
         reginfo[result].subreg:=subreg;
       end;
@@ -1991,7 +1990,7 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.get_spill_temp(list: TAsmlist; spill_temps: Pspill_temp_list; supreg: tsuperregister);
+    procedure trgobj.get_spill_temp(list: TAsmlist; spill_temps: Tspill_temp_list; supreg: tsuperregister);
       var
         size: ptrint;
       begin
@@ -2007,7 +2006,7 @@ unit rgobj;
           size:=tcgsize2size[reg_cgsize(newreg(regtype,supreg,reginfo[supreg].subreg))];
         tg.gettemp(list,
                    size,size,
-                   tt_noreuse,spill_temps^[supreg]);
+                   tt_noreuse,spill_temps[supreg]);
       end;
 
 
@@ -2416,7 +2415,7 @@ unit rgobj;
         t : tsuperregister;
         p : Tai;
         regs_to_spill_set:Tsuperregisterset;
-        spill_temps : ^Tspill_temp_list;
+        spill_temps : Tspill_temp_list;
         supreg,x,y : tsuperregister;
         templist : TAsmList;
         j : Longint;
@@ -2429,7 +2428,7 @@ unit rgobj;
         sort_spillednodes;
         for i:=first_imaginary to maxreg-1 do
           exclude(reginfo[i].flags,ri_selected);
-        spill_temps:=allocmem(sizeof(treference)*maxreg);
+        SetLength(spill_temps,maxreg);
         supregset_reset(regs_to_spill_set,false,$ffff);
 
 {$ifdef DEBUG_SPILLCOALESCE}
@@ -2464,7 +2463,7 @@ unit rgobj;
 
               getnewspillloc:=not (ri_has_initial_loc in reginfo[t].flags);
               if not getnewspillloc then
-                spill_temps^[t]:=spillinfo[t].spilllocation;
+                spill_temps[t]:=spillinfo[t].spilllocation;
 
               { check if we can "coalesce" spilled nodes. To do so, it is required that they do not
                 interfere but are connected by a move instruction
@@ -2481,7 +2480,7 @@ unit rgobj;
                       (spillinfo[get_alias(y)].spilled) and
                       not(spillinfo[get_alias(y)].interferences[0,t]) then
                       begin
-                        spill_temps^[t]:=spillinfo[get_alias(y)].spilllocation;
+                        spill_temps[t]:=spillinfo[get_alias(y)].spilllocation;
 {$ifdef DEBUG_SPILLCOALESCE}
                         writeln('trgobj.spill_registers: Spill coalesce ',t,' to ',y);
 {$endif DEBUG_SPILLCOALESCE}
@@ -2495,7 +2494,7 @@ unit rgobj;
 {$ifdef DEBUG_SPILLCOALESCE}
                         writeln('trgobj.spill_registers: Spill coalesce ',t,' to ',x);
 {$endif DEBUG_SPILLCOALESCE}
-                        spill_temps^[t]:=spillinfo[get_alias(x)].spilllocation;
+                        spill_temps[t]:=spillinfo[get_alias(x)].spilllocation;
                         getnewspillloc:=false;
                         break;
                       end;
@@ -2505,13 +2504,13 @@ unit rgobj;
                 get_spill_temp(templist,spill_temps,t);
 
 {$ifdef DEBUG_SPILLCOALESCE}
-              writeln('trgobj.spill_registers: Spill temp: ',getsupreg(spill_temps^[t].base),'+',spill_temps^[t].offset);
+              writeln('trgobj.spill_registers: Spill temp: ',getsupreg(spill_temps[t].base),'+',spill_temps[t].offset);
 {$endif DEBUG_SPILLCOALESCE}
 
               { set spilled only as soon as a temp is assigned, else a mov iregX,iregX results in a spill coalesce with itself }
               spillinfo[t].spilled:=true;
 
-              spillinfo[t].spilllocation:=spill_temps^[t];
+              spillinfo[t].spilllocation:=spill_temps[t];
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
@@ -2566,7 +2565,7 @@ unit rgobj;
                   begin
 //                    writeln(gas_op2str[tai_cpu_abstract_sym(p).opcode]);
                     current_filepos:=fileinfo;
-                    if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps^) then
+                    if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps) then
                       spill_registers:=true;
                   end;
               else
@@ -2580,10 +2579,10 @@ unit rgobj;
           for i:=0 to length-1 do
             begin
               j:=buf[i];
-              if tg.istemp(spill_temps^[j]) then
-                tg.ungettemp(list,spill_temps^[j]);
+              if tg.istemp(spill_temps[j]) then
+                tg.ungettemp(list,spill_temps[j]);
             end;
-        freemem(spill_temps);
+        spill_temps:=nil;
       end;
 
 
