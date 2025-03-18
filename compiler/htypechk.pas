@@ -1750,7 +1750,15 @@ implementation
              niln,
              pointerconstn :
                begin
-                if report_errors then
+                 { this is an implicit dereference, so it is valid for assign }
+                 if hp.resultdef.typ=arraydef then
+                   begin
+                     valid_for_assign:=true;
+                     mayberesettypeconvs;
+                     exit;
+                   end;
+
+                 if report_errors then
                    CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  mayberesettypeconvs;
                  exit;
