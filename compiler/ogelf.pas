@@ -128,7 +128,7 @@ interface
          shoffset: aword;
          shstrndx: longword;
          symtabndx: longword;
-         shstrtab: PChar;
+         shstrtab: TAnsiCharDynarray;
          strtab: PChar;
          shstrtablen: longword;
          strtablen: longword;
@@ -1168,8 +1168,7 @@ implementation
           FreeMem(FSecTbl);
         if Assigned(strtab) then
           FreeMem(strtab);
-        if Assigned(shstrtab) then
-          FreeMem(shstrtab);
+        shstrtab:=nil;
         if Assigned(symversions) then
           FreeMem(symversions);
         inherited Destroy;
@@ -1593,9 +1592,9 @@ implementation
         if shdrs[shstrndx].sh_type<>SHT_STRTAB then
           InternalError(2012060202);
         shstrtablen:=shdrs[shstrndx].sh_size;
-        GetMem(shstrtab,shstrtablen);
+        SetLength(shstrtab,shstrtablen);
         FReader.seek(shdrs[shstrndx].sh_offset);
-        FReader.read(shstrtab^,shstrtablen);
+        FReader.read(shstrtab[0],shstrtablen);
         FLoaded[shstrndx]:=True;
 
         { Locate the symtable, it is typically at the end so loop backwards.
