@@ -629,7 +629,7 @@ implementation
       begin
         i:=m div 1000;
         { get the default state }
-        Result:=msg^.msgstates[i]^[m mod 1000];
+        Result:=msg^.msgstates[i][m mod 1000];
 
         { and search at the current unit settings }
         { todo }

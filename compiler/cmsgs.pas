@@ -35,11 +35,12 @@ type
   ppchar=^pchar;
   TMsgStr = AnsiString;
 
-  TArrayOfPChar = array[0..1000] of pchar;
-  PArrayOfPChar = ^TArrayOfPChar;
+  TArrayOfPChar = array of pchar;
+  TArrayOfState = array of tmsgstate;
 
-  TArrayOfState = array[0..1000] of tmsgstate;
-  PArrayOfState = ^TArrayOfState;
+  TMsgIdx = array[1..maxmsgidxparts] of TArrayOfPChar;
+  TMsgIdxMax = array[1..maxmsgidxparts] of longint;
+  TMsgStates = array[1..maxmsgidxparts] of TArrayOfState;
 
   PMessage=^TMessage;
   TMessage=object
@@ -50,9 +51,9 @@ type
     msgparts,
     msgs        : longint;
     msgtxt      : pchar;
-    msgidx      : array[1..maxmsgidxparts] of PArrayOfPChar;
-    msgidxmax   : array[1..maxmsgidxparts] of longint;
-    msgstates   : array[1..maxmsgidxparts] of PArrayOfState;
+    msgidx      : TMsgIdx;
+    msgidxmax   : TMsgIdxMax;
+    msgstates   : TMsgStates;
     msgcodepage : TSystemCodePage;
     { set if changes with $WARN need to be cleared at next module change }
     has_local_changes : boolean;
@@ -121,17 +122,19 @@ begin
   msgcodepage:=CP_ACP;
   if n<>high(idxmax)+1 then
    fail;
+  FillChar(msgidx,SizeOf(TMsgIdx),0);
+  FillChar(msgidxmax,SizeOf(TMsgIdxMax),0);
+  FillChar(msgstates,SizeOf(TMsgStates),0);
   for i:=1 to n do
    begin
      msgidxmax[i]:=idxmax[i-1];
      { create array of msgidx }
-     getmem(msgidx[i],msgidxmax[i]*sizeof(pointer));
-     fillchar(msgidx[i]^,msgidxmax[i]*sizeof(pointer),0);
+     SetLength(msgidx[i],msgidxmax[i]);
      { create array of states }
-     getmem(msgstates[i],msgidxmax[i]*sizeof(tmsgstate));
+     SetLength(msgstates[i],msgidxmax[i]);
      { default value for msgstate is ms_on_global }
      for j:=0 to msgidxmax[i]-1 do
-       msgstates[i]^[j]:=ms_on_global;
+       msgstates[i][j]:=ms_on_global;
    end;
 end;
 
@@ -142,8 +145,8 @@ var
 begin
   for i:=1 to msgparts do
   begin
-   freemem(msgidx[i],msgidxmax[i]*sizeof(pointer));
-   freemem(msgstates[i],msgidxmax[i]*sizeof(tmsgstate));
+   msgidx[i]:=nil;
+   msgstates[i]:=nil;
   end;
   if msgallocsize>0 then
    begin
@@ -335,7 +338,7 @@ var
 begin
   { clear }
   for i:=1 to msgparts do
-   fillchar(msgidx[i]^,msgidxmax[i]*sizeof(pointer),0);
+    FillChar(msgidx[i][0],msgidxmax[i]*sizeof(pointer),0);
 end;
 
 
@@ -372,11 +375,11 @@ begin
         { set default verbosity to off is '-' is found just after the '_' }
         if hp1^='-' then
          begin
-           msgstates[numpart]^[numidx]:=ms_off_global;
+           msgstates[numpart][numidx]:=ms_off_global;
            inc(hp1);
          end;
         { put the address in the idx, the numbers are already checked }
-        msgidx[numpart]^[numidx]:=hp1;
+        msgidx[numpart][numidx]:=hp1;
       end;
      { next string }
      hp:=pchar(@hp[strlen(hp)+1]);
@@ -420,12 +423,12 @@ begin
   if (nr mod 1000 < msgidxmax[i]) then
     begin
       is_global:=(ord(newstate) and ms_global_mask) <> 0;
-      oldstate:=msgstates[i]^[nr mod 1000];
+      oldstate:=msgstates[i][nr mod 1000];
       if not is_global then
         newstate:= tmsgstate((ord(newstate) and ms_local_mask) or (ord(oldstate) and ms_global_mask));
       if newstate<>oldstate then
         has_local_changes:=true;
-      msgstates[i]^[nr mod 1000]:=newstate;
+      msgstates[i][nr mod 1000]:=newstate;
       result:=true;
     end;
 end;
@@ -444,7 +447,7 @@ var
 begin
   if (nr div 1000 < msgparts) and
      (nr mod 1000 <  msgidxmax[nr div 1000]) then
-    hp:=msgidx[nr div 1000]^[nr mod 1000]
+    hp:=msgidx[nr div 1000][nr mod 1000]
   else
     hp:=nil;
   if hp=nil then
@@ -466,7 +469,7 @@ var
 begin
   i:=nr div 1000;
   j:=nr mod 1000;
-  result:=(i>=low(msgstates)) and (i<msgparts) and (j<msgidxmax[i]) and assigned(msgidx[i]^[j]);
+  result:=(i>=low(msgstates)) and (i<msgparts) and (j<msgidxmax[i]) and assigned(msgidx[i][j]);
 end;
 
 procedure TMessage.ResetStates;
@@ -479,10 +482,10 @@ begin
   for i:=1 to msgparts do
     for j:=0 to msgidxmax[i] - 1 do
       begin
-        state:=msgstates[i]^[j];
+        state:=msgstates[i][j];
         glob:=(ord(state) and ms_global_mask) shr ms_shift;
         state:=tmsgstate((glob shl ms_shift) or glob);
-        msgstates[i]^[j]:=state;
+        msgstates[i][j]:=state;
       end;
   has_local_changes:=false;
 end;
