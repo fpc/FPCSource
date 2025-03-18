@@ -175,7 +175,7 @@ interface
        TCoffObjInput = class(tObjInput)
        private
          FCoffsyms : tdynamicarray;
-         FCoffStrs : PChar;
+         FCoffStrs : TAnsiCharDynArray;
          FCoffStrSize: longword;
          { Convert symidx -> TObjSymbol }
          FSymTbl   : ^TObjSymbolArray;
@@ -2270,8 +2270,7 @@ const pemagic : array[0..3] of byte = (
     destructor TCoffObjInput.destroy;
       begin
         FCoffSyms.free;
-        if assigned(FCoffStrs) then
-          freemem(FCoffStrs);
+        FCoffStrs:=nil;
         if assigned(FSymTbl) then
           freemem(FSymTbl);
         if assigned(FSecTbl) then
@@ -2771,7 +2770,7 @@ const pemagic : array[0..3] of byte = (
            if (FCoffStrSize>4) then
              begin
                { allocate an extra byte and null-terminate }
-               GetMem(FCoffStrs,FCoffStrSize+1);
+               SetLength(FCoffStrs,FCoffStrSize+1);
                FCoffStrs[FCoffStrSize]:=#0;
                for i:=0 to 3 do
                  FCoffStrs[i]:=#0;
@@ -2871,8 +2870,6 @@ const pemagic : array[0..3] of byte = (
            { Relocs }
            ObjSectionList.ForEachCall(@objsections_read_relocs,nil);
          end;
-        if assigned(FCoffStrs) then
-          freemem(FCoffStrs);
         FCoffStrs:=nil;
         FCoffSyms.Free;
         FCoffSyms:=nil;
