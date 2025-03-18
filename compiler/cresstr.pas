@@ -93,7 +93,8 @@ uses
           begin
           Len:=asym.value.len;
           SetLength(AValue,Len);
-          Move(asym.value.valueptr^,AValue[0],Len);
+          if len>0 then
+            Move(asym.value.valueptr^,AValue[0],Len);
           end;
         CalcHash;
       end;
