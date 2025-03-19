@@ -31,15 +31,14 @@ uses
   wpobase;
 
 type
-  pderefarray = ^tderefarray;
-  tderefarray = array[0..1024*1024-1] of tderef;
+  tderefarray = array of tderef;
 
   tunitwpoinfo = class(tunitwpoinfobase)
    { devirtualisation information -- begin }
    private
-    fcreatedobjtypesderefs: pderefarray;
-    fcreatedclassrefobjtypesderefs: pderefarray;
-    fmaybecreatedbyclassrefdeftypesderefs: pderefarray;
+    fcreatedobjtypesderefs: tderefarray;
+    fcreatedclassrefobjtypesderefs: tderefarray;
+    fmaybecreatedbyclassrefdeftypesderefs: tderefarray;
     fcalledvmtentriestemplist: tfpobjectlist;
    { devirtualisation information -- end }
 
@@ -77,27 +76,12 @@ implementation
 
   procedure tunitwpoinfo.clearderefinfo;
     begin
-      if assigned(fcreatedobjtypesderefs) then
-        begin
-          freemem(fcreatedobjtypesderefs);
-          fcreatedobjtypesderefs:=nil;
-        end;
-      if assigned(fcreatedclassrefobjtypesderefs) then
-        begin
-          freemem(fcreatedclassrefobjtypesderefs);
-          fcreatedclassrefobjtypesderefs:=nil;
-        end;
-      if assigned(fmaybecreatedbyclassrefdeftypesderefs) then
-        begin
-          freemem(fmaybecreatedbyclassrefdeftypesderefs);
-          fmaybecreatedbyclassrefdeftypesderefs:=nil;
-        end;
+      fcreatedobjtypesderefs:=nil;
+      fcreatedclassrefobjtypesderefs:=nil;
+      fmaybecreatedbyclassrefdeftypesderefs:=nil;
 
-      if assigned(fcalledvmtentriestemplist) then
-        begin
-          fcalledvmtentriestemplist.free;
-          fcalledvmtentriestemplist:=nil;
-        end;
+      fcalledvmtentriestemplist.free;
+      fcalledvmtentriestemplist:=nil;
     end;
 
   destructor tunitwpoinfo.destroy;
@@ -116,13 +100,13 @@ implementation
       }
       ppufile.putlongint(fcreatedobjtypes.count);
       for i:=0 to fcreatedobjtypes.count-1 do
-        ppufile.putderef(fcreatedobjtypesderefs^[i]);
+        ppufile.putderef(fcreatedobjtypesderefs[i]);
       ppufile.putlongint(fcreatedclassrefobjtypes.count);
       for i:=0 to fcreatedclassrefobjtypes.count-1 do
-        ppufile.putderef(fcreatedclassrefobjtypesderefs^[i]);
+        ppufile.putderef(fcreatedclassrefobjtypesderefs[i]);
       ppufile.putlongint(fmaybecreatedbyclassrefdeftypes.count);
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
-        ppufile.putderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
+        ppufile.putderef(fmaybecreatedbyclassrefdeftypesderefs[i]);
 
       ppufile.putlongint(fcalledvmtentriestemplist.count);
       for i:=0 to fcalledvmtentriestemplist.count-1 do
@@ -154,23 +138,23 @@ implementation
           len:=ppufile.getlongint;
           fcreatedobjtypes:=tfpobjectlist.create(false);
           fcreatedobjtypes.count:=len;
-          getmem(fcreatedobjtypesderefs,len*sizeof(tderef));
+          setlength(fcreatedobjtypesderefs,len);
           for i:=0 to len-1 do
-            ppufile.getderef(fcreatedobjtypesderefs^[i]);
+            ppufile.getderef(fcreatedobjtypesderefs[i]);
 
           len:=ppufile.getlongint;
           fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
           fcreatedclassrefobjtypes.count:=len;
-          getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
+          setlength(fcreatedclassrefobjtypesderefs,len);
           for i:=0 to len-1 do
-            ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
+            ppufile.getderef(fcreatedclassrefobjtypesderefs[i]);
 
           len:=ppufile.getlongint;
           fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
           fmaybecreatedbyclassrefdeftypes.count:=len;
-          getmem(fmaybecreatedbyclassrefdeftypesderefs,len*sizeof(tderef));
+          setlength(fmaybecreatedbyclassrefdeftypesderefs,len);
           for i:=0 to len-1 do
-            ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
+            ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs[i]);
 
           len:=ppufile.getlongint;
           fcalledvmtentriestemplist:=tfpobjectlist.create(false);
@@ -190,17 +174,17 @@ implementation
         may already have been allocated }
       clearderefinfo;
 
-      getmem(fcreatedobjtypesderefs,fcreatedobjtypes.count*sizeof(tderef));
+      setlength(fcreatedobjtypesderefs,fcreatedobjtypes.count);
       for i:=0 to fcreatedobjtypes.count-1 do
-        fcreatedobjtypesderefs^[i].build(fcreatedobjtypes[i]);
+        fcreatedobjtypesderefs[i].build(fcreatedobjtypes[i]);
 
-      getmem(fcreatedclassrefobjtypesderefs,fcreatedclassrefobjtypes.count*sizeof(tderef));
+      setlength(fcreatedclassrefobjtypesderefs,fcreatedclassrefobjtypes.count);
       for i:=0 to fcreatedclassrefobjtypes.count-1 do
-        fcreatedclassrefobjtypesderefs^[i].build(fcreatedclassrefobjtypes[i]);
+        fcreatedclassrefobjtypesderefs[i].build(fcreatedclassrefobjtypes[i]);
 
-      getmem(fmaybecreatedbyclassrefdeftypesderefs,fmaybecreatedbyclassrefdeftypes.count*sizeof(tderef));
+      setlength(fmaybecreatedbyclassrefdeftypesderefs,fmaybecreatedbyclassrefdeftypes.count);
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
-        fmaybecreatedbyclassrefdeftypesderefs^[i].build(fmaybecreatedbyclassrefdeftypes[i]);
+        fmaybecreatedbyclassrefdeftypesderefs[i].build(fmaybecreatedbyclassrefdeftypes[i]);
 
       fcalledvmtentriestemplist:=tfpobjectlist.create(false);
       fcalledvmtentriestemplist.count:=fcalledvmtentries.count;
@@ -241,13 +225,13 @@ implementation
         re-resolving in case a unit needs to be reloaded
       }
       for i:=0 to fcreatedobjtypes.count-1 do
-        fcreatedobjtypes[i]:=fcreatedobjtypesderefs^[i].resolve;
+        fcreatedobjtypes[i]:=fcreatedobjtypesderefs[i].resolve;
 
       for i:=0 to fcreatedclassrefobjtypes.count-1 do
-        fcreatedclassrefobjtypes[i]:=fcreatedclassrefobjtypesderefs^[i].resolve;
+        fcreatedclassrefobjtypes[i]:=fcreatedclassrefobjtypesderefs[i].resolve;
 
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
-        fmaybecreatedbyclassrefdeftypes[i]:=fmaybecreatedbyclassrefdeftypesderefs^[i].resolve;
+        fmaybecreatedbyclassrefdeftypes[i]:=fmaybecreatedbyclassrefdeftypesderefs[i].resolve;
 
       { in case we are re-resolving, free previous batch }
       if (fcalledvmtentries.count<>0) then
