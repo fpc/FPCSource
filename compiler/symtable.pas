@@ -4923,6 +4923,7 @@ implementation
              mac.is_compiler_var:=false;
              mac.free_buftext;
            end;
+           mac.is_c_macro:=true;
          Message2(parser_c_macro_set_to,mac.name,value);
          move(value[1],mac.allocate_buftext(length(value))^,length(value));
          mac.defined:=true;

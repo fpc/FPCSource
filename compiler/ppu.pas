@@ -168,6 +168,7 @@ type
     procedure writeheader;override;
     procedure putdata(const b;len:integer);override;
     procedure putdata(b : tbytedynarray);
+    procedure putdata(b : tansichardynarray);
   end;
 
 implementation
@@ -524,6 +525,11 @@ begin
 end;
 
 procedure tppufile.putdata(b: tbytedynarray);
+begin
+  putdata(b[0],length(b));
+end;
+
+procedure tppufile.putdata(b: tansichardynarray);
 begin
   putdata(b[0],length(b));
 end;

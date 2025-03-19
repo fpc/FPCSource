@@ -475,11 +475,13 @@ interface
           {True if this is a mac style compiler variable, in which case no macro
            substitutions shall be done.}
           is_compiler_var : boolean;
+          { true if the macro is a C macro, i.e used := }
+          is_c_macro : boolean;
           {Whether the macro was used. NOTE: A use of a macro which was never defined}
           {e. g. an IFDEF which returns false, will not be registered as used,}
           {since there is no place to register its use. }
           is_used : boolean;
-          buftext : pchar;
+          buftext : TAnsiCharDynArray;
           buflen  : longint;
           constructor create(const n : TSymStr);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -3111,17 +3113,14 @@ implementation
          defined:=ppufile.getboolean;
          is_compiler_var:=ppufile.getboolean;
          is_used:=false;
-         buflen:= ppufile.getlongint;
-         if buflen > 0 then
-           ppufile.getdata(allocate_buftext(buflen)^, buflen)
-         else
-           buftext:=nil;
+         allocate_buftext(ppufile.getlongint);
+         if buflen>0 then
+           ppufile.getdata(buftext)
       end;
 
     destructor tmacro.destroy;
       begin
-         if assigned(buftext) then
-           freemem(buftext);
+         buftext:=nil;
          inherited destroy;
       end;
 
@@ -3132,29 +3131,23 @@ implementation
          ppufile.putboolean(is_compiler_var);
          ppufile.putlongint(buflen);
          if buflen > 0 then
-           ppufile.putdata(buftext^,buflen);
+           ppufile.putdata(buftext);
          writeentry(ppufile,ibmacrosym);
       end;
 
 
     function tmacro.allocate_buftext(len:longint) : pchar;
       begin
-        result:=getmem(len);
-        if assigned(buftext) then
-          freemem(buftext);
-        buftext:=result;
+        setlength(buftext,len);
         buflen:=len;
+        result:=PAnsiChar(buftext);
       end;
 
 
     procedure tmacro.free_buftext;
       begin
-        if assigned(buftext) then
-          begin
-            freemem(buftext);
-            buftext:=nil;
-            buflen:=0;
-          end;
+        buftext:=nil;
+        buflen:=0;
       end;
 
 
@@ -3166,9 +3159,10 @@ implementation
         p.defined:=defined;
         p.is_used:=is_used;
         p.is_compiler_var:=is_compiler_var;
-        p.buflen:=buflen;
-        if assigned(buftext) then
-          move(buftext^,p.allocate_buftext(buflen)^,buflen);
+        p.is_c_macro:=is_c_macro;
+        p.allocate_buftext(buflen);
+        if buflen>0 then
+          move(buftext[0],p.buftext[0],buflen);
         Result:=p;
       end;
 

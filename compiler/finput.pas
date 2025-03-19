@@ -365,7 +365,8 @@ uses
       begin
       { create new buffer }
         SetLength(buf,len+1);
-        move(p^,buf[0],len);
+        if len>0 then
+          move(p^,buf[0],len);
         buf[len]:=#0;
       { reset }
         bufstart:=0;

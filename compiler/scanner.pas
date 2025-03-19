@@ -1836,7 +1836,8 @@ type
                   else
                     len:=mac.buflen;
                   hs[0]:=char(len);
-                  move(mac.buftext^,hs[1],len);
+                  if len>0 then
+                    move(mac.buftext[0],hs[1],len);
                   searchstr2store:=upcase(hs);
                   searchstr:=@searchstr2store;
                   mac.is_used:=true;
@@ -2588,6 +2589,7 @@ type
                  current_scanner.readchar;
                  if c <> '=' then
                    exit;
+                 mac.is_c_macro:=true;
                  current_scanner.readchar;
                  current_scanner.skipspace;
                end;
@@ -2625,7 +2627,8 @@ type
              until false;
 
              { copy the text }
-             move(pchar(@macrobuffer[0])^,mac.allocate_buftext(macropos)^,macropos);
+             if macropos>0 then
+               move(pchar(@macrobuffer[0])^,mac.allocate_buftext(macropos)^,macropos);
           end
         else
           begin
@@ -2738,6 +2741,7 @@ type
           begin
              mac.defined:=false;
              mac.is_compiler_var:=false;
+             mac.is_c_macro:=false;
              { delete old definition }
              mac.free_buftext;
           end;
@@ -5346,13 +5350,13 @@ type
               if (cs_support_macro in current_settings.moduleswitches) then
                begin
                  mac:=tmacro(search_macro(pattern));
-                 if assigned(mac) and (not mac.is_compiler_var) and (assigned(mac.buftext)) then
+                 if assigned(mac) and (not mac.is_compiler_var) and mac.is_c_macro then
                   begin
                     if (yylexcount<max_macro_nesting) and (macro_nesting_depth<max_macro_nesting) then
                      begin
                        mac.is_used:=true;
                        inc(yylexcount);
-                       substitutemacro(pattern,mac.buftext,mac.buflen,
+                       substitutemacro(pattern,pchar(mac.buftext),mac.buflen,
                          mac.fileinfo.line,mac.fileinfo.fileindex,false);
                        { handle empty macros }
                        if c=#0 then
