@@ -59,6 +59,7 @@ type
     function OptPass1SxxI(var p: tai): boolean;
     function OptPass1Add(var p: tai): boolean;
     function OptPass1Sub(var p: tai): boolean;
+    function OptPass1Fcmp(var p: tai): boolean;
 
     procedure RemoveInstr(var orig: tai; moveback: boolean=true);
   end;
@@ -248,6 +249,39 @@ implementation
             begin
               taicpu(p).loadoper(0,taicpu(hp1).oper[0]^);
               DebugMsg('Peephole FOpFsgnj02FOp done',p);
+              RemoveInstruction(hp1);
+              result:=true;
+            end;
+        end;
+    end;
+
+
+  function TRVCpuAsmOptimizer.OptPass1Fcmp(var p: tai) : boolean;
+    var
+      hp1 : tai;
+    begin
+      result:=false;
+      { replace
+          <FOp>   %reg3,%reg2,%reg1
+          <mvop>  %reg4,%reg3,%reg3
+          dealloc %reg3
+
+        by
+
+          <FOp>   %reg4,%reg2,%reg1
+        ?
+      }
+      if GetNextInstruction(p,hp1) and
+        MatchInstruction(hp1,A_ANDI) and
+        MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
+        ((taicpu(hp1).oper[2]^.val and 1)=1) then
+        begin
+          TransferUsedRegs(TmpUsedRegs);
+          UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+          if not(RegUsedAfterInstruction(taicpu(hp1).oper[1]^.reg,hp1,TmpUsedRegs)) then
+            begin
+              taicpu(p).loadoper(0,taicpu(hp1).oper[0]^);
+              DebugMsg('Peephole FcmpAndi2Fcmp done',p);
               RemoveInstruction(hp1);
               result:=true;
             end;
@@ -922,6 +956,13 @@ implementation
               A_FMADD_D,A_FMSUB_D,A_FNMSUB_D,A_FNMADD_D,
               A_FMIN_D,A_FMAX_D:
                 result:=OptPass1FOP(p,A_FSGNJ_D);
+              A_FEQ_S,
+              A_FLT_S,
+              A_FLE_S,
+              A_FEQ_D,
+              A_FLT_D,
+              A_FLE_D:
+                result:=OptPass1Fcmp(p);
               A_FSGNJ_S,
               A_FSGNJ_D:
                 result:=OptPass1FSGNJ(p,taicpu(p).opcode);
