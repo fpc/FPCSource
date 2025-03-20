@@ -75,8 +75,7 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-dx86_64
--dDEBUGREFERENCES"/>
+      <CustomOptions Value="-dx86_64"/>
     </Other>
   </CompilerOptions>
 </CONFIG>
