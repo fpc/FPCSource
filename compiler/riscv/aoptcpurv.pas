@@ -262,13 +262,13 @@ implementation
     begin
       result:=false;
       { replace
-          <FOp>   %reg3,%reg2,%reg1
-          <mvop>  %reg4,%reg3,%reg3
+          <Fcmp>  %ireg3,%freg2,%freg1
+          <andi>  %ireg4,%ireg3,const
           dealloc %reg3
 
         by
 
-          <FOp>   %reg4,%reg2,%reg1
+          <Fcmp>   %ireg4,%freg2,%freg1
         ?
       }
       if GetNextInstruction(p,hp1) and
