@@ -22,15 +22,17 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="-Tlinux -tunicodertl -FUrtl-objpas\units\x86_64-linux-unicodertl\ -Fu\home\tixeo\FPC\FPC\src\rtl\units\x86_64-linux-unicodertl\ -Furtl-objpas\src\inc -Furtl-objpas\src\common -Firtl-objpas\src\inc -Firtl-objpas\src\linux -Firtl-objpas\src\x86_64 -Firtl-objpas\src\common -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -tunicodertl -Cg -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -gl -dx86_64 -Sc -viq rtl-objpas\BuildUnit_rtl_objpas.pp"/>
+        <CommandLineParams Value="-Fi..\inc -Fi..\x86_64 -Fi..\unix -Fix86_64 -FE. -FU..\..\rtl\units\x86_64-linux -Cg -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -DD2025\03\18 -dx86_64  -Us -Sg system.pp"/>
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
-        <WorkingDirectory Value="\home\tixeo\fpc\packages"/>
+        <WorkingDirectory Value="\home\tixeo\FPC\FPC\src\rtl\linux"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
+            <CommandLineParams Value="-Fi..\inc -Fi..\x86_64 -Fi..\unix -Fix86_64 -FE. -FU..\..\rtl\units\x86_64-linux -Cg -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -DD2025\03\18 -dx86_64  -Us -Sg system.pp"/>
             <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+            <WorkingDirectory Value="\home\tixeo\FPC\FPC\src\rtl\linux"/>
           </local>
         </Mode0>
       </Modes>
@@ -61,10 +63,15 @@
       <SyntaxOptions>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
-        <CPPInline Value="False"/>
         <UseAnsiStrings Value="False"/>
+        <CPPInline Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>

@@ -4148,7 +4148,7 @@ implementation
 
              _CSTRING :
                begin
-                 p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern),nil);
+                 p1:=cstringconstnode.createpchar(pchar(cstringpattern),length(cstringpattern),nil);
                  consume(_CSTRING);
                  if token in postfixoperator_tokens then
                    begin
@@ -5085,7 +5085,7 @@ implementation
       p:tnode;
       snode : tstringconstnode absolute p;
       s : string;
-      pw : pcompilerwidestring;
+      pw : tcompilerwidestring;
       pc : pansichar;
       len : Integer;
 
@@ -5095,13 +5095,13 @@ implementation
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then
-            get_stringconst:=char(int64(tordconstnode(p).value))
+            get_stringconst:=char(tordconstnode(p).value.svalue)
           else
             Message(parser_e_illegal_expression);
         end
       else if (tstringconstnode(p).cst_type in [cst_unicodestring,cst_widestring]) then
          begin
-           pw:=pcompilerwideString(tstringconstnode(p).value_str);
+           pw:=snode.valuews;
            len:=getlengthwidestring(pw);
            pc:=getmem(Len+1);
            pc[len]:=#0;
@@ -5110,7 +5110,7 @@ implementation
            freemem(pc);
          end
       else
-        get_stringconst:=strpas(snode.value_str);
+        get_stringconst:=snode.asrawbytestring;
       p.free;
     end;
 

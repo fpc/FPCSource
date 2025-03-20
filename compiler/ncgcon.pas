@@ -229,6 +229,8 @@ implementation
          strpointerdef: tdef;
          datatcb: ttai_typedconstbuilder;
          datadef: tdef;
+         t : tai_string;
+
 
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
@@ -271,12 +273,12 @@ implementation
               pool := current_asmdata.ConstPools[PoolMap[cst_type]];
 
               if cst_type in [cst_widestring, cst_unicodestring] then
-                entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data,len*cwidechartype.size)
+                entry := pool.FindOrAdd(pointer(valuews.data),len*cwidechartype.size)
               else
               if cst_type = cst_ansistring then
-                entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(value_str,len,tstringdef(resultdef).encoding))
+                entry := PHashSetItem(TTagHashSet(pool).FindOrAdd(pointer(valueas),len,tstringdef(resultdef).encoding))
               else
-                entry := pool.FindOrAdd(value_str,len);
+                entry := pool.FindOrAdd(pointer(valueas),len);
 
               lab_str := TAsmLabel(entry^.Data);  // is it needed anymore?
 
@@ -291,7 +293,7 @@ implementation
                              InternalError(2008032301)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel:=datatcb.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+                               lastlabel:=datatcb.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
                                if lastlabel.ofs<>datatcb.get_string_symofs(st_ansistring,false) then
@@ -309,7 +311,7 @@ implementation
                            else
                              begin
                                lastlabel:=datatcb.emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
-                                               value_str,
+                                               valuews,
                                                tstringdef(resultdef).encoding,
                                                winlikewidestring);
                                { because we hardcode the offset below due to it
@@ -332,12 +334,14 @@ implementation
                            l:=len;
                           { include length and terminating zero for quick conversion to pchar }
                           getmem(pc,l+2);
-                          move(value_str^,pc[1],l);
+                          if l>0 then
+                            move(asconstpchar^,pc[1],l);
                           pc[0]:=chr(l);
                           pc[l+1]:=#0;
                           datadef:=carraydef.getreusable(cansichartype,l+2);
                           datatcb.maybe_begin_aggregate(datadef);
-                          datatcb.emit_tai(Tai_string.Create_pchar(pc,l+2),datadef);
+                          t:=Tai_string.Create_pchar(pc,l+2);
+                          datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
@@ -349,7 +353,8 @@ implementation
 
                           { include terminating zero }
                           getmem(pc,len+1);
-                          move(value_str^,pc[0],len);
+                          if len>0 then
+                            move(asconstpchar^,pc[0],len);
                           pc[len]:=#0;
                           { the data includes the terminating #0 because this
                             string can be used for pchar assignments (but it's
@@ -357,7 +362,9 @@ implementation
                             case the terminating #0 is not part of the data) }
                           datadef:=carraydef.getreusable(cansichartype,len+1);
                           datatcb.maybe_begin_aggregate(datadef);
-                          datatcb.emit_tai(Tai_string.Create_pchar(pc,len+1),datadef);
+                          t:=Tai_string.Create_pchar(pc,len+1);
+                          datatcb.emit_tai(t,datadef);
+                          freemem(pc);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))

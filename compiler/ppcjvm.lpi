@@ -21,9 +21,18 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
+      <local>
+        <CommandLineParams Value="-Ur -Tandroid -Pjvm -Ur -Xs -O2 -n -Fi..\..\inc -Fi..\..\jvm -Fi..\..\java -FE. -FU\home\tixeo\FPC\FPC\src\rtl\units\jvm-android -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -djvm -dRELEASE -Us -Sg @rtl.cfg ..\..\java\system.pp"/>
+        <WorkingDirectory Value="\home\tixeo\FPC\FPC\src\rtl\android\jvm"/>
+      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
-        <Mode0 Name="default"/>
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="-Ur -Tandroid -Pjvm -Ur -Xs -O2 -n -Fi..\..\inc -Fi..\..\jvm -Fi..\..\java -FE. -FU\home\tixeo\FPC\FPC\src\rtl\units\jvm-android -Fl\usr\lib\gcc\x86_64-linux-gnu\11 -djvm -dRELEASE -Us -Sg @rtl.cfg ..\..\java\system.pp"/>
+            <WorkingDirectory Value="\home\tixeo\FPC\FPC\src\rtl\android\jvm"/>
+          </local>
+        </Mode0>
       </Modes>
     </RunParams>
     <Units Count="1">
@@ -48,10 +57,15 @@
       <SyntaxOptions>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
-        <CPPInline Value="False"/>
         <UseAnsiStrings Value="False"/>
+        <CPPInline Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
     <Other>
       <Verbosity>
         <ShowWarn Value="False"/>

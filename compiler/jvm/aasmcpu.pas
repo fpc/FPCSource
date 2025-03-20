@@ -56,12 +56,12 @@ uses
          constructor op_single(op : tasmop;_op1 : single);
          constructor op_double(op : tasmop;_op1 : double);
          constructor op_string(op : tasmop;_op1len : aint;_op1 : pchar);
-         constructor op_wstring(op : tasmop;_op1 : pcompilerwidestring);
+         constructor op_wstring(op : tasmop;_op1 : tcompilerwidestring);
 
          procedure loadsingle(opidx:longint;f:single);
          procedure loaddouble(opidx:longint;d:double);
          procedure loadstr(opidx:longint;vallen: aint;pc: pchar);
-         procedure loadpwstr(opidx:longint;pwstr:pcompilerwidestring);
+         procedure loadpwstr(opidx:longint;pwstr: tcompilerwidestring);
 
 
          { register allocation }
@@ -159,7 +159,7 @@ implementation
         loadstr(0,_op1len,_op1);
       end;
 
-    constructor taicpu.op_wstring(op: tasmop; _op1: pcompilerwidestring);
+    constructor taicpu.op_wstring(op: tasmop; _op1: tcompilerwidestring);
       begin
         inherited create(op);
         ops:=1;
@@ -207,7 +207,7 @@ implementation
       end;
 
 
-    procedure taicpu.loadpwstr(opidx:longint;pwstr:pcompilerwidestring);
+    procedure taicpu.loadpwstr(opidx:longint;pwstr:tcompilerwidestring);
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do

@@ -72,7 +72,7 @@ implementation
 
     procedure tjvmtypedconstbuilder.tc_flush_arr_strconst(def: tdef);
       var
-        wstr: pcompilerwidestring;
+        wstr: tcompilerwidestring;
         wc: tcompilerwidechar;
         i: longint;
         procvariant: string[8];
@@ -198,7 +198,7 @@ implementation
                   inserttypeconv(n,getansistringdef);
                   if n.nodetype<>stringconstn then
                     internalerror(2010033010);
-                  ca:=pbyte(tstringconstnode(n).value_str);
+                  ca:=pbyte(tstringconstnode(n).asconstpchar);
                 { For tp7 the maximum lentgh can be 255 }
                 if (m_tp7 in current_settings.modeswitches) and
                    (len>255) then

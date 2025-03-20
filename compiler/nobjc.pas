@@ -102,14 +102,15 @@ function tobjcselectornode.pass_typecheck: tnode;
         end;
       stringconstn:
         begin
-          if not objcvalidselectorname(tstringconstnode(left).value_str,
+          if not objcvalidselectorname(tstringconstnode(left).asconstpchar,
                                        tstringconstnode(left).len) then
             begin
               len:=tstringconstnode(left).len;
               if (len>255) then
                 len:=255;
               setlength(s,len);
-              move(tstringconstnode(left).value_str^,s[1],len);
+              if len>0 then
+                move(tstringconstnode(left).valueas[0],s[1],len);
               CGMessage1(type_e_invalid_objc_selector_name,s);
               exit;
             end;

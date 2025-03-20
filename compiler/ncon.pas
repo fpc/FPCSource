@@ -118,8 +118,11 @@ interface
          cst_unicodestring
        );
 
+       { tstringconstnode }
+
        tstringconstnode = class(tconstnode)
-          value_str : pchar;
+          valueas : TAnsiCharDynArray;
+          valuews : tcompilerwidestring;
           len     : longint;
           lab_str : tasmlabel;
           astringdef : tdef;
@@ -127,7 +130,7 @@ interface
           cst_type : tconststringtype;
           constructor createstr(const s : string);virtual;
           constructor createpchar(s: pchar; l: longint; def: tdef);virtual;
-          constructor createunistr(w : pcompilerwidestring);virtual;
+          constructor createunistr(w : tcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -141,6 +144,8 @@ interface
           procedure changestringtype(def:tdef);
           function fullcompare(p: tstringconstnode): longint;
           function emit_data(tcb:ttai_typedconstbuilder):sizeint; override;
+          function asrawbytestring: rawbytestring;
+          function asconstpchar : pchar; inline;
           { returns whether this platform uses the nil pointer to represent
             empty dynamic strings }
           class function emptydynstrnil: boolean; virtual;
@@ -274,7 +279,7 @@ implementation
     function get_string_value(p: tnode; def: tstringdef): tstringconstnode;
       var
         stringVal: string;
-        pWideStringVal: pcompilerwidestring;
+        pWideStringVal: tcompilerwidestring;
       begin
         stringVal:='';
         if is_constcharnode(p) then
@@ -347,7 +352,7 @@ implementation
               p1:=cstringconstnode.createpchar(pc,len,p.constdef);
             end;
           constwstring :
-            p1:=cstringconstnode.createunistr(pcompilerwidestring(p.value.valueptr));
+            p1:=cstringconstnode.createunistr(p.value.valuews);
           constreal :
             begin
               if (sp_generic_para in p.symoptions) and not (sp_generic_const in p.symoptions) then
@@ -829,20 +834,21 @@ implementation
          l:=length(s);
          len:=l;
          { stringdup write even past a #0 }
-         getmem(value_str,l+1);
-         move(s[1],value_str^,l);
-         value_str[l]:=#0;
+         setlength(valueas,l+1);
+         valueas[l]:=#0;
+         if l>0 then
+           move(s[1],valueas[0],l);
          lab_str:=nil;
          cst_type:=cst_conststring;
       end;
 
 
-    constructor tstringconstnode.createunistr(w : pcompilerwidestring);
+    constructor tstringconstnode.createunistr(w : tcompilerwidestring);
       begin
          inherited create(stringconstn);
          len:=getlengthwidestring(w);
-         initwidestring(pcompilerwidestring(value_str));
-         copywidestring(w,pcompilerwidestring(value_str));
+         initwidestring(valuews);
+         copywidestring(w,valuews);
          lab_str:=nil;
          cst_type:=cst_unicodestring;
       end;
@@ -852,7 +858,10 @@ implementation
       begin
          inherited create(stringconstn);
          len:=l;
-         value_str:=s;
+         setlength(valueas,l+1);
+         valueas[l]:=#0;
+         if l>0 then
+           move(s[0],valueas[0],l);
          if assigned(def) and
             is_ansistring(def) then
            begin
@@ -868,16 +877,15 @@ implementation
     destructor tstringconstnode.destroy;
       begin
         if cst_type in [cst_widestring,cst_unicodestring] then
-          donewidestring(pcompilerwidestring(value_str))
+          donewidestring(valuews)
         else
-          ansistringdispose(value_str,len);
+          valueas:=nil;
         inherited destroy;
       end;
 
 
     constructor tstringconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       var
-        pw : pcompilerwidestring;
         i : longint;
       begin
         inherited ppuload(t,ppufile);
@@ -885,27 +893,27 @@ implementation
         len:=ppufile.getlongint;
         if cst_type in [cst_widestring,cst_unicodestring] then
           begin
-            initwidestring(pw);
-            setlengthwidestring(pw,len);
+            initwidestring(valuews);
+            setlengthwidestring(valuews,len);
             { don't use getdata, because the compilerwidechars may have to
               be byteswapped
             }
 {$if sizeof(tcompilerwidechar) = 2}
-            for i:=0 to pw^.len-1 do
-              pw^.data[i]:=ppufile.getword;
+            for i:=0 to valuews.len-1 do
+              valuews.data[i]:=ppufile.getword;
 {$elseif sizeof(tcompilerwidechar) = 4}
-            for i:=0 to pw^.len-1 do
-              pw^.data[i]:=cardinal(ppufile.getlongint);
+            for i:=0 to valuews.len-1 do
+              valuews.data[i]:=cardinal(ppufile.getlongint);
 {$else}
            {$error Unsupported tcompilerwidechar size}
 {$endif}
-            pcompilerwidestring(value_str):=pw
           end
         else
           begin
-            getmem(value_str,len+1);
-            ppufile.getdata(value_str^,len);
-            value_str[len]:=#0;
+            setlength(valueas,len+1);
+            valueas[len]:=#0;
+            if len>0 then
+              ppufile.getdata(valueas[0],len);
           end;
         lab_str:=tasmlabel(ppufile.getasmsymbol);
         if cst_type=cst_ansistring then
@@ -918,10 +926,11 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putbyte(byte(cst_type));
         ppufile.putlongint(len);
-        if cst_type in [cst_widestring,cst_unicodestring] then
-          ppufile.putdata(pcompilerwidestring(value_str)^.data^,len*sizeof(tcompilerwidechar))
-        else
-          ppufile.putdata(value_str^,len);
+        if len>0 then
+          if cst_type in [cst_widestring,cst_unicodestring] then
+            ppufile.putdata(valuews.data[0],len*sizeof(tcompilerwidechar))
+          else
+            ppufile.putdata(valueas[0],len);
         ppufile.putasmsymbol(lab_str);
         if cst_type=cst_ansistring then
           ppufile.putderef(astringdefderef);
@@ -956,11 +965,16 @@ implementation
          n.lab_str:=lab_str;
          if cst_type in [cst_widestring,cst_unicodestring] then
            begin
-             initwidestring(pcompilerwidestring(n.value_str));
-             copywidestring(pcompilerwidestring(value_str),pcompilerwidestring(n.value_str));
+             initwidestring(n.valuews);
+             copywidestring(valuews,n.valuews);
            end
          else
-           n.value_str:=getpcharcopy;
+           begin
+           setlength(n.valueas,len+1);
+           n.valueas[len]:=#0;
+           if len>0 then
+             move(valueas[0],n.valueas[0],len);
+           end;
          n.astringdef:=astringdef;
          dogetcopy:=n;
       end;
@@ -1017,7 +1031,9 @@ implementation
          getmem(pc,len+1);
          if pc=nil then
            Message(general_f_no_memory_left);
-         move(value_str^,pc^,len+1);
+         pc[len]:=#0;
+         if len>0 then
+           move(valueas[0],pc^,len);
          getpcharcopy:=pc;
       end;
 
@@ -1041,7 +1057,7 @@ implementation
         st2cst : array[tstringtype] of tconststringtype = (
           cst_shortstring,cst_longstring,cst_ansistring,cst_widestring,cst_unicodestring);
       var
-        pw : pcompilerwidestring;
+        pw : tcompilerwidestring;
         pc : pchar;
         cp1 : tstringencoding;
         cp2 : tstringencoding;
@@ -1053,10 +1069,8 @@ implementation
         if (tstringdef(def).stringtype in [st_widestring,st_unicodestring]) and
            not(cst_type in [cst_widestring,cst_unicodestring]) then
           begin
-            initwidestring(pw);
-            ascii2unicode(value_str,len,current_settings.sourcecodepage,pw);
-            ansistringdispose(value_str,len);
-            pcompilerwidestring(value_str):=pw;
+            initwidestring(valuews);
+            ascii2unicode(asconstpchar,len,current_settings.sourcecodepage,valuews);
           end
         else
           { convert unicode 2 ascii }
@@ -1068,22 +1082,21 @@ implementation
                 cp1:=current_settings.sourcecodepage;
               if (cp1=CP_UTF8) then
                 begin
-                  pw:=pcompilerwidestring(value_str);
                   l2:=len;
-                  l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),l2);
-                  getmem(pc,l);
-                  UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),l2);
+                  l:=UnicodeToUtf8(nil,0,valuews.asconstpunicodechar,l2);
+                  setlength(valueas,l+1);
+                  valueas[l]:=#0;
+                  if l>0 then
+                    UnicodeToUtf8(asconstpchar,l,valuews.asconstpunicodechar,l2);
                   len:=l-1;
-                  donewidestring(pw);
-                  value_str:=pc;
+                  donewidestring(valuews);
                 end
               else
                 begin
-                  pw:=pcompilerwidestring(value_str);
-                  getmem(pc,getlengthwidestring(pw)+1);
-                  unicode2ascii(pw,pc,cp1);
-                  donewidestring(pw);
-                  value_str:=pc;
+                  setlength(valueas,getlengthwidestring(valuews)+1);
+                  len:=Length(valueas)-1;
+                  unicode2ascii(valuews,asconstpchar,cp1);
+                  donewidestring(valuews);
                 end;
             end
         else
@@ -1107,7 +1120,7 @@ implementation
               if (cp1<>cp2) and (len>0) then
                 begin
                   if cpavailable(cp1) and cpavailable(cp2) then
-                    changecodepage(value_str,len,cp2,value_str,cp1)
+                    changecodepage(asconstpchar,len,cp2,asconstpchar,cp1)
                   else if (cp1 <> globals.CP_NONE) and (cp2 <> globals.CP_NONE) then
                     begin
                       { if source encoding is UTF8 convert using UTF8->UTF16->destination encoding }
@@ -1121,13 +1134,17 @@ implementation
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
                           { returns room for terminating 0 }
-                          l:=Utf8ToUnicode(PUnicodeChar(pw^.data),len,value_str,len);
+                          if len>0 then
+                            l:=Utf8ToUnicode(pw.asconstpunicodechar,len,asconstpchar,len)
+                          else
+                            l:=1;
                           if (l<>getlengthwidestring(pw)) then
                             begin
                               setlengthwidestring(pw,l);
-                              ReAllocMem(value_str,l);
+                              setlength(valueas,l);
+                              valueas[l-1]:=#0;
                             end;
-                          unicode2ascii(pw,value_str,cp1);
+                          unicode2ascii(pw,valueas,cp1);
                           len:=l-1;
                           donewidestring(pw);
                         end
@@ -1142,12 +1159,15 @@ implementation
                             end;
                           initwidestring(pw);
                           setlengthwidestring(pw,len);
-                          ascii2unicode(value_str,len,cp2,pw);
+                          ascii2unicode(asconstpchar,len,cp2,pw);
                           { returns room for terminating 0 }
-                          l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),len);
+                          l:=UnicodeToUtf8(nil,0,pw.asconstpunicodechar,len);
                           if l<>len then
-                            ReAllocMem(value_str,l);
-                          UnicodeToUtf8(value_str,l,PUnicodeChar(pw^.data),len);
+                            begin
+                            setlength(valueas,l);
+                            valueas[l-1]:=#0;
+                            end;
+                          UnicodeToUtf8(asconstpchar,l,pw.asconstpunicodechar,len);
                           len:=l-1;
                           donewidestring(pw);
                         end
@@ -1171,9 +1191,9 @@ implementation
         if cst_type<>p.cst_type then
           InternalError(2009121701);
         if cst_type in [cst_widestring,cst_unicodestring] then
-          result:=comparewidestrings(pcompilerwidestring(value_str),pcompilerwidestring(p.value_str))
+          result:=comparewidestrings(valuews,p.valuews)
         else
-          result:=compareansistrings(value_str,p.value_str,len,p.len);
+          result:=compareansistrings(asconstpchar,p.asconstpchar,len,p.len);
       end;
 
     function tstringconstnode.emit_data(tcb:ttai_typedconstbuilder):sizeint;
@@ -1186,7 +1206,8 @@ implementation
           st_shortstring:
             begin
               setlength(ss,len);
-              move(value_str^,ss[1],len);
+              if len>0 then
+                move(valueas[0],ss[1],len);
               tcb.emit_shortstring_const(ss);
               result:=len+1;
             end;
@@ -1194,7 +1215,7 @@ implementation
             internalerror(2019070801);
           st_ansistring:
             begin
-              labofs:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
+              labofs:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_typedconsts],asconstpchar,len,tstringdef(resultdef).encoding);
               tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,charpointertype);
               result:=voidpointertype.size;
             end;
@@ -1202,12 +1223,30 @@ implementation
           st_unicodestring:
             begin
               winlikewidestring:=(cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags);
-              labofs:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_typedconsts],value_str,tstringdef(resultdef).encoding,winlikewidestring);
+              labofs:=tcb.emit_unicodestring_const(current_asmdata.asmlists[al_typedconsts],valuews,tstringdef(resultdef).encoding,winlikewidestring);
               tcb.emit_string_offset(labofs,len,tstringdef(resultdef).stringtype,false,widecharpointertype);
               result:=voidpointertype.size;
             end;
         end;
       end;
+
+    function tstringconstnode.asrawbytestring: rawbytestring;
+    begin
+      Result:='';
+      if Length(valueas)>0 then
+        Result:=pchar(@valueas[0]);
+    end;
+
+    var
+      cEmptyString : ansichar = #0;
+
+    function tstringconstnode.asconstpchar: pchar;
+    begin
+      if len>0 then
+        Result:=@valueas[0]
+      else
+        Result:=@cEmptyString;
+    end;
 
     class function tstringconstnode.emptydynstrnil: boolean;
       begin
@@ -1215,9 +1254,21 @@ implementation
       end;
 
       procedure tstringconstnode.printnodedata(var T: Text);
+      var
+        u : unicodestring;
+
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'value = "',value_str,'"');
+        if length(valueas)>0 then
+          writeln(t,printnodeindention,'value = "',pAnsichar(@valueas[0]),'"')
+        else if assigned(valuews) and (valuews.len>0) then
+          begin
+          setlength(u,valuews.len);
+          move(valuews.data[0],u[1],valuews.len*sizeof(unicodechar));
+          writeln(t,printnodeindention,'value = "',u,'"');
+          end
+        else
+          writeln(t,printnodeindention,'value = ""');
       end;
 
 {$ifdef DEBUG_NODE_XML}

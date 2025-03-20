@@ -35,27 +35,29 @@ unit widestr;
        tcompilerwidechar = word;
        tcompilerwidecharptr = ^tcompilerwidechar;
        pcompilerwidechar = ^tcompilerwidechar;
+       tcompilerwidechararray = array of tcompilerwidechar;
 
-       pcompilerwidestring = ^_tcompilerwidestring;
-       _tcompilerwidestring = record
-          data : pcompilerwidechar;
+       tcompilerwidestring = class
+          data : tcompilerwidechararray;
           maxlen,len : SizeInt;
+          function asconstpunicodechar : PUnicodeChar;
        end;
 
-    procedure initwidestring(out r : pcompilerwidestring);
-    procedure donewidestring(var r : pcompilerwidestring);
-    procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
-    function getlengthwidestring(r : pcompilerwidestring) : SizeInt;
-    procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
-    procedure concatwidestrings(s1,s2 : pcompilerwidestring);
-    function comparewidestrings(s1,s2 : pcompilerwidestring) : SizeInt;
-    procedure copywidestring(s,d : pcompilerwidestring);
+    procedure initwidestring(out r : tcompilerwidestring);
+    procedure donewidestring(var r : tcompilerwidestring);
+    procedure setlengthwidestring(r : tcompilerwidestring;l : SizeInt);
+    function getlengthwidestring(r : tcompilerwidestring) : SizeInt;
+    procedure concatwidestringchar(r : tcompilerwidestring;c : tcompilerwidechar);
+    procedure concatwidestrings(s1,s2 : tcompilerwidestring);
+    function comparewidestrings(s1,s2 : tcompilerwidestring) : SizeInt;
+    procedure copywidestring(s,d : tcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
     function unicode2asciichar(c : tcompilerwidechar) : char;
-    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring;codepagetranslation : boolean = true);
-    procedure unicode2ascii(r : pcompilerwidestring;p : pchar;cp : tstringencoding);
-    function hasnonasciichars(const p: pcompilerwidestring): boolean;
-    function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
+    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : tcompilerwidestring;codepagetranslation : boolean = true);
+    procedure unicode2ascii(r : tcompilerwidestring;p : pchar;cp : tstringencoding);
+    procedure unicode2ascii(r : tcompilerwidestring;arr:TAnsiCharDynArray;cp : tstringencoding);
+    function hasnonasciichars(const p: tcompilerwidestring): boolean;
+    function getcharwidestring(r : tcompilerwidestring;l : SizeInt) : tcompilerwidechar;
     function cpavailable(const s: string) : boolean;
     function cpavailable(cp: word) : boolean;
     procedure changecodepage(
@@ -83,80 +85,77 @@ unit widestr;
       globals,cutils;
 
 
-    procedure initwidestring(out r : pcompilerwidestring);
+    procedure initwidestring(out r : tcompilerwidestring);
 
       begin
-         new(r);
-         r^.data:=nil;
-         r^.len:=0;
-         r^.maxlen:=0;
+         R:=tcompilerwidestring.create;
+         r.data:=nil;
+         r.len:=0;
+         r.maxlen:=0;
       end;
 
-    procedure donewidestring(var r : pcompilerwidestring);
+    procedure donewidestring(var r : tcompilerwidestring);
 
       begin
-         if assigned(r^.data) then
-           freemem(r^.data);
-         dispose(r);
+         r.Free;
          r:=nil;
       end;
 
-    function getcharwidestring(r : pcompilerwidestring;l : SizeInt) : tcompilerwidechar;
+    function getcharwidestring(r : tcompilerwidestring;l : SizeInt) : tcompilerwidechar;
 
       begin
-         getcharwidestring:=r^.data[l];
+         getcharwidestring:=r.data[l];
       end;
 
-    function getlengthwidestring(r : pcompilerwidestring) : SizeInt;
+    function getlengthwidestring(r : tcompilerwidestring) : SizeInt;
 
       begin
-         getlengthwidestring:=r^.len;
+         getlengthwidestring:=r.len;
       end;
 
-    procedure growwidestring(r : pcompilerwidestring;l : SizeInt);
+    procedure growwidestring(r : tcompilerwidestring;l : SizeInt);
 
       begin
-         if r^.maxlen>=l then
+         if r.maxlen>=l then
            exit;
-         if assigned(r^.data) then
-           reallocmem(r^.data,sizeof(tcompilerwidechar)*l)
-         else
-           getmem(r^.data,sizeof(tcompilerwidechar)*l);
-         r^.maxlen:=l;
+         setlength(r.data,l);
+         r.maxlen:=l;
       end;
 
-    procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
+    procedure setlengthwidestring(r : tcompilerwidestring;l : SizeInt);
 
       begin
-         r^.len:=l;
-         if l>r^.maxlen then
+         r.len:=l;
+         if l>r.maxlen then
            growwidestring(r,l);
       end;
 
-    procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
+    procedure concatwidestringchar(r : tcompilerwidestring;c : tcompilerwidechar);
 
       begin
-         if r^.len>=r^.maxlen then
-           growwidestring(r,r^.len+16);
-         r^.data[r^.len]:=c;
-         inc(r^.len);
+         if r.len>=r.maxlen then
+           growwidestring(r,r.len+16);
+         r.data[r.len]:=c;
+         inc(r.len);
       end;
 
-    procedure concatwidestrings(s1,s2 : pcompilerwidestring);
+    procedure concatwidestrings(s1,s2 : tcompilerwidestring);
       begin
-         growwidestring(s1,s1^.len+s2^.len);
-         move(s2^.data^,s1^.data[s1^.len],s2^.len*sizeof(tcompilerwidechar));
-         inc(s1^.len,s2^.len);
+         growwidestring(s1,s1.len+s2.len);
+         if s2.len>0 then
+           move(s2.data[0],s1.data[s1.len],s2.len*sizeof(tcompilerwidechar));
+         inc(s1.len,s2.len);
       end;
 
-    procedure copywidestring(s,d : pcompilerwidestring);
+    procedure copywidestring(s,d : tcompilerwidestring);
 
       begin
-         setlengthwidestring(d,s^.len);
-         move(s^.data^,d^.data^,s^.len*sizeof(tcompilerwidechar));
+         setlengthwidestring(d,s.len);
+         if s.len>0 then
+           move(s.data[0],d.data[0],s.len*sizeof(tcompilerwidechar));
       end;
 
-    function comparewidestrings(s1,s2 : pcompilerwidestring) : SizeInt;
+    function comparewidestrings(s1,s2 : tcompilerwidestring) : SizeInt;
       var
          maxi,temp : SizeInt;
       begin
@@ -165,13 +164,13 @@ unit widestr;
               comparewidestrings:=0;
               exit;
            end;
-         maxi:=s1^.len;
-         temp:=s2^.len;
+         maxi:=s1.len;
+         temp:=s2.len;
          if maxi>temp then
            maxi:=Temp;
-         temp:=compareword(s1^.data^,s2^.data^,maxi);
+         temp:=compareword(s1.data[0],s2.data[0],maxi);
          if temp=0 then
-           temp:=s1^.len-s2^.len;
+           temp:=s1.len-s2.len;
          comparewidestrings:=temp;
       end;
 
@@ -200,7 +199,7 @@ unit widestr;
       end;
 
 
-    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : pcompilerwidestring;codepagetranslation : boolean = true);
+    procedure ascii2unicode(p : pchar;l : SizeInt;cp : tstringencoding;r : tcompilerwidestring;codepagetranslation : boolean = true);
       var
          source : pchar;
          dest   : tcompilerwidecharptr;
@@ -210,7 +209,7 @@ unit widestr;
          m:=getmap(cp);
          setlengthwidestring(r,l);
          source:=p;
-         dest:=tcompilerwidecharptr(r^.data);
+         dest:=tcompilerwidecharptr(r.data);
          if codepagetranslation then
            begin
              if cp<>CP_UTF8 then
@@ -224,11 +223,11 @@ unit widestr;
                end
              else
                begin
-                 r^.len:=Utf8ToUnicode(punicodechar(r^.data),r^.maxlen,p,l);
+                 r.len:=Utf8ToUnicode(punicodechar(r.data),r.maxlen,p,l);
                  { -1, because utf8tounicode includes room for a terminating 0 in
                    its result count }
-                 if r^.len>0 then
-                   dec(r^.len);
+                 if r.len>0 then
+                   dec(r.len);
                end;
            end
          else
@@ -243,7 +242,14 @@ unit widestr;
       end;
 
 
-    procedure unicode2ascii(r : pcompilerwidestring;p:pchar;cp : tstringencoding);
+    procedure unicode2ascii(r : tcompilerwidestring;arr:TAnsiCharDynArray;cp : tstringencoding);
+    begin
+      if (r.len=0) or (length(arr)=0) then
+        exit;
+      unicode2ascii(r,Pchar(@arr[0]),cp);
+    end;
+
+    procedure unicode2ascii(r : tcompilerwidestring;p:pchar;cp : tstringencoding);
       var
         m : punicodemap;
         source : tcompilerwidecharptr;
@@ -259,9 +265,9 @@ unit widestr;
           m:=getmap(current_settings.sourcecodepage)
         else
           m:=getmap(cp);
-        source:=tcompilerwidecharptr(r^.data);
+        source:=tcompilerwidecharptr(r.data);
         dest:=p;
-        for i:=1 to r^.len do
+        for i:=1 to r.len do
          begin
            dest^ := getascii(source^,m)[1];
            inc(dest);
@@ -270,14 +276,14 @@ unit widestr;
       end;
 
 
-    function hasnonasciichars(const p: pcompilerwidestring): boolean;
+    function hasnonasciichars(const p: tcompilerwidestring): boolean;
       var
         source : tcompilerwidecharptr;
         i      : longint;
       begin
-        source:=tcompilerwidecharptr(p^.data);
+        source:=tcompilerwidecharptr(p.data);
         result:=true;
-        for i:=1 to p^.len do
+        for i:=1 to p.len do
           begin
             if word(source^)>=128 then
               exit;
@@ -375,6 +381,18 @@ unit widestr;
     function charlength(const s: string): sizeint;
       begin
         result:=charlength(@s[1],length(s));
+      end;
+
+    { tcompilerwidestring }
+    const
+      cEmptyUnicodeChar : UnicodeChar = #0;
+
+    function tcompilerwidestring.asconstpunicodechar: PUnicodeChar;
+      begin
+        if length(data)>0 then
+          result:=@Data[0]
+        else
+          result:=@cEmptyUnicodeChar;
       end;
 
 end.

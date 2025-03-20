@@ -500,13 +500,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           is_constcharnode(node) then
           begin
             { convert to the expected string type so that
-              for widestrings strval is a pcompilerwidestring }
+              for widestrings strval is a tcompilerwidestring }
             inserttypeconv(node,def);
             if (not codegenerror) and
                (node.nodetype=stringconstn) then
               begin
                 strlength:=tstringconstnode(node).len;
-                strval:=tstringconstnode(node).value_str;
+                strval:=tstringconstnode(node).asconstpchar;
                 { the def may have changed from e.g. RawByteString to
                   AnsiString(CP_ACP) }
                 if node.resultdef.typ=stringdef then
@@ -600,7 +600,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      begin
                        winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
                        ll:=ftcb.emit_unicodestring_const(fdatalist,
-                              strval,
+                              tstringconstnode(node).valuews,
                               def.encoding,
                               winlike);
 
@@ -780,7 +780,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         srsym     : tsym;
         pd        : tprocdef;
         ca        : pchar;
-        pw        : pcompilerwidestring;
+        pw        : tcompilerwidestring;
         i,len     : longint;
         ll        : tasmlabel;
         varalign  : shortint;
@@ -874,7 +874,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      (len>255) then
                    len:=255;
                   getmem(ca,len+1);
-                  move(tstringconstnode(node).value_str^,ca^,len+1);
+                  ca[len]:=#0;
+                  if len>0 then
+                    move(tstringconstnode(node).valueas[0],ca^,len);
                   datadef:=carraydef.getreusable(cansichartype,len+1);
                   datatcb.maybe_begin_aggregate(datadef);
                   datatcb.emit_tai(Tai_string.Create_pchar(ca,len+1),datadef);
@@ -917,12 +919,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        asmlist) }
                      ftcb.start_internal_data_builder(fdatalist,sec_rodata,'',datatcb,ll);
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
-                     pw:=pcompilerwidestring(tstringconstnode(node).value_str);
+                     pw:=tstringconstnode(node).valuews;
                      { include terminating #0 }
                      datadef:=carraydef.getreusable(cwidechartype,tstringconstnode(node).len+1);
                      datatcb.maybe_begin_aggregate(datadef);
                      for i:=0 to tstringconstnode(node).len-1 do
-                       datatcb.emit_tai(Tai_const.Create_16bit(pw^.data[i]),cwidechartype);
+                       datatcb.emit_tai(Tai_const.Create_16bit(pw.data[i]),cwidechartype);
                      { ending #0 }
                      datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
                      datatcb.maybe_end_aggregate(datadef);
@@ -1376,14 +1378,17 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                          inserttypeconv(n,getansistringdef);
                        if n.nodetype<>stringconstn then
                          internalerror(2010033003);
-                       ca:=pointer(tstringconstnode(n).value_str);
+                       ca:=pointer(tstringconstnode(n).valueas);
                      end;
                     2:
                       begin
                         inserttypeconv(n,cunicodestringtype);
                         if n.nodetype<>stringconstn then
                           internalerror(2010033009);
-                        ca:=pointer(pcompilerwidestring(tstringconstnode(n).value_str)^.data)
+                        if tstringconstnode(n).valuews.len>0 then
+                          ca:=pointer(@tstringconstnode(n).valuews.data[0])
+                        else
+                          ca:=nil;
                       end;
                     else
                       internalerror(2010033005);
@@ -1620,7 +1625,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
       procedure handle_stringconstn;
         begin
-          hs:=strpas(tstringconstnode(n).value_str);
+          if length(tstringconstnode(n).valueas)>0 then
+            hs:=strpas(@tstringconstnode(n).valueas[0])
+          else
+            hs:='';
           if string2guid(hs,tmpguid) then
             ftcb.emit_guid_const(tmpguid)
           else

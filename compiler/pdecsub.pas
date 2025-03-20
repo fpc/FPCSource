@@ -2179,7 +2179,7 @@ begin
       include(pd.procoptions,po_msgstr);
       if (tstringconstnode(pt).len>255) then
         Message(parser_e_message_string_too_long);
-      tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
+      tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).asconstpchar);
     end
   else
    if is_constintnode(pt) and

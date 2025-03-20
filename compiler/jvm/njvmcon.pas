@@ -164,7 +164,6 @@ implementation
     function tjvmstringconstnode.pass_1: tnode;
       var
         strclass: tobjectdef;
-        pw: pcompilerwidestring;
         paras: tcallparanode;
         wasansi: boolean;
       begin
@@ -181,10 +180,9 @@ implementation
           exit;
         { convert the constant into a widestring representation without any
           code page conversion }
-        initwidestring(pw);
-        ascii2unicode(value_str,len,current_settings.sourcecodepage,pw,false);
-        ansistringdispose(value_str,len);
-        pcompilerwidestring(value_str):=pw;
+        initwidestring(valuews);
+        ascii2unicode(asconstpchar,len,current_settings.sourcecodepage,valuews,false);
+        setlength(valueas,0);
         { and now add a node to convert the data into ansistring format at
           run time }
         wasansi:=false;
@@ -239,7 +237,7 @@ implementation
             internalerror(2012052601);
           cst_unicodestring,
           cst_widestring:
-            current_asmdata.CurrAsmList.concat(taicpu.op_wstring(a_ldc,pcompilerwidestring(value_str)));
+            current_asmdata.CurrAsmList.concat(taicpu.op_wstring(a_ldc,valuews));
           else
             internalerror(2012052602);
         end;
@@ -259,7 +257,7 @@ implementation
 
     function tjvmsetconstnode.buildsetfromstring(const helpername: string; otherparas: tcallparanode): tnode;
       var
-        pw: pcompilerwidestring;
+        pw: tcompilerwidestring;
         wc: tcompilerwidechar;
         i, j, bit, nulls: longint;
       begin

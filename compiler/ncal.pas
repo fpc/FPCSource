@@ -544,7 +544,7 @@ implementation
             if assigned(para.parametername) then
               begin
                 if para.parametername.nodetype=stringconstn then
-                  names:=names+tstringconstnode(para.parametername).value_str+#0
+                  names:=names+tstringconstnode(para.parametername).asconstpchar+#0
                 else
                   internalerror(200611041);
               end;
@@ -2939,45 +2939,45 @@ implementation
                             1:
                               if ValOutput.signed then
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, si, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, si, ValCode);
                                   ValOutput.svalue:=si;
                                 end
                               else
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, b, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, b, ValCode);
                                   ValOutput.uvalue:=b;
                                 end;
                             2:
                               if ValOutput.signed then
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, i, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, i, ValCode);
                                   ValOutput.svalue:=i;
                                 end
                               else
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, w, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, w, ValCode);
                                   ValOutput.uvalue:=w;
                                 end;
                             4:
                               if ValOutput.signed then
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, li, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, li, ValCode);
                                   ValOutput.svalue:=li;
                                 end
                               else
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, dw, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, dw, ValCode);
                                   ValOutput.uvalue:=dw;
                                 end;
                             8:
                               if ValOutput.signed then
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, i64, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, i64, ValCode);
                                   ValOutput.svalue:=i64;
                                 end
                               else
                                 begin
-                                  Val(TStringConstNode(valnode).value_str, qw, ValCode);
+                                  Val(TStringConstNode(valnode).asrawbytestring, qw, ValCode);
                                   ValOutput.uvalue:=qw;
                                 end;
                             else

@@ -5938,14 +5938,14 @@ implementation
                     constwresourcestring,
                     constwstring:
                       begin
-                        if pcompilerwidestring(hpc.value.valueptr)^.len>0 then
+                        if hpc.value.valuews.len>0 then
                           begin
-                            setlength(hs,pcompilerwidestring(hpc.value.valueptr)^.len);
-                            for j:=0 to pcompilerwidestring(hpc.value.valueptr)^.len-1 do
+                            setlength(hs,hpc.value.valuews.len);
+                            for j:=0 to hpc.value.valuews.len-1 do
                              begin
-                               if (ord(pcompilerwidestring(hpc.value.valueptr)^.data[j])<127) and
-                                  not(byte(pcompilerwidestring(hpc.value.valueptr)^.data[j]) in [0,10,13]) then
-                                 hs[j+1]:=char(pcompilerwidestring(hpc.value.valueptr)^.data[j])
+                               if (ord(hpc.value.valuews.data[j])<127) and
+                                  not(byte(hpc.value.valuews.data[j]) in [0,10,13]) then
+                                 hs[j+1]:=char(hpc.value.valuews.data[j])
                                else
                                  hs[j+1]:='.';
                              end;

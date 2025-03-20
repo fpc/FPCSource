@@ -672,10 +672,10 @@ const
         rd,ld   , inttype: tdef;
         rv,lv,v : tconstexprint;
         rvd,lvd : bestreal;
-        ws1,ws2 : pcompilerwidestring;
+        ws1,ws2 : tcompilerwidestring;
         concatstrings : boolean;
         c1,c2   : array[0..1] of char;
-        s1,s2   : pchar;
+        s1,s2,stmp   : pchar;
         l1,l2   : longint;
         resultset : Tconstset;
         res,
@@ -1231,8 +1231,8 @@ const
           begin
              initwidestring(ws1);
              initwidestring(ws2);
-             copywidestring(pcompilerwidestring(tstringconstnode(left).value_str),ws1);
-             copywidestring(pcompilerwidestring(tstringconstnode(right).value_str),ws2);
+             copywidestring(tstringconstnode(left).valuews,ws1);
+             copywidestring(tstringconstnode(right).valuews,ws2);
              case nodetype of
                 addn :
                   begin
@@ -1278,8 +1278,8 @@ const
           end
         else if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
           begin
-             s1:=tstringconstnode(left).value_str;
              l1:=tstringconstnode(left).len;
+             s1:=tstringconstnode(left).asconstpchar;
              c2[0]:=char(int64(tordconstnode(right).value));
              c2[1]:=#0;
              s2:=@c2[0];
@@ -1292,15 +1292,15 @@ const
              c1[1]:=#0;
              l1:=1;
              s1:=@c1[0];
-             s2:=tstringconstnode(right).value_str;
+             s2:=tstringconstnode(right).asconstpchar;
              l2:=tstringconstnode(right).len;
              concatstrings:=true;
           end
         else if (lt=stringconstn) and (rt=stringconstn) then
           begin
-             s1:=tstringconstnode(left).value_str;
+             s1:=tstringconstnode(left).asconstpchar;
              l1:=tstringconstnode(left).len;
-             s2:=tstringconstnode(right).value_str;
+             s2:=tstringconstnode(right).asconstpchar;
              l2:=tstringconstnode(right).len;
              concatstrings:=true;
           end;
@@ -1309,7 +1309,9 @@ const
              case nodetype of
                 addn :
                   begin
-                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,nil);
+                    stmp:=concatansistrings(s1,s2,l1,l2);
+                    t:=cstringconstnode.createpchar(stmp,l1+l2,nil);
+                    Freemem(stmp);
                     typecheckpass(t);
                     if not is_ansistring(resultdef) or
                        (tstringdef(resultdef).encoding<>globals.CP_NONE) then

@@ -187,7 +187,7 @@ uses
         sp : pchar;
         ps : ^tconstset;
         pd : ^bestreal;
-        i : integer;
+        i,l : integer;
       begin
         if node=nil then
           internalerror(2020011401);
@@ -199,10 +199,22 @@ uses
             end;
           stringconstn:
             begin
-              getmem(sp,tstringconstnode(node).len+1);
-              move(tstringconstnode(node).value_str^,sp^,tstringconstnode(node).len+1);
-              sym:=cconstsym.create_string(undefinedname,conststring,sp,tstringconstnode(node).len,fromdef);
-              prettyname:=''''+tstringconstnode(node).value_str+'''';
+              // unicode, convert to utf8
+              if tstringconstnode(node).cst_type in [cst_widestring,cst_unicodestring] then
+                begin
+                l:=UnicodeToUtf8(nil,0,tstringconstnode(node).valuews.asconstpunicodechar,tstringconstnode(node).valuews.len);
+                getmem(sp,l);
+                UnicodeToUtf8(sp,l,tstringconstnode(node).valuews.asconstpunicodechar,tstringconstnode(node).valuews.len);
+                sym:=cconstsym.create_string(undefinedname,conststring,sp,l,fromdef);
+                prettyname:=''''+sp+'''';
+                end
+              else
+                begin
+                getmem(sp,tstringconstnode(node).len+1);
+                move(tstringconstnode(node).asconstpchar,sp^,tstringconstnode(node).len+1);
+                sym:=cconstsym.create_string(undefinedname,conststring,sp,tstringconstnode(node).len,fromdef);
+                prettyname:=''''+tstringconstnode(node).asconstpchar+'''';
+                end;
             end;
           realconstn:
             begin

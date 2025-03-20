@@ -1211,7 +1211,7 @@ implementation
               abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               if pt.nodetype=stringconstn then
-                abssym.asmname:=stringdup(strpas(tstringconstnode(pt).value_str))
+                abssym.asmname:=stringdup(tstringconstnode(pt).asrawbytestring)
               else
                 abssym.asmname:=stringdup(chr(tordconstnode(pt).value.svalue));
               abssym.abstyp:=toasm;

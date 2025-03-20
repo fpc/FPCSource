@@ -3708,7 +3708,7 @@ var
   singlevalue : single;
   realstr : shortstring;
   extended : TSplit80bitReal;
-  pw : pcompilerwidestring;
+  pw : tcompilerwidestring;
   varoptions : tvaroptions;
   propoptions : tpropertyoptions;
   iexp: Tconstexprint;
@@ -3897,16 +3897,16 @@ begin
                      be byteswapped
                    }
                      begin
-                       for i:=0 to pw^.len-1 do
-                         pw^.data[i]:=ppufile.getword;
-                       SetString(ws, PWideChar(pw^.data), pw^.len);
+                       for i:=0 to pw.len-1 do
+                         pw.data[i]:=ppufile.getword;
+                       SetString(ws, PWideChar(pw.data), pw.len);
                        constdef.VStr:=UTF8Encode(ws);
                        constdef.ConstType:=ctStr;
                      end
                    else if widecharsize=4 then
                      begin
-                       for i:=0 to pw^.len-1 do
-                         pw^.data[i]:=cardinal(ppufile.getlongint);
+                       for i:=0 to pw.len-1 do
+                         pw.data[i]:=cardinal(ppufile.getlongint);
                      end
                    else
                      begin
@@ -3914,7 +3914,7 @@ begin
                      end;
                    Write([space,'Wide string type']);
                    startnewline:=true;
-                   for i:=0 to pw^.len-1 do
+                   for i:=0 to pw.len-1 do
                      begin
                        if startnewline then
                          begin
@@ -3922,7 +3922,7 @@ begin
                            write(space);
                            startnewline:=false;
                          end;
-                       ch:=pw^.data[i];
+                       ch:=pw.data[i];
                        if widecharsize=2 then
                          write(hexstr(ch,4))
                        else
@@ -3930,7 +3930,7 @@ begin
                        if ((i + 1) mod 8)= 0 then
                          startnewline:=true
                        else
-                         if i <> pw^.len-1 then
+                         if i <> pw.len-1 then
                            write(', ');
                      end;
                    donewidestring(pw);

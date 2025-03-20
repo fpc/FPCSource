@@ -413,7 +413,7 @@ implementation
         if p.nodetype=stringconstn then
           begin
             stringdispose(current_objectdef.iidstr);
-            current_objectdef.iidstr:=stringdup(strpas(tstringconstnode(p).value_str));
+            current_objectdef.iidstr:=stringdup(tstringconstnode(p).asrawbytestring);
             valid:=string2guid(current_objectdef.iidstr^,current_objectdef.iidguid^);
             if (current_objectdef.objecttype in [odt_interfacecom,odt_dispinterface]) and
                not valid then

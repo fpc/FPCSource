@@ -72,7 +72,7 @@ procedure tcgobjcselectornode.pass_generate_code;
         end;
       stringconstn:
         begin
-          entry:=pool.FindOrAdd(tstringconstnode(left).value_str,tstringconstnode(left).len);
+          entry:=pool.FindOrAdd(pointer(tstringconstnode(left).valueas),tstringconstnode(left).len);
         end;
       else
         internalerror(2009030701);

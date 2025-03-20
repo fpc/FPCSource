@@ -412,6 +412,7 @@ interface
          0: (valueord : tconstexprint);
          1: (valueordptr : tconstptruint);
          2: (valueptr : pointer; len : longint);
+         3: (valuews : tcompilerwidestring);
        end;
 
        tconstsym = class(tstoredsym)
@@ -423,7 +424,7 @@ interface
           constructor create_ordptr(const n : TSymStr;t : tconsttyp;v : tconstptruint;def:tdef);virtual;
           constructor create_ptr(const n : TSymStr;t : tconsttyp;v : pointer;def:tdef);virtual;
           constructor create_string(const n : TSymStr;t : tconsttyp;str:pchar;l:longint;def:tdef);virtual;
-          constructor create_wstring(const n : TSymStr;t : tconsttyp;pw:pcompilerwidestring);virtual;
+          constructor create_wstring(const n : TSymStr;t : tconsttyp;pw:tcompilerwidestring);virtual;
           constructor create_undefined(const n : TSymStr;def:tdef);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -2658,12 +2659,12 @@ implementation
       end;
 
 
-    constructor tconstsym.create_wstring(const n : TSymStr;t : tconsttyp;pw:pcompilerwidestring);
+    constructor tconstsym.create_wstring(const n : TSymStr;t : tconsttyp;pw:tcompilerwidestring);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
-         pcompilerwidestring(value.valueptr):=pw;
+         value.valuews:=pw;
          constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pw));
          constdefderef.reset;
          value.len:=getlengthwidestring(pw);
@@ -2684,7 +2685,7 @@ implementation
          pd : pbestreal;
          ps : pnormalset;
          pc : pchar;
-         pw : pcompilerwidestring;
+         pw : tcompilerwidestring;
          i  : longint;
 
          procedure do_widestring_const;
@@ -2697,15 +2698,15 @@ implementation
              be byteswapped
            }
 {$if sizeof(tcompilerwidechar) = 2}
-           for i:=0 to pw^.len-1 do
-             pw^.data[i]:=ppufile.getword;
+           for i:=0 to pw.len-1 do
+             pw.data[i]:=ppufile.getword;
 {$elseif sizeof(tcompilerwidechar) = 4}
-           for i:=0 to pw^.len-1 do
-             pw^.data[i]:=cardinal(ppufile.getlongint);
+           for i:=0 to pw.len-1 do
+             pw.data[i]:=cardinal(ppufile.getlongint);
 {$else}
           {$error Unsupported tcompilerwidechar size}
 {$endif}
-           pcompilerwidestring(value.valueptr):=pw;
+           value.valuews:=pw;
          end;
 
       begin
@@ -2785,7 +2786,7 @@ implementation
             freemem(pchar(value.valueptr),value.len+1);
           constwstring,
           constwresourcestring:
-            donewidestring(pcompilerwidestring(value.valueptr));
+            donewidestring(value.valuews);
           constreal :
             dispose(pbestreal(value.valueptr));
           constset :
@@ -2817,7 +2818,7 @@ implementation
           constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constwresourcestring,constguid:
             constdef:=tdef(constdefderef.resolve);
           constwstring:
-            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pcompilerwidestring(value.valueptr)));
+            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(value.valuews));
           else
             internalerror(2015120801);
         end
@@ -2828,9 +2829,13 @@ implementation
 
       procedure do_widestring_const;
 
+      var
+        len : integer;
       begin
-        ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
-        ppufile.putdata(pcompilerwidestring(value.valueptr)^.data^,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
+        len:=getlengthwidestring(value.valuews);
+        ppufile.putlongint(len);
+        if len>0 then
+          ppufile.putdata(value.valuews.data[0],value.valuews.len*sizeof(tcompilerwidechar));
       end;
 
 

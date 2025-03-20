@@ -63,13 +63,8 @@
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
       <CustomOptions Value="-dwasm32
--dEXTDEBUG"/>
-      <OtherDefines Count="4">
-        <Define0 Value="wasm32"/>
-        <Define1 Value="noopt"/>
-        <Define2 Value="EXTDEBUG"/>
-        <Define3 Value="FPC_WASM_THREADS_INTERNAL_LINKER"/>
-      </OtherDefines>
+-dEXTDEBUG
+-dSKIP_INTERNAL20231102"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

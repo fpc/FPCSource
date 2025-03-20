@@ -87,8 +87,7 @@ implementation
              end;
            constwstring :
              begin
-               if (sym1.value.len=sym2.value.len) and
-                  (comparewidestrings(sym1.value.valueptr,sym2.value.valueptr)=0) then
+               if (comparewidestrings(sym1.value.valuews,sym2.value.valuews)=0) then
                  equal_constsym:=true;
              end;
            constreal :

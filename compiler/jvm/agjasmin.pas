@@ -777,7 +777,7 @@ implementation
           constresourcestring:
             result:='TODO: add support for constant resource strings';
           constwstring:
-            result:=constwstr(pcompilerwidestring(csym.value.valueptr)^.data,pcompilerwidestring(csym.value.valueptr)^.len);
+            result:=constwstr(pcompilerwidechar(csym.value.valuews.data),csym.value.valuews.len);
           constguid:
             result:='TODO: add support for constant guids';
           else
@@ -1153,7 +1153,7 @@ implementation
             end;
           top_wstring:
             begin
-              result:=constwstr(o.pwstrval^.data,getlengthwidestring(o.pwstrval));
+              result:=constwstr(pcompilerwidechar(o.pwstrval.data),getlengthwidestring(o.pwstrval));
             end
           else
             internalerror(2010122802);

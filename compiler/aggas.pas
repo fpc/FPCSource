@@ -874,8 +874,8 @@ implementation
       i,pos,l  : longint;
       InlineLevel : cardinal;
       last_align : longint;
-      do_line  : boolean;
 
+      do_line  : boolean;
       sepChar : char;
       replaceforbidden: boolean;
     begin

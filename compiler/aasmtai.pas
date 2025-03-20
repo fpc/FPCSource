@@ -544,7 +544,7 @@ interface
             top_single : (sval:single);
             top_double : (dval:double);
             top_string : (pcvallen: aint; pcval: pchar);
-            top_wstring : (pwstrval: pcompilerwidestring);
+            top_wstring : (pwstrval: tcompilerwidestring);
         {$endif jvm}
         {$ifdef llvm}
             top_single : (sval:single);
@@ -2450,8 +2450,9 @@ implementation
           inherited Create;
           typ:=ait_string;
           setlength(str,length+1);
-          move(_str^,str[0],length);
           str[length]:=#0;
+          if length>0 then
+            move(_str^,str[0],length);
        end;
 
 
@@ -2468,7 +2469,7 @@ implementation
         inherited ppuload(t,ppufile);
         lNewLen:=ppufile.getlongint;
         setlength(str,lNewLen+1);
-        ppufile.getdata(str);
+        ppufile.getdata(str[0],lnewlen);
         str[lNewLen]:=#0;
       end;
 
@@ -2478,7 +2479,7 @@ implementation
         lWriteLen : integer;
       begin
         inherited ppuwrite(ppufile);
-        lWriteLen:=length(str);
+        lWriteLen:=length(str)-1;
         ppufile.putlongint(lWriteLen);
         ppufile.putdata(str[0],lWriteLen);
       end;

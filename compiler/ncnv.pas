@@ -1190,6 +1190,7 @@ implementation
         pchtemp  : pchar;
         arrsize  : tcgint;
         chartype : string[8];
+
       begin
         result := nil;
         with tarraydef(resultdef) do
@@ -1213,9 +1214,10 @@ implementation
                  { (2.0.x compatible)                               }
                  if (arrsize>tstringconstnode(left).len) then
                    begin
-                     pchtemp:=concatansistrings(tstringconstnode(left).value_str,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
+                     pchtemp:=concatansistrings(tstringconstnode(left).asconstpchar,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
                      left.free;
                      left:=cstringconstnode.createpchar(pchtemp,arrsize,nil);
+                     freemem(pchtemp);
                      typecheckpass(left);
                    end;
                  exit;
@@ -1253,7 +1255,7 @@ implementation
         procname: string[31];
         para : tcallparanode;
         hp : tstringconstnode;
-        ws : pcompilerwidestring;
+        ws : tcompilerwidestring;
         sa : ansistring;
         cw : tcompilerwidechar;
         l : SizeUInt;
@@ -1426,7 +1428,7 @@ implementation
                 (tstringdef(left.resultdef).stringtype in [st_unicodestring,st_widestring]) and
                 (tstringdef(resultdef).stringtype=st_shortstring) then
           begin
-            if not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)) then
+            if not hasnonasciichars(tstringconstnode(left).valuews) then
               begin
                 tstringconstnode(left).changestringtype(resultdef);
                 Result:=left;
@@ -1713,7 +1715,7 @@ implementation
             (tstringconstnode(left).cst_type=cst_conststring) and
             (tstringconstnode(left).len=4) then
            begin
-             pb:=pbyte(tstringconstnode(left).value_str);
+             pb:=pbyte(tstringconstnode(left).asconstpchar);
              fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
              result:=cordconstnode.create(fcc,u32inttype,false);
            end

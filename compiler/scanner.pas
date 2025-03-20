@@ -85,7 +85,7 @@ interface
          orgpattern,
          pattern  : string;
          cstringpattern: ansistring;
-         patternw : pcompilerwidestring;
+         patternw : tcompilerwidestring;
          settings : tsettings;
          tokenbuf : tdynamicarray;
          tokenbuf_needs_swapping : boolean;
@@ -94,7 +94,7 @@ interface
          verbosity : longint;
          constructor Create(atoken: ttoken;aidtoken:ttoken;
            const aorgpattern,apattern:string;const acstringpattern:ansistring;
-           apatternw:pcompilerwidestring;asettings:tsettings;
+           apatternw:tcompilerwidestring;asettings:tsettings;
            atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;
            averbosity:longint;anext:treplaystack);
          destructor destroy;override;
@@ -286,7 +286,7 @@ interface
         orgpattern,
         pattern        : string;
         cstringpattern : ansistring;
-        patternw       : pcompilerwidestring;
+        patternw       : tcompilerwidestring;
 
         { token }
         token,                        { current token being parsed }
@@ -1108,8 +1108,8 @@ type
         constwstring,
         constwresourcestring:
           begin
-            initwidestring(value.valueptr);
-            copywidestring(c.value.valueptr,value.valueptr);
+            initwidestring(value.valuews);
+            copywidestring(c.value.valuews,value.valuews);
           end;
         constreal:
           begin
@@ -1576,7 +1576,7 @@ type
           freemem(value.valueptr,value.len+1);
         constwstring,
         constwresourcestring:
-          donewidestring(pcompilerwidestring(value.valueptr));
+          donewidestring(value.valuews);
         constreal :
           dispose(pbestreal(value.valueptr));
         constset :
@@ -2978,7 +2978,7 @@ type
 *****************************************************************************}
     constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
       const aorgpattern,apattern:string;const acstringpattern:ansistring;
-      apatternw:pcompilerwidestring;asettings:tsettings;
+      apatternw:tcompilerwidestring;asettings:tsettings;
       atokenbuf:tdynamicarray;change_endian:boolean;const apending:tpendingstate;
       averbosity:longint;anext:treplaystack);
       begin
@@ -2990,8 +2990,7 @@ type
         initwidestring(patternw);
         if assigned(apatternw) then
           begin
-            setlengthwidestring(patternw,apatternw^.len);
-            move(apatternw^.data^,patternw^.data^,apatternw^.len*sizeof(tcompilerwidechar));
+            copywidestring(patternw,apatternw);
           end;
         settings:=asettings;
         pending:=apending;
@@ -3681,9 +3680,9 @@ type
           _CWCHAR,
           _CWSTRING :
             begin
-              tokenwritesizeint(patternw^.len);
-              if patternw^.len>0 then
-                recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+              tokenwritesizeint(patternw.len);
+              if patternw.len>0 then
+                recordtokenbuf.write(patternw.data[0],patternw.len*sizeof(tcompilerwidechar));
             end;
           _CSTRING:
             begin
@@ -3781,8 +3780,7 @@ type
             idtoken:=replaystack.idtoken;
             pattern:=replaystack.pattern;
             orgpattern:=replaystack.orgpattern;
-            setlengthwidestring(patternw,replaystack.patternw^.len);
-            move(replaystack.patternw^.data^,patternw^.data^,replaystack.patternw^.len*sizeof(tcompilerwidechar));
+            copywidestring(replaystack.patternw,patternw);
             cstringpattern:=replaystack.cstringpattern;
             replaytokenbuf:=replaystack.tokenbuf;
             change_endian_for_replay:=replaystack.tokenbuf_needs_swapping;
@@ -3824,7 +3822,7 @@ type
                 wlen:=tokenreadsizeint;
                 setlengthwidestring(patternw,wlen);
                 if wlen>0 then
-                  replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                  replaytokenbuf.read(patternw.data[0],patternw.len*sizeof(tcompilerwidechar));
                 orgpattern:='';
                 pattern:='';
                 cstringpattern:='';
@@ -5947,7 +5945,7 @@ type
                  { strings with length 1 become const chars }
                  if iswidestring then
                    begin
-                     if patternw^.len=1 then
+                     if patternw.len=1 then
                        token:=_CWCHAR
                      else
                        token:=_CWSTRING;
