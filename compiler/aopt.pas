@@ -141,9 +141,7 @@ Unit aopt;
       With LabelInfo^ Do
         begin
           If (LabelDif <> 0) Then
-            Begin
-              SetLength(LabelTable, LabelDif);
-            end;
+            SetLength(LabelTable, LabelDif);
           p := BlockStart;
           While (P <> BlockEnd) Do
             Begin
@@ -252,10 +250,7 @@ Unit aopt;
 
     procedure tasmoptimizer.clear;
       begin
-        if assigned(LabelInfo^.labeltable) then
-          begin
-            LabelInfo^.labeltable:=Nil;
-          end;
+        LabelInfo^.labeltable:=Nil;
         LabelInfo^.labeldif:=0;
         LabelInfo^.lowlabel:=high(longint);
         LabelInfo^.highlabel:=0;
