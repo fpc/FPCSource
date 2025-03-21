@@ -595,7 +595,7 @@ implementation
 
     begin
       addnodup := false;
-      if indexword(buf[0],length,s) = -1 then
+      if (length=0) or (indexword(buf[0],length,s) = -1) then
         begin
           add(s);
           addnodup := true;
