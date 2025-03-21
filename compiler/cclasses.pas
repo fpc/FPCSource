@@ -3258,7 +3258,8 @@ end;
 
     procedure tbitset.clear;
       begin
-        fillchar(fdata[0],length(fdata),0);
+        if assigned(fdata) then
+          fillchar(fdata[0],length(fdata),0);
       end;
 
 
