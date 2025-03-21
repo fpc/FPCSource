@@ -387,10 +387,10 @@ implementation
            end;
          until false;
        { free scanner }
-         current_scanner.destroy;
+         current_scanner.free;
          set_current_scanner(nil);
        { close }
-         preprocfile.destroy;
+         preprocfile.free;
       end;
 {$endif PREPROCWRITE}
 

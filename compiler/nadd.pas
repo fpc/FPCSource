@@ -4954,7 +4954,7 @@ const
     if factval<>nil then
         begin
         track_state_pass:=true;
-            left.destroy;
+            left.free;
             left:=factval.getcopy;
         end;
     if right.track_state_pass(exec_known) then
@@ -4967,7 +4967,7 @@ const
     if factval<>nil then
         begin
         track_state_pass:=true;
-            right.destroy;
+            right.free;
             right:=factval.getcopy;
         end;
     end;

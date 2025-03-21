@@ -5103,7 +5103,7 @@ implementation
                 if value<>nil then
                     begin
                         track_state_pass:=true;
-                        hp.left.destroy;
+                        hp.left.free;
                         hp.left:=value.getcopy;
                         do_typecheckpass(hp.left);
                     end;

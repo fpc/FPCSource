@@ -1300,7 +1300,7 @@ implementation
              t:=Tunarynode(left);
              left:=Tunarynode(left).left;
              t.left:=nil;
-             t.destroy;
+             t.free;
              {Symdif operator, in case you are wondering:}
              loopflags:=loopflags >< [lnf_checknegate];
            end;
@@ -1486,7 +1486,7 @@ implementation
                 code:=right.getcopy;
                 if code.track_state_pass(exec_known) then
                     track_state_pass:=true;
-                code.destroy;
+                code.free;
             end;
         repeat
             condition:=left.getcopy;
@@ -1495,7 +1495,7 @@ implementation
             factval:=aktstate.find_fact(left);
             if factval<>nil then
                 begin
-                    condition.destroy;
+                    condition.free;
                     condition:=factval.getcopy;
                     change:=true;
                 end;
@@ -1526,8 +1526,8 @@ implementation
                     code.track_state_pass(false);
                     done:=true;
                 end;
-            code.destroy;
-            condition.destroy;
+            code.free;
+            condition.free;
             firsttest:=false;
         until done;
         {The loop condition is also known, for example:
@@ -1550,7 +1550,7 @@ implementation
             aktstate.store_fact(condition,
              cordconstnode.create(byte(checknegate),pasbool1type,true))
         else
-            condition.destroy;
+            condition.free;
     end;
 {$endif}
 
@@ -1820,8 +1820,7 @@ implementation
 
     destructor tfornode.destroy;
       begin
-         if assigned(loopiteration) then
-           loopiteration.destroy;
+         loopiteration.free;
          inherited destroy;
       end;
 

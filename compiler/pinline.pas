@@ -451,7 +451,7 @@ implementation
            Message(type_e_type_id_expected);
            consume_all_until(_RKLAMMER);
            consume(_RKLAMMER);
-           p1.destroy;
+           p1.free;
            new_function:=cerrornode.create;
            exit;
          end;
@@ -461,7 +461,7 @@ implementation
            Message1(type_e_pointer_type_expected,p1.resultdef.typename);
            consume_all_until(_RKLAMMER);
            consume(_RKLAMMER);
-           p1.destroy;
+           p1.free;
            new_function:=cerrornode.create;
            exit;
          end;
@@ -485,7 +485,7 @@ implementation
                Message(parser_e_pointer_to_class_expected);
                consume_all_until(_RKLAMMER);
                consume(_RKLAMMER);
-               p1.destroy;
+               p1.free;
                new_function:=cerrornode.create;
                exit;
              end;

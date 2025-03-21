@@ -423,7 +423,7 @@ implementation
               else
                begin
                  Message(parser_e_class_id_expected);
-                 p1.destroy;
+                 p1.free;
                  statement_syssym:=cerrornode.create;
                end;
             end;
@@ -481,7 +481,7 @@ implementation
                  if df_has_generic_fields in p1.resultdef.defoptions then
                     include(statement_syssym.flags,nf_generic_para);
                  { p1 not needed !}
-                 p1.destroy;
+                 p1.free;
                end;
             end;
 
@@ -514,7 +514,7 @@ implementation
                   end;
     {              else
                     begin
-                       p1.destroy;
+                       p1.free;
                        p1:=cerrornode.create;
                        Message(parser_e_illegal_parameter_list);
                     end;}
@@ -902,7 +902,7 @@ implementation
                    good, so ignore it.}
                   in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
-                  p1.destroy;
+                  p1.free;
                   consume(_RKLAMMER);
                 end;
               statement_syssym:=geninlinenode(l,false,nil);
@@ -2280,7 +2280,7 @@ implementation
                     again:=false;
                     Message(parser_e_invalid_qualifier);
                     recoverconsume_postfixops;
-                    p1.destroy;
+                    p1.free;
                     p1:=cerrornode.create;
                  end
                else
@@ -2309,7 +2309,7 @@ implementation
                    protsym:=search_default_property(tabstractrecorddef(p1.resultdef));
                    if not(assigned(protsym)) then
                      begin
-                        p1.destroy;
+                        p1.free;
                         p1:=cerrornode.create;
                         again:=false;
                         message(parser_e_no_default_property_available);
@@ -2420,7 +2420,7 @@ implementation
                          begin
                            if p1.resultdef.typ<>undefineddef then
                              Message(parser_e_invalid_qualifier);
-                           p1.destroy;
+                           p1.free;
                            p1:=cerrornode.create;
                            comp_expr([ef_accept_equal]);
                            again:=false;
@@ -2640,7 +2640,7 @@ implementation
                          srsym:=tsym(tenumdef(p1.resultdef).symtable.Find(pattern));
                          if assigned(srsym) and (srsym.typ=enumsym) and (p1.nodetype=typen) then
                            begin
-                             p1.destroy;
+                             p1.free;
                              check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                              p1:=genenumnode(tenumsym(srsym));
                              consume(_ID);
@@ -2648,7 +2648,7 @@ implementation
                          else
                            if not try_type_helper(p1,nil) then
                              begin
-                               p1.destroy;
+                               p1.free;
                                Message1(sym_e_id_no_member,orgpattern);
                                p1:=cerrornode.create;
                                consume(_ID);
@@ -2656,7 +2656,7 @@ implementation
                        end
                      else
                        begin
-                         p1.destroy;
+                         p1.free;
                          p1:=cerrornode.create;
                          consume(_ID);
                        end
@@ -2675,13 +2675,13 @@ implementation
                                        begin
                                          consume(_ID);
                                          p2:=parse_array_constructor(tarraydef(p1.resultdef));
-                                         p1.destroy;
+                                         p1.free;
                                          p1:=p2;
                                        end
                                      else
                                        begin
                                          Message2(scan_f_syn_expected,'CREATE',pattern);
-                                         p1.destroy;
+                                         p1.free;
                                          p1:=cerrornode.create;
                                          consume(_ID);
                                        end;
@@ -2689,7 +2689,7 @@ implementation
                                  else
                                    begin
                                      Message(parser_e_invalid_qualifier);
-                                     p1.destroy;
+                                     p1.free;
                                      p1:=cerrornode.create;
                                      consume(_ID);
                                    end;
@@ -2698,7 +2698,7 @@ implementation
                          else
                            begin
                              Message(parser_e_invalid_qualifier);
-                             p1.destroy;
+                             p1.free;
                              p1:=cerrornode.create;
                              consume(_ID);
                            end;
@@ -2707,7 +2707,7 @@ implementation
                        if (token<>_ID) or not try_type_helper(p1,nil) then
                          begin
                            Message(parser_e_invalid_qualifier);
-                           p1.destroy;
+                           p1.free;
                            p1:=cerrornode.create;
                            consume(_ID);
                          end;
@@ -2911,7 +2911,7 @@ implementation
                           if found then
                             begin
                               tderefnode(p1).left:=nil;
-                              p1.destroy;
+                              p1.free;
                               p1:=p2;
                             end;
                         end
@@ -2921,7 +2921,7 @@ implementation
                         begin
                           if p1.resultdef.typ<>undefineddef then
                             Message(parser_e_invalid_qualifier);
-                          p1.destroy;
+                          p1.free;
                           p1:=cerrornode.create;
                           { Error }
                           consume(_ID);
