@@ -1242,7 +1242,7 @@ implementation
 
     function tstringconstnode.asconstpchar: pchar;
     begin
-      if len>0 then
+      if length(valueas)>0 then
         Result:=@valueas[0]
       else
         Result:=@cEmptyString;
