@@ -506,7 +506,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                (node.nodetype=stringconstn) then
               begin
                 strlength:=tstringconstnode(node).len;
-                strval:=tstringconstnode(node).asconstpchar;
+                if (tstringconstnode(node).cst_type in [cst_unicodestring,cst_widestring]) then
+                  { further on, tstringconstnode(node).valuews is used directly for this case }
+                  strval:=nil
+                else
+                  strval:=tstringconstnode(node).asconstpchar;
                 { the def may have changed from e.g. RawByteString to
                   AnsiString(CP_ACP) }
                 if node.resultdef.typ=stringdef then
