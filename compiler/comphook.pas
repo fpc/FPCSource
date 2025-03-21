@@ -250,9 +250,10 @@ begin
         (status.currentline mod 100=0) then
        begin
          if status.currentline>0 then
-           Write(status.currentline,' ');
+           Write(status.currentmodule,':',status.currentline,' ');
          hstatus:=GetFPCHeapStatus;
          WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
+         flush(output);
        end;
    end;
 {$ifdef macos}
