@@ -1717,7 +1717,7 @@ implementation
        { terminating zero included }
        datadef:=carraydef.getreusable(cansichartype,len+1);
        datatcb.maybe_begin_aggregate(datadef);
-       ts:=tai_string.create_pchar(data,len);
+       ts:=tai_string.create_pchar(data,len+1); // +1 to include terminating 0
        datatcb.emit_tai(ts,datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
