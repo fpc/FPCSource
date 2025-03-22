@@ -41,6 +41,7 @@ procedure recordpendingalignmentfullswitch(const alignment : talignmentinfo);
 procedure recordpendingsetalloc(alloc:shortint);
 procedure recordpendingpackenum(size:shortint);
 procedure recordpendingpackrecords(size:shortint);
+procedure recordpendingasmmode(asmmode:tasmmode);
 procedure flushpendingswitchesstate;
 
 implementation
@@ -366,6 +367,13 @@ procedure recordpendingsetalloc(alloc:shortint);
   end;
 
 
+procedure recordpendingasmmode(asmmode:tasmmode);
+  begin
+    pendingstate.nextasmmode:=asmmode;
+    include(pendingstate.flags,psf_asmmode_changed);
+  end;
+
+
 procedure recordpendingpackenum(size:shortint);
   begin
     pendingstate.nextpackenum:=size;
@@ -418,6 +426,11 @@ procedure flushpendingswitchesstate;
       begin
         current_settings.setalloc:=pendingstate.nextsetalloc;
         exclude(pendingstate.flags,psf_setalloc_changed);
+      end;
+    if psf_asmmode_changed in pendingstate.flags then
+      begin
+        current_settings.asmmode:=pendingstate.nextasmmode;
+        exclude(pendingstate.flags,psf_asmmode_changed);
       end;
     { process pending verbosity changes (warnings on, etc) }
     if pendingstate.nextverbositystr<>'' then

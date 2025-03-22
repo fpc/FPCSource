@@ -41,6 +41,7 @@ unit scandir;
         setalloc,
         packenum,
         packrecords : shortint;
+        asmmode : tasmmode;
       end;
 
     type
@@ -312,16 +313,19 @@ unit scandir;
     procedure dir_asmmode;
       var
         s : string;
+        asmmode: tasmmode;
       begin
         current_scanner.skipspace;
         s:=current_scanner.readid;
         If Inside_asm_statement then
           Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
-         current_settings.asmmode:=init_settings.asmmode
+          recordpendingasmmode(init_settings.asmmode)
         else
-         if not SetAsmReadMode(s,current_settings.asmmode) then
-           Message1(scan_e_illegal_asmmode_specifier,s);
+         if not SetAsmReadMode(s,asmmode) then
+           Message1(scan_e_illegal_asmmode_specifier,s)
+         else
+           recordpendingasmmode(asmmode);
       end;
 
 {$if defined(m68k) or defined(arm)}
@@ -1263,6 +1267,7 @@ unit scandir;
           recordpendingpackenum(switchesstatestack[switchesstatestackpos].packenum);
           recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
           recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
+          recordpendingasmmode(switchesstatestack[switchesstatestackpos].asmmode);
           pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
           { flushpendingswitchesstate will reset the message state }
           current_settings.pmessage:=nil;
@@ -1326,6 +1331,11 @@ unit scandir;
         switchesstatestack[switchesstatestackpos].setalloc:=pendingstate.nextsetalloc
       else
         switchesstatestack[switchesstatestackpos].setalloc:=current_settings.setalloc;
+
+      if psf_asmmode_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].asmmode:=pendingstate.nextasmmode
+      else
+        switchesstatestack[switchesstatestackpos].asmmode:=current_settings.asmmode;
 
       switchesstatestack[switchesstatestackpos].pmessage:=pendingstate.nextmessagerecord;
       Inc(switchesstatestackpos);

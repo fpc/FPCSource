@@ -57,7 +57,9 @@ implementation
        { codegen }
        procinfo,cgbase,
        { assembler reader }
-       rabase;
+       rabase,
+       { scanner }
+       switches;
 
 
     function statement : tnode;forward;
@@ -1067,6 +1069,10 @@ implementation
          Inside_asm_statement:=true;
          asmstat:=nil;
          hl:=nil;
+
+         { apply all switch changes as the assembler readers doesn't do so }
+         flushpendingswitchesstate;
+
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;

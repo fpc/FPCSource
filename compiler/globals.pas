@@ -260,7 +260,8 @@ Const
         psf_local_switches_changed,
         psf_packenum_changed,
         psf_packrecords_changed,
-        psf_setalloc_changed
+        psf_setalloc_changed,
+        psf_asmmode_changed
       );
       tpendingstateflags = set of tpendingstateflag;
 
@@ -274,6 +275,7 @@ Const
         nextpackenum : shortint;
         nextpackrecords : shortint;
         nextsetalloc : shortint;
+        nextasmmode : tasmmode;
         flags : tpendingstateflags;
       end;
 
