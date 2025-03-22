@@ -211,7 +211,7 @@ uses
               else
                 begin
                 getmem(sp,tstringconstnode(node).len+1);
-                move(tstringconstnode(node).asconstpchar,sp^,tstringconstnode(node).len+1);
+                move(tstringconstnode(node).asconstpchar^,sp^,tstringconstnode(node).len+1);
                 sym:=cconstsym.create_string(undefinedname,conststring,sp,tstringconstnode(node).len,fromdef);
                 prettyname:=''''+tstringconstnode(node).asconstpchar+'''';
                 end;
