@@ -44,7 +44,7 @@ unit rgllvm;
         function instr_get_oper_spilling_info(var spregs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean; override;
         procedure substitute_spilled_registers(const spregs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint); override;
         procedure determine_spill_registers(list: TasmList; headertai: tai); override;
-        procedure get_spill_temp(list:TAsmlist;spill_temps: Pspill_temp_list; supreg: tsuperregister);override;
+        procedure get_spill_temp(list:TAsmlist;spill_temps: Tspill_temp_list; supreg: tsuperregister);override;
        strict protected
        type
          tregwrites = (rw_none, rw_one, rw_multiple);
@@ -152,7 +152,7 @@ implementation
 
     procedure trgllvm.substitute_spilled_registers(const spregs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint);
       var
-        i, paracnt: longint;
+        paracnt: longint;
         callpara: pllvmcallpara;
       begin
         with instr.oper[opidx]^ do
@@ -219,7 +219,7 @@ implementation
        end;
 
 
-    procedure trgllvm.get_spill_temp(list: TAsmlist; spill_temps: Pspill_temp_list; supreg: tsuperregister);
+    procedure trgllvm.get_spill_temp(list: TAsmlist; spill_temps: tspill_temp_list; supreg: tsuperregister);
       var
         supstart: tai;
         i, paracnt: longint;
@@ -262,7 +262,7 @@ implementation
           end;
         if not assigned(def) then
           internalerror(2013110702);
-        tg.gethltemp(list,def,def.size,tt_noreuse,spill_temps^[supreg]);
+        tg.gethltemp(list,def,def.size,tt_noreuse,spill_temps[supreg]);
         { record for use in spill instructions }
         reginfo[supreg].def:=def;
       end;

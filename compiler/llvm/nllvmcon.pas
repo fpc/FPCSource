@@ -104,7 +104,7 @@ implementation
         if astringdef=llvm_metadatatype then
           begin
             location_reset(location,LOC_CREGISTER,OS_ADDR);
-            location.register:=tllvmmetadata.getpcharreg(value_str,len);
+            location.register:=tllvmmetadata.getpcharreg(@valueas[0],len);
             exit;
           end;
         inherited pass_generate_code;
