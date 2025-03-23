@@ -916,10 +916,12 @@ implementation
               A_SLLW,
               A_SRLW,
               A_SRAW,
+              A_ROLW,
 {$endif riscv64}
               A_SLL,
               A_SRL,
               A_SRA,
+              A_ROL,
               A_NEG,
               A_NOT:
                 result:=OptPass1OP(p);
