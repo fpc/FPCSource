@@ -1636,7 +1636,7 @@ procedure fpc_cpuinit;
       xorl %ecx,%ecx
       cpuid
       movl %ecx,cpuid1_ecx
-    end;
+    end ['eax', 'ebx', 'ecx', 'edx'];
     has_sse41_support:=boolean(cpuid1_ecx shr 19 and 1);
     if _eax>=7 then
       begin
@@ -1645,7 +1645,7 @@ procedure fpc_cpuinit;
           xorl %ecx,%ecx
           cpuid
           movl %ebx,cpuid7_ebx
-        end;
+        end ['eax', 'ebx', 'ecx', 'edx'];
 {$ifdef use_fast_repmovstos}
         fast_large_repmovstosb:=cpuid7_ebx and (1 shl 9)<>0;
 {$endif}
@@ -1656,7 +1656,7 @@ procedure fpc_cpuinit;
               xorl %ecx,%ecx
               .byte   0x0f,0x01,0xd0 { xgetbv }
               movl %eax,_eax
-            end;
+            end ['eax', 'rcx', 'edx'];
             if (_eax and 6)=6 then
               begin
                 has_avx_support:=(cpuid1_ecx and $10000000)<>0;
