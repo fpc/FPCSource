@@ -736,23 +736,19 @@ implementation
        case othertai.typ of
          ait_string:
            begin
-             // lengths without terminating 0
              len1:=strtai.len;
              len2:=lother_string.len;
              lent:=len1+len2;
-             SetLength(strtai.str,lent+1);
-             { also copy null terminator }
-             move(lother_string.str[0],strtai.str[len1],len2+1);
+             SetLength(strtai.str,lent);
+             move(lother_string.str[0],strtai.str[len1],len2);
            end;
          ait_const:
            begin
              if tai_const(othertai).size<>1 then
                internalerror(2014070101);
-             { it was already len+1 to hold the #0 -> realloc to len+2 }
              len1:=length(strtai.str);
              SetLength(strtai.str,len1+1);
-             strtai.str[len1-1]:=ansichar(tai_const(othertai).value);
-             strtai.str[len1]:=#0;
+             strtai.str[len1]:=ansichar(tai_const(othertai).value);
            end;
          else
            internalerror(2014070102);
