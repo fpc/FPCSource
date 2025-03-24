@@ -592,11 +592,11 @@ implementation
 
         if variantdispatch then
           begin
-            tcb.emit_pchar_const(pchar(methodname),length(methodname),true);
+            tcb.emit_pchar_const(pchar(methodname),length(methodname));
             if names<>'' then
               { length-1 because we added a null terminator to the string itself
                 already }
-              tcb.emit_pchar_const(pchar(names),length(names)-1,true);
+              tcb.emit_pchar_const(pchar(names),length(names)-1);
           end;
 
         { may be referred from other units in case of inlining -> global

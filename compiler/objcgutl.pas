@@ -151,7 +151,6 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
   var
     entry  : PHashSetItem;
     strlab : tasmlabel;
-    pc     : pchar;
     pool   : THashSet;
     tcb    : ttai_typedconstbuilder;
   begin
@@ -167,13 +166,9 @@ procedure objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tcons
         { Make sure strlab has a reference }
         strlab.increfs;
 
-        getmem(pc,entry^.keylength+1);
-        move(entry^.key^,pc^,entry^.keylength);
-        pc[entry^.keylength]:=#0;
-
         { add the string to the approriate section }
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
-        def:=tcb.emit_pchar_const(pc,entry^.keylength,false);
+        def:=tcb.emit_pchar_const(pchar(entry^.key),entry^.keylength);
         current_asmdata.asmlists[al_objc_pools].concatList(
           tcb.get_final_asmlist(strlab,def,stringsec,strlab.name,1)
         );

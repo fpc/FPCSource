@@ -486,12 +486,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
 
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       var
-        strlength : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
+        strlength,
+        defsize   : {$ifdef CPU8BITALU}smallint{$else}aint{$endif};
         strval    : pchar;
         ll        : tasmlabofs;
-        ca        : pchar;
         winlike   : boolean;
         hsym      : tconstsym;
+        paddedstrdata   : shortstring;
       begin
         strval:='';
         { load strval and strlength of the constant tree }
@@ -562,20 +563,18 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               st_shortstring:
                 begin
                   ftcb.maybe_begin_aggregate(def);
-                  if strlength>=def.size then
+                  defsize:=def.size;
+                  if strlength>=defsize then
                    begin
-                     message2(parser_w_string_too_long,strpas(strval),tostr(def.size-1));
-                     strlength:=def.size-1;
+                     message2(parser_w_string_too_long,strval,tostr(defsize-1));
+                     strlength:=defsize-1;
                    end;
-                  ftcb.emit_tai(Tai_const.Create_8bit(strlength),cansichartype);
-                  { room for the string data + terminating #0 }
-                  getmem(ca,def.size);
-                  move(strval^,ca^,strlength);
-                  { zero-terminate and fill with spaces if size is shorter }
-                  fillchar(ca[strlength],def.size-strlength-1,' ');
-                  ca[strlength]:=#0;
-                  ca[def.size-1]:=#0;
-                  ftcb.emit_tai(Tai_string.Create_pchar(ca,def.size-1),carraydef.getreusable(cansichartype,def.size-1));
+                  paddedstrdata[0]:=chr(strlength);
+                  move(strval^,paddedstrdata[1],strlength);
+                  { fill with spaces if size is shorter }
+                  fillchar(paddedstrdata[strlength+1],defsize-strlength-1,' ');
+                  paddedstrdata[strlength+1]:=#0;
+                  ftcb.emit_tai(Tai_string.Create_Data(@paddedstrdata[0],defsize,false),carraydef.getreusable(cansichartype,defsize+1));
                   ftcb.maybe_end_aggregate(def);
                 end;
               st_ansistring:
@@ -783,7 +782,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         hp        : tnode;
         srsym     : tsym;
         pd        : tprocdef;
-        ca        : pchar;
         pw        : tcompilerwidestring;
         i,len     : longint;
         ll        : tasmlabel;
@@ -876,14 +874,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   { For tp7 the maximum lentgh can be 255 }
                   if (m_tp7 in current_settings.modeswitches) and
                      (len>255) then
-                   len:=255;
-                  getmem(ca,len+1);
-                  ca[len]:=#0;
-                  if len>0 then
-                    move(tstringconstnode(node).valueas[0],ca^,len);
+                    len:=255;
                   datadef:=carraydef.getreusable(cansichartype,len+1);
                   datatcb.maybe_begin_aggregate(datadef);
-                  datatcb.emit_tai(Tai_string.Create_pchar(ca,len+1),datadef);
+                  if len>0 then
+                    datatcb.emit_tai(Tai_string.Create_Data(@tstringconstnode(node).valueas[0],len,true),datadef)
+                  else
+                    datatcb.emit_tai(Tai_string.Create_Data(nil,0,true),datadef);
                   datatcb.maybe_end_aggregate(datadef);
                 end
               else if is_constcharnode(node) then

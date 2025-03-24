@@ -220,7 +220,6 @@ implementation
     procedure tcgstringconstnode.pass_generate_code;
       var
          lastlabel: tasmlabofs;
-         pc: pchar;
          l: longint;
          pool: THashSet;
          entry: PHashSetItem;
@@ -332,15 +331,12 @@ implementation
                            l:=255
                           else
                            l:=len;
+
                           { include length and terminating zero for quick conversion to pchar }
-                          getmem(pc,l+2);
-                          if l>0 then
-                            move(asconstpchar^,pc[1],l);
-                          pc[0]:=chr(l);
-                          pc[l+1]:=#0;
                           datadef:=carraydef.getreusable(cansichartype,l+2);
                           datatcb.maybe_begin_aggregate(datadef);
-                          t:=Tai_string.Create_pchar(pc,l+2);
+                          datatcb.emit_tai(Tai_const.Create_8bit(l),cansichartype);
+                          t:=Tai_string.Create_Data(asconstpchar,l,true);
                           datatcb.emit_tai(t,datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
@@ -351,20 +347,14 @@ implementation
                         begin
                           current_asmdata.getlocaldatalabel(lastlabel.lab);
 
-                          { include terminating zero }
-                          getmem(pc,len+1);
-                          if len>0 then
-                            move(asconstpchar^,pc[0],len);
-                          pc[len]:=#0;
                           { the data includes the terminating #0 because this
                             string can be used for pchar assignments (but it's
                             also used for array-of-char assignments, in which
                             case the terminating #0 is not part of the data) }
                           datadef:=carraydef.getreusable(cansichartype,len+1);
                           datatcb.maybe_begin_aggregate(datadef);
-                          t:=Tai_string.Create_pchar(pc,len+1);
+                          t:=Tai_string.Create_Data(asconstpchar,len,true);
                           datatcb.emit_tai(t,datadef);
-                          freemem(pc);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))

@@ -227,20 +227,15 @@ implementation
 
     procedure TVMTWriter.writenames(tcb: ttai_typedconstbuilder; p: pprocdeftree);
       var
-        ca : pchar;
-        len : byte;
         datatcb : ttai_typedconstbuilder;
+        len : byte;
       begin
          if assigned(p^.l) then
            writenames(tcb,p^.l);
          tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,_class.vmt_mangledname,datatcb,p^.nl);
          len:=length(p^.data.messageinf.str^);
          datatcb.maybe_begin_aggregate(carraydef.getreusable(cansichartype,len+1));
-         datatcb.emit_tai(tai_const.create_8bit(len),cansichartype);
-         getmem(ca,len+1);
-         move(p^.data.messageinf.str^[1],ca^,len);
-         ca[len]:=#0;
-         datatcb.emit_tai(Tai_string.Create_pchar(ca,len),carraydef.getreusable(cansichartype,len));
+         datatcb.emit_tai(Tai_string.Create_Data(@p^.data.messageinf.str^[0],len+1,false),carraydef.getreusable(cansichartype,len+1));
          datatcb.maybe_end_aggregate(carraydef.getreusable(cansichartype,len+1));
          tcb.finish_internal_data_builder(datatcb,p^.nl,carraydef.getreusable(cansichartype,len+1),sizeof(pint));
          if assigned(p^.r) then
