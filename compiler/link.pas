@@ -1820,7 +1820,7 @@ Implementation
             hp:=TCmdStrListItem(hp.next);
           end;
         ScriptCount:=i;
-        SetLength(IsHandled,ScriptCount);
+        SetLength(IsHandled,ScriptCount+1); // 1-based index used.
       end;
 
     procedure TInternalLinker.ParseScript_PostCheck;
