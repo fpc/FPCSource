@@ -85,10 +85,10 @@ unit cgrv;
   const
     TOpCG2AsmConstOp: Array[topcg] of TAsmOp = (A_NONE,
           A_NONE,A_ADDI,A_ANDI,A_NONE,A_NONE,A_NONE,A_NONE,
-          A_None,A_None,A_ORI,A_SRAI,A_SLLI,A_SRLI,A_NONE,A_XORI,A_None,A_None);
+          A_None,A_None,A_ORI,A_SRAI,A_SLLI,A_SRLI,A_NONE,A_XORI,A_None,A_RORI);
     TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,
           A_NONE,A_ADD,A_AND,A_DIVU,A_DIV,A_MUL,A_MUL,
-          A_None,A_None,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR,A_None,A_None);
+          A_None,A_None,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR,A_ROL,A_ROR);
 
 {$ifdef extdebug}
      function ref2string(const ref : treference) : string;
