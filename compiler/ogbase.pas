@@ -1728,12 +1728,14 @@ implementation
 
     procedure TObjData.writebytes(const Data: TByteDynArray; len: TObjSectionOfs);
     begin
-      WriteBytes(Data[0],len);
+      if len>0 then
+        WriteBytes(Data[0],len);
     end;
 
     procedure TObjData.writebytes(const Data: TAnsiCharDynArray; len: TObjSectionOfs);
     begin
-      WriteBytes(Data[0],len);
+      if len>0 then
+        WriteBytes(Data[0],len);
     end;
 
 
