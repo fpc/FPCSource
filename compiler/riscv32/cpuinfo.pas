@@ -215,6 +215,9 @@ Const
        CPURV_HAS_ZBB,
        CPURV_HAS_ZBC,
        CPURV_HAS_ZBS,
+       CPURV_HAS_ZBKB,
+       CPURV_HAS_ZBKC,
+       CPURV_HAS_ZBKX,
        CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }
        CPURV_HAS_FETCH_FENCE,        { extension Zifencei }
        CPURV_HAS_F,
