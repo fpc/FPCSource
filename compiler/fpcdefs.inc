@@ -345,6 +345,7 @@
   {$define cpu32bit}
   {$define cpu32bitaddr}
   {$define cpu32bitalu}
+  {$define cpurox}
   {$define cpufpemu}
   {$define cputargethasfixedstack}
   {$define cpuneedsmulhelper}
@@ -372,6 +373,7 @@
   {$define cpu64bit}
   {$define cpu64bitaddr}
   {$define cpu64bitalu}
+  {$define cpurox}
   {$define cpufpemu}
   {$define cputargethasfixedstack}
   {$define cpuneedsmulhelper}

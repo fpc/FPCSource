@@ -4832,8 +4832,11 @@ procedure read_arguments(cmd:TCmdStr);
 
       { these cpus have an inline rol/ror implementaion }
       {$ifdef cpurox}
-      {$ifdef m68k}
+      {$if defined(m68k)}
         if CPUM68K_HAS_ROLROR in cpu_capabilities[init_settings.cputype] then
+          def_system_macro('FPC_HAS_INTERNAL_ROX');
+      {$elseif defined(riscv)}
+        if [CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[init_settings.cputype]<>[] then
           def_system_macro('FPC_HAS_INTERNAL_ROX');
       {$else}
         def_system_macro('FPC_HAS_INTERNAL_ROX');
