@@ -521,6 +521,8 @@ uses cutils, cclasses;
           A_ADD,A_SUB,A_SLL,A_SLT,A_SLTU,
           A_XOR,A_OR,A_AND,A_SRL,A_SRA,
 
+          A_ROR,A_ROL,A_RORI,
+
           A_MUL,A_MULH,A_MULHSU,A_MULHU,
           A_DIV,A_DIVU,A_REM,A_REMU,
 
@@ -562,6 +564,8 @@ uses cutils, cclasses;
 
           A_MULW,
           A_DIVW,A_DIVUW,A_REMW,A_REMUW,
+
+          A_RORIW,A_RORW,A_ROLW,
 
           A_FCVT_L_S,A_FCVT_LU_S,
           A_FCVT_S_L,A_FCVT_S_LU,
