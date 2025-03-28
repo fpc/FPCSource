@@ -1240,7 +1240,8 @@ begin
   end;
 
   { Account for restart interval (no-op if not using restarts) }
-  Dec(entropy^.restarts_to_go);
+  if (cinfo^.restart_interval <> 0) then
+    Dec(entropy^.restarts_to_go);
 
   decode_mcu := TRUE;
 end;
