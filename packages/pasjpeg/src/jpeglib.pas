@@ -12,6 +12,7 @@ Unit JPEGLib;
 interface
 
 {$I jconfig.inc}
+{$modeswitch nestedprocvars}
 
 { First we include the configuration files that record how this
   installation of the JPEG library is set up.  jconfig.h can be
@@ -719,6 +720,15 @@ type
     new_color_map : procedure(cinfo : j_decompress_ptr);
   end;
 
+{ JPEG extensions }
+  jpeg_ext_appn_readdata = function (const Buffer: Pointer; numtoread: uint): Boolean is nested;
+  jpeg_extensions_ptr = ^jpeg_extensions;
+  jpeg_extensions = record
+    // read extended (unknown) APPn data
+    read_ext_appn : procedure(cinfo : j_decompress_ptr; marker : int; var header : array of JOCTET; headerlen : uint;
+      var remaining : int32; readdata: jpeg_ext_appn_readdata);
+  end;
+
   {int8array = Array[0..8-1] of int;}
   int8array = Array[0..8-1] of longint; { for TP FormatStr }
   TFormatCallback = procedure  (cinfo : j_common_ptr; var buffer : shortstring);
@@ -1280,6 +1290,7 @@ type
     upsample : jpeg_upsampler_ptr;
     cconvert : jpeg_color_deconverter_ptr;
     cquantize : jpeg_color_quantizer_ptr;
+    extensions : jpeg_extensions_ptr;
   end;
 
 { Decompression startup: read start of JPEG datastream to see what's there

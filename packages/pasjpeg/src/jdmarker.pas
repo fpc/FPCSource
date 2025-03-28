@@ -17,6 +17,7 @@ Unit JdMarker;
 interface
 
 {$I jconfig.inc}
+{$modeswitch nestedprocvars}
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
@@ -1665,13 +1666,13 @@ begin
 end;
 
 {LOCAL}
-function examine_app1 (cinfo : j_decompress_ptr;
+procedure examine_app1 (cinfo : j_decompress_ptr;
                         var header : array of JOCTET;
                         headerlen : uint;
                         var remaining : INT32;
                         datasrc : jpeg_source_mgr_ptr;
                         var next_input_byte : JOCTETptr;
-                        var bytes_in_buffer : size_t): Boolean;
+                        var bytes_in_buffer : size_t);
 
 { Read Exif marker.
   headerlen is # of bytes at header[], remaining is length of rest of marker header.
@@ -1790,7 +1791,7 @@ begin
 
     // read data
     if not Read16(numRecords) then
-      Exit(False);
+      Exit;
 
     for i:=1 to numRecords do
     begin
@@ -1820,6 +1821,12 @@ begin
         my_marker_ptr(cinfo^.marker)^.handle_exif_tag(cinfo, ifdRec, BigEndian, data, EXIF_TAGPARENT_PRIMARY);
       end;
     end;
+  end else
+  if Assigned(cinfo.extensions) and Assigned(cinfo.extensions^.read_ext_appn) and (headerlen>0) then
+  begin
+    BigEndian := False;
+    Offset := APP1_HEADER_LEN;
+    cinfo.extensions^.read_ext_appn(cinfo, M_APP1, header, headerlen, remaining, Read);
   end;
 end;
 

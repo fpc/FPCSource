@@ -79,6 +79,7 @@ type
     FProgressiveEncoding: boolean;
     FError: jpeg_error_mgr;
     FProgressMgr: TFPJPEGProgressManager;
+    FExtensions: jpeg_extensions;
     FInfo: jpeg_decompress_struct;
     FScale: TJPEGScale;
     FPerformance: TJPEGReadPerformance;
@@ -87,6 +88,10 @@ type
     procedure SetPerformance(const AValue: TJPEGReadPerformance);
     procedure SetSmoothing(const AValue: boolean);
   protected
+    function CMYKToRGB(const C, M, Y, K: Byte): TFPColor; virtual;
+    procedure ReadExtAPPn(Marker: int; var Header: array of JOCTET; HeaderLen: uint;
+      var Remaining: INT32; ReadData: jpeg_ext_appn_readdata); virtual;
+
     procedure ReadHeader(Str: TStream; Img: TFPCustomImage); virtual;
     procedure ReadPixels(Str: TStream; Img: TFPCustomImage); virtual;
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
@@ -202,12 +207,25 @@ begin
   // ToDo
 end;
 
+procedure ReadExtAPPnCallback(cinfo : j_decompress_ptr; marker : int; var header : array of JOCTET; headerlen : uint;
+  var remaining : int32; readdata: jpeg_ext_appn_readdata);
+begin
+  if (cinfo=nil) or (cinfo^.client_data=nil) then exit;
+
+  TFPReaderJPEG(cinfo^.client_data).ReadExtAPPn(marker, header, headerlen, remaining, readdata);
+end;
+
 { TFPReaderJPEG }
 
 procedure TFPReaderJPEG.SetSmoothing(const AValue: boolean);
 begin
   if FSmoothing=AValue then exit;
   FSmoothing:=AValue;
+end;
+
+procedure TFPReaderJPEG.ReadExtAPPn(Marker: int; var Header: array of JOCTET; HeaderLen: uint; var Remaining: INT32; ReadData: jpeg_ext_appn_readdata);
+begin
+  // override to read extended APPn data
 end;
 
 procedure TFPReaderJPEG.SetPerformance(const AValue: TJPEGReadPerformance);
@@ -347,21 +365,6 @@ var
     Img.Colors[P.x, P.y] := C;
   end;
 
-  function CorrectCMYK(const C: TFPColor): TFPColor;
-  var
-    MinColor: word;
-  begin
-    // accuracy not 100%
-    if C.red<C.green then MinColor:=C.red
-    else MinColor:= C.green;
-    if C.blue<MinColor then MinColor:= C.blue;
-    if MinColor+ C.alpha>$FF then MinColor:=$FF-C.alpha;
-    Result.red:=(C.red-MinColor) shl 8;
-    Result.green:=(C.green-MinColor) shl 8;
-    Result.blue:=(C.blue-MinColor) shl 8;
-    Result.alpha:=alphaOpaque;
-  end;
-
   procedure OutputScanLines();
   var
     x: integer;
@@ -428,12 +431,7 @@ var
         end;
       JCS_CMYK, JCS_YCCK:
         for x:=0 to FInfo.output_width-1 do
-        begin
-          //SetPixel(x, y, CorrectCMYK(TFPColor.New(SampRow^[x*4+0], SampRow^[x*4+1], SampRow^[x*4+2], SampRow^[x*4+3])));
-
-          cmyk :=TStdCMYK.New(SampRow^[x*4+0], SampRow^[x*4+1], SampRow^[x*4+2], SampRow^[x*4+3]);
-          SetPixel(x, y, cmyk.ToExpandedPixel.ToFPColor(false));
-        end;
+          SetPixel(x, y, CMYKToRGB(SampRow^[x*4+0], SampRow^[x*4+1], SampRow^[x*4+2], SampRow^[x*4+3]));
       else
         for x:=0 to FInfo.output_width-1 do begin
           Color.Red:=SampRow^[x*3+0] shl 8;
@@ -593,6 +591,11 @@ begin
         MemStream.Position:=0;
         jpeg_stdio_src(@FInfo, @MemStream);
 
+        FInfo.extensions := @FExtensions;
+        FExtensions.read_ext_appn := @ReadExtAPPnCallback;
+
+        FInfo.client_data := Self;
+
         ReadHeader(MemStream, Img);
         ReadPixels(MemStream, Img);
       finally
@@ -644,6 +647,14 @@ begin
   FScale:=jsFullSize;
   FPerformance:=jpBestSpeed;
   inherited Create;
+end;
+
+function TFPReaderJPEG.CMYKToRGB(const C, M, Y, K: Byte): TFPColor;
+begin
+  Result.Red := ((C*K) div 255) shl 8;
+  Result.Green := ((M*K) div 255) shl 8;
+  Result.Blue := ((Y*K) div 255) shl 8;
+  Result.Alpha := alphaOpaque;
 end;
 
 destructor TFPReaderJPEG.Destroy;
