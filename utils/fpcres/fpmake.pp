@@ -56,12 +56,32 @@ begin
     T.Dependencies.AddUnit('target');
     T.Dependencies.AddUnit('jarsourcehandler');
 
-    P.Targets.AddUnit('closablefilestream.pas').install:=false;
-    P.Targets.AddUnit('msghandler.pas').install:=false;
-    P.Targets.AddUnit('paramparser.pas').install:=false;
-    P.Targets.AddUnit('sourcehandler.pas').install:=false;
-    P.Targets.AddUnit('target.pas').install:=false;
-    P.Targets.AddUnit('jarsourcehandler.pas').install:=false;
+    T:=P.Targets.AddUnit('closablefilestream.pas');
+    T.install:=false;
+
+    T:=P.Targets.AddUnit('msghandler.pas');
+    T.install:=false;
+
+    T:=P.Targets.AddUnit('paramparser.pas');
+    T.Dependencies.AddUnit('msghandler');
+    T.Dependencies.AddUnit('target');
+    T.install:=false;
+
+    T:=P.Targets.AddUnit('sourcehandler.pas');
+    T.Dependencies.AddUnit('msghandler');
+    T.Dependencies.AddUnit('closablefilestream');
+    // T.Dependencies.Add('rcreader');comes from fcl-res package
+    T.install:=false;
+
+    T:=P.Targets.AddUnit('target.pas');
+    T.install:=false;
+
+    T:=P.Targets.AddUnit('jarsourcehandler.pas');
+    T.Dependencies.AddUnit('sourcehandler');
+    T.Dependencies.AddUnit('msghandler');
+    T.Dependencies.AddUnit('closablefilestream');
+    T.install:=false;
+
     end;
 end;
 
