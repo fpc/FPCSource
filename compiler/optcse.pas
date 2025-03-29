@@ -48,6 +48,7 @@ unit optcse;
 
     uses
       globtype,globals,
+      systems,
       cutils,cclasses,
       nutils,compinnr,
       nbas,nld,ninl,ncal,nadd,nmem,ncnv,
@@ -645,7 +646,13 @@ unit optcse;
                   end;
               end;
             if found then
-              inc(consts^[i].weight)
+              begin
+                inc(consts^[i].weight);
+
+                { non-sectioned threadvars really hurt so do more aggressive cse on them }
+                if not(tf_section_threadvars in target_info.flags) and (n.nodetype=loadn) and (tloadnode(n).symtableentry.typ=staticvarsym) and (vo_is_thread_var in tstaticvarsym(tloadnode(n).symtableentry).varoptions) then
+                  inc(consts^[i].weight);
+              end
             else
               begin
                 SetLength(consts^,length(consts^)+1);
