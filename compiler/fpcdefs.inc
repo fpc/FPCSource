@@ -283,7 +283,7 @@
   {$define mips64}
 {$endif mips64eb}
 
-{ Also accept mips64 for big endian 64-bit mips, but only if mips64 el is not eet }
+{ Also accept mips64 for big endian 64-bit mips, but only if mips64 el is not set }
 {$ifdef mips64}
   {$define mips}
   {$ifndef mips64el}
