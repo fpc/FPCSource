@@ -471,9 +471,9 @@ implementation
          (taicpu(p).oper[2]^.typ=top_const) and
          (taicpu(p).oper[2]^.val=0) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
-         ((MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SRL,A_SLT,A_AND,A_OR,
+         ((MatchInstruction(hp1, [A_SUB,A_ADD,A_SLL,A_SRL,A_AND,A_OR,
             A_ADDI,A_ANDI,A_ORI,A_SRAI,A_SRLI,A_SLLI,A_XORI,A_MUL,
-            A_DIV,A_DIVU,A_REM,A_REMU,A_SLTI,A_SLTIU
+            A_DIV,A_DIVU,A_REM,A_REMU,A_SLT,A_SLTU,A_SLTI,A_SLTIU
             {$ifdef riscv64},A_ADDIW,A_SLLIW,A_SRLIW,A_SRAIW,
             A_ADDW,A_SLLW,A_SRLW,A_SUBW,A_SRAW,
             A_DIVUW,A_DIVW,A_REMW,A_REMUW{$endif}]
