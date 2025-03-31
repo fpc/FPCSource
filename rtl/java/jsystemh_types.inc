@@ -365,6 +365,20 @@ Type
   ValUInt = Word;
 {$endif CPU16}
 
+{$if defined(CPUINT8)}
+  ALUSInt = ShortInt;
+  ALUUInt = Byte;
+{$elseif defined(CPUINT16)}
+  ALUSInt = SmallInt;
+  ALUUInt = Word;
+{$elseif defined(CPUINT32)}
+  ALUSInt = Longint;
+  ALUUInt = DWord;
+{$elseif defined(CPUINT64)}
+  ALUSInt = Int64;
+  ALUUInt = QWord;
+{$endif defined(CPUINT64)}
+
   { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
     has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
     'The size of NativeInt is equivalent to the size of the pointer on the
