@@ -507,7 +507,8 @@ uses cutils, cclasses;
               result:=operand_read;
 
           // SB type
-          A_Bxx:
+          A_BEQZ,A_BNEZ,A_BLEZ,A_BGEZ,A_BLTZ,A_BGTZ,A_BGT,A_BLE,
+          A_BGTU,A_BLEU,A_Bxx:
             result:=operand_read;
 
           // S type

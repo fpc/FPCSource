@@ -552,6 +552,8 @@ implementation
       begin
        is_calljmp:=false;
         case o of
+          A_BEQZ,A_BNEZ,A_BLEZ,A_BGEZ,A_BLTZ,A_BGTZ,A_BGT,A_BLE,
+          A_BGTU,A_BLEU,A_J,A_JR,
           A_JAL,A_JALR,A_Bxx,A_CALL:
             is_calljmp:=true;
           else
