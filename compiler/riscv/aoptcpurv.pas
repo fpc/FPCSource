@@ -590,7 +590,7 @@ implementation
                 taicpu(hp1).condition:=C_GE;
             end;
 
-          DebugMsg('Peephole SltuB2B performed', hp1);
+          DebugMsg('Peephole SltuB2B 1 performed', hp1);
 
           RemoveInstr(p);
 
@@ -632,7 +632,7 @@ implementation
                 taicpu(hp1).condition:=C_GE;
             end;
 
-          DebugMsg('Peephole SltuB2B performed', hp1);
+          DebugMsg('Peephole SltuB2B 2 performed', hp1);
 
           RemoveInstr(p);
 
