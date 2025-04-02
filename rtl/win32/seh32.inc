@@ -275,6 +275,8 @@ procedure CommonHandler(
 var
   Exc: TExceptObject;
   code: Longint;
+  _oldebx,_oldedi,_oldesi,
+  _ebx,_edi,_esi: dword;
 begin
   if rec.ExceptionCode<>FPC_EXCEPTION_CODE then
   begin
@@ -297,7 +299,20 @@ begin
     Exc.Frames:=rec.ExceptionInformation[3];
   end;
 
+  asm
+    movl %ebx,_oldebx
+    movl %esi,_oldesi
+    movl %edi,_oldedi
+  end;
   RtlUnwind(@frame,nil,@rec,nil);
+  asm
+    movl %ebx,_ebx
+    movl %esi,_esi
+    movl %edi,_edi
+    movl _oldebx,%ebx
+    movl _oldesi,%esi
+    movl _oldedi,%edi
+  end;
 
   Exc.Refcount:=0;
   Exc.SEHFrame:=@frame;
@@ -312,6 +327,9 @@ begin
       movl   Exc.FObject,%eax
       movl   frame,%edx
       movl   TargetAddr,%ecx              // load ebp-based var before changing ebp
+      movl   _ebx,%ebx
+      movl   _esi,%esi
+      movl   _edi,%edi
       movl   TSEHFrame._EBP(%edx),%ebp
       jmpl   *%ecx
   end;
