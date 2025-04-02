@@ -27,6 +27,8 @@ begin
     P.SourcePath.Add('src');
     // Logger
     T:=P.Targets.AddUnit('wasm.logger.api.pas');
+    // Memutils
+    T:=P.Targets.AddUnit('wasm.memutils.pas');
     
     // Timer
     T:=P.Targets.AddUnit('wasm.timer.shared.pas');

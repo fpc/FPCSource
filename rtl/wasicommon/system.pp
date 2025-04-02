@@ -66,16 +66,22 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
+type
+  TWasmGrowMemoryCallBack = procedure(aGrowPages: longint);
+
 var
   argc: longint;
   argv: PPAnsiChar;
   envp: PPAnsiChar;
   ___fpc_wasm_suspender: WasmExternRef; section 'WebAssembly.Global';
-
+  WasmGrowMemoryCallback : TWasmGrowMemoryCallBack;
+  
 function __fpc_get_wasm_suspender: WasmExternRef;
 procedure __fpc_set_wasm_suspender(v: WasmExternRef);
 
 property __fpc_wasm_suspender: WasmExternRef read __fpc_get_wasm_suspender write __fpc_set_wasm_suspender;
+
+
 
 Procedure DebugWriteln(aString : ShortString);
 

@@ -71,6 +71,8 @@ begin
         end
       else
         SysOSAlloc:=nil;
+      if assigned(WasmGrowMemoryCallback) then
+        WasmGrowMemoryCallback(grow_pages);
     end;
 {$ifdef FPC_WASM_THREADS}
   if InitialHeapCriticalSectionInitialized then
