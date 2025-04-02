@@ -832,6 +832,21 @@ implementation
                 result:=operand_read;
             A_STREX:
               result:=operand_write;
+            A_LDM:
+              if opnr=0 then
+                result:=operand_readwrite
+              else
+                result:=operand_write;
+            A_STM:
+              if opnr=0 then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_ADR:
+              if opnr=0 then
+                result:=operand_write
+              else
+                result:=operand_read;
             else
               internalerror(200403151);
           end
@@ -923,6 +938,21 @@ implementation
                 result:=operand_read;
             A_STREX:
               result:=operand_write;
+            A_LDM:
+              if opnr=0 then
+                result:=operand_readwrite
+              else
+                result:=operand_write;
+            A_STM:
+              if opnr=0 then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_ADR:
+              if opnr=0 then
+                result:=operand_write
+              else
+                result:=operand_read;
             else
               begin
                 writeln(opcode);
