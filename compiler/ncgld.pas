@@ -326,8 +326,12 @@ implementation
              else
                reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint),[]);
              { Enable size optimization with -Os or PIC code is generated and PIC uses GOT }
-             size_opt:=(cs_opt_size in current_settings.optimizerswitches)
-                       or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in target_info.flags));
+             size_opt:={$if defined(RISCV)}
+                         true
+                       {$else defined(RISCV)}
+                         (cs_opt_size in current_settings.optimizerswitches)
+                         or ((cs_create_pic in current_settings.moduleswitches) and (tf_pic_uses_got in target_info.flags))
+                       {$endif defined(RISCV)};
              hreg_tv_rec:=NR_INVALID;
              if size_opt then
                begin
