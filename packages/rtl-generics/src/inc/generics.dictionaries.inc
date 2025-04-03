@@ -646,6 +646,17 @@ begin
   SetValue(FItems[LIndex].Pair.Value, AValue);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetOrAddMutableValue(const AKey: TKey): PValue;
+var
+  LIndex: SizeInt;
+  LHash: UInt32;
+begin
+  LIndex := FindBucketIndex(FItems, AKey, LHash);
+  if LIndex < 0 then
+    LIndex := DoAdd(AKey, Default(TValue), LHash, LIndex);
+  Result := @FItems[LIndex].Pair.Value;
+end;
+
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetMutableValue(const AKey: TKey): PValue;
 var
   LIndex: SizeInt;
