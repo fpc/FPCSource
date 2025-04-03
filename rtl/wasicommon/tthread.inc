@@ -184,6 +184,9 @@ begin
         Resume;
         end;
       {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: waiting on thread');{$ENDIF}
+      // Before calling WaitFor, signal main thread with WakeMainThread, so pending checksynchronize calls are handled.
+      if assigned(WakeMainThread) then
+        WakeMainThread(Self);
       WaitFor;
       end;
     end;
