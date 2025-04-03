@@ -1754,7 +1754,15 @@ unit aoptx86;
           OpsEqual(taicpu(hp1).oper[1]^, taicpu(p).oper[1]^) then
           begin
             if (taicpu(p).oper[0]^.val > taicpu(hp1).oper[0]^.val) and
-              not(cs_opt_size in current_settings.optimizerswitches) then
+              not(cs_opt_size in current_settings.optimizerswitches)
+{$ifdef x86_64}
+              and (
+                (taicpu(p).opsize <> S_Q) or
+                { 64-bit AND can only store signed 32-bit immediates }
+                (taicpu(p).oper[0]^.val < 32)
+              )
+{$endif x86_64}
+              then
               begin
                 { shr/sar const1, %reg
                   shl     const2, %reg
@@ -1773,7 +1781,15 @@ unit aoptx86;
                 end;
               end
             else if (taicpu(p).oper[0]^.val<taicpu(hp1).oper[0]^.val) and
-              not(cs_opt_size in current_settings.optimizerswitches) then
+              not(cs_opt_size in current_settings.optimizerswitches)
+{$ifdef x86_64}
+              and (
+                (taicpu(p).opsize <> S_Q) or
+                { 64-bit AND can only store signed 32-bit immediates }
+                (taicpu(p).oper[0]^.val < 32)
+              )
+{$endif x86_64}
+              then
               begin
                 { shr/sar const1, %reg
                   shl     const2, %reg
@@ -1791,7 +1807,15 @@ unit aoptx86;
                     Internalerror(2017050702)
                 end;
               end
-            else if (taicpu(p).oper[0]^.val = taicpu(hp1).oper[0]^.val) then
+            else if (taicpu(p).oper[0]^.val = taicpu(hp1).oper[0]^.val)
+{$ifdef x86_64}
+              and (
+                (taicpu(p).opsize <> S_Q) or
+                { 64-bit AND can only store signed 32-bit immediates }
+                (taicpu(p).oper[0]^.val < 32)
+              )
+{$endif x86_64}
+              then
               begin
                 { shr/sar const1, %reg
                   shl     const2, %reg
