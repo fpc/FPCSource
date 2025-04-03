@@ -353,17 +353,33 @@ begin
   Result := FindBucketIndex(AItems, AKey, AHash);
 end;
 
-procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.PrepareAddingItem;
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.PrepareAddingItem: boolean;
 begin
+  Result := False;
   if RealItemsLength > FItemsThreshold then
-    Rehash(Length(FItems) shl 1)
+  begin
+    Rehash(Length(FItems) shl 1);
+    Result := True;
+  end
   else if FItemsThreshold = 0 then
   begin
     SetLength(FItems, 8);
     UpdateItemsThreshold(8);
+    Result := True;
   end
-  else if FItemsLength = $40000001 then // High(TIndex) ... Error: Type mismatch
+  else
+  if FItemsLength = $40000001 then // High(TIndex) ... Error: Type mismatch
     OutOfMemoryError;
+end;
+
+procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.InternalDoAdd(const AKey: TKey;
+  const AValue: TValue; AHash: UInt32; var ABucketIndex: SizeInt);
+begin
+  if ABucketIndex >= 0 then
+    raise EListError.CreateRes(@SDuplicatesNotAllowed);
+
+  ABucketIndex := not ABucketIndex;
+  AddItem(FItems[ABucketIndex], AKey, AValue, AHash);
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.UpdateItemsThreshold(ASize: SizeInt);
@@ -405,6 +421,25 @@ begin
   DoAdd(APair.Key, APair.Value);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(const AKey: TKey; const AValue: TValue;
+  AHash: UInt32; ABucketIndex: SizeInt): SizeInt;
+begin
+  if not PrepareAddingItem then
+    Result := ABucketIndex
+  else
+    Result := FindBucketIndexForHash(FItems, AKey, AHash);
+  InternalDoAdd(AKey, AValue, AHash, Result);
+end;
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(const AKey: TKey; const AValue: TValue;
+  AHash: UInt32): SizeInt;
+begin
+  PrepareAddingItem;
+
+  Result := FindBucketIndexForHash(FItems, AKey, AHash);
+  InternalDoAdd(AKey, AValue, AHash, Result);
+end;
+
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.DoAdd(const AKey: TKey; const AValue: TValue): SizeInt;
 var
   LHash: UInt32;
@@ -412,11 +447,7 @@ begin
   PrepareAddingItem;
 
   Result := FindBucketIndex(FItems, AKey, LHash);
-  if Result >= 0 then
-    raise EListError.CreateRes(@SDuplicatesNotAllowed);
-
-  Result := not Result;
-  AddItem(FItems[Result], AKey, AValue, LHash);
+  InternalDoAdd(AKey, AValue, LHash, Result);
 end;
 
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.DoRemove(AIndex: SizeInt;
@@ -652,10 +683,12 @@ end;
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.TryAdd(const AKey: TKey; const AValue: TValue): Boolean;
 var
   LHash: UInt32;
+  i: SizeInt;
 begin
-  Result := FindBucketIndex(FItems, AKey, LHash) < 0;
+  i := FindBucketIndex(FItems, AKey, LHash);
+  Result := i < 0;
   if Result then
-    DoAdd(AKey, AValue);
+    DoAdd(AKey, AValue, LHash, i);
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddOrSetValue(const AKey: TKey; const AValue: TValue);
@@ -666,7 +699,7 @@ begin
   LIndex := FindBucketIndex(FItems, AKey, LHash);
 
   if LIndex < 0 then
-    DoAdd(AKey, AValue)
+    DoAdd(AKey, AValue, LHash, LIndex)
   else
     SetValue(FItems[LIndex].Pair.Value, AValue);
 end;

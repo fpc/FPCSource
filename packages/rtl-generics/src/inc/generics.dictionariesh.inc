@@ -189,7 +189,8 @@ type
     FItemsThreshold: SizeInt;
 
     procedure Resize(ANewSize: SizeInt);
-    procedure PrepareAddingItem;
+    function PrepareAddingItem: boolean;
+    procedure InternalDoAdd(const AKey: TKey; const AValue: TValue; AHash: UInt32; var ABucketIndex: SizeInt); inline;
   protected
     function RealItemsLength: SizeInt; virtual;
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; virtual;
@@ -242,7 +243,9 @@ type
   protected
      // useful for using dictionary as array
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; virtual;
-    function DoAdd(const AKey: TKey; const AValue: TValue): SizeInt; virtual;
+    function DoAdd(const AKey: TKey; const AValue: TValue; AHash: UInt32; ABucketIndex: SizeInt): SizeInt; virtual; overload;
+    function DoAdd(const AKey: TKey; const AValue: TValue; AHash: UInt32): SizeInt; overload;
+    function DoAdd(const AKey: TKey; const AValue: TValue): SizeInt; virtual; overload;
 
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
 
