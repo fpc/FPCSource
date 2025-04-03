@@ -63,7 +63,7 @@ Var
   LFreeOnTerminate : Boolean;
 
 begin
-  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('In threadfunc. Thread object: '+IntToStr(PTrUint(LThread)));{$ENDIF}
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('In threadfunc. Thread object: '+IntToStr(PTrUint(LThread))+' thread id :'+IntToStr(ptrint(Lthread.FThreadID)));{$ENDIF}
   try
     if LThread.FInitialSuspended then
       begin
@@ -142,9 +142,11 @@ end;
 procedure TThread.SysDestroy;
 
 begin
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: enter');{$ENDIF}
   { exception in constructor }
   if not assigned(FSuspendEvent) then
     exit;
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: have suspendevent');{$ENDIF}
   { exception in constructor }
   if (FHandle = TThreadID(0)) then
     begin
@@ -154,25 +156,40 @@ begin
   { Thread itself called destroy ? }
   if (FThreadID = GetCurrentThreadID) then
     begin
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: '+IntToStr(PtrInt(FThreadID))+' = '+IntToStr(PtrInt(GetCurrentThreadID)));{$ENDIF}
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: thread itself is freeing');{$ENDIF}
     if not(FFreeOnTerminate) and not FFinished then
+       begin 
+       {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: error condition');{$ENDIF}
        raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
+       end;
+    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: clearing FreeOnTerminate');{$ENDIF}
     FFreeOnTerminate := false;
     end
   else
     begin
+    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: other thread is freeing');{$ENDIF}
+    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: '+IntToStr(PtrInt(FThreadID))+' = '+IntToStr(PtrInt(GetCurrentThreadID)));{$ENDIF}
     { avoid recursion}
     FFreeOnTerminate := false;
     { you can't join yourself, so only for FThreadID<>GetCurrentThreadID }
     { and you can't join twice -> make sure we didn't join already       }
     if not FThreadReaped then
       begin
+      {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: reaping thread');{$ENDIF}
       Terminate;
       if (FSuspendedInternal or FInitialSuspended) then
+        begin
+        {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: resuming thread in order to reap');{$ENDIF}
         Resume;
+        end;
+      {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: waiting on thread');{$ENDIF}
       WaitFor;
       end;
     end;
+   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: destroying RTL suspend event');{$ENDIF}
    RtlEventDestroy(FSuspendEvent);
+   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: freeing fatal exception if it exists');{$ENDIF}
    FFatalException.Free;
    FFatalException := nil;
 end;
@@ -188,6 +205,7 @@ begin
     end
   else
     begin
+    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('resuming thread '+IntToStr(ptruint(self)));{$ENDIF}
     { don't compare with ord(true) or ord(longbool(true)), }
     { becaue a longbool's "true" value is anyting <> false }
     if FSuspended and
@@ -195,7 +213,8 @@ begin
       begin
       {$IFDEF DEBUGWASMTHREADS}DebugWriteln('resuming '+IntToStr(ptruint(self)));{$ENDIF}
       RtlEventSetEvent(FSuspendEvent);
-      end
+      end;
+    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('resumed thread '+IntToStr(ptruint(self)));{$ENDIF}
     end
 end;
 
