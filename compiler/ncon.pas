@@ -1306,10 +1306,10 @@ implementation
           begin
             { value_str is of type PCompilerWideString }
             SetLength(OutputStr, len);
-            UnicodeToUtf8(PChar(OutputStr), PUnicodeChar(PCompilerWideString(value_str)^.data), len + 1); { +1 for the null terminator }
+            UnicodeToUtf8(PChar(OutputStr), PUnicodeChar(valuews.data), len + 1); { +1 for the null terminator }
           end;
         else
-          OutputStr := ansistring(value_str);
+          OutputStr := PAnsichar(@valueas[0]);
           SetLength(OutputStr, len);
         end;
 
