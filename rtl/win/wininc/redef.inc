@@ -641,10 +641,10 @@ function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external
 function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external 'kernel32' name 'GetVersionExW';
 function GetViewportExtEx(DC: HDC; var Size: TSize): BOOL; external 'gdi32' name 'GetViewportExtEx';
 function GetViewportOrgEx(DC: HDC; var Point: TPoint): BOOL; external 'gdi32' name 'GetViewportOrgEx';
-function GetVolumeInformation(lpRootPathName: PChar; lpVolumeNameBuffer: PChar; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
-  lpFileSystemNameBuffer: PChar; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
-function GetVolumeInformationA(lpRootPathName: LPCSTR; lpVolumeNameBuffer: LPCSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
-  lpFileSystemNameBuffer: LPCSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
+function GetVolumeInformation(lpRootPathName: PAnsiChar; lpVolumeNameBuffer: PAnsiChar; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
+  lpFileSystemNameBuffer: PAnsiChar; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
+function GetVolumeInformationA(lpRootPathName: LPCSTR; lpVolumeNameBuffer: LPSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
+  lpFileSystemNameBuffer: LPSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationA';
 function GetVolumeInformationW(lpRootPathName: LPWSTR; lpVolumeNameBuffer: LPWSTR; nVolumeNameSize: DWORD; lpVolumeSerialNumber: PDWORD; var lpMaximumComponentLength, lpFileSystemFlags: DWORD;
   lpFileSystemNameBuffer: LPWSTR; nFileSystemNameSize: DWORD): BOOL; external 'kernel32' name 'GetVolumeInformationW';
 function GetWindowExtEx(DC: HDC; var Size: TSize): BOOL; external 'gdi32' name 'GetWindowExtEx';
