@@ -353,7 +353,7 @@ end;
       {$i md5x64_sysv.inc}
       {$define MD5ASM}
     {$endif MSWINDOWS}
-  {$elseif defined(CPUARM)}
+  {$elseif defined(CPUARM) and not (defined(CPUTHUMB)) and not (defined(CPUTHUMB2))}
     {$i md5arm.inc}
     {$define MD5ASM}
   {$endif}
@@ -826,5 +826,5 @@ function StrtoMD5(const MD5String:String):TMDDigest;
        end;
      if not f then
        FillChar(Result, Sizeof(Result), 0);
-   end; 
+   end;
 end.
