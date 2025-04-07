@@ -1076,7 +1076,7 @@ begin
             if (AncestorObj<> ObjValue) and
              (TComponent(AncestorObj).Owner = FRootAncestor) and
              (TComponent(ObjValue).Owner = Root) and
-             (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
+             (SameText(TComponent(AncestorObj).Name,TComponent(ObjValue).Name)) then
             begin
               // different components, but with the same name
               // treat it like an override
@@ -1215,7 +1215,7 @@ begin
               if (AncestorObj<> Component) and
                (TComponent(AncestorObj).Owner = FRootAncestor) and
                (Component.Owner = Root) and
-               (UpperCase(TComponent(AncestorObj).Name) = UpperCase(Component.Name)) then
+               (SameText(TComponent(AncestorObj).Name,Component.Name)) then
               begin
                 // different components, but with the same name
                 // treat it like an override
