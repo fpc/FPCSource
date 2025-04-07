@@ -400,7 +400,7 @@ begin
         FUses.Add('stdole2');
         end;
       end
-    else if (LowerCase(sl)<>LowerCase(UnitName)) and (FUses.IndexOf(sl)=-1) then
+    else if (not SameText(sl,UnitName)) and (FUses.IndexOf(sl)=-1) then
       begin  // add dependency
       // find source in registry key HKEY_CLASSES_ROOT\TypeLib\GUID\version\0\win32
       bIsExternalDecl:=true;
