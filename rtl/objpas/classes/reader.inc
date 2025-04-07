@@ -710,7 +710,7 @@ end;
 procedure TReader.DefineProperty(const Name: string; AReadData: TReaderProc;
   WriteData: TWriterProc; HasData: Boolean);
 begin
-  if Assigned(AReadData) and (UpperCase(Name) = UpperCase(FPropName)) then
+  if Assigned(AReadData) and SameText(Name,FPropName) then
   begin
     AReadData(Self);
     SetLength(FPropName, 0);
@@ -722,7 +722,7 @@ procedure TReader.DefineBinaryProperty(const Name: string; AReadData,
 var
   MemBuffer: TMemoryStream;
 begin
-  if Assigned(AReadData) and (UpperCase(Name) = UpperCase(FPropName)) then
+  if Assigned(AReadData) and SameText(Name,FPropName) then
   begin
     { Check if the next property really is a binary property}
     if FDriver.NextValue <> vaBinary then
