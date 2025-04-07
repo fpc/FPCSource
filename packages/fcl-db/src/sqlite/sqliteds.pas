@@ -148,8 +148,7 @@ begin
     ColumnStr := UpperCase(String(ColumnNames[i + ColumnCount]));
     if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
     begin
-      if AutoIncrementKey and
-           (UpperCase(String(ColumnNames[i])) = UpperCase(PrimaryKey)) then
+      if AutoIncrementKey and SameText(String(ColumnNames[i]),PrimaryKey) then
       begin
         AType := ftAutoInc;
         FAutoIncFieldNo := i;
