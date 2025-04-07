@@ -843,7 +843,7 @@ begin
     TN:=TypeName(aType^.p2^.p);
     PN:=PointerName(aType^.p2^.p);
     (* define a Pointer type also for structs *)
-    if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+    if UsePPointers and (not SameText(tn,pn)) and
       assigned(aType) and (aType^.typ in [t_uniondef,t_structdef]) then
     writeln(outfile,aktspace,PN,' = ^',TN,';');
     write(outfile,aktspace,TN,' = ');
@@ -971,7 +971,7 @@ begin
   is_procvar:=false;
   TN:=TypeName(ph^.p);
   PN:=PointerName(ph^.p);
-  if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+  if UsePPointers and (not SameText(tn,pn)) and
     assigned(type_spec) and (type_spec^.typ<>t_procdef) then
     WritePointerTypeDef(outfile,PN,TN);
   (* write new type name *)
@@ -993,13 +993,13 @@ begin
       begin
         PN:=TypeName(ph^.p);
         TN:=TypeName(hp^.p1^.p2^.p);
-        if Uppercase(TN)<>Uppercase(PN) then
+        if not SameText(TN,PN) then
         begin
           write(outfile,aktspace,TN,' = ');
           write_p_a_def(outfile,hp^.p1^.p1,ph);
           writeln(outfile,';');
           PN:=PointerName(hp^.p1^.p2^.p);
-          if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+          if UsePPointers and (not sametext(tn,pn)) and
             assigned(type_spec) and (type_spec^.typ<>t_procdef) then
             writeln(outfile,aktspace,PN,' = ^',TN,';');
         end;
@@ -1034,7 +1034,7 @@ begin
     end;
   PN:=TypeName(dname1^.p);
   TN:=TypeName(dname2^.p);
-  if Uppercase(tn)<>Uppercase(pn) then
+  if not SameText(tn,pn) then
   begin
     shift(2);
     writeln(outfile,aktspace,PN,' = ',TN,';');
