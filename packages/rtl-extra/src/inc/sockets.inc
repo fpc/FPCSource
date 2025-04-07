@@ -773,6 +773,7 @@ function NetAddrIsPrivate6(const IP: in6_addr): Boolean;
 var
   W0: Word;
 begin
+  // See https://en.wikipedia.org/wiki/IPv6_address
   W0 := NToHs(IP.u6_addr16[0]);
   NetAddrIsPrivate6:=
      // The original IPv6 Site Local addresses (fec0::/10 - range fec0..feff) - deprecated
