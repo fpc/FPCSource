@@ -1851,7 +1851,7 @@ begin
         DatabaseError('Field type "' + FieldTypeNames[FieldDefs[i].DataType] +
           '" not supported', Self);
       end;
-      if UpperCase(FieldDefs[i].Name) = UpperCase(FPrimaryKey) then
+      if SameText(FieldDefs[i].Name,FPrimaryKey) then
         SQLTemp := SQLTemp + ' PRIMARY KEY';
       if i <> FieldDefs.Count - 1 then
         SQLTemp := SQLTemp + ' , ';
