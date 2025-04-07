@@ -205,6 +205,7 @@ Function ShortHostToNet(Host : Word) : Word; deprecated;
 Function ShortNetToHost(Net  : Word) : Word; deprecated;
 
 function NetAddrIsPrivate(const IP: in_addr): Boolean;
+function NetAddrIsPrivate6(const IP: in6_addr): Boolean;
 
 
 // ipv6
