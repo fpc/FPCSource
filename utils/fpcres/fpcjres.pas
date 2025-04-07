@@ -116,7 +116,7 @@ begin
   end;
   tmp:=ChangeFileExt(ExtractFileName(params.InputFiles[0]),
     '.jar');
-  if lowercase(tmp)=lowercase(params.InputFiles[0]) then
+  if sametext(tmp,params.InputFiles[0]) then
     tmp:=tmp+'.jar';
   params.OutputFile:=tmp;
 end;

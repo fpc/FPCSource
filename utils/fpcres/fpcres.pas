@@ -161,7 +161,7 @@ begin
   end;
   tmp:=ChangeFileExt(ExtractFileName(params.InputFiles[0]),
     ObjFormats[CurrentTarget.objformat].ext);
-  if lowercase(tmp)=lowercase(params.InputFiles[0]) then
+  if SameText(tmp,params.InputFiles[0]) then
     tmp:=tmp+ObjFormats[CurrentTarget.objformat].ext;
   params.OutputFile:=tmp;
 end;
