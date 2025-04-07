@@ -9350,16 +9350,14 @@ end;
 
 {$endif FPC_SOFTFLOAT_FLOAT128}
 
-{$endif not(defined(fpc_softfpu_interface))}
-
-{$if not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
-
-end.
-
 {$ifdef FPC}
   { restore context modified at implmentation start
     to possibly re-enable range and overflow checking explicitly}
   {$pop}
 {$endif FPC}
 
+{$endif not(defined(fpc_softfpu_interface))}
+
+{$if not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
+end.
 {$endif not(defined(fpc_softfpu_interface)) and not(defined(fpc_softfpu_implementation))}
