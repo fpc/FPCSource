@@ -322,7 +322,7 @@ Var Source, Dest   : PathStr;
 Const OneLevelBack = '..'+DirectorySeparator;
 
 begin
-  If Uppercase(ExtractFileDrive(BaseName))<>Uppercase(ExtractFileDrive(DestName)) Then
+  If not SameText(ExtractFileDrive(BaseName),ExtractFileDrive(DestName)) Then
     begin
     Result:=DestName;
     exit;
