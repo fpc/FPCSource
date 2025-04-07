@@ -3,7 +3,7 @@
 Program GParMake;
 
 Uses
-  Classes;
+  SysUtils, Classes;
 
 procedure Usage;
   begin
@@ -176,7 +176,7 @@ Function ProcessArgs: longint;
                   nexttestname:=''
                 else
                   nexttestname:=filelist[i+1];
-                if lowercase(copy(testname,1,length(testname)-4))<>lowercase(copy(nexttestname,1,length(nexttestname)-4)) then
+                if not SameText(copy(testname,1,length(testname)-4),copy(nexttestname,1,length(nexttestname)-4)) then
                   FlushChunk;
               end;
           end;
