@@ -562,6 +562,7 @@ end;
 
 function WasiCloseThread(threadHandle : TThreadID) : dword;
 begin
+  FreeStackAndTlsBlock(PWasmThread(threadhandle));
   Result:=0;
 end;
 
@@ -599,7 +600,6 @@ begin
   repeat
   until fpc_wasm32_i32_atomic_load8_u(@TH^.ThreadHasFinished)<>0;
   {$IFDEF DEBUGWASMTHREADS}DebugWriteln('WaitForThreadTerminate('+IntToStr(PtrUINT(TH))+') : FreeStackAndTlsBlock');{$ENDIF}
-  FreeStackAndTlsBlock(TH);
 end;
 
 function WasiThreadSetPriority(threadHandle : TThreadID; Prio: longint): boolean;

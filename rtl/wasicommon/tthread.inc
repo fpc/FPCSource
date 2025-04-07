@@ -113,9 +113,10 @@ begin
       {$IFDEF DEBUGWASMTHREADS}DebugWriteln('Thread '+IntToStr(ptruint(lthread))+' should be freed');{$ENDIF}
       LThread.Free;
       {$IFDEF DEBUGWASMTHREADS}DebugWriteln('Thread freed');{$ENDIF}
-      {$IFDEF DEBUGWASMTHREADS}DebugWriteln('Thread func calling EndThread');{$ENDIF}
-      EndThread(Result);
     end;
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('Thread func calling EndThread');{$ENDIF}
+  EndThread(Result);
+  
 end;
 
 procedure TThread.SysCreate(CreateSuspended: Boolean; const StackSize: SizeUInt);
@@ -195,6 +196,9 @@ begin
    {$IFDEF DEBUGWASMTHREADS}DebugWriteln('TThread.SysDestroy: freeing fatal exception if it exists');{$ENDIF}
    FFatalException.Free;
    FFatalException := nil;
+   // Free resources associated with thread. 
+   // This must be done after EndThread is called, but that is called in ThreadFunc
+   CloseThread(FHandle);
 end;
 
 
