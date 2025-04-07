@@ -846,7 +846,7 @@ function TRttiExpWideStringNodeItem.Evaluate(AInstance: TRttiFilterCreatorTarget
 begin
   case Operation of
     sfoEqualCaseSensitive   :  Result := ( GetWideStrProp(AInstance,PropInfo) = ComparedValue );
-    sfoEqualCaseInsensitive :  Result := ( LowerCase(GetWideStrProp(AInstance,PropInfo)) = LowerCase(ComparedValue) );
+    sfoEqualCaseInsensitive :  Result := ( SameText(GetWideStrProp(AInstance,PropInfo),ComparedValue));
     sfoNotEqual             :  Result := not SameText(GetWideStrProp(AInstance,PropInfo),ComparedValue);
     else begin
       Assert(False);
