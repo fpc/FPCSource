@@ -164,7 +164,7 @@ begin
         'isMany()'
       );
       alLs := sp.getType().getName();
-      ok := ( LowerCase(pt.getString(s_Name)) = LowerCase(sp.getType().getName()) );
+      ok := SameText(pt.getString(s_Name),sp.getType().getName());
       alsCount := sp.getType().getAliasCount();
       if ( not ok ) and ( alsCount > 0 ) then begin
         tmpBuffer := LowerCase(pt.getString(s_Name));
@@ -265,7 +265,7 @@ begin
         'isMany()'
       );
       alLs := sp.getType().getName();
-      ok := ( LowerCase(pt.getName()) = LowerCase(sp.getDataObject(s_DataType).getString(s_Name)) );
+      ok := SameText( pt.getName(), sp.getDataObject(s_DataType).getString(s_Name));
       alsCount := pt.getAliasCount();
       if ( not ok ) and ( alsCount > 0 ) then begin
         tmpBuffer := LowerCase(sp.getDataObject(s_DataType).getString(s_Name));
