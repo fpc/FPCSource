@@ -877,7 +877,7 @@ function TRttiExpUnicodeStringNodeItem.Evaluate(
 begin
   case Operation of
     sfoEqualCaseSensitive   :  Result := ( GetUnicodeStrProp(AInstance,PropInfo) = ComparedValue );
-    sfoEqualCaseInsensitive :  Result := ( LowerCase(GetUnicodeStrProp(AInstance,PropInfo)) = LowerCase(ComparedValue));
+    sfoEqualCaseInsensitive :  Result := SameText(GetUnicodeStrProp(AInstance,PropInfo),ComparedValue);
     sfoNotEqual             :  Result := not SameText(GetUnicodeStrProp(AInstance,PropInfo),ComparedValue);
     else
       Assert(False);
