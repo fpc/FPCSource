@@ -188,7 +188,7 @@ begin
     ColumnStr := UpperCase(String(sqlite3_column_decltype(vm, i)));
     if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
     begin
-      if AutoIncrementKey and (UpperCase(String(sqlite3_column_name(vm, i))) = UpperCase(PrimaryKey)) then
+      if AutoIncrementKey and SameText(String(sqlite3_column_name(vm, i)),PrimaryKey) then
       begin
         AType := ftAutoInc;
         FAutoIncFieldNo := i;
