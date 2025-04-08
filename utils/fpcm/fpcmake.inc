@@ -1104,7 +1104,7 @@ const fpcmakeini : array[0..268,1..240] of char=(
   'SHAREDLIBPREFIX=libfp'#010+
   'STATICLIBPREFIX=libp'#010+
   'IMPORTLIBPREFIX=libimp'#010+
-  'RSTEXT=.rst'#010+
+  'RSTEXT=.rsj'#010+
   '# externa','l debug info for executable'#010+
   'EXEDBGEXT=.dbg'#010+
   '#DEBUGSYMEXT #for debugger symbol files, define only for targets which'+
