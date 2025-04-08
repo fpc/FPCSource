@@ -945,7 +945,7 @@ ifeq ($(CPU_OS_TARGET),i386-netware)
 override TARGET_LOADERS+=nwpre prelude
 endif
 ifeq ($(CPU_OS_TARGET),i386-netware)
-override TARGET_RSTS+=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT)
+override TARGET_RSTS+=$(MATHUNIT) $(TYPINFOUNIT) pmhelp $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-netware)

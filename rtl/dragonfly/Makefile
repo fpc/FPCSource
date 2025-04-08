@@ -946,7 +946,7 @@ ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 override TARGET_LOADERS+=prt0 cprt0 gprt0 dllprt0
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_RSTS+=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT)
+override TARGET_RSTS+=$(MATHUNIT) $(TYPINFOUNIT) $(CLASSESUNIT) $(SYSCONSTUNIT) $(UNICODEDATAUNIT)
 endif
 override INSTALL_FPCPACKAGE=y y y
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
