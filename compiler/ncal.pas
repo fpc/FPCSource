@@ -1421,10 +1421,27 @@ implementation
                         else
                           make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
                       end;
-                    vs_var,
-                    vs_constref:
+                    vs_var:
                       begin
                         set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
+                        { compilerprocs never capture the address of their
+                          parameters }
+                        if (po_compilerproc in aktcallnode.procdefinition.procoptions) or
+                        { if we handled already the proc. body and it is not inlined,
+                          we can propagate the information if the address of a parameter is taken or not }
+                        ((aktcallnode.procdefinition.typ=procdef) and
+                         not(po_inline in tprocdef(aktcallnode.procdefinition).procoptions) and
+                         (tprocdef(aktcallnode.procdefinition).is_implemented) and
+                         not(parasym.addr_taken)) then
+                          make_not_regable(left,[ra_addr_regable])
+                        else
+                          make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                      end;
+                    vs_constref:
+                      begin
+                        { constref does not mean that the variable is actually written, this might only
+                          happen if it's address is taken, this is handled below }
+                        set_varstate(left,vs_read,[vsf_must_be_valid,vsf_use_hints]);
                         { compilerprocs never capture the address of their
                           parameters }
                         if (po_compilerproc in aktcallnode.procdefinition.procoptions) or
