@@ -1956,7 +1956,7 @@ begin
   Result:=FindInFieldTable(Root);
   
   if (Result=nil) and assigned(LookupRoot) and (LookupRoot<>Root) then
-    FindInFieldTable(LookupRoot);
+    Result:=FindInFieldTable(LookupRoot);
 
   if (Result=nil) and assigned(OnFindComponentClassEx) then
     OnFindComponentClassEx(Self, AName, anUnitName, AClassName, Result);
