@@ -1849,7 +1849,7 @@ begin
   Result:=FindInFieldTable(Root);
   
   if (Result=nil) and assigned(LookupRoot) and (LookupRoot<>Root) then
-    FindInFieldTable(LookupRoot);
+    Result:=FindInFieldTable(LookupRoot);
 
   if (Result=nil) then begin
     PersistentClass := GetClass(AClassName);
