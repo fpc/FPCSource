@@ -1840,8 +1840,9 @@ implementation
                     and get the member owner instead of just created enumdef }
                   if not assigned(aktenumdef) then
                     begin
-                      searchsym(pattern,sym,st);
-                      if sym.typ=enumsym then
+                      if not searchsym(pattern,sym,st) then
+                        internalerror(202504121)
+                      else if sym.typ=enumsym then
                         aktenumdef:=tenumsym(sym).definition
                       else
                         internalerror(201101021);
