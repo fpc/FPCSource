@@ -70,19 +70,16 @@ implementation
 
   class procedure twasmnodeutils.InsertObjectInfo;
 
-    var
-      modules: TFPList;
-
-    function ModuleExists(m: tmodule): Boolean;
+      procedure resetfunctypechecked;
       var
-        q: tmodule;
+        module : tmodule;
       begin
-        result:=modules.IndexOf(Pointer(m))>=0;
-      end;
-
-    procedure AddModule(m: tmodule);
-      begin
-        modules.Add(Pointer(m));
+         module:=tmodule(loaded_units.first);
+        while assigned(module) do
+          begin
+          module.functypechecked:=false;
+          module:=tmodule(module.next);
+          end;
       end;
 
       procedure WriteImportDll(list: TAsmList; proc: tprocdef);
@@ -99,9 +96,9 @@ implementation
           proc : tprocdef;
           cur_unit : tused_unit;
         begin
-          if ModuleExists(u) then
+          if u.functypechecked then
             exit;
-          AddModule(u);
+          u.functypechecked:=true;
 
           cur_unit:=tused_unit(u.used_units.First);
           while assigned(cur_unit) do
@@ -142,7 +139,7 @@ implementation
     begin
       inherited;
 
-      modules:=TFPList.Create;
+      resetfunctypechecked;
 
       list:=current_asmdata.asmlists[al_start];
 
@@ -185,7 +182,6 @@ implementation
         end;
       destroy_hlcodegen;
 
-      modules.Free;
     end;
 
 begin

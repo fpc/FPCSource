@@ -206,6 +206,7 @@ interface
         compilecount : integer;
         consume_semicolon_after_uses : Boolean;
         initfinalchecked : boolean;
+        functypechecked : boolean;
 
         { contains a list of types that are extended by helper types; the key is
           the full name of the type and the data is a TFPObjectList of
