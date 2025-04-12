@@ -253,10 +253,13 @@ end;
       Result:=ClassName+': '+Message;
     end;
 
+Var OutOfMemory : EOutOfMemory;
+    InValidPointer : EInvalidPointer;
+
     procedure EHeapMemoryError.FreeInstance;
     begin
-       if AllowFree then
-        inherited FreeInstance;
+       if (pointer(self)<>pointer(OutOfMemory)) and (pointer(self)<>pointer(InvalidPointer)) then
+         inherited FreeInstance;
     end;
 
 
@@ -429,10 +432,6 @@ begin
   result:=nil;
 end;
 
-Var OutOfMemory : EOutOfMemory;
-    InValidPointer : EInvalidPointer;
-
-
 Procedure RunErrorToExcept (ErrNo : Longint; Address : CodePointer; Frame : Pointer);
 var
   E: Exception;
@@ -548,9 +547,7 @@ begin
   ExceptProc:=@CatchUnhandledException;
   // Create objects that may have problems when there is no memory.
   OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
-  OutOfMemory.AllowFree:=false;
   InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
-  InvalidPointer.AllowFree:=false;
   AssertErrorProc:=@AssertErrorHandler;
   ErrorProc:=@RunErrorToExcept;
   OnShowException:=Nil;
@@ -559,10 +556,8 @@ end;
 
 Procedure DoneExceptions;
 begin
-  OutOfMemory.AllowFree:=true;
-  OutOfMemory.Free;
-  InValidPointer.AllowFree:=true;
-  InValidPointer.Free;
+  FreeAndNil(OutOfMemory); { These will automatically work as they first set pointer to nil, then free the object. See EHeapMemoryError.FreeInstance. }
+  FreeAndNil(InValidPointer);
 end;
 
 

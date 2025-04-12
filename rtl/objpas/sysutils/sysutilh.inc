@@ -161,10 +161,7 @@ type
    end;
 
    EHeapMemoryError = class(Exception)
-     protected
-       AllowFree : boolean;
-     public
-       procedure FreeInstance;override;
+     procedure FreeInstance;override;
    end;
 
    EHeapException = EHeapMemoryError;
