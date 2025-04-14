@@ -134,10 +134,7 @@ implementation
              { :-(, we must generate a new entry }
              if not(assigned(lab_real)) then
                begin
-                  if create_smartlink_library then
-                    current_asmdata.getglobaldatalabel(lastlabel)
-                  else
-                    current_asmdata.getlocaldatalabel(lastlabel);
+                  current_asmdata.getdatalabel(lastlabel);
                   entry^.Data:=lastlabel;
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
@@ -324,7 +321,7 @@ implementation
                         end;
                       cst_shortstring:
                         begin
-                          current_asmdata.getlocaldatalabel(lastlabel.lab);
+                          current_asmdata.getdatalabel(lastlabel.lab);
 
                           { truncate strings larger than 255 chars }
                           if len>255 then
@@ -345,7 +342,7 @@ implementation
                         end;
                       cst_conststring:
                         begin
-                          current_asmdata.getlocaldatalabel(lastlabel.lab);
+                          current_asmdata.getdatalabel(lastlabel.lab);
 
                           { the data includes the terminating #0 because this
                             string can be used for pchar assignments (but it's
@@ -406,7 +403,7 @@ implementation
         i: longint;
         tcb: ttai_typedconstbuilder;
       begin
-        current_asmdata.getlocaldatalabel(lab);
+        current_asmdata.getdatalabel(lab);
         result:=lab;
         lab_set:=lab;
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
@@ -510,7 +507,7 @@ implementation
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
                begin
-                 current_asmdata.getlocaldatalabel(lastlabel);
+                 current_asmdata.getdatalabel(lastlabel);
                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable,tcalo_apply_constalign]);
                  datatcb.emit_guid_const(value);
                  current_asmdata.asmlists[al_typedconsts].concatList(

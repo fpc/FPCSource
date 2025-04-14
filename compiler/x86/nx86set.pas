@@ -154,7 +154,7 @@ implementation
               end;
           end;
 
-        current_asmdata.getlocaldatalabel(table);
+        current_asmdata.getdatalabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);

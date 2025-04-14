@@ -235,6 +235,8 @@ interface
           of a dead-strippable data block, and references to such labels are
           also ignored to determine whether a data block should be live) }
         procedure getlocaldatalabel(out l : TAsmLabel);
+        { data label visible within the current unit, if it's global or local depends if library based smartlinking is used }
+        procedure getdatalabel(out l: TAsmLabel);
         { generate an alternative (duplicate) symbol }
         procedure GenerateAltSymbol(p:TAsmSymbol);
         procedure ResetAltSymbols;
@@ -728,6 +730,15 @@ implementation
       begin
         l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_data],alt_data);
         inc(FNextLabelNr[alt_data]);
+      end;
+
+
+    procedure TAsmData.getdatalabel(out l : TAsmLabel);
+      begin
+        if create_smartlink_library then
+          getglobaldatalabel(l)
+        else
+          getlocaldatalabel(l);
       end;
 
 
