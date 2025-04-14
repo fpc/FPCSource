@@ -51,9 +51,13 @@ function SHA1Match(const Digest1, Digest2: TSHA1Digest): Boolean;
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils,System.SysConst;
+uses System.SysUtils,System.SysConst
+{$if defined(x86_64) or defined(CPU386)},System.Cpu{$endif}
+;
 {$ELSE FPC_DOTTEDUNITS}
-uses sysutils,sysconst;
+uses sysutils,sysconst
+{$if defined(x86_64) or defined(CPU386)},cpu{$endif}
+;
 {$ENDIF FPC_DOTTEDUNITS}
 
 procedure SHA1Init(out ctx: TSHA1Context);

@@ -1,4 +1,4 @@
-procedure SHA1Transform(var ctx: TSHA1Context; const Buf: Pointer); assembler; nostackframe;
+procedure SHA1Transform_Plain(var ctx: TSHA1Context; const Buf: Pointer); assembler; nostackframe;
 {$asmmode intel}
 {
   RCX - pointer to ctx
@@ -1492,3 +1492,5 @@ asm
   POP   RDI
   POP   RSI
 end;
+
+{$i sha1x86.inc}

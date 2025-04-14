@@ -1,4 +1,4 @@
-procedure SHA1Transform(var ctx: TSHA1Context; const Buf: Pointer); assembler; nostackframe;
+procedure SHA1Transform_Plain(var ctx: TSHA1Context; const Buf: Pointer); assembler; nostackframe;
 // eax = ctx, edx = buf
 {$asmmode intel}
 {$warn 7102 off : Use of [EBP + offset] for parameters invalid here} // EBP is used for 'E' rather than for base pointer.
@@ -1475,3 +1475,4 @@ asm
   pop   ebx
 end;
 
+{$i sha1x86.inc}
