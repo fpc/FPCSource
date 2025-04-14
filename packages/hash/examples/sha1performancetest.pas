@@ -14,8 +14,8 @@ var
   i: integer;
   s,ss: RawByteString;
 begin
-  writeln('MD5 of a million "a" symbols');
-  Writeln('compile sha unit with -dSHA1SLOW to use unoptimized original version');
+  writeln('SHA1 of a million "a" symbols');
+  Writeln('compile sha unit with -dSHA1PASCAL to use unoptimized original version');
   SetLength(s, 1000000);
   for i := 1 to 1000000 do s[i] := 'a';
 
@@ -23,7 +23,7 @@ begin
   for i := 0 to 1000 do
     ss := LowerCase(SHA1Print(SHA1string(s)));
   EndTime:=now;
-  writeln('Performance test finished. Elapsed time:');
+  write('Performance test finished. Elapsed time: ');
   writeln((EndTime-StartTime)*3600*24:0:3,' s');
 end.
 
