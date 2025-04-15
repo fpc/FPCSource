@@ -197,6 +197,9 @@ type
     function FindBucketIndex(const AKey: TKey): SizeInt; overload; inline;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; virtual; abstract; overload;
     function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt; virtual;
+    function GetKeyFromBucket(ABucketIndex: SizeInt): TKey; inline;
+    function GetValueFromBucket(ABucketIndex: SizeInt): TValue; inline;
+    function GetMutableValueFromBucket(ABucketIndex: SizeInt): PValue; inline;
   public
     type
       // Enumerators

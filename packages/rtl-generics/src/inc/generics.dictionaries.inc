@@ -353,6 +353,24 @@ begin
   Result := FindBucketIndex(AItems, AKey, AHash);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetKeyFromBucket(
+  ABucketIndex: SizeInt): TKey;
+begin
+  Result := FItems[ABucketIndex].Pair.Key;
+end;
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetValueFromBucket(
+  ABucketIndex: SizeInt): TValue;
+begin
+  Result := FItems[ABucketIndex].Pair.Value;
+end;
+
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.GetMutableValueFromBucket(
+  ABucketIndex: SizeInt): PValue;
+begin
+  Result := @FItems[ABucketIndex].Pair.Value;
+end;
+
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.PrepareAddingItem: boolean;
 begin
   Result := False;
