@@ -5266,6 +5266,10 @@ unit aoptx86;
               ((topsize2memsize[taicpu(hp1).opsize]<= topsize2memsize[taicpu(hp2).opsize]) or
                { opsize matters for these opcodes, we could probably work around this, but it is not worth the effort }
                ((taicpu(hp1).opcode<>A_SHL) and (taicpu(hp1).opcode<>A_SHR) and (taicpu(hp1).opcode<>A_SAR))
+              ) and
+              { if ref contains a symbol, we cannot change its size to a smaller size }
+              ((taicpu(p).oper[0]^.typ<>top_ref) or (taicpu(p).oper[0]^.ref^.symbol=nil) or
+               (topsize2memsize[taicpu(p).opsize]<=topsize2memsize[taicpu(hp2).opsize])
               )
 {$ifdef i386}
               { byte registers of esi, edi, ebp, esp are not available on i386 }
