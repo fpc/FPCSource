@@ -347,6 +347,12 @@ begin
   Result := FindBucketIndex(FItems, AKey, LHash);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexForHash(const AItems: TArray<TItem>;
+  const AKey: TKey; var AHash: UInt32): SizeInt;
+begin
+  Result := FindBucketIndex(AItems, AKey, AHash);
+end;
+
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.PrepareAddingItem;
 begin
   if RealItemsLength > FItemsThreshold then
@@ -481,7 +487,6 @@ end;
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.Rehash(ASizePow2: SizeInt; AForce: Boolean): Boolean;
 var
   LNewItems: TArray<TItem>;
-  LHash: UInt32;
   LIndex: SizeInt;
   i: SizeInt;
   LItem, LNewItem: PItem;
@@ -501,11 +506,11 @@ begin
 
     if (LItem.Hash and UInt32.GetSignMask) <> 0 then
     begin
-      LIndex := FindBucketIndex(LNewItems, LItem.Pair.Key, LHash);
+      LIndex := FindBucketIndexForHash(LNewItems, LItem.Pair.Key, LItem.Hash);
       LIndex := not LIndex;
 
       LNewItem := @LNewItems[LIndex];
-      LNewItem.Hash := LHash;
+      LNewItem.Hash := LItem.Hash;
       LNewItem.Pair := LItem.Pair;
     end;
   end;
@@ -799,25 +804,27 @@ end;
 
 function TOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
   const AKey: TKey; out AHash: UInt32): SizeInt;
+begin
+  AHash := FEqualityComparer.GetHashCode(AKey);
+  AHash := AHash or UInt32.GetSignMask;
+  Result := FindBucketIndexForHash(AItems, AKey, AHash);
+end;
+
+function TOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexForHash(
+  const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt;
 var
   LLengthMask: SizeInt;
   i, m: SizeInt;
-  LHash: UInt32;
 begin
   m := Length(AItems);
-  LLengthMask := m - 1;
-
-  LHash := FEqualityComparer.GetHashCode(AKey);
-
-  i := 0;
-  LHash := LHash or UInt32.GetSignMask;
-  AHash := LHash;
 
   if m = 0 then
     Exit(-1);
 
-  Result := LHash and LLengthMask;
+  LLengthMask := m - 1;
+  Result := AHash and LLengthMask;
 
+  i := 0;
   repeat
     with AItems[Result] do
     begin
@@ -826,14 +833,14 @@ begin
         Exit(not Result); // insert!
 
       // Same position?
-      if Hash = LHash then
+      if Hash = AHash then
         if FEqualityComparer.Equals(AKey, Pair.Key) then
           Exit;
     end;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
 
   until false;
 end;
@@ -894,26 +901,27 @@ end;
 
 function TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
   const AKey: TKey; out AHash: UInt32): SizeInt;
+begin
+  AHash := FEqualityComparer.GetHashCode(AKey);
+  AHash := AHash or UInt32.GetSignMask;
+  Result := FindBucketIndexForHash(AItems, AKey, AHash);
+end;
+
+function TOpenAddressingSH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexForHash(
+  const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
   i, m: SizeInt;
-  LHash: UInt32;
 begin
   m := Length(AItems);
-  LLengthMask := m - 1;
-
-  LHash := FEqualityComparer.GetHashCode(AKey);
-
-  i := 0;
-  LHash := LHash or UInt32.GetSignMask;
-  AHash := LHash;
-
   if m = 0 then
     Exit(-1);
 
-  Result := LHash and LLengthMask;
+  LLengthMask := m - 1;
+  Result := AHash and LLengthMask;
 
+  i := 0;
   repeat
     LItem := _TItem(AItems[Result]);
     // Empty position
@@ -921,13 +929,13 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = LHash then
+    if LItem.Hash = AHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
 
     Inc(i);
 
-    Result := TProbeSequence.Probe(i, LHash) and LLengthMask;
+    Result := TProbeSequence.Probe(i, AHash) and LLengthMask;
 
   until false;
 end;
@@ -990,23 +998,24 @@ end;
 
 function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
   const AKey: TKey; out AHash: UInt32): SizeInt;
+begin
+  AHash := FEqualityComparer.GetHashCode(AKey);
+  AHash := AHash or UInt32.GetSignMask;
+  Result := FindBucketIndexForHash(AItems, AKey, AHash);
+end;
+
+function TOpenAddressingQP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexForHash(
+  const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt;
 var
   LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   i: SizeInt;
-  LHash: UInt32;
 begin
-  LHash := FEqualityComparer.GetHashCode(AKey);
-
-  i := 0;
-  LHash := LHash or UInt32.GetSignMask;
-  AHash := LHash;
-
   if Length(AItems) = 0 then
     Exit(-1);
 
   for i := 0 to FPrimaryNumberAsSizeApproximation - 1 do
   begin
-    Result := TProbeSequence.Probe(i, LHash) mod FPrimaryNumberAsSizeApproximation;
+    Result := TProbeSequence.Probe(i, AHash) mod FPrimaryNumberAsSizeApproximation;
     LItem := _TItem(AItems[Result]);
 
     // Empty position
@@ -1014,7 +1023,7 @@ begin
       Exit(not Result); // insert!
 
     // Same position?
-    if LItem.Hash = LHash then
+    if LItem.Hash = AHash then
       if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
         Exit;
   end;
@@ -1186,6 +1195,28 @@ begin
 
     Result := TProbeSequence.Probe(i, AHash, LHash2) and LLengthMask;
   until false;
+end;
+
+function TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexForHash(
+  const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt;
+var
+  LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
+  LLengthMask: SizeInt;
+  m: SizeInt;
+  LHash: UInt32;
+begin
+  m := Length(AItems);
+  if m = 0 then
+    Exit(-1);
+
+  LLengthMask := m - 1;
+  Result := AHash and LLengthMask;
+  LItem := _TItem(AItems[Result]);
+  // Empty position
+  if LItem.Hash = 0 then
+    Exit(not Result);
+
+  Result := FindBucketIndex(AItems, AKey, LHash);
 end;
 
 function TOpenAddressingDH<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexOrTombstone(const AItems: TArray<TItem>;

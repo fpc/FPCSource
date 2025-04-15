@@ -195,6 +195,7 @@ type
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; virtual;
     function FindBucketIndex(const AKey: TKey): SizeInt; overload; inline;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; virtual; abstract; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt; virtual;
   public
     type
       // Enumerators
@@ -288,6 +289,8 @@ type
     procedure NotifyIndexChange(AFrom, ATo: SizeInt); virtual;
     function DoRemove(AIndex: SizeInt; ACollectionNotification: TCollectionNotification): TValue; override;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
   end;
 
   // More info and TODO
@@ -320,6 +323,8 @@ type
   protected
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
     function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override;
   end;
@@ -331,6 +336,8 @@ type
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
     function FindBucketIndex(const AItems: TArray<TItem>;
       const AKey: TKey; out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
     function FindBucketIndexOrTombstone(const AItems: TArray<TItem>;
       const AKey: TKey; out AHash: UInt32): SizeInt; override;
   end;
@@ -347,6 +354,8 @@ type
     procedure UpdateItemsThreshold(ASize: SizeInt); override;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override; overload;
+    function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey;
+      var AHash: UInt32): SizeInt; override;
     function FindBucketIndexOrTombstone(const AItems: TArray<TItem>; const AKey: TKey;
       out AHash: UInt32): SizeInt; override;
   strict protected
