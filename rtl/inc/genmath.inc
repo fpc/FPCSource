@@ -584,7 +584,8 @@ end;
     type
       TDA02 = array[0..2] of double; { 3 elements is enough for float128 }
 
-    function k_rem_pio2(const x: TDA02; out y: TDA02; e0, nx, prec: integer): sizeint;
+    { inline to make use of the fact prec is always 2. }
+    function k_rem_pio2(const x: TDA02; out y: TDA02; e0, nx, prec: integer): sizeint; inline;
     var
       i,ih,j,jz,jx,jv,jp,jk,carry,k,n,q0: longint;
       t: longint;
@@ -824,23 +825,51 @@ end;
 
     { Argument reduction of x:  z = x - n*Pi/2, |z| <= Pi/4, result = n mod 8.}
     { Uses Payne/Hanek if |x| >= lossth, Cody/Waite otherwise}
+    function rem_pio2_unlikely(x: double; out z: double): sizeint;
+    var
+      e0,nx: longint;
+      tx,ty: TDA02;
+    begin
+      z := abs(x);
+      e0 := (float64high(z) shr 20)-1046;
+      if (e0 = ($7ff-1046)) then  { z is Inf or NaN }
+      begin
+{$push} {$optimization nofastmath}
+        z := x - x;
+{$pop}
+        exit(0);
+      end;
+      float64sethigh(z,float64high(z) - (e0 shl 20));
+      tx[0] := trunc(z);
+      z := (z-tx[0])*two24;
+      tx[1] := trunc(z);
+      tx[2] := (z-tx[1])*two24;
+      nx := 3;
+      while (tx[nx-1]=0.0) do dec(nx);  { skip zero terms }
+      result := k_rem_pio2(tx,ty,e0,nx,2);
+      z := ty[0] + ty[1];
+      if x<0 then
+      begin
+        result := (-result) and 7;
+        z := -z;
+      end;
+    end;
+
     function rem_pio2(x: double; out z: double): sizeint;
     const
-      tol: double = 2.384185791015625E-7;  {lossth*eps_d}
+      tol = double(2.384185791015625E-7);  {lossth*eps_d}
       DP1 = double(7.85398125648498535156E-1);
       DP2 = double(3.77489470793079817668E-8);
       DP3 = double(2.69515142907905952645E-15);
     var
-      i,e0,nx: longint;
+      i: longint;
       y: double;
-      tx,ty: TDA02;
     begin
       y := abs(x);
       if (y < PIO4) then
       begin
         z := x;
-        result := 0;
-        exit;
+        exit(0);
       end
       else if (y < lossth) then
       begin
@@ -852,36 +881,13 @@ end;
           y := y + 1.0;
         end;
         z := ((x - y * DP1) - y * DP2) - y * DP3;
-        result := (i shr 1) and 7;
 
         {If x is near a multiple of Pi/2, the C/W relative error may be large.}
         {In this case redo the calculation with the Payne/Hanek algorithm.    }
         if abs(z) > tol then
-          exit;
+          exit(i shr 1 and 7);
       end;
-      z := abs(x);
-      e0 := (float64high(z) shr 20)-1046;
-      if (e0 = ($7ff-1046)) then  { z is Inf or NaN }
-      begin
-        z := x - x;
-        result:=0;
-        exit;
-      end;
-      float64sethigh(z,float64high(z) - (e0 shl 20));
-      tx[0] := trunc(z);
-      z := (z-tx[0])*two24;
-      tx[1] := trunc(z);
-      tx[2] := (z-tx[1])*two24;
-      nx := 3;
-      while (tx[nx-1]=0.0) do dec(nx);  { skip zero terms }
-      result := k_rem_pio2(tx,ty,e0,nx,2);
-      if (x<0) then
-      begin
-        result := (-result) and 7;
-        z := -ty[0] - ty[1];
-      end
-      else
-        z := ty[0] + ty[1];
+      result := rem_pio2_unlikely(x, z);
     end;
 
 

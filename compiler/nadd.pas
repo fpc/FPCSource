@@ -1153,9 +1153,7 @@ const
                       end;
                   end
                 { optimize a/a and a-a }
-                else if (((cs_opt_level2 in current_settings.optimizerswitches) and (nodetype=subn)) or
-                    (([cs_opt_fastmath,cs_opt_level2]*current_settings.optimizerswitches=[cs_opt_fastmath,cs_opt_level2]) and (nodetype=slashn))
-                  ) and
+                else if ((nodetype in [subn,slashn]) and ([cs_opt_fastmath,cs_opt_level2]*current_settings.optimizerswitches=[cs_opt_fastmath,cs_opt_level2])) and
                   left.isequal(right) and not(might_have_sideeffects(left,[mhs_exceptions])) then
                   begin
                     case nodetype of
