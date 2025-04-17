@@ -44,6 +44,11 @@ const
   FPC_ABSMASK_SINGLE: array[0..1] of qword=($7fffffff7fffffff,$7fffffff7fffffff); cvar; public;
   FPC_ABSMASK_DOUBLE: array[0..1] of qword=($7fffffffffffffff,$7fffffffffffffff); cvar; public;
 {$pop}
+  FPC_LOG2E: Double   =  1.4426950408889634073599246810019; {  1/log(2)    }
+
+  FPC_INFINITY_DOUBLE: QWord = $7ff0000000000000;     { IEEE 754 bit representation of +oo for binary64 }
+  FPC_MAXLOG_DOUBLE: Double  =  709.08956571282405153382846025171; { log(2**1023)  }
+  FPC_MINLOG_DOUBLE: Double  = -709.78271289338399684324569237317; { log(2**-1024) }
 
 {****************************************************************************
                             FPU Control word
@@ -432,5 +437,128 @@ const
         subsd     %xmm4,  %xmm0
       end;
     {$endif FPC_SYSTEM_HAS_FRAC}
+
+    {$ifndef FPC_SYSTEM_HAS_EXP}
+    {$define FPC_SYSTEM_HAS_EXP}
+
+{$push}
+{$codealign constmin=16}
+  const
+    FPC_M25_24_ARRAY:      array[0..1] of Double = (-25.0,   24.0);
+    FPC_300_252_ARRAY:     array[0..1] of Double = (300.0,   252.0);
+    FPC_M2100_1344_ARRAY:  array[0..1] of Double = (-2100.0, 1344.0);
+    FPC_8400_3024_ARRAY:   array[0..1] of Double = (8400.0,  3024.0);
+{$pop}
+    FPC_HALF_DOUBLE: Double = 0.5;
+    FPC_ONE_DOUBLE: Double = 1.0;
+    FPC_M15120_DOUBLE: Double = -15120.0;
+    FPC_M5_DOUBLE: Double = -5.0;
+
+    function fpc_exp_real(d : ValReal) : ValReal; compilerproc; assembler; nostackframe;
+    {*****************************************************************}
+    { Exponential Function                                            }
+    {*****************************************************************}
+    {                                                                 }
+    { SYNOPSIS:                                                       }
+    {                                                                 }
+    { double d, y, exp();                                             }
+    {                                                                 }
+    { y = exp(d);                                                     }
+    {                                                                 }
+    { DESCRIPTION:                                                    }
+    {                                                                 }
+    { Returns e (2.71828...) raised to the d power.                   }
+    {                                                                 }
+    { First calculate z = d log2 e, then break z into integer and     }
+    { fractional components k and f.                                  }
+    {                                                                 }
+    {     d    z      k + f    k f                                    }
+    {    e  = 2   => 2      = 2 2                                     }
+    {                                                                 }
+    { 2^k can be calculated very quickly with bit manipulation, then  }
+    { convert 2^f to e^x via x = f ln 2 and use a Padé approximant to }
+    { calculate e^x for x between -0.5 ln 2 and 0.5 ln 2              }
+    {*****************************************************************}
+      asm
+        movsd     FPC_LOG2E(%rip), %xmm4
+        ucomisd   FPC_MAXLOG_DOUBLE(%rip), %xmm0
+        jp        .LNaN { Propagate NaN into result }
+        jae       .LOverflow
+        movsd     FPC_ONE_DOUBLE(%rip), %xmm5
+        xorpd     %xmm3, %xmm3
+        comisd    FPC_MINLOG_DOUBLE(%rip), %xmm0
+        ja        .LNoUnderflow
+        xorpd     %xmm0, %xmm0 { Set result to zero }
+    .LNaN:
+        ret
+    .LOverflow:
+        movsd     FPC_INFINITY_DOUBLE(%rip), %xmm0 { Set result to infinity }
+        ret
+        .balign   16
+    .LNoUnderflow:
+        movsd     FPC_HALF_DOUBLE(%rip), %xmm2
+        comisd    %xmm3, %xmm0
+        jnz .LNotZero
+        movsd     %xmm5, %xmm0 { e^0 = 1 }
+        ret
+    .LNotZero:
+        mulsd     %xmm4, %xmm0
+        addsd     %xmm2, %xmm0 { Add 0.5 to make sure the fractional part falls between -0.5 and 0.5 }
+        { %xmm0 won't be out of range due to the earlier checks }
+        cvttsd2si %xmm0, %rax
+        subsd     %xmm2, %xmm0
+        cvtsi2sd  %rax,  %xmm1
+
+        movapd    FPC_M25_24_ARRAY(%rip), %xmm5
+
+        { Some slightly evil floating-point bit manipulation to calculate 2^k }
+        addw      $1023, %ax
+        shlw      $4,    %ax
+        subsd     %xmm1, %xmm0 { %xmm0 now contains the fractional component }
+        pinsrw $3,%eax,  %xmm3 { Insert into the most-significant 16 bits }
+                               { %xmm3 now contains 2^k }
+
+        { Calculate the Padé approximant that is:
+
+            -5(x(x(x(x + 24) + 252) + 1344) + 3024)
+        ----------------------------------------------
+        x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120
+
+        Aligned for easier calculation:
+
+             -5(x(x(x(x + 24) + 252) + 1344) + 3024)
+         ----------------------------------------------------
+              x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120
+        }
+        movapd    FPC_300_252_ARRAY(%rip), %xmm2 { 300, 252 }
+        divsd     %xmm4, %xmm0 { Reapply the factor of ln 2 to x }
+
+        movapd    FPC_M2100_1344_ARRAY(%rip), %xmm1 { -2100, 1344 }
+        shufpd $0,%xmm0, %xmm0 { x, x }
+        movapd    %xmm0, %xmm4 { x, x }
+
+        addpd     %xmm5, %xmm0 { x - 25, x - 24 }
+        mulpd     %xmm4, %xmm0 { x(x - 25), x(x + 24) }
+        addpd     %xmm2, %xmm0 { x(x - 25) + 300, x(x + 24) + 252 }
+        movapd    FPC_8400_3024_ARRAY(%rip), %xmm2 { 8400, 3024 }
+        mulpd     %xmm4, %xmm0 { x(x(x - 25) + 300), x(x(x + 24) + 252) }
+        addpd     %xmm1, %xmm0 { x(x(x - 25) + 300) - 2100, x(x(x + 24) + 252) + 1344 }
+        movsd     FPC_M5_DOUBLE(%rip), %xmm1 { -5, 0 }
+        mulpd     %xmm4, %xmm0 { x(x(x(x - 25) + 300) - 2100), x(x(x(x + 24) + 252) + 1344) }
+        shufpd $1,%xmm1, %xmm4 { x, -5 }
+        movsd     FPC_M15120_DOUBLE(%rip), %xmm1 { -15120, 0 }
+        addpd     %xmm2, %xmm0 { x(x(x(x - 25) + 300) - 2100) + 8400, x(x(x(x + 24) + 252) + 1344) + 3024 }
+        movsd     FPC_ONE_DOUBLE(%rip), %xmm2 { 1, 0 }
+        mulpd     %xmm4, %xmm0 { x(x(x(x(x - 25) + 300) - 2100) + 8400), -5(x(x(x(x + 24) + 252) + 1344) + 3024) }
+        addpd     %xmm1, %xmm0 { x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120, -5(x(x(x(x + 24) + 252) + 1344) + 3024) }
+
+        movapd    %xmm0, %xmm4 { x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120, -5(x(x(x(x + 24) + 252) + 1344) + 3024) }
+        shufpd $1,%xmm0, %xmm0 { -5(x(x(x(x + 24) + 252) + 1344) + 3024), x(x(x(x(x - 25) + 300) - 2100) + 8400) - 15120 }
+
+        divsd     %xmm4, %xmm0 { Padé approximant for e^x computed }
+
+        mulsd     %xmm3, %xmm0 { Apply the integer component calculated earlier }
+      end;
+    {$endif FPC_SYSTEM_HAS_EXP}
 
 {$endif FPC_HAS_TYPE_EXTENDED}
