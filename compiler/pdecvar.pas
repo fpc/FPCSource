@@ -515,7 +515,8 @@ implementation
                   message(parser_e_no_property_found_to_override);
                 end;
            end;
-         if ((p.visibility=vis_published) or is_dispinterface(astruct)) then
+         if ((p.visibility=vis_published) or is_dispinterface(astruct))
+             and not (astruct.is_generic and (p.propdef.typ=undefineddef)) then
            begin
              { ignore is_publishable for interfaces (related to $M+ directive).
                $M has effect on visibility of default section for classes.
