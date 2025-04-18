@@ -347,6 +347,12 @@ begin
   Result := FindBucketIndex(FItems, AKey, LHash);
 end;
 
+function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AKey: TKey;
+  out AHash: UInt32): SizeInt;
+begin
+  Result := FindBucketIndex(FItems, AKey, AHash);
+end;
+
 function TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndexForHash(const AItems: TArray<TItem>;
   const AKey: TKey; var AHash: UInt32): SizeInt;
 begin

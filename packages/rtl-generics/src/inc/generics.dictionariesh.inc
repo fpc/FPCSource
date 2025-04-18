@@ -195,6 +195,7 @@ type
     function RealItemsLength: SizeInt; virtual;
     function Rehash(ASizePow2: SizeInt; AForce: Boolean = False): boolean; virtual;
     function FindBucketIndex(const AKey: TKey): SizeInt; overload; inline;
+    function FindBucketIndex(const AKey: TKey; out AHash: UInt32): SizeInt; overload; inline;
     function FindBucketIndex(const AItems: TArray<TItem>; const AKey: TKey; out AHash: UInt32): SizeInt; virtual; abstract; overload;
     function FindBucketIndexForHash(const AItems: TArray<TItem>; const AKey: TKey; var AHash: UInt32): SizeInt; virtual;
     function GetKeyFromBucket(ABucketIndex: SizeInt): TKey; inline;
