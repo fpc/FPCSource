@@ -826,7 +826,25 @@ interface
               end
             else
 {$endif cpufloatintregmov}
+{$ifdef cpumm}
+            if (resultdef.typ<>floatdef) and (location.loc in [LOC_CMMREGISTER,LOC_MMREGISTER]) then
+              begin
+                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                cg.a_loadmm_reg_intreg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register, nil);
+              end
+            else
+{$endif cpumm}
               hlcg.location_force_mem(current_asmdata.CurrAsmList,location,left.resultdef);
+{$ifdef cpumm}
+          end
+        else if (resultdef.typ=floatdef) and (location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          begin
+            { Take advantage of direct moves from int to MM if supported }
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+            cg.a_loadmm_intreg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register, nil);
+{$endif cpumm}
           end;
         { but use the new size, but we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);

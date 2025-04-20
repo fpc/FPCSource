@@ -32,6 +32,7 @@ interface
     type
        tx8664typeconvnode = class(tx86typeconvnode)
          protected
+         function first_nothing : tnode;override;
          { procedure second_int_to_int;override; }
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -66,6 +67,24 @@ implementation
       ncnv,
       cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86;
+
+
+    function tx8664typeconvnode.first_nothing : tnode;
+      begin
+        result:=nil;
+        { If typecasting between a Single or Double and a record of equal size,
+          we can use MOVD and MOVQ }
+        if (resultdef.typ in [recorddef,orddef]) and
+          use_vectorfpu(left.resultdef) and
+          (resultdef.size=left.resultdef.size) then
+          expectloc:=LOC_MMREGISTER
+        else if (left.resultdef.typ in [recorddef,orddef]) and
+          use_vectorfpu(resultdef) and
+          (resultdef.size=left.resultdef.size) then
+          expectloc:=LOC_REGISTER
+        else
+          result:=inherited first_nothing;
+      end;
 
 
     function tx8664typeconvnode.first_int_to_real : tnode;
