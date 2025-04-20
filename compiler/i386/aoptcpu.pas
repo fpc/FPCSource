@@ -185,8 +185,11 @@ unit aoptcpu;
                   Result:=OptPass1LEA(p);
                 A_MOV:
                   Result:=OptPass1MOV(p);
+                A_MOVD,
+                A_VMOVD:
+                  Result:=OptPass1MOVD(p);
                 A_MOVSX,
-                A_MOVZX :
+                A_MOVZX:
                   Result:=OptPass1Movx(p);
                 A_TEST:
                   Result:=OptPass1Test(p);

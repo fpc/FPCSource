@@ -177,6 +177,7 @@ unit aoptx86;
         function OptPass1_V_MOVAP(var p : tai) : boolean;
         function OptPass1VOP(var p : tai) : boolean;
         function OptPass1MOV(var p : tai) : boolean;
+        function OptPass1MOVD(var p : tai) : boolean;
         function OptPass1Movx(var p : tai) : boolean;
         function OptPass1MOVXX(var p : tai) : boolean;
         function OptPass1OP(var p : tai) : boolean;
@@ -4480,6 +4481,38 @@ unit aoptx86;
         if not GetNextInstruction_p or (hp1.typ <> ait_instruction) then
           Exit;
 
+        { Change:
+            movl/q (ref), %reg
+            movd/q %reg,  %xmm0
+            (dealloc %reg)
+          To:
+            movd/q (ref), %xmm0
+        }
+        if MatchOpType(taicpu(p),top_ref,top_reg) and
+          MatchInstruction(hp1,[A_MOVD,A_VMOVD{$ifdef x86_64},A_MOVQ,A_VMOVQ{$endif x86_64}],[]) and
+          MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^.reg) and
+          (taicpu(hp1).oper[1]^.typ=top_reg) and
+          (GetRegType(taicpu(hp1).oper[1]^.reg)=R_MMREGISTER) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs) then
+              begin
+                taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+
+                { loadref increases the reference count, so decrement it again }
+                if Assigned(taicpu(p).oper[0]^.ref^.symbol) then
+                  taicpu(p).oper[0]^.ref^.symbol.decrefs;
+                if Assigned(taicpu(p).oper[0]^.ref^.relsymbol) then
+                  taicpu(p).oper[0]^.ref^.relsymbol.decrefs;
+
+                DebugMsg(SPeepholeOptimization+'Merged MOV and (V)MOVD/(V)MOVQ to eliminate intermediate register (MovMovD/Q2MovD/Q)',p);
+                RemoveCurrentP(p,hp1);
+                Result:=True;
+                Exit;
+              end;
+          end;
+
         { Next instruction is also a MOV ? }
         if MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
           begin
@@ -5567,6 +5600,87 @@ unit aoptx86;
           end;
       end;
 
+
+   function TX86AsmOptimizer.OptPass1MOVD(var p : tai) : boolean;
+      { This function also handles the 64-bit version, MOVQ }
+      var
+        hp1: tai;
+      begin
+        Result:=false;
+        { Change:
+            movd/q %xmm0, %reg
+            ...
+            movl/q %reg,  (ref)
+            (dealloc %reg)
+          To:
+            movd/q %xmm0, (ref)
+        }
+        if MatchOpType(taicpu(p),top_reg,top_reg) and
+          (GetRegType(taicpu(p).oper[0]^.reg)=R_MMREGISTER) and
+          (GetRegType(taicpu(p).oper[1]^.reg)=R_INTREGISTER) and
+          GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[1]^.reg) and
+          MatchInstruction(hp1, A_MOV, []) and
+          MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^.reg) and
+          (taicpu(hp1).oper[1]^.typ=top_ref) and
+          not RegInRef(taicpu(p).oper[1]^.reg,taicpu(hp1).oper[1]^.ref^) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegsBetween(TmpUsedRegs,p,hp1);
+            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs) then
+              begin
+
+                if (
+                    { Instructions are always adjacent under -O2 and under }
+                    not(cs_opt_level3 in current_settings.optimizerswitches) or
+                    (
+                      (
+                        (taicpu(hp1).oper[1]^.ref^.base=NR_NO) or
+                        not RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.base,p,hp1)
+                      ) and
+                      (
+                        (taicpu(hp1).oper[1]^.ref^.index=NR_NO) or
+                        not RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.index,p,hp1)
+                      )
+                    )
+                  ) then
+                  begin
+                    DebugMsg(SPeepholeOptimization+'Merged (V)MOVD/(V)MOVQ and MOV to eliminate intermediate register (MovD/QMov2MovD/Q 1a)',p);
+
+                    taicpu(p).loadref(1,taicpu(hp1).oper[1]^.ref^);
+
+                    { loadref increases the reference count, so decrement it again }
+                    if Assigned(taicpu(hp1).oper[1]^.ref^.symbol) then
+                      taicpu(hp1).oper[1]^.ref^.symbol.decrefs;
+                    if Assigned(taicpu(hp1).oper[1]^.ref^.relsymbol) then
+                      taicpu(hp1).oper[1]^.ref^.relsymbol.decrefs;
+
+                    RemoveInstruction(hp1);
+                    Include(OptsToCheck, aoc_ForceNewIteration);
+                  end
+                else if not RegModifiedBetween(taicpu(p).oper[0]^.reg,p,hp1) then
+                  begin
+                    { Still possible to optimise if hp1 is converted instead }
+                    DebugMsg(SPeepholeOptimization+'Merged (V)MOVD/(V)MOVQ and MOV to eliminate intermediate register (MovD/QMov2MovD/Q 1b)',hp1);
+
+                    { Decrement the reference prior to replacing it }
+                    if Assigned(taicpu(hp1).oper[1]^.ref^.symbol) then
+                      taicpu(hp1).oper[1]^.ref^.symbol.decrefs;
+                    if Assigned(taicpu(hp1).oper[1]^.ref^.relsymbol) then
+                      taicpu(hp1).oper[1]^.ref^.relsymbol.decrefs;
+
+                    taicpu(hp1).opcode:=taicpu(p).opcode;
+                    taicpu(hp1).opsize:=taicpu(p).opsize;
+                    taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
+
+                    TransferUsedRegs(TmpUsedRegs);
+                    AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,TmpUsedRegs);
+                    RemoveCurrentP(p);
+                    Result:=True;
+                    Exit;
+                  end;
+              end;
+          end;
+      end;
 
    function TX86AsmOptimizer.OptPass1MOVXX(var p : tai) : boolean;
       var

@@ -100,6 +100,11 @@ uses
                   Result:=OptPass1Imul(p);
                 A_MOV:
                   Result:=OptPass1MOV(p);
+                A_MOVD,
+                A_MOVQ,
+                A_VMOVD,
+                A_VMOVQ:
+                  Result:=OptPass1MOVD(p);
                 A_MOVSX,
                 A_MOVSXD,
                 A_MOVZX:
