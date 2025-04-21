@@ -785,7 +785,7 @@ begin
   end;
 end;
 
-procedure TServiceManager.QueryServiceConfig(ServiceName : String; Var Config : TServiceDescriptor);
+procedure TServiceManager.QueryServiceConfig(const ServiceName : String; Var Config : TServiceDescriptor);
 
 Var
   H : THandle;
