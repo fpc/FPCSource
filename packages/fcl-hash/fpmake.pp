@@ -39,6 +39,7 @@ begin
     T.Dependencies.AddUnit('fpecc');
     T:=P.Targets.AddUnit('src/fpsha256.pp');
     T.Dependencies.AddUnit('fphashutils');
+    T.Dependencies.AddInclude('src/sha256x86.inc', [i386,x86_64], AllOSes);
     T:=P.Targets.AddUnit('src/fpsha512.pp');
     T.Dependencies.AddUnit('fphashutils');
     T:=P.Targets.AddUnit('src/fpasn.pp');
@@ -55,6 +56,7 @@ begin
     T:=P.Targets.AddUnit('src/onetimepass.pp');
     
     T:=P.Targets.AddExampleunit('examples/demosha256.pp');
+    T:=P.Targets.AddExampleunit('examples/sha256performancetest.pas');
     // md5.ref
 
     P.NamespaceMap:='namespaces.lst';
