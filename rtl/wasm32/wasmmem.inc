@@ -69,17 +69,23 @@ Var
   // Root block of linked list of TOSMemInfoBlock
   TLSInfoBlock : POSMemInfoBlock = nil;
 
+Function GetSingleTLSMemblockSize : PTrUint;
+
+begin
+  Result:=Align(fpc_wasm32_tls_size+SizeOf(Pointer),fpc_wasm32_tls_align);
+end;
+
 Function TLSMemblockSize : PTrUint;
 
 // Calculate the size of a TLS memory block.
 // This is the TLS size + Size of a pointer (cannot use TTLSMem for this)
 
 Var
-  BlockSize : PTrUint;
+  lBlockSize : PTrUint;
 
 begin
-  BlockSize:=Align(fpc_wasm32_tls_size+SizeOf(Pointer),fpc_wasm32_tls_align);
-  TLSMemblockSize:=BlockSize*MemBlockCount;
+  lBlockSize:=GetSingleTLSMemblockSize;
+  TLSMemblockSize:=lBlockSize*MemBlockCount;
 end;
 
 Function AllocateOSInfoBlock : POSMemInfoBlock;
@@ -89,6 +95,7 @@ Var
   POMB : POSMemBlock;
   POSBlock,POSMem : PTLSMem;
   I : Integer;
+  lBlockSize : PTrUint;
 
 begin
   // allocate block
@@ -105,13 +112,14 @@ begin
   POSBlock:=PTLSMem(SysOSAlloc(TLSMemblockSize));
   if POSBlock=Nil then
     Halt(203);
+  lBlockSize:=GetSingleTLSMemblockSize;  
   POSMem:=POSBlock;
   For I:=0 to MemBlockCount-1 do
     begin
     PMIB^.Blocks[I].Data:=POSMem;
     POMB:=@(PMIB^.Blocks[I]);
     PosMem^.OSMemBlock:=POMB;
-    Inc(Pointer(POSMem),BlockSize);
+    Inc(Pointer(POSMem),lBlockSize);
     end;
   AllocateOSInfoBlock:=PMIB;
 end;
