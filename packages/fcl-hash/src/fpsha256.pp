@@ -11,6 +11,11 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+
+// Normally, if an optimized version is available for OS/CPU, that will be used
+// Define to force to use implementation in pascal
+{ $DEFINE SHA256PASCAL}
+
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpsha256;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -39,7 +44,7 @@ Type
     HashBuffer : THashBuffer;
     Index: UInt32;
     TotalLength: Int64;
-    procedure Compress;
+    procedure Compress; inline;
     procedure Final;
     procedure Init(Use224 : Boolean = False);
     procedure Update(PBuf: PByte; Size: UInt32); overload;
@@ -133,10 +138,23 @@ Const
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Hash.Utils;
+uses System.Hash.Utils
+{$if defined(x86_64) or defined(CPU386)},System.Cpu{$endif};
 {$ELSE FPC_DOTTEDUNITS}
-uses fphashutils;
+uses fphashutils
+{$if defined(x86_64) or defined(CPU386)},cpu{$endif};
 {$ENDIF FPC_DOTTEDUNITS}
+
+procedure sha256PascalCompress(var Context:TContextBuffer; var HashBuffer:THashBuffer; aK: pointer; Mask: pointer); forward;
+
+// Use assembler version if we have a suitable CPU as well
+// Define SHA256PASCAL to force use of original reference code
+{$ifndef SHA256PASCAL}
+  {$if defined(x86_64) or defined(CPU386)}
+     {$define SHA256ASM}
+     {$i sha256x86.inc} //-- assembler implementation for x86 using SHA instruction set
+  {$endif}
+{$endif}
 
 //------------------------------------------------------------------------------
 // SHA256Base
@@ -182,9 +200,6 @@ begin
     Context[i]:=P^[i];
 end;
 
-
-procedure TSHA256Base.Compress;
-// Actual hashing function
 const
   K: array[0..63] of UInt32 = (
    $428a2f98, $71374491, $b5c0fbcf, $e9b5dba5, $3956c25b, $59f111f1,
@@ -198,6 +213,13 @@ const
    $19a4c116, $1e376c08, $2748774c, $34b0bcb5, $391c0cb3, $4ed8aa4a,
    $5b9cca4f, $682e6ff3, $748f82ee, $78a5636f, $84c87814, $8cc70208,
    $90befffa, $a4506ceb, $bef9a3f7, $c67178f2);
+
+{$ifdef SHA256ASM}
+  Mask: record a, b: qword end = (a:$0405060700010203;b:$0c0d0e0f08090a0b);
+{$endif}
+
+procedure sha256PascalCompress(var Context:TContextBuffer;var HashBuffer:THashBuffer; aK:pointer; Mask:pointer);
+// Actual hashing function
 Type
   TBuf64 =  array[0..63] of UInt32;
 var
@@ -241,6 +263,15 @@ begin
   Inc(Context[5], F);
   Inc(Context[6], G);
   Inc(Context[7], H);
+end;
+
+procedure TSHA256Base.Compress;
+begin
+{$ifdef SHA256ASM}
+  sha256AsmCompress(Context,HashBuffer,@K,@Mask);
+{$else}
+  sha256PascalCompress(Context,HashBuffer,@K,nil);
+{$endif}
 end;
 
 type
@@ -477,7 +508,7 @@ begin
   repeat
      aLen:=aStream.Read(Buffer, Length(Buffer));
      if aLen>0 then
-       SHA256.Update(PByte(Buffer),aLen); 
+       SHA256.Update(PByte(Buffer),aLen);
   until aLen=0;
   SHA256.Final;
   aDigest:=SHA256.Digest;
