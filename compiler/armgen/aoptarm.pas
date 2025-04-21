@@ -2028,12 +2028,8 @@ Implementation
           { If p.opcode = A_STR, then ThisReg will be NR_NO }
           if (
 {$ifdef ARM}
-              (p_second.typ = ait_instruction) and
-              (taicpu(p_second).condition = taicpu(p).condition) and
-              (
-                (taicpu(p_second).opcode = A_MOV) or
-                (taicpu(p_second).opcode = A_MOVW)
-              )
+              MatchInstruction(p_second, A_MOV, [taicpu(p).condition], []) or
+              MatchInstruction(p_second, A_MOVW, [taicpu(p).condition], [])
 {$endif ARM}
 {$ifdef AARCH64}
               MatchInstruction(p, A_MOVZ, []) or
@@ -2073,11 +2069,9 @@ Implementation
             (
               (
 {$ifdef ARM}
-                (p_second.typ = ait_instruction) and
-                (taicpu(p_second).condition = taicpu(p).condition) and
                 (
-                  (taicpu(p_second).opcode = A_MOV) or
-                  (taicpu(p_second).opcode = A_MOVW)
+                  MatchInstruction(p_second, A_MOV, [taicpu(p).condition], []) or
+                  MatchInstruction(p_second, A_MOVW, [taicpu(p).condition], [])
                 ) and
 {$endif ARM}
 {$ifdef AARCH64}
