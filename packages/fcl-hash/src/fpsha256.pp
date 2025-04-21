@@ -211,14 +211,22 @@ begin
   Move(HashBuffer, W, Sizeof(HashBuffer));
   for I := 0 to 15 do
     W[I] := SwapEndian(W[I]);
+
+  A := Context[0]; B := Context[1]; C := Context[2]; D := Context[3]; E := Context[4]; F := Context[5];  G := Context[6];  H := Context[7];
+  for I := 0 to 15 do
+  begin
+    t1 := H+(((E shr 6) or (E shl 26)) xor ((E shr 11) or (E shl 21)) xor ((E shr 25) or (E shl 7)))+((E and F) xor (not E and G))+K[I]+W[I];
+    t2 := (((A shr 2) or (A shl 30)) xor ((A shr 13) or (A shl 19)) xor ((A shr 22) xor (A shl 10)))+((A and B) xor (A and C) xor (B and C));
+    H := G; G := F; F := E; E := D+t1;
+    D := C; C := B; B := A; A := t1+t2;
+  end;
+
   for I := 16 to 63 do
+  begin
     W[I] := (((W[I-2] shr 17) or(W[I-2] shl 15)) xor ((W[I-2] shr 19) or (W[I-2] shl 13))
       xor (W[I-2] shr 10))+W[I-7]+(((W[I-15] shr 7) or (W[I-15] shl 25))
       xor ((W[I-15] shr 18) or (W[I-15] shl 14)) xor (W[I-15] shr 3))+W[I-16];
-  A := Context[0]; B := Context[1]; C := Context[2]; D := Context[3]; E := Context[4]; F := Context[5];  G := Context[6];  H := Context[7];
 
-  for I := 0 to High(W) do
-  begin
     t1 := H+(((E shr 6) or (E shl 26)) xor ((E shr 11) or (E shl 21)) xor ((E shr 25) or (E shl 7)))+((E and F) xor (not E and G))+K[I]+W[I];
     t2 := (((A shr 2) or (A shl 30)) xor ((A shr 13) or (A shl 19)) xor ((A shr 22) xor (A shl 10)))+((A and B) xor (A and C) xor (B and C));
     H := G; G := F; F := E; E := D+t1;
