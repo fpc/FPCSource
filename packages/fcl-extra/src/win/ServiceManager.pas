@@ -747,13 +747,14 @@ procedure TServiceManager.QueryServiceConfig(SHandle : THandle; Var Config : TSe
 
 Var
   SvcCfg : PQueryServiceConfig;
-  BytesNeeded : DWord;
+  BytesNeeded, BytesSize : DWord;
 
 begin
   jwawinsvc.QueryServiceConfig(SHandle,Nil,0,BytesNeeded);
   If (GetLastError<>ERROR_INSUFFICIENT_BUFFER) then
     RaiseLastOSError;
-  GetMem(SvcCfg,BytesNeeded);
+  BytesSize := BytesNeeded;
+  GetMem(SvcCfg,BytesSize);
   Try
     If Not jwawinsvc.QueryServiceConfig(SHandle,SvcCfg,BytesNeeded,BytesNeeded) then
       RaiseLastOSError;
@@ -773,7 +774,7 @@ begin
       DisplayName:=lpDisplayName;
       end;
   Finally
-    FreeMem(SvcCfg,BytesNeeded);
+    FreeMem(SvcCfg,BytesSize);
   end;
 end;
 
