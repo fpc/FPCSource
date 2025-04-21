@@ -8,11 +8,15 @@
 {$endif}
 
 procedure {$ifdef DO_DISPATCH}SHA1Transform_Sha1Asm{$else}SHA1Transform{$endif}
-      (var Ctx: TSHA1Context; const Data: Pointer); assembler; {$ifdef CPU64}nostackframe;{$endif}
+      (var Ctx: TSHA1Context; const Data: Pointer); assembler;
+{$if defined(x86_64) and not defined(windows)}nostackframe;{$endif}
 {$ifndef CPU64}
 const MASK : packed record a, b : qword; end = (a:$08090a0b0c0d0e0f;b:$0001020304050607);
 var
   ABCD_SAVE,E0_SAVE : packed record a, b : qword; end;
+{$endif}
+{$if defined(x86_64) and defined(windows)}
+var sav6,sav7,sav8,sav9 : record a,b:qword end; {abi for win64 requires to save and restore xmm6-xmm15}
 {$endif}
 {   Registers used  }
 {  E0        = xmm0 }
@@ -26,6 +30,12 @@ var
 {  ABCD_SAVE = xmm8  (only on x86_64) }
 {  E0_SAVE   = xmm9  (only on x86_64) }
 asm
+{$if defined(x86_64) and defined(windows)}
+   movdqu sav6,xmm6
+   movdqu sav7,xmm7
+   movdqu sav8,xmm8
+   movdqu sav9,xmm9
+{$endif}
 
     //* Load initial values */
     pxor   xmm0,xmm0   {important, we later write register bits[127..96]  }
@@ -54,14 +64,14 @@ asm
         {$endif}
 
         //* Rounds 0-3 */
-        movdqu xmm4,[Data]    {MSG0 = [Data+00]}
+        movdqu xmm4,oword ptr[Data] {MSG0 = [Data+00]}
         pshufb xmm4,xmm3      {MSG0 = shuffle(MSG0, MASK);}
         paddd  xmm0,xmm4      {E0 = add (E0, MSG0);}
         movdqa xmm1,xmm2      {E1 = ABCD;}
         sha1rnds4 xmm2,xmm0,0 {ABCD = sha1rnds4(ABCD, E0, 0);}
 
         //* Rounds 4-7 */
-        movdqu xmm5,[Data+16] {MSG1 = [Data+16]}
+        movdqu xmm5,oword ptr[Data+16] {MSG1 = [Data+16]}
         pshufb xmm5,xmm3      {MSG1 = shuffle(MSG1, MASK);}
         sha1nexte xmm1,xmm5   {E1 = sha1nexte(E1, MSG1);}
         movdqa xmm0,xmm2      {E0 = ABCD;}
@@ -69,7 +79,7 @@ asm
         sha1msg1 xmm4,xmm5    {MSG0 = sha1msg1(MSG0, MSG1);}
 
         //* Rounds 8-11 */
-        movdqu xmm6,[Data+32] {MSG2 = [Data+32]}
+        movdqu xmm6,oword ptr[Data+32] {MSG2 = [Data+32]}
         pshufb xmm6,xmm3      {MSG2 = shuffle(MSG2, MASK);}
         sha1nexte xmm0,xmm6   {E0 = sha1nexte(E0, MSG2);}
         movdqu xmm1,xmm2      {E1 = ABCD;}
@@ -78,7 +88,7 @@ asm
         pxor xmm4,xmm6        {MSG0 = xor(MSG0, MSG2);}
 
         //* Rounds 12-15 */
-        movdqu xmm7,[Data+48] {MSG3 = [Data+48]}
+        movdqu xmm7,oword ptr[Data+48] {MSG3 = [Data+48]}
         pshufb xmm7,xmm3      {MSG3 = shuffle(MSG3, MASK);}
         sha1nexte xmm1,xmm7   {E1 = sha1nexte(E1, MSG3);}
         movdqu xmm0,xmm2      {E0 = ABCD;}
@@ -234,6 +244,12 @@ asm
     ADD   DWORD PTR [ctx.Length  ], 64 { ctx.Length += 64 }
     ADC   DWORD PTR [ctx.Length+4],  0
     {$endif}
+{$if defined(x86_64) and defined(windows)}
+   movdqu xmm6,sav6
+   movdqu xmm7,sav7
+   movdqu xmm8,sav8
+   movdqu xmm9,sav9
+{$endif}
 end;
 
 {$pop}
