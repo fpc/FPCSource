@@ -23,6 +23,7 @@ begin
   for i := 0 to 1000 do
     ss := LowerCase(SHA1Print(SHA1string(s)));
   EndTime:=now;
+  writeln('SHA1: ',ss);
   write('Performance test finished. Elapsed time: ');
   writeln((EndTime-StartTime)*3600*24:0:3,' s');
 end.
