@@ -754,15 +754,16 @@ procedure TServiceManager.QueryServiceConfig(SHandle : THandle; Var Config : TSe
 
 Var
   SvcCfg : PQueryServiceConfig;
-  BytesNeeded : DWord;
+  BytesNeeded, BytesSize : DWord;
 
 begin
   {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,Nil,0,BytesNeeded);
   If (GetLastError<>ERROR_INSUFFICIENT_BUFFER) then
     RaiseLastOSError;
-  GetMem(SvcCfg,BytesNeeded);
+  BytesSize := BytesNeeded;
+  GetMem(SvcCfg,BytesSize);
   Try
-    If Not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,SvcCfg,BytesNeeded,BytesNeeded) then
+    If Not {$IFDEF FPC_DOTTEDUNITS}WinApi.Jedi.WinSvc{$ELSE}jwawinsvc{$ENDIF}.QueryServiceConfig(SHandle,SvcCfg,BytesSize,BytesNeeded) then
       RaiseLastOSError;
     With config,SvcCfg^ do
       begin
@@ -780,11 +781,11 @@ begin
       DisplayName:=lpDisplayName;
       end;
   Finally
-    FreeMem(SvcCfg,BytesNeeded);
+    FreeMem(SvcCfg,BytesSize);
   end;
 end;
 
-procedure TServiceManager.QueryServiceConfig(const ServiceName : String; Var Config : TServiceDescriptor);
+procedure TServiceManager.QueryServiceConfig(ServiceName : String; Var Config : TServiceDescriptor);
 
 Var
   H : THandle;
