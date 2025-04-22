@@ -1698,6 +1698,9 @@ parser_e_coperators_off=03371_E_C styled assignment operators are turned off
 parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Expression cannot be evaluated at compile time
 % Certain operations like the size of an object cannot be determined at compile time,
 % so it cannot be e.g. part of a constant expression.
+parser_e_type_alread_forward=03373_E_Duplicate forward type declaration: $1
+% Types might be defined only once as forward:
+% \var{type myclass = class; myclass = class;} is not allowed
 %
 % \end{description}
 %

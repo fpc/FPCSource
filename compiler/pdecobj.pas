@@ -1620,27 +1620,31 @@ implementation
           parse_object_options;
 
         { forward def? }
-        if not assigned(fd) and
-           (token=_SEMICOLON) then
+        if token=_SEMICOLON then
           begin
-            if is_objectpascal_helper(current_structdef) then
-              consume(_FOR);
-            { add to the list of definitions to check that the forward
-              is resolved. this is required for delphi mode }
-            current_module.checkforwarddefs.add(current_structdef);
+            if assigned(fd) then
+              Message1(parser_e_type_alread_forward,n)
+            else
+              begin
+                if is_objectpascal_helper(current_structdef) then
+                  consume(_FOR);
+                { add to the list of definitions to check that the forward
+                  is resolved. this is required for delphi mode }
+                current_module.checkforwarddefs.add(current_structdef);
 
-            symtablestack.push(current_structdef.symtable);
-            insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
-            { when we are parsing a generic already then this is a generic as
-              well }
-            if old_parse_generic then
-              include(current_structdef.defoptions,df_generic);
-            parse_generic:=(df_generic in current_structdef.defoptions);
+                symtablestack.push(current_structdef.symtable);
+                insert_generic_parameter_types(current_structdef,genericdef,genericlist,false);
+                { when we are parsing a generic already then this is a generic as
+                  well }
+                if old_parse_generic then
+                  include(current_structdef.defoptions,df_generic);
+                parse_generic:=(df_generic in current_structdef.defoptions);
 
-            { *don't* add the strict private symbol for non-Delphi modes for
-              forward defs }
+                { *don't* add the strict private symbol for non-Delphi modes for
+                  forward defs }
 
-            symtablestack.pop(current_structdef.symtable);
+                symtablestack.pop(current_structdef.symtable);
+              end;
           end
         else
           begin
