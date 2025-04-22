@@ -52,12 +52,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses System.SysUtils,System.SysConst
-{$if defined(x86_64) or defined(CPU386)},System.Cpu{$endif}
-;
+{$if defined(x86_64) or defined(CPU386)},System.CPU{$endif};
 {$ELSE FPC_DOTTEDUNITS}
 uses sysutils,sysconst
-{$if defined(x86_64) or defined(CPU386)},cpu{$endif}
-;
+{$if defined(x86_64) or defined(CPU386)},cpu{$endif};
 {$ENDIF FPC_DOTTEDUNITS}
 
 procedure SHA1Init(out ctx: TSHA1Context);
