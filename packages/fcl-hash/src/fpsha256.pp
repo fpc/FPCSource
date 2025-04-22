@@ -139,7 +139,7 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses System.Hash.Utils
-{$if defined(x86_64) or defined(CPU386)},System.Cpu{$endif};
+{$if defined(x86_64) or defined(CPU386)},System.CPU{$endif};
 {$ELSE FPC_DOTTEDUNITS}
 uses fphashutils
 {$if defined(x86_64) or defined(CPU386)},cpu{$endif};
