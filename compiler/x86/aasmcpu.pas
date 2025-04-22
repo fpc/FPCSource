@@ -909,6 +909,8 @@ implementation
                       exit;
                   end;
                 inc(i);
+                if i>high(instab) then
+                  exit;
                 insentry:=@instab[i];
               end;
           end;
@@ -1997,7 +1999,10 @@ implementation
                result:=true;
                exit;
              end;
-           inc(insentry);
+           inc(i);
+           if i>high(instab) then
+             exit;
+           insentry:=@instab[i];
          end;
         Message1(asmw_e_invalid_opcode_and_operands,GetString);
         { No instruction found, set insentry to nil and inssize to -1 }
