@@ -36,8 +36,13 @@ begin
 end;
 
 {$define HAS_SYSOSFREE}
-
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
   HeapFree(GetProcessHeap, 0, p);
+end;
+
+{$define FPC_SYSTEM_HAS_SYSOSREALLOC}
+function SysOSRealloc(p: pointer;oldsize,newsize: ptruint): pointer;
+begin
+  result:=HeapReAlloc(GetProcessHeap, 0, p, newsize);
 end;
