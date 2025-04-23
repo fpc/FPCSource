@@ -32,7 +32,11 @@ function IIf(Condition: Boolean; TrueRes, FalseRes: Integer): Integer; inline;
   end;
 
 const
+{$ifdef IN_TESTS}
+  ITERATIONS = $10000;
+{$else not IN_TESTS}
   ITERATIONS = 33554432;
+{$endif not IN_TESTS}
 
   AES_S_Box: array[Byte] of Byte = (
     $63, $7c, $77, $7b, $f2, $6b, $6f, $c5, $30, $01, $67, $2b, $fe, $d7, $ab, $76,
