@@ -702,8 +702,8 @@ function DynArrayBounds(a: Pointer; typeInfo: Pointer): TBoundArray;
         exit
       else
       begin
-        result[i]:=DynArraySize(a)-1;
         a:=PPointerArray(a)^[0];
+        result[i]:=DynArraySize(a)-1;
       end;
   end;
 
