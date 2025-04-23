@@ -31,7 +31,11 @@ function IIf(Condition: Boolean; TrueRes, FalseRes: Integer): Integer; inline;
   end;
 
 const
+{$ifdef IN_TESTS}
+  ITERATIONS = 1;
+{$else}
   ITERATIONS = 33554432;
+{$endif}
 
 { TTestAncestor }
 type
