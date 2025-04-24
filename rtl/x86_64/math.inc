@@ -501,6 +501,7 @@ const
         jnz .LNotZero
         movsd     %xmm5, %xmm0 { e^0 = 1 }
         ret
+        .balign   16
     .LNotZero:
         mulsd     %xmm4, %xmm0
         addsd     %xmm2, %xmm0 { Add 0.5 to make sure the fractional part falls between -0.5 and 0.5 }
