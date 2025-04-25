@@ -1084,6 +1084,7 @@ implementation
            A_ADRP,
            A_AND,
            A_ASR,
+           A_ASRV,
            A_BFXIL,
            A_BIC,
            A_CLZ,
@@ -1152,7 +1153,7 @@ implementation
              else
                result:=operand_read;
            else
-             Internalerror(2019090802);
+             Internalerror(2019090803);
 {$else EXTDEBUG}
            else
              if opnr=0 then
