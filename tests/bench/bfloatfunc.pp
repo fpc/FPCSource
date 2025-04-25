@@ -32,7 +32,7 @@ function IIf(Condition: Boolean; TrueRes, FalseRes: Integer): Integer; inline;
 
 const
 {$ifdef IN_TESTS}
-  ITERATIONS = 1;
+  ITERATIONS = $8;
 {$else}
   ITERATIONS = 33554432;
 {$endif}
