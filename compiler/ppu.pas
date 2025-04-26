@@ -174,10 +174,8 @@ type
 implementation
 
   uses
-{$ifdef Test_Double_checksum}
     comphook,
     globals,
-{$endif def Test_Double_checksum}
     fpchash;
 
 {$ifdef Test_Double_checksum}
@@ -278,10 +276,22 @@ end;
 
 
 function tppufile.readheader: longint;
+var
+  is_valid : boolean;
 begin
-  if fsize<sizeof(tppuheader) then
-    exit(-1);
+  is_valid:=true;
+  result:=fsize;
+  if result<sizeof(tppuheader) then
+    is_valid:=false;
   result:=f.Read(header,sizeof(tppuheader));
+  if (result<>sizeof(tppuheader)) then
+    is_valid:=false;
+  if not is_valid then
+    begin
+      fillchar(header,sizeof(tppuheader),#0);
+      do_comment(V_Error,' Invalid header size '+tostr(result)+' (expecting '+tostr(sizeof(tppuheader))+')');
+      exit(-1);
+    end;
   { The header is always stored in little endian order }
   { therefore swap if on a big endian machine          }
 {$IFDEF ENDIAN_BIG}
@@ -426,7 +436,7 @@ begin
                do_internalerror(2020113001);
              {$ENDIF}
 {$ifdef Test_Double_checksum_write}
-             Writeln(CRCFile,'!!!imp_crc ',implementation_read_crc_index:5,'$',hexstr(crc,8),'<>$',hexstr(implementation_crc_array^[implementation_read_crc_index],8));
+             Writeln(CRCFile,'!!!imp_crc ',implementation_read_crc_index:5,' $',hexstr(crc,8),'<>$',hexstr(implementation_crc_array^[implementation_read_crc_index],8));
            end
          else
            begin
@@ -464,7 +474,7 @@ begin
                   do_internalerror(2020113002);
                 {$ENDIF}
 {$ifdef Test_Double_checksum_write}
-                Writeln(CRCFile,'!!!int_crc ',interface_read_crc_index:5,'$',hexstr(interface_crc,8),'<>$',hexstr(interface_crc_array^[interface_read_crc_index],8));
+                Writeln(CRCFile,'!!!int_crc ',interface_read_crc_index:5,' $',hexstr(interface_crc,8),'<>$',hexstr(interface_crc_array^[interface_read_crc_index],8));
               end
             else
               begin
@@ -505,7 +515,7 @@ begin
                        do_internalerror(2020113003);
                      {$ENDIF}
 {$ifdef Test_Double_checksum_write}
-                     Writeln(CRCFile,'!!!ind_crc ',indirect_read_crc_index:5,'$',hexstr(indirect_crc,8),'<>$',hexstr(indirect_crc_array^[indirect_read_crc_index],8));
+                     Writeln(CRCFile,'!!!ind_crc ',indirect_read_crc_index:5,' $',hexstr(indirect_crc,8),'<>$',hexstr(indirect_crc_array^[indirect_read_crc_index],8));
                    end
                  else
                    begin
