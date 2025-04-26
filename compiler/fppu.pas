@@ -1854,18 +1854,19 @@ var
          Writeln(ppufile.CRCFile,'CRC of getppucrc of ',ppufilename,
                  ' defsgeneration=',defsgeneration);
 {$endif def Test_Double_checksum_write}
+         { extra header (sub version, module flags) }
+         writeextraheader;
+
          { first the (JVM) namespace }
          if assigned(namespace) then
            begin
              ppufile.putstring(namespace^);
              ppufile.writeentry(ibjvmnamespace);
            end;
+
          { the unitname }
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
-
-         { extra header (sub version, module flags) }
-         writeextraheader;
 
          ppufile.putset(tppuset1(moduleoptions));
          if mo_has_deprecated_msg in moduleoptions then
