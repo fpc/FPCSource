@@ -216,17 +216,17 @@ begin
   if not assigned(interface_crc_array) then
     begin
       new(interface_crc_array);
-      fillchar(interface_crc_array^,sizeof(interface_crc_array),#$ff);
+      fillchar(interface_crc_array^,sizeof(tcrc_array),#$ff);
     end;
   if not assigned(indirect_crc_array) then
     begin
       new(indirect_crc_array);
-      fillchar(indirect_crc_array^,sizeof(indirect_crc_array),#$ff);
+      fillchar(indirect_crc_array^,sizeof(tcrc_array),#$ff);
     end;
   if not assigned(implementation_crc_array) then
     begin
       new(implementation_crc_array);
-      fillchar(implementation_crc_array^,sizeof(implementation_crc_array),#$ff);
+      fillchar(implementation_crc_array^,sizeof(tcrc_array),#$ff);
     end;
 {$endif Test_Double_checksum}
 end;
@@ -428,6 +428,7 @@ begin
      else
        begin
          if (implementation_read_crc_index<crc_array_size) and
+            (implementation_read_crc_index<implementation_write_crc_index) and
             (implementation_crc_array^[implementation_read_crc_index]<>crc) then
            begin
              do_comment(CRC_implementation_Change_Message_Level,'implementation CRC changed at index '+tostr(implementation_read_crc_index));
@@ -466,6 +467,7 @@ begin
         else
           begin
             if (interface_read_crc_index<crc_array_size) and
+               (interface_read_crc_index<interface_write_crc_index) and
                (interface_crc_array^[interface_read_crc_index]<>interface_crc) then
               begin
                 do_comment(CRC_Interface_Change_Message_Level,'interface CRC changed at index '+tostr(interface_read_crc_index));
@@ -507,6 +509,7 @@ begin
              else
                begin
                  if (indirect_read_crc_index<crc_array_size) and
+                    (indirect_read_crc_index<indirect_write_crc_index) and
                     (indirect_crc_array^[indirect_read_crc_index]<>indirect_crc) then
                    begin
                      do_comment(CRC_Indirect_Change_Message_Level,'Indirect CRC changed at index '+tostr(indirect_read_crc_index));
