@@ -32026,7 +32026,7 @@ begin
     '  $r.addMethod("PublicProc", 4, []);',
     '  $r.addMethod("Create", 2, []);',
     '  $r.addMethod("Destroy", 3, []);',
-    '  $r.addMethod("PublishedProc", 1, [], 4, rtl.word);',
+    '  $r.addMethod("PublishedProc", 1, [], 3, rtl.word);',
     '});',
     '']),
     LinesToStr([ // $mod.$main
@@ -32202,7 +32202,8 @@ begin
     '    0,',
     '    rtl.word,',
     '    "FWord",',
-    '    ""',
+    '    "",',
+    '    3',
     '  );',
     '});',
     '']),
