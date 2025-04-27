@@ -1,4 +1,4 @@
 { %OPT=-O2 }
-{ this benchmark can be used also as a test case }
-{$define IN_TESTS}
+{ This benchmark can also be used as a test case }
+{$define CONFORMANCE}
 {$I ../bench/bcase.pp}

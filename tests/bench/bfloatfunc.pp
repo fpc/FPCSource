@@ -31,7 +31,7 @@ function IIf(Condition: Boolean; TrueRes, FalseRes: Integer): Integer; inline;
   end;
 
 const
-{$ifdef IN_TESTS}
+{$ifdef CONFORMANCE}
   ITERATIONS = $8;
 {$else}
   ITERATIONS = 33554432;
@@ -1775,9 +1775,13 @@ begin
 
           if CurrentObject.WriteResults then
             begin
+{$ifdef CONFORMANCE}
+              WriteLn('Pass');
+{$else CONFORMANCE}
               AverageDuration := ((CurrentObject.RunTime * 1000000000.0) / ITERATIONS);
               WriteLn('Pass - average iteration duration: ', AverageDuration:1:3, ' ns');
               SummedUpAverageDuration := SummedUpAverageDuration + AverageDuration;
+{$endif CONFORMANCE}
             end
           else
             { Final average isn't processed if a test failed, so there's no need
@@ -1798,7 +1802,10 @@ begin
   if Failed then
     Halt(1);
 
+{$ifdef CONFORMANCE}
   WriteLn(#10'ok');
-  WriteLn('- Sum of average durations: ', SummedUpAverageDuration:1:3, ' ns');
+{$else CONFORMANCE}
+  WriteLn(#10'- Sum of average durations: ', SummedUpAverageDuration:1:3, ' ns');
   WriteLn('- Overall average duration: ', (SummedUpAverageDuration / Length(TestClasses)):1:3, ' ns');
+{$endif CONFORMANCE}
 end.

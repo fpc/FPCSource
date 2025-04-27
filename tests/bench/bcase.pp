@@ -32,11 +32,11 @@ function IIf(Condition: Boolean; TrueRes, FalseRes: Integer): Integer; inline;
   end;
 
 const
-{$ifdef IN_TESTS}
+{$ifdef CONFORMANCE}
   ITERATIONS = $10000;
-{$else not IN_TESTS}
+{$else CONFORMANCE}
   ITERATIONS = 33554432;
-{$endif not IN_TESTS}
+{$endif CONFORMANCE}
 
   AES_S_Box: array[Byte] of Byte = (
     $63, $7c, $77, $7b, $f2, $6b, $6f, $c5, $30, $01, $67, $2b, $fe, $d7, $ab, $76,
@@ -2642,9 +2642,13 @@ begin
 
           if CurrentObject.WriteResults then
             begin
+{$ifdef CONFORMANCE}
+              WriteLn('Pass');
+{$else CONFORMANCE}
               AverageDuration := ((CurrentObject.RunTime * 1000000000.0) / ITERATIONS);
               WriteLn('Pass - average iteration duration: ', AverageDuration:1:3, ' ns');
               SummedUpAverageDuration := SummedUpAverageDuration + AverageDuration;
+{$endif CONFORMANCE}
             end
           else
             { Final average isn't processed if a test failed, so there's no need
@@ -2665,7 +2669,10 @@ begin
   if Failed then
     Halt(1);
 
+{$ifdef CONFORMANCE}
   WriteLn(#10'ok');
-  WriteLn('- Sum of average durations: ', SummedUpAverageDuration:1:3, ' ns');
+{$else CONFORMANCE}
+  WriteLn(#10'- Sum of average durations: ', SummedUpAverageDuration:1:3, ' ns');
   WriteLn('- Overall average duration: ', (SummedUpAverageDuration / Length(TestClasses)):1:3, ' ns');
+{$endif CONFORMANCE}
 end.
