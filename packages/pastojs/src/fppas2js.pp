@@ -1,7 +1,7 @@
 { **********************************************************************
 
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 2020 by Michael Van Canneyt
+    Copyright (c) 2025 by Michael Van Canneyt
 
     Pascal to Javascript converter class.
 
