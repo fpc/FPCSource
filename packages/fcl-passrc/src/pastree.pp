@@ -3393,9 +3393,6 @@ begin
 end;
 
 function TPasAliasType.FixTypeDecl(aDecl: TPasTreeString): TPasTreeString;
-
-var
-  PasType : TPasType;
 begin
   Result:=aDecl;
   if (Name<>'') then

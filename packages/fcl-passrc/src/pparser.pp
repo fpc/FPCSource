@@ -5265,7 +5265,6 @@ var
 
   var
     Expr: TPasExpr;
-    Prim: TPrimitiveExpr;
     i: Integer;
     AddAttributes: TPasAttributes;
   begin
@@ -6676,7 +6675,7 @@ var
   end;
 
 var
-  StartP, ElType: Integer;
+  ElType: Integer;
   Value: TPasScannerString;
   Visibility: TPasMembersType.TRTTIVisibilitySections;
 begin
@@ -8620,13 +8619,8 @@ end;
 procedure TPasParser.TParseStatementParams.ParseVarStatement;
 
 var
-  List : TFPList;
   VarSt : TPasInlineVarDeclStatement;
   SrcPos: TPasSourcePos;
-  I : Integer;
-  V : TPasVariable;
-  Obj: TObject;
-
 begin
   // var a : Integer;
   // var a : Integer = Expr;

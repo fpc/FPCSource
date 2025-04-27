@@ -12014,7 +12014,7 @@ procedure TPasResolver.DeanonymizeType(El: TPasType);
   procedure InsertInFront(NewParent, Child: TPasElement; List: TFPList);
   var
     i: Integer;
-    p, Prev: TPasElement;
+    Prev: TPasElement;
   begin
     // e.g. m,n:array of longint; -> insert n$a in front of m
     i:=List.Count-1;
