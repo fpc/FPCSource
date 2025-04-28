@@ -538,8 +538,6 @@ var rtl = {
       var mod = pas.SysUtils;
       if (!mod) mod = pas.sysutils;
       if (!mod) mod = pas["System.SysUtils"];
-      if (!mod) mod = pas.System.Sysutils;
-      if (!mod) mod = pas.System.SysUtils;
       if (mod){
         t = mod[typename];
         if (!t) t = mod[typename.toLowerCase()];
