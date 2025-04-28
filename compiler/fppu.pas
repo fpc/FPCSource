@@ -323,7 +323,7 @@ var
                if assigned(psi) then
                  system_name:=psi^.shortname
                else
-                 system_name:='invalid';
+                 system_name:='invalid ('+tostr(ppufile.header.common.target)+')';
                Message1(unit_u_ppu_invalid_target,system_name,@queuecomment);
                exit;
              end;
