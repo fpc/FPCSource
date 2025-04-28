@@ -441,7 +441,7 @@ begin
            end
          else
            begin
-             Writeln(CRCFile,'imp_crc ',implementation_read_crc_index:5,' OK');
+             Writeln(CRCFile,'imp_crc ',implementation_read_crc_index:5,' $',hexstr(crc,8),' OK');
 {$endif Test_Double_checksum_write}
            end;
          inc(implementation_read_crc_index);
@@ -480,7 +480,7 @@ begin
               end
             else
               begin
-                Writeln(CRCFile,'int_crc ',interface_read_crc_index:5,' OK');
+                Writeln(CRCFile,'int_crc ',interface_read_crc_index:5,' $',hexstr(interface_crc,8),' OK');
 {$endif Test_Double_checksum_write}
               end;
             inc(interface_read_crc_index);
@@ -522,7 +522,7 @@ begin
                    end
                  else
                    begin
-                     Writeln(CRCFile,'ind_crc ',indirect_read_crc_index:5,' OK');
+                     Writeln(CRCFile,'ind_crc ',indirect_read_crc_index:5,' $',hexstr(indirect_crc,8),' OK');
 {$endif Test_Double_checksum_write}
                    end;
                  inc(indirect_read_crc_index);
