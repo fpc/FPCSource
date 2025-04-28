@@ -2354,6 +2354,8 @@ begin
       begin
       Proc:=TPasProcedure(Member);
       ProcScope:=Member.CustomData as TPasProcedureScope;
+      if (ScopeModule=nil) and not Resolver.IsFullySpecialized(Proc) then
+        continue;
       if Proc.IsOverride and (ProcScope.OverriddenProc<>nil) then
         begin
         // this is an override
@@ -2409,6 +2411,11 @@ begin
       begin
       // include published
       if not FirstTime then continue;
+      if Member is TPasGenericType then
+      begin
+        if not Resolver.IsFullySpecialized(TPasGenericType(Member)) then
+          continue;
+      end;
       UseTypeInfo(Member);
       end
     else if Mode=paumElement then
