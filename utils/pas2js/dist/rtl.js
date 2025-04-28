@@ -537,12 +537,9 @@ var rtl = {
     if (t==null){
       var mod = pas.SysUtils;
       if (!mod) mod = pas.sysutils;
-<<<<<<< Updated upstream
       if (!mod) mod = pas["System.SysUtils"];
-=======
       if (!mod) mod = pas.System.Sysutils;
       if (!mod) mod = pas.System.SysUtils;
->>>>>>> Stashed changes
       if (mod){
         t = mod[typename];
         if (!t) t = mod[typename.toLowerCase()];
