@@ -537,24 +537,35 @@ var rtl = {
     if (t==null){
       var mod = pas.SysUtils;
       if (!mod) mod = pas.sysutils;
+<<<<<<< Updated upstream
       if (!mod) mod = pas["System.SysUtils"];
+=======
+      if (!mod) mod = pas.System.Sysutils;
+      if (!mod) mod = pas.System.SysUtils;
+>>>>>>> Stashed changes
       if (mod){
         t = mod[typename];
         if (!t) t = mod[typename.toLowerCase()];
         if (!t) t = mod['Exception'];
         if (!t) t = mod['exception'];
       }
+      if (t) rtl[typename]=t;
     }
-    if (t){
+    if (t) {
+      
       if (t.Create){
-        throw t.$create("Create");
-      } else if (t.create){
-        throw t.$create("create");
+        var e = t.$create("Create");
+      } else if (t.create) {
+        var e = t.$create("create");
+      }
+      if (e) {
+        e.FJSError = new Error;
+        throw e ;
       }
     }
-    if (typename === "EInvalidCast") throw "invalid type cast";
-    if (typename === "EAbstractError") throw "Abstract method called";
-    if (typename === "ERangeError") throw "range error";
+    if (typename === "EInvalidCast") throw new Error("invalid type cast");
+    if (typename === "EAbstractError") throw new Error("Abstract method called");
+    if (typename === "ERangeError") throw new Error("range error");
     throw typename;
   },
 
