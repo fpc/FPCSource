@@ -53,8 +53,8 @@ interface
 
       TWasmObjSymbolLinkingData = class
       public
-        ImportModule: string;
-        ImportName: string;
+        ImportModule: ansistring;
+        ImportName: ansistring;
 
         FuncType: TWasmFuncType;
         ExeFunctionIndex: Integer;
@@ -81,7 +81,7 @@ interface
         SymbolIndex: Integer;
         GlobalIndex: Integer;
         TagIndex: Integer;
-        AliasOf: string;
+        AliasOf: ansistring;
         ExtraData: TWasmObjSymbolExtraData;
         LinkingData: TWasmObjSymbolLinkingData;
         TlsGlobalSym: TWasmObjSymbol;
@@ -113,9 +113,9 @@ interface
       TWasmObjSymbolExtraData = class(TFPHashObject)
         TypeIdx: Integer;
         ExceptionTagTypeIdx: Integer;
-        ImportModule: string;
-        ImportName: string;
-        ExportName: string;
+        ImportModule: ansistring;
+        ImportName: ansistring;
+        ExportName: ansistring;
         GlobalType: TWasmBasicType;
         GlobalIsImmutable: Boolean;
         Locals: array of TWasmBasicType;
@@ -6511,4 +6511,5 @@ initialization
 {$ifdef wasm32}
   RegisterAssembler(as_wasm32_wasm_info,TWasmAssembler);
 {$endif wasm32}
+finalization
 end.
