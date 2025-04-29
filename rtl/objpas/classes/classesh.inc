@@ -2160,17 +2160,17 @@ type
   TParser = class(TObject)
   private
     fStream : TStream;
-    fBuf : PChar;
+    fBuf : PAnsiChar;
     fBufLen : integer;
     fPos : integer;
     fDeltaPos : integer;
-    fFloatType : Char;
+    fFloatType : AnsiChar;
     fSourceLine : integer;
-    fToken : Char;
+    fToken : AnsiChar;
     fEofReached : boolean;
     fLastTokenStr : string;
     fLastTokenWStr : widestring;
-    function GetTokenName(aTok : Char) : string;
+    function GetTokenName(aTok : AnsiChar) : string;
     procedure LoadBuffer;
     procedure CheckLoadBuffer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     procedure ProcessChar; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
@@ -2197,13 +2197,13 @@ type
   public
     constructor Create(Stream: TStream);
     destructor Destroy; override;
-    procedure CheckToken(T: Char);
+    procedure CheckToken(T: AnsiChar);
     procedure CheckTokenSymbol(const S: string);
     procedure Error(const Ident: string);
     procedure ErrorFmt(const Ident: string; const Args: array of const);
     procedure ErrorStr(const Message: string);
     procedure HexToBinary(Stream: TStream);
-    function NextToken: Char;
+    function NextToken: AnsiChar;
     function SourcePos: Longint;
     function TokenComponentIdent: string;
 {$ifndef FPUNONE}
@@ -2213,9 +2213,9 @@ type
     function TokenString: string;
     function TokenWideString: WideString;
     function TokenSymbolIs(const S: string): Boolean;
-    property FloatType: Char read fFloatType;
+    property FloatType: AnsiChar read fFloatType;
     property SourceLine: Integer read fSourceLine;
-    property Token: Char read fToken;
+    property Token: AnsiChar read fToken;
   end;
 
 { TThread }
