@@ -454,22 +454,16 @@ var
 begin
   for i := 0 to FData.Count - 1 do
     Dispose(PSAXAttributeData(FData[i]));
+  FData.Clear;
 end;
 
 procedure TSAXAttributes.SetAttributes(Atts: TSAXAttributes);
 var
   i: Integer;
 begin
-  FData.Count := Atts.Length;
-  for i := 0 to FData.Count - 1 do
-    with Data[i]^ do
-    begin
-      URI := Atts.URIs[i];
-      LocalName := Atts.LocalNames[i];
-      QName := Atts.QNames[i];
-      AttrType := Atts.Types[i];
-      Value := Atts.Values[i];
-    end;
+  Clear;
+  for i := 0 to Atts.Length - 1 do
+    AddAttribute(Atts.URIs[i], Atts.LocalNames[i], Atts.QNames[i], Atts.Types[i], Atts.Values[i]);
 end;
 
 procedure TSAXAttributes.AddAttribute(const AURI, ALocalName, AQName: SAXString;
