@@ -1382,7 +1382,6 @@ function TCSSResolver.SelectorBinaryMatches(aBinary: TCSSBinaryElement;
 var
   aParent, Sibling: ICSSNode;
   aSpecificity: TCSSSpecificity;
-  PseudoEl: TCSSElement;
 begin
   if OnlySpecificity then
   begin

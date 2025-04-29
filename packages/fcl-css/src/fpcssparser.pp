@@ -1256,7 +1256,7 @@ function TCSSParser.ParseSelector: TCSSElement;
 
 var
   ok, OldReturnWhiteSpace: Boolean;
-  Bin, PseudoBin: TCSSBinaryElement;
+  Bin: TCSSBinaryElement;
   El, Sub: TCSSElement;
   List: TCSSListElement;
 begin
