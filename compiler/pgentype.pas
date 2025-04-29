@@ -49,7 +49,7 @@ type
     poslist : tfplist;
     prettyname : ansistring;
     specializename : ansistring;
-    genname : string;
+    genname : ansistring;
     sym : tsym;
     symtable : tsymtable;
     forwarddef : tdef;
