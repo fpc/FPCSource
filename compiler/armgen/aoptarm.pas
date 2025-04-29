@@ -2026,19 +2026,22 @@ Implementation
       procedure SearchAhead;
         begin
           { If p.opcode = A_STR, then ThisReg will be NR_NO }
-          if (
+          if
 {$ifdef ARM}
-              MatchInstruction(p_second, A_MOV, [taicpu(p).condition], []) or
-              MatchInstruction(p_second, A_MOVW, [taicpu(p).condition], [])
+            Assigned(hp1) and
 {$endif ARM}
 {$ifdef AARCH64}
-              MatchInstruction(p, A_MOVZ, []) or
+            (
+              (
+                MatchInstruction(p, A_MOVZ, []) and
+                Assigned(hp1)
+              ) or
               (
                 MatchInstruction(p, A_STR, []) and
                 SetAndTest(p, hp1)
               )
-{$endif AARCH64}
             ) and
+{$endif AARCH64}
             (
               (
                 (ThisReg <> NR_NO) and
@@ -2254,6 +2257,7 @@ Implementation
                                                             Result := True;
 {$ifdef AARCH64}
                                                             { Searching ahead only benefits AArch64 here }
+                                                            hp1 := hp2; { Since hp2 now appears immediately after p }
                                                             SearchAhead;
 {$endif AARCH64}
                                                             Exit;
@@ -2389,6 +2393,7 @@ Implementation
                                                     if (taicpu(p).oper[1]^.val < 0) or (taicpu(p).oper[1]^.val > 256) then
                                                       taicpu(p).opcode := A_MOVW;
 {$endif ARM}
+                                                    taicpu(hp1).oppostfix := PF_None;
                                                   end
                                                 else
                                                   begin
@@ -2411,10 +2416,14 @@ Implementation
                                                     taicpu(p_second).oper[0]^.reg := ThisReg;
                                                     taicpu(hp1).oper[0]^.reg := ThisReg;
 {$endif AARCH64}
+                                                    taicpu(hp1).oppostfix := PF_None;
+{$ifdef AARCH64}
+                                                    hp1 := p_second; { Since p_second now appears immediately after p }
+                                                    p_second := hp1;
+{$endif AARCH64}
                                                     { TODO: Confirm that the A_MOVZ / A_MOVK combination is the most efficient }
                                                   end;
 
-                                                taicpu(hp1).oppostfix := PF_None;
                                                 RemoveInstruction(hp1_second);
                                                 Result := True;
                                               end;
@@ -2476,6 +2485,7 @@ Implementation
 {$ifdef AARCH64}
                 A_MOVK:
                   if (getsubreg(ThisReg) = R_SUBD) and
+                    Assigned(hp1) and
                     (taicpu(hp1).oper[0]^.reg = ThisReg) and
                     (taicpu(hp1).ops = 3) and
                     (taicpu(hp1).oper[2]^.shifterop^.shiftmode = SM_LSL) and
@@ -2707,6 +2717,8 @@ Implementation
                                       DebugMsg(SPeepholeOptimization + 'Merged two zero-register byte-writes to memory into a single zero-register half-write (StrbStrb2Strh)', p);
                                       taicpu(p).oppostfix := PF_H;
                                       RemoveInstruction(p_second);
+                                      if hp1 = p_second then { Make sure hp1 deson't become a dangling pointer }
+                                        GetNextInstruction(p, hp1);
                                       Result := True;
                                     end;
                                 end;
@@ -2810,6 +2822,8 @@ Implementation
 
                                       taicpu(p).oppostfix := PF_None;
                                       RemoveInstruction(p_second);
+                                      if hp1 = p_second then { Make sure hp1 deson't become a dangling pointer }
+                                        GetNextInstruction(p, hp1);
                                       Result := True;
                                     end;
                                 end;
@@ -2868,7 +2882,11 @@ Implementation
 
                                         { If the 3rd word is zero, we can remove the instruction entirely }
                                         if taicpu(p_second).oper[1]^.val = 0 then
-                                          RemoveInstruction(p_second)
+                                          begin
+                                            RemoveInstruction(p_second);
+                                            if hp1 = p_second then { Make sure hp1 deson't become a dangling pointer }
+                                              GetNextInstruction(p, hp1);
+                                          end
                                         else
                                           begin
                                             so.shiftmode := SM_LSL;
@@ -2910,6 +2928,8 @@ Implementation
                                       DebugMsg(SPeepholeOptimization + 'Merged two zero-register word-writes to memory into a single zero-register extended-write (StrStr2Str)', p);
                                       taicpu(p).oper[0]^.reg := NR_XZR;
                                       RemoveInstruction(p_second);
+                                      if hp1 = p_second then { Make sure hp1 deson't become a dangling pointer }
+                                        GetNextInstruction(p, hp1);
                                       Result := True;
                                     end;
                                 end;
