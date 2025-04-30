@@ -9313,6 +9313,55 @@
   (
     opcode  : A_VCMPEQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#0;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#0;
     flags   : [if_avx,if_sandybridge]
@@ -9323,6 +9372,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#0;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#1;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPLTPS;
@@ -9341,6 +9439,55 @@
   (
     opcode  : A_VCMPLEPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#2;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLEPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#2;
     flags   : [if_avx,if_sandybridge]
@@ -9351,6 +9498,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#2;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#3;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPUNORDPS;
@@ -9369,6 +9565,55 @@
   (
     opcode  : A_VCMPNEQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#4;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#4;
     flags   : [if_avx,if_sandybridge]
@@ -9379,6 +9624,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#4;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#5;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNLTPS;
@@ -9397,6 +9691,55 @@
   (
     opcode  : A_VCMPNLEPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#6;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLEPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#6;
     flags   : [if_avx,if_sandybridge]
@@ -9407,6 +9750,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#6;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#7;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPORDPS;
@@ -9425,6 +9817,55 @@
   (
     opcode  : A_VCMPEQ_UQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#8;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#8;
     flags   : [if_avx,if_sandybridge]
@@ -9435,6 +9876,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#8;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#9;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNGEPS;
@@ -9453,6 +9943,55 @@
   (
     opcode  : A_VCMPNGTPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#10;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGTPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#10;
     flags   : [if_avx,if_sandybridge]
@@ -9463,6 +10002,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#10;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#11;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPFALSEPS;
@@ -9481,6 +10069,55 @@
   (
     opcode  : A_VCMPNEQ_OQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#12;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#12;
     flags   : [if_avx,if_sandybridge]
@@ -9491,6 +10128,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#12;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#13;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPGEPS;
@@ -9509,6 +10195,55 @@
   (
     opcode  : A_VCMPGTPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#14;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGTPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#14;
     flags   : [if_avx,if_sandybridge]
@@ -9519,6 +10254,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#14;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#15;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPTRUEPS;
@@ -9537,6 +10321,55 @@
   (
     opcode  : A_VCMPEQ_OSPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#16;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#16;
     flags   : [if_avx,if_sandybridge]
@@ -9547,6 +10380,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#16;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#17;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPLT_OQPS;
@@ -9565,6 +10447,55 @@
   (
     opcode  : A_VCMPLE_OQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#18;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#18;
     flags   : [if_avx,if_sandybridge]
@@ -9575,6 +10506,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#18;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#19;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPUNORD_SPS;
@@ -9593,6 +10573,55 @@
   (
     opcode  : A_VCMPNEQ_USPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#20;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#20;
     flags   : [if_avx,if_sandybridge]
@@ -9603,6 +10632,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#20;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#21;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNLT_UQPS;
@@ -9621,6 +10699,55 @@
   (
     opcode  : A_VCMPNLE_UQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#22;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#22;
     flags   : [if_avx,if_sandybridge]
@@ -9631,6 +10758,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#22;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#23;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPORD_SPS;
@@ -9649,6 +10825,55 @@
   (
     opcode  : A_VCMPEQ_USPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#24;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#24;
     flags   : [if_avx,if_sandybridge]
@@ -9659,6 +10884,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#24;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#25;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNGE_UQPS;
@@ -9677,6 +10951,55 @@
   (
     opcode  : A_VCMPNGT_UQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#26;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#26;
     flags   : [if_avx,if_sandybridge]
@@ -9687,6 +11010,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#26;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#27;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPFALSE_OSPS;
@@ -9705,6 +11077,55 @@
   (
     opcode  : A_VCMPNEQ_OSPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#28;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#28;
     flags   : [if_avx,if_sandybridge]
@@ -9715,6 +11136,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#28;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#29;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPGE_OQPS;
@@ -9733,6 +11203,55 @@
   (
     opcode  : A_VCMPGT_OQPS;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#30;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPS;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #242#248#1#194#61#80#1#30;
     flags   : [if_avx,if_sandybridge]
@@ -9743,6 +11262,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #242#244#248#1#194#61#80#1#30;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#244#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#244#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#248#1#194#61#80#1#31;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPTRUE_USPS;
@@ -9761,6 +11329,55 @@
   (
     opcode  : A_VCMPEQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#0;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#0;
     flags   : [if_avx,if_sandybridge]
@@ -9771,6 +11388,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#0;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#1;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPLTPD;
@@ -9789,6 +11455,55 @@
   (
     opcode  : A_VCMPLEPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#2;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLEPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#2;
     flags   : [if_avx,if_sandybridge]
@@ -9799,6 +11514,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#2;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#3;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#3;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPUNORDPD;
@@ -9817,6 +11581,55 @@
   (
     opcode  : A_VCMPNEQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#4;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#4;
     flags   : [if_avx,if_sandybridge]
@@ -9827,6 +11640,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#4;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#5;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNLTPD;
@@ -9845,6 +11707,55 @@
   (
     opcode  : A_VCMPNLEPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#6;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLEPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#6;
     flags   : [if_avx,if_sandybridge]
@@ -9855,6 +11766,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#6;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#7;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORDPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#7;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPORDPD;
@@ -9873,6 +11833,55 @@
   (
     opcode  : A_VCMPEQ_UQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#8;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#8;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#8;
     flags   : [if_avx,if_sandybridge]
@@ -9883,6 +11892,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#8;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#9;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#9;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNGEPD;
@@ -9901,6 +11959,55 @@
   (
     opcode  : A_VCMPNGTPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#10;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#10;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGTPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#10;
     flags   : [if_avx,if_sandybridge]
@@ -9911,6 +12018,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#10;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#11;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#11;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPFALSEPD;
@@ -9929,6 +12085,55 @@
   (
     opcode  : A_VCMPNEQ_OQPD;
     ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#12;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m or ot_signed,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#12;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#12;
     flags   : [if_avx,if_sandybridge]
@@ -9939,6 +12144,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#12;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg or ot_signed,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg or ot_signed,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg or ot_signed,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg or ot_signed,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg or ot_signed,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg or ot_signed,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#13;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg or ot_signed,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#13;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPGEPD;
@@ -9957,6 +12211,55 @@
   (
     opcode  : A_VCMPGTPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm or ot_signed,ot_none);
+    code    : #232#234#241#248#1#194#61#80#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64 or ot_signed,ot_none);
+    code    : #232#234#241#248#1#194#61#80#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm or ot_signed,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64 or ot_signed,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512 or ot_signed,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64 or ot_signed,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#14;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae or ot_signed,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#14;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGTPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#14;
     flags   : [if_avx,if_sandybridge]
@@ -9967,6 +12270,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#14;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#15;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUEPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#15;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPTRUEPD;
@@ -9985,6 +12337,55 @@
   (
     opcode  : A_VCMPEQ_OSPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#16;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#16;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#16;
     flags   : [if_avx,if_sandybridge]
@@ -9995,6 +12396,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#16;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#17;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#17;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPLT_OQPD;
@@ -10013,6 +12463,55 @@
   (
     opcode  : A_VCMPLE_OQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#18;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#18;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLE_OQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#18;
     flags   : [if_avx,if_sandybridge]
@@ -10023,6 +12522,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#18;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#19;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#19;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPUNORD_SPD;
@@ -10041,6 +12589,55 @@
   (
     opcode  : A_VCMPNEQ_USPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#20;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#20;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#20;
     flags   : [if_avx,if_sandybridge]
@@ -10051,6 +12648,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#20;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#21;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#21;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNLT_UQPD;
@@ -10069,6 +12715,55 @@
   (
     opcode  : A_VCMPNLE_UQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#22;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#22;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#22;
     flags   : [if_avx,if_sandybridge]
@@ -10079,6 +12774,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#22;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#23;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPORD_SPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#23;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPORD_SPD;
@@ -10097,6 +12841,55 @@
   (
     opcode  : A_VCMPEQ_USPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#24;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#24;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_USPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#24;
     flags   : [if_avx,if_sandybridge]
@@ -10107,6 +12900,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#24;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#25;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#25;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPNGE_UQPD;
@@ -10125,6 +12967,55 @@
   (
     opcode  : A_VCMPNGT_UQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#26;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#26;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#26;
     flags   : [if_avx,if_sandybridge]
@@ -10135,6 +13026,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#26;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#27;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#27;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPFALSE_OSPD;
@@ -10153,6 +13093,55 @@
   (
     opcode  : A_VCMPNEQ_OSPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#28;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#28;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#28;
     flags   : [if_avx,if_sandybridge]
@@ -10163,6 +13152,55 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#28;
     flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#29;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGE_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#29;
+    flags   : [if_avx512]
   ),
   (
     opcode  : A_VCMPGE_OQPD;
@@ -10181,6 +13219,55 @@
   (
     opcode  : A_VCMPGT_OQPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#30;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#30;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGT_OQPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#30;
     flags   : [if_avx,if_sandybridge]
@@ -10195,6 +13282,55 @@
   (
     opcode  : A_VCMPTRUE_USPD;
     ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#248#1#194#61#80#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#248#1#194#61#80#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#248#1#194#61#80#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_memory or ot_bits512,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#31;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmreg_sae,ot_none);
+    code    : #232#233#234#241#248#1#194#61#80#31;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USPD;
+    ops     : 3;
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#248#1#194#61#80#1#31;
     flags   : [if_avx,if_sandybridge]
@@ -10204,6 +13340,1574 @@
     ops     : 3;
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#194#61#80#1#31;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#0;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#0;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#0;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#1;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#1;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#1;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#2;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#2;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#2;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORDSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPUNORDSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#3;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPUNORDSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#3;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORDSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#3;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#4;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#4;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#4;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#5;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#5;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#5;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#6;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#6;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#6;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORDSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPORDSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#7;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPORDSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#7;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORDSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#7;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#8;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#8;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#8;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#9;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#9;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#9;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#10;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#10;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#10;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPFALSESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#11;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPFALSESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#11;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#11;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#12;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#12;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#12;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#13;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#13;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#13;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGTSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#14;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#14;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGTSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#14;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPTRUESD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#15;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPTRUESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#15;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUESD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#15;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#16;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#16;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#16;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#17;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#17;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#17;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#18;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#18;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#18;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#19;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#19;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#19;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#20;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#20;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#20;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#21;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#21;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#21;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#22;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#22;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#22;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORD_SSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPORD_SSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#23;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPORD_SSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#23;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORD_SSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#23;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#24;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#24;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#24;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#25;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#25;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#25;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#26;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#26;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#26;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#27;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#27;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#27;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#28;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#28;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#28;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#29;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#29;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#29;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#30;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#30;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#30;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #220#232#234#248#1#194#61#80#1#31;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmreg,ot_none);
+    code    : #220#242#248#1#194#61#80#1#31;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSD;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_memory or ot_bits64,ot_none);
+    code    : #220#242#248#1#194#61#80#1#31;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#0;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#0;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#0;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#1;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#1;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLTSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#1;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#2;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#2;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLESS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#2;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORDSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#3;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPUNORDSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#3;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPUNORDSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#3;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#4;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#4;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#4;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#5;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#5;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLTSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#5;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#6;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#6;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLESS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#6;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORDSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#7;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPORDSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#7;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPORDSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#7;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#8;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#8;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_UQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#8;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#9;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#9;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGESS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#9;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#10;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#10;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGTSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#10;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#11;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPFALSESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#11;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPFALSESS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#11;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#12;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#12;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#12;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#13;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#13;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGESS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#13;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#14;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGTSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#14;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGTSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#14;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#15;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPTRUESS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#15;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPTRUESS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#15;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#16;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#16;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_OSSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#16;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#17;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#17;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLT_OQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#17;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#18;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#18;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPLE_OQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#18;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#19;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#19;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPUNORD_SSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#19;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#20;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#20;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_USSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#20;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#21;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#21;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLT_UQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#21;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#22;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#22;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNLE_UQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#22;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPORD_SSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#23;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPORD_SSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#23;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPORD_SSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#23;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#24;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#24;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPEQ_USSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#24;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#25;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#25;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGE_UQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#25;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#26;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#26;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNGT_UQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#26;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#27;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#27;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPFALSE_OSSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#27;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#28;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#28;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPNEQ_OSSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#28;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#29;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#29;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGE_OQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#29;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#30;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#30;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPGT_OQSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#30;
+    flags   : [if_avx,if_sandybridge]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_memory or ot_bits32,ot_none);
+    code    : #219#232#248#1#194#61#80#1#31;
+    flags   : [if_avx512,if_t1s]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSS;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmreg_sae,ot_none);
+    code    : #219#232#248#1#194#61#80#1#31;
+    flags   : [if_avx512]
+  ),
+  (
+    opcode  : A_VCMPTRUE_USSS;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #222#219#242#248#1#194#61#80#1#31;
     flags   : [if_avx,if_sandybridge]
   ),
   (
@@ -13182,6 +17886,27 @@
     flags   : [if_avx2]
   ),
   (
+    opcode  : A_VPCMPEQB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#63#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#63#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#63#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
     opcode  : A_VPCMPEQD;
     ops     : 3;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
@@ -13236,6 +17961,48 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#118#61#80;
     flags   : [if_avx2]
+  ),
+  (
+    opcode  : A_VPCMPEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
   ),
   (
     opcode  : A_VPCMPEQQ;
@@ -13294,6 +18061,48 @@
     flags   : [if_avx2]
   ),
   (
+    opcode  : A_VPCMPEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
     opcode  : A_VPCMPEQW;
     ops     : 3;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
@@ -13327,6 +18136,27 @@
     optypes : (ot_ymmreg,ot_ymmreg,ot_ymmrm,ot_none);
     code    : #241#242#244#248#1#117#61#80;
     flags   : [if_avx2]
+  ),
+  (
+    opcode  : A_VPCMPEQW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#63#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#63#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#63#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
   ),
   (
     opcode  : A_VPCMPESTRI;
@@ -23934,256 +28764,1642 @@
     flags   : [if_avx512,if_tfvm]
   ),
   (
+    opcode  : A_VPCMPLTB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#63#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#63#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#63#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#63#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#63#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#63#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#63#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#63#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#63#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#63#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#63#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#63#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#63#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#63#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#63#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLED;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#31#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#62#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#62#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#62#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#62#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#62#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#62#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#62#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#62#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#62#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#62#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#62#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#62#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#62#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#62#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#62#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#62#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#62#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEUB;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#62#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPMLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPMLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_none);
+    code    : #232#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPMLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPMLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_none);
+    code    : #232#241#244#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPMLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPMLEUD;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_none);
+    code    : #232#233#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#0;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#1;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#2;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNEQUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#4;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLTUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#5;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_none);
+    code    : #232#234#241#244#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPNLEUQ;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_none);
+    code    : #232#233#234#241#250#1#30#61#80#1#6;
+    flags   : [if_avx512,if_tfv]
+  ),
+  (
+    opcode  : A_VPCMPEQUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#62#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#62#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPEQUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#62#61#80#1#0;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#62#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#62#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#62#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#62#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#62#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#62#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#62#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#62#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#62#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#62#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#62#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#62#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#62#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#62#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEUW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#62#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#63#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#63#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLTW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#63#61#80#1#1;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#63#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#63#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPLEW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#63#61#80#1#2;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#63#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#63#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNEQW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#63#61#80#1#4;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#63#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#63#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLTW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#63#61#80#1#5;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#234#241#250#1#63#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#234#241#244#250#1#63#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VPCMPNLEW;
+    ops     : 3;
+    optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#234#241#250#1#63#61#80#1#6;
+    flags   : [if_avx512,if_tfvm]
+  ),
+  (
     opcode  : A_VPCMPB;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#241#250#1#63#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPB;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#241#244#250#1#63#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPB;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#241#250#1#63#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_immediate or ot_bits8);
     code    : #232#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#241#244#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_immediate or ot_bits8);
     code    : #232#241#244#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_immediate or ot_bits8);
     code    : #232#233#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_immediate or ot_bits8);
     code    : #232#234#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#244#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_immediate or ot_bits8);
     code    : #232#234#241#244#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#234#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_immediate or ot_bits8);
     code    : #232#233#234#241#250#1#31#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUB;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#241#250#1#62#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPUB;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#241#244#250#1#62#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPUB;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#241#250#1#62#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPUD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_bmem32,ot_immediate or ot_bits8);
     code    : #232#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#241#244#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_bmem32,ot_immediate or ot_bits8);
     code    : #232#241#244#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUD;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_bmem32,ot_immediate or ot_bits8);
     code    : #232#233#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_bmem64,ot_immediate or ot_bits8);
     code    : #232#234#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#244#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_bmem64,ot_immediate or ot_bits8);
     code    : #232#234#241#244#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#234#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUQ;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_bmem64,ot_immediate or ot_bits8);
     code    : #232#233#234#241#250#1#30#61#80#23;
-    flags   : [if_avx512,if_tfv]
+    flags   : [if_avx512,if_tfv,if_imm3]
   ),
   (
     opcode  : A_VPCMPUW;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#250#1#62#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPUW;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#244#250#1#62#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPUW;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#234#241#250#1#62#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPW;
     ops     : 4;
     optypes : (ot_kreg_m,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#250#1#63#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPW;
     ops     : 4;
     optypes : (ot_kreg_m,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
     code    : #232#234#241#244#250#1#63#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCMPW;
     ops     : 4;
     optypes : (ot_kreg_m,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
     code    : #232#233#234#241#250#1#63#61#80#23;
-    flags   : [if_avx512,if_tfvm]
+    flags   : [if_avx512,if_tfvm,if_imm3]
   ),
   (
     opcode  : A_VPCOMPRESSD;
@@ -29308,5 +35524,131 @@
     optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
     code    : #3#15#56#205#72;
     flags   : [if_sha]
+  ),
+  (
+    opcode  : A_VSHA512RNDS2;
+    ops     : 3;
+    optypes : (ot_ymmreg,ot_ymmreg,ot_xmmreg,ot_none);
+    code    : #242#244#220#249#1#203#61#80;
+    flags   : [if_sha512]
+  ),
+  (
+    opcode  : A_VSHA512MSG1;
+    ops     : 2;
+    optypes : (ot_ymmreg,ot_xmmreg,ot_none,ot_none);
+    code    : #242#244#220#249#1#204#72;
+    flags   : [if_sha512]
+  ),
+  (
+    opcode  : A_VSHA512MSG2;
+    ops     : 2;
+    optypes : (ot_ymmreg,ot_ymmreg,ot_none,ot_none);
+    code    : #242#244#220#249#1#205#72;
+    flags   : [if_sha512]
+  ),
+  (
+    opcode  : A_VSM3RNDS2;
+    ops     : 4;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
+    code    : #242#241#250#1#222#61#80#23;
+    flags   : [if_sm3_hash]
+  ),
+  (
+    opcode  : A_VSM3MSG1;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #242#249#1#218#61#80;
+    flags   : [if_sm3_hash]
+  ),
+  (
+    opcode  : A_VSM3MSG2;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #242#241#249#1#218#61#80;
+    flags   : [if_sm3_hash]
+  ),
+  (
+    opcode  : A_VGF2P8AFFINEINVQB;
+    ops     : 4;
+    optypes : (ot_xmmreg_mz,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
+    code    : #232#234#241#242#243#250#1#207#61#80#23;
+    flags   : [if_gfni,if_avx,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8AFFINEINVQB;
+    ops     : 4;
+    optypes : (ot_ymmreg_mz,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
+    code    : #232#234#242#241#244#243#250#1#207#61#80#23;
+    flags   : [if_gfni,if_avx2,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8AFFINEINVQB;
+    ops     : 4;
+    optypes : (ot_zmmreg_mz,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
+    code    : #232#234#233#241#250#1#207#61#80#23;
+    flags   : [if_gfni,if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8AFFINEQB;
+    ops     : 4;
+    optypes : (ot_xmmreg_mz,ot_xmmreg,ot_xmmrm,ot_immediate or ot_bits8);
+    code    : #232#234#241#242#243#250#1#206#61#80#23;
+    flags   : [if_gfni,if_avx,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8AFFINEQB;
+    ops     : 4;
+    optypes : (ot_ymmreg_mz,ot_ymmreg,ot_ymmrm,ot_immediate or ot_bits8);
+    code    : #232#234#242#241#244#243#250#1#206#61#80#23;
+    flags   : [if_gfni,if_avx2,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8AFFINEQB;
+    ops     : 4;
+    optypes : (ot_zmmreg_mz,ot_zmmreg,ot_zmmrm,ot_immediate or ot_bits8);
+    code    : #232#234#233#241#250#1#206#61#80#23;
+    flags   : [if_gfni,if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8MULB;
+    ops     : 3;
+    optypes : (ot_xmmreg_mz,ot_xmmreg,ot_xmmrm,ot_none);
+    code    : #232#241#242#249#1#207#61#80;
+    flags   : [if_gfni,if_avx,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8MULB;
+    ops     : 3;
+    optypes : (ot_ymmreg_mz,ot_ymmreg,ot_ymmrm,ot_none);
+    code    : #232#242#241#244#249#1#207#61#80;
+    flags   : [if_gfni,if_avx2,if_tfvm]
+  ),
+  (
+    opcode  : A_VGF2P8MULB;
+    ops     : 3;
+    optypes : (ot_zmmreg_mz,ot_zmmreg,ot_zmmrm,ot_none);
+    code    : #232#233#241#249#1#207#61#80;
+    flags   : [if_gfni,if_avx512,if_tfvm]
+  ),
+  (
+    opcode  : A_GF2P8AFFINEINVQB;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_immediate,ot_none);
+    code    : #241#3#15#58#207#72#22;
+    flags   : [if_gfni]
+  ),
+  (
+    opcode  : A_GF2P8AFFINEQB;
+    ops     : 3;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_immediate,ot_none);
+    code    : #241#3#15#58#206#72#22;
+    flags   : [if_gfni]
+  ),
+  (
+    opcode  : A_GF2P8MULB;
+    ops     : 2;
+    optypes : (ot_xmmreg,ot_xmmrm,ot_none,ot_none);
+    code    : #241#3#15#56#207#72;
+    flags   : [if_gfni]
   )
 );
