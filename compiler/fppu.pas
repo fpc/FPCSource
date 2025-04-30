@@ -1854,6 +1854,10 @@ var
          if not ppufile.createfile then
            Message(unit_f_ppu_cannot_write);
 
+{$ifdef DEBUG_GENERATE_INTERFACE_PPU}
+        if ppufile.writing_interface_ppu then
+          ppufile.crc_only:=false;
+{$endif DEBUG_GENERATE_INTERFACE_PPU}
 {$ifdef Test_Double_checksum_write}
          if FileExists(ppufilename+'.INT',false) then
            RenameFile(ppufilename+'.INT',ppufilename+'.INT-old');

@@ -1265,6 +1265,12 @@ implementation
       begin
         oldcrc:=do_crc;
         do_crc:=false;
+{$ifdef DEBUG_GENERATE_INTERFACE_PPU}
+	{ Accept invalid marker inside getppucrc }
+        if writing_interface_ppu then
+          putlongint(d.dataidx)
+        else
+{$endif}
         if d.dataidx=-1 then
           internalerror(2019022201)
         else

@@ -391,13 +391,6 @@ begin
     end;
 {$endif}
   result:=inherited createfile;
-{$ifdef DEBUG_GENERATE_INTERFACE_PPU}
-  if writing_interface_ppu then
-    begin
-      crc_only:=true;
-      writing_interface_ppu:=false;
-    end;
-{$endif DEBUG_GENERATE_INTERFACE_PPU}
 end;
 
 
