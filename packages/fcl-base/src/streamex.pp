@@ -626,7 +626,7 @@ end;
 
 constructor TStringWriter.Create(aBuilder: TStringBuilder);
 begin
-  FBuilder := TStringBuilder.Create;
+  FBuilder := aBuilder;
   FFreeBuilder := False;
 end;
 
