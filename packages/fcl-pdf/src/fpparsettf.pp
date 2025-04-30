@@ -596,7 +596,7 @@ begin
             Gid:=J+Segm.IDDelta
           else
             begin
-            Gid:=GlyphIDArray[Segm.IDRangeOffset div 2 + i-segcount - Segm.startCode+j];
+            Gid:=GlyphIDArray[Segm.IDRangeOffset div 2 + i + (j-Segm.startCode) - segcount];
             if (Gid>0) then
               Gid:= Gid+Segm.IDDelta;
             end;
