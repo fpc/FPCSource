@@ -53,7 +53,7 @@ uses
 {$endif}
 
       { This should define the array of instructions as string }
-        op2strtable=array[tasmop] of string[16];
+        op2strtable=array[tasmop] of string[17];
 
 {$ifdef i8086}
       ImmInt = SmallInt;

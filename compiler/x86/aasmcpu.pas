@@ -297,7 +297,7 @@ interface
 {$elseif defined(i8086)}
       instabentries = {$i i8086nop.inc}
 {$endif}
-      maxinfolen    = 10;
+      maxinfolen    = 11;
 
     type
       { What an instruction can change. Needed for optimizer and spilling code.
@@ -470,6 +470,9 @@ interface
         IF_XSAVE,
         IF_PREFETCHWT1,
         IF_SHA,
+        IF_SHA512,
+        IF_SM3_hash, { instruction set SM3:  ShangMi 3 hash function }
+        IF_GFNI,
 
         { mask for processor level }
         { please keep these in order and in sync with IF_PLEVEL }
