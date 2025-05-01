@@ -44,8 +44,8 @@ type
     function AVX2Support: boolean;inline;
     function AVX101Support: boolean;inline; { AVX10.1 }
     function AVX102Support: boolean;inline; { AVX10.2 }
-    function AVX10_256Support: boolean;inline; { AVX10/256 vector length 256 bit supported }
-    function AVX10_512Support: boolean;inline; { AVX10/512 vector length 512 bit supported }
+    function AVX10_256Support: boolean;inline; { AVX10/256 indicates that 256-bit vector support is present }
+    function AVX10_512Support: boolean;inline; { AVX10/512 indicates that 512-bit vector support is present }
     function APXFSupport: boolean;inline;  { APX_F Advanced Performance Extension Foundation }
     function AVX512FSupport: boolean;inline;
     function AVX512DQSupport: boolean;inline;
@@ -101,12 +101,9 @@ type
 
     var
       data: record
-        cpuid1, cpuid7_0, cpuid7_1: TCpuidResult;
+        cpuid1, cpuid7_0, cpuid7_1, cpuid24_0: TCpuidResult;
         AVXSupport,
-        LZCNTSupport,
-        AVX10_256Support,
-        AVX10_512Support: boolean;
-        AVX10Version: byte;
+        LZCNTSupport: boolean;
       end;
 
 {$ASMMODE ATT}
@@ -232,7 +229,6 @@ type
     procedure SetupSupport;
       var
         maxcpuidvalue : longint;
-        cpuid24_0 : TCpuidResult;
       begin
         maxcpuidvalue:=CPUID(0).eax;
         CPUID(1, 0, data.cpuid1);
@@ -252,12 +248,7 @@ type
           ((XGETBV(0) and %110)=%110);
 
         if (data.cpuid7_1.edx and (19 shl 0))<>0 then { CPUID.(EAX=24H) leaf is supported }
-          begin
-            CPUID($24, 0, cpuid24_0);
-            data.AVX10_256Support:=(cpuid24_0.ebx and (1 shl 17))<>0;
-            data.AVX10_512Support:=(cpuid24_0.ebx and (1 shl 18))<>0;
-            data.AVX10Version:=cpuid24_0.ebx and $ff;
-          end;
+          CPUID($24, 0, data.cpuid24_0);
 
         data.LZCNTSupport:=(CPUID($80000001).ecx and (1 shl 5))<>0;
       end;
@@ -307,25 +298,25 @@ type
 
     function AVX101Support: boolean;inline; { AVX10.1 }
       begin
-        result:=(data.AVX10Version>=1);
+        result:=(data.cpuid24_0.ebx and $ff)>=1;
       end;
 
 
     function AVX102Support: boolean;inline; { AVX10.2 }
       begin
-        result:=(data.AVX10Version>=2);
+        result:=(data.cpuid24_0.ebx and $ff)>=2;
       end;
 
 
     function AVX10_256Support: boolean;inline; { AVX10/256 }
       begin
-        result:=data.AVX10_256Support;
+        result:=(data.cpuid24_0.ebx and (1 shl 17))<>0;
       end;
 
 
     function AVX10_512Support: boolean;inline; { AVX10/512 }
       begin
-        result:=data.AVX10_256Support;
+        result:=(data.cpuid24_0.ebx and (1 shl 18))<>0;
       end;
 
 
