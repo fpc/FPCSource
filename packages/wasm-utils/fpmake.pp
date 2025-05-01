@@ -73,7 +73,7 @@ begin
       T.Dependencies.AddUnit('wasm.regexp.api');
       T.Dependencies.AddUnit('wasm.regexp.shared');
       T.Dependencies.AddUnit('wasm.regexp.objects');
-      
+    T:=P.Targets.AddUnit('wasm.exceptions.pas');
 {$ifndef ALLPACKAGES}
     Run;
     end;
