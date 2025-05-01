@@ -127,6 +127,8 @@ begin
 end;
 
 procedure TParser.SkipBOM;
+const
+  sbom : string[3] = #$EF#$BB#$BF;
 var
   i : integer;
   bom : string[3];
@@ -142,7 +144,7 @@ begin
     CheckLoadBuffer;
     inc(i);
   end;
-  if (bom<>(#$EF+#$BB+#$BF)) then
+  if (bom<>sBom) then
     fPos:=backup;
 end;
 
