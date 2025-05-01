@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Component Library
+
+    Webassembly RegExp API - bridge with PCRE unit of delphi to make compatibility layer.
+    Copyright (c) 2024 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit wasm.pcrebridge;
 
 {$mode ObjFPC}{$H+}
