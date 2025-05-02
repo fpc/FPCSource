@@ -57,23 +57,23 @@ begin
     exit;
   Result:=New(PLastExceptionInfo);
   Result^:=Default(TLastExceptionInfo);
-  if assigned(lExc.FObject) then
+  if assigned(lExc^.FObject) then
     begin
-    Result^.ClassName:=LExc.FObject.ClassName;
-    if LExc.FObject is Exception then
+    Result^.ClassName:=LExc^.FObject.ClassName;
+    if LExc^.FObject is Exception then
       begin
       {$IF SizeOf(Char)=2}
-      Result^.Message:=UTF8Encode(Exception(LExc.FObject).Message);
+      Result^.Message:=UTF8Encode(Exception(LExc^.FObject).Message);
       {$ELSE}
-      Result^.Message:=Exception(LExc.FObject).Message;
+      Result^.Message:=Exception(LExc^.FObject).Message;
       {$ENDIF}
       end
     else
-      Result^.Message:=LExc.FObject.ToString;
+      Result^.Message:=LExc^.FObject.ToString;
     Result^.ClassNameLen:=Length(Result^.ClassName);
     Result^.MessageLen:=Length(Result^.Message);
     end;
-  Result^.More:=Assigned(lExc.Next);
+  Result^.More:=Assigned(lExc^.Next);
   ReleaseExceptionObject;
   Obj:=PopObjectStack;
   Obj.Free;
