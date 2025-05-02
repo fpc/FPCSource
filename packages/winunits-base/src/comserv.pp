@@ -99,6 +99,7 @@ type
     property IsInteractive: Boolean read fIsInteractive;
     property StartMode: TStartMode read FStartMode;
     property ServerObjects:integer read fCountObject;
+    property OnLastRelease: TLastReleaseEvent read FOnLastRelease write FOnLastRelease;
   end;
 
 var
