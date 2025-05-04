@@ -399,6 +399,24 @@ implementation
             { Replace register with spill reference }
             if replaceoper<>-1 then
               begin
+                if replaceoper=0 then
+                  begin
+{$ifdef x86_64}
+                    { if an mm register => int register (v)movq is converted, replace it by MOV with opsize Q }
+                    if ((opcode=A_MOVQ) or (opcode=A_VMOVQ)) and (oper[0]^.typ=top_reg)  and (oper[1]^.typ=top_reg) and (getregtype(oper[1]^.reg)=R_INTREGISTER) then
+                      begin
+                        opcode:=A_MOV;
+                        opsize:=S_Q;
+                      end;
+{$endif x86_64}
+                    { if an mm register => int register (v)movd is converted, replace it by MOV with opsize L }
+                    if ((opcode=A_MOVD) or (opcode=A_VMOVD)) and (oper[0]^.typ=top_reg)  and (oper[1]^.typ=top_reg) and (getregtype(oper[1]^.reg)=R_INTREGISTER) then
+                      begin
+                        opcode:=A_MOV;
+                        opsize:=S_L;
+                      end;
+                  end;
+
                 if opcode=A_LEA then
                   begin
                     opcode:=A_ADD;
