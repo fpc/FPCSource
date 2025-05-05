@@ -168,7 +168,8 @@ unit widestr;
          temp:=s2.len;
          if maxi>temp then
            maxi:=Temp;
-         temp:=compareword(s1.data[0],s2.data[0],maxi);
+         if maxi>0 then
+           temp:=compareword(s1.data[0],s2.data[0],maxi);
          if temp=0 then
            temp:=s1.len-s2.len;
          comparewidestrings:=temp;
