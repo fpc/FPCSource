@@ -5044,7 +5044,8 @@ implementation
              hpp := tcallparanode(tcallparanode(left).right).left;
              tcallparanode(tcallparanode(left).right).left := nil;
              if assigned(tcallparanode(tcallparanode(left).right).right) then
-               CGMessage(parser_e_illegal_expression);
+               { A syntax error should have already been raised }
+               InternalError(2025050601);
            end
          else
            begin
