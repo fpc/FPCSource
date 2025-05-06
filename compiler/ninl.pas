@@ -328,7 +328,8 @@ implementation
            not(is_real or is_enum or
                (source.left.resultdef.typ=orddef)) then
           begin
-            CGMessagePos(fileinfo,parser_e_illegal_expression);
+            CGMessagePos1(source.fileinfo,
+              type_e_integer_expr_expected,source.resultdef.typename);
             exit;
           end;
 
