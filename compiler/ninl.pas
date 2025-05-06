@@ -451,10 +451,18 @@ implementation
             pasbool1,pasbool8,pasbool16,pasbool32,pasbool64,
             bool8bit,bool16bit,bool32bit,bool64bit:
               procname := procname + 'bool';
-            else
+
+            scurrency,s64bit,u64bit,s32bit,u32bit,s16bit,u16bit,s8bit,u8bit:
               begin
                 intrinsiccode := in_str_x_string;
                 procname := procname + get_str_int_func(source.resultdef);
+              end;
+
+            else
+              begin
+                CGMessagePos1(source.fileinfo,
+                  type_e_integer_expr_expected,torddef(source.resultdef).typename);
+                exit;
               end;
           end;
 
