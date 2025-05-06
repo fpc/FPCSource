@@ -1372,11 +1372,7 @@ type
             else if is_fpu(def) then
               result:=texprvalue.create_real(-pbestreal(value.valueptr)^)
             else
-              begin
-                { actually we should never get here but this avoids a warning }
-                Message(parser_e_illegal_expression);
-                result:=texprvalue.create_error;
-              end;
+              InternalError(2025050610);
           end
         else if check_compatible then
           begin
@@ -1414,11 +1410,7 @@ type
                   _OP_SHR:
                     result:=texprvalue.create_ord(lv shr rv);
                   else
-                    begin
-                      { actually we should never get here but this avoids a warning }
-                      Message(parser_e_illegal_expression);
-                      result:=texprvalue.create_error;
-                    end;
+                    InternalError(2025050611);
                 end;
               end
             else
