@@ -2422,11 +2422,6 @@ implementation
                vl:=0;
                vl2:=0; { second parameter Ex: ptr(vl,vl2) }
                case left.nodetype of
-                 realconstn :
-                   begin
-                     { Real functions are all handled with internproc below }
-                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename)
-                   end;
                  ordconstn :
                    vl:=tordconstnode(left).value;
                  callparan :
@@ -2436,7 +2431,17 @@ implementation
                      vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
                    end;
                  else
-                   CGMessage(parser_e_illegal_expression);
+                   begin
+                     { Real functions are all handled with internproc below, and
+                       unsupported typex are also trapped here }
+                     if is_integer(left.resultdef) then
+                       { Not as informative, but less confusing }
+                       CGMessagePos(left.fileinfo,parser_e_illegal_expression)
+                     else
+                       CGMessagePos1(left.fileinfo,type_e_integer_expr_expected,left.resultdef.typename);
+                     result:=cerrornode.create;
+                     exit;
+                   end;
                end;
                case inlinenumber of
                  in_const_abs :
