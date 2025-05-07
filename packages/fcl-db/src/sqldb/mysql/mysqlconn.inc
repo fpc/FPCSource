@@ -658,35 +658,19 @@ var
   FullVersion: string;
 begin
   InitialiseMysql;
-  try
-    if not SkipLibraryVersionCheck then
-      begin
-      FullVersion:=strpas(mysql_get_client_info());
-      // Version string should start with version number:
-      // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
-      // version only.
-      if (pos(MySQLVersion, FullVersion) <> 1) and
-        (pos(MariaDBVersion, FullVersion) <> 1) then
-        Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
-      end;  
-    inherited DoInternalConnect;
-    ConnectToServer;
-    SelectDatabase;
-  except
-    // If exception occurs when making connection to MySQL/MariaDB server or selecting db, the MySQL instance may already be allocated
-    // As exception is thrown, Connected will not be set to True, preventing DoInternalDisconnect to be called
-    // This leads to handle/resource leak (as DoInternalDisconnect is not called and does not release resources allocated by mysql_init)
-    // Therefore close the connection explicitely in case of exception
-    if Assigned(FMySQL) then begin 
-      mysql_close(FMySQL);
-      FMySQL := nil;
-    end;
-
-    ReleaseMySQL;
-
-    // And reraise the exception afterwards
-    raise;
-  end;
+  if not SkipLibraryVersionCheck then
+    begin
+    FullVersion:=strpas(mysql_get_client_info());
+    // Version string should start with version number:
+    // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
+    // version only.
+    if (pos(MySQLVersion, FullVersion) <> 1) and
+       (pos(MariaDBVersion, FullVersion) <> 1) then
+      Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
+    end;  
+  inherited DoInternalConnect;
+  ConnectToServer;
+  SelectDatabase;
 end;
 
 procedure TConnectionName.DoInternalDisconnect;
