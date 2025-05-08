@@ -79,13 +79,11 @@ Var
         if assigned(widestringmanager.ThreadFiniProc) then
           widestringmanager.ThreadFiniProc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
-{$ifndef HAS_MEMORYMANAGER}
-{$ifndef FPC_NO_DEFAULT_HEAP}
-        FinalizeHeap;
-{$endif ndef FPC_NO_DEFAULT_HEAP}
-{$endif HAS_MEMORYMANAGER}
         if MemoryManager.DoneThread <> nil then
           MemoryManager.DoneThread();
+{$if not defined(HAS_MEMORYMANAGER) and not defined(FPC_NO_DEFAULT_HEAP)}
+        FinalizeHeap;
+{$endif ndef HAS_MEMORYMANAGER and ndef FPC_NO_DEFAULT_HEAP}
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
         { Open all stdio fds again }
         SysFlushStdio;
