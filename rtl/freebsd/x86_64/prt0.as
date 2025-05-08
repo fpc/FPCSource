@@ -166,4 +166,5 @@ operatingsystem_parameters:
 	.p2align 3
 .LEFDE1:
 	.ident	"GCC: (GNU) 3.3.3 [FreeBSD] 20031106"
+.section .note.GNU-stack,"",@progbits
 
