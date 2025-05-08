@@ -439,7 +439,6 @@ end;
 {$endif def FPC_HAS_FEATURE_RTTI}
            i : longint;
         begin
-           I:=instancesize;
            { the size is saved at offset 0 }
            fillchar(instance^, InstanceSize, 0);
            { insert VMT pointer into the new created memory area }
