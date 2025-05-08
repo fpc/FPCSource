@@ -53,9 +53,9 @@ History:
                                chnaged it to "reocrd" only.
         2004/10/04 - 06      - Convertion from the c header of XKBgeom.h.
         2004/10/03           - Removed the XKBstr_UNIT compiler decleration. Afther the joined files,
-                                                                                     There is no need for it anymore.
-                                                                             - There is a need to define (for now) XKBgeom (compiler define) in order
-                                                                               to use the code of it. At this moment, I did not yet converted it to Pascal.
+                               There is no need for it anymore.
+                             - There is a need to define (for now) XKBgeom (compiler define) in order
+                               to use the code of it. At this moment, I did not yet converted it to Pascal.
 
         2004/09/17 - 10/04   - Convertion from the c header of XKBstr.
 
@@ -94,15 +94,15 @@ type
                          group              : Byte;
                          locked_group       : Byte;
                          base_group         : Word;
-                                                                         latched_group      : Word;
-                                                                         mods               : Byte;
+                         latched_group      : Word;
+                         mods               : Byte;
                          base_mods          : Byte;
                          latched_mods       : Byte;
                          locked_mods        : Byte;
                          compat_state       : Byte;
                          grab_mods          : Byte;
-                                                                         compat_grab_mods   : Byte;
-                                                                         lookup_mods        : Byte;
+                         compat_grab_mods   : Byte;
+                         lookup_mods        : Byte;
                          compat_lookup_mods : Byte;
                          ptr_buttons        : Word;
                         end;
@@ -118,7 +118,7 @@ type
         PXkbModsPtr = ^TXkbModsRec;
         TXkbModsRec = record
                        mask      : Byte; // effective mods
-                                                                 real_mods : Byte;
+                       real_mods : Byte;
                        vmods     : Word;
                       end;
 
@@ -164,10 +164,10 @@ type
 type
         PXkbModAction = ^TXkbModAction;
         TXkbModAction = record
-                                                                         _type     : Byte;
+                         _type     : Byte;
                          flags     : Byte;
                          mask      : Byte;
-                                                                         real_mods : Byte;
+                         real_mods : Byte;
                          vmods1    : Byte;
                          vmods2    : Byte;
                         end;
@@ -181,7 +181,7 @@ type
                            _type     : Byte;
                            flags     : Byte;
                            group_XXX : ShortInt;
-                                                                                end;
+                                end;
 
 function  XkbSAGroup    (a : PXkbGroupAction) : ShortInt;
 procedure XkbSASetGroup (a : PXkbGroupAction; g : ShortInt);
@@ -194,7 +194,7 @@ type
                          mask      : Byte;
                          real_mods : Byte;
                          group_XXX : ShortInt;
-                                                                         affect    : Byte;
+                         affect    : Byte;
                          vmods1    : Byte;
                          vmods2    : Byte;
                         end;
@@ -205,8 +205,8 @@ type
                          _type    : Byte;
                          flags    : Byte;
                          high_XXX : Byte;
-                                                                         low_XXX  : Byte;
-                                                                         high_YYY : Byte;
+                         low_XXX  : Byte;
+                         high_YYY : Byte;
                          low_YYY  : Byte;
                         end;
 
@@ -218,7 +218,7 @@ procedure XkbSetPtrActionY (a : PXkbPtrAction; y : Byte);
 type
         PXkbPtrBtnAction = ^TXkbPtrBtnAction;
         TXkbPtrBtnAction = record
-                                                                                        _type  : Byte;
+                            _type  : Byte;
                             flags  : Byte;
                             count  : Byte;
                             button : Byte;
@@ -239,9 +239,9 @@ procedure XkbSASetPtrDfltValue (a : PXkbPtrDfltAction; const c);
 type
         PXkbSwitchScreenAction = ^TXkbSwitchScreenAction;
         TXkbSwitchScreenAction = record
-                                  _type     : Byte;
-                                  flags     : Byte;
-                                  screenXXX : ShortInt;
+                            _type     : Byte;
+                            flags     : Byte;
+                            screenXXX : ShortInt;
                                 end;
 
 function XkbSAScreen     (a : PXkbSwitchScreenAction) : ShortInt;
@@ -254,7 +254,7 @@ type
                            flags  : Byte;
                            ctrls3 : Byte;
                            ctrls2 : Byte;
-                                                                                 ctrls1 : Byte;
+                           ctrls1 : Byte;
                            ctrls0 : Byte;
                           end;
 
@@ -272,14 +272,14 @@ type
 type
         PXkbRedirectKeyAction = ^TXkbRedirectKeyAction;
         TXkbRedirectKeyAction = record
-                                 _type       : Byte;
-                                 new_key     : Byte;
-                                 mods_mask   : Byte;
-                                 mods        : Byte;
-                                 vmods_mask0 : Byte;
-                                 vmods_mask1 : Byte;
-                                 vmods0      : Byte;
-                                                                                                         vmods1      : Byte;
+                           _type       : Byte;
+                           new_key     : Byte;
+                           mods_mask   : Byte;
+                           mods        : Byte;
+                           vmods_mask0 : Byte;
+                           vmods_mask1 : Byte;
+                           vmods0      : Byte;
+                           vmods1      : Byte;
                                 end;
 
 function XkbSARedirectVMods         (a : PXkbRedirectKeyAction) : Word;
@@ -294,21 +294,21 @@ type
                                flags  : Byte;
                                count  : Byte;
                                button : Byte;
-                                                                                                 device : Byte;
+                               device : Byte;
                               end;
 
 type
         PXkbDeviceValuatorAction = ^TXkbDeviceValuatorAction;
         TXkbDeviceValuatorAction = record
-                                    _type    : Byte;
-                                    device   : Byte;
-                                                                                                                        v1_what  : Byte;
-                                    v1_ndx   : Byte;
-                                    v1_value : Byte;
-                                    v2_what  : Byte;
-                                                                                                                        v2_ndx   : Byte;
-                                    v2_value : Byte;
-                                   end;
+                              _type    : Byte;
+                              device   : Byte;
+                              v1_what  : Byte;
+                              v1_ndx   : Byte;
+                              v1_value : Byte;
+                              v2_what  : Byte;
+                              v2_ndx   : Byte;
+                              v2_value : Byte;
+                             end;
 
     {
       Macros to classify key actions
@@ -330,7 +330,7 @@ function XkbIsPtrAction   (a : PXkbAnyAction) : LongBool;
 type
         PXkbAction = ^TXkbAction;
         TXkbAction = record
-                                                                any      : TXkbAnyAction;
+                      any      : TXkbAnyAction;
                       mods     : TXkbModAction;
                       group    : TXkbGroupAction;
                       iso      : TXkbISOAction;
@@ -578,7 +578,7 @@ const
 
         XkbAllClientInfoMask      = XkbKeyTypesMask           or XkbKeySymsMask       or XkbModifierMapMask;
         XkbAllServerInfoMask      = XkbExplicitComponentsMask or XkbKeyActionsMask    or XkbKeyBehaviorsMask or
-                                    XkbVirtualModsMask        or XkbVirtualModMapMask;
+                              XkbVirtualModsMask        or XkbVirtualModMapMask;
         XkbAllMapComponentsMask   = XkbAllClientInfoMask      or XkbAllServerInfoMask;
 
     {
@@ -921,10 +921,10 @@ const
         XkbSA_BreakLatch = (1 shl XkbSA_PtrBtn)        or (1 shl XkbSA_LockPtrBtn)  or (1 shl XkbSA_Terminate)
                            or
                            (1 shl XkbSA_SwitchScreen)  or (1 shl XkbSA_SetControls) or (1 shl XkbSA_LockControls)
-                                                                                 or
-                                                                                 (1 shl XkbSA_ActionMessage) or (1 shl XkbSA_RedirectKey) or (1 shl XkbSA_DeviceBtn)
-                                                                                 or
-                                                                                 (1 shl XkbSA_LockDeviceBtn);
+                           or
+                           (1 shl XkbSA_ActionMessage) or (1 shl XkbSA_RedirectKey) or (1 shl XkbSA_DeviceBtn)
+                           or
+                           (1 shl XkbSA_LockDeviceBtn);
 
     {
       Key Behavior Qualifier:
@@ -979,9 +979,9 @@ type
                            ax_timeout       : Word;
                            axt_opts_mask    : Word;
                            axt_opts_values  : Word;
-                                                                                 axt_ctrls_mask   : LongWord; // Word;
-                                                                                 axt_ctrls_values : LongWord; // Word;
-                                                                                 per_key_repeat   : array [0..XkbPerKeyBitArraySize -1] of Byte;
+                           axt_ctrls_mask   : LongWord; // Word;
+                           axt_ctrls_values : LongWord; // Word;
+                           per_key_repeat   : array [0..XkbPerKeyBitArraySize -1] of Byte;
                           end;
 
 function XkbAX_AnyFeedback  (c : PXkbControlsPtr)           : Word;
@@ -1014,17 +1014,17 @@ type
         PXkbServerMapPtr = ^TXkbServerMapRec;
         TXkbServerMapRec = record
                             num_acts   : Word;
-                                                                                        size_acts  : Word;
+                            size_acts  : Word;
                             acts       : PXkbAction;
                             behaviors  : PXkbBehavior;
                             key_acts   : PWord;
-                                                                                {$IF defined (__cplusplus) or defined (c_plusplus)}
-                                                                                        //explicit is a C++ reserved word
+                            {$IF defined (__cplusplus) or defined (c_plusplus)}
+                            //explicit is a C++ reserved word
                             c_explicit : PByte;
-                                                                                {$ELSE}
+                            {$ELSE}
                             explicit   : PByte;
-                          {$ENDIF}
-                                                                                        vmods      : array [0..XkbNumVirtualMods -1] of Byte;
+                            {$ENDIF}
+                            vmods      : array [0..XkbNumVirtualMods -1] of Byte;
                             vmodmap    : PWord;
                            end;
 
@@ -1041,7 +1041,7 @@ type
                          group_info : Byte;
                          width      : Byte;
                          offset     : Word;
-                                                                        end;
+                        end;
 
 type
         PXkbClientMapPtr = ^TXkbClientMapRec;
@@ -1049,12 +1049,10 @@ type
                             size_types  : Byte;
                             num_types   : Byte;
                             types       : PXkbKeyTypePtr;
-
                             size_syms   : Word;
                             num_syms    : Word;
                             syms        : PKeySym;
                             key_sym_map : PXkbSymMapPtr;
-
                             modmap      : PByte;
                            end;
 
@@ -1098,7 +1096,7 @@ type
                                which_groups : Byte;
                                groups       : Byte;
                                which_mods   : Byte;
-                                                                                                 mods         : TXkbModsRec;
+                               mods         : TXkbModsRec;
                                ctrls        : Word;
                               end;
 
@@ -1127,7 +1125,7 @@ type
 type
         PXkbKeyAliasPtr = ^TXkbKeyAliasRec;
         TXkbKeyAliasRec = record
-                                                                                 real  : array [0..XkbKeyNameLength -1] of AnsiChar;
+                           real  : array [0..XkbKeyNameLength -1] of AnsiChar;
                            alias : array [0..XkbKeyNameLength -1] of AnsiChar;
                           end;
 
@@ -1140,18 +1138,18 @@ type
                         keycodes        : TAtom;
                         geometry        : TAtom;
                         symbols         : TAtom;
-                                                                        types           : TAtom;
+                        types           : TAtom;
                         compat          : TAtom;
                         vmods           : Array [0..XkbNumVirtualMods -1] of TAtom;
                         indicators      : array [0..XkbNumIndicators  -1] of TAtom;
-                                                                        groups          : array [0..XkbNumKbdGroups   -1] of TAtom;
+                        groups          : array [0..XkbNumKbdGroups   -1] of TAtom;
                         keys            : PXkbKeyNamePtr;
                         key_aliases     : PXkbKeyAliasPtr;
                         radio_groups    : PAtom;
                         phys_symbols    : TAtom;
                         num_keys        : Byte;
-                                                                        num_key_aliases : Byte;
-                                                                        num_rg          : Word;
+                        num_key_aliases : Byte;
+                        num_rg          : Word;
                        end;
 
     {
@@ -1381,9 +1379,9 @@ type
                         num_outlines : Word;
                         sz_outlines  : Word;
                         outlines     : PXkbOutlinePtr;
-                                                                        approx       : PXkbOutlinePtr;
+                        approx       : PXkbOutlinePtr;
                         primary      : PXkbOutlinePtr;
-                                                                        bounds       : TXkbBoundsRec;
+                        bounds       : TXkbBoundsRec;
                        end;
 
 function XkbOutlineIndex (s : PXkbShapePtr; o : PXkbOutlinePtr) : longint;
@@ -1395,10 +1393,10 @@ type
                               _type     : Byte;
                               priority  : Byte;
                               top       : SmallInt;
-                                                                                                left      : SmallInt;
+                              left      : SmallInt;
                               angle     : SmallInt;
                               color_ndx : Word;
-                                                                                                shape_ndx : Word;
+                              shape_ndx : Word;
                              end;
 
 type
@@ -1420,21 +1418,21 @@ type
 type
         PXkbIndicatorDoodadPtr = ^TXkbIndicatorDoodadRec;
         TXkbIndicatorDoodadRec = record
-                                  name          : TAtom;
-                                  _type         : Byte;
-                                  priority      : Byte;
-                                  top           : SmallInt;
-                                  left          : SmallInt;
-                                  angle         : SmallInt;
-                                  shape_ndx     : Word;
-                                  on_color_ndx  : Word;
-                                  off_color_ndx : Word;
-                                 end;
+                            name          : TAtom;
+                            _type         : Byte;
+                            priority      : Byte;
+                            top           : SmallInt;
+                            left          : SmallInt;
+                            angle         : SmallInt;
+                            shape_ndx     : Word;
+                            on_color_ndx  : Word;
+                            off_color_ndx : Word;
+                           end;
 
 type
         PXkbLogoDoodadPtr = ^TXkbLogoDoodadRec;
         TXkbLogoDoodadRec = record
-                                                                                         name      : TAtom;
+                             name      : TAtom;
                              _type     : Byte;
                              priority  : Byte;
                              top       : SmallInt;
@@ -1488,7 +1486,7 @@ type
         TXkbRowRec = record
                       top      : SmallInt;
                       left     : SmallInt;
-                                                                num_keys : Word;
+                      num_keys : Word;
                       sz_keys  : Word;
                       vertical : Integer; // SmallInt;
                       Keys     : PXkbKeyPtr;
@@ -1515,7 +1513,7 @@ type
                           sz_doodads   : Word;
                           sz_overlays  : Word;                          
                           rows         : PXkbRowPtr;
-                                                                                doodads      : PXkbDoodadPtr;
+                          doodads      : PXkbDoodadPtr;
                           bounds       : TXkbBoundsRec;
                           overlays     : PXkbOverlayPtr;
                          end;
@@ -1552,7 +1550,7 @@ type
         TXkbGeometryRec = record
                            name            : TAtom;
                            width_mm        : Word;
-                                                                                 height_mm       : Word;
+                           height_mm       : Word;
                            label_font      : PAnsiChar;
                            label_color     : PXkbColorPtr;
                            base_color      : PXkbColorPtr;
@@ -1561,19 +1559,19 @@ type
                            sz_shapes       : Word;
                            sz_sections     : Word;
                            sz_doodads      : Word;
-                                                                                 sz_key_aliases  : Word;
+                           sz_key_aliases  : Word;
                            num_properties  : Word;
                            num_colors      : Word;
                            num_shapes      : Word;
-                                                                                 num_sections    : Word;
-                                                                                 num_doodads     : Word;
-                                                                                 num_key_aliases : Word;
-                                                                                 properties      : PXkbPropertyPtr;
-                                                                                 colors          : PXkbColorPtr;
-                                                                                 shapes          : PXkbShapePtr;
-                                                                                 sections        : PXkbSectionPtr;
-                                                                                 doodads         : PXkbDoodadPtr;
-                                                                                 key_aliases     : PXkbKeyAliasPtr;
+                           num_sections    : Word;
+                           num_doodads     : Word;
+                           num_key_aliases : Word;
+                           properties      : PXkbPropertyPtr;
+                           colors          : PXkbColorPtr;
+                           shapes          : PXkbShapePtr;
+                           sections        : PXkbSectionPtr;
+                           doodads         : PXkbDoodadPtr;
+                           key_aliases     : PXkbKeyAliasPtr;
                           end;
 
 const
@@ -1590,14 +1588,14 @@ type
         TXkbGeometrySizesRec = record
                                 which           : LongWord; // Word;
                                 num_properties  : Word;
-                                                                                                        num_colors      : Word;
+                                num_colors      : Word;
                                 num_shapes      : Word;
                                 num_sections    : Word;
                                 num_doodads     : Word;
                                 num_key_aliases : Word;
-                                                                                                 end;
+                               end;
 
-{ End of KXBgeom.h }
+{ End of XKBgeom.h }
 
         {
           Tie it all together into one big keyboard description
@@ -1668,17 +1666,17 @@ type
 type
         PXkbControlsChangesPtr = ^TXkbControlsChangesRec;
         TXkbControlsChangesRec = record
-                                                                                                                changed_ctrls         : LongWord; // Word;
-                                  enabled_ctrls_changes : LongWord; // Word;
-                                  num_groups_changed    : TBool; // Boolean;
-                                 end;
+                            changed_ctrls         : LongWord; // Word;
+                            enabled_ctrls_changes : LongWord; // Word;
+                            num_groups_changed    : TBool; // Boolean;
+                           end;
 
 type
         PXkbIndicatorChangesPtr = ^TXkbIndicatorChangesRec;
         TXkbIndicatorChangesRec = record
-                                   state_changes : LongWord; // Word;
-                                                                                                                 map_changes   : LongWord; // Word;
-                                  end;
+                             state_changes : LongWord; // Word;
+                             map_changes   : LongWord; // Word;
+                            end;
 
 type
         PXkbNameChangesPtr = ^TXkbNameChangesRec;
@@ -1691,14 +1689,14 @@ type
                               num_aliases        : Byte;
                               num_rg             : Byte;
                               first_key          : Byte;
-                                                                                                num_keys           : Byte;
-                                                                                                changed_vmods      : Word;
+                              num_keys           : Byte;
+                              changed_vmods      : Word;
                               {$If Defined(CPU64)}
                               changed_indicators : QWord;
                               {$ElseIf Defined(CPU32)}
                               changed_indicators : LongWord;
                               {$Else}
-                                  {$Error Only 64 or 32-bit systems supported.}
+                            {$Error Only 64 or 32-bit systems supported.}
                               {$EndIf}
                               changed_groups     : Byte;
                              end;
@@ -1706,7 +1704,7 @@ type
 type
         PXkbCompatChangesPtr = ^TXkbCompatChangesRec;
         TXkbCompatChangesRec = record
-                                                                                                        changed_groups : Byte;
+                                changed_groups : Byte;
                                 first_si       : Word;
                                 num_si         : Word;
                                end;
@@ -1716,10 +1714,10 @@ type
         TXkbChangesRec = record
                           device_spec   : Word;
                           state_changes : Word;
-                                                                                map           : TXkbMapChangesRec;
+                                map           : TXkbMapChangesRec;
                           ctrls         : TXkbControlsChangesRec;
                           indicators    : TXkbIndicatorChangesRec;
-                                                                                names         : TXkbNameChangesRec;
+                                names         : TXkbNameChangesRec;
                           compat        : TXkbCompatChangesRec;
                          end;
 
@@ -1731,12 +1729,12 @@ type
 type
         PXkbComponentNamesPtr = ^TXkbComponentNamesRec;
         TXkbComponentNamesRec = record
-                                 keymap   : PShortInt;
-                                 keycodes : PShortInt;
-                                 types    : PShortInt;
-                                 compat   : PShortInt;
-                                 symbols  : PShortInt;
-                                 geometry : PShortInt;
+                           keymap   : PShortInt;
+                           keycodes : PShortInt;
+                           types    : PShortInt;
+                           compat   : PShortInt;
+                           symbols  : PShortInt;
+                           geometry : PShortInt;
                                 end;
 
 type
@@ -1753,10 +1751,10 @@ type
                                 num_keycodes : Integer; // SmallInt;
                                 num_types    : Integer; // SmallInt;
                                 num_compat   : Integer; // SmallInt;
-                                                                                                        num_symbols  : Integer; // SmallInt;
+                                num_symbols  : Integer; // SmallInt;
                                 num_geometry : Integer; // SmallInt;
                                 keymaps      : PXkbComponentNamePtr;
-                                                                                                        keycodes     : PXkbComponentNamePtr;
+                                keycodes     : PXkbComponentNamePtr;
                                 types        : PXkbComponentNamePtr;
                                 compat       : PXkbComponentNamePtr;
                                 symbols      : PXkbComponentNamePtr;
@@ -1771,13 +1769,13 @@ type
         PXkbDeviceLedInfoPtr = ^TXkbDeviceLedInfoRec;
         TXkbDeviceLedInfoRec = record
                                 led_class       : Word;
-                                                                                                        led_id          : Word;
+                                led_id          : Word;
                                 phys_indicators : LongWord; // Word;
                                 maps_present    : LongWord; // Word;
                                 names_present   : LongWord; // Word;
                                 state           : LongWord; // Word;
                                 names           : array [0..XkbNumIndicators -1] of TAtom;
-                                                                                                        maps            : array [0..XkbNumIndicators -1] of TXkbIndicatorMapRec;
+                                maps            : array [0..XkbNumIndicators -1] of TXkbIndicatorMapRec;
                                end;
 
 type
@@ -1787,15 +1785,15 @@ type
                              _type         : TAtom;
                              device_spec   : Word;
                              has_own_state : TBool; // Boolean;
-                                                                                         supported     : Word;
+                             supported     : Word;
                              unsupported   : Word;
                              num_btns      : Word;
                              btn_acts      : PXkbAction;
                              sz_leds       : Word;
                              num_leds      : Word;
-                                                                                         dflt_kbd_fb   : Word;
+                             dflt_kbd_fb   : Word;
                              dflt_led_fb   : Word;
-                                                                                         leds          : PXkbDeviceLedInfoPtr;
+                             leds          : PXkbDeviceLedInfoPtr;
                             end;
 
 function XkbXI_DevHasBtnActs (d : PXkbDeviceInfoPtr)           : Boolean;
@@ -1805,19 +1803,19 @@ function XkbXI_DevHasLeds    (d : PXkbDeviceInfoPtr)           : Boolean;
 type
         PXkbDeviceLedChangesPtr = ^TXkbDeviceLedChangesRec;
         TXkbDeviceLedChangesRec = record
-                                   led_class : Word;
-                                   led_id    : Word;
-                                   defined   : LongWord; // Word; //names or maps changed
-                                   next      : PXkbDeviceLedChangesPtr;
-                                  end;
+                             led_class : Word;
+                             led_id    : Word;
+                             defined   : LongWord; // Word; //names or maps changed
+                             next      : PXkbDeviceLedChangesPtr;
+                            end;
 
 type
         PXkbDeviceChangesPtr = ^TXkbDeviceChangesRec;
         TXkbDeviceChangesRec = record
                                 changed   : LongWord; // Word;
-                                                                                                        first_btn : Word;
+                                first_btn : Word;
                                 num_btns  : Word;
-                                                                                                        leds      : TXkbDeviceLedChangesRec;
+                                leds      : TXkbDeviceLedChangesRec;
                                end;
 
 function XkbShapeDoodadColor     (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr)  : PXkbColorPtr;
@@ -1828,16 +1826,12 @@ procedure XkbSetShapeDoodadShape (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr; s
 function XkbTextDoodadColor     (g : PXkbGeometryPtr; d : PXkbTextDoodadPtr)    : PXkbColorPtr;
 procedure XkbSetTextDoodadColor (g : PXkbGeometryPtr; d : PXkbTextDoodadPtr; c : PXkbColorPtr);
 
-function XkbIndicatorDoodadShape        (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr)
-                                                                                                                                                                                                                                                                                                                                : PXkbShapeDoodadPtr;
+function XkbIndicatorDoodadShape        (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr) : PXkbShapeDoodadPtr;
 function XkbIndicatorDoodadOnColor      (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr) : PXkbColorPtr;
 function XkbIndicatorDoodadOffColor     (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr) : PXkbColorPtr;
-procedure XkbSetIndicatorDoodadOnColor  (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr;
-                                         c : PXkbColorPtr);
-procedure XkbSetIndicatorDoodadOffColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr;
-                                         c : PXkbColorPtr);
-procedure XkbSetIndicatorDoodadShape    (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr;
-                                                                                                                                                                 s : PXkbShapeDoodadPtr);
+procedure XkbSetIndicatorDoodadOnColor  (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr; c : PXkbColorPtr);
+procedure XkbSetIndicatorDoodadOffColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr; c : PXkbColorPtr);
+procedure XkbSetIndicatorDoodadShape    (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr; s : PXkbShapeDoodadPtr);
 
 function XkbLogoDoodadColor     (g : PXkbGeometryPtr; d : PXkbLogoDoodadPtr) : PXkbColorPtr;
 function XkbLogoDoodadShape     (g : PXkbGeometryPtr; d : PXkbLogoDoodadPtr) : PXkbShapeDoodadPtr;
@@ -1872,9 +1866,8 @@ function XkbAddGeomKey (row : PXkbRowPtr) : PXkbKeyPtr;
 function XkbAddGeomRow (section : PXkbSectionPtr; sz_keys : SmallInt) : PXkbRowPtr;
         cdecl; external libX11 name 'XkbAddGeomRow';
 
-function XkbAddGeomSection (geom        : PXkbGeometryPtr; name       : TAtom;
-                            sz_rows     : SmallInt;               sz_doodads : SmallInt;
-                                                                                                                sz_overlays : SmallInt)                              : PXkbSectionPtr;
+function XkbAddGeomSection (geom : PXkbGeometryPtr; name : TAtom; sz_rows: SmallInt; sz_doodads : SmallInt;
+                            sz_overlays : SmallInt) : PXkbSectionPtr;
         cdecl; external libX11 name 'XkbAddGeomSection';
 
 function XkbAddGeomOverlay (section : PXkbSectionPtr; name : TAtom; sz_rows : SmallInt) : PXkbOverlayPtr;
@@ -1884,15 +1877,15 @@ function XkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt;
                                sz_keys : SmallInt)                              : PXkbOverlayRowPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayRow';
 
-function XkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
-                                                                                                                         over    : PAnsiChar;          under : PAnsiChar)              : PXkbOverlayKeyPtr;
+function XkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row : PXkbOverlayRowPtr; over : PAnsiChar;
+                               under : PAnsiChar) : PXkbOverlayKeyPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayKey';
 
 function XkbAddGeomDoodad (geom : PXkbGeometryPtr; section : PXkbSectionPtr; name : TAtom) : PXkbDoodadPtr;
         cdecl; external libX11 name 'XkbAddGeomDoodad';
 
 procedure XkbFreeGeomKeyAliases (geom  : PXkbGeometryPtr; first   : SmallInt;
-                                 count : SmallInt;        freeAll : Boolean);
+                           count : SmallInt;        freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomKeyAliases';
 
 procedure XkbFreeGeomColors (geom : PXkbGeometryPtr; first : SmallInt; count : SmallInt; freeAll : Boolean);
@@ -1902,15 +1895,15 @@ procedure XkbFreeGeomDoodads (doodads : PXkbDoodadPtr; nDoodads : SmallInt; free
         cdecl; external libX11 name 'XkbFreeGeomDoodads';
 
 procedure XkbFreeGeomProperties (geom  : PXkbGeometryPtr; first   : SmallInt;
-                                 count : SmallInt;        freeAll : Boolean);
+                           count : SmallInt;        freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomProperties';
 
 procedure XkbFreeGeomOverlayKeys (row   : PXkbOverlayRowPtr; first   : SmallInt;
-                                  count : SmallInt;          freeAll : Boolean);
+                            count : SmallInt;          freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomOverlayKeys';
 
 procedure XkbFreeGeomOverlayRows (overlay : PXkbOverlayPtr; first   : SmallInt;
-                                  count   : SmallInt;       freeAll : Boolean);
+                            count   : SmallInt;       freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomOverlayRows';
 
 procedure XkbFreeGeomOverlays (section : PXkbSectionPtr; first   : SmallInt;
@@ -2021,7 +2014,7 @@ function SrvXkbAddGeomColor (geom : PXkbGeometryPtr; spec : PAnsiChar; pixel : W
         cdecl; external libX11 name 'XkbAddGeomColor';
 
 function SrvXkbAddGeomDoodad (geom : PXkbGeometryPtr; section : PXkbSectionPtr;
-                              name : TAtom)                                     : PXkbDoodadPtr;
+                              name : TAtom)                               : PXkbDoodadPtr;
         cdecl; external libX11 name 'XkbAddGeomDoodad';
 
 function SrvXkbAddGeomKey (geom : PXkbGeometryPtr; alias : PAnsiChar; real : PAnsiChar) : PXkbKeyAliasPtr;
@@ -2030,16 +2023,14 @@ function SrvXkbAddGeomKey (geom : PXkbGeometryPtr; alias : PAnsiChar; real : PAn
 function SrvXkbAddGeomOutline (shape : PXkbShapePtr; sz_points : SmallInt) : PXkbOutlinePtr;
         cdecl; external libX11 name 'XkbAddGeomOutline';
 
-function SrvXkbAddGeomOverlay (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
-                                                                                                                         over    : PAnsiChar;          under : PAnsiChar)              : PXkbOverlayKeyPtr;
+function SrvXkbAddGeomOverlay (overlay : PXkbOverlayPtr; row : PXkbOverlayRowPtr; over : PAnsiChar;
+                               under : PAnsiChar) : PXkbOverlayKeyPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayKey';
 
-function SrvXkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt;
-                               sz_keys : SmallInt)                              : PXkbOverlayRowPtr
+function SrvXkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt; sz_keys : SmallInt) : PXkbOverlayRowPtr
         cdecl; external libX11 name 'XkbAddGeomOverlayRow';
 
-function SrvXkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
-                                                                                                                         over    : PAnsiChar;          under : PAnsiChar)              : PXkbOverlayKeyPtr;
+function SrvXkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row : PXkbOverlayRowPtr; over : PAnsiChar; under : PAnsiChar) : PXkbOverlayKeyPtr;
         cdecl; external libX11 name 'XkbAddGeomOverlayKey';
 
 function SrvXkbAddGeomProperty (geom : PXkbGeometryPtr; name : PAnsiChar; value : PAnsiChar) : PXkbPropertyPtr;
@@ -2048,9 +2039,8 @@ function SrvXkbAddGeomProperty (geom : PXkbGeometryPtr; name : PAnsiChar; value 
 function SrvXkbAddGeomRow (section : PXkbSectionPtr; sz_keys : SmallInt) : PXkbRowPtr;
         cdecl; external libX11 name 'XkbAddGeomRow';
 
-function SrvXkbAddGeomSection (geom        : PXkbGeometryPtr; name       : TAtom;
-                               sz_rows     : SmallInt;                    sz_doodads : SmallInt;
-                                                                                                                   sz_overlays : SmallInt)                              : PXkbSectionPtr;
+function SrvXkbAddGeomSection (geom : PXkbGeometryPtr; name : TAtom; sz_rows : SmallInt; sz_doodads : SmallInt;
+                               sz_overlays : SmallInt) : PXkbSectionPtr;
         cdecl; external libX11 name 'XkbAddGeomSection';
 
 function SrvXkbAddGeomShape (geom : PXkbGeometryPtr; name : TAtom; sz_outlines : SmallInt) : PXkbShapePtr;
@@ -2102,7 +2092,7 @@ function SrvXkbAllocGeometry (xkb : PXkbDescPtr; sizes : PXkbGeometrySizesPtr) :
         cdecl; external libX11 name 'XkbAllocGeometry';
 
 procedure SrvXkbFreeGeomKeyAliases (geom  : PXkbGeometryPtr; first   : SmallInt;
-                                 count : SmallInt;        freeAll : Boolean);
+                           count : SmallInt;        freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomKeyAliases';
 
 procedure SrvXkbFreeGeomColors (geom  : PXkbGeometryPtr; first   : SmallInt;
@@ -2113,15 +2103,15 @@ procedure SrvXkbFreeGeomDoodads (doodads : PXkbDoodadPtr; nDoodads : SmallInt; f
         cdecl; external libX11 name 'XkbFreeGeomDoodads';
 
 procedure SrvXkbFreeGeomProperties (geom  : PXkbGeometryPtr; first   : SmallInt;
-                                 count : SmallInt;        freeAll : Boolean);
+                           count : SmallInt;        freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomProperties';
 
 procedure SrvXkbFreeGeomOverlayKeys (row   : PXkbOverlayRowPtr; first   : SmallInt;
-                                     count : SmallInt;          freeAll : Boolean);
+                               count : SmallInt;          freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomOverlayKeys';
 
 procedure SrvXkbFreeGeomOverlayRows (overlay : PXkbOverlayPtr; first   : SmallInt;
-                                  count   : SmallInt;       freeAll : Boolean);
+                            count   : SmallInt;       freeAll : Boolean);
         cdecl; external libX11 name 'XkbFreeGeomOverlayRows';
 
 procedure SrvXkbFreeGeomOverlays (section : PXkbSectionPtr; first   : SmallInt;
@@ -2174,7 +2164,7 @@ end;
 function XkbLegalXIBellClass (c : Cardinal) : LongBool;
 begin
 {#define XkbLegalXIBellClass(c) (((c)==KbdFeedbackClass)||((c)==BellFeedbackClass)||
-                                 ((c)==XkbDfltXIClass)||((c)==XkbAllXIClasses))}
+                           ((c)==XkbDfltXIClass)||((c)==XkbAllXIClasses))}
         Result := (c = KbdFeedbackClass) or (c = BellFeedbackClass) or
             (c = XkbDfltXIClass)   or (c = XkbAllXIClasses);
 end;
@@ -2462,7 +2452,7 @@ end;
 procedure XkbActionSetCtrls (a : PXkbCtrlsAction; c : Byte);
 begin
 {#define XkbActionSetCtrls(a,c) (((a)->ctrls3=(((c)>>24)&0xff)),((a)->ctrls2=(((c)>>16)&0xff)),
-                                 ((a)->ctrls1=(((c)>>8)&0xff)),((a)->ctrls0=((c)&0xff)))        }
+                           ((a)->ctrls1=(((c)>>8)&0xff)),((a)->ctrls0=((c)&0xff)))        }
         a^.ctrls3 := ((c shr  24) and $ff);
         a^.ctrls2 := ((c shr  16) and $ff);
         a^.ctrls1 := ((c shr   8) and $ff);
@@ -2482,8 +2472,7 @@ end;
 function XkbSARedirectVMods (a : PXkbRedirectKeyAction) : Word;
 begin
 {#define XkbSARedirectVMods(a) ((((unsigned int)(a)->vmods1)<<8)|((unsigned int)(a)->vmods0))}
-        Result := (a^.vmods1 shl 8) or
-                                                a^.vmods0;
+        Result := (a^.vmods1 shl 8) or a^.vmods0;
 end;
 
 procedure XkbSARedirectSetVMods (a : PXkbRedirectKeyAction; m : Byte);
@@ -2496,7 +2485,7 @@ end;
 function XkbSARedirectVModsMask (a : PXkbRedirectKeyAction) : Word;
 begin
 {#define XkbSARedirectVModsMask(a) ((((unsigned int)(a)->vmods_mask1)<<8)|
-                                     ((unsigned int)(a)->vmods_mask0))}
+                               ((unsigned int)(a)->vmods_mask0))}
         Result := (a^.vmods_mask1 shl 8) or
                    a^.vmods_mask0;
 end;
@@ -2674,7 +2663,7 @@ end;
 function XkbKeyActionEntry (d : PXkbDescPtr; k : Word; sl : Word; g : Byte) : Byte;
 begin
 {#define XkbKeyActionEntry(d,k,sl,g) (XkbKeyHasActions(d,k) ?
-                                      XkbKeyAction(d, k, ((XkbKeyGroupsWidth(d, k) * (g))+(sl))):NULL)}
+                                XkbKeyAction(d, k, ((XkbKeyGroupsWidth(d, k) * (g))+(sl))):NULL)}
         if (XkbKeyHasActions(d, k)) then
                 Result := (XkbKeyGroupsWidth(d, k) * g) + sl
         else
@@ -2806,22 +2795,19 @@ begin
         Result := @g^.colors [d^.off_color_ndx];
 end;
 
-procedure XkbSetIndicatorDoodadOnColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr;
-                                        c : PXkbColorPtr);
+procedure XkbSetIndicatorDoodadOnColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr; c : PXkbColorPtr);
 begin
 {#define XkbSetIndicatorDoodadOnColor(g,d,c) ((d)->on_color_ndx= (c)-&(g)->colors[0])}
         d^.on_color_ndx := c - @g^.colors [0];
 end;
 
-procedure XkbSetIndicatorDoodadOffColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr;
-                                         c : PXkbColorPtr);
+procedure XkbSetIndicatorDoodadOffColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr; c : PXkbColorPtr);
 begin
 {#define        XkbSetIndicatorDoodadOffColor(g,d,c) ((d)->off_color_ndx= (c)-&(g)->colors[0])}
         d^.off_color_ndx := c - @g^.colors [0];
 end;
 
-procedure XkbSetIndicatorDoodadShape (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr;
-                                      s : PXkbShapeDoodadPtr);
+procedure XkbSetIndicatorDoodadShape (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr; s : PXkbShapeDoodadPtr);
 begin
 {#define XkbSetIndicatorDoodadShape(g,d,s) ((d)->shape_ndx= (s)-&(g)->shapes[0])}
         d^.shape_ndx := PXkbShapePtr(s) - @g^.shapes [0];
