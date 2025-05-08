@@ -47,8 +47,8 @@ const
   FPC_LOG2E: Double   =  1.4426950408889634073599246810019; {  1/log(2)    }
 
   FPC_INFINITY_DOUBLE: QWord = $7ff0000000000000;     { IEEE 754 bit representation of +oo for binary64 }
-  FPC_MAXLOG_DOUBLE: Double  =  709.08956571282405153382846025171; { log(2**1023)  }
-  FPC_MINLOG_DOUBLE: Double  = -709.78271289338399684324569237317; { log(2**-1024) }
+  FPC_MAXLOG_DOUBLE: Double  =  709.78271289338399684324569237317; { log(2**1024)  }
+  FPC_MINLOG_DOUBLE: Double  = -709.08956571282405153382846025171; { log(2**-1023) }
 
 {****************************************************************************
                             FPU Control word
