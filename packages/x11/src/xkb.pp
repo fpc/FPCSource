@@ -125,7 +125,7 @@ type
 type
         PXkbKTMapEntryPtr = ^TXkbKTMapEntryRec;
         TXkbKTMapEntryRec = record
-                             active : Boolean;
+                             active : TBool;// Boolean;
                              level  : Byte;
                              mods   : TXkbModsRec;
                             end;
@@ -139,7 +139,7 @@ type
                           map         : PXkbKTMapEntryPtr;
                           preserve    : PXkbModsPtr;
                           name        : TAtom;
-                          level_names : TAtom;
+                          level_names : PAtom;
                          end;
 
 function XkbNumGroups             (g       : Word) : Word;
@@ -965,7 +965,7 @@ type
                            groups_wrap      : Byte;
                            internal         : TXkbModsRec;
                            ignore_lock      : TXkbModsRec;
-                           enabled_ctrls    : Word;
+                           enabled_ctrls    : LongWord; // Word;
                            repeat_delay     : Word;
                            repeat_interval  : Word;
                            slow_keys_delay  : Word;
@@ -979,8 +979,8 @@ type
                            ax_timeout       : Word;
                            axt_opts_mask    : Word;
                            axt_opts_values  : Word;
-                                                                                 axt_ctrls_mask   : Word;
-                                                                                 axt_ctrls_values : Word;
+                                                                                 axt_ctrls_mask   : LongWord; // Word;
+                                                                                 axt_ctrls_values : LongWord; // Word;
                                                                                  per_key_repeat   : array [0..XkbPerKeyBitArraySize -1] of Byte;
                           end;
 
@@ -1040,7 +1040,7 @@ type
                          kt_index   : array [0..XkbNumKbdGroups -1] of Byte;
                          group_info : Byte;
                          width      : Byte;
-                         offset     : Byte;
+                         offset     : Word;
                                                                         end;
 
 type
@@ -1108,7 +1108,13 @@ function XkbIM_InUse  (i : PXkbIndicatorMapPtr) : Boolean;
 type
         PXkbIndicatorPtr = ^TXkbIndicatorRec;
         TXkbIndicatorRec = record
+                            {$If Defined(CPU64)}
+                            phys_indicators : QWord;
+                            {$ElseIf Defined(CPU32)}
                             phys_indicators : LongWord;
+                            {$Else}
+                              {$Error Only 64 or 32-bit systems supported.}
+                            {$EndIf}
                             maps            : array [0..XkbNumIndicators -1] of TXkbIndicatorMapRec;
                            end;
 
@@ -1324,6 +1330,8 @@ const
 const
         XkbDF_DisableLocks = 1 shl 0;
 
+{ Beginning of XKBgeom.h }
+
 type
         PXkbPropertyPtr = ^TXkbPropertyRec;
         TXkbPropertyRec = record
@@ -1334,7 +1342,7 @@ type
 type
         PXkbColorPtr = ^TXkbColorRec;
         TXkbColorRec = record
-                        pixel : Word;
+                        pixel : LongWord; // Word;
                         spec  : PAnsiChar;
                        end;
 
@@ -1482,7 +1490,7 @@ type
                       left     : SmallInt;
                                                                 num_keys : Word;
                       sz_keys  : Word;
-                      vertical : SmallInt;
+                      vertical : Integer; // SmallInt;
                       Keys     : PXkbKeyPtr;
                       bounds   : TXkbBoundsRec;
                      end;
@@ -1503,6 +1511,9 @@ type
                           num_rows     : Word;
                           num_doodads  : Word;
                           num_overlays : Word;
+                          sz_rows      : Word;
+                          sz_doodads   : Word;
+                          sz_overlays  : Word;                          
                           rows         : PXkbRowPtr;
                                                                                 doodads      : PXkbDoodadPtr;
                           bounds       : TXkbBoundsRec;
@@ -1519,9 +1530,9 @@ type
 //Do not add more "type"
         PXkbOverlayRowPtr = ^TXkbOverlayRowRec;
         TXkbOverlayRowRec = record
-                             row_under : SmallInt;
-                             num_keys  : SmallInt;
-                             sz_keys   : SmallInt;
+                             row_under : Word; // SmallInt;
+                             num_keys  : Word; // SmallInt;
+                             sz_keys   : Word; // SmallInt;
                              keys      : PXkbOverlayKeyPtr;
                             end;
 
@@ -1561,6 +1572,7 @@ type
                                                                                  colors          : PXkbColorPtr;
                                                                                  shapes          : PXkbShapePtr;
                                                                                  sections        : PXkbSectionPtr;
+                                                                                 doodads         : PXkbDoodadPtr;
                                                                                  key_aliases     : PXkbKeyAliasPtr;
                           end;
 
@@ -1576,7 +1588,7 @@ const
 type
         PXkbGeometrySizesPtr = ^TXkbGeometrySizesRec;
         TXkbGeometrySizesRec = record
-                                which           : Word;
+                                which           : LongWord; // Word;
                                 num_properties  : Word;
                                                                                                         num_colors      : Word;
                                 num_shapes      : Word;
@@ -1584,6 +1596,8 @@ type
                                 num_doodads     : Word;
                                 num_key_aliases : Word;
                                                                                                  end;
+
+{ End of KXBgeom.h }
 
         {
           Tie it all together into one big keyboard description
@@ -1654,22 +1668,22 @@ type
 type
         PXkbControlsChangesPtr = ^TXkbControlsChangesRec;
         TXkbControlsChangesRec = record
-                                                                                                                changed_ctrls         : Word;
-                                  enabled_ctrls_changes : Word;
-                                  num_groups_changed    : Boolean;
+                                                                                                                changed_ctrls         : LongWord; // Word;
+                                  enabled_ctrls_changes : LongWord; // Word;
+                                  num_groups_changed    : TBool; // Boolean;
                                  end;
 
 type
         PXkbIndicatorChangesPtr = ^TXkbIndicatorChangesRec;
         TXkbIndicatorChangesRec = record
-                                   state_changes : Word;
-                                                                                                                 map_changes   : Word;
+                                   state_changes : LongWord; // Word;
+                                                                                                                 map_changes   : LongWord; // Word;
                                   end;
 
 type
         PXkbNameChangesPtr = ^TXkbNameChangesRec;
         TXkbNameChangesRec = record
-                              changed            : Word;
+                              changed            : LongWord; // Word;
                               first_type         : Byte;
                               num_types          : Byte;
                               first_lvl          : Byte;
@@ -1679,7 +1693,13 @@ type
                               first_key          : Byte;
                                                                                                 num_keys           : Byte;
                                                                                                 changed_vmods      : Word;
+                              {$If Defined(CPU64)}
+                              changed_indicators : QWord;
+                              {$ElseIf Defined(CPU32)}
                               changed_indicators : LongWord;
+                              {$Else}
+                                  {$Error Only 64 or 32-bit systems supported.}
+                              {$EndIf}
                               changed_groups     : Byte;
                              end;
 
@@ -1729,12 +1749,12 @@ type
 type
         PXkbComponentListPtr = ^TXkbComponentListRec;
         TXkbComponentListRec = record
-                                num_keymaps  : SmallInt;
-                                num_keycodes : SmallInt;
-                                num_types    : SmallInt;
-                                num_compat   : SmallInt;
-                                                                                                        num_symbols  : SmallInt;
-                                num_geometry : SmallInt;
+                                num_keymaps  : Integer; // SmallInt;
+                                num_keycodes : Integer; // SmallInt;
+                                num_types    : Integer; // SmallInt;
+                                num_compat   : Integer; // SmallInt;
+                                                                                                        num_symbols  : Integer; // SmallInt;
+                                num_geometry : Integer; // SmallInt;
                                 keymaps      : PXkbComponentNamePtr;
                                                                                                         keycodes     : PXkbComponentNamePtr;
                                 types        : PXkbComponentNamePtr;
@@ -1752,10 +1772,10 @@ type
         TXkbDeviceLedInfoRec = record
                                 led_class       : Word;
                                                                                                         led_id          : Word;
-                                phys_indicators : Word;
-                                maps_present    : Word;
-                                names_present   : Word;
-                                state           : Word;
+                                phys_indicators : LongWord; // Word;
+                                maps_present    : LongWord; // Word;
+                                names_present   : LongWord; // Word;
+                                state           : LongWord; // Word;
                                 names           : array [0..XkbNumIndicators -1] of TAtom;
                                                                                                         maps            : array [0..XkbNumIndicators -1] of TXkbIndicatorMapRec;
                                end;
@@ -1766,7 +1786,7 @@ type
                              name          : PAnsiChar;
                              _type         : TAtom;
                              device_spec   : Word;
-                             has_own_state : Boolean;
+                             has_own_state : TBool; // Boolean;
                                                                                          supported     : Word;
                              unsupported   : Word;
                              num_btns      : Word;
@@ -1787,14 +1807,14 @@ type
         TXkbDeviceLedChangesRec = record
                                    led_class : Word;
                                    led_id    : Word;
-                                   defined   : Word; //names or maps changed
+                                   defined   : LongWord; // Word; //names or maps changed
                                    next      : PXkbDeviceLedChangesPtr;
                                   end;
 
 type
         PXkbDeviceChangesPtr = ^TXkbDeviceChangesRec;
         TXkbDeviceChangesRec = record
-                                changed   : Word;
+                                changed   : LongWord; // Word;
                                                                                                         first_btn : Word;
                                 num_btns  : Word;
                                                                                                         leds      : TXkbDeviceLedChangesRec;
