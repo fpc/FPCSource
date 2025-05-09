@@ -102,7 +102,8 @@ type
 
     var
       data: record
-        cpuid1, cpuid7_0, cpuid7_1, cpuid24_0: TCpuidResult;
+        cpuid1, cpuid7_0, cpuid7_1 : TCpuidResult;
+        cpuid24_0_ebx : dword;
         AVXSupport,
         LZCNTSupport: boolean;
       end;
@@ -261,7 +262,7 @@ type
               ((XGETBV(0) and %110)=%110);
 
             if (data.cpuid7_1.edx and (19 shl 0))<>0 then { CPUID.(EAX=24H) leaf is supported }
-              CPUID($24, 0, data.cpuid24_0);
+              data.cpuid24_0_ebx:=CPUID($24, 0).ebx;
 
             data.LZCNTSupport:=(CPUID($80000001).ecx and (1 shl 5))<>0;
          end;
@@ -314,25 +315,25 @@ type
 
     function AVX101Support: boolean;inline; { AVX10.1 }
       begin
-        result:=(data.cpuid24_0.ebx and $ff)>=1;
+        result:=(data.cpuid24_0_ebx and $ff)>=1;
       end;
 
 
     function AVX102Support: boolean;inline; { AVX10.2 }
       begin
-        result:=(data.cpuid24_0.ebx and $ff)>=2;
+        result:=(data.cpuid24_0_ebx and $ff)>=2;
       end;
 
 
     function AVX10_256Support: boolean;inline; { AVX10/256 }
       begin
-        result:=(data.cpuid24_0.ebx and (1 shl 17))<>0;
+        result:=(data.cpuid24_0_ebx and (1 shl 17))<>0;
       end;
 
 
     function AVX10_512Support: boolean;inline; { AVX10/512 }
       begin
-        result:=(data.cpuid24_0.ebx and (1 shl 18))<>0;
+        result:=(data.cpuid24_0_ebx and (1 shl 18))<>0;
       end;
 
 
