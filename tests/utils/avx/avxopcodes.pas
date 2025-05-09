@@ -36,7 +36,7 @@ type
 
 implementation
 
-uses SysUtils, AsmTestGenerator, Dialogs;
+uses SysUtils, AsmTestGenerator{, Dialogs};
 
 { TAVXTestGenerator }
 
@@ -65,22 +65,101 @@ begin
   inherited;
 end;
 
-{$define TEST_SHA}
-{$define TEST_XSAVE}
+{ $define TEST_FP16}
+{$define TEST_VP2INTERSECT}
+{$define TEST_SM}
+{ $define TEST_BF16}
+{$define TEST_GFNI}
+{$define TEST_SHA512}
+{ $define TEST_SHA}
+{ $define TEST_XSAVE}
 {$define TEST_ALL}
 
 procedure TAVXTestGenerator.Init;
 begin
   // Opcode, i386, x8664, AVX512, Parameter
+{$if defined(TEST_FP16) or defined(TEST_ALL)}
+    { FP16 opcodes }
+{$endif}
+{$if defined(TEST_VP2INTERSECT) or defined(TEST_ALL)}
+    { VP2INTERSECT opcodes }
+    FOpCodeList.Add('VP2INTERSECTD,1,1,1,KREG,XMMREG,XMMRM');
+    //FOpCodeList.Add('VP2INTERSECTD,1,1,1,KREG,XMMREG,4B32');
+    FOpCodeList.Add('VP2INTERSECTD,1,1,1,KREG,YMMREG,YMMRM');
+    //FOpCodeList.Add('VP2INTERSECTD,1,1,1,KREG,YMMREG,8B32');  //-- Nasm 2.17rc expets 4B32, but that's an error!!!
+    FOpCodeList.Add('VP2INTERSECTD,1,1,1,KREG,ZMMREG,ZMMRM');
+    //FOpCodeList.Add('VP2INTERSECTD,1,1,1,KREG,ZMMREG,16B32'); //-- Nasm 2.17rc expets 4B32, but that's an error!!!
+
+    { not implemented in Nasm 2.17rc
+    FOpCodeList.Add('VP2INTERSECTQ,1,1,1,KREG,XMMREG,XMMRM');
+    FOpCodeList.Add('VP2INTERSECTQ,1,1,1,KREG,XMMREG,2B64');
+    FOpCodeList.Add('VP2INTERSECTQ,1,1,1,KREG,YMMREG,YMMRM');
+    FOpCodeList.Add('VP2INTERSECTQ,1,1,1,KREG,YMMREG,4B64');
+    FOpCodeList.Add('VP2INTERSECTQ,1,1,1,KREG,ZMMREG,ZMMRM');
+    FOpCodeList.Add('VP2INTERSECTQ,1,1,1,KREG,ZMMREG,8B64');
+    }
+{$endif}
+{$if defined(TEST_SM) or defined(TEST_ALL)}
+    { SM3 opcodes }
+    FOpCodeList.Add('VSM3RNDS2,1,1,0,XMMREG,XMMREG,XMMREG,IMM8');  //-- in Nasm 2.17rc implemented only XMMREG, we have XMMRM (manualy tested)
+    FOpCodeList.Add('VSM3MSG1,1,1,0,XMMREG,XMMREG,XMMREG');        //-- in Nasm 2.17rc implemented only XMMREG
+    FOpCodeList.Add('VSM3MSG2,1,1,0,XMMREG,XMMREG,XMMREG');        //-- in Nasm 2.17rc implemented only XMMREG
+
+    { SM4 opcodes }
+    FOpCodeList.Add('VSM4KEY4,1,1,1,XMMREG,XMMREG,XMMRM');
+    FOpCodeList.Add('VSM4KEY4,1,1,1,YMMREG,YMMREG,YMMRM');
+    //FOpCodeList.Add('VSM4KEY4,1,1,1,ZMMREG,ZMMREG,ZMMRM');  //-- not implemented in Nasm 2.17rc
+    FOpCodeList.Add('VSM4RNDS4,1,1,1,XMMREG,XMMREG,XMMRM');
+    FOpCodeList.Add('VSM4RNDS4,1,1,1,YMMREG,YMMREG,YMMRM');
+    //FOpCodeList.Add('VSM4RNDS4,1,1,1,ZMMREG,ZMMREG,ZMMRM'); //-- not implemented in Nasm 2.17rc
+{$endif}
+{$if defined(TEST_BF16) or defined(TEST_ALL)}
+    { BF16 opcodes }
+{$endif}
+{$if defined(TEST_GFNI) or defined(TEST_ALL)}
+    { GFNI opcodes }
+    FOpCodeList.Add('GF2P8AFFINEINVQB,1,1,0,XMMREG,XMMRM,IMM8');
+    FOpCodeList.Add('GF2P8AFFINEQB,1,1,0,XMMREG,XMMRM,IMM8');
+    FOpCodeList.Add('GF2P8MULB,1,1,0,XMMREG,XMMRM');
+
+    FOpCodeList.Add('VGF2P8AFFINEINVQB,1,1,1,XMMREG,XMMREG,XMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEINVQB,1,1,1,XMMREG_MZ,XMMREG,XMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEINVQB,1,1,1,YMMREG,YMMREG,YMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEINVQB,1,1,1,YMMREG_MZ,YMMREG,YMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEINVQB,1,1,1,ZMMREG,ZMMREG,ZMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEINVQB,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,IMM8');
+
+    FOpCodeList.Add('VGF2P8AFFINEQB,1,1,1,XMMREG,XMMREG,XMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEQB,1,1,1,XMMREG_MZ,XMMREG,XMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEQB,1,1,1,YMMREG,YMMREG,YMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEQB,1,1,1,YMMREG_MZ,YMMREG,YMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEQB,1,1,1,ZMMREG,ZMMREG,ZMMRM,IMM8');
+    FOpCodeList.Add('VGF2P8AFFINEQB,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM,IMM8');
+
+    FOpCodeList.Add('VGF2P8MULB,1,1,1,XMMREG,XMMREG,XMMRM');
+    FOpCodeList.Add('VGF2P8MULB,1,1,1,XMMREG_MZ,XMMREG,XMMRM');
+    FOpCodeList.Add('VGF2P8MULB,1,1,1,YMMREG,YMMREG,YMMRM');
+    FOpCodeList.Add('VGF2P8MULB,1,1,1,YMMREG_MZ,YMMREG,YMMRM');
+    FOpCodeList.Add('VGF2P8MULB,1,1,1,ZMMREG,ZMMREG,ZMMRM');
+    FOpCodeList.Add('VGF2P8MULB,1,1,1,ZMMREG_MZ,ZMMREG,ZMMRM');
+{$endif}
+
+{$if defined(TEST_SHA512) or defined(TEST_ALL)}
+  { SHA512 opcodes }
+  FOpCodeList.Add('VSHA512RNDS2,1,1,0,YMMREG,YMMREG,XMMREG');
+  FOpCodeList.Add('VSHA512MSG1,1,1,0,YMMREG,XMMREG');
+  FOpCodeList.Add('VSHA512MSG2,1,1,0,YMMREG,YMMREG');
+{$endif}
+
 {$if defined(TEST_SHA) or defined(TEST_ALL)}
   { SHA opcodes }
   FOpCodeList.Add('SHA1RNDS4,1,1,0,XMMREG,XMMRM,IMM8,');
-  FOpCodeList.Add('SHA1NEXTE,1,1,0,XMMREG,XMMRM,,');  
-  FOpCodeList.Add('SHA1MSG1,1,1,0,XMMREG,XMMRM,,');  
-  FOpCodeList.Add('SHA1MSG2,1,1,0,XMMREG,XMMRM,,');  
-  FOpCodeList.Add('SHA256RNDS2,1,1,0,XMMREG,XMMRM,,');  
-  FOpCodeList.Add('SHA256MSG1,1,1,0,XMMREG,XMMRM,,');  
-  FOpCodeList.Add('SHA256MSG2,1,1,0,XMMREG,XMMRM,,');  
+  FOpCodeList.Add('SHA1NEXTE,1,1,0,XMMREG,XMMRM,,');
+  FOpCodeList.Add('SHA1MSG1,1,1,0,XMMREG,XMMRM,,');
+  FOpCodeList.Add('SHA1MSG2,1,1,0,XMMREG,XMMRM,,');
+  FOpCodeList.Add('SHA256RNDS2,1,1,0,XMMREG,XMMRM,,');
+  FOpCodeList.Add('SHA256MSG1,1,1,0,XMMREG,XMMRM,,');
+  FOpCodeList.Add('SHA256MSG2,1,1,0,XMMREG,XMMRM,,');
 {$endif defined(TEST_SHA) or defined(TEST_ALL)}
 
 {$if defined(TEST_XSAVE) or defined(TEST_ALL)}
@@ -3295,7 +3374,7 @@ begin
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,xmmreg,xmmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,ymmreg,ymmrm,');
   FOpCodeList.Add('VPSHUFBITQMB,1,1,1,kreg_m,zmmreg,zmmrm,');
-{$endif TEST_ALL}  
+{$endif TEST_ALL}
 end;
 
 function TAVXTestGenerator.SaveFile(aAsmList: TStringList; aOpcode, aDestPath,

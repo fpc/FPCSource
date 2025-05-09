@@ -28,9 +28,9 @@ uses BaseList, Classes;
 
 type
   TOpType = (otUnknown, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otZMMReg, otZMMRM, otEAX, otRAX, otMem32,
-             otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otREG16, otREG8, otRM32, otRM64, otIMM8,
+             otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otREG16, otREG8, otRM16, otRM32, otRM64, otIMM8,
              otXMEM32, otXMEM64, otYMEM32, otYMEM64, otZMEM32, otZMEM64,
-             otB32, otB64, otKREG);
+             otB16, otB32, otB64, otKREG);
 
   TOpMemType = Set of TOpType;
 
@@ -133,7 +133,7 @@ type
 
 implementation
 
-uses SysUtils, Dialogs, typinfo;
+uses SysUtils, {Dialogs,} typinfo;
 
 type
   TAsmOp={$i ../../../compiler/x86_64/x8664op.inc}
@@ -192,8 +192,8 @@ const
 
   MEMTYPES: TOpMemType = [otXMMRM, otXMMRM16, otXMMRM8, otYMMRM, otZMMRM,
                           otMem8, otMem16, otMem32, otMem64, otMem128, otMem256, otMem512,
-                          otRM32, otRM64];
-  BMEMTYPES: TOpMemType = [otB32, otB64];
+                          otRM16, otRM32, otRM64];
+  BMEMTYPES: TOpMemType = [otB16, otB32, otB64];
 
 var
   InsTabCache : PInsTabCache;
@@ -260,6 +260,10 @@ type
       IF_XSAVE,
       IF_PREFETCHWT1,
       IF_SHA,
+      IF_SHA512,
+      IF_SM3NI, { instruction set SM3:  ShangMi 3 hash function }
+      IF_SM4NI, { instruction set SM4 }
+      IF_GFNI,
 
       { mask for processor level }
       { please keep these in order and in sync with IF_PLEVEL }
@@ -521,6 +525,7 @@ const
       OT_MEM8      = OT_MEMORY or OT_BITS8;
       OT_MEM16     = OT_MEMORY or OT_BITS16;
       OT_MEM16_M   = OT_MEM16  or OT_VECTORMASK;
+      OT_BMEM16    = OT_MEMORY or OT_BITS16 or OT_VECTORBCST;
       OT_MEM32     = OT_MEMORY or OT_BITS32;
       OT_MEM32_M   = OT_MEMORY or OT_BITS32 or OT_VECTORMASK;
       OT_BMEM32    = OT_MEMORY or OT_BITS32 or OT_VECTORBCST;
@@ -1271,7 +1276,7 @@ begin
 
                        ;
 
-            
+
           MaskRegNeeded := (Pos('VGATHER', Uppercase(aInst)) = 1) or
                            (Pos('VPGATHER', Uppercase(aInst)) = 1) or
 			   (Pos('VPSCATTER', Uppercase(aInst)) = 1) or
@@ -1316,7 +1321,7 @@ begin
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', sl_Operand) > 0 then sSuffix := ', {ru-sae}'
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {ru-sae}'
                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
 
               Item.Values.Add('XMM0' + sSuffix);
@@ -1347,7 +1352,7 @@ begin
                     Item.Values.Add('XMM18');
                     Item.Values.Add('XMM27');
                     Item.Values.Add('XMM31');
-                  end;    
+                  end;
                 end
                 else
                 begin
@@ -1365,7 +1370,7 @@ begin
                     Item.Values.Add('XMM8');
                     Item.Values.Add('XMM12');
                     Item.Values.Add('XMM15');
-                  end;    
+                  end;
                 end;
               end;
             end
@@ -1380,7 +1385,7 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'oword ';
-	      
+
 	      sSuffix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
@@ -1610,7 +1615,7 @@ begin
                   Item.Values.Add('YMM18' + sSuffix);
                   Item.Values.Add('YMM27' + sSuffix);
                   Item.Values.Add('YMM31' + sSuffix);
-                  
+
                   if (sSuffix <> '') and
 		     (MaskRegNeeded = false)  then
                   begin
@@ -1618,7 +1623,7 @@ begin
                     Item.Values.Add('YMM9');
                     Item.Values.Add('YMM18');
                     Item.Values.Add('YMM27');
-                    Item.Values.Add('YMM31');                      
+                    Item.Values.Add('YMM31');
                   end;
                 end
                 else
@@ -1637,7 +1642,7 @@ begin
                     Item.Values.Add('YMM8');
                     Item.Values.Add('YMM12');
                     Item.Values.Add('YMM15');
-                  end;    
+                  end;
                 end;
               end;
             end
@@ -1689,7 +1694,7 @@ begin
                     Item.Values.Add('YMM18');
                     Item.Values.Add('YMM27');
                     Item.Values.Add('YMM31');
-                  end;    
+                  end;
                 end
                 else
                 begin
@@ -1707,7 +1712,7 @@ begin
                     Item.Values.Add('YMM8');
                     Item.Values.Add('YMM12');
                     Item.Values.Add('YMM15');
-                  end;    
+                  end;
                 end;
 
                 MemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64Index, Item.Values);
@@ -1764,7 +1769,7 @@ begin
                     Item.Values.Add('ZMM18');
                     Item.Values.Add('ZMM27');
                     Item.Values.Add('ZMM31');
-                  end;    
+                  end;
                 end
                 else
                 begin
@@ -1824,7 +1829,7 @@ begin
                     Item.Values.Add('ZMM18');
                     Item.Values.Add('ZMM27');
                     Item.Values.Add('ZMM31');
-                  end;    
+                  end;
                 end
                 else
                 begin
@@ -1853,9 +1858,9 @@ begin
 
 	      if UsePrefix then sl_Prefix := 'byte ';
 
-              
+
               sSuffix := '';
-	      
+	
 	      if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
@@ -1893,7 +1898,7 @@ begin
               if UsePrefix then sl_Prefix := 'dword ';
 
               sSuffix := '';
-              
+
 	      if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}';
 
@@ -2037,6 +2042,23 @@ begin
               begin
                 Item.Values.AddStrings(FReg64Base);
               end;
+            end
+            else if AnsiSameText(sl_Operand, 'RM16') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otRM16;
+              Item.OpActive := true;
+
+              Item.Values.AddStrings(FReg16);
+
+              if UsePrefix then sl_Prefix := 'word ';
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, 'RM32') then
             begin
@@ -2302,6 +2324,48 @@ begin
 		 VectorMemRegBaseIndexCombi(sl_prefix, '', FReg32Base, FReg32ZMMIndex, Item.Values);
               end;
 
+            end
+            else if AnsiSameText(sl_Operand, '8B16') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB16;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to8}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to8}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '16B16') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB16;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to16}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to16}', FReg32Base, FReg32Index, Item.Values);
+            end
+            else if AnsiSameText(sl_Operand, '32B16') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otB16;
+              Item.OpActive := true;
+
+
+              if x64 then
+              begin
+                MemRegBaseIndexCombi(sl_Prefix, ' {1to32}',  FReg64Base, FReg64Index, Item.Values);
+                //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
+              end
+              else MemRegBaseIndexCombi(sl_prefix, ' {1to32}', FReg32Base, FReg32Index, Item.Values);
             end
             else if AnsiSameText(sl_Operand, '2B32') then
             begin
@@ -5740,7 +5804,7 @@ begin
   FReg8.Add('CL');
   FReg8.Add('DL');
 
-  
+
   FReg16.Add('AX');
   FReg16.Add('BX');
   FReg16.Add('CX');
@@ -5771,7 +5835,7 @@ begin
   FReg64Base.Add('RCX');
   FReg64Base.Add('RDX');
   //FReg64Base.Add('RSP');
-  //FReg64Base.Add('RBP');
+  //FReg64Base.Add('RBP'); //--?
   FReg64Base.Add('RDI');
   FReg64Base.Add('RSI');
   FReg64Base.Add('R8');
@@ -5779,7 +5843,7 @@ begin
   FReg64Base.Add('R10');
   FReg64Base.Add('R11');
   FReg64Base.Add('R12');
-  FReg64Base.Add('R13');
+  //FReg64Base.Add('R13'); //--?
   FReg64Base.Add('R14');
   FReg64Base.Add('R15');
 
@@ -5787,7 +5851,7 @@ begin
   FReg64Index.Add('RBX');
   FReg64Index.Add('RCX');
   FReg64Index.Add('RDX');
-  //FReg64Index.Add('RBP');
+  FReg64Index.Add('RBP'); //--?
   FReg64Index.Add('RDI');
   FReg64Index.Add('RSI');
   FReg64Index.Add('R8');
@@ -5795,7 +5859,7 @@ begin
   FReg64Index.Add('R10');
   FReg64Index.Add('R11');
   FReg64Index.Add('R12');
-  FReg64Index.Add('R13');
+  FReg64Index.Add('R13'); //--?
   FReg64Index.Add('R14');
   FReg64Index.Add('R15');
 
