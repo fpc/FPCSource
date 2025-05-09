@@ -1,4 +1,4 @@
-﻿{
+{
     Copyright (c) 1998-2002 by Florian Klaempfl and Peter Vreman
 
     Contains the abstract assembler implementation for the i386
@@ -471,7 +471,8 @@ interface
         IF_PREFETCHWT1,
         IF_SHA,
         IF_SHA512,
-        IF_SM3_hash, { instruction set SM3:  ShangMi 3 hash function }
+        IF_SM3NI, { instruction set SM3:  ShangMi 3 hash function }
+        IF_SM4NI, { instruction set SM4 }
         IF_GFNI,
 
         { mask for processor level }
