@@ -1579,10 +1579,14 @@
 'vsm3rnds2',
 'vsm3msg1',
 'vsm3msg2',
+'vsm4key4',
+'vsm4rnds4',
 'vgf2p8affineinvqb',
 'vgf2p8affineqb',
 'vgf2p8mulb',
 'gf2p8affineinvqb',
 'gf2p8affineqb',
-'gf2p8mulb'
+'gf2p8mulb',
+'vp2intersectd',
+'vp2intersectq'
 );

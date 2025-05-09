@@ -10443,15 +10443,31 @@ ymmreg,ymmreg                             \362\364\334\371\1\xCD\110         SHA
 
 [VSM3RNDS2]
 (Ch_Wop4, Ch_Rop3, Ch_Rop2)
-xmmreg,xmmreg,xmmrm,imm8                  \362\361\372\1\xDE\75\120\27       SM3_hash
+xmmreg,xmmreg,xmmrm,imm8                  \362\361\372\1\xDE\75\120\27       SM3NI,AVX
 
 [VSM3MSG1]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,xmmrm                       \362\371\1\xDA\75\120              SM3_hash
+xmmreg,xmmreg,xmmrm                       \362\371\1\xDA\75\120              SM3NI,AVX
 
 [VSM3MSG2]
 (Ch_Wop3, Ch_Rop2, Ch_Rop1)
-xmmreg,xmmreg,xmmrm                       \362\361\371\1\xDA\75\120          SM3_hash
+xmmreg,xmmreg,xmmrm                       \362\361\371\1\xDA\75\120          SM3NI,AVX
+
+;*******************************************************************************
+;********* SM4 *****************************************************************
+;*******************************************************************************
+
+[VSM4KEY4]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                       \350\362\333\371\1\xDA\75\120      SM4NI,AVX512,TFVM ; AVX10.2
+ymmreg,ymmreg,ymmrm                       \350\362\364\333\371\1\xDA\75\120  SM4NI,AVX512,TFVM ; AVX10.2
+zmmreg,zmmreg,zmmrm                       \350\351\333\371\1\xDA\75\120      SM4NI,AVX512,TFVM ; AVX10.2
+
+[VSM4RNDS4]
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+xmmreg,xmmreg,xmmrm                       \350\362\334\371\1\xDA\75\120      SM4NI,AVX512,TFVM ; AVX10.2
+ymmreg,ymmreg,ymmrm                       \350\362\364\334\371\1\xDA\75\120  SM4NI,AVX512,TFVM ; AVX10.2
+zmmreg,zmmreg,zmmrm                       \350\351\334\371\1\xDA\75\120      SM4NI,AVX512,TFVM ; AVX10.2
 
 ;*******************************************************************************
 ;********* GFNI ****************************************************************
@@ -10486,3 +10502,28 @@ xmmreg,xmmrm,imm                          \361\3\x0F\x3A\xCE\110\26             
 [GF2P8MULB]
 (Ch_Mop2, Ch_Rop1)
 xmmreg,xmmrm                              \361\3\x0F\x38\xCF\110                 GFNI
+
+;*******************************************************************************
+;********* VP2INTERSECT ********************************************************
+;*******************************************************************************
+
+[VP2INTERSECTD]
+;-- Write kreg and kreg+1
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+kreg,xmmreg,xmmrm            \350\334\371\1\x68\75\120               AVX512,TFV
+kreg,xmmreg,bmem32           \350\334\371\1\x68\75\120               AVX512,TFV
+kreg,ymmreg,ymmrm            \350\334\364\371\1\x68\75\120           AVX512,TFV
+kreg,ymmreg,bmem32           \350\334\364\371\1\x68\75\120           AVX512,TFV
+kreg,zmmreg,zmmrm            \350\334\351\371\1\x68\75\120           AVX512,TFV
+kreg,zmmreg,bmem32           \350\334\351\371\1\x68\75\120           AVX512,TFV
+
+[VP2INTERSECTQ]
+;-- Write kreg and kreg+1
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
+kreg,xmmreg,xmmrm            \350\352\334\371\1\x68\75\120           AVX512,TFV
+kreg,xmmreg,bmem64           \350\352\334\371\1\x68\75\120           AVX512,TFV
+kreg,ymmreg,ymmrm            \350\352\334\364\371\1\x68\75\120       AVX512,TFV
+kreg,ymmreg,bmem64           \350\352\334\364\371\1\x68\75\120       AVX512,TFV
+kreg,zmmreg,zmmrm            \350\352\334\351\371\1\x68\75\120       AVX512,TFV
+kreg,zmmreg,bmem64           \350\352\334\351\371\1\x68\75\120       AVX512,TFV
+

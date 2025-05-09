@@ -1579,10 +1579,14 @@
 (Ch: [Ch_Wop4, Ch_Rop3, Ch_Rop2]),
 (Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1]),
 (Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1]),
+(Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1]),
+(Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1]),
 (Ch: [Ch_Wop4, Ch_Rop3, Ch_Rop2]),
 (Ch: [Ch_Wop4, Ch_Rop3, Ch_Rop2]),
 (Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1]),
 (Ch: [Ch_Mop3, Ch_Rop2, Ch_Rop1]),
 (Ch: [Ch_Mop3, Ch_Rop2, Ch_Rop1]),
-(Ch: [Ch_Mop2, Ch_Rop1])
+(Ch: [Ch_Mop2, Ch_Rop1]),
+(Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1]),
+(Ch: [Ch_Wop3, Ch_Rop2, Ch_Rop1])
 );
