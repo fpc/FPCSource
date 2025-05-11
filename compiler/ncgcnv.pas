@@ -827,7 +827,7 @@ interface
             else
 {$endif cpufloatintregmov}
 {$ifdef cpumm}
-            if (resultdef.typ<>floatdef) and (location.loc in [LOC_CMMREGISTER,LOC_MMREGISTER]) then
+            if (resultdef.typ<>floatdef) and (location.loc in [LOC_CMMREGISTER,LOC_MMREGISTER]) and (resultdef.size<=sizeof(AInt)) then
               begin
                 location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
