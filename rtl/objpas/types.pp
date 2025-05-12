@@ -514,6 +514,21 @@ type
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
 
+  { TScoped }
+  generic TScoped<T:class> = record
+  private
+    obj: T;
+  public  
+    class operator Initialize(var hdl: TScoped);
+    class operator Finalize(var hdl: TScoped);
+    class operator :=(aObj : T) : TScoped; 
+    class operator :=(const aObj : TScoped) : T; 
+    procedure assign(aObj : T); inline;
+    function Swap(AObj: T): T;
+    function Get : T;
+  end;
+
+
 function EqualRect(const r1,r2 : TRect) : Boolean;
 function EqualRect(const r1,r2 : TRectF) : Boolean;
 function NormalizeRectF(const Pts: array of TPointF): TRectF; overload;
@@ -2050,6 +2065,50 @@ begin
     System.Error(reRangeError);
 
   Result := TBitConverter.specialize UnsafeInTo<T>(ASource, AOffset);
+end;
+
+{ TScoped }
+
+class operator TScoped.Initialize(var hdl: TScoped);
+begin
+  hdl.obj := nil;
+end;
+
+class operator TScoped.Finalize(var hdl: TScoped);
+begin
+  hdl.obj.free;
+  hdl.obj:=nil;
+end;
+
+procedure TScoped.assign(aObj : T);
+begin
+  swap(aObj);
+end;
+
+function TScoped.Swap(AObj:T):T;
+var
+  LCurrent:T;
+begin
+  LCurrent := self.obj;
+  self.obj := AObj;
+  Result := LCurrent;
+end;
+
+function TScoped.Get() : T;
+begin
+  Result :=  self.obj;
+end;
+
+class operator TScoped.:=(aObj : T) : TScoped; 
+
+begin
+  result.assign(aObj);
+end;
+
+class operator TScoped.:=(const aObj : TScoped) : T; 
+
+begin
+  Result:=aObj.Get();
 end;
 
 end.
