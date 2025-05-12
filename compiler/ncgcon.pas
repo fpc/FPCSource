@@ -178,6 +178,7 @@ implementation
                       internalerror(10120);
 {$endif not cpufloat128}
                   end;
+                  current_asmdata.asmlists[al_typedconsts].concat(Tai_symbol_end.Create(lastlabel));
                end;
           end;
         location.reference.symbol:=lab_real;
