@@ -424,7 +424,11 @@ Type
 
   end;
 
-  EHTTPClient = Class(EHTTP);
+  EHTTPClient = Class(EHTTP)
+  public
+    constructor Create(const AStatusText: String; AStatusCode: Integer); overload;
+  end;
+
   // client socket exceptions
   EHTTPClientSocket = class(EHTTPClient);
   // reading from socket
@@ -1351,7 +1355,7 @@ begin
   if not Result then
     Exit;
   if not CheckResponseCode(FResponseStatusCode,AllowedResponseCodes) then
-    Raise EHTTPClient.CreateFmt(SErrUnexpectedResponse,[ResponseStatusCode]);
+    Raise EHTTPClient.Create(SErrUnexpectedResponse, ResponseStatusCode);
   if HeadersOnly Or (AllowRedirect and IsRedirect(FResponseStatusCode)) then
     exit;
   if CompareText(CheckTransferEncoding,'chunked')=0 then
@@ -2501,6 +2505,15 @@ begin
     Finally
       Free;
     end;
+end;
+
+{ EHTTPClient }
+
+constructor EHTTPClient.Create(const AStatusText: String; AStatusCode: Integer);
+begin
+  inherited CreateFmt(AStatusText, [AStatusCode]);
+  StatusText := AStatusText;
+  StatusCode := AStatusCode;
 end;
 
 end.
