@@ -523,7 +523,7 @@ type
     class operator Finalize(var hdl: TScoped);
     class operator :=(aObj : T) : TScoped; 
     class operator :=(const aObj : TScoped) : T; 
-    procedure assign(aObj : T); inline;
+    procedure Assign(aObj : T); inline;
     function Swap(AObj: T): T;
     function Get : T;
   end;
@@ -2080,9 +2080,9 @@ begin
   hdl.obj:=nil;
 end;
 
-procedure TScoped.assign(aObj : T);
+procedure TScoped.Assign(aObj : T);
 begin
-  swap(aObj);
+  Swap(aObj);
 end;
 
 function TScoped.Swap(AObj:T):T;
