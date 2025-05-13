@@ -2656,10 +2656,10 @@ var
   sr: TSearchRec;
 begin
   Result:=True;
-  if (FindFirst(aPath, faAnyFile, sr) = 0) then
+  if (FindFirst(aPath + AllFilesMask, faAnyFile, sr) = 0) then
     repeat
       Result:=(sr.Name = '.') or (sr.Name = '..');
-    until Result and (FindNext(sr) = 0);
+    until not Result or (FindNext(sr) <> 0);
   {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(sr);
 end;
 
