@@ -21,6 +21,11 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
+    <CustomData Count="3">
+      <Item0 Name="OpenAPIBase"/>
+      <Item1 Name="OpenAPIConfig"/>
+      <Item2 Name="OpenAPIFile"/>
+    </CustomData>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -28,19 +33,7 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <CommandLineParams Value="--macro=FPCDIR=/Users/Michael/fpc/ --project=rtl-project.xml --format=md --output=rtl"/>
-        <WorkingDirectory Value="/Users/Michael/FPC_SRC/docs"/>
-      </local>
       <FormatVersion Value="2"/>
-      <Modes Count="1">
-        <Mode0 Name="default">
-          <local>
-            <CommandLineParams Value="--macro=FPCDIR=/Users/Michael/fpc/ --project=rtl-project.xml --format=md --output=rtl"/>
-            <WorkingDirectory Value="/Users/Michael/FPC_SRC/docs"/>
-          </local>
-        </Mode0>
-      </Modes>
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
@@ -154,7 +147,6 @@
     <Linking>
       <Debugging>
         <DebugInfoType Value="dsDwarf3"/>
-        <UseHeaptrc Value="True"/>
       </Debugging>
     </Linking>
     <Other>
