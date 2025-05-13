@@ -157,12 +157,14 @@ end;
   { OS utility code }
   {$i osutil.inc}
 
-    procedure FreeAndNil(var obj);
+    procedure FreeAndNil(constref obj: TObject);
+      type
+        PObject = ^TObject;
       var
         temp: tobject;
       begin
-        temp:=tobject(obj);
-        pointer(obj):=nil;
+        temp:=obj;
+        PObject(@obj)^:=nil;
         temp.free;
       end;
 

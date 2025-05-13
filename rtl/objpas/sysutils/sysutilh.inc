@@ -348,7 +348,7 @@ Type
   { Type Helpers}
   {$i syshelph.inc}
 
-  procedure FreeAndNil(var obj);
+  procedure FreeAndNil(constref obj : TObject);
   procedure FreeMemAndNil(var p);
 
   { interface handling }

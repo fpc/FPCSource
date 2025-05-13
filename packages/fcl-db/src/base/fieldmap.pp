@@ -641,7 +641,7 @@ end;
 destructor TFieldMap.Destroy;
 begin
   if FFreeDataset then
-    FreeAndNil(FFreeDataset);
+    FreeAndNil(FDataset);
   inherited Destroy;
 end;
 
