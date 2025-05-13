@@ -1503,6 +1503,7 @@ implementation
            ait_symbol_end :
              begin
                if (tf_needs_symbol_size in target_info.flags) and
+                  (tai_symbol_end(hp).sym.is_used) and
                  { On WebAssembly, the .size directive shouldn't be generated for
                    function symbols, otherwise LLVM-MC v16 and above produce the
                    'warning: .size directive ignored for function symbols' message. }
