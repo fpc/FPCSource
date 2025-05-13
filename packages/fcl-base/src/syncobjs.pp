@@ -12,6 +12,7 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$modeswitch advancedrecords}
 {$h+}
 
 {$IF DEFINED(WINCE) or DEFINED(AIX)}
@@ -75,6 +76,14 @@ type
       procedure Release;virtual;
    end;
 
+   { TLockGuard }
+   generic TLockGuard<T:TSynchroObject> = record
+     obj: T;
+     class operator Initialize(var hdl: TLockGuard);
+     class operator Finalize(var hdl: TLockGuard);
+     procedure Init(AObj: T); 
+   end;
+
    TCriticalSection = class(TSynchroObject)
    private
       CriticalSection : TRTLCriticalSection;
@@ -87,6 +96,8 @@ type
       constructor Create;
       destructor Destroy;override;
    end;
+   TCriticalSectionGuard = specialize TLockGuard<TCriticalSection>;
+
    THandleObject= class;
    THandleObjectArray = array of THandleObject;
 
@@ -192,6 +203,7 @@ type
      function Release(aCount: Integer): Integer; reintroduce; overload;
      function WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; override;
    end;
+   TSemaphoreGuard = specialize TLockGuard<TSemaphore>;
 {$ENDIF}
 
 {$IFNDEF NO_MUTEX_SUPPORT}
@@ -209,9 +221,8 @@ type
     procedure Acquire; override;
     procedure Release; override;
   end;
+  TMutexGuard = specialize TLockGuard<TMutex>;
 {$ENDIF}
-
-
 
 implementation
 
@@ -1006,5 +1017,26 @@ begin
 {$ENDIF UNIX}
 end;
 {$ENDIF NO_MUTEX_SUPPORT}
+
+{ TLockGuard }
+
+class operator TLockGuard.Initialize(var hdl: TLockGuard);
+begin
+  hdl.obj := nil;
+end;
+
+class operator TLockGuard.Finalize(var hdl: TLockGuard);
+begin
+  if (hdl.obj=nil) then
+    exit;
+  hdl.obj.Release();
+end;
+
+procedure TLockGuard.Init(AObj:T);
+begin
+  self.obj := AObj;
+  self.obj.Acquire();
+end;
+
 
 end.

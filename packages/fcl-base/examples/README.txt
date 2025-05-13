@@ -81,3 +81,4 @@ csvbom.pp    Test/Demo for BOM detection in CSV document. (needs databom.txt)
 testappexit.pp Test/Demo for TApplication exit code handling. (ExitCode and ExceptionExitcode)
 demoio.pp    Demo for AssignStream from streamio unit.
 testthreadpool  Demo for fpthreadpool unit.
+demolg       TLockGuard demo.
