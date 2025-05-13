@@ -428,7 +428,8 @@ begin
   WriteClassInheritanceOverView(ClassDecl);
 
   // Write Interfaces Overview;
-  WriteClassInterfacesOverView(ClassDecl);
+  if assigned(ClassDecl.Interfaces) then
+    WriteClassInterfacesOverView(ClassDecl);
   // Write method overview
   WriteMethodOverView(ClassDecl,ClassDecl.Members);
   // Write Property Overview;
