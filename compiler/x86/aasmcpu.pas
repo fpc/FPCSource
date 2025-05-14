@@ -3378,7 +3378,8 @@ implementation
                   // ignore for calculating length
                   ;
             &371, // VEX-Extension prefix $0F38
-            &372: // VEX-Extension prefix $0F3A
+            &372, // VEX-Extension prefix $0F3A
+            &375..&377: // opcode map 5,6,7
               begin
                 if not(exists_vex_extension) then
                 begin
@@ -3565,9 +3566,13 @@ implementation
        * \366          - operand 2 (ymmreg,zmmreg) encoded in bit 4-7 of the immediate byte
        * \367          - operand 3 (ymmreg,zmmreg) encoded in bit 4-7 of the immediate byte
 
-       * \370          - VEX 0F-FLAG
-       * \371          - VEX 0F38-FLAG
-       * \372          - VEX 0F3A-FLAG
+       * \370          - VEX 0F-FLAG (map 1)
+       * \371          - VEX 0F38-FLAG (map 2)
+       * \372          - VEX 0F3A-FLAG (map 3)
+
+       * \375          - EVEX map 5
+       * \376          - EVEX map 6
+       * \377          - EVEX map 7
       }
 
       var
@@ -3720,7 +3725,7 @@ implementation
            { RELOC_GOTPCREL, RELOC_REX_GOTPCRELX, RELOC_GOTPCRELX need special handling }
            if assigned(p) and (RelocType in [RELOC_GOTPCREL, RELOC_REX_GOTPCRELX, RELOC_GOTPCRELX]) and
               { These relocations seem to be used only for ELF
-                which always has relocs_use_addend set to true 
+                which always has relocs_use_addend set to true
                 so that it is the orgsize of the last relocation which needs to be fixed PM  }
               (insend<>objdata.CurrObjSec.size) then
              dec(TObjRelocation(objdata.CurrObjSec.ObjRelocations.Last).orgsize,insend-objdata.CurrObjSec.size);
@@ -3768,7 +3773,7 @@ implementation
         EVEXz   : byte;
         EVEXaaa : byte;
         EVEXb   : byte;
-        EVEXmm  : byte;
+        EVEXmmm : byte;
 
       begin
         { safety check }
@@ -3877,7 +3882,7 @@ implementation
         EVEXz    := 0;
         EVEXaaa  := 0;
         EVEXb    := 0;
-        EVEXmm   := 0;
+        EVEXmmm  := 0;
 
         repeat
           c:=ord(codes^);
@@ -3971,19 +3976,33 @@ implementation
                  end;
            &370: begin
                    VEXmmmmm             := VEXmmmmm OR $01; // set leading opcode byte $0F
-                   EVEXmm               := $01;
+                   EVEXmmm              := $01;
                  end;
            &371: begin
                    needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $02; // set leading opcode byte $0F38
-                   EVEXmm               := $02;
+                   EVEXmmm              := $02;
                  end;
            &372: begin
                    needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $03; // set leading opcode byte $0F3A
-                   EVEXmm               := $03;
+                   EVEXmmm              := $03;
                  end;
-
+           &375: begin
+                   needed_VEX_Extension := true;
+                   VEXmmmmm             := VEXmmmmm OR $05;
+                   EVEXmmm              := $05; // set opcode map 5
+                 end;
+           &376: begin
+                   needed_VEX_Extension := true;
+                   VEXmmmmm             := VEXmmmmm OR $06;
+                   EVEXmmm              := $06; // set opcode map 6
+                 end;
+           &377: begin
+                   needed_VEX_Extension := true;
+                   VEXmmmmm             := VEXmmmmm OR $07;
+                   EVEXmmm              := $07; // set opcode map 7
+                 end;
           end;
         until false;
 
@@ -4093,7 +4112,7 @@ implementation
 
             bytes[0] := $62;
 
-            bytes[1] := ((EVEXmm   and $03) shl 0)  or
+            bytes[1] := ((EVEXmmm  and $07) shl 0)  or
                       {$ifdef x86_64}
                         ((not(rex) and $05) shl 5)  or
                       {$else}
@@ -4534,7 +4553,7 @@ implementation
                   Internalerror(2014032001);
               end;
             &350..&352: ; // EVEX flags =>> nothing todo
-            &370..&372: ; // VEX flags =>> nothing todo
+            &370..&377: ; // VEX and EVEX flags =>> nothing todo
             &37:
               begin
 {$ifdef i8086}
