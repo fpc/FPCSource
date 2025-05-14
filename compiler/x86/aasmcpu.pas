@@ -534,7 +534,9 @@ interface
         IF_TMEM128,
         IF_THV,
         IF_THVM,
-        IF_TOVM
+        IF_TOVM,
+        IF_DISTINCT,            { destination and source registers must be distinct }
+        IF_DALL                 { destination, index and mask registers should be distinct (use together with IF_DISTINCT) }
 
       );
       tinsflags=set of tinsflag;
@@ -656,6 +658,7 @@ interface
          procedure write0x66prefix(objdata:TObjData);
          procedure write0x67prefix(objdata:TObjData);
          procedure Swapoperands;
+         function  DistinctRegisters(aAll:boolean):boolean;  { distinct vector registers? }
          function  FindInsentry(objdata:TObjData):boolean;
          function  CheckUseEVEX: boolean;
          procedure CheckEVEXTuple(const aInput:toper; aInsEntry: pInsentry; aIsVector128, aIsVector256, aIsVector512, aIsEVEXW1: boolean);
@@ -1325,6 +1328,9 @@ implementation
                  if (ot and OT_REG_EXTRA_MASK)=OT_FPUREG then
                   s:=s+'fpureg'
                else
+                 if (ot and OT_KREG)=OT_KREG then
+                  s:=s+'kreg'+ regnr
+               else
                 if (ot and OT_REGISTER)=OT_REGISTER then
                  begin
                    s:=s+'reg';
@@ -1967,6 +1973,34 @@ implementation
         result:=FindInsEntry(nil);
       end;
 
+    function taicpu.DistinctRegisters(aAll:boolean):boolean; { distinct vector registers? }
+      var i : longint;
+          nr : array[0..max_operands-1] of shortint;
+      begin
+        result:=true;
+        for i:=0 to ops-1 do
+          begin
+            with oper[i]^ do
+              begin
+                nr[i]:=-i-1;
+                if getregtype(reg) = R_MMREGISTER then
+                   nr[i]:=getsupreg(reg);
+                if aAll and (nr[i]<0) then
+                  if (ot and (OT_REGNORM or otf_reg_gpr))=(OT_REGNORM or otf_reg_gpr) then
+                    if (ot and (otf_reg_xmm or otf_reg_ymm or otf_reg_zmm)) > 0 then
+                        nr[i]:=getsupreg(ref^.index);
+              end;
+          end;
+        if ops>1 then
+          begin
+            if nr[0]=nr[1] then result:=false;
+            if ops>2 then
+              begin
+                if nr[0]=nr[2] then result:=false;
+                if aAll then if nr[1]=nr[2] then result:=false;
+              end;
+          end;
+      end;
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
@@ -2005,12 +2039,15 @@ implementation
          begin
            if matches(insentry) then
              begin
+               if (IF_DISTINCT in insentry^.flags) then
+                  if not DistinctRegisters(IF_DALL in insentry^.flags) then
+                    break;  { unacceptable register combination (shoud be distinct) }
                result:=true;
                exit;
              end;
            inc(i);
            if i>high(instab) then
-             exit;
+             break; { not found and run out of entries to test for, jump into error report }
            insentry:=@instab[i];
          end;
         Message1(asmw_e_invalid_opcode_and_operands,GetString);
