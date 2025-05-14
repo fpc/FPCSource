@@ -3028,7 +3028,7 @@ asmr_e_a64_regset_too_large=07147_E_Too many registers in register set.
 #
 # Assembler/binary writers
 #
-# 08037 is the last used one
+# 08039 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -3087,6 +3087,8 @@ asmw_e_illegal_use_of_rip=08034_E_Asm: RIP cannot be used as index register or w
 asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
 asmw_e_illegal_unset_index=08037_E_Wasm32 symbol $1 without index value error
+asmw_e_destination_and_source_registers_must_be_distinct=08038_E_Asm: $1 destination and source registers must be distinct.
+asmw_e_destination_index_mask_registers_should_be_distinct=08039_E_Asm: $1 destination, index and mask registers should be distinct.
 #
 # Executing linker/assembler
 #
