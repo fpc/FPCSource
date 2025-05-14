@@ -348,7 +348,12 @@ Type
   { Type Helpers}
   {$i syshelph.inc}
 
+  {$IFDEF CPULLVM}
+  // LLVM does not allow the constref use.
+  procedure FreeAndNil(var obj);
+  {$else}    
   procedure FreeAndNil(constref obj : TObject);
+  {$ENDIF}
   procedure FreeMemAndNil(var p);
 
   { interface handling }
