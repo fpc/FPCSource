@@ -5618,6 +5618,18 @@ implementation
                      (AsmOp = A_VCVTUSI2SD) or
                      (AsmOp = A_VCVTUSI2SS) or
 
+                     (AsmOp = A_vcvtdq2ph) or
+                     (AsmOp = A_vcvtpd2ph) or
+                     (AsmOp = A_vcvtph2pd) or
+                     (AsmOp = A_vcvtqq2ph) or
+                     (AsmOp = A_vcvtsi2sh) or
+                     (AsmOp = A_vcvttph2qq) or
+                     (AsmOp = A_vcvttph2uqq) or
+                     (AsmOp = A_vcvtudq2ph) or
+                     (AsmOp = A_vcvtuqq2ph) or
+                     (AsmOp = A_vcvtusi2sh) or
+                     (AsmOp = A_VCVTNEPS2BF16) or
+                     (AsmOp = A_vcvtps2phx) or
 
                      // TODO check
                      (AsmOp = A_VCMPSS)
