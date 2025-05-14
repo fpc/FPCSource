@@ -4811,6 +4811,8 @@ begin
              writeln([space,'             Size : ',setdef.Size]);
              setdef.SetBase:=getasizeint;
              writeln([space,'         Set Base : ',setdef.SetBase]);
+             setdef.SetLow:=getasizeint;
+             writeln([space,'          Set Low : ',setdef.SetLow]);
              setdef.SetMax:=getasizeint;
              writeln([space,'          Set Max : ',setdef.SetMax]);
            end;

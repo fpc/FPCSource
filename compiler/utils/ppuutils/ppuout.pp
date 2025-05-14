@@ -361,7 +361,7 @@ type
     procedure WriteDef(Output: TPpuOutput); override;
   public
     ElType: TPpuRef;
-    SetBase, SetMax: integer;
+    SetBase, SetLow, SetMax: integer;
     Size: byte;
     constructor Create(AParent: TPpuContainerDef); override;
     destructor Destroy; override;
