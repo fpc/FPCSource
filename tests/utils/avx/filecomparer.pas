@@ -25,6 +25,19 @@ implementation
 uses SysUtils;
 
 
+function CompareX(M1, M2:pbyte;Size:sizeint): sizeint;
+var k : sizeint;
+begin
+  CompareX:=0;
+  if size >0 then
+  for k:=0 to size-1 do
+  begin
+    if M1^<>M2^ then begin CompareX:=k; break; end;
+    inc(m1);
+    inc(m2);
+  end;
+end;
+
 { TFileComparer }
 
 function TFileComparer.Compare(const aFileName1,
@@ -32,6 +45,7 @@ function TFileComparer.Compare(const aFileName1,
 var
   MStream1: TMemoryStream;
   MStream2: TMemoryStream;
+  DiffAt : sizeint;
 begin
   result := false;
   aMsg   := '';
@@ -62,13 +76,17 @@ begin
         end
         else
         begin
-          if MStream1.Size <> MStream2.Size then aMsg := format('diff: file: "%s"  size: %d - file: "%s"  size: %d',
+          if MStream1.Size< MStream2.Size then
+            DiffAt:=CompareX(MStream1.Memory, MStream2.Memory,MStream1.Size)+1
+          else
+            DiffAt:=CompareX(MStream1.Memory, MStream2.Memory,MStream2.Size)+1;
+          if MStream1.Size <> MStream2.Size then aMsg := format('diff: file: "%s"  size: %d - file: "%s"  size: %d (at %d)',
                                                                 [aFilename1, MStream1.Size,
-                                                                 aFilename2, MStream2.Size])
+                                                                 aFilename2, MStream2.Size, DiffAt])
           else
           begin
             if CompareMem(MStream1.Memory, MStream2.Memory, MStream1.Size) then result := true
-             else aMsg := format('diff: file: "%s" <> file: "%s"', [aFileName1, aFileName2]);
+             else aMsg := format('diff: file: "%s" <> file: "%s"  (at %d)', [aFileName1, aFileName2, DiffAt]);
           end;
         end;
       finally

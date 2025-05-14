@@ -36,13 +36,13 @@ begin
 
       if Help then
       begin
-        writeln('avx-testfile-generator 0.1');
+        writeln('avx-testfile-generator 0.2');
         writeln('author: torsten grundke');
         writeln('');
         writeln('make avx assembler-testfiles');
         writeln('');
         writeln('-h  help');
-        writeln('-f  [fpc,fpcmref,fpccd8,nasm,fasm,fpcinc] outputformat');
+        writeln('-f  [fpc,fpcmref,fpccd8,nasm,fasm,gas,fpcinc] outputformat');
         writeln('-l  list opcode-memrefsize-states');
         writeln('-m  create only these testfile(s) (e.g. -mvgather,vpgather)');
         writeln('-o  destination path');
@@ -60,6 +60,7 @@ begin
           'f': MakeTestFiles(tfFPC, x64, AVX512, false, Path, Filemask);
           'F': MakeTestFiles(tfFasm, x64, AVX512, false, Path, Filemask);
           'n': MakeTestFiles(tfNasm, x64, AVX512, false, Path, Filemask);
+          'g': MakeTestFiles(tfGas, x64, AVX512, false, Path, Filemask);
           'I': MakeTestFiles(tfFPCInc, x64, AVX512, false, Path, Filemask);
           'm': MakeTestFiles(tfFPCMRef, x64, AVX512, false, Path, Filemask);
           'd': MakeTestFiles(tfFPCCDisp8, x64, true, false, Path, Filemask);

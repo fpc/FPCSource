@@ -107,6 +107,7 @@ type
     Fx64: boolean;
     FAVX512: boolean;
     FSAE: boolean;
+    FGas : boolean;
 
     procedure MemRegBaseIndexCombi(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
     procedure MemRegBaseIndexCombiCDISP8N(const aPrefix, aSuffix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
@@ -116,13 +117,15 @@ type
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
     function InternalCalcTestDataMREF(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
     function InternalCalcTestDataCDISP8(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
+
+    function ConvertToGasReg( aRegStr : string):string;
   public
-    constructor Create;
+    constructor Create(aGas:boolean);
     destructor Destroy; override;
 
-    class procedure CalcTestData(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
-    class procedure CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
-    class procedure CalcTestDataCDisp8(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+    class procedure CalcTestData(aGas, aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+    class procedure CalcTestDataMREF(aGas, aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
+    class procedure CalcTestDataCDisp8(aGas, aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
 
 
     class procedure CalcTestInstFile;
@@ -133,7 +136,8 @@ type
 
 implementation
 
-uses SysUtils, {Dialogs,} typinfo;
+uses SysUtils, StrUtils, typinfo;
+
 
 type
   TAsmOp={$i ../../../compiler/x86_64/x8664op.inc}
@@ -144,13 +148,13 @@ type
                      msiMultipleMinSize64, msiMultipleMinSize128, msiMultipleminSize256, msiMultipleMinSize512,
                      msiMemRegSize, msiMemRegx16y32, msiMemRegx16y32z64, msiMemRegx32y64, msiMemRegx32y64z128, msiMemRegx64y128, msiMemRegx64y128z256,
                      msiMemRegx64y256, msiMemRegx64y256z512,
-                     msiMem8, msiMem16, msiMem32, msiBMem32, msiMem64, msiBMem64, msiMem128, msiMem256, msiMem512,
+                     msiMem8, msiMem16, msiBMem16, msiMem32, msiBMem32, msiMem64, msiBMem64, msiMem128, msiMem256, msiMem512,
                      msiXMem32, msiXMem64, msiYMem32, msiYMem64, msiZMem32, msiZMem64,
                      msiVMemMultiple, msiVMemRegSize,
                      msiMemRegConst128,msiMemRegConst256,msiMemRegConst512);
 
-  TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64, msbMultiple);
-  TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16);
+  TMemRefSizeInfoBCST = (msbUnknown, msbBCST16, msbBCST32, msbBCST64, msbMultiple);
+  TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16, bt1to32);
 
   TEVEXTupleState = (etsUnknown, etsIsTuple, etsNotTuple);
   TConstSizeInfo  = (csiUnknown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
@@ -304,6 +308,7 @@ type
       IF_BCST4,
       IF_BCST8,
       IF_BCST16,
+      IF_BCST32,
       IF_T2,                  { disp8 - tuple - 2 }
       IF_T4,                  { disp8 - tuple - 4 }
       IF_T8,                  { disp8 - tuple - 8 }
@@ -320,10 +325,8 @@ type
       IF_THV,
       IF_THVM,
       IF_TOVM,
-
-      IF_SCL32,
-      IF_SCL64
-
+      IF_DISTINCT,            { destination and source registers must be distinct }
+      IF_DALL                 { destination, index and mask registers should be distinct }
 
     );
     tinsflags=set of tinsflag;
@@ -361,6 +364,7 @@ const
       OT_VECTORER   = $10000000000; { OPTIONAL ER-FLAG-FLAG  AVX512}
 
 
+      OT_BITSB16    = OT_BITS16 or OT_VECTORBCST;
       OT_BITSB32    = OT_BITS32 or OT_VECTORBCST;
       OT_BITSB64    = OT_BITS64 or OT_VECTORBCST;
 
@@ -563,6 +567,158 @@ const
       std_op2str:op2strtable={$i ../../../compiler/x86_64/x8664int.inc}
 
   InsTab:array[0..instabentries-1] of TInsEntry={$i ../../../compiler/x86_64/x8664tab.inc}
+
+  function GroupOf4Reg( aReg:string):string;
+  var len:dword;
+      nr : dword;
+      i : integer;
+      st : string[3];
+  begin
+    len:=length(aReg);
+    st:='';
+    if (len=4) then
+      st:=aReg[4];
+    if (len=5) then
+      st:=aReg[4]+aReg[5];
+    if st<>'' then
+    begin
+      val(st,nr,i);
+      nr:=nr and (not 3);
+      str(nr,st);
+      aReg:=aReg[1]+'MM'+st;
+    end;
+    GroupOf4Reg:=aReg;
+  end;
+
+  function EvenOddPairReg (aReg:string):string;
+  begin
+    if aReg='K1' then aReg:='K0'
+    else if aReg='K3' then aReg:='K2'
+    else if aReg='K5' then aReg:='K4'
+    else if aReg='K7' then aReg:='K6';
+    EvenOddPairReg:=aReg;
+  end;
+
+  function MemPtr (var aRegs : string):string;
+  var pt : string;
+      ch : AnsiChar;
+      po : sizeint;
+  begin
+    pt:='';
+    po:=PosEx('word',aRegs,1);
+    if po>0 then
+    begin
+      ch:=' ';
+      if po>1 then
+      begin
+        ch:=aRegs[po-1];
+        if ch in ['z','o','y','d','q'] then
+        begin
+          if ch = 'o' then ch:='x';
+          pt:=ch;
+          aRegs:=copy(aRegs,1,po-2)+copy(aRegs,po+4,length(aRegs));
+        end;
+      end;
+    end;
+    MemPtr:=pt;
+  end;
+
+  function ExtractReg(const aReg:string):string;  {get XMMxx, YMMxx, ZMMxx }
+  var po,su : sizeint;
+      ch,c2,c3 : AnsiChar;
+      reg : string;
+  begin
+    reg:='';
+    su:=1;
+    po:=PosEx('MM',aReg,su);
+    if (po >1) then
+    begin
+      ch:=aReg[po-1];
+      c2:=' ';c3:=' ';
+      if (ch in ['X','Y','Z']) and (length(aReg)>=po+2) then
+      begin
+        c2:=aReg[po+2];
+        if c2 in ['0'..'9'] then
+        begin
+          reg:={ch+}'MM'+c2; {don't care about vector length just about it's number}
+          if (length(aReg)>=po+3) then
+          begin
+            c2:=aReg[po+3];
+            if c2 in ['0'..'9'] then
+              reg:=reg+c2;
+          end;
+        end;
+      end;
+    end;
+    ExtractReg:=reg;
+  end;
+
+  function notEqualRegs (const sl_Reg1,sl_Reg2,sl_Reg3:string):boolean;
+  begin
+    notEqualRegs:=true;
+    if (sl_Reg1<>'') and (sl_Reg2<>'') and (sl_Reg1=sl_Reg2) then notEqualRegs:=false;
+    if (sl_Reg1<>'') and (sl_Reg3<>'') and (sl_Reg1=sl_Reg3) then notEqualRegs:=false;
+  end;
+
+  function TAsmTestGenerator.ConvertToGasReg( aRegStr : string):string;
+  var N : sizeint;
+      ch,pr : AnsiChar;
+      in_word  : boolean;
+      newStr, newWord : string;
+  begin
+    ConvertToGasReg:=aRegStr;
+    aRegStr:=AnsiUppercase(aRegStr);
+    pr:=#0;
+    in_word:=false;
+    newStr:='';
+    newWord:='';
+    for n:=1 to length(aRegStr) do
+    begin
+      ch:=aRegStr[n];
+      if ch in ['0'..'9','A'..'Z'] then
+      begin
+        in_word:=true;
+        if newWord = '' then
+        begin
+          if ch in ['A','B','C','E','K'] then
+          begin
+            newStr:=newStr+'%';
+          end;
+          if ch in ['R'] then
+          begin
+            if pr<>'{' then
+              newStr:=newStr+'%';
+          end;
+          if ch in ['D','X','Y','Z'] then
+          begin
+            if n<length(aRegStr) then
+            begin
+              if aRegStr[n+1] in ['M','L','X'] then
+              begin
+                newStr:=newStr+'%';
+              end;
+            end;
+          end;
+        end;
+        newWord:=newWord+ch;
+      end else
+      begin
+        if in_word then
+        begin
+          in_word:=false;
+          newStr:=newStr+newWord;
+          newWord:='';
+          pr:=#0;
+        end else
+        begin
+        end;
+        newStr:=newStr+ch;
+      end;
+      pr:=ch;
+    end;
+    if in_word then newStr:=newStr+newWord;
+    ConvertToGasReg:=AnsiLowercase(newStr);
+  end;
 
   procedure BuildInsTabCache;
   var
@@ -895,6 +1051,7 @@ const
                                 0: MRefInfo := msiNoSize;
                          OT_BITS8: MRefInfo := msiMem8;
                         OT_BITS16: MRefInfo := msiMem16;
+                       OT_BITSB16: MRefInfo := msiBMem16;
                         OT_BITS32: MRefInfo := msiMem32;
                        OT_BITSB32: MRefInfo := msiBMem32;
                         OT_BITS64: MRefInfo := msiMem64;
@@ -944,12 +1101,13 @@ const
                      //if not(MRefInfo in [msiBMem32, msiBMem64]) and (actRegCount > 0) then
                      if actRegCount > 0 then
                      begin
-                       if MRefInfo in [msiBMem32, msiBMem64] then
+                       if MRefInfo in [msiBMem16, msiBMem32, msiBMem64] then
                        begin
                          if IF_BCST2  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to2];
                          if IF_BCST4  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to4];
                          if IF_BCST8  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to8];
                          if IF_BCST16 in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to16];
+                         if IF_BCST32 in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to32];
 
                          //InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes
 
@@ -1006,6 +1164,10 @@ const
         begin
           case RegBCSTSizeMask of
                     0: ; // ignore;
+            OT_BITSB16: begin
+                          InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST16;
+                          InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 8;
+                        end;
             OT_BITSB32: begin
                           InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST32;
                           InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 4;
@@ -1222,6 +1384,7 @@ var
   il_Op4: integer;
 
   sSuffix: string;
+  sPrefix: string;
   sl_Operand: String;
   sl_Inst   : String;
   sl_RegCombi: String;
@@ -1233,8 +1396,15 @@ var
   sl_RegCombi1: string;
   sl_RegCombi2: string;
   sl_RegCombi3: string;
+  sl_Reg1 : string;
+  sl_Reg2 : string;
+  sl_Reg3 : string;
+  sPtr : string;
+  Distinct : boolean;
   MaskRegNeeded:boolean;
-
+  noZSuffix : boolean;
+  EvenPair: boolean;
+  GroupOf4: boolean;
 
   function PrepareOperandTyp(const aTyp: String): String;
   begin
@@ -1262,7 +1432,6 @@ begin
                        (UpperCase(aInst) = 'VCVTSI2SD') OR
                        (UpperCase(aInst) = 'VCVTSI2SS') OR
                        (UpperCase(aInst) = 'VCVTTPD2DQ') or
-                       (UpperCase(aInst) = 'VPMOVZXWQ') or
                        (UpperCase(aInst) = 'VCVTPD2UDQ') or
                        (UpperCase(aInst) = 'VCVTPD2UDQ') or
                        (UpperCase(aInst) = 'VCVTTPD2UDQ') or
@@ -1272,15 +1441,79 @@ begin
                        (UpperCase(aInst) = 'VCVTUSI2SS') or
                        (UpperCase(aInst) = 'VFPCLASSPD') or
                        (UpperCase(aInst) = 'VFPCLASSPS') or
-                       (UpperCase(aInst) = 'VCMPSS')
+
+                       (UpperCase(aInst) = 'VFPCLASSPH') or
+                       (UpperCase(aInst) = 'VCVTUQQ2PH') or
+                       (UpperCase(aInst) = 'VCVTQQ2PH') or
+                       (UpperCase(aInst) = 'VCVTPD2PH') or
+
+                       (UpperCase(aInst) = 'VCVTPS2PHX') or // no Z
+                       (UpperCase(aInst) = 'VCVTDQ2PH') or  // no Z
+                       (UpperCase(aInst) = 'VCVTUDQ2PH') or // no Z
+
+                       (UpperCase(aInst) = 'VCVTNEPS2BF16') or
+                       (UpperCase(aInst) = 'VLDMXCSR') or
+                       (UpperCase(aInst) = 'VSTMXCSR') or
+                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = '')
+
+                       //(UpperCase(aInst) = 'VPMOVZXWQ') or
+                       //(UpperCase(aInst) = 'VCMPSS')
 
                        ;
 
+
+          noZSuffix := (UpperCase(aInst) = 'VCVTPD2DQ') or
+                       (UpperCase(aInst) = 'VCVTPD2PS') or
+                       (UpperCase(aInst) = 'VCVTTPD2DQ') or
+                       (UpperCase(aInst) = 'VCVTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTQQ2PS') or
+                       (UpperCase(aInst) = 'VCVTTPD2UDQ') or
+                       (UpperCase(aInst) = 'VCVTUQQ2PS') or
+                       (UpperCase(aInst) = 'VCVTSI2SD') OR
+                       (UpperCase(aInst) = 'VCVTSI2SS') OR
+                       (UpperCase(aInst) = 'VCVTUSI2SD') or
+                       (UpperCase(aInst) = 'VCVTUSI2SS') or
+
+                       (UpperCase(aInst) = 'VCVTPS2PHX') or // no Z
+                       (UpperCase(aInst) = 'VCVTDQ2PH') or  // no Z
+                       (UpperCase(aInst) = 'VCVTUDQ2PH') or // no Z
+                       (UpperCase(aInst) = 'VCVTNEPS2BF16') or
+                       (UpperCase(aInst) = 'VLDMXCSR') or
+                       (UpperCase(aInst) = 'VSTMXCSR')
+                       ;
+
+
+          Distinct := (UpperCase(aInst) = 'VFCMADDCPH') OR
+                       (UpperCase(aInst) = 'VFCMADDCSH') OR
+                       (UpperCase(aInst) = 'VFMADDCPH') OR
+                       (UpperCase(aInst) = 'VFMADDCSH') OR
+                       (UpperCase(aInst) = 'VFCMULCPH') OR
+                       (UpperCase(aInst) = 'VFCMULCSH') OR
+                       (UpperCase(aInst) = 'VFMULCPH') OR
+                       (UpperCase(aInst) = 'VFMULCSH')
+                       { (UpperCase(aInst) = '') OR }
+                       ;
+
+          EvenPair:= (UpperCase(aInst) = 'VP2INTERSECTD') OR { kreg even-odd pair}
+                      (UpperCase(aInst) = 'VP2INTERSECTQ')
+                      ;
+          GroupOf4:= (UpperCase(aInst) = 'V4FMADDPS') OR   { src reg group of 4 registers }
+                     (UpperCase(aInst) = 'V4FMADDSS') OR
+                     (UpperCase(aInst) = 'V4FNMADDPS') OR
+                     (UpperCase(aInst) = 'V4FNMADDSS') OR
+                     (UpperCase(aInst) = 'VP4DPWSSD') OR
+                     (UpperCase(aInst) = 'VP4DPWSSDS')
+                     ;
 
           MaskRegNeeded := (Pos('VGATHER', Uppercase(aInst)) = 1) or
                            (Pos('VPGATHER', Uppercase(aInst)) = 1) or
 			   (Pos('VPSCATTER', Uppercase(aInst)) = 1) or
 			   (Pos('VSCATTER', Uppercase(aInst)) = 1);
+
+          Distinct:=Distinct or MaskRegNeeded;
 
           for il_Op := 1 to 4 do
           begin
@@ -1318,33 +1551,34 @@ begin
               Item.OpActive := true;
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {ru-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{ru-sae},' else sSuffix := ', {ru-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('XMM0' + sSuffix);
-              Item.Values.Add('XMM1' + sSuffix);
-              Item.Values.Add('XMM2' + sSuffix);
-              Item.Values.Add('XMM3' + sSuffix);
-              Item.Values.Add('XMM4' + sSuffix);
-              Item.Values.Add('XMM5' + sSuffix);
-              Item.Values.Add('XMM6' + sSuffix);
-              Item.Values.Add('XMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
-                  Item.Values.Add('XMM9' + sSuffix);
-                  Item.Values.Add('XMM18' + sSuffix);
-                  Item.Values.Add('XMM27' + sSuffix);
-                  Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM31' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('XMM0');
@@ -1356,13 +1590,13 @@ begin
                 end
                 else
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
-                  Item.Values.Add('XMM4' + sSuffix);
-                  Item.Values.Add('XMM8' + sSuffix);
-                  Item.Values.Add('XMM12' + sSuffix);
-                  Item.Values.Add('XMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM15' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('XMM0');
@@ -1373,6 +1607,7 @@ begin
                   end;
                 end;
               end;
+              sPrefix := '';
             end
             else if (AnsiSameText(sl_Operand, 'XMMRM')) or
                     (AnsiSameText(sl_Operand, 'XMMRM_M')) or
@@ -1386,50 +1621,52 @@ begin
 
               if UsePrefix then sl_Prefix := 'oword ';
 
-	      sSuffix := '';
+              sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{ru-sae},' else sSuffix := ', {ru-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('XMM0' + sSuffix);
-              Item.Values.Add('XMM1' + sSuffix);
-              Item.Values.Add('XMM2' + sSuffix);
-              Item.Values.Add('XMM3' + sSuffix);
-              Item.Values.Add('XMM4' + sSuffix);
-              Item.Values.Add('XMM5' + sSuffix);
-              Item.Values.Add('XMM6' + sSuffix);
-              Item.Values.Add('XMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
                   Item.Values.Add('XMM0');
-                  Item.Values.Add('XMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM9' + sSuffix);
                   Item.Values.Add('XMM9');
-                  Item.Values.Add('XMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM18' + sSuffix);
                   Item.Values.Add('XMM18');
-                  Item.Values.Add('XMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM27' + sSuffix);
                   Item.Values.Add('XMM27');
-                  Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM31' + sSuffix);
                   Item.Values.Add('XMM31');
                 end
                 else
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
                   Item.Values.Add('XMM0');
-                  Item.Values.Add('XMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
                   Item.Values.Add('XMM4');
-                  Item.Values.Add('XMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM8' + sSuffix);
                   Item.Values.Add('XMM8');
-                  Item.Values.Add('XMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM12' + sSuffix);
                   Item.Values.Add('XMM15');
-                  Item.Values.Add('XMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM15' + sSuffix);
                 end;
+                sPrefix := '';
 
                 MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
@@ -1452,48 +1689,49 @@ begin
               if UsePrefix then sl_Prefix := 'byte ';
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{ru-sae},' else sSuffix := ', {ru-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('XMM0' + sSuffix);
-              Item.Values.Add('XMM1' + sSuffix);
-              Item.Values.Add('XMM2' + sSuffix);
-              Item.Values.Add('XMM3' + sSuffix);
-              Item.Values.Add('XMM4' + sSuffix);
-              Item.Values.Add('XMM5' + sSuffix);
-              Item.Values.Add('XMM6' + sSuffix);
-              Item.Values.Add('XMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
                   Item.Values.Add('XMM0');
-                  Item.Values.Add('XMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM9' + sSuffix);
                   Item.Values.Add('XMM9');
-                  Item.Values.Add('XMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM18' + sSuffix);
                   Item.Values.Add('XMM18');
-                  Item.Values.Add('XMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM27' + sSuffix);
                   Item.Values.Add('XMM27');
-                  Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM31' + sSuffix);
                   Item.Values.Add('XMM31');
                 end
                 else
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
                   Item.Values.Add('XMM0');
-                  Item.Values.Add('XMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
                   Item.Values.Add('XMM4');
-                  Item.Values.Add('XMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM8' + sSuffix);
                   Item.Values.Add('XMM8');
-                  Item.Values.Add('XMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM12' + sSuffix);
                   Item.Values.Add('XMM12');
-                  Item.Values.Add('XMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM15' + sSuffix);
                   Item.Values.Add('XMM15');
                 end;
 
@@ -1522,48 +1760,49 @@ begin
               if UsePrefix then sl_Prefix := 'word ';
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{ru-sae},' else sSuffix := ', {ru-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('XMM0' + sSuffix);
-              Item.Values.Add('XMM1' + sSuffix);
-              Item.Values.Add('XMM2' + sSuffix);
-              Item.Values.Add('XMM3' + sSuffix);
-              Item.Values.Add('XMM4' + sSuffix);
-              Item.Values.Add('XMM5' + sSuffix);
-              Item.Values.Add('XMM6' + sSuffix);
-              Item.Values.Add('XMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'XMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
                   Item.Values.Add('XMM0');
-                  Item.Values.Add('XMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM9' + sSuffix);
                   Item.Values.Add('XMM9');
-                  Item.Values.Add('XMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM18' + sSuffix);
                   Item.Values.Add('XMM18');
-                  Item.Values.Add('XMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM27' + sSuffix);
                   Item.Values.Add('XMM27');
-                  Item.Values.Add('XMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM31' + sSuffix);
                   Item.Values.Add('XMM31');
                 end
                 else
                 begin
-                  Item.Values.Add('XMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM0' + sSuffix);
                   Item.Values.Add('XMM0');
-                  Item.Values.Add('XMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM4' + sSuffix);
                   Item.Values.Add('XMM4');
-                  Item.Values.Add('XMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM8' + sSuffix);
                   Item.Values.Add('XMM8');
-                  Item.Values.Add('XMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM12' + sSuffix);
                   Item.Values.Add('XMM12');
-                  Item.Values.Add('XMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'XMM15' + sSuffix);
                   Item.Values.Add('XMM15');
                 end;
 
@@ -1590,33 +1829,34 @@ begin
               Item.OpActive := true;
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{rd-sae},' else sSuffix := ', {rd-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('YMM0' + sSuffix);
-              Item.Values.Add('YMM1' + sSuffix);
-              Item.Values.Add('YMM2' + sSuffix);
-              Item.Values.Add('YMM3' + sSuffix);
-              Item.Values.Add('YMM4' + sSuffix);
-              Item.Values.Add('YMM5' + sSuffix);
-              Item.Values.Add('YMM6' + sSuffix);
-              Item.Values.Add('YMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('YMM0' + sSuffix);
-                  Item.Values.Add('YMM9' + sSuffix);
-                  Item.Values.Add('YMM18' + sSuffix);
-                  Item.Values.Add('YMM27' + sSuffix);
-                  Item.Values.Add('YMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM31' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
@@ -1628,13 +1868,13 @@ begin
                 end
                 else
                 begin
-                  Item.Values.Add('YMM0' + sSuffix);
-                  Item.Values.Add('YMM4' + sSuffix);
-                  Item.Values.Add('YMM8' + sSuffix);
-                  Item.Values.Add('YMM12' + sSuffix);
-                  Item.Values.Add('YMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM15' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
@@ -1660,33 +1900,34 @@ begin
               if UsePrefix then sl_Prefix := 'yword ';
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{rd-sae},' else sSuffix := ', {rd-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('YMM0' + sSuffix);
-              Item.Values.Add('YMM1' + sSuffix);
-              Item.Values.Add('YMM2' + sSuffix);
-              Item.Values.Add('YMM3' + sSuffix);
-              Item.Values.Add('YMM4' + sSuffix);
-              Item.Values.Add('YMM5' + sSuffix);
-              Item.Values.Add('YMM6' + sSuffix);
-              Item.Values.Add('YMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'YMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('YMM0' + sSuffix);
-                  Item.Values.Add('YMM9' + sSuffix);
-                  Item.Values.Add('YMM18' + sSuffix);
-                  Item.Values.Add('YMM27' +  sSuffix);
-                  Item.Values.Add('YMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM31' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
@@ -1698,13 +1939,13 @@ begin
                 end
                 else
                 begin
-                  Item.Values.Add('YMM0' + sSuffix);
-                  Item.Values.Add('YMM4' + sSuffix);
-                  Item.Values.Add('YMM8' + sSuffix);
-                  Item.Values.Add('YMM12' + sSuffix);
-                  Item.Values.Add('YMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'YMM15' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('YMM0');
@@ -1735,33 +1976,34 @@ begin
               Item.OpActive := true;
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{rd-sae},' else sSuffix := ', {rd-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('ZMM0' + sSuffix);
-              Item.Values.Add('ZMM1' + sSuffix);
-              Item.Values.Add('ZMM2' + sSuffix);
-              Item.Values.Add('ZMM3' + sSuffix);
-              Item.Values.Add('ZMM4' + sSuffix);
-              Item.Values.Add('ZMM5' + sSuffix);
-              Item.Values.Add('ZMM6' + sSuffix);
-              Item.Values.Add('ZMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('ZMM0' + sSuffix);
-                  Item.Values.Add('ZMM9' + sSuffix);
-                  Item.Values.Add('ZMM18' + sSuffix);
-                  Item.Values.Add('ZMM27' + sSuffix);
-                  Item.Values.Add('ZMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM31' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('ZMM0');
@@ -1773,13 +2015,14 @@ begin
                 end
                 else
                 begin
-                  Item.Values.Add('ZMM0' + sSuffix);
-                  Item.Values.Add('ZMM4' + sSuffix);
-                  Item.Values.Add('ZMM8' + sSuffix);
-                  Item.Values.Add('ZMM12' + sSuffix);
-                  Item.Values.Add('ZMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM15' + sSuffix);
                 end;
               end;
+              sPrefix := '';
             end
             else if (AnsiSameText(sl_Operand, 'ZMMRM')) or
                     (AnsiSameText(sl_Operand, 'ZMMRM_M')) or
@@ -1793,35 +2036,37 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'zword ';
+              if FGas and noZSuffix then sl_Prefix := '';
 
               sSuffix := '';
+              sPrefix := '';
               if Pos('_MZ', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1} {z}'
                else if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
 
-              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ', {rd-sae}'
-               else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then sSuffix := ', {sae}';
+              if Pos('_ER', AnsiUppercase(sl_Operand)) > 0 then begin if FGas then sPrefix := '{rd-sae},' else sSuffix := ', {rd-sae}'; end
+                else if FSAE and (Pos('_SAE', AnsiUppercase(sl_Operand)) > 0) then begin if FGas then sPrefix := '{sae},' else sSuffix := ', {sae}'; end;
 
-              Item.Values.Add('ZMM0' + sSuffix);
-              Item.Values.Add('ZMM1' + sSuffix);
-              Item.Values.Add('ZMM2' + sSuffix);
-              Item.Values.Add('ZMM3' + sSuffix);
-              Item.Values.Add('ZMM4' + sSuffix);
-              Item.Values.Add('ZMM5' + sSuffix);
-              Item.Values.Add('ZMM6' + sSuffix);
-              Item.Values.Add('ZMM7' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'ZMM7' + sSuffix);
 
               if x64 then
               begin
                 Item.Values.Clear;
                 if FAVX512 then
                 begin
-                  Item.Values.Add('ZMM0' + sSuffix);
-                  Item.Values.Add('ZMM9' + sSuffix);
-                  Item.Values.Add('ZMM18' + sSuffix);
-                  Item.Values.Add('ZMM27' + sSuffix);
-                  Item.Values.Add('ZMM31' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM9' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM18' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM27' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM31' + sSuffix);
 
-                  if (sSuffix <> '') and
+                  if ((sPrefix <> '') or (sSuffix <> '')) and
 		     (MaskRegNeeded = false)  then
                   begin
                     Item.Values.Add('ZMM0');
@@ -1833,12 +2078,14 @@ begin
                 end
                 else
                 begin
-                  Item.Values.Add('ZMM0' + sSuffix);
-                  Item.Values.Add('ZMM4' + sSuffix);
-                  Item.Values.Add('ZMM8' + sSuffix);
-                  Item.Values.Add('ZMM12' + sSuffix);
-                  Item.Values.Add('ZMM15' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM0' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM4' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM8' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM12' + sSuffix);
+                  Item.Values.Add(sPrefix + 'ZMM15' + sSuffix);
                 end;
+
+
 
                 MemRegBaseIndexCombi(sl_prefix, '', FReg64Base, FReg64Index, Item.Values);
                 //MemRegBaseIndexCombi(FReg6432Base, FReg6432Index, Item.Values);
@@ -1860,7 +2107,7 @@ begin
 
 
               sSuffix := '';
-	
+
 	      if x64 then
               begin
                 MemRegBaseIndexCombi(sl_Prefix, '', FReg64Base, FReg64Index, Item.Values);
@@ -1896,6 +2143,7 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'dword ';
+              if FGas and noZSuffix then sl_Prefix := '';
 
               sSuffix := '';
 
@@ -1983,6 +2231,7 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'zword ';
+              if FGas and noZSuffix then sl_Prefix := '';
 
               sSuffix := '';
               if Pos('_M', AnsiUppercase(sl_Operand)) > 0 then sSuffix := ' {k1}';
@@ -2069,6 +2318,7 @@ begin
               Item.Values.AddStrings(FReg32Base);
 
               if UsePrefix then sl_Prefix := 'dword ';
+              if FGas and noZSuffix then sl_Prefix := '';
 
               if x64 then
               begin
@@ -2101,7 +2351,7 @@ begin
               Item.OpTyp    := otIMM8;
               Item.OpActive := true;
 
-              Item.Values.Add('0');
+              if FGas then Item.Values.Add('$0') else Item.Values.Add('0');
             end
             else if AnsiSameText(sl_Operand, 'XMEM32') or
                     AnsiSameText(sl_Operand, 'XMEM32_M') then
@@ -2255,6 +2505,7 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'zword ';
+              if FGas and noZSuffix then sl_Prefix := '';
 
               //if x64 then
               //begin
@@ -2294,6 +2545,7 @@ begin
               Item.OpActive := true;
 
               if UsePrefix then sl_Prefix := 'zword ';
+              if FGas and noZSuffix then sl_Prefix := '';
 
               //if x64 then
               //begin
@@ -2566,35 +2818,55 @@ begin
                   for il_Op4 := 0 to OItem4.Values.Count - 1 do
                   begin
                     sl_RegCombi := '';
+                    sl_Reg1 := '';
+                    sl_Reg2 := '';
+                    sl_Reg3 := '';
 
                     if OItem1.OpActive then
                     begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem1.Values[il_Op1];
+                      sl_RegCombi1:=OItem1.Values[il_Op1];
+                      if EvenPair then sl_RegCombi1:=EvenOddPairReg (sl_RegCombi1);
+                      if sl_RegCombi <> '' then if FGas then sl_RegCombi := ', ' + sl_RegCombi  else sl_RegCombi := sl_RegCombi + ', ';
+                      if FGas then sl_RegCombi := sl_RegCombi1 + sl_RegCombi else sl_RegCombi := sl_RegCombi + sl_RegCombi1;
+                      if Distinct then sl_Reg1:=ExtractReg(OItem1.Values[il_Op1]);
                     end;
 
                     if OItem2.OpActive then
                     begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem2.Values[il_Op2];
+                      sl_RegCombi2:=OItem2.Values[il_Op2];
+                      if GroupOf4 then sl_RegCombi2:=GroupOf4Reg( sl_RegCombi2 );
+                      if sl_RegCombi <> '' then if FGas then sl_RegCombi := ', ' + sl_RegCombi  else sl_RegCombi := sl_RegCombi + ', ';
+                      if FGas then sl_RegCombi := sl_RegCombi2 + sl_RegCombi else sl_RegCombi := sl_RegCombi + sl_RegCombi2;
+                      if Distinct then sl_Reg1:=ExtractReg(OItem2.Values[il_Op2]);
                     end;
 
                     if OItem3.OpActive then
                     begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
+                      if sl_RegCombi <> '' then if FGas then sl_RegCombi := ', ' + sl_RegCombi  else sl_RegCombi := sl_RegCombi + ', ';
+                      if FGas then sl_RegCombi := OItem3.Values[il_Op3] + sl_RegCombi else sl_RegCombi := sl_RegCombi + OItem3.Values[il_Op3];
+                      if Distinct then sl_Reg1:=ExtractReg(OItem3.Values[il_Op3]);
                     end;
 
                     if OItem4.OpActive then
                     begin
-                      if sl_RegCombi <> '' then sl_RegCombi := sl_RegCombi + ', ';
-                      sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
+                      if sl_RegCombi <> '' then if FGas then sl_RegCombi := ', ' + sl_RegCombi  else sl_RegCombi := sl_RegCombi + ', ';
+                      if FGas then sl_RegCombi := OItem4.Values[il_Op4] + sl_RegCombi else sl_RegCombi := sl_RegCombi + OItem4.Values[il_Op4];
                     end;
 
                     if sl_RegCombi <> '' then
                     begin
-                      //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(sl_Inst + sl_RegCombi);
+                      if not Distinct or (Distinct and notEqualRegs (sl_Reg1,sl_Reg2,sl_Reg3) ) then
+                      if not MaskRegNeeded or (MaskRegNeeded and notEqualRegs (sl_Reg2,sl_Reg3,'') ) then
+                      begin
+                        if FGas then sl_RegCombi := ConvertToGasReg(sl_RegCombi);
+                        if not FGas then
+                           result.Add(sl_Inst + sl_RegCombi)
+                        else
+                        begin
+                          sPtr:=MemPtr(sl_RegCombi);
+                          result.Add(aInst + sPtr + '   ' + sl_RegCombi)
+                        end;
+                      end;
                       sl_RegCombi := '';
                     end;
                   end;
@@ -2608,25 +2880,34 @@ begin
 
             for il_Op1 := 0 to OItem1.Values.Count - 1 do
             begin
+              sl_Reg1:='';
               if OItem1.OpActive then
               begin
-                sl_RegCombi1 := OItem1.Values[il_Op1];
+                sl_RegCombi1:=OItem1.Values[il_Op1];
+                if EvenPair then sl_RegCombi1:=EvenOddPairReg (sl_RegCombi1);
+                if Distinct then sl_Reg1:=ExtractReg(OItem1.Values[il_Op1]);
               end
               else sl_RegCombi1 := '';
 
               for il_Op2 := 0 to OItem2.Values.Count - 1 do
               begin
+                sl_Reg2:='';
                 if OItem2.OpActive then
                 begin
-                  sl_RegCombi2 := sl_RegCombi1 + ', ' + OItem2.Values[il_Op2];
+                  sl_RegCombi2:=OItem2.Values[il_Op2];
+                  if GroupOf4 then sl_RegCombi2:=GroupOf4Reg( sl_RegCombi2 );
+                  if FGas then sl_RegCombi2 := sl_RegCombi2 + ', ' + sl_RegCombi1 else sl_RegCombi2 := sl_RegCombi1 + ', ' + sl_RegCombi2;
+                  if Distinct then sl_Reg2:=ExtractReg(OItem2.Values[il_Op2]);
                 end
                 else sl_RegCombi2 := sl_RegCombi1;
 
                 for il_Op3 := 0 to OItem3.Values.Count - 1 do
                 begin
+                  sl_Reg3:='';
                   if OItem3.OpActive then
                   begin
-                    sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
+                    if FGas then sl_RegCombi3 := OItem3.Values[il_Op3] + ', ' + sl_RegCombi2 else sl_RegCombi3 := sl_RegCombi2 + ', ' + OItem3.Values[il_Op3];
+                    if Distinct then sl_Reg3:=ExtractReg(OItem3.Values[il_Op3]);
                   end
                   else sl_RegCombi3 := sl_RegCombi2;
 
@@ -2634,14 +2915,25 @@ begin
                   begin
                     if OItem4.OpActive then
                     begin
-                      sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
+                      if FGas then sl_RegCombi := OItem4.Values[il_Op4] + ', ' + sl_RegCombi3 else sl_RegCombi := sl_RegCombi3 + ', ' + OItem4.Values[il_Op4];
                     end
                     else sl_RegCombi := sl_RegCombi3;
 
                     if sl_RegCombi <> '' then
                     begin
                       //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
-                      result.Add(sl_Inst + sl_RegCombi);
+                      if not Distinct or (Distinct and notEqualRegs (sl_Reg1,sl_Reg2,sl_Reg3) ) then
+                      if not MaskRegNeeded or (MaskRegNeeded and notEqualRegs (sl_Reg2,sl_Reg3,'') ) then
+                      begin
+                        if FGas then sl_RegCombi := ConvertToGasReg(sl_RegCombi);
+                        if not FGas then
+                           result.Add(sl_Inst + sl_RegCombi)
+                        else
+                        begin
+                          sPtr:=MemPtr(sl_RegCombi);
+                          result.Add(aInst + sPtr + '   ' + sl_RegCombi)
+                        end;
+                      end;
                       sl_RegCombi := '';
                     end;
                   end;
@@ -3326,7 +3618,7 @@ begin
               Item.OpTyp    := otIMM8;
               Item.OpActive := true;
 
-              Item.Values.Add('0');
+              if FGas then Item.Values.Add('$0') else Item.Values.Add('0');
             end
             else if AnsiSameText(sl_Operand, 'XMEM32') or
                     AnsiSameText(sl_Operand, 'XMEM32_M') then
@@ -3798,6 +4090,7 @@ var
         otYMEM64: result := 'Y64';
         otZMEM32: result := 'Z32';
         otZMEM64: result := 'Z64';
+           otB16: result := 'B16';
            otB32: result := 'B32';
            otB64: result := 'B64';
           otKREG: result := 'K';
@@ -4335,7 +4628,7 @@ begin
               Item.OpTyp    := otIMM8;
               Item.OpActive := true;
 
-              Item.Values.Add('0');
+              if FGas then Item.Values.Add('$0') else Item.Values.Add('0');
             end
             else if AnsiSameText(sl_Operand, 'XMEM32') or
                     AnsiSameText(sl_Operand, 'XMEM32_M') then
@@ -5775,12 +6068,13 @@ begin
 end;
 
 
-constructor TAsmTestGenerator.Create;
+constructor TAsmTestGenerator.Create(aGas:boolean);
 begin
-  inherited;
+  inherited Create();
 
   FX64 := true;
   FAVX512 := false;
+  FGas := aGas;
 
   FReg8          := TStringList.Create;
   FReg16         := TStringList.Create;
@@ -5825,7 +6119,7 @@ begin
   FReg32Index.Add('EBX');
   FReg32Index.Add('ECX');
   FReg32Index.Add('EDX');
-  //FReg32Index.Add('EBP');
+  FReg32Index.Add('EBP');
   FReg32Index.Add('EDI');
   FReg32Index.Add('ESI');
 
@@ -5835,7 +6129,7 @@ begin
   FReg64Base.Add('RCX');
   FReg64Base.Add('RDX');
   //FReg64Base.Add('RSP');
-  //FReg64Base.Add('RBP'); //--?
+  //FReg64Base.Add('RBP');
   FReg64Base.Add('RDI');
   FReg64Base.Add('RSI');
   FReg64Base.Add('R8');
@@ -5843,7 +6137,7 @@ begin
   FReg64Base.Add('R10');
   FReg64Base.Add('R11');
   FReg64Base.Add('R12');
-  //FReg64Base.Add('R13'); //--?
+  //FReg64Base.Add('R13');
   FReg64Base.Add('R14');
   FReg64Base.Add('R15');
 
@@ -5851,7 +6145,7 @@ begin
   FReg64Index.Add('RBX');
   FReg64Index.Add('RCX');
   FReg64Index.Add('RDX');
-  FReg64Index.Add('RBP'); //--?
+  FReg64Index.Add('RBP');
   FReg64Index.Add('RDI');
   FReg64Index.Add('RSI');
   FReg64Index.Add('R8');
@@ -5859,7 +6153,7 @@ begin
   FReg64Index.Add('R10');
   FReg64Index.Add('R11');
   FReg64Index.Add('R12');
-  FReg64Index.Add('R13'); //--?
+  FReg64Index.Add('R13');
   FReg64Index.Add('R14');
   FReg64Index.Add('R15');
 
@@ -5876,7 +6170,7 @@ begin
   FReg6432Base.Add('R10D');
   FReg6432Base.Add('R11D');
   FReg6432Base.Add('R12D');
-  FReg6432Base.Add('R13D');
+  //FReg6432Base.Add('R13D');
   FReg6432Base.Add('R14D');
   FReg6432Base.Add('R15D');
 
@@ -5884,7 +6178,7 @@ begin
   FReg6432Index.Add('EBX');
   FReg6432Index.Add('ECX');
   FReg6432Index.Add('EDX');
-  //FReg6432Index.Add('EBP');
+  FReg6432Index.Add('EBP');
   FReg6432Index.Add('EDI');
   FReg6432Index.Add('ESI');
   FReg6432Index.Add('R8D');
@@ -6033,27 +6327,53 @@ var
   il_Base: integer;
   il_Index: integer;
 begin
-
-  for il_Base := 0 to aSLBaseReg.Count - 1 do
+  if not FGas then
   begin
-    aRList.Add(format(aPrefix + '[%s]%s', [aSLBaseReg[il_Base], aSuffix]));
-
-    for il_Index := 0 to aSLIndexReg.Count - 1 do
+    for il_Base := 0 to aSLBaseReg.Count - 1 do
     begin
-      aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s + $10]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s + $40]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s - $10]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s - $40]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      aRList.Add(format(aPrefix + '[%s]%s', [aSLBaseReg[il_Base], aSuffix]));
+
+      for il_Index := 0 to aSLIndexReg.Count - 1 do
+      begin
+        aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s + $10]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s + $40]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s - $10]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s - $40]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
 
-      aRList.Add(format(aPrefix + '[%s + %s * 2]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s * 4]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s * 8]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 2]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 4]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 8]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
-      aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s * 8 + 64]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 8 + 64]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      end;
+    end;
+  end else
+  begin
+    for il_Base := 0 to aSLBaseReg.Count - 1 do
+    begin
+      aRList.Add(format(aPrefix + '(%s)%s', [aSLBaseReg[il_Base], aSuffix]));
+
+      for il_Index := 0 to aSLIndexReg.Count - 1 do
+      begin
+        aRList.Add(format(aPrefix + '(%s,%s,1)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '16(%s,%s,1)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '64(%s,%s,1)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '-16(%s,%s,1)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '-64(%s,%s,1)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+
+
+        aRList.Add(format(aPrefix + '(%s,%s,2)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '(%s,%s,4)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '(%s,%s,8)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+
+        aRList.Add(format(aPrefix + '16(%s,%s,2)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '32(%s,%s,4)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '64(%s,%s,8)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      end;
     end;
   end;
 end;
@@ -6092,41 +6412,43 @@ var
   il_Base: integer;
   il_Index: integer;
 begin
-
-  //for il_Index := 0 to aSLIndexReg.Count - 1 do
-  //begin
-  //  aRList.Add(format(aPrefix + '[%s]', [aSLIndexReg[il_Index]]));
-  //
-  //  aRList.Add(format(aPrefix + '[%s * 2]', [aSLIndexReg[il_Index]]));
-  //  aRList.Add(format(aPrefix + '[%s * 4]', [aSLIndexReg[il_Index]]));
-  //  aRList.Add(format(aPrefix + '[%s * 8]', [aSLIndexReg[il_Index]]));
-  //
-  //  aRList.Add(format(aPrefix + '[%s * 2 + 16]', [aSLIndexReg[il_Index]]));
-  //  aRList.Add(format(aPrefix + '[%s * 4 + 32]', [aSLIndexReg[il_Index]]));
-  //  aRList.Add(format(aPrefix + '[%s * 8 + 48]', [aSLIndexReg[il_Index]]));
-  //end;
-
-
-  for il_Base := 0 to aSLBaseReg.Count - 1 do
+  if not FGas then
   begin
-    //aRList.Add(format(aPrefix + '[%s]', [aSLBaseReg[il_Base]]));
-
-    for il_Index := 0 to aSLIndexReg.Count - 1 do
+    for il_Base := 0 to aSLBaseReg.Count - 1 do
     begin
-      aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+      for il_Index := 0 to aSLIndexReg.Count - 1 do
+      begin
+        aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
-      aRList.Add(format(aPrefix + '[%s + %s * 2]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s * 4]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
-      aRList.Add(format(aPrefix + '[%s + %s * 8]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 2]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 4]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '[%s + %s * 8]%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
-      //aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
-      //aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
-      //aRList.Add(format(aPrefix + '[%s + %s * 8 + 48]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+        //aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+        //aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+        //aRList.Add(format(aPrefix + '[%s + %s * 8 + 48]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
 
+        aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLIndexReg[il_Index], aSLBaseReg[il_Base], aSuffix]));
+      end;
+    end;
+  end else
+  begin
+    for il_Base := 0 to aSLBaseReg.Count - 1 do
+    begin
+      for il_Index := 0 to aSLIndexReg.Count - 1 do
+      begin
+        aRList.Add(format(aPrefix + '(%s,%s)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
-      aRList.Add(format(aPrefix + '[%s + %s]%s', [aSLIndexReg[il_Index], aSLBaseReg[il_Base], aSuffix]));
+        aRList.Add(format(aPrefix + '(%s,%s,2)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '(%s,%s,4)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
+        aRList.Add(format(aPrefix + '(%s,%s,8)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix]));
 
-      //aRList.Add(format(aPrefix + '[%s + %s + 16]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
+        //aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+        //aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+        //aRList.Add(format(aPrefix + '[%s + %s * 8 + 48]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+
+        aRList.Add(format(aPrefix + '(%s,%s)%s', [aSLBaseReg[il_Base], aSLIndexReg[il_Index], aSuffix])); //-- normal base-index order for Gas
+      end;
     end;
   end;
 end;
@@ -6182,12 +6504,12 @@ begin
   end;
 end;
 
-class procedure TAsmTestGenerator.CalcTestData(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
+class procedure TAsmTestGenerator.CalcTestData(aGas, aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
   aOp4: String; aSL: TStringList);
 var
   sl: TStringList;
 begin
-  with TAsmTestGenerator.Create do
+  with TAsmTestGenerator.Create(aGas) do
   try
     Fx64 := aX64;
     FAVX512 := aAVX512;
@@ -6204,12 +6526,12 @@ begin
   end;
 end;
 
-class procedure TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
+class procedure TAsmTestGenerator.CalcTestDataMREF(aGas, aX64, aAVX512, aSAE: boolean; const aInst, aOp1, aOp2, aOp3,
   aOp4: String;  aSL: TStringList);
 var
   sl: TStringList;
 begin
-  with TAsmTestGenerator.Create do
+  with TAsmTestGenerator.Create(aGas) do
   try
     Fx64 := aX64;
     FAVX512 := aAVX512;
@@ -6226,12 +6548,12 @@ begin
   end;
 end;
 
-class procedure TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512,
+class procedure TAsmTestGenerator.CalcTestDataCDisp8(aGas, aX64, aAVX512,
   aSAE: boolean; const aInst, aOp1, aOp2, aOp3, aOp4: String; aSL: TStringList);
 var
   sl: TStringList;
 begin
-  with TAsmTestGenerator.Create do
+  with TAsmTestGenerator.Create(aGas) do
   try
     Fx64 := aX64;
     FAVX512 := aAVX512;
@@ -6346,14 +6668,21 @@ begin
                 OT_ZMMRM: sOperands := sOperands + 'ZMMRM,';
              OT_ZMMRM_MZ: sOperands := sOperands + 'ZMMRM_MZ,';
 
+                OT_MEM16: sOperands := sOperands + 'MEM16,';
+              OT_MEM16_M: sOperands := sOperands + 'MEM16_M,';
                 OT_MEM32: sOperands := sOperands + 'MEM32,';
+              OT_MEM32_M: sOperands := sOperands + 'MEM32_M,';
                 OT_MEM64: sOperands := sOperands + 'MEM64,';
+              OT_MEM64_M: sOperands := sOperands + 'MEM64_M,';
                OT_MEM128: sOperands := sOperands + 'MEM128,';
                OT_MEM256: sOperands := sOperands + 'MEM256,';
                OT_MEM512: sOperands := sOperands + 'MEM512,';
 
+                OT_REG16: sOperands := sOperands + 'REG16,';
                 OT_REG32: sOperands := sOperands + 'REG32,';
                 OT_REG64: sOperands := sOperands + 'REG64,';
+                 ot_rm_gpr or ot_bits16:
+                          sOperands := sOperands + 'RM16,';
                  ot_rm_gpr or ot_bits32:
                           sOperands := sOperands + 'RM32,';
                  ot_rm_gpr or ot_bits64:
@@ -6368,6 +6697,9 @@ begin
                  OT_IMM8: sOperands := sOperands + 'IMM8,';
                  OT_NONE: sOperands := sOperands + ',';
 
+               OT_BMEM16: if b512 then sOperands := sOperands + '32B16,'
+                           else if b256 then sOperands := sOperands + '16B16,'
+                           else sOperands := sOperands + '8B16,';
                OT_BMEM32: if b512 then sOperands := sOperands + '16B32,'
                            else if b256 then sOperands := sOperands + '8B32,'
                            else sOperands := sOperands + '4B32,';

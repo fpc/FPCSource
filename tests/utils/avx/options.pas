@@ -94,6 +94,7 @@ begin
          'h': FHelp := true;
          'f': if sValue = 'fpc' then FOutputFormat := 'f'
                else if sValue = 'nasm' then FOutputFormat := 'n'
+               else if sValue = 'gas' then FOutputFormat := 'g'
                else if sValue = 'fasm' then FOutputFormat := 'F'
                else if sValue = 'fpcinc' then FOutputFormat := 'I'
                else if sValue = 'fpcmref' then FOutputFormat := 'm'

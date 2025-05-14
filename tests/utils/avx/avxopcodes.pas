@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC, tfFasm, tfFPCInc, tfFPCMRef, tfFPCCDisp8);
+  TTestFileTyp = (tfNasm, tfGas, tfFPC, tfFasm, tfFPCInc, tfFPCMRef, tfFPCCDisp8);
 
   { TAVXTestGenerator }
 
@@ -20,8 +20,8 @@ type
 
     function SaveFile(aAsmList: TStringList; aOpcode, aDestPath, aFileExt: String; aHeaderList, aFooterList: TStringList): boolean;
 
-    function InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
-    function InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFiles(aGas, aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
+    function InternalMakeTestFilesCDisp8(aGas, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 
   public
     constructor Create;
@@ -3393,7 +3393,7 @@ begin
   end;
 end;
 
-function TAVXTestGenerator.InternalMakeTestFiles(aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
+function TAVXTestGenerator.InternalMakeTestFiles(aGas, aMRef, aX64, aAVX512, aSAE: boolean; aDestPath, aFilemask, aFileExt: String;
                                         aOpCodeList, aHeaderList, aFooterList: TStringList): boolean;
 var
   i,j: integer;
@@ -3478,7 +3478,7 @@ begin
                   if aMREF then
 	          begin
                     sLocalVarDataTyp := '';
- 	            TAsmTestGenerator.CalcTestDataMREF(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+ 	            TAsmTestGenerator.CalcTestDataMREF(aGas, aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 		    sDestFile := 'MREF_' + sDestFile;
 
 		    if trim(sLocalVarDataTyp) = '' then
@@ -3486,7 +3486,7 @@ begin
 
                     slLocalHeader.Text :=  StringReplace(aHeaderList.Text, '$$$LOCALVARDATATYP$$$', sLocalVarDataTyp, [rfReplaceAll]);
 	          end
-   	          else TAsmTestGenerator.CalcTestData(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+   	          else TAsmTestGenerator.CalcTestData(aGas, aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	        end;
 
                 SaveFile(slAsm, sDestFile, aDestPath, aFileExt, slLocalHeader, aFooterList);
@@ -3511,7 +3511,7 @@ begin
   end;
 end;
 
-function TAVXTestGenerator.InternalMakeTestFilesCDisp8(aX64, aAVX512,
+function TAVXTestGenerator.InternalMakeTestFilesCDisp8(aGas, aX64, aAVX512,
   aSAE: boolean; aDestPath, aFilemask, aFileExt: String; aOpCodeList,
   aHeaderList, aFooterList: TStringList): boolean;
 var
@@ -3588,7 +3588,7 @@ begin
                 end
                 else
 	        begin
-   	          TAsmTestGenerator.CalcTestDataCDisp8(aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
+   	          TAsmTestGenerator.CalcTestDataCDisp8(aGas, aX64, aAVX512 and (sl[3] = '1'), aSAE, sl[0], sl[4], sl[5], sl[6], sl[7], slAsm);
 	        end;
 
                 if trim(slAsm.Text) <> '' then
@@ -3956,11 +3956,26 @@ begin
                   for i := 1 to 10 do
                    slFooter.Add('NOP');
                 end;
+        tfGas: begin
+                  writeln(format('outputformat: Gas  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.s';
+                  {
+                  if aX64 then slHeader.Add('[BITS 64]')
+                   else slHeader.Add('[BITS 32]');
+                  }
+                  for i := 1 to 10 do
+                   slHeader.Add('NOP');
+
+                  for i := 1 to 10 do
+                   slFooter.Add('NOP');
+                end;
       end;
 
       case aTyp of
-        tfFPCCDisp8: InternalMakeTestFilesCDisp8(aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
-                else InternalMakeTestFiles(aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+        tfFPCCDisp8: InternalMakeTestFilesCDisp8(aTyp = tfGas, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
+                else InternalMakeTestFiles(aTyp = tfGas, aTyp = tfFPCMRef, aX64, aAVX512, aSAE, aDestPath, aFilemask, Fileext, FOpCodeList, slHeader, slFooter);
       end;
 
     finally
