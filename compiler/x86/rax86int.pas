@@ -40,7 +40,7 @@ Unit Rax86int;
       AS_COMMA,AS_LBRACKET,AS_RBRACKET,AS_LPAREN,
       AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
       AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,
-      AS_LOPMASK,AS_VOPMASK,AS_LOPZEROMASK,AS_VOPZEROMASK,AS_LOPBCST,AS_OPBCST1TO2,AS_OPBCST1TO4,AS_OPBCST1TO8,AS_OPBCST1TO16,AS_LOPSAE,AS_OPSAE,
+      AS_LOPMASK,AS_VOPMASK,AS_LOPZEROMASK,AS_VOPZEROMASK,AS_LOPBCST,AS_OPBCST1TO2,AS_OPBCST1TO4,AS_OPBCST1TO8,AS_OPBCST1TO16,AS_OPBCST1TO32,AS_LOPSAE,AS_OPSAE,
       AS_LOPER,AS_OPRNSAE,AS_OPRDSAE,AS_OPRUSAE,AS_OPRZSAE,
        {------------------ Assembler directives --------------------}
       AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_PUBLIC,AS_END,
@@ -167,7 +167,7 @@ Unit Rax86int;
         ',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
-        '','','','','','','','','','','',
+        '','','','','','','','','','','','',
         '','','','','',
         '','','','','','','END',
         '','','','','','','','','','','','','','',
@@ -506,6 +506,7 @@ Unit Rax86int;
                                          else if (actasmpattern = '1TO4') then actasmtoken := AS_OPBCST1TO4
                                          else if (actasmpattern = '1TO8') then actasmtoken := AS_OPBCST1TO8
                                          else if (actasmpattern = '1TO16') then actasmtoken := AS_OPBCST1TO16
+                                         else if (actasmpattern = '1TO32') then actasmtoken := AS_OPBCST1TO32
                                          else actasmpattern := actasmpattern_origcase;
                                       end;
                              AS_LOPSAE:
@@ -816,7 +817,7 @@ Unit Rax86int;
                    actasmpattern:=c;
                    c:=current_scanner.asmgetchar;
                    { Get the possible characters }
-                   while c in ['1','2','4','6','8','t','T','o','O'] do
+                   while c in ['1','2','3','4','6','8','t','T','o','O'] do
                     begin
                       actasmpattern:=actasmpattern + c;
                       c:=current_scanner.asmgetchar;
@@ -834,6 +835,7 @@ Unit Rax86int;
                        else if (actasmpattern = '1TO4') then actasmtoken := AS_OPBCST1TO4
                        else if (actasmpattern = '1TO8') then actasmtoken := AS_OPBCST1TO8
                        else if (actasmpattern = '1TO16') then actasmtoken := AS_OPBCST1TO16
+                       else if (actasmpattern = '1TO32') then actasmtoken := AS_OPBCST1TO32
                        else actasmpattern := actasmpattern_origcase;
                        c:=current_scanner.asmgetchar;
                     end
@@ -990,7 +992,7 @@ Unit Rax86int;
     kreg: tregister;
   begin
     Consume(actasmtoken, true);
-    if actasmtoken in [AS_VOPMASK, AS_VOPZEROMASK, AS_OPBCST1TO2, AS_OPBCST1TO4, AS_OPBCST1TO8, AS_OPBCST1TO16,
+    if actasmtoken in [AS_VOPMASK, AS_VOPZEROMASK, AS_OPBCST1TO2, AS_OPBCST1TO4, AS_OPBCST1TO8, AS_OPBCST1TO16, AS_OPBCST1TO32,
                        AS_OPSAE,AS_OPRNSAE,AS_OPRDSAE,AS_OPRUSAE,AS_OPRZSAE] then
     begin
       case actasmtoken of
@@ -1019,6 +1021,10 @@ Unit Rax86int;
         AS_OPBCST1TO16: begin
                           aop.vopext := aop.vopext or OTVE_VECTOR_BCST or OTVE_VECTOR_BCST16;
                           aop.vbcst  := 16;
+                        end;
+        AS_OPBCST1TO32: begin
+                          aop.vopext := aop.vopext or OTVE_VECTOR_BCST or OTVE_VECTOR_BCST32;
+                          aop.vbcst  := 32;
                         end;
               AS_OPSAE: aop.vopext := aop.vopext or OTVE_VECTOR_SAE;
             AS_OPRNSAE: aop.vopext := aop.vopext or OTVE_VECTOR_RNSAE;
@@ -2674,9 +2680,9 @@ Unit Rax86int;
                   AS_QWORD : oper.typesize:=8;
                   AS_DQWORD : oper.typesize:=16;
                   AS_TBYTE : oper.typesize:=10;
-                  AS_OWORD,                     
-                  AS_XMMWORD: oper.typesize:=16; 
-                  AS_YWORD,                     
+                  AS_OWORD,
+                  AS_XMMWORD: oper.typesize:=16;
+                  AS_YWORD,
                   AS_YMMWORD: oper.typesize:=32;
                   AS_ZWORD,
                   AS_ZMMWORD: oper.typesize:=64;

@@ -65,6 +65,7 @@ interface
 
       OT_VECTOR_EXT = OT_VECTORMASK or OT_VECTORZERO or OT_VECTORBCST or OT_VECTORSAE or OT_VECTORER;
 
+      OT_BITSB16    = OT_BITS16 or OT_VECTORBCST;
       OT_BITSB32    = OT_BITS32 or OT_VECTORBCST;
       OT_BITSB64    = OT_BITS64 or OT_VECTORBCST;
 
@@ -235,6 +236,7 @@ interface
       OT_MEM8      = OT_MEMORY or OT_BITS8;
       OT_MEM16     = OT_MEMORY or OT_BITS16;
       OT_MEM16_M   = OT_MEM16  or OT_VECTORMASK;
+      OT_BMEM16    = OT_MEMORY or OT_BITS16 or OT_VECTORBCST;
       OT_MEM32     = OT_MEMORY or OT_BITS32;
       OT_MEM32_M   = OT_MEMORY or OT_BITS32 or OT_VECTORMASK;
       OT_BMEM32    = OT_MEMORY or OT_BITS32 or OT_VECTORBCST;
@@ -278,13 +280,14 @@ interface
       OTVE_VECTOR_BCST4        = 1 shl 4;
       OTVE_VECTOR_BCST8        = 1 shl 5;
       OTVE_VECTOR_BCST16       = 3 shl 4;
+      OTVE_VECTOR_BCST32       = 1 shl 13;
       OTVE_VECTOR_RNSAE        = OTVE_VECTOR_ER or 0;
       OTVE_VECTOR_RDSAE        = OTVE_VECTOR_ER or 1 shl 6;
       OTVE_VECTOR_RUSAE        = OTVE_VECTOR_ER or 1 shl 7;
       OTVE_VECTOR_RZSAE        = OTVE_VECTOR_ER or 3 shl 6;
 
 
-      OTVE_VECTOR_BCST_MASK    = OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16;
+      OTVE_VECTOR_BCST_MASK    = OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16 or OTVE_VECTOR_BCST32;
       OTVE_VECTOR_ER_MASK      = OTVE_VECTOR_RNSAE or OTVE_VECTOR_RDSAE or OTVE_VECTOR_RUSAE or OTVE_VECTOR_RZSAE;
 
       OTVE_VECTOR_MASK = OTVE_VECTOR_SAE or OTVE_VECTOR_ER or OTVE_VECTOR_ZERO or OTVE_VECTOR_WRITEMASK or OTVE_VECTOR_BCST;
@@ -364,13 +367,13 @@ interface
                          msiMultipleMinSize64, msiMultipleMinSize128, msiMultipleminSize256, msiMultipleMinSize512,
                          msiMemRegSize, msiMemRegx16y32, msiMemRegx16y32z64, msiMemRegx32y64, msiMemRegx32y64z128, msiMemRegx64y128, msiMemRegx64y128z256,
                          msiMemRegx64y256, msiMemRegx64y256z512,
-                         msiMem8, msiMem16, msiMem32, msiBMem32, msiMem64, msiBMem64, msiMem128, msiMem256, msiMem512,
+                         msiMem8, msiMem16, msiBMem16, msiMem32, msiBMem32, msiMem64, msiBMem64, msiMem128, msiMem256, msiMem512,
                          msiXMem32, msiXMem64, msiYMem32, msiYMem64, msiZMem32, msiZMem64,
                          msiVMemMultiple, msiVMemRegSize,
                          msiMemRegConst128,msiMemRegConst256,msiMemRegConst512);
 
-      TMemRefSizeInfoBCST = (msbUnknown, msbBCST32, msbBCST64, msbMultiple);
-      TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16);
+      TMemRefSizeInfoBCST = (msbUnknown, msbBCST16, msbBCST32, msbBCST64, msbMultiple);
+      TMemRefSizeInfoBCSTType = (btUnknown, bt1to2, bt1to4, bt1to8, bt1to16, bt1to32);
 
       TEVEXTupleState = (etsUnknown, etsIsTuple, etsNotTuple);
       TConstSizeInfo  = (csiUnknown, csiMultiple, csiNoSize, csiMem8, csiMem16, csiMem32, csiMem64);
@@ -515,6 +518,7 @@ interface
         IF_BCST4,
         IF_BCST8,
         IF_BCST16,
+        IF_BCST32,
         IF_T2,                  { disp8 - tuple - 2 }
         IF_T4,                  { disp8 - tuple - 4 }
         IF_T8,                  { disp8 - tuple - 8 }
@@ -1389,6 +1393,7 @@ implementation
                       OTVE_VECTOR_BCST4: s := s + ' {1to4}';
                       OTVE_VECTOR_BCST8: s := s + ' {1to8}';
                      OTVE_VECTOR_BCST16: s := s + ' {1to16}';
+                     OTVE_VECTOR_BCST32: s := s + ' {1to32}';
                    end;
 
                   if vopext and OTVE_VECTOR_ER = OTVE_VECTOR_ER then
@@ -1906,12 +1911,12 @@ implementation
                  // e.g. vfpclasspd  k1, [RAX] {1to8}, 0
                  // =>> check flags
 
-
-                 case oper[i]^.vopext and (OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16) of
+                 case oper[i]^.vopext and (OTVE_VECTOR_BCST2 or OTVE_VECTOR_BCST4 or OTVE_VECTOR_BCST8 or OTVE_VECTOR_BCST16 or OTVE_VECTOR_BCST32) of
                     OTVE_VECTOR_BCST2: if not(IF_BCST2 in p^.flags) then exit;
                     OTVE_VECTOR_BCST4: if not(IF_BCST4 in p^.flags) then exit;
                     OTVE_VECTOR_BCST8: if not(IF_BCST8 in p^.flags) then exit;
                    OTVE_VECTOR_BCST16: if not(IF_BCST16 in p^.flags) then exit;
+                   OTVE_VECTOR_BCST32: if not(IF_BCST32 in p^.flags) then exit;
                                else exit;
                  end;
                end;
@@ -2048,7 +2053,12 @@ implementation
           if IF_TFV in aInsEntry^.Flags then
           begin
             for i :=  0 to aInsEntry^.ops - 1 do
-             if (aInsEntry^.optypes[i] and OT_BMEM32 = OT_BMEM32) then
+             if (aInsEntry^.optypes[i] and OT_BMEM16 = OT_BMEM16) then
+             begin
+               tuplesize := 2;
+               break;
+             end
+             else if (aInsEntry^.optypes[i] and OT_BMEM32 = OT_BMEM32) then
              begin
                tuplesize := 4;
                break;
@@ -2108,7 +2118,11 @@ implementation
             begin
               if aInsEntry^.optypes[i] and (OT_REGNORM or OT_MEMORY) = OT_REGMEM then
               begin
-                case aInsEntry^.optypes[i] and (OT_BITS32 or OT_BITS64) of
+                case aInsEntry^.optypes[i] and (OT_BITS16 or OT_BITS32 or OT_BITS64) of
+                  OT_BITS16: begin
+                               memsize := 16;
+                               break;
+                             end;
                   OT_BITS32: begin
                                memsize := 32;
                                break;
@@ -2208,14 +2222,14 @@ implementation
             if aInput.typ = top_ref then
             begin
               if aInput.ref^.base <> NR_NO then
-              begin              
+              begin
                 if (aInput.ref^.offset <> 0) and
                    ((aInput.ref^.offset mod tuplesize) = 0) and
                    (abs(aInput.ref^.offset) div tuplesize <= 127) then
                 begin
                   aInput.ref^.offset := aInput.ref^.offset div tuplesize;
                   EVEXTupleState := etsIsTuple;
-                    end;  
+                end;
               end;
             end;
           end;
@@ -5301,6 +5315,7 @@ implementation
                                   0: MRefInfo := msiNoSize;
                            OT_BITS8: MRefInfo := msiMem8;
                           OT_BITS16: MRefInfo := msiMem16;
+                         OT_BITSB16: MRefInfo := msiBMem16;
                           OT_BITS32: MRefInfo := msiMem32;
                          OT_BITSB32: MRefInfo := msiBMem32;
                           OT_BITS64: MRefInfo := msiMem64;
@@ -5328,7 +5343,7 @@ implementation
                        else
                        begin
                          // ignore broadcast-memory
-                         if not(MRefInfo in [msiBMem32, msiBMem64]) then
+                         if not(MRefInfo in [msiBMem16, msiBMem32, msiBMem64]) then
                          begin
                            if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
                            begin
@@ -5350,12 +5365,13 @@ implementation
                        //if not(MRefInfo in [msiBMem32, msiBMem64]) and (actRegCount > 0) then
                        if actRegCount > 0 then
                        begin
-                         if MRefInfo in [msiBMem32, msiBMem64] then
+                         if MRefInfo in [msiBMem16, msiBMem32, msiBMem64] then
                          begin
                            if IF_BCST2  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to2];
                            if IF_BCST4  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to4];
                            if IF_BCST8  in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to8];
                            if IF_BCST16 in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to16];
+                           if IF_BCST32 in insentry^.flags then InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes := InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes + [bt1to32];
 
                            //InsTabMemRefSizeInfoCache^[AsmOp].BCSTTypes
 
@@ -5412,6 +5428,10 @@ implementation
           begin
             case RegBCSTSizeMask of
                       0: ; // ignore;
+              OT_BITSB16: begin
+                            InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST16;
+                            InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 8;
+                          end;
               OT_BITSB32: begin
                             InsTabMemRefSizeInfoCache^[AsmOp].MemRefSizeBCST       := msbBCST32;
                             InsTabMemRefSizeInfoCache^[AsmOp].BCSTXMMMultiplicator := 4;
@@ -5572,13 +5592,13 @@ implementation
 
             if (AsmOp <> A_CVTSI2SD) and
                (AsmOp <> A_CVTSI2SS) then
-            begin            
+            begin
               inc(iCntOpcodeValError);
               Str(gas_needsuffix[AsmOp],hs1);
               Str(InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize,hs2);
               Message3(asmr_e_not_supported_combination_attsuffix_memrefsize_type,
                        std_op2str[AsmOp],hs1,hs2);
-            end;               
+            end;
           end;
         end;
       end;

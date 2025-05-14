@@ -534,6 +534,7 @@ begin
           if ExistsBCST then
           begin
             case MemRefInfo(opcode).MemRefSizeBCST of
+              msbBCST16: memrefsize := 16;
               msbBCST32: memrefsize := 32;
               msbBCST64: memrefsize := 64;
               else
@@ -907,6 +908,10 @@ begin
                   if ExistsBCST then
                   begin
                     case MemRefInfo(opcode).MemRefSizeBCST of
+                      msbBCST16: begin
+                                   tx86operand(operands[i]).opsize := S_W;
+                                   tx86operand(operands[i]).size   := OS_16;
+                                 end;
                       msbBCST32: begin
                                    tx86operand(operands[i]).opsize := S_L;
                                    tx86operand(operands[i]).size   := OS_32;
@@ -1484,6 +1489,8 @@ begin
                Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
           16: if not(bt1to16 in MemRefInfo(opcode).BCSTTypes) then
                Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
+          32: if not(bt1to32 in MemRefInfo(opcode).BCSTTypes) then
+               Message2(asmr_e_mismatch_broadcasting_elements, '1to' + bcst1, '1to' + bcst2);
         end;
       end
       else if MemRefInfo(opcode).BCSTXMMMultiplicator * multiplicator <> vbcst then
@@ -1549,7 +1556,7 @@ procedure Tx86Instruction.SetInstructionOpsize;
               end;
             end;
 
-            result := true;  
+            result := true;
 	  end
           else if MemRefSize in MemRefMultiples - [msiVMemMultiple] then
           begin
@@ -2265,6 +2272,7 @@ begin
                 OTVE_VECTOR_BCST4: s := s + ' {1to4}';
                 OTVE_VECTOR_BCST8: s := s + ' {1to8}';
                OTVE_VECTOR_BCST16: s := s + ' {1to16}';
+               OTVE_VECTOR_BCST32: s := s + ' {1to32}';
              end;
 
             if vopext and OTVE_VECTOR_ER = OTVE_VECTOR_ER then
