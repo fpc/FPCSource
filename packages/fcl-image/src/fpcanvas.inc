@@ -598,6 +598,63 @@ begin
       Colors[x,y]:=colTransparent;
 end;
 
+function InterpolateColor(AStartColor, AEndColor: TFPColor; x, Total: Integer): TFPColor;
+var
+  f1, f2: Double;
+begin
+  f2 := x / Total;
+  f1 := 1.0 - f2;
+  Result.Red := round(AStartColor.Red * f1 + AEndColor.Red * f2);
+  Result.Green := round(AStartColor.Green * f1 + AEndColor.Green * f2);
+  Result.Blue := round(AStartColor.Blue * f1 + AEndColor.Blue * f2);
+  Result.Alpha := round(AStartColor.Alpha * f1 + AEndColor.Alpha * f2);
+end;
+
+procedure TFPCustomCanvas.GradientFill(const ARect: TRect;
+  AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection);
+var
+  x, y, i, n: Integer;
+  oldPenStyle: TFPPenStyle;
+  oldPenWidth: Integer;
+  oldPenColor: TFPColor;
+begin
+  oldPenStyle := Pen.Style;
+  oldPenWidth := Pen.Width;
+  oldPenColor := Pen.FPColor;
+  Pen.Style := psSolid;
+  Pen.Width := 1;
+
+  if ADirection = gdVertical then
+  begin
+    n := ARect.Bottom - ARect.Top;
+    if n = 0 then
+      exit;
+    i := 0;
+    for y := ARect.Top to ARect.Bottom - 1 do
+    begin
+      Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
+      Line(ARect.Left, y, ARect.Right - 1, y);
+      inc(i);
+    end;
+  end else
+  begin
+    n := ARect.Right - ARect.Left;
+    if n = 0 then
+      exit;
+    i := 0;
+    for x := ARect.Left to ARect.Right - 1 do
+    begin
+      Pen.FPColor := InterpolateColor(AStartColor, AEndColor, i, n);
+      Line(x, ARect.Top, x, ARect.Bottom - 1);
+      inc(i);
+    end;
+  end;
+
+  Pen.Style := oldPenStyle;
+  Pen.Width := oldPenWidth;
+  Pen.FPColor := oldPenColor;
+end;
+
 procedure TFPCustomCanvas.DoRectangleAndFill (const Bounds:TRect);
 begin
   DoRectangleFill (Bounds);

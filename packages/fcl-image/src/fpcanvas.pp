@@ -241,6 +241,7 @@ type
 
   TFPDrawingMode = (dmOpaque, dmAlphaBlend, dmCustom);
   TFPCanvasCombineColors = function(const color1, color2: TFPColor): TFPColor of object;
+  TFPGradientDirection = (gdVertical, gdHorizontal);
 
   { TFPCustomCanvas }
 
@@ -383,6 +384,7 @@ type
     procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage); virtual;
     procedure Erase;virtual;
     procedure DrawPixel(const x, y: integer; const newcolor: TFPColor);
+    procedure GradientFill(const ARect: TRect; AStartColor, AEndColor: TFPColor; ADirection: TFPGradientDirection); virtual;
     // properties
     property LockCount: Integer read FLocks;
     property Font : TFPCustomFont read GetFont write SetFont;
