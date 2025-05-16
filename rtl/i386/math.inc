@@ -198,7 +198,9 @@ const
 
 
   {$if not defined(FPC_PIC) or defined(OLD_ASSEMBLER)}
-    {$define DISABLE_PIC_IN_EXP_REAL}
+    {$ifndef OPENBSD}
+      {$define DISABLE_PIC_IN_EXP_REAL}
+    {$endif ndef OPENBSD}
   {$endif}
   {$define FPC_SYSTEM_HAS_EXP}
     { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt
