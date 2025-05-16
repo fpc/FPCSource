@@ -420,6 +420,7 @@ type
       function FreeVar(p: pointer): SizeUint;
       function TryResizeVar(p: pointer; size: SizeUint): pointer;
 
+      class function AddToHugeUsed(delta: SizeInt): SizeUint; static;
       function AllocHuge(size: SizeUint): pointer;
       function FreeHuge(p: pointer): SizeUint;
       function TryResizeHuge(p: pointer; size: SizeUint): pointer;
@@ -441,7 +442,7 @@ type
 
     GlobalState = record
       hugeUsed: SizeUint; { Same as non-existing “hugeAllocated” as huge chunks don’t have free space.
-                            Protected by gs.lock, but can be read unprotected if unreliability is tolerable.
+                            Atomic, but can be read unprotected if unreliability is tolerable.
                             Huge chunks don’t have thread affinity, so are tracked here. Presently, this value is added to all memory statistics.
                             Not a good idea and makes multithreaded statistics a strange and unreliable mix, but alternatives are even worse. }
 
@@ -1350,9 +1351,23 @@ type
     If SysOSFree is not available, there’s no choice but to cache them.
     Caching is done directly into gs.freeOS if FPC_HAS_FEATURE_THREADING, otherwise ThreadState.freeOS. }
 
+  class function HeapInc.ThreadState.AddToHugeUsed(delta: SizeInt): SizeUint;
+  begin
+  {$if not defined(FPC_HAS_FEATURE_THREADING)}
+    result := SizeUint(SizeInt(gs.hugeUsed) + delta);
+    gs.hugeUsed := result;
+  {$elseif not defined(VER3_2)}
+    result := AtomicIncrement(gs.hugeUsed, SizeUint(delta));
+  {$elseif sizeof(SizeInt) = sizeof(int64)}
+    result := SizeUint(delta + InterlockedExchangeAdd64(SizeInt(gs.hugeUsed), delta));
+  {$else}
+    result := SizeUint(delta + InterlockedExchangeAdd(SizeInt(gs.hugeUsed), delta));
+  {$endif}
+  end;
+
   function HeapInc.ThreadState.AllocHuge(size: SizeUint): pointer;
   var
-    userSize, hugeUsed: SizeUint;
+    userSize: SizeUint;
   begin
     userSize := size;
     size := (size + (HugeChunkDataOffset + CommonHeaderSize + OSChunkVarSizeQuant - 1)) and SizeUint(-OSChunkVarSizeQuant);
@@ -1380,11 +1395,7 @@ type
   {$endif HAS_SYSOSFREE}
     pCommonHeader(result + HugeChunkDataOffset)^.h := HugeHeader;
     inc(result, HugeChunkDataOffset + CommonHeaderSize);
-  {$ifdef FPC_HAS_FEATURE_THREADING} EnterCriticalSection(gs.lock); {$endif}
-    hugeUsed := gs.hugeUsed + size;
-    gs.hugeUsed := hugeUsed;
-  {$ifdef FPC_HAS_FEATURE_THREADING} LeaveCriticalSection(gs.lock); {$endif}
-    UpdateMaxStats(hugeUsed);
+    UpdateMaxStats(AddToHugeUsed(size));
   end;
 
   function HeapInc.ThreadState.FreeHuge(p: pointer): SizeUint;
@@ -1396,11 +1407,11 @@ type
   begin
     dec(p, HugeChunkDataOffset + CommonHeaderSize);
     result := pHugeChunk(p)^.size;
-  {$ifdef FPC_HAS_FEATURE_THREADING} EnterCriticalSection(gs.lock); {$endif}
-    dec(gs.hugeUsed, result);
+    AddToHugeUsed(-SizeInt(result));
   {$ifndef HAS_SYSOSFREE} { But you’d better have SysOSFree... }
   {$ifdef FPC_HAS_FEATURE_THREADING}
     fOs := @gs.freeOS; { gs.freeOS aren’t counted anywhere (for now). }
+    EnterCriticalSection(gs.lock);
   {$else FPC_HAS_FEATURE_THREADING}
     fOs := @freeOS;
     inc(allocated, result); { ThreadState.freeOS are counted in ThreadState.allocated. But since “size” (= result) is just moved from “hugeUsed” to “allocated”, it won’t affect maximums. }
@@ -1415,8 +1426,8 @@ type
     else
       fOs^.first := p;
     fOs^.last := p;
-  {$endif ndef HAS_SYSOSFREE}
   {$ifdef FPC_HAS_FEATURE_THREADING} LeaveCriticalSection(gs.lock); {$endif}
+  {$endif ndef HAS_SYSOSFREE}
   {$ifdef HAS_SYSOSFREE} SysOSFree(p, result); {$endif}
     dec(result, HugeChunkDataOffset + CommonHeaderSize);
   end;
@@ -1438,11 +1449,7 @@ type
     result := SysOSRealloc(p - (HugeChunkDataOffset + CommonHeaderSize), oldSize, size);
     if Assigned(result) then
     begin
-    {$ifdef FPC_HAS_FEATURE_THREADING} EnterCriticalSection(gs.lock); {$endif}
-      gs.hugeUsed := gs.hugeUsed - oldSize + size;
-    {$ifdef FPC_HAS_FEATURE_THREADING} LeaveCriticalSection(gs.lock); {$endif}
-      if size > oldSize then
-        UpdateMaxStats(gs.hugeUsed);
+      UpdateMaxStats(AddToHugeUsed(SizeInt(size) - SizeInt(oldSize)));
       pHugeChunk(result)^.size := size;
       inc(result, HugeChunkDataOffset + CommonHeaderSize);
     end;
