@@ -1764,6 +1764,9 @@ implementation
         { constant sets can be converted by changing the type only }
         if (left.nodetype=setconstn) then
          begin
+           if (cs_check_range in current_settings.localswitches) and (tsetconstnode(left).elements>0) and ((tsetconstnode(left).low<tsetdef(resultdef).setlow) or (tsetconstnode(left).high>tsetdef(resultdef).setmax)) then
+             Message(parser_e_range_check_error);
+
            left.resultdef:=resultdef;
            result:=left;
            left:=nil;
