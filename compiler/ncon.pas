@@ -1463,33 +1463,41 @@ implementation
 
     function tsetconstnode.low: AInt;
       var
-        i: AInt;
+        i: ASizeInt;
       begin
         result:=0;
         if not(assigned(value_set)) then
           exit;
-        for i:=0 to tsetdef(resultdef).setmax do
-          if i in value_set^ then
-            begin
-              result:=i;
-              exit;
-            end;
+        i:=0;
+        while i<=tsetdef(resultdef).setmax do
+          begin
+            if i in value_set^ then
+              begin
+                result:=i;
+                exit;
+              end;
+            inc(i);
+          end;
       end;
 
 
     function tsetconstnode.high: AInt;
       var
-        i: AInt;
+        i: ASizeInt;
       begin
         result:=0;
         if not(assigned(value_set)) then
           exit;
-        for i:=tsetdef(resultdef).setmax downto tsetdef(resultdef).setbase do
-          if i in value_set^ then
-            begin
-              result:=i;
-              exit;
-            end;
+        i:=tsetdef(resultdef).setmax;
+        while i>=tsetdef(resultdef).setbase do
+          begin
+            if i in value_set^ then
+              begin
+                result:=i;
+                exit;
+              end;
+            dec(i);
+          end;
       end;
 
 
