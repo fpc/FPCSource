@@ -832,7 +832,7 @@ var
   Count: UInt32;
   KeySize,DataSize,BufSize : Integer;
   aDigest,KeyBuffer, PadBuffer: TBytes;
-  SHA2,SHA2_ : THashSHA2;
+  SHA2 : THashSHA2;
 
 begin
   Result:=[];
@@ -867,7 +867,7 @@ begin
   SHA2.Reset;
   SHA2.Update(PadBuffer);
   SHA2.Update(aDigest);
-  Result:=SHA2_.GetDigest;
+  Result:=SHA2.GetDigest;
 end;
 
 procedure THashSHA2.Reset;
