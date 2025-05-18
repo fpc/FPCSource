@@ -17,6 +17,7 @@ unit fpjson;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$i fcl-json.inc}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -121,7 +122,7 @@ Type
   end;
 
   { TJSONData }
-  
+
   TJSONData = class(TObject)
   private
     Const
@@ -131,7 +132,18 @@ Type
     class procedure DetermineElementSeparators;
     class function GetCompressedJSON: Boolean; {$IFNDEF PAS2JS}static;{$ENDIF}
     class procedure SetCompressedJSON(AValue: Boolean); {$IFNDEF PAS2JS}static;{$ENDIF}
-  protected
+
+  protected type
+    TFormatJSONContext = record
+      Options: TFormatOptions;
+      S: TJSONStringType; // .Join does not work very well for utf8string...
+    {$ifndef Pas2JS} SUsed, {$endif} NCachedIndents, IndentSize: SizeInt;
+      CachedIndents: array of TJSONStringType;
+      procedure Append(const Piece: TJSONStringType);
+      procedure AppendIndent(I: SizeInt);
+      procedure CreateCachedIndent(I: SizeInt);
+    end;
+
     Class Procedure DoError(Const Msg : String);
     Class Procedure DoError(Const Fmt : String; const Args : Array of Const);
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; virtual;
@@ -160,7 +172,7 @@ Type
     procedure SetValue(const AValue: TJSONVariant); virtual; abstract;
     function GetItem(Index : Integer): TJSONData; virtual;
     procedure SetItem(Index : Integer; const AValue: TJSONData); virtual;
-    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; virtual;
+    procedure DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt); virtual;
     function GetCount: Integer; virtual;
   Public
     Class function JSONType: TJSONType; virtual;
@@ -174,7 +186,7 @@ Type
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
     Function GetPath(Const APath : TJSONStringType) : TJSONdata;
     Function Clone : TJSONData; virtual; abstract;
-    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType; 
+    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType;
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TJSONData read GetItem write SetItem;
     property Value: TJSONVariant read GetValue write SetValue;
@@ -240,7 +252,7 @@ Type
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsString(const AValue: TJSONStringType); override;
     procedure SetValue(const AValue: TJSONVariant); override;
-    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; override;
+    procedure DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt); override;
   public
     Constructor Create(AValue : TJSONFloat); reintroduce;
     class function NumberType : TJSONNumberType; override;
@@ -543,7 +555,7 @@ Type
     function GetCount: Integer; override;
     function GetItem(Index : Integer): TJSONData; override;
     procedure SetItem(Index : Integer; const AValue: TJSONData); override;
-    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; override;
+    procedure DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt); override;
   public
     Constructor Create; overload; reintroduce;
     Constructor Create(const Elements : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}); overload;
@@ -696,7 +708,7 @@ Type
     function GetCount: Integer; override;
     function GetItem(Index : Integer): TJSONData; override;
     procedure SetItem(Index : Integer; const AValue: TJSONData); override;
-    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; override;
+    procedure DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt); override;
   public
     constructor Create; reintroduce;
     Constructor Create(const Elements : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}); overload;
@@ -1128,18 +1140,18 @@ begin
                 if (U1<>0) then
                   begin
                   if ((U1>=$D800) and (U1<=$DBFF)) and
-                     ((U2>=$DC00) and (U2<=$DFFF)) then                  
+                     ((U2>=$DC00) and (U2<=$DFFF)) then
                     begin
                      App:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode({$ENDIF}WideChar(U1)+WideChar(U2){$IFDEF FPC_HAS_CPSTRING}){$ENDIF};
                      U2:=0;
-                    end 
+                    end
                   else
                     begin
                     App:={$IFDEF FPC_HAS_CPSTRING}UTF8Encode({$ENDIF}WideChar(U1){$IFDEF FPC_HAS_CPSTRING}){$ENDIF};
                     Result:=Result+App;
                     App:='';
                    end;
-                  end 
+                  end
                 else
                    App:='';
                 U1:=U2;
@@ -1507,12 +1519,12 @@ end;
 { TJSONData }
 
 {$IFNDEF PAS2JS}
-function TJSONData.GetAsUnicodeString: TJSONUnicodeStringType; 
+function TJSONData.GetAsUnicodeString: TJSONUnicodeStringType;
 begin
   Result:=UTF8Decode(AsString);
 end;
 
-procedure TJSONData.SetAsUnicodeString(const AValue: TJSONUnicodeStringType); 
+procedure TJSONData.SetAsUnicodeString(const AValue: TJSONUnicodeStringType);
 begin
   AsString:=UTF8Encode(AValue);
 end;
@@ -1605,6 +1617,44 @@ begin
   TJSONObject.DetermineElementQuotes;
 end;
 
+procedure TJSONData.TFormatJSONContext.Append(const Piece: TJSONStringType);
+{$ifndef PAS2JS}
+var
+  Start, NPiece: SizeInt;
+begin
+  Start := SUsed;
+  NPiece := Length(Piece);
+  Inc(SUsed, NPiece);
+  if SUsed > Length(S) then
+    SetLength(S, 128 + SUsed + SUsed shr 2 + SUsed shr 4);
+  Move(Pointer(Piece)^, (Pointer(S) + Start * SizeOf(S[1]))^, NPiece * SizeOf(S[1]));
+end;
+{$else}
+begin
+  S := S + Piece;
+end;
+{$endif}
+
+procedure TJSONData.TFormatJSONContext.AppendIndent(I: SizeInt);
+begin
+  if I <= 0 then exit; // Shortcut if 0.
+  if (I >= Length(CachedIndents)) or (CachedIndents[I] = '') then
+    CreateCachedIndent(I);
+  Append(CachedIndents[I]);
+end;
+
+procedure TJSONData.TFormatJSONContext.CreateCachedIndent(I: SizeInt);
+var
+  C: Char;
+begin
+  if I >= Length(CachedIndents) then
+    SetLength(CachedIndents, 16 + I + I shr 2 + I shr 4);
+  C := ' ';
+  if foUseTabChar in Options then
+    C := #9;
+  CachedIndents[I] := StringOfChar(C, I * IndentSize);
+end;
+
 class procedure TJSONData.DoError(const Msg: String);
 begin
   Raise EJSON.Create(Msg);
@@ -1672,19 +1722,26 @@ end;
 
 function TJSONData.FormatJSON(Options: TFormatOptions; Indentsize: Integer
   ): TJSONStringType;
-
+var
+  Ctx: TFormatJSONContext;
 begin
-  Result:=DoFormatJSON(Options,0,IndentSize);
+  Ctx.Options := Options;
+{$ifndef Pas2JS}
+  Ctx.SUsed := 0;
+{$endif}
+  Ctx.NCachedIndents := 0;
+  Ctx.IndentSize := IndentSize;
+  DoFormatJSON(Ctx, 0);
+{$ifndef Pas2JS}
+  SetLength(Ctx.S, Ctx.SUsed);
+{$endif}
+  Result := Ctx.S;
 end;
 
-function TJSONData.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
-  Indent: Integer): TJSONStringType;
+procedure TJSONData.DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt);
 
 begin
-  Result:=AsJSON;
-  if Options=[] then ;
-  if CurrentIndent=0 then ;
-  if Indent>0 then ;
+  Ctx.Append(AsJSON);
 end;
 
 { TJSONnumber }
@@ -2190,14 +2247,12 @@ begin
   FValue:={$IFDEF PAS2JS}TJSONFloat(AValue){$else}AValue{$ENDIF};
 end;
 
-function TJSONFloatNumber.DoFormatJSON(Options: TFormatOptions; CurrentIndent, Indent: Integer): TJSONStringType;
+procedure TJSONFloatNumber.DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt);
 begin
-  if (foFormatFloat in Options) then
-    Result:=TJSONStringType(FloatToStr(FValue,JSONFormatSettings))
+  if (foFormatFloat in Ctx.Options) then
+    Ctx.Append(TJSONStringType(FloatToStr(FValue,JSONFormatSettings)))
   else
-    Result:=AsJSON;
-  if CurrentIndent=0 then ;
-  if Indent=0 then ;
+    Ctx.Append(AsJSON);
 end;
 
 
@@ -2766,55 +2821,40 @@ begin
   Result:=Result+']';
 end;
 
-Function IndentString(Options : TFormatOptions; Indent : Integer) : TJSONStringType;
-
-begin
-  If (foUseTabChar in Options) then
-    Result:=StringofChar(#9,Indent)
-  else
-    Result:=StringOfChar(' ',Indent);  
-end;
-
-function TJSONArray.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
-  Indent: Integer): TJSONStringType;
+procedure TJSONArray.DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt);
 
 Var
   I : Integer;
   MultiLine : Boolean;
   SkipWhiteSpace : Boolean;
-  Ind : String;
   LB : String;
-  
+
 begin
-  Result:='[';
-  MultiLine:=Not (foSingleLineArray in Options);
-  if foForceLF in Options then
+  Ctx.Append('[');
+  MultiLine:=Not (foSingleLineArray in Ctx.Options);
+  if foForceLF in Ctx.Options then
     LB:=#10
   else
     LB:=sLineBreak;
-  SkipWhiteSpace:=foSkipWhiteSpace in Options;
-  Ind:=IndentString(Options, CurrentIndent+Indent);
+  SkipWhiteSpace:=foSkipWhiteSpace in Ctx.Options;
   if MultiLine then
-    Result:=Result+LB;
+    Ctx.Append(LB);
   For I:=0 to Count-1 do
     begin
     if MultiLine then
-      Result:=Result+Ind;
+      Ctx.AppendIndent(CurrentIndent + 1);
     if Items[i]=Nil then
-      Result:=Result+'null'
+      Ctx.Append('null')
     else
-      Result:=Result+Items[i].DoFormatJSON(Options,CurrentIndent+Indent,Indent);
+      Items[i].DoFormatJSON(Ctx, CurrentIndent + 1);
     If (I<Count-1) then
-      if MultiLine then
-        Result:=Result+','
-      else
-        Result:=Result+ElementSeps[SkipWhiteSpace];
+      Ctx.Append(ElementSeps[SkipWhiteSpace or MultiLine]);
     if MultiLine then
-      Result:=Result+LB
+      Ctx.Append(LB);
     end;
   if MultiLine then
-    Result:=Result+IndentString(Options, CurrentIndent);
-  Result:=Result+']';
+    Ctx.AppendIndent(CurrentIndent);
+  Ctx.Append(']');
 end;
 
 
@@ -2991,7 +3031,7 @@ procedure TJSONArray.Iterate(Iterator: TJSONArrayIterator; Data: TObject);
 Var
   I : Integer;
   Cont : Boolean;
-  
+
 begin
   I:=0;
   Cont:=True;
@@ -3741,30 +3781,24 @@ begin
 end;
 
 
-function TJSONObject.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
-  Indent: Integer): TJSONStringType;
+procedure TJSONObject.DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt);
 
 Var
   i : Integer;
-  S : TJSONStringType;
   MultiLine,UseQuotes, SkipWhiteSpace,SkipWhiteSpaceOnlyLeading : Boolean;
-  NSep,Sep,Ind : String;
-  V : TJSONStringType;
+  NSep,Sep : String;
   D : TJSONData;
-  LB : String;
+  LB : TJSONStringType;
 
 begin
-  Result:='';
-  UseQuotes:=Not (foDoNotQuoteMembers in options);
-  MultiLine:=Not (foSingleLineObject in Options);
-  if foForceLF in Options then
+  UseQuotes:=Not (foDoNotQuoteMembers in Ctx.Options);
+  MultiLine:=Not (foSingleLineObject in Ctx.Options);
+  if foForceLF in Ctx.Options then
     LB:=#10
   else
     LB:=sLineBreak;
-  SkipWhiteSpace:=foSkipWhiteSpace in Options;
-  SkipWhiteSpaceOnlyLeading:=foSkipWhiteSpaceOnlyLeading in Options;
-  CurrentIndent:=CurrentIndent+Indent;
-  Ind:=IndentString(Options, CurrentIndent);
+  SkipWhiteSpace:=foSkipWhiteSpace in Ctx.Options;
+  SkipWhiteSpaceOnlyLeading:=foSkipWhiteSpaceOnlyLeading in Ctx.Options;
   If SkipWhiteSpace then
     begin
     if SkipWhiteSpaceOnlyLeading then
@@ -3775,36 +3809,51 @@ begin
   else
     NSep:=' : ';
   If MultiLine then
-    Sep:=','+LB+Ind
+    begin
+    Sep:=','+LB { + indentation, appended manually }
+    end
   else if SkipWhiteSpace then
     Sep:=','
   else
     Sep:=', ';
+  If Count = 0 then
+    begin
+      Ctx.Append('{}');
+      exit;
+    end;
+  if MultiLine then
+    begin
+    Ctx.Append('{');
+    Ctx.Append(LB);
+    end
+  else
+    Ctx.Append(ObjStartSeps[SkipWhiteSpace]);
   For I:=0 to Count-1 do
     begin
     If (I>0) then
-      Result:=Result+Sep
-    else If MultiLine then
-      Result:=Result+Ind;
-    S:=StringToJSONString(Names[i]);
-    If UseQuotes then
-      S:='"'+S+'"';
+      Ctx.Append(Sep);
+    If MultiLine then
+      Ctx.AppendIndent(CurrentIndent + 1);
+    if UseQuotes then
+      Ctx.Append('"');
+    Ctx.Append(StringToJSONString(Names[i]));
+    if UseQuotes then
+      Ctx.Append('"');
+    Ctx.Append(NSep);
     D:=Items[i];
     if D=Nil then
-      V:='null'
+      Ctx.Append('null')
     else
-      v:=Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
-    Result:=Result+S+NSep+V;
+      D.DoFormatJSON(Ctx, CurrentIndent + 1);
     end;
-  If (Result<>'') then
+  if MultiLine then
     begin
-    if MultiLine then
-      Result:='{'+LB+Result+LB+indentString(options,CurrentIndent-Indent)+'}'
-    else
-      Result:=ObjStartSeps[SkipWhiteSpace]+Result+ObjEndSeps[SkipWhiteSpace]
+    Ctx.Append(LB);
+    Ctx.AppendIndent(CurrentIndent);
+    Ctx.Append('}');
     end
   else
-    Result:='{}';
+    Ctx.Append(ObjEndSeps[SkipWhiteSpace]);
 end;
 
 procedure TJSONObject.Iterate(Iterator: TJSONObjectIterator; Data: TObject);
