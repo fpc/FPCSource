@@ -11,7 +11,6 @@ procedure {$ifdef DO_DISPATCH}SHA1Transform_Sha1Asm{$else}SHA1Transform{$endif}
       (var Ctx: TSHA1Context; const Data: Pointer); assembler;
 {$if defined(x86_64) and not defined(windows)}nostackframe;{$endif}
 {$ifndef CPU64}
-const MASK : packed record a, b : qword; end = (a:$08090a0b0c0d0e0f;b:$0001020304050607);
 var
   ABCD_SAVE,E0_SAVE : packed record a, b : qword; end;
 {$endif}
@@ -48,7 +47,12 @@ asm
     mov rax,$08090a0b0c0d0e0f;
     pinsrq xmm3,rax,$00
     {$else}
-    movdqu xmm3,[mask]
+    push $00010203
+    push $04050607
+    push $08090a0b
+    push $0c0d0e0f
+    movdqu xmm3, [esp]
+    add esp, 16
     {$endif}
 
     //while (length >= 64) do
