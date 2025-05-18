@@ -528,7 +528,6 @@ type
     function Get : T;
   end;
 
-
 function EqualRect(const r1,r2 : TRect) : Boolean;
 function EqualRect(const r1,r2 : TRectF) : Boolean;
 function NormalizeRectF(const Pts: array of TPointF): TRectF; overload;
@@ -2082,7 +2081,7 @@ end;
 
 procedure TScoped.Assign(aObj : T);
 begin
-  Swap(aObj);
+  Self.Obj:=aObj;
 end;
 
 function TScoped.Swap(AObj:T):T;
@@ -2090,7 +2089,7 @@ var
   LCurrent:T;
 begin
   LCurrent := self.obj;
-  self.obj := AObj;
+  Assign(AObj);
   Result := LCurrent;
 end;
 
