@@ -731,7 +731,12 @@ begin
     dec(i,sizeof(theap_mem_info)+extra_size);
     if add_tail then
       dec(i,tail_size);
-    InternalFreeMemSize:=i;
+{$ifdef EXTRA}
+    if (i<size) then
+      dump_wrong_size(pp,size,error_file)
+    else
+{$endif EXTRA}
+      InternalFreeMemSize:=size;
   end else
     InternalFreeMemSize:=size;
 end;
