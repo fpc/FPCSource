@@ -14,7 +14,9 @@
 
 // Normally, if an optimized version is available for OS/CPU, that will be used
 // Define to force to use implementation in pascal
-{ $DEFINE SHA256PASCAL}
+{$ifdef OLD_ASSEMBLER}
+  {$DEFINE SHA256PASCAL}
+{$endif OLD_ASSEMBLER}
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit fpsha256;

@@ -15,7 +15,9 @@
 
 // Normally, if an optimized version is available for OS/CPU, that will be used
 // Define to use existing unoptimized implementation
-{ $DEFINE SHA1PASCAL}
+{$ifdef OLD_ASSEMBLER}
+  {$DEFINE SHA1PASCAL}
+{$endif OLD_ASSEMBLER}
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit sha1;
