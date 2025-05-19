@@ -122,7 +122,7 @@ Type
     TFormatJSONContext = record
       Options: TFormatOptions;
       S: TJSONStringType; // .Join does not work very well for utf8string...
-    {$ifndef Pas2JS} SUsed, {$endif} NCachedIndents, IndentSize: SizeInt;
+    {$ifndef Pas2JS} SUsed, {$endif} IndentSize: SizeInt;
       CachedIndents: array of TJSONStringType;
       procedure Append(const Piece: TJSONStringType);
       procedure AppendIndent(I: SizeInt);
@@ -1607,7 +1607,7 @@ begin
   NPiece := Length(Piece);
   Inc(SUsed, NPiece);
   if SUsed > Length(S) then
-    SetLength(S, 128 + SUsed + SUsed shr 2 + SUsed shr 4);
+    SetLength(S, 128 + SUsed + SUsed shr 2 + SUsed shr 3);
   Move(Pointer(Piece)^, (Pointer(S) + Start * SizeOf(S[1]))^, NPiece * SizeOf(S[1]));
 end;
 {$else}
@@ -1618,7 +1618,7 @@ end;
 
 procedure TJSONData.TFormatJSONContext.AppendIndent(I: SizeInt);
 begin
-  if I <= 0 then exit; // Shortcut if 0.
+  if (I <= 0) or (IndentSize <= 0) then exit; // Shortcut if 0.
   if (I >= Length(CachedIndents)) or (CachedIndents[I] = '') then
     CreateCachedIndent(I);
   Append(CachedIndents[I]);
@@ -1629,7 +1629,7 @@ var
   C: Char;
 begin
   if I >= Length(CachedIndents) then
-    SetLength(CachedIndents, 16 + I + I shr 2 + I shr 4);
+    SetLength(CachedIndents, 16 + I + I shr 2 + I shr 3);
   C := ' ';
   if foUseTabChar in Options then
     C := #9;
@@ -1710,7 +1710,6 @@ begin
 {$ifndef Pas2JS}
   Ctx.SUsed := 0;
 {$endif}
-  Ctx.NCachedIndents := 0;
   Ctx.IndentSize := IndentSize;
   DoFormatJSON(Ctx, 0);
 {$ifndef Pas2JS}
