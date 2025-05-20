@@ -28,12 +28,16 @@ uses
 
 Type
   TWasmTimerTickEvent = Procedure (aTimerID : TWasmTimerID; userdata : pointer; var aContinue : Boolean);
+  TDomHighResolutionTimeStamp = Double;
+  PDomHighResolutionTimeStamp = ^TDomHighResolutionTimeStamp;
 
 function __wasm_timer_allocate(ainterval : longint; userdata: pointer) : TWasmTimerID; external TimerExportName name TimerFN_allocate;
 
 procedure __wasm_timer_deallocate(timerid: TWasmTimerID); external TimerExportName name TimerFN_Deallocate;
 
 function __wasm_timer_tick(timerid: TWasmTimerID; userdata : pointer) : boolean;
+
+function __wasm_timer_performance_now(aNow : PDomHighResolutionTimeStamp) : Longint; external TimerExportName name TimerFN_Performance_Now;
 
 procedure __wasmtimer_log(level : TWasmLogLevel; const Msg : String);
 procedure __wasmtimer_log(level : TWasmLogLevel; const Fmt : String; Args : Array of const);

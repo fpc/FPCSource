@@ -45,6 +45,7 @@ Type
     property OnTimer : TNotifyEvent Read FOnTimer;
     Property ID : TWasmTimerID Read FID;
     class procedure HandleWasmTimer(aTimerID: TWasmTimerID; userdata: pointer; var aContinue: Boolean); static;
+    class function getPerformanceNow : Double;
   end;
 
   TTimer = Class(TComponent)
@@ -110,6 +111,15 @@ begin
   __wasmtimer_log(wllDebug, 'Timer(id: %d) tick. Data [%p] continue: %b',[aTimerID,UserData,aContinue]);
   if aContinue then
     Obj.Execute;
+end;
+
+class function TWasmTimer.getPerformanceNow: Double;
+begin
+  if __wasm_timer_performance_now(@Result)<>ETIMER_SUCCESS then
+    begin
+    __wasmtimer_log(wllError, 'No performance timer available');
+    Raise EWasmTimer.Create('No performance timer available');
+    end;
 end;
 
 { TTimer }
