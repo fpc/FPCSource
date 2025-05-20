@@ -671,9 +671,12 @@ uses
       end;
 
     procedure TWasmFuncType.add_param(param: TWasmBasicType);
+    var
+      len : integer;
       begin
-        SetLength(params,Length(params)+1);
-        params[High(params)]:=param;
+        len:=Length(params);
+        SetLength(params,len+1);
+        params[len]:=param;
       end;
 
     procedure TWasmFuncType.add_result(res: TWasmBasicType);
