@@ -57,8 +57,8 @@ function  IsMemoryManagerSet: Boolean;
 
 { Variables }
 const
-  MaxKeptOSChunks: DWord = 4; { if more than MaxKeptOSChunks are free, the heap manager will release
-                              chunks back to the OS }
+  { if more than MaxKeptOSChunks are free, the heap manager will release chunks back to the OS }
+  MaxKeptOSChunks: DWord = {$ifdef LEGACYHEAP} 4 {$else} 1 {$endif};
   growheapsizesmall : ptruint=32*1024; { fixed-size small blocks will grow with 32k }
   growheapsize1 : ptruint=256*1024;  { < 256k will grow with 256k }
   growheapsize2 : ptruint=1024*1024; { > 256k will grow with 1m }

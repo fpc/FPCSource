@@ -265,9 +265,11 @@ type
     class function IndexToSize(sizeIndex: SizeUint): SizeUint; static; inline;
 
   const
-    OSChunkFixedSizeQuant = 32 * 1024;
     OSChunkVarSizeQuant = 64 * 1024;
-    MaxFixedChunkSize = 256 * 1024;
+    FixedArenaSizeQuant = 4 * 1024;
+    MinFixedArenaSize = 8 * 1024;
+    MaxFixedArenaSize = 64 * 1024;
+    MaxKeptFixedArenas = 4;
 
     { Limit on shrinking variable chunks and keeping the tail when splitting the chunk in AllocVar / TryResizeVar. }
     MinVarHeaderAndPayload = MaxFixedHeaderAndPayload * 3 div 4;
@@ -277,20 +279,15 @@ type
   const
     SizeIndexBits = 1 + trunc(ln(FixedSizesCount - 1) /  ln(2));
     SizeIndexMask = 1 shl SizeIndexBits - 1;
-    FixedBitPos = {$if SizeIndexBits >= 3} SizeIndexBits {$else} 3 {$endif}; { Variable chunks use 3 low bits for used / first / last. }
+    FixedBitPos = {$if SizeIndexBits >= 4} SizeIndexBits {$else} 4 {$endif}; { Variable chunks use 4 low bits for used / first / last / fixed arena. }
     FixedFlag = 1 shl FixedBitPos;
-    ChunkOffsetShift = {$if FixedBitPos + 1 >= 5} FixedBitPos + 1 {$else} 5 {$endif}; { VarSizeQuant must be at least 2^5 to fit 3 64-bit pointers (RbTree.Node). }
-
-    { Not really used; MaxFixedChunkSize limit on fixed OS chunks assumed to be strictly enforced and (much!) more restricting than MaxChunkOffset.
-      MaxFixedChunkSize = 256 Kb.
-      MaxChunkOffset ~ 2^(32 - 6) ~ 67 Mb.
-      Indices could be stored instead, but offsets avoid multiplications. }
-    MaxChunkOffset = High(uint32) shr ChunkOffsetShift;
+    FixedArenaOffsetShift = {$if FixedBitPos + 1 >= 5} FixedBitPos + 1 {$else} 5 {$endif}; { VarSizeQuant must be at least 2^5 to fit 3 64-bit pointers (RbTree.Node). }
 
     UsedFlag = 1 shl 0;
     FirstFlag = 1 shl 1;
     LastFlag = 1 shl 2;
-    VarSizeQuant = 1 shl ChunkOffsetShift; {$if VarSizeQuant < Alignment} {$error Assumed to be >= Alignment.} {$endif} {$if VarSizeQuant < 3 * sizeof(pointer)} {$error Must fit RbTree.Node.} {$endif}
+    FixedArenaFlag = 1 shl 3;
+    VarSizeQuant = 1 shl FixedArenaOffsetShift; {$if VarSizeQuant < Alignment} {$error Assumed to be >= Alignment.} {$endif} {$if VarSizeQuant < 3 * sizeof(pointer)} {$error Must fit RbTree.Node.} {$endif}
     VarSizeMask = SizeUint(-VarSizeQuant);
     HugeHeader = 0; { Special header value for huge chunks. FixedFlag must be 0, and the value must be impossible for a variable chunk. 0 turns out to be suitable. :) }
 
@@ -300,13 +297,13 @@ type
       Fixed chunk header, assuming SizeIndexBits = 4:
       h[0:3] = size index (= h and SizeIndexMask)
       h[4] = 1 (h and FixedFlag <> 0)
-      h[5:31] — offset in the OS chunk (= h shr ChunkOffsetShift)
+      h[5:31] — offset in the FixedArena (= h shr FixedArenaOffsetShift)
 
       Variable chunk header, assuming SizeIndexBits = 4:
       h[0] = used flag (h and UsedFlag <> 0)
       h[1] = first flag (h and FirstFlag <> 0)
       h[2] = last flag (h and LastFlag <> 0)
-      h[3] = unused
+      h[3] = fixed arena flag (h and FixedArenaFlag <> 0)
       h[4] = 0 (h and FixedFlag = 0)
       h[5:31] = size, rounded up to 32 (VarSizeQuant), shr 5; in other words, size = h and VarSizeMask.
 
@@ -334,16 +331,7 @@ type
 
     pOSChunk = ^OSChunk;
     OSChunk = object(OSChunkBase) { Common header for all OS chunks. }
-    {$ifdef FPC_HAS_FEATURE_THREADING}
-      threadState: pThreadState; { Protected with gs.lock. Nil if orphaned. }
-    {$endif}
       prev, next: pointer; { pOSChunk, but used for different subtypes. }
-
-      { For what purpose this chunk was used the last time. -1 — var, N ≥ 0 — fixed size N. Allows for a small optimization when reusing fixed chunks. }
-      sizeIndex: SizeInt;
-
-      { Remove from list src and push to list dest. }
-      procedure MoveTo(var src, dest: pOSChunk);
     end;
 
     pFreeOSChunk = ^FreeOSChunk;
@@ -363,13 +351,15 @@ type
     {$endif}
     end;
 
-    pFixedOSChunk = ^FixedOSChunk;
-    FixedOSChunk = object(OSChunk)
-      { Data starts at FixedOSChunkDataOffset and spans for “maxSize” (virtual value, does not exist directly) bytes, of which:
+    pFixedArena = ^FixedArena;
+    FixedArena = record
+      { Allocated with AllocVar(isArena := true), so has VarHeader to the left.
+
+        Data starts at FixedArenaDataOffset and spans for “maxSize” (virtual value, does not exist directly) bytes, of which:
         — first formattedSize are either allocated (“used”; counted in usedSize) or in the freelist (firstFreeChunk; size = formattedSize - usedSize),
         — the rest “maxSize” - formattedSize are yet unallocated space.
 
-        This design, together with tracking free chunks per FixedOSChunk rather than per fixed size, trivializes reusing the chunk.
+        This design, together with tracking free chunks per FixedArena rather than per fixed size, trivializes reusing the fixed arenas.
         Chopping all available space at once would get rid of the “unallocated space” entity, but is a lot of potentially wasted work:
         https://gitlab.com/freepascal.org/fpc/source/-/issues/40447.
 
@@ -380,6 +370,8 @@ type
 
       firstFreeChunk: pFreeChunk;
       usedSize, formattedSize, fullThreshold: uint32;
+      sizeIndex: uint32; { For what size it was used the last time. Allows for a small optimization when reusing fixed arenas. }
+      prev, next: pFixedArena;
     end;
 
     pVarOSChunk = ^VarOSChunk;
@@ -389,7 +381,7 @@ type
     pVarHeader = ^VarHeader;
     VarHeader = record
     {$ifdef FPC_HAS_FEATURE_THREADING}
-      threadState: pThreadState;
+      threadState: pThreadState; { Protected with gs.lock. Nil if orphaned. }
     {$endif}
       prevSize: uint32; { Always 0 for the first chunk. }
       { Assumed to indeed match chunk’s CommonHeader, i.e. that there is no padding after this field.
@@ -409,7 +401,8 @@ type
     end;
 
     ThreadState = object
-      fullOS: pFixedOSChunk; { Completely filled fixed OS chunks. }
+      emptyArenas: pFixedArena; { Empty fixed arenas to be reused instead of slower AllocVar. Singly linked list, “prev”s are garbage. }
+      nEmptyArenas: SizeUint; { # of items in emptyArenas. }
       freeOS: FreeOSChunkList; { Completely empty OS chunks. }
     {$ifdef FPC_HAS_FEATURE_THREADING}
       toFree: pFreeChunk; { Free requests from other threads, atomic. }
@@ -420,25 +413,26 @@ type
       varOS: pVarOSChunk;
       varFree: RbTree;
 
-      { OS chunks with at least 1 free chunk (including unformatted space), but not completely empty.
-        OS chunks that become completely empty are moved to freeOS, completely full are moved to fullOS. }
-      fixedPartialOS: array[0 .. FixedSizesCount - 1] of pFixedOSChunk;
+      { Fixed arenas with at least 1 free chunk (including unformatted space), but not completely empty.
+        Fixed arenas that become completely empty are moved to emptyArenas, completely full are... not present in any list. }
+      partialArenas: array[0 .. FixedSizesCount - 1] of pFixedArena;
 
-      { Only to calculate preferable new fixed OS chunk sizes...
-        (Updated infrequently, as opposed to possible “fixedUsed”. When a new fixed OS chunk is required, all existing chunks of its size are full.) }
-      allocatedByFullFixed: array[0 .. FixedSizesCount - 1] of SizeUint;
+      { Only to calculate preferable new fixed arena sizes...
+        (Updated infrequently, as opposed to possible “usedPerArena”. When a new arena is required, all existing arenas of its size are full.) }
+      allocatedByFullArenas: array[0 .. FixedSizesCount - 1] of SizeUint;
 
     {$ifdef DEBUG_HEAP_INC}
       procedure Dump(var f: text);
     {$endif}
 
+      function ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint;
       function AllocFixed(size: SizeUint): pointer;
       function FreeFixed(p: pointer): SizeUint;
 
-      function GetOSChunk(minSize, maxSize: SizeUint; sizeIndex: SizeInt): pOSChunk;
-      function AllocateOSChunk(minSize: SizeUint; sizeIndex: SizeInt): pOSChunk;
+      function GetOSChunk(minSize, maxSize: SizeUint): pOSChunk;
+      function AllocateOSChunk(minSize: SizeUint): pOSChunk;
 
-      function AllocVar(size: SizeUint): pointer;
+      function AllocVar(size: SizeUint; isArena: boolean): pointer;
       function FreeVar(p: pointer): SizeUint;
       function TryResizeVar(p: pointer; size: SizeUint): pointer;
 
@@ -452,12 +446,10 @@ type
       procedure FlushToFree;
 
       procedure Orphan; { Must be performed under gs.lock. }
-      class procedure Orphan(list: pFixedOSChunk); static;
-      procedure Adopt(osChunk: pFixedOSChunk); { Must be performed under gs.lock. }
+      procedure AdoptArena(arena: pFixedArena);
       procedure AdoptVarOwner(p: pointer); { Adopts the OS chunk that contains p. Must be performed under gs.lock. }
-
-      class function ChangeThreadStates(list: pOSChunk; ts: pThreadState): pOSChunk; static; { Returns the last item of the list. }
       class procedure ChangeThreadState(vOs: pVarOSChunk; ts: pThreadState); static;
+      procedure FreeEmptyArenas(untilCount: SizeUint);
 
     {$ifndef FPC_SECTION_THREADVARS}
       procedure FixupSelfPtr;
@@ -476,7 +468,6 @@ type
       lockUse: int32;
 
       { Data from dead threads (“orphaned”), protected by gs.lock. }
-      fixedOS: pFixedOSChunk;
       freeOS: FreeOSChunkList;
       varOS: pVarOSChunk;
     {$endif FPC_HAS_FEATURE_THREADING}
@@ -494,7 +485,7 @@ type
   const
     CommonHeaderSize = sizeof(CommonHeader);
   {$if MinFixedHeaderAndPayload < CommonHeaderSize + sizeof(FreeChunk)} {$error MinFixedHeaderAndPayload does not fit CommonHeader + FreeChunk.} {$endif}
-    FixedOSChunkDataOffset = (sizeof(FixedOSChunk) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
+    FixedArenaDataOffset = (sizeof(FixedArena) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
     VarHeaderSize = sizeof(VarHeader);
     VarOSChunkDataOffset = (sizeof(VarOSChunk) + VarHeaderSize + Alignment - 1) and -Alignment - VarHeaderSize;
     HugeChunkDataOffset = (sizeof(HugeChunk) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
@@ -508,7 +499,7 @@ type
 
   class function RbTree.Control.KeyCompare(key: pointer; b: pNode): PtrInt;
   begin
-    result := PtrInt(key) - PtrInt(HeapInc.pFreeVarChunk(pointer(b) - HeapInc.FreeVarChunkRbnOffset)^.size);
+    result := PtrInt(PtrUint(key)) - PtrInt(HeapInc.pFreeVarChunk(pointer(b) - HeapInc.FreeVarChunkRbnOffset)^.size);
   end;
 
   procedure RbTree.Add(n: pNode);
@@ -833,26 +824,6 @@ type
     result := FixedSizes[sizeIndex];
   end;
 
-  procedure HeapInc.OSChunk.MoveTo(var src, dest: pOSChunk);
-  var
-    osNext, osPrev: pOSChunk;
-  begin
-    osPrev := prev;
-    osNext := next;
-    if Assigned(osPrev) then
-      osPrev^.next := osNext
-    else
-      src := osNext;
-    if Assigned(osNext) then
-      osNext^.prev := osPrev;
-    prev := nil;
-    osNext := dest;
-    next := osNext;
-    if Assigned(osNext) then
-      osNext^.prev := @self;
-    dest := @self;
-  end;
-
   function HeapInc.FreeOSChunkList.Get(minSize, maxSize: SizeUint): pOSChunk;
   var
     prev, next: pFreeOSChunk;
@@ -915,7 +886,7 @@ type
   procedure HeapInc.ThreadState.Dump(var f: text);
   var
     i: SizeInt;
-    fix: pFixedOSChunk;
+    fix: pFixedArena;
     fr: pFreeOSChunk;
   {$ifdef FPC_HAS_FEATURE_THREADING}
     tf: pFreeChunk;
@@ -923,35 +894,52 @@ type
     vfrbn: RbTree.pNode;
     vOs: pVarOSChunk;
     p: pointer;
+    needLE, anything: boolean;
+
+    procedure MaybeLE;
+    begin
+      if needLE then
+        writeln(f);
+      needLE := false;
+    end;
+
   begin
     writeln(f, 'used = ', used, ', allocated = ', allocated, ', hugeUsed = ', gs.hugeUsed, ', maxUsed = ', maxUsed, ', maxAllocated = ', maxAllocated);
-    fix := fullOS;
-    if Assigned(fix) then
-    begin
-      writeln(f);
-      repeat
-        writeln(f, 'Full fixed: size = ', fix^.size, ', usedSize = ', fix^.usedSize, ', formattedSize = ', fix^.formattedSize, ', fullThreshold = ', fix^.fullThreshold);
-        fix := fix^.next;
-      until not Assigned(fix);
-    end;
+    needLE := true;
+    anything := false;
     for i := 0 to FixedSizesCount - 1 do
-      if Assigned(fixedPartialOS[i]) then
+    begin
+      if not Assigned(partialArenas[i]) and (allocatedByFullArenas[i] = 0) then
+        continue;
+      MaybeLE;
+      anything := true;
+      write(f, 'Size #', i, ' (', IndexToSize(i), '):');
+      if allocatedByFullArenas[i] <> 0 then
+        write(f, ' allocatedByFullArenas = ', allocatedByFullArenas[i]);
+      if Assigned(partialArenas[i]) then
       begin
-        write(f, 'Size #', i, ' (', IndexToSize(i), ')');
-        if allocatedByFullFixed[i] <> 0 then
-          write(f, ': allocatedByFullFixed = ', allocatedByFullFixed[i]);
         writeln(f);
-        fix := fixedPartialOS[i];
-        while Assigned(fix) do
-        begin
-          writeln(f, 'size = ', fix^.size, ', usedSize = ', fix^.usedSize, ', formattedSize = ', fix^.formattedSize, ', fullThreshold = ', fix^.fullThreshold);
+        fix := partialArenas[i];
+        repeat
+          writeln(f, 'arena size = ', pVarHeader(fix)[-1].ch.h and VarSizeMask - VarHeaderSize - FixedArenaDataOffset, ', usedSize = ', fix^.usedSize, ', formattedSize = ', fix^.formattedSize, ', fullThreshold = ', fix^.fullThreshold);
           fix := fix^.next;
-        end;
-      end;
+        until not Assigned(fix);
+      end
+      else if allocatedByFullArenas[i] <> 0 then
+        writeln(f);
+    end;
+    needLE := needLE or anything;
+    if nEmptyArenas <> 0 then
+    begin
+      MaybeLE;
+      writeln(f, 'nEmptyArenas = ', nEmptyArenas);
+      needLE := true;
+    end;
     vOs := varOS;
     while Assigned(vOs) do
     begin
-      writeln(f, LineEnding, 'Var OS chunk, size ', vOs^.size);
+      MaybeLE;
+      writeln(f, 'Var OS chunk, size ', vOs^.size);
       p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
       repeat
         write(f, HexStr(p), ': ',
@@ -964,26 +952,31 @@ type
           write(f, ', first');
         if pVarHeader(p - VarHeaderSize)^.ch.h and LastFlag <> 0 then
           write(f, ', last');
+        if pVarHeader(p - VarHeaderSize)^.ch.h and FixedArenaFlag <> 0 then
+          write(f, ', fixed arena');
         writeln(f);
         if pVarHeader(p - VarHeaderSize)^.ch.h and LastFlag <> 0 then
           break;
         p := p + pVarHeader(p - VarHeaderSize)^.ch.h and uint32(VarSizeMask);
       until false;
+      needLE := true;
       vOs := vOs^.next;
     end;
     fr := freeOS.first;
     if Assigned(fr) then
     begin
-      writeln(f);
+      MaybeLE;
       repeat
         writeln(f, 'Free OS: ', HexStr(fr), ', size = ', fr^.size);
         fr := fr^.next;
       until not Assigned(fr);
+      needLE := true;
     end;
     vfrbn := varFree.First;
     if Assigned(vfrbn) then
     begin
-      write(f, LineEnding, 'Var free:');
+      MaybeLE;
+      write(f, 'Var free:');
       repeat
         write(f, ' ', pFreeVarChunk(pointer(vfrbn) - FreeVarChunkRbnOffset)^.size);
         vfrbn := varFree.Next(vfrbn);
@@ -994,7 +987,8 @@ type
     tf := toFree;
     if Assigned(tf) then
     begin
-      write(f, LineEnding, 'To-free:');
+      MaybeLE;
+      write(f, 'To-free:');
       repeat
         if pCommonHeader(pointer(tf) - CommonHeaderSize)^.h and FixedFlag <> 0 then
           write(f, ' f ', CommonHeaderSize + SysMemSize(tf))
@@ -1008,46 +1002,65 @@ type
   end;
 {$endif DEBUG_HEAP_INC}
 
+  function HeapInc.ThreadState.ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint;
+  begin
+    result := (allocatedByFullArenas[sizeIndex] div 8 + (FixedArenaSizeQuant - 1)) and SizeUint(-FixedArenaSizeQuant); { 12.5% of memory allocated by the size. }
+    if result < MinFixedArenaSize then
+      result := MinFixedArenaSize;
+    if result > MaxFixedArenaSize then
+      result := MaxFixedArenaSize;
+    dec(result, VarHeaderSize + FixedArenaDataOffset); { Prettier fit into OS chunks. }
+  end;
+
   function HeapInc.ThreadState.AllocFixed(size: SizeUint): pointer;
   var
     sizeIndex, statv: SizeUint;
-    osChunk, osNext: pFixedOSChunk;
+    arena, nextArena: pFixedArena;
   begin
     sizeIndex := SizeMinus1ToIndex(size + (CommonHeaderSize - 1));
 
-    osChunk := fixedPartialOS[sizeIndex];
-    if not Assigned(osChunk) then
+    arena := partialArenas[sizeIndex];
+    if not Assigned(arena) then
     begin
     {$ifdef FPC_HAS_FEATURE_THREADING}
       if Assigned(toFree) then
       begin
         FlushToFree;
-        osChunk := fixedPartialOS[sizeIndex];
+        arena := partialArenas[sizeIndex];
       end;
-      if not Assigned(osChunk) then
+      if not Assigned(arena) then
     {$endif FPC_HAS_FEATURE_THREADING}
       begin
-        osChunk := pFixedOSChunk(GetOSChunk(FixedOSChunkDataOffset + MaxFixedHeaderAndPayload, MaxFixedChunkSize, sizeIndex));
-        if not Assigned(osChunk) then
-          exit(nil);
-        if SizeUint(osChunk^.sizeIndex) = sizeIndex then
+        arena := emptyArenas;
+        if Assigned(arena) then
+        begin
+          emptyArenas := arena^.next;
+          dec(nEmptyArenas);
+        end else
+        begin
+          arena := AllocVar(ChooseFixedArenaSize(sizeIndex), true);
+          if not Assigned(arena) then
+            exit(nil);
+          arena^.sizeIndex := uint32(-1);
+        end;
+        if arena^.sizeIndex = sizeIndex then
           { Lucky! Just don’t reset the chunk and use its old freelist. }
         else
         begin
-          osChunk^.sizeIndex := sizeIndex;
-          osChunk^.firstFreeChunk := nil;
-          osChunk^.usedSize := 0;
-          osChunk^.formattedSize := 0;
-          osChunk^.fullThreshold := osChunk^.size - IndexToSize(sizeIndex) - (FixedOSChunkDataOffset - 1); { available OS chunk space - chunk size + 1. }
+          arena^.sizeIndex := sizeIndex;
+          arena^.firstFreeChunk := nil;
+          arena^.usedSize := 0;
+          arena^.formattedSize := 0;
+          arena^.fullThreshold := pVarHeader(arena)[-1].ch.h and VarSizeMask - IndexToSize(sizeIndex) - (VarHeaderSize + FixedArenaDataOffset - 1); { available space - chunk size + 1. }
         end;
 
-        { Add osChunk to fixedPartialOS[sizeIndex]. }
-        osNext := fixedPartialOS[sizeIndex];
-        osChunk^.prev := nil;
-        osChunk^.next := osNext;
-        if Assigned(osNext) then
-          osNext^.prev := osChunk;
-        fixedPartialOS[sizeIndex] := osChunk;
+        { Add arena to partialArenas[sizeIndex]. }
+        nextArena := partialArenas[sizeIndex];
+        arena^.prev := nil;
+        arena^.next := nextArena;
+        if Assigned(nextArena) then
+          nextArena^.prev := arena;
+        partialArenas[sizeIndex] := arena;
       end;
     end;
 
@@ -1058,119 +1071,97 @@ type
     if statv > maxUsed then
       maxUsed := statv;
 
-    { osChunk from the fixedPartialOS list has either free chunk or free unformatted space for a new chunk. }
-    result := osChunk^.firstFreeChunk;
+    { arena from partialArenas has either free chunk or free unformatted space for a new chunk. }
+    result := arena^.firstFreeChunk;
     if Assigned(result) then
-      osChunk^.firstFreeChunk := pFreeChunk(result)^.next
+      arena^.firstFreeChunk := pFreeChunk(result)^.next
     else
     begin
-      result := pointer(osChunk) + (FixedOSChunkDataOffset + CommonHeaderSize) + osChunk^.formattedSize;
-      pCommonHeader(result - CommonHeadersize)^.h := sizeIndex + osChunk^.formattedSize shl ChunkOffsetShift +
-        (FixedFlag + (FixedOSChunkDataOffset + CommonHeaderSize) shl ChunkOffsetShift); { ← const }
-      inc(osChunk^.formattedSize, size);
+      result := pointer(arena) + (FixedArenaDataOffset + CommonHeaderSize) + arena^.formattedSize;
+      pCommonHeader(result - CommonHeadersize)^.h := sizeIndex + arena^.formattedSize shl FixedArenaOffsetShift +
+        (FixedFlag + (FixedArenaDataOffset + CommonHeaderSize) shl FixedArenaOffsetShift); { ← const }
+      inc(arena^.formattedSize, size);
     end;
-    inc(osChunk^.usedSize, size);
-    if osChunk^.usedSize >= osChunk^.fullThreshold then
+    inc(arena^.usedSize, size);
+    if arena^.usedSize >= arena^.fullThreshold then
     begin
-      inc(allocatedByFullFixed[sizeIndex], osChunk^.size);
-      { Remove osChunk from fixedPartialOS[sizeIndex], add to fullOS. }
-      osNext := osChunk^.next;
-      fixedPartialOS[sizeIndex] := osNext;
-      if Assigned(osNext) then
-        osNext^.prev := nil;
-      osNext := fullOS;
-      osChunk^.next := osNext; { osChunk^.prev is already nil because osChunk was the first item of fixedPartialOS[sizeIndex]. }
-      if Assigned(osNext) then
-        osNext^.prev := osChunk;
-      fullOS := osChunk;
+      inc(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
+      { Remove arena from partialArenas[sizeIndex]. (It was first.) }
+      nextArena := arena^.next;
+      partialArenas[sizeIndex] := nextArena;
+      if Assigned(nextArena) then
+        nextArena^.prev := nil;
     end;
   end;
 
   function HeapInc.ThreadState.FreeFixed(p: pointer): SizeUint;
   var
     sizeIndex, usedSize: SizeUint;
-    osChunk, osPrev, osNext: pFixedOSChunk;
-    freeOsNext: pFreeOSChunk;
+    arena, prevArena, nextArena: pFixedArena;
   begin
-    osChunk := p - pCommonHeader(p - CommonHeaderSize)^.h shr ChunkOffsetShift;
+    arena := p - pCommonHeader(p - CommonHeaderSize)^.h shr FixedArenaOffsetShift;
 
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    { This can be checked without blocking; osChunk^.threadState can only change from one value not equal to @self to another value not equal to @self. }
-    if osChunk^.threadState <> @self then
+    { This can be checked without blocking; <arena>.threadState can only change from one value not equal to @self to another value not equal to @self. }
+    if pVarHeader(arena)[-1].threadState <> @self then
     begin
       EnterCriticalSection(gs.lock);
-      if Assigned(osChunk^.threadState) then
+      if Assigned(pVarHeader(arena)[-1].threadState) then
       begin
         { Despite atomic Push lock must be held as otherwise target thread might end and destroy its threadState.
           However, target thread won’t block to free p, so PushToFree instantly invalidates p. }
         result := IndexToSize(pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask) - CommonHeaderSize;
-        osChunk^.threadState^.PushToFree(p);
+        pVarHeader(arena)[-1].threadState^.PushToFree(p);
         LeaveCriticalSection(gs.lock);
         exit;
       end;
-      Adopt(osChunk); { ...And continue! }
+      AdoptVarOwner(arena); { ...And continue! }
       LeaveCriticalSection(gs.lock);
     end;
   {$endif FPC_HAS_FEATURE_THREADING}
 
-    pFreeChunk(p)^.next := osChunk^.firstFreeChunk;
-    osChunk^.firstFreeChunk := p;
+    pFreeChunk(p)^.next := arena^.firstFreeChunk;
+    arena^.firstFreeChunk := p;
     sizeIndex := pCommonHeader(p - CommonHeaderSize)^.h and SizeIndexMask;
     result := IndexToSize(sizeIndex);
     dec(used, result);
-    usedSize := osChunk^.usedSize;
-    if usedSize >= osChunk^.fullThreshold then
+    usedSize := arena^.usedSize;
+    if usedSize >= arena^.fullThreshold then
     begin
-      dec(allocatedByFullFixed[sizeIndex], osChunk^.size);
-
-      { Remove osChunk from fullOS, add to fixedPartialOS[sizeIndex]. }
-      osPrev := osChunk^.prev;
-      osNext := osChunk^.next;
-      if Assigned(osPrev) then
-        osPrev^.next := osNext
-      else
-        fullOS := osNext;
-      if Assigned(osNext) then
-        osNext^.prev := osPrev;
-      osChunk^.prev := nil;
-      osNext := fixedPartialOS[sizeIndex];
-      osChunk^.next := osNext;
-      if Assigned(osNext) then
-        osNext^.prev := osChunk;
-      fixedPartialOS[sizeIndex] := osChunk;
+      dec(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
+      { Add arena to partialArenas[sizeIndex]. }
+      nextArena := partialArenas[sizeIndex];
+      arena^.next := nextArena;
+      if Assigned(nextArena) then
+        nextArena^.prev := arena;
+      partialArenas[sizeIndex] := arena;
     end;
     dec(usedSize, result);
-    osChunk^.usedSize := usedSize;
+    arena^.usedSize := usedSize;
     if usedSize = 0 then
     begin
-      { Remove osChunk from fixedPartialOS[sizeIndex], add to freeOS. }
-      osPrev := osChunk^.prev;
-      osNext := osChunk^.next;
-      if Assigned(osPrev) then
-        osPrev^.next := osNext
+      { Remove arena from partialArenas[sizeIndex], add to emptyArenas (maybe). }
+      prevArena := arena^.prev;
+      nextArena := arena^.next;
+      if Assigned(prevArena) then
+        prevArena^.next := nextArena
       else
-        fixedPartialOS[sizeIndex] := osNext;
-      if Assigned(osNext) then
-        osNext^.prev := osPrev;
+        partialArenas[sizeIndex] := nextArena;
+      if Assigned(nextArena) then
+        nextArena^.prev := prevArena;
 
-      freeOsNext := freeOS.first;
-      pFreeOSChunk(osChunk)^.prev := nil;
-      pFreeOSChunk(osChunk)^.next := freeOsNext;
-      if Assigned(freeOsNext) then
-        freeOsNext^.prev := osChunk
-      else
-        freeOS.last := pFreeOSChunk(osChunk);
-      freeOS.first := pFreeOSChunk(osChunk);
-    {$ifdef HAS_SYSOSFREE}
-      inc(freeOS.n);
-      if freeOS.n > MaxKeptOSChunks then
-        dec(allocated, freeOS.FreeOne);
-    {$endif}
+      if nEmptyArenas < MaxKeptFixedArenas then
+      begin
+        arena^.next := emptyArenas;
+        emptyArenas := arena;
+        inc(nEmptyArenas);
+      end else
+        FreeVar(arena);
     end;
     dec(result, CommonHeaderSize);
   end;
 
-  function HeapInc.ThreadState.GetOSChunk(minSize, maxSize: SizeUint; sizeIndex: SizeInt): pOSChunk;
+  function HeapInc.ThreadState.GetOSChunk(minSize, maxSize: SizeUint): pOSChunk;
   var
     statv: SizeUint;
   begin
@@ -1185,7 +1176,6 @@ type
       LeaveCriticalSection(gs.lock);
       if Assigned(result) then
       begin
-        result^.threadState := @self;
         statv := allocated + result^.size;
         allocated := statv;
         inc(statv, gs.hugeUsed);
@@ -1195,50 +1185,36 @@ type
       end;
     end;
   {$endif FPC_HAS_FEATURE_THREADING}
-    result := AllocateOSChunk(minSize, sizeIndex);
+    result := AllocateOSChunk(minSize);
   end;
 
-  function HeapInc.ThreadState.AllocateOSChunk(minSize: SizeUint; sizeIndex: SizeInt): pOSChunk;
+  function HeapInc.ThreadState.AllocateOSChunk(minSize: SizeUint): pOSChunk;
   var
-    preferredSize, statv: SizeUint;
+    query, statv: SizeUint;
   begin
-    if sizeIndex < 0 then
+    query := used div 16 + minSize div 2; { Base: 6.25% of the memory used, so if GrowHeapSize2 = 1 Mb, 1 Mb OS allocations start at 16 Mb used. }
+    if query > GrowHeapSize2 then { Limit by GrowHeapSize2. }
+      query := GrowHeapSize2;
+    if query < minSize then { But of course allocate at least the amount requested. }
+      query := minSize;
+    query := (query + (OSChunkVarSizeQuant - 1)) and SizeUint(-OSChunkVarSizeQuant); { Quantize. }
+    result := SysOSAlloc(query);
+    if not Assigned(result) and (query > minSize) then
     begin
-      if minSize <= GrowHeapSize1 then { 256K by default. }
-        preferredSize := GrowHeapSize1
-      else if minSize <= GrowHeapSize2 then { 1M by default. }
-        preferredSize := GrowHeapSize2
-      else
-        preferredSize := (minSize + (OSChunkVarSizeQuant - 1)) and SizeUint(-OSChunkVarSizeQuant);
-    end else
-    begin
-      preferredSize := (allocatedByFullFixed[sizeIndex] div 8 + (OSChunkFixedSizeQuant - 1)) and SizeUint(-OSChunkFixedSizeQuant); { 12.5% of memory allocated by the size. }
-      if preferredSize < growheapsizesmall then
-        preferredSize := growheapsizesmall;
-      if preferredSize > MaxFixedChunkSize then
-        preferredSize := MaxFixedChunkSize;
-    end;
-    result := SysOSAlloc(preferredSize);
-    if not Assigned(result) and (preferredSize > minSize) then
-    begin
-      preferredSize := minSize;
-      result := SysOSAlloc(preferredSize);
+      query := minSize;
+      result := SysOSAlloc(query);
     end;
     if not Assigned(result) then
       exit(AllocFailed);
-    statv := allocated + preferredSize;
+    result^.size := query;
+    statv := allocated + query;
     allocated := statv;
     inc(statv, gs.hugeUsed);
     if statv > maxAllocated then
       maxAllocated := statv;
-    result^.size := preferredSize;
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    result^.threadState := @self;
-  {$endif}
-    result^.sizeIndex := -1;
   end;
 
-  function HeapInc.ThreadState.AllocVar(size: SizeUint): pointer;
+  function HeapInc.ThreadState.AllocVar(size: SizeUint; isArena: boolean): pointer;
   var
     fv, toRemove: pFreeVarChunk;
     osChunk, osNext: pVarOSChunk;
@@ -1262,16 +1238,12 @@ type
     begin
       toRemove := nil;
       minSize := VarOSChunkDataOffset + size;
-      if minSize <= GrowHeapSize1 then
-        maxSize := GrowHeapSize1
-      else if minSize <= GrowHeapSize2 then
-        maxSize := GrowHeapSize2
-      else
-        maxSize := High(SizeUint);
-      osChunk := pVarOSChunk(GetOSChunk(minSize, maxSize, -1));
+      maxSize := GrowHeapSize2;
+      if maxSize < minSize then
+        maxSize := High(SizeUint); { Shouldn’t happen (unless GrowHeapSize2 is too small), so don’t optimize the case when it happens. }
+      osChunk := pVarOSChunk(GetOSChunk(minSize, maxSize));
       if not Assigned(osChunk) then
         exit(nil);
-      osChunk^.sizeIndex := -1;
 
       { Add osChunk to varOS. }
       osNext := varOS;
@@ -1335,11 +1307,16 @@ type
       size := fv^.size;
       pVarHeader(result - VarHeaderSize)^.ch.h := pVarHeader(result - VarHeaderSize)^.ch.h and (FirstFlag or LastFlag) + UsedFlag + uint32(size);
     end;
-    statv := used + size;
-    used := statv;
-    inc(statv, gs.hugeUsed);
-    if statv > maxUsed then
-      maxUsed := statv;
+    if isArena then
+      inc(pVarHeader(result)[-1].ch.h, FixedArenaFlag) { Arenas aren’t counted in “used” directly. }
+    else
+    begin
+      statv := used + size;
+      used := statv;
+      inc(statv, gs.hugeUsed);
+      if statv > maxUsed then
+        maxUsed := statv;
+    end;
   end;
 
   function HeapInc.ThreadState.FreeVar(p: pointer): SizeUint;
@@ -1371,7 +1348,10 @@ type
 
     fSizeFlags := pVarHeader(p - VarHeaderSize)^.ch.h;
     result := fSizeFlags and VarSizeMask;
-    dec(used, result);
+    if fSizeFlags and FixedArenaFlag = 0 then
+      dec(used, result)
+    else
+      dec(fSizeFlags, FixedArenaFlag);
     toRemove := nil;
 
     { If next/prev are free, remove them from varFree and merge with f — (f)uture (f)ree chunk that starts at p, has fSizeFlags,
@@ -1620,7 +1600,7 @@ type
       exit(AllocFailed);
     pHugeChunk(result)^.size := size;
   {$else HAS_SYSOSFREE}
-    result := GetOSChunk(size, High(SizeUint), -1);
+    result := GetOSChunk(size, High(SizeUint));
     if not Assigned(result) then
       exit; { GetOSChunk throws an error if required. }
     size := pOSChunk(result)^.size;
@@ -1663,7 +1643,6 @@ type
     else
       fOs^.first := p;
     fOs^.last := p;
-    pFreeOSChunk(p)^.sizeIndex := -1;
   {$endif ndef HAS_SYSOSFREE}
   {$ifdef FPC_HAS_FEATURE_THREADING} LeaveCriticalSection(gs.lock); {$endif}
   {$ifdef HAS_SYSOSFREE} SysOSFree(p, result); {$endif}
@@ -1743,14 +1722,11 @@ type
 
   procedure HeapInc.ThreadState.Orphan;
   var
-    sizeIndex: SizeUint;
     lastFree, nextFree: pFreeOSChunk;
     vOs, nextVOs, lastVOs: pVarOSChunk;
   begin
     FlushToFree;
-    Orphan(fullOS);
-    for sizeIndex := 0 to High(fixedPartialOS) do
-      Orphan(fixedPartialOS[sizeIndex]);
+    FreeEmptyArenas(0);
     { Prepend freeOS to gs.freeOS. }
     lastFree := freeOS.last;
     if Assigned(lastFree) then
@@ -1789,55 +1765,39 @@ type
     FillChar(self, sizeof(self), 0);
   end;
 
-  class procedure HeapInc.ThreadState.Orphan(list: pFixedOSChunk);
+  procedure HeapInc.ThreadState.AdoptArena(arena: pFixedArena);
   var
-    last, osNext: pFixedOSChunk;
+    sizeIndex: SizeUint;
+    nextArena: pFixedArena;
   begin
-    if not Assigned(list) then
-      exit;
-    last := pFixedOSChunk(ChangeThreadStates(list, nil));
-    { Prepend list to gs.fixedOS. }
-    osNext := gs.fixedOS;
-    last^.next := osNext;
-    if Assigned(osNext) then
-      osNext^.prev := last;
-    gs.fixedOS := list;
-  end;
+    sizeIndex := pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h and SizeIndexMask;
+    inc(used, arena^.usedSize); { maxUsed is updated at the end of AdoptVarOwner. }
 
-  procedure HeapInc.ThreadState.Adopt(osChunk: pFixedOSChunk);
-  var
-    sizeIndex, statv: SizeUint;
-    dest: ^pFixedOSChunk;
-  begin
-    sizeIndex := pCommonHeader(pointer(osChunk) + FixedOSChunkDataOffset)^.h and SizeIndexMask;
-    statv := used + osChunk^.usedSize;
-    used := statv;
-    inc(statv, gs.hugeUsed);
-    if statv > maxUsed then
-      maxUsed := statv;
-
-    statv := allocated + osChunk^.size;
-    allocated := statv;
-    inc(statv, gs.hugeUsed);
-    if statv > maxAllocated then
-      maxAllocated := statv;
-
-    { Remove osChunk from gs.fixedOS, add to fullOS or fixedPartialOS[sizeIndex] as appropriate. }
-    dest := @fixedPartialOS[sizeIndex];
-    if osChunk^.usedSize >= osChunk^.fullThreshold then
+    if arena^.usedSize = 0 then
     begin
-      inc(allocatedByFullFixed[sizeIndex], osChunk^.size);
-      dest := @fullOS;
-    end;
-    osChunk^.MoveTo(gs.fixedOS, dest^);
-
-    osChunk^.threadState := @self;
+      { Add arena to emptyArenas. }
+      arena^.next := emptyArenas;
+      emptyArenas := arena;
+      inc(nEmptyArenas); { May exceed MaxKeptFixedArenas, extra arenas are freed at the end of AdoptVarOwner. }
+    end
+    else if arena^.usedSize < arena^.fullThreshold then
+    begin
+      { Add arena to partialArenas[sizeIndex]. }
+      nextArena := partialArenas[sizeIndex];
+      arena^.prev := nil;
+      arena^.next := nextArena;
+      if Assigned(nextArena) then
+        nextArena^.prev := arena;
+      partialArenas[sizeIndex] := arena;
+    end else
+      inc(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
   end;
 
   procedure HeapInc.ThreadState.AdoptVarOwner(p: pointer);
   var
-    prevSize, size, statv: SizeUint;
+    prevSize, statv: SizeUint;
     h: uint32;
+    vOs, osPrev, osNext: pVarOSChunk;
   begin
     repeat
       prevSize := pVarHeader(p - VarHeaderSize)^.prevSize;
@@ -1845,42 +1805,45 @@ type
     until prevSize = 0;
 
     { Move OS chunk from gs.varOS to varOS. }
-    pOSChunk(p - (VarOSChunkDataOffset + VarHeaderSize))^.MoveTo(gs.varOS, varOS);
-    statv := allocated + pOSChunk(p - (VarOSChunkDataOffset + VarHeaderSize))^.size;
+    vOs := p - (VarOSChunkDataOffset + VarHeaderSize);
+    osPrev := vOs^.prev;
+    osNext := vOs^.next;
+    if Assigned(osPrev) then
+      osPrev^.next := osNext
+    else
+      gs.varOS := osNext;
+    if Assigned(osNext) then
+      osNext^.prev := osPrev;
+    vOs^.prev := nil;
+    osNext := varOS;
+    vOs^.next := osNext;
+    if Assigned(osNext) then
+      osNext^.prev := vOs;
+    varOS := vOs;
+
+    statv := allocated + vOs^.size;
     allocated := statv;
     inc(statv, gs.hugeUsed);
     if statv > maxAllocated then
       maxAllocated := statv;
 
-    { Careful: even though VarHeaders have own threadState links, correct threadState in the OS chunk is required,
-      as the chunk might be orphaned, then adopted with this function, then become free, then be reused as fixed chunk.
-      GetOSChunk does not set threadState if it takes the chunk from local freeOS, assuming it is already set. }
-    pOSChunk(p - (VarOSChunkDataOffset + VarHeaderSize))^.threadState := @self;
-
     repeat
       pVarHeader(p - VarHeaderSize)^.threadState := @self;
       h := pVarHeader(p - VarHeaderSize)^.ch.h;
-      size := h and uint32(VarSizeMask);
       if h and UsedFlag = 0 then
         varFree.Add(@pFreeVarChunk(p)^.rbn)
+      else if h and FixedArenaFlag <> 0 then
+         AdoptArena(p)
       else
-        inc(used, size); { maxUsed is updated after the loop. }
-      inc(p, size);
+        inc(used, h and uint32(VarSizeMask)); { maxUsed is updated after the loop. }
+      inc(p, h and uint32(VarSizeMask));
     until h and LastFlag <> 0;
+
+    FreeEmptyArenas(MaxKeptFixedArenas);
+
     statv := used + gs.hugeUsed;
     if statv > maxUsed then
       maxUsed := statv;
-  end;
-
-  class function HeapInc.ThreadState.ChangeThreadStates(list: pOSChunk; ts: pThreadState): pOSChunk; static; { Returns the last item of list. }
-  begin
-    if not Assigned(list) then
-      exit(nil);
-    repeat
-      list^.threadState := ts;
-      result := list;
-      list := list^.next;
-    until not Assigned(list);
   end;
 
   class procedure HeapInc.ThreadState.ChangeThreadState(vOs: pVarOSChunk; ts: pThreadState);
@@ -1888,7 +1851,6 @@ type
     h: uint32;
     p: pointer;
   begin
-    vOs^.threadState := ts; { Not really required (for now), but done for symmetry; also see the comment on setting OSChunk.threadState in AdoptVarOwner. }
     p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
     repeat
       pVarHeader(p - VarHeaderSize)^.threadState := ts;
@@ -1897,16 +1859,24 @@ type
     until h and LastFlag <> 0;
   end;
 
+  procedure HeapInc.ThreadState.FreeEmptyArenas(untilCount: SizeUint);
+  var
+    arena: pFixedArena;
+  begin
+    while nEmptyArenas > untilCount do
+    begin
+      arena := emptyArenas;
+      emptyArenas := arena^.next;
+      dec(nEmptyArenas);
+      FreeVar(arena);
+    end;
+  end;
+
 {$ifndef FPC_SECTION_THREADVARS}
   procedure HeapInc.ThreadState.FixupSelfPtr;
   var
-    sizeIndex: SizeUint;
     vOs: pVarOSChunk;
   begin
-    ChangeThreadStates(fullOS, @self);
-    for sizeIndex := 0 to High(fixedPartialOS) do
-      ChangeThreadStates(fixedPartialOS[sizeIndex], @self);
-    ChangeThreadStates(freeOS.first, @self);
     vOs := varOS;
     while Assigned(vOs) do
     begin
@@ -1958,7 +1928,7 @@ begin
   if size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize then
     result := ts^.AllocFixed(size)
   else if size < GrowHeapSize2 div 2 then { Approximate idea on the max size of the variable chunk. Approximate because size does not include headers but GrowHeapSize2 does. }
-    result := ts^.AllocVar(size)
+    result := ts^.AllocVar(size, false)
   else
     result := ts^.AllocHuge(size);
 end;
