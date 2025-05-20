@@ -174,7 +174,7 @@ begin
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
   BinBufLen := Length(BinValueBytes);
   ret := HexToBin(HexValueBytes, 2, BinValueBytes, 2, BinBufLen);
-  if ret <> 2 then halt(14);
+  if ret <> BinBufLen - 2 then halt(14);
   if BinValueBytes[0] <> 0 then halt(14);
   if BinValueBytes[1] <> 0 then halt(14);
   if BinValueBytes[2] <> 236 then halt(14);
@@ -186,7 +186,7 @@ begin
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
   BinBufLen := Length(BinValueBytes);
   ret := HexToBin(PChar(HexInputW), 2, BinValueBytes, 2, BinBufLen);
-  if ret <> 2 then halt(15);
+  if ret <> BinBufLen - 2 then halt(15);
   if BinValueBytes[0] <> 0 then halt(15);
   if BinValueBytes[1] <> 0 then halt(15);
   if BinValueBytes[2] <> 236 then halt(15);
@@ -196,7 +196,7 @@ begin
   FillChar(BinValueBytes[0], Length(BinValueBytes), 0);
   BinBufLen := Length(BinValueBytes);
   ret := HexToBin(HexValueBytes, 2, BinValueBytes, 2, BinBufLen);
-  if ret <> 2 then halt(16);
+  if ret <> BinBufLen - 2 then halt(16);
   if BinValueBytes[0] <> 0 then halt(16);
   if BinValueBytes[1] <> 0 then halt(16);
   if BinValueBytes[2] <> 236 then halt(16);
