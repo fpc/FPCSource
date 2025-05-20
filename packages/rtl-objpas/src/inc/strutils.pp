@@ -3212,6 +3212,10 @@ procedure BinToHex(const BinBuffer: TBytes; BinBufOffset: Integer; var HexBuffer
 var
   i : longint;
 begin
+  if (Length(HexBuffer)-HexBufOffset) div 2 < Count then
+    Count:=(Length(HexBuffer)-HexBufOffset) div 2;
+  if (Length(BinBuffer)-BinBufOffset) < Count then
+    Count:=Length(BinBuffer)-BinBufOffset;
   for i:=0 to Count-1 do
   begin
     HexBuffer[HexBufOffset+2*i+0]:=Byte(HexDigits[(BinBuffer[BinBufOffset + i] shr 4)]);
@@ -3249,7 +3253,12 @@ begin
   PText:=HexText+HexTextOffset;
   PBinBuf:=PAnsiChar(BinBuffer)+BinBufOffset;
   i:=Count;
-  Result:=HexToBin(PText, PBinBuf, i);
+  if (Length(BinBuffer)-BinBufOffset)<i then
+    i:=Length(BinBuffer)-BinBufOffset;
+  if i<=0 then
+    Result:=0
+  else
+    Result:=HexToBin(PText, PBinBuf, i);
 end;
 
 function HexToBin(const HexText: TBytes; HexTextOffset: Integer; var BinBuffer: TBytes; BinBufOffset: Integer; Count: Integer): Integer;
@@ -3261,7 +3270,14 @@ begin
   PText:=PAnsiChar(HexText)+HexTextOffset;
   PBinBuf:=PAnsiChar(BinBuffer)+BinBufOffset;
   i:=Count;
-  Result:=HexToBin(PText, PBinBuf, i);
+  if (Length(HexText)-HexTextOffset) div 2 < i then
+    i:=(Length(HexText)-HexTextOffset) div 2;
+  if (Length(BinBuffer)-BinBufOffset) < i then
+    i:=Length(BinBuffer)-BinBufOffset;
+  if i<=0 then
+    Result:=0
+  else
+    Result:=HexToBin(PText, PBinBuf, i);
 end;
 
 function HexToBin(HexText: PWideChar; BinBuffer: Pointer; BinBufSize: Integer): Integer;
