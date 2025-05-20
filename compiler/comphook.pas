@@ -397,7 +397,10 @@ begin
      else
        begin
          if status.use_redir then
-           writeln(status.redirfile,MsgTimeStr+MsgLocStr+MsgTypeStr+s)
+           begin
+           writeln(status.redirfile,MsgTimeStr+MsgLocStr+MsgTypeStr+s);
+           flush(status.redirfile);
+           end
          else
            begin
              write(MsgTimeStr+MsgLocStr);
