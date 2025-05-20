@@ -122,6 +122,7 @@ begin
     Inc(Pointer(POSMem),lBlockSize);
     end;
   AllocateOSInfoBlock:=PMIB;
+  {$IFDEF DEBUGWASMTHREADS}DebugWriteln('AllocateOSInfoBlock done');{$ENDIF}
 end;
 
 Function FindFreeOSBlock(aInfo: POSMemInfoBlock) : POSMemBlock;
