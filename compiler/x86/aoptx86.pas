@@ -11976,8 +11976,8 @@ unit aoptx86;
                           InternalError(2021051002);
                       end;
 
-		      if TargetSize <> MaxSize then
-		        begin
+                      if TargetSize <> MaxSize then
+                        begin
                           { Update the register to its new size }
                           setsubreg(ThisReg, TargetSubReg);
 
@@ -12375,7 +12375,14 @@ unit aoptx86;
                       if SuperRegistersEqual(taicpu(hp1).oper[0]^.reg, ThisReg) then
                         begin
                           { Optimise around i40003 }
-                          if SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) and
+
+                          { Check to see if the active register is used afterwards }
+                          TransferUsedRegs(TmpUsedRegs);
+                          IncludeRegInUsedRegs(ThisReg, TmpUsedRegs);
+                          if (
+                              SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) or
+                              not RegUsedAfterInstruction(ThisReg, hp1, TmpUsedRegs)
+                            ) and
                             (taicpu(p).opsize = S_WL) and (taicpu(hp1).opsize = S_BL)
 {$ifndef x86_64}
                             and (
@@ -12392,8 +12399,13 @@ unit aoptx86;
                                 DebugMsg(SPeepholeOptimization + 'movzwl2movzbl 1', p);
                                 taicpu(p).opsize := S_BL;
 
-                                DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2a', hp1);
-                                RemoveInstruction(hp1);
+                                { Only remove if the active register is overwritten }
+                                if SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, ThisReg) then
+                                  begin
+                                    DebugMsg(SPeepholeOptimization + 'Movzx2Nop 2a', hp1);
+                                    RemoveInstruction(hp1);
+                                  end;
+
                                 Result := True;
                                 Exit;
                               end;
