@@ -16,6 +16,7 @@
 {$IFDEF FPC}
 {$MODE objfpc}
 {$H+}
+{$modeswitch advancedrecords}
 {$ENDIF}
 
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -25,6 +26,9 @@ unit URIParser;
 interface
 
 type
+
+  { TURI }
+
   TURI = record
     Protocol: String;
     Username: String;
@@ -36,6 +40,11 @@ type
     Params: String;
     Bookmark: String;
     HasAuthority: Boolean;
+    constructor create(aURI : String; aDecode: Boolean = True);
+    constructor create(const aURI, aDefaultProtocol: String; aDefaultPort: Word; aDecode : Boolean = True);
+    function ToString : String;
+    function URI : String;
+    procedure Free;
   end;
 
 function EncodeURI(const URI: TURI): String;
@@ -494,6 +503,33 @@ begin
       Break;
   end;
   Result := False;
+end;
+
+{ TURI }
+
+constructor TURI.create(aURI: String; aDecode: Boolean);
+begin
+  Self:=ParseURI(aURI,aDecode);
+end;
+
+constructor TURI.create(const aURI, aDefaultProtocol: String; aDefaultPort: Word; aDecode: Boolean);
+begin
+  Self:=ParseURI(aURI,aDefaultProtocol,aDefaultPort,aDecode);
+end;
+
+function TURI.ToString: String;
+begin
+  Result:=EncodeURI(Self);
+end;
+
+function TURI.URI: String;
+begin
+  Result:=ToString;
+end;
+
+procedure TURI.Free;
+begin
+  Self:=Default(TURI);
 end;
 
 
