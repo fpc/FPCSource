@@ -121,9 +121,12 @@ var
     tag: longint;
   begin
     addr:=0;
+{$ifdef LEGACYHEAP}
     if size<=growheapsizesmall then
       tag:=DARWIN_VM_MAKE_TAG(VM_MEMORY_MALLOC_TINY) or VM_FLAGS_ANYWHERE
-    else if size<=growheapsize2 then
+    else
+{$endif LEGACYHEAP}
+    if size<=growheapsize2 then
       tag:=DARWIN_VM_MAKE_TAG(VM_MEMORY_MALLOC) or VM_FLAGS_ANYWHERE
     else
       tag:=DARWIN_VM_MAKE_TAG(VM_MEMORY_MALLOC_LARGE) or VM_FLAGS_ANYWHERE;

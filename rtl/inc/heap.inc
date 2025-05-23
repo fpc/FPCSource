@@ -312,18 +312,12 @@ type
     FreeOSChunk = object(OSChunk)
     end;
 
+  {$ifndef HAS_SYSOSFREE}
     FreeOSChunkList = object
       first, last: pFreeOSChunk;
-    {$ifdef HAS_SYSOSFREE}
-      n: SizeUint;
-    {$endif}
-
       function Get(minSize, maxSize: SizeUint): pOSChunk;
-    {$ifdef HAS_SYSOSFREE}
-      function FreeOne: SizeUint;
-      procedure FreeAll;
-    {$endif}
     end;
+  {$endif not HAS_SYSOSFREE}
 
     pFixedArena = ^FixedArena;
     FixedArena = record
@@ -394,7 +388,11 @@ type
     ThreadState = object
       emptyArenas: pFixedArena; { Empty fixed arenas to be reused instead of slower AllocVar. Singly linked list, “prev”s are garbage. }
       nEmptyArenas: SizeUint; { # of items in emptyArenas. }
+    {$ifdef HAS_SYSOSFREE}
+      freeOS1: pFreeOSChunk; { Just one cached empty OS chunk so that borderline (free + alloc) × N scenarios don’t lead to N OS allocations. }
+    {$else HAS_SYSOSFREE}
       freeOS: FreeOSChunkList; { Completely empty OS chunks. }
+    {$endif HAS_SYSOSFREE}
     {$ifdef FPC_HAS_FEATURE_THREADING}
       toFree: pFreeChunk; { Free requests from other threads, atomic. }
     {$endif}
@@ -525,6 +523,7 @@ type
   end;
 {$endif DEBUG_HEAP_INC}
 
+{$ifndef HAS_SYSOSFREE}
   function HeapInc.FreeOSChunkList.Get(minSize, maxSize: SizeUint): pOSChunk;
   var
     prev, next: pFreeOSChunk;
@@ -545,43 +544,8 @@ type
       next^.prev := prev
     else
       last := prev;
-  {$ifdef HAS_SYSOSFREE} dec(n); {$endif}
   end;
-
-{$ifdef HAS_SYSOSFREE}
-  function HeapInc.FreeOSChunkList.FreeOne: SizeUint;
-  var
-    best, prev: pFreeOSChunk;
-  begin
-    { Presently: the last one (which means LRU, as they are pushed to the beginning). }
-    best := last;
-    prev := best^.prev;
-    if Assigned(prev) then
-      prev^.next := nil
-    else
-      first := nil;
-    last := prev;
-    dec(n);
-    result := best^.size;
-    SysOSFree(best, best^.size);
-  end;
-
-  procedure HeapInc.FreeOSChunkList.FreeAll;
-  var
-    cur, next: pFreeOSChunk;
-  begin
-    cur := first;
-    first := nil;
-    last := nil;
-    n := 0;
-    while Assigned(cur) do
-    begin
-      next := cur^.next;
-      SysOSFree(cur, cur^.size);
-      cur := next;
-    end;
-  end;
-{$endif HAS_SYSOSFREE}
+{$endif not HAS_SYSOSFREE}
 
   procedure HeapInc.VarFreeMap.Add(c: pFreeVarChunk; binIndex: SizeUint);
   var
@@ -734,14 +698,14 @@ type
       needLE := true;
       vOs := vOs^.next;
     end;
-    fr := freeOS.first;
+    fr := {$ifdef HAS_SYSOSFREE} freeOS1 {$else} freeOS.first {$endif};
     if Assigned(fr) then
     begin
       MaybeLE;
       repeat
         writeln(f, 'Free OS: ', HexStr(fr), ', size = ', fr^.size);
-        fr := fr^.next;
-      until not Assigned(fr);
+      {$ifndef HAS_SYSOSFREE} fr := fr^.next; {$endif}
+      until {$ifdef HAS_SYSOSFREE} true {$else} not Assigned(fr) {$endif};
       needLE := true;
     end;
     if varFree.L1 <> 0 then
@@ -971,10 +935,18 @@ type
     statv: SizeUint;
 {$endif FPC_HAS_FEATURE_THREADING and not HAS_SYSOSFREE}
   begin
+  {$ifdef HAS_SYSOSFREE}
+    result := freeOS1;
+    if Assigned(result) and (result^.size >= minSize) and (result^.size <= maxSize) then
+    begin
+      freeOS1 := nil;
+      exit;
+    end;
+  {$else HAS_SYSOSFREE}
     result := freeOS.Get(minSize, maxSize);
     if Assigned(result) then
       exit;
-  {$if defined(FPC_HAS_FEATURE_THREADING) and not defined(HAS_SYSOSFREE)}
+  {$ifdef FPC_HAS_FEATURE_THREADING}
     if Assigned(gs.freeOS.first) then { Racing precheck. }
     begin
       EnterCriticalSection(gs.lock);
@@ -990,7 +962,8 @@ type
         exit;
       end;
     end;
-  {$endif FPC_HAS_FEATURE_THREADING and not HAS_SYSOSFREE}
+  {$endif FPC_HAS_FEATURE_THREADING}
+  {$endif HAS_SYSOSFREE}
     result := AllocateOSChunk(minSize, maxSize);
   end;
 
@@ -1129,7 +1102,10 @@ type
     p2: pointer;
     fSizeFlags, prevSize, hPrev, hNext: SizeUint;
     osChunk, osPrev, osNext: pVarOSChunk;
+  {$ifndef HAS_SYSOSFREE}
     freeOsNext: pFreeOSChunk;
+    fOs: ^FreeOSChunkList;
+  {$endif not HAS_SYSOSFREE}
   begin
   {$ifdef FPC_HAS_FEATURE_THREADING}
     if pVarHeader(p - VarHeaderSize)^.threadState <> @self then
@@ -1183,7 +1159,7 @@ type
     end;
 
     { Turn p into a free chunk and add it back to varFree...
-      unless it spans the entire OS chunk, in which case instead move the chunk from varOS to freeOS. }
+      unless it spans the entire OS chunk, in which case instead move the chunk from varOS to freeOS1 / freeOS. }
     if (fSizeFlags and LastFlag = 0) or (pVarHeader(p - VarHeaderSize)^.prevSize <> 0) then
     begin
       dec(fSizeFlags, UsedFlag);
@@ -1207,30 +1183,49 @@ type
       if Assigned(osNext) then
         osNext^.prev := osPrev;
 
-      { Instantly free if huge. }
     {$ifdef HAS_SYSOSFREE}
+      { Instantly free if huge. }
       if osChunk^.size > GrowHeapSize2 then
       begin
         dec(allocated, osChunk^.size);
         SysOSFree(osChunk, osChunk^.size);
       end else
-    {$endif}
       begin
-        { Add to freeOS. }
-        freeOsNext := freeOS.first;
-        osChunk^.prev := nil;
-        osChunk^.next := freeOsNext;
-        if Assigned(freeOsNext) then
-          freeOsNext^.prev := osChunk
-        else
-          freeOS.last := pFreeOSChunk(osChunk);
-        freeOS.first := pFreeOSChunk(osChunk);
-      {$ifdef HAS_SYSOSFREE}
-        inc(freeOS.n);
-        if freeOS.n > MaxKeptOSChunks then
-          dec(allocated, freeOS.FreeOne);
-      {$endif}
+        { Move to freeOS1, discarding old freeOS1. }
+        if Assigned(freeOS1) then
+        begin
+          dec(allocated, freeOS1^.size);
+          SysOSFree(freeOS1, freeOS1^.size);
+        end;
+        freeOS1 := pFreeOSChunk(osChunk);
       end;
+    {$else HAS_SYSOSFREE}
+      fOs := @freeOS;
+      { Share if huge. }
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      if osChunk^.size > GrowHeapSize2 then
+      begin
+        fOs := @gs.freeOS;
+        EnterCriticalSection(gs.lock);
+      end;
+    {$endif FPC_HAS_FEATURE_THREADING}
+      { Add to fOs. }
+      freeOsNext := fOs^.first;
+      osChunk^.prev := nil;
+      osChunk^.next := freeOsNext;
+      if Assigned(freeOsNext) then
+        freeOsNext^.prev := osChunk
+      else
+        fOs^.last := pFreeOSChunk(osChunk);
+      fOs^.first := pFreeOSChunk(osChunk);
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      if fOs <> @freeOS then
+      begin
+        dec(allocated, osChunk^.size); { gs.freeOS aren’t counted anywhere, for now. }
+        LeaveCriticalSection(gs.lock);
+      end;
+    {$endif FPC_HAS_FEATURE_THREADING}
+    {$endif HAS_SYSOSFREE}
     end;
     dec(result, VarHeaderSize);
   end;
@@ -1520,7 +1515,8 @@ type
       LeaveCriticalSection(gs.lock);
 
 {$ifdef HAS_SYSOSFREE}
-    freeOS.FreeAll; { Does not require gs.lock. }
+    if Assigned(freeOS1) then
+      SysOSFree(freeOS1, freeOS1^.size); { Does not require gs.lock. }
 {$endif HAS_SYSOSFREE}
 
     { Zeroing is probably required, because Orphan is called from FinalizeHeap which is called from DoneThread which can be called twice, according to this comment from syswin.inc: }
@@ -1838,7 +1834,12 @@ begin
   if (HeapInc.gs.lockUse > 0) and (InterlockedDecrement(HeapInc.gs.lockUse) = 0) then
     DoneCriticalSection(HeapInc.gs.lock);
 {$elseif defined(HAS_SYSOSFREE)}
-  HeapInc.thisTs.freeOS.FreeAll;
+  if Assigned(HeapInc.thisTs.freeOS1) then
+  begin
+    dec(HeapInc.thisTs.allocated, HeapInc.thisTs.freeOS1^.size); { Just in case... }
+    SysOSFree(HeapInc.thisTs.freeOS1, HeapInc.thisTs.freeOS1^.size);
+    HeapInc.thisTs.freeOS1 := nil; { Just in case... }
+  end;
 {$endif FPC_HAS_FEATURE_THREADING | defined(HAS_SYSOSFREE)}
 end;
 

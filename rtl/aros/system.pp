@@ -206,7 +206,7 @@ begin
     Halt(1);
 
   { Creating the memory pool for growing heap }
-  ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
+  ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize2 div 4);
   if ASYS_heapPool = nil then
     Halt(1);
 

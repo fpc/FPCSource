@@ -311,7 +311,7 @@ begin
 
   { Creating the memory pool for growing heap }
 {$IFNDEF FPC_AMIGA_USE_OSHEAP}
-  ASYS_heapPool:=CreatePool(MEMF_ANY,growheapsize2,growheapsize1);
+  ASYS_heapPool:=CreatePool(MEMF_ANY,growheapsize2,growheapsize2 div 4);
 {$ELSE FPC_AMIGA_USE_OSHEAP}
   ASYS_heapPool:=CreatePool(MEMF_ANY,min(heapsize,1024),min(heapsize div 2,1024));
 {$ENDIF FPC_AMIGA_USE_OSHEAP}

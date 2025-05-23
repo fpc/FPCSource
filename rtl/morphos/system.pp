@@ -204,7 +204,7 @@ begin
  if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
- ASYS_heapPool:=CreatePool(MEMF_FAST or MEMF_SEM_PROTECTED,growheapsize2,growheapsize1);
+ ASYS_heapPool:=CreatePool(MEMF_FAST or MEMF_SEM_PROTECTED,growheapsize2,growheapsize2 div 4);
  if ASYS_heapPool=nil then Halt(1);
 
  { Initialize semaphore for filelist access arbitration }
