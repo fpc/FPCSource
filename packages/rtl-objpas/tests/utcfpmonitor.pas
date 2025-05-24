@@ -37,9 +37,9 @@ Type
   Private
     FObj : TTestObject;
     FOperation : TThreadOperation;
-    FTimeout : Integer;
+    FTimeout : Cardinal;
     FID : Integer;
-    Constructor Create(aObj : TTestObject; aOperation : TThreadOperation; aId,aTimeout : Integer; aOnFree : TNotifyEvent);
+    Constructor Create(aObj : TTestObject; aOperation : TThreadOperation; aId : Integer; aTimeout : Cardinal; aOnFree : TNotifyEvent);
   Public
     Procedure Execute; override;
   end;
@@ -50,11 +50,11 @@ Type
     FThrdCount : Integer;
     FObj : Array[1..MaxObjCount] of  TTestObject;
     FThrd : Array[1..MaxThrdCount] of TThread;
-    function DoCreateThread(aObj: TTestObject; aOperation: TThreadOperation; aId, aTimeout: Integer): TTestThread;
+    function DoCreateThread(aObj: TTestObject; aOperation: TThreadOperation; aId: Integer; aTimeout: Cardinal): TTestThread;
     class procedure AssertEquals(Msg: String; aExpected, aActual: TThreadOperation); overload;
     function GetObj(AIndex: Integer): TTestObject;
     procedure ThreadDone(Sender : TObject);
-    procedure WaitForAllThreads(aTimeOut: Integer=0);
+    procedure WaitForAllThreads(aTimeOut: Cardinal=0);
   public
     Procedure Setup; override;
     Procedure TearDown; override;
@@ -76,7 +76,7 @@ Uses TypInfo;
 
 { TTestThread }
 
-constructor TTestThread.Create(aObj: TTestObject; aOperation: TThreadOperation; aId,aTimeout: Integer; aOnFree : TNotifyEvent);
+constructor TTestThread.Create(aObj: TTestObject; aOperation: TThreadOperation; aId: Integer;aTimeout: Cardinal; aOnFree : TNotifyEvent);
 begin
   FObj:=aObj;
   FOperation:=aOperation;
@@ -170,7 +170,7 @@ begin
   {$IFDEF DEBUG_MONITOR}Writeln(StdErr,GetTickCount64,': Thread ',GetCurrentThreadID,' End done executing. Threads still active: ',aCount);{$ENDIF}
 end;
 
-procedure TTestMonitorSupport.WaitForAllThreads(aTimeOut : Integer = 0);
+procedure TTestMonitorSupport.WaitForAllThreads(aTimeOut : Cardinal = 0);
 
 var
   I : Integer;
@@ -242,7 +242,7 @@ begin
     AssertNull('Thrd '+IntToStr(i),FThrd[I]);
 end;
 
-function TTestMonitorSupport.DoCreateThread(aObj: TTestObject; aOperation: TThreadOperation; aId, aTimeout: Integer): TTestThread;
+function TTestMonitorSupport.DoCreateThread(aObj: TTestObject; aOperation: TThreadOperation; aId : Integer; aTimeout: Cardinal): TTestThread;
 
 begin
   Inc(FThrdCount);
