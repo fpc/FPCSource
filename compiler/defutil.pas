@@ -817,7 +817,7 @@ implementation
              is_in_limit:=(tenumdef(def_from).min>=tenumdef(def_to).min) and
                           (tenumdef(def_from).max<=tenumdef(def_to).max);
            setdef:
-             is_in_limit:=(tsetdef(def_from).setbase>=tsetdef(def_to).setbase) and
+             is_in_limit:=(tsetdef(def_from).setlow>=tsetdef(def_to).setlow) and
                           (tsetdef(def_from).setmax<=tsetdef(def_to).setmax);
          else
            is_in_limit:=false;
