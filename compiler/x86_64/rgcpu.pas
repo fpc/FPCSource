@@ -44,10 +44,13 @@ unit rgcpu;
       var
         supreg : tsuperregister;
       begin
-        supreg:=getsupreg(reg);
-        { All registers conflict with rsp/rbp }
-        add_edge(supreg,RS_RSP);
-        // add_edge(supreg,RS_RBP);
+        if (getregtype(reg)=R_INTREGISTER) then
+          begin
+            supreg:=getsupreg(reg);
+            { All registers conflict with rsp/rbp }
+            add_edge(supreg,RS_RSP);
+            // add_edge(supreg,RS_RBP);
+          end;
       end;
 
 end.

@@ -77,7 +77,7 @@ implementation
       var
         supreg : tsuperregister;
       begin
-        if getsubreg(reg) in [R_SUBL,R_SUBH] then
+        if (getregtype(reg)=R_INTREGISTER) and (getsubreg(reg) in [R_SUBL,R_SUBH]) then
           begin
             { Some registers have no 8-bit subregister }
             supreg:=getsupreg(reg);
