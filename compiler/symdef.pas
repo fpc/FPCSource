@@ -1089,8 +1089,13 @@ interface
        tsetdef = class(tstoreddef)
           elementdef : tdef;
           elementdefderef : tderef;
+          { setbase is the value of the lowest value being representable by the set, this could
+            be lower then the lowest value being a valid value from the declaration: a set [3..4] might
+            have a setbase of 0 for code generation/alignment reasons }
           setbase,
-          setlow,setmax   : asizeint;
+          { setlow is the lowest value valid according to the declaration of a set, i.e. for a set [3..4] it is really 3 }
+          setlow,
+          setmax   : asizeint;
           constructor create(def: tdef; low, high: asizeint; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
