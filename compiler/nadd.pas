@@ -2768,13 +2768,13 @@ const
                   begin
                     if assigned(tsetdef(ld).elementdef) then
                       begin
-                        llow:=tsetdef(ld).setbase;
+                        llow:=tsetdef(ld).setlow;
                         lhigh:=tsetdef(ld).setmax;
                       end;
                     if (rd.typ=setdef) then
                       if assigned(tsetdef(rd).elementdef) then
                         begin
-                          rlow:=tsetdef(rd).setbase;
+                          rlow:=tsetdef(rd).setlow;
                           rhigh:=tsetdef(rd).setmax;
                         end
                       else
