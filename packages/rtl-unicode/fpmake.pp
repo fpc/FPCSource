@@ -47,6 +47,8 @@ begin
     P.Email := '';
     P.Description := 'Rtl-unicode, misc Unicode units';
     P.NeedLibC:= false;
+    
+    P.Dependencies.Add('rtl-objpas');
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/collations');

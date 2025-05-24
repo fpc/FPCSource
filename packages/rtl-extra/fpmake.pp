@@ -62,7 +62,6 @@ begin
     P.Email := '';
     P.Description := 'Rtl-extra, RTL not needed for bootstrapping';
     P.NeedLibC:= false;
-    P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
     if Defaults.CPU=m68k then
