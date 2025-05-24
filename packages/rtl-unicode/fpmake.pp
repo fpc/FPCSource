@@ -53,6 +53,8 @@ begin
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/collations');
 
+    T:=P.Targets.AddUnit('utf8utils.pp');
+    
     T:=P.Targets.AddUnit('unicodeducet.pas',CollationOSes);
     with T.Dependencies do
       begin

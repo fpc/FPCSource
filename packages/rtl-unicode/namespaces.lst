@@ -12,6 +12,7 @@ src/collations/collation_ko.pas=namespaced/System.Collations.Ko.pas
 src/inc/cpbuildu.pp=namespaced/System.Unicode.Cpbuildu.pp
 {s*:src/inc/}=namespaced/
 {i+:src/inc/}
+src/inc/utf8utils.pp=namespaced/System.Unicode.Utf8Utils.pp
 src/inc/freebidi.pp=namespaced/System.Unicode.Freebidi.pp
 src/inc/utf8bidi.pp=namespaced/System.Unicode.Utf8bidi.pp
 src/inc/cp932.pas=namespaced/System.Unicode.Cp932.pas
