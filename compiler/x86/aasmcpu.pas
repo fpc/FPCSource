@@ -1973,26 +1973,29 @@ implementation
         result:=FindInsEntry(nil);
       end;
 
+
     function taicpu.DistinctRegisters(aAll:boolean):boolean; { distinct vector registers? }
       var i : longint;
           nr : array[0..max_operands-1] of shortint;
       begin
         result:=true;
-        for i:=0 to ops-1 do
-          begin
-            with oper[i]^ do
-              begin
-                nr[i]:=-i-1;
-                if getregtype(reg) = R_MMREGISTER then
-                   nr[i]:=getsupreg(reg);
-                if aAll and (nr[i]<0) then
-                  if (ot and (OT_REGNORM or otf_reg_gpr))=(OT_REGNORM or otf_reg_gpr) then
-                    if (ot and (otf_reg_xmm or otf_reg_ymm or otf_reg_zmm)) > 0 then
-                        nr[i]:=getsupreg(ref^.index);
-              end;
-          end;
         if ops>1 then
           begin
+            { avoid error about uninitialized variable }
+            fillchar(nr,sizeof(nr),0);
+            for i:=0 to ops-1 do
+              begin
+                with oper[i]^ do
+                  begin
+                    nr[i]:=-i-1;
+                    if getregtype(reg) = R_MMREGISTER then
+                      nr[i]:=getsupreg(reg);
+                    if aAll and (nr[i]<0) then
+                      if (ot and (OT_REGNORM or otf_reg_gpr))=(OT_REGNORM or otf_reg_gpr) then
+                        if (ot and (otf_reg_xmm or otf_reg_ymm or otf_reg_zmm)) > 0 then
+                            nr[i]:=getsupreg(ref^.index);
+                  end;
+              end;
             if nr[0]=nr[1] then result:=false;
             if ops>2 then
               begin
@@ -2001,6 +2004,7 @@ implementation
               end;
           end;
       end;
+
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
