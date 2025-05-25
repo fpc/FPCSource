@@ -449,7 +449,6 @@ type
       procedure AdoptArena(arena: pFixedArena);
       procedure AdoptVarOwner(p: pointer); { Adopts the OS chunk that contains p. Must be performed under gs.lock. }
       class procedure ChangeThreadState(vOs: pVarOSChunk; ts: pThreadState); static;
-      procedure FreeEmptyArenas(untilCount: SizeUint);
 
     {$ifndef FPC_SECTION_THREADVARS}
       procedure FixupSelfPtr;
@@ -1722,11 +1721,21 @@ type
 
   procedure HeapInc.ThreadState.Orphan;
   var
+    arena: pFixedArena;
     lastFree, nextFree: pFreeOSChunk;
     vOs, nextVOs, lastVOs: pVarOSChunk;
   begin
     FlushToFree;
-    FreeEmptyArenas(0);
+
+    { Has to free all empty arenas, otherwise the chunk that contains only empty arenas will leak (no one will ever adopt it, as it has nothing to free). }
+    while nEmptyArenas > 0 do
+    begin
+      arena := emptyArenas;
+      emptyArenas := arena^.next;
+      dec(nEmptyArenas);
+      FreeVar(arena);
+    end;
+
     { Prepend freeOS to gs.freeOS. }
     lastFree := freeOS.last;
     if Assigned(lastFree) then
@@ -1773,14 +1782,8 @@ type
     sizeIndex := pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h and SizeIndexMask;
     inc(used, arena^.usedSize); { maxUsed is updated at the end of AdoptVarOwner. }
 
-    if arena^.usedSize = 0 then
-    begin
-      { Add arena to emptyArenas. }
-      arena^.next := emptyArenas;
-      emptyArenas := arena;
-      inc(nEmptyArenas); { May exceed MaxKeptFixedArenas, extra arenas are freed at the end of AdoptVarOwner. }
-    end
-    else if arena^.usedSize < arena^.fullThreshold then
+    { Orphan frees all empty arenas, so adopted arena can’t be empty. }
+    if arena^.usedSize < arena^.fullThreshold then
     begin
       { Add arena to partialArenas[sizeIndex]. }
       nextArena := partialArenas[sizeIndex];
@@ -1839,8 +1842,6 @@ type
       inc(p, h and uint32(VarSizeMask));
     until h and LastFlag <> 0;
 
-    FreeEmptyArenas(MaxKeptFixedArenas);
-
     statv := used + gs.hugeUsed;
     if statv > maxUsed then
       maxUsed := statv;
@@ -1857,19 +1858,6 @@ type
       h := pVarHeader(p - VarHeaderSize)^.ch.h;
       inc(p, h and uint32(VarSizeMask));
     until h and LastFlag <> 0;
-  end;
-
-  procedure HeapInc.ThreadState.FreeEmptyArenas(untilCount: SizeUint);
-  var
-    arena: pFixedArena;
-  begin
-    while nEmptyArenas > untilCount do
-    begin
-      arena := emptyArenas;
-      emptyArenas := arena^.next;
-      dec(nEmptyArenas);
-      FreeVar(arena);
-    end;
   end;
 
 {$ifndef FPC_SECTION_THREADVARS}
