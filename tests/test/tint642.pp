@@ -35,6 +35,8 @@ const
 {$endif not CPU68K}
 {$endif not CPUI8086}
 
+{$R-,Q-}
+
 procedure dumpqword(q : qword);
 
   begin
