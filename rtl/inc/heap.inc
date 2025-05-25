@@ -445,7 +445,7 @@ type
       procedure PushToFree(p: pFreeChunk);
       procedure FlushToFree;
 
-      procedure Orphan; { Must be performed under gs.lock. }
+      procedure Orphan;
       procedure AdoptArena(arena: pFixedArena);
       procedure AdoptVarOwner(p: pointer); { Adopts the OS chunk that contains p. Must be performed under gs.lock. }
       class procedure ChangeThreadState(vOs: pVarOSChunk; ts: pThreadState); static;
@@ -467,8 +467,10 @@ type
       lockUse: int32;
 
       { Data from dead threads (“orphaned”), protected by gs.lock. }
-      freeOS: FreeOSChunkList;
       varOS: pVarOSChunk;
+    {$ifndef HAS_SYSOSFREE}
+      freeOS: FreeOSChunkList;
+    {$endif not HAS_SYSOSFREE}
     {$endif FPC_HAS_FEATURE_THREADING}
     end;
 
@@ -1161,13 +1163,15 @@ type
   end;
 
   function HeapInc.ThreadState.GetOSChunk(minSize, maxSize: SizeUint): pOSChunk;
+{$if defined(FPC_HAS_FEATURE_THREADING) and not defined(HAS_SYSOSFREE)}
   var
     statv: SizeUint;
+{$endif FPC_HAS_FEATURE_THREADING and not HAS_SYSOSFREE}
   begin
     result := freeOS.Get(minSize, maxSize);
     if Assigned(result) then
       exit;
-  {$ifdef FPC_HAS_FEATURE_THREADING}
+  {$if defined(FPC_HAS_FEATURE_THREADING) and not defined(HAS_SYSOSFREE)}
     if Assigned(gs.freeOS.first) then { Racing precheck. }
     begin
       EnterCriticalSection(gs.lock);
@@ -1183,7 +1187,7 @@ type
         exit;
       end;
     end;
-  {$endif FPC_HAS_FEATURE_THREADING}
+  {$endif FPC_HAS_FEATURE_THREADING and not HAS_SYSOSFREE}
     result := AllocateOSChunk(minSize);
   end;
 
@@ -1722,10 +1726,14 @@ type
   procedure HeapInc.ThreadState.Orphan;
   var
     arena: pFixedArena;
-    lastFree, nextFree: pFreeOSChunk;
     vOs, nextVOs, lastVOs: pVarOSChunk;
+  {$ifndef HAS_SYSOSFREE}
+    lastFree, nextFree: pFreeOSChunk;
+  {$endif not HAS_SYSOSFREE}
   begin
-    FlushToFree;
+    if gs.lockUse > 0 then
+      EnterCriticalSection(HeapInc.gs.lock);
+    FlushToFree; { Performing it under gs.lock guarantees there will be no new toFree requests. }
 
     { Has to free all empty arenas, otherwise the chunk that contains only empty arenas will leak (no one will ever adopt it, as it has nothing to free). }
     while nEmptyArenas > 0 do
@@ -1736,6 +1744,7 @@ type
       FreeVar(arena);
     end;
 
+{$ifndef HAS_SYSOSFREE}
     { Prepend freeOS to gs.freeOS. }
     lastFree := freeOS.last;
     if Assigned(lastFree) then
@@ -1747,12 +1756,8 @@ type
       else
         gs.freeOS.last := lastFree;
       gs.freeOS.first := freeOS.first;
-    {$ifdef HAS_SYSOSFREE}
-      inc(gs.freeOS.n, freeOS.n);
-      while gs.freeOS.n > MaxKeptOSChunks do
-        gs.freeOS.FreeOne;
-    {$endif}
     end;
+{$endif not HAS_SYSOSFREE}
     { Prepend varOS to gs.varOS. }
     vOs := varOS;
     if Assigned(vOs) then
@@ -1768,6 +1773,12 @@ type
       if Assigned(nextVOs) then
         nextVOs^.prev := lastVOs;
     end;
+    if gs.lockUse > 0 then
+      LeaveCriticalSection(gs.lock);
+
+{$ifdef HAS_SYSOSFREE}
+    freeOS.FreeAll; { Does not require gs.lock. }
+{$endif HAS_SYSOSFREE}
 
     { Zeroing is probably required, because Orphan is called from FinalizeHeap which is called from DoneThread which can be called twice, according to this comment from syswin.inc: }
     // DoneThread; { Assume everything is idempotent there }
@@ -2080,20 +2091,9 @@ begin
   if (errorcode=203) or (errorcode=204) then
     exit;
 {$if defined(FPC_HAS_FEATURE_THREADING)}
-  if HeapInc.gs.lockUse > 0 then
-    EnterCriticalSection(HeapInc.gs.lock);
   HeapInc.thisTs.Orphan;
-  if HeapInc.gs.lockUse > 0 then
-    begin
-      LeaveCriticalSection(HeapInc.gs.lock);
-      if InterlockedDecrement(HeapInc.gs.lockUse) = 0 then
-        begin
-          DoneCriticalSection(HeapInc.gs.lock);
-        {$ifdef HAS_SYSOSFREE}
-          HeapInc.gs.freeOS.FreeAll;
-        {$endif}
-        end;
-    end;
+  if (HeapInc.gs.lockUse > 0) and (InterlockedDecrement(HeapInc.gs.lockUse) = 0) then
+    DoneCriticalSection(HeapInc.gs.lock);
 {$elseif defined(HAS_SYSOSFREE)}
   HeapInc.thisTs.freeOS.FreeAll;
 {$endif FPC_HAS_FEATURE_THREADING | defined(HAS_SYSOSFREE)}
