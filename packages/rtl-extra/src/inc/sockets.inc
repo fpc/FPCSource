@@ -278,8 +278,8 @@ Type array4int = array[1..4] of byte;
 function NetAddrToStr (Entry : in_addr) : AnsiString;
 
 Var Dummy : Ansistring;
-    i,j   : Longint;
-
+    i   : Longint;
+    j   : Cardinal;
 begin
   NetAddrToStr:='';
   j:=entry.s_addr;
