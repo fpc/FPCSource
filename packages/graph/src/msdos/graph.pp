@@ -565,7 +565,7 @@ var
 
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
-  mov ax,CGAPaletteID
+  mov al,CGAPaletteID
   mov bl, al
   mov bh, 1
   mov ah, 0Bh
@@ -578,7 +578,7 @@ end;
 
 procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
-  mov ax,CGABorder
+  mov al,CGABorder
   mov bl, al
   mov bh, 0
   mov ah, 0Bh
