@@ -14,6 +14,14 @@ uses
 {$endif unix}
   SysUtils, Classes;
 
+{$ifopt R+}
+  {$define DISABLE_R_LOCALLY}
+{$endif}
+
+{$ifopt Q+}
+  {$define DISABLE_Q_LOCALLY}
+{$endif}
+
 type
   TOperation = (opAdd, opDec, opAdd7, opDec7, opExchange, opExchangeAdd, opExchangeDec, opCompareExchange);
 
@@ -66,6 +74,8 @@ begin
   AtomicIncrement(WorkingCount);
   Sleep(10);
 
+{$ifdef DISABLE_R_LOCALLY} {$R-} {$endif}
+{$ifdef DISABLE_Q_LOCALLY} {$Q-} {$endif}
   case FOp of
     opAdd:
       begin
@@ -162,6 +172,8 @@ begin
       end;
   end;
 
+{$ifdef DISABLE_R_LOCALLY} {$R+} {$endif}
+{$ifdef DISABLE_Q_LOCALLY} {$Q+} {$endif}
   { ensure the writes to Counter and Counter2 are ordered vs the writes to FinishedCount }
   WriteBarrier;
 
