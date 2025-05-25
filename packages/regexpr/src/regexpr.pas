@@ -959,7 +959,11 @@ const
   RegExprLineSeparatorsSet = [$d, $a, $b, $c] {$IFDEF UnicodeRE} + [$85] {$ENDIF};
   RegExprHorzSeparatorsSet = [9, $20, $A0];
 
+{$ifdef CPU16}
+  MaxBracesArg = $7FFF - 1;
+{$else}
   MaxBracesArg = $7FFFFFFF - 1; // max value for {n,m} arguments
+{$endif}
 
 type
   TRENextOff = PtrInt;
