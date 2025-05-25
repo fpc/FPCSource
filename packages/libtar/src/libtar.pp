@@ -515,10 +515,12 @@ VAR
 BEGIN
   FillChar (Rec, RECORDSIZE, 0);
   StrLCopy (TH.Name, PAnsiChar (DirRec.Name), NAMSIZ);
+  { INTEGER type can be 16-bit wide, for instance on msdos OS,
+    add explicit typecast to avoid range check error in such cases }
   CASE DirRec.FileType OF
-    ftNormal, ftLink  : Mode := $08000;
-    ftSymbolicLink    : Mode := $0A000;
-    ftDirectory         : Mode := $04000;
+    ftNormal, ftLink  : Mode := INTEGER($08000);
+    ftSymbolicLink    : Mode := INTEGER($0A000);
+    ftDirectory         : Mode := INTEGER($04000);
     ELSE                  Mode := 0;
     END;
   IF tmSaveText IN DirRec.Mode THEN Mode := Mode OR $0200;
