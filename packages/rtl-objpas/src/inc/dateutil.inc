@@ -21,7 +21,6 @@ unit DateUtils;
 
 interface
 
-
 {$ifndef FPUNONE}
 {$IFDEF FPC_DOTTEDUNITS}
 uses
@@ -634,15 +633,21 @@ type
 
 implementation
 
+{$ifdef windows}
+  {$ifndef win16}
+    {$define USE_WINDOWS_UNIT}
+  {$endif not win16}
+{$endif windows}
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   {$IFDEF UNIX} UnixApi.Unix, {$ENDIF}
-  {$IFDEF WINDOWS} WinApi.Windows, {$ENDIF}
+  {$IFDEF USE_WINDOWS_UNIT} WinApi.Windows, {$ENDIF}
   System.SysConst;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$IFDEF UNIX} Unix, {$ENDIF}
-  {$IFDEF WINDOWS} Windows, {$ENDIF}
+  {$IFDEF USE_WINDOWS_UNIT} Windows, {$ENDIF}
   sysconst;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -3782,7 +3787,7 @@ end;
 
 function TLocalTimeZone.DoGetID(): string;
 
-{$IFDEF WINDOWS}
+{$IFDEF USE_WINDOWS_UNIT}
 var
   lInfo: TTimeZoneInformation;
   Name : UnicodeString;
@@ -3791,7 +3796,7 @@ var
 var
   lInfo : TTZInfoEx;
 {$ENDIF}
-{$IF NOT (DEFINED(WINDOWS) OR DEFINED(UNIX))}
+{$IF NOT (DEFINED(USE_WINDOWS_UNIT) OR DEFINED(UNIX))}
 var
   lTZEnv : String;
   I : integer;
@@ -3802,7 +3807,7 @@ begin
   lInfo:=GetTZInfoEx;
   Result:=lInfo.Name[false];
   {$ENDIF}
-  {$IFDEF WINDOWS}
+  {$IFDEF USE_WINDOWS_UNIT}
   lInfo:=Default(TTimeZoneInformation);
   GetTimeZoneInformation(lInfo);
   Name:=StrPas(@lInfo.StandardName);
