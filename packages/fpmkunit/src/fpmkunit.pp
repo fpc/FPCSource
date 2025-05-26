@@ -8679,7 +8679,7 @@ Var
     L: TStrings;
     F: Text;
     Dep : TDependency;
-    aUnitName : string;
+    aUnitName, aUnitSourceDir : string;
     CompilationFailed: Boolean;
 
   begin
@@ -8698,8 +8698,13 @@ Var
               write(F,',');
             Dep:=APackage.FBUTarget.Dependencies.Dependencies[i];
             aUnitName:=Dep.Value;
+	    aUnitSourceDir:=ExtractFileDir(Dep.TargetFileName);
             if aUnitName='' then
               Writeln('Aloha2');
+            if aUnitSourceDir='' then
+              APackage.UnitPath.Add('.')
+            else
+              APackage.UnitPath.Add(aUnitSourceDir);
             writeln(F,aUnitName);
           end;
         writeln(F,';');
