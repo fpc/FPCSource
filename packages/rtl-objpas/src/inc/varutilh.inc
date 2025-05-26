@@ -73,7 +73,7 @@ function VariantToWideString(const VargSrc : TVarData) : WideString;
 function VariantToAnsiString(const VargSrc : TVarData) : AnsiString;
 function VariantToShortString(const VargSrc : TVarData) : ShortString;
 
-{$ifdef MSWINDOWS}
+{$ifdef USE_WINDOWS_OLE_FUNCTIONS}
 function VarDateFromStr(const strIn: POleStr; alcid: DWORD; dwFlags: Longint; out dateOut: Double): HRESULT; stdcall; overload;
 function VarDateFromStr(const strIn: POleStr; alcid: DWORD; dwFlags: Longint; out dateOut: TDateTime): HRESULT; stdcall; overload;
 {$endif}
