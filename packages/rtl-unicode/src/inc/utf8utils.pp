@@ -24,16 +24,22 @@ unit UTF8Utils;
 {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 {$ENDIF}
 
+{$ifdef windows}
+  {$ifndef win16}
+    {$define USE_WINDOWS_UNIT}
+  {$endif not win16}
+{$endif windows}
+
 interface
 
 uses
 {$IFNDEF FPC_DOTTEDUNITS}
-  {$ifdef windows}
+  {$ifdef USE_WINDOWS_UNIT}
   Windows,
   {$endif}
   SysUtils, StrUtils;
 {$ELSE}
-  {$ifdef windows}
+  {$ifdef USE_WINDOWS_UNIT}
   WinApi.Windows,
   {$endif}
   System.SysUtils, System.StrUtils;
@@ -222,7 +228,7 @@ begin
 end;
 
 
-{$IFDEF WINDOWS}
+{$IFDEF USE_WINDOWS_UNIT}
 
   {$ifdef WinCE}
   function ConsoleToUTF8(const s: AnsiString): AnsiString;// converts console encoding to UTF8
@@ -334,7 +340,7 @@ end;
   end;
   {$endif not wince}
 
-{$ELSE WINDOWS}
+{$ELSE USE_WINDOWS_UNIT}
 
   function ConsoleToUTF8(const s: AnsiString): AnsiString;// converts UTF8 AnsiString to console encoding (used by Write, WriteLn)
   begin
@@ -371,7 +377,7 @@ end;
 
 
 
-{$ENDIF WINDOWS}
+{$ENDIF USE_WINDOWS_UNIT}
 
 var
   FNeedRTLAnsi: boolean = false;
