@@ -988,10 +988,16 @@ resourcestring
 
 implementation
 
+{$ifdef windows}
+  {$ifndef win16}
+    {$define USE_WINDOWS_UNIT}
+  {$endif not win16}
+{$endif windows}
+
 uses
 {$IFDEF FPC_DOTTEDUNITS}
   System.Variants,
-{$ifdef windows}
+{$ifdef USE_WINDOWS_UNIT}
   WinApi.Windows,
 {$endif}
 {$ifdef unix}
@@ -1001,7 +1007,7 @@ uses
   System.FGL;
 {$ELSE FPC_DOTTEDUNITS}
   Variants,
-{$ifdef windows}
+{$ifdef USE_WINDOWS_UNIT}
   Windows,
 {$endif}
 {$ifdef unix}
@@ -1419,7 +1425,7 @@ var
 
 function AllocateMemory(aSize: PtrUInt): Pointer;
 begin
-{$IF DEFINED(WINDOWS)}
+{$IF DEFINED(USE_WINDOWS_UNIT)}
   Result := VirtualAlloc(Nil, aSize, MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
 {$ELSEIF DEFINED(UNIX)}
   Result := fpmmap(Nil, aSize, PROT_READ or PROT_WRITE, MAP_PRIVATE or MAP_ANONYMOUS, 0, 0);
@@ -1429,12 +1435,12 @@ begin
 end;
 
 function ProtectMemory(aPtr: Pointer; aSize: PtrUInt; aExecutable: Boolean): Boolean;
-{$IF DEFINED(WINDOWS)}
+{$IF DEFINED(USE_WINDOWS_UNIT)}
 var
   oldprot: DWORD;
 {$ENDIF}
 begin
-{$IF DEFINED(WINDOWS)}
+{$IF DEFINED(USE_WINDOWS_UNIT)}
   if aExecutable then
     Result := VirtualProtect(aPtr, aSize, PAGE_EXECUTE_READ, oldprot)
   else
@@ -1451,7 +1457,7 @@ end;
 
 procedure FreeMemory(aPtr: Pointer; aSize: PtrUInt);
 begin
-{$IF DEFINED(WINDOWS)}
+{$IF DEFINED(USE_WINDOWS_UNIT)}
   VirtualFree(aPtr, 0, MEM_RELEASE);
 {$ELSEIF DEFINED(UNIX)}
   fpmunmap(aPtr, aSize);
