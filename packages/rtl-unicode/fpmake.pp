@@ -16,13 +16,13 @@ Const
   CPUnits       = [aix,amiga,aros,android,beos,macosclassic,darwin,iphonesim,ios,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly,freertos,wasip1,wasip1threads];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];
-  GraphemeBreakPropertyOSes = AllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
-  EastAsianWidthOSes        = AllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
-
 // Character not movable because fpwidestring depends on it.
 //  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64,dragonfly];
 
-  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits + GraphemeBreakPropertyOSes + EastAsianWidthOSes;
+  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits;
+
+  GraphemeBreakPropertyOSes = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
+  EastAsianWidthOSes        = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
 
 // Amiga has a crt in its RTL dir, but it is commented in the makefile
 
