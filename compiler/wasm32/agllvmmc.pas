@@ -432,19 +432,6 @@ implementation
 
 
   const
-    as_wasm32_llvm_mc_v10_info : tasminfo =
-       (
-         id     : as_wasm32_llvm_mc_v10;
-         idtxt  : 'LLVM-MC-10';
-         asmbin : 'llvm-mc-10';
-         asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics --filetype=obj -o $OBJ $EXTRAOPT $ASM';
-         supported_targets : [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads,system_wasm32_wasip2];
-         flags : [af_smartlink_sections];
-         labelprefix : '.L';
-         labelmaxlen : -1;
-         comment : '# ';
-         dollarsign : '$';
-       );
     as_wasm32_llvm_mc_v11_info : tasminfo =
        (
          id     : as_wasm32_llvm_mc_v11;
@@ -586,7 +573,6 @@ implementation
        );
 
 initialization
-  RegisterAssembler(as_wasm32_llvm_mc_v10_info,TLLVMMachineCodePlaygroundAssemblerV10);
   RegisterAssembler(as_wasm32_llvm_mc_v11_info,TLLVMMachineCodePlaygroundAssemblerV11);
   RegisterAssembler(as_wasm32_llvm_mc_v12_info,TLLVMMachineCodePlaygroundAssemblerV12);
   RegisterAssembler(as_wasm32_llvm_mc_v13_info,TLLVMMachineCodePlaygroundAssemblerV13);
