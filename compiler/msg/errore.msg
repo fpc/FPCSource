@@ -4058,7 +4058,6 @@ s*2Aas_Assemble using GNU AS
 v*2Aas_Assemble using GNU AS
 W*2Awasm_Assemble using the internal object writer for wasm32
 W*2Abinaryen_Assemble using GNU AS for wasm32 (wasm-as) (experimental)
-W*2Allvm-mc-10_Assemble using llvm-mc-10
 W*2Allvm-mc-11_Assemble using llvm-mc-11
 W*2Allvm-mc-12_Assemble using llvm-mc-12
 W*2Allvm-mc-13_Assemble using llvm-mc-13 (broken, due to bugs in LLVM)

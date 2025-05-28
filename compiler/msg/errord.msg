@@ -4097,7 +4097,6 @@ s*2Aas_Assembliere mit Hilfe von GNU AS
 v*2Aas_Assembliere mit Hilfe von GNU AS
 W*2Awasm_Assembliere mit Hilfe des internen Objektschreibers fÅr wasm32
 W*2Abinaryen_Assembliere mit Hilfe von GNU AS fÅr wasm32 (wasm-as) (experimentell)
-W*2Allvm-mc-10_Assembliere mit Hilfe von llvm-mc-10
 W*2Allvm-mc-11_Assembliere mit Hilfe von llvm-mc-11
 W*2Allvm-mc-12_Assembliere mit Hilfe von llvm-mc-12
 W*2Allvm-mc-13_Assembliere mit Hilfe von llvm-mc-13 (funktioniert nicht wegen Bugs in llvm)
