@@ -8,24 +8,15 @@ uses {$ifdef unix}cthreads,{$endif} fpmkunit;
 procedure add_rtl_unicode(const ADirectory: string);
 
 Const
-  // All Unices have full set of KVM+Crt in unix/ except QNX which is not
-  // in workable state atm.
-  // UnixLikes = AllUnixOSes -[QNX];
-
   CollationOSes = [aix,android,macosclassic,darwin,emx,freebsd,go32v2,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly,haiku,freertos,watcom,wasip1,wasip1threads];
   CPUnits       = [aix,amiga,aros,android,beos,macosclassic,darwin,iphonesim,ios,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly,freertos,wasip1,wasip1threads];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];
-// Character not movable because fpwidestring depends on it.
-//  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64,dragonfly];
-
   UnicodeBaseOnlyOSes   = [msdos,win16];
   UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits + UnicodeBaseOnlyOSes;
 
   GraphemeBreakPropertyOSes = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
   EastAsianWidthOSes        = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
-
-// Amiga has a crt in its RTL dir, but it is commented in the makefile
 
 Var
   P : TPackage;
