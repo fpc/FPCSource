@@ -15,8 +15,8 @@ Const
   UnicodeBaseOnlyOSes   = [msdos,win16];
   UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits + UnicodeBaseOnlyOSes;
 
-  GraphemeBreakPropertyOSes = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
-  EastAsianWidthOSes        = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
+  GraphemeBreakPropertyOSes = UnicodeAllOSes;
+  EastAsianWidthOSes        = UnicodeAllOSes;
 
 Var
   P : TPackage;
