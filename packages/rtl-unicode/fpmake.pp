@@ -19,7 +19,8 @@ Const
 // Character not movable because fpwidestring depends on it.
 //  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64,dragonfly];
 
-  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits;
+  UnicodeBaseOnlyOSes   = [msdos,win16];
+  UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits + UnicodeBaseOnlyOSes;
 
   GraphemeBreakPropertyOSes = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
   EastAsianWidthOSes        = UnicodeAllOSes-[embedded,zxspectrum,msxdos,amstradcpc];
