@@ -643,6 +643,9 @@ function ImageList_SetOverlayImage(himl:HIMAGELIST;iImage:cint;iOverlay:cint):BO
 // Macro 11
 Function ImageList_AddIcon(Himl:HIMAGELIST;hicon:HICON):cint;
 
+// Vista++
+function HIMAGELIST_QueryInterface(himl  : HIMAGELIST;const riid : REFIID; out ppv) : HRESULT; stdcall; external commctrldll name 'HIMAGELIST_QueryInterface';    
+
 CONST
          ILD_NORMAL                     = $00000000;
          ILD_TRANSPARENT                = $00000001;
