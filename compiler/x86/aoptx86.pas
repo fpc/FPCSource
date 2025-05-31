@@ -4589,6 +4589,18 @@ unit aoptx86;
                         DebugMsg(SPeepholeOptimization + 'MovMov2Mov 1',p);
                         RemoveInstruction(hp1);
                         Result:=true;
+
+                        if (taicpu(p).oper[1]^.typ = top_reg) then
+                          begin
+                            TransferUsedRegs(TmpUsedRegs);
+                            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, p, TmpUsedRegs) then
+                              begin
+                                { reg2 is no longer in use }
+                                DebugMsg(SPeepholeOptimization + 'Mov2Nop 6 done',p);
+                                RemoveCurrentP(p);
+                              end;
+                          end;
+
                         exit;
                       end
                     else
