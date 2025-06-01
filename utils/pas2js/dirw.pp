@@ -1,4 +1,4 @@
-unit dirwatch;
+unit dirw;
 {$IFDEF LINUX}
 {$DEFINE USEINOTIFY}
 {$ELSE}

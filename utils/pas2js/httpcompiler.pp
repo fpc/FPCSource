@@ -11,7 +11,7 @@ uses
   strutils,
   {$ENDIF}
   sysutils, classes, fpjson, contnrs, syncobjs, fpmimetypes, custhttpapp, inifiles, types,
-  fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirwatch, Pas2JSFSCompiler,
+  fpwebproxy, webutil, fpwebfile, httproute, httpdefs, dirw, Pas2JSFSCompiler,
   Pas2JSCompilerCfg, ssockets, fpdebugcapturesvc, fpsimpleserver;
 
 Const
