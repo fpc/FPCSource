@@ -1758,6 +1758,7 @@ implementation
         i,j,asize,oprs : longint;
         insflags:tinsflags;
         vopext: int64;
+        EvexRegs :boolean;
         siz : array[0..max_operands-1] of longint;
       begin
         result:=false;
@@ -1777,11 +1778,16 @@ implementation
           exit;
 {$endif i8086}
 
+        EvexRegs:=false;
         for i:=0 to p^.ops-1 do
          begin
            insot:=p^.optypes[i];
            currot:=oper[i]^.ot;
 
+           if (oper[i]^.typ=top_reg) and
+              (getregtype(oper[i]^.reg) = R_MMREGISTER) then
+            if getsupreg(oper[i]^.reg) and $10 = $10 then
+              EvexRegs:=true;
            { Check the operand flags }
            if (insot and (not currot) and OT_NON_SIZE)<>0 then
              exit;
@@ -1800,6 +1806,17 @@ implementation
            if (insot and OT_FAR)<>(currot and OT_FAR) then
              exit;
          end;
+
+        { Chack Evex support in encoding }
+        if EvexRegs then
+        begin
+          for i:=0 to  maxinfolen do
+          begin
+            if byte(p^.code[i]) = &350 then break;
+            if byte(p^.code[i]) = 0 then break;
+          end;
+          if byte(p^.code[i]) <> &350 then exit;
+        end;
 
         { Check operand sizes }
         insflags:=p^.flags;
