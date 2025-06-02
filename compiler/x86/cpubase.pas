@@ -489,7 +489,7 @@ implementation
 
     function reg_cgsize(const reg: tregister): tcgsize;
       const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64,OS_NO,OS_M128,OS_M256,OS_M512,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO);
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64,OS_NO,OS_M128,OS_M256,OS_M512,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
@@ -525,7 +525,7 @@ implementation
     function subreg2opsize(sr : tsubregister):topsize;
       const
         _subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
       begin
         result:=_subreg2opsize[sr];
       end;
@@ -643,6 +643,7 @@ implementation
         { for the name the sub reg doesn't matter }
         hr:=r;
         if (getregtype(hr)=R_MMREGISTER) and
+           (getsubreg(hr)<>R_SUBMMT) and
            (getsubreg(hr)<>R_SUBMMY) and
            (getsubreg(hr)<>R_SUBMMZ) then
           setsubreg(hr,R_SUBMMX);

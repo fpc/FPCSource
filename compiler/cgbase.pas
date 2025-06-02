@@ -308,6 +308,9 @@ interface
         , R_SUBMMS1          { = 34; for arrangement of v regs on aarch64; for use with ldN/stN }
         , R_SUBMMD1          { = 35; for arrangement of v regs on aarch64; for use with ldN/stN }
 {$endif aarch64}
+{$ifdef x86}
+        , R_SUBMMT           { = 24; For Intel X86 AMX-Register }
+{$endif x86}
       );
       TSubRegisterSet = set of TSubRegister;
 

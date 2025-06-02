@@ -80,11 +80,11 @@ interface
       OT_SIZE_MASK = $E000001F;  { all the size attributes  }
       OT_NON_SIZE  = longint(not(longint(OT_SIZE_MASK)));
 
-      { Bits 8..11: modifiers }
+      { Bits 8..10: modifiers }
       OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
       OT_TO        = $00000200;  { reverse effect in FADD, FSUB &c  }
       OT_COLON     = $00000400;  { operand is followed by a colon  }
-      OT_MODIFIER_MASK = $00000F00;
+      OT_MODIFIER_MASK = $00000700;
 
       { Bits 12..15: type of operand }
       OT_REGISTER  = $00001000;
@@ -95,7 +95,7 @@ interface
 
       OT_REGNORM   = OT_REGISTER or OT_REGMEM;  { 'normal' reg, qualifies as EA  }
 
-      { Bits 20..22, 24..26: register classes
+      { Bits 11, 20..29: register classes
         otf_* consts are not used alone, only to build other constants. }
       otf_reg_cdt  = $00100000;
       otf_reg_gpr  = $00200000;
@@ -106,18 +106,20 @@ interface
       otf_reg_xmm  = $04000000;
       otf_reg_ymm  = $08000000;
       otf_reg_zmm  = $10000000;
+      otf_reg_tmm  = $00000800;
 
-
-      otf_reg_extra_mask = $0F000000;
+      //otf_reg_extra_mask = $0F000000;
+      otf_reg_extra_mask = $1F000800;
       { Bits 16..19: subclasses, meaning depends on classes field }
       otf_sub0     = $00010000;
       otf_sub1     = $00020000;
       otf_sub2     = $00040000;
       otf_sub3     = $00080000;
+
       OT_REG_SMASK = otf_sub0 or otf_sub1 or otf_sub2 or otf_sub3;
 
       //OT_REG_EXTRA_MASK = $0F000000;
-      OT_REG_EXTRA_MASK = $1F000000;
+      OT_REG_EXTRA_MASK = $1F000800;
 
       OT_REG_TYPMASK = otf_reg_cdt or otf_reg_gpr or otf_reg_sreg or otf_reg_k or otf_reg_extra_mask;
       { register class 0: CRx, DRx and TRx }
@@ -228,6 +230,10 @@ interface
 
       OT_KREG       = OT_REGNORM or otf_reg_k;
       OT_KREG_M     = OT_KREG or OT_VECTORMASK;
+
+      { register class 5: TMM (both reg and r/m) }
+      OT_TMMREG     = OT_REGNORM or otf_reg_tmm;
+      //OT_TMMRM      = OT_REGMEM or otf_reg_tmm;
 
       { Vector-Memory operands }
       OT_VMEM_ANY  = OT_XMEM32 or OT_XMEM64 or OT_YMEM32 or OT_YMEM64 or OT_ZMEM32 or OT_ZMEM64;
@@ -1320,7 +1326,9 @@ implementation
                else
                  if (ot and OT_ZMMREG)=OT_ZMMREG then
                   s:=s+'zmmreg' + regnr
-
+               else
+                 if (ot and OT_TMMREG)=OT_TMMREG then
+                  s:=s+'tmmreg' + regnr
                else
                  if (ot and OT_REG_EXTRA_MASK)=OT_MMXREG then
                   s:=s+'mmxreg'
@@ -4590,7 +4598,8 @@ implementation
                   (
                    ((oper[opidx]^.ot and OT_REG_EXTRA_MASK)=otf_reg_xmm) or
                    ((oper[opidx]^.ot and OT_REG_EXTRA_MASK)=otf_reg_ymm) or
-                   ((oper[opidx]^.ot and OT_REG_EXTRA_MASK)=otf_reg_zmm)
+                   ((oper[opidx]^.ot and OT_REG_EXTRA_MASK)=otf_reg_zmm) or
+                   ((oper[opidx]^.ot and OT_REG_EXTRA_MASK)=otf_reg_tmm)
                   ) then
                   begin
                     bytes[0] := ((getsupreg(oper[opidx]^.reg) and 15) shl 4);
@@ -5182,7 +5191,8 @@ implementation
             for i := 0 to insentry^.ops -1 do
             begin
               if (insentry^.optypes[i] and OT_REGISTER) = OT_REGISTER then
-               case insentry^.optypes[i] and (OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+               case insentry^.optypes[i] and (OT_TMMREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+                  OT_TMMREG,
                   OT_XMMREG,
                   OT_YMMREG,
                   OT_ZMMREG: ExistsSSEAVXReg := true;
@@ -5219,7 +5229,7 @@ implementation
                   NewRegSize := (insentry^.optypes[j] and OT_SIZE_MASK);
                   if NewRegSize = 0 then
                     begin
-                      case insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+                      case insentry^.optypes[j] and (OT_MMXREG or OT_TMMREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
                         OT_MMXREG: begin
                                      NewRegSize := OT_BITS64;
                                    end;
@@ -5238,13 +5248,16 @@ implementation
                           OT_KREG: begin
                                      InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
                                    end;
+                        OT_TMMREG: begin
+                                     InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                                   end;
 
                               else NewRegSize := not(0);
                       end;
                   end;
 
                 actRegSize  := actRegSize or NewRegSize;
-                actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK));
+                actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG or OT_TMMREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK));
                 end
               else if ((insentry^.optypes[j] and OT_MEMORY) <> 0) then
                 begin
