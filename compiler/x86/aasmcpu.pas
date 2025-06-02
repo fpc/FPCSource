@@ -3811,6 +3811,7 @@ implementation
         data,s,opidx : longint;
         ea_data : ea;
         relsym : TObjSymbol;
+        mod11 : boolean;
 
         needed_VEX_Extension: boolean;
         needed_VEX: boolean;
@@ -3836,6 +3837,7 @@ implementation
         EVEXz   : byte;
         EVEXaaa : byte;
         EVEXb   : byte;
+        EVEXu   : byte;
         EVEXmmm : byte;
 
       begin
@@ -3945,6 +3947,7 @@ implementation
         EVEXz    := 0;
         EVEXaaa  := 0;
         EVEXb    := 0;
+        EVEXu    := 1;
         EVEXmmm  := 0;
 
         repeat
@@ -4137,6 +4140,9 @@ implementation
           begin
             EVEXaaa:= 0;
             EVEXz  := 0;
+            mod11:=true;
+            for opidx := 0 to ops - 1 do
+              if oper[opidx]^.typ = top_ref then begin mod11:=false; break end;
 
             for i := 0 to ops - 1 do
              if (oper[i]^.vopext and OTVE_VECTOR_MASK) <> 0 then
@@ -4153,15 +4159,16 @@ implementation
                end;
 
                // flag EVEXb is multiple use (broadcast, sae and er)
-               if oper[i]^.vopext and OTVE_VECTOR_SAE = OTVE_VECTOR_SAE then
+               if mod11 and (oper[i]^.vopext and OTVE_VECTOR_SAE = OTVE_VECTOR_SAE) then
                begin
                  EVEXb := 1;
+                 if EVEXll = 1 then EVEXu:=0; { AVX10.2 ymmreg_sae }
                end;
 
-               if oper[i]^.vopext and OTVE_VECTOR_ER = OTVE_VECTOR_ER then
+               if mod11 and (oper[i]^.vopext and OTVE_VECTOR_ER = OTVE_VECTOR_ER) then
                begin
                  EVEXb := 1;
-
+                 if EVEXll = 1 then EVEXu:=0; { AVX10.2 ymmreg_er }
                  case oper[i]^.vopext and OTVE_VECTOR_ER_MASK of
                    OTVE_VECTOR_RNSAE: EVEXll := 0;
                    OTVE_VECTOR_RDSAE: EVEXll := 1;
@@ -4185,7 +4192,7 @@ implementation
                         ((EVEXx    and $01) shl 6);
 
             bytes[2] := ((EVEXpp   and $03) shl 0)  or
-                        ((1        and $01) shl 2)  or  // fixed in AVX512
+                        ((EVEXu    and $01) shl 2)  or  { EVEX.u if ModRM.mod=11 or EVEX.x4 if ModRM.mod!=11 }
                         ((EVEXvvvv and $0F) shl 3)  or
                         ((EVEXw1   and $01) shl 7);
 
