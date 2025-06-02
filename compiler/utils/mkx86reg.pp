@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
-    Convert i386reg.dat to several .inc files for usage with
+    Convert x86reg.dat to several .inc files for usage with
     the Free pascal compiler
 
     See the file COPYING.FPC, included in this distribution,
@@ -16,14 +16,14 @@
 {$i+}
 program mkx86reg;
 
-const Version = '1.00';
-      max_regcount = 255;
+const Version = '1.01';
+      max_regcount = 511;
 
 var s : string;
     i : longint;
     line : longint;
     regcount:longint;
-    regcount_bsstart:byte;
+    regcount_bsstart:longint;
     names,numbers,stdnames,intnames,nasmnames,attnames,stabs,dwarf16,dwarf32,dwarf64,ots,ops:
         array[0..max_regcount-1] of string[63];
     regnumber_index,std_regname_index,int_regname_index,att_regname_index,
