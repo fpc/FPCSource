@@ -12343,7 +12343,7 @@ mem64,reg64                \361\321\3\x0F\x38\xFC\101         RAOINT,X86_64
 [AOR]
 (Ch_RWop2, Ch_Rop1)
 mem32,reg32                \334\321\3\x0F\x38\xFC\101         RAOINT,SM
-mem32,reg64                \334\321\3\x0F\x38\xFC\101         RAOINT,X86_64
+mem64,reg64                \334\321\3\x0F\x38\xFC\101         RAOINT,X86_64
 
 [AXOR]
 (Ch_RWop2, Ch_Rop1)

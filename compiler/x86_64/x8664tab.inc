@@ -44271,7 +44271,7 @@
   (
     opcode  : A_AOR;
     ops     : 2;
-    optypes : (ot_memory or ot_bits32,ot_reg64,ot_none,ot_none);
+    optypes : (ot_memory or ot_bits64,ot_reg64,ot_none,ot_none);
     code    : #220#209#3#15#56#252#65;
     flags   : [if_raoint,if_x86_64]
   ),
