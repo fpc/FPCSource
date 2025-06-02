@@ -3092,7 +3092,7 @@ asmw_e_seh_invalid_data_size=08035_F_Illegal function size for SEH function
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP cannot be used as index register
 asmw_e_illegal_unset_index=08037_E_Wasm32 symbol $1 without index value error
 asmw_e_destination_and_source_registers_must_be_distinct=08038_E_Asm: $1 destination and source registers must be distinct.
-asmw_e_destination_index_mask_registers_should_be_distinct=08039_E_Asm: $1 destination, index and mask registers should be distinct.
+asmw_e_registers_should_be_distinct=08039_E_Asm: $1 registers should be distinct.
 #
 # Executing linker/assembler
 #

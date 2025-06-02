@@ -2086,7 +2086,7 @@ implementation
                   if not DistinctRegisters(IF_DALL in insentry^.flags) then
                     begin
                       if IF_DALL in insentry^.flags then
-                        Message1(asmw_e_destination_index_mask_registers_should_be_distinct,GetString)
+                        Message1(asmw_e_registers_should_be_distinct,GetString)
                       else
                         Message1(asmw_e_destination_and_source_registers_must_be_distinct,GetString);
                       exit;  { unacceptable register combination (shoud be distinct) }
