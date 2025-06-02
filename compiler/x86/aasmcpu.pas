@@ -307,7 +307,7 @@ interface
 {$elseif defined(i8086)}
       instabentries = {$i i8086nop.inc}
 {$endif}
-      maxinfolen    = 11;
+      maxinfolen    = 12;
 
     type
       { What an instruction can change. Needed for optimizer and spilling code.
@@ -468,6 +468,7 @@ interface
         IF_AVX,
         IF_AVX2,
         IF_AVX512,
+        IF_AVX102,      { AVX10.2 }
         IF_BMI1,
         IF_BMI2,
         { Intel ADX (Multi-Precision Add-Carry Instruction Extensions) }
@@ -481,9 +482,21 @@ interface
         IF_PREFETCHWT1,
         IF_SHA,
         IF_SHA512,
-        IF_SM3NI, { instruction set SM3:  ShangMi 3 hash function }
-        IF_SM4NI, { instruction set SM4 }
+        IF_SM3NI,       { SM3  ShangMi 3 hash function }
+        IF_SM4NI,       { SM4 }
         IF_GFNI,
+        IF_AES,
+        IF_AESKLE,
+        IF_AESKLEWIDE,  { AESKLE WIDE_KL }
+        IF_MOVRS,
+        IF_MOVDIRI,
+        IF_RAOINT,      { RAO-INT }
+        IF_CMPCCXADD,
+        IF_UINTR,
+        IF_SERIALIZE,
+        IF_USERMSR,     { USER_MSR }
+        IF_AVXVNNI,     { AVX-VNNI }
+        IF_AMX,         { AMX-BF16, AMX-TILE, AMX-INT8, AMX-FP16, AMX-FP8, AMX-TF32, AMX-COMPLEX, AMX-MOVRS, AMX-TRANSPOSE, AMX-AVX512 }
 
         { mask for processor level }
         { please keep these in order and in sync with IF_PLEVEL }
