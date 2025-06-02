@@ -222,4 +222,12 @@ tregister($06000003),
 tregister($06000004),
 tregister($06000005),
 tregister($06000006),
-tregister($06000007)
+tregister($06000007),
+tregister($04180000),
+tregister($04180001),
+tregister($04180002),
+tregister($04180003),
+tregister($04180004),
+tregister($04180005),
+tregister($04180006),
+tregister($04180007)
