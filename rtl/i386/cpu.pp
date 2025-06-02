@@ -49,7 +49,7 @@ type
     function AVX102Support: boolean;inline; { AVX10.2 }
     function AVX10_256Support: boolean;inline; { AVX10/256 indicates that 256-bit vector support is present }
     function AVX10_512Support: boolean;inline; { AVX10/512 indicates that 512-bit vector support is present }
-    function APXFSupport: boolean;inline;  { APX_F Advanced Performance Extension Foundation }
+    function APXSupport: boolean;inline;  { APX_F Advanced Performance Extension Foundation }
     function AVX512FSupport: boolean;inline;
     function AVX512DQSupport: boolean;inline;
     function AVX512IFMASupport: boolean;inline;
@@ -261,7 +261,7 @@ type
               { xmm and ymm state enabled? }
               ((XGETBV(0) and %110)=%110);
 
-            if (data.cpuid7_1.edx and (19 shl 0))<>0 then { CPUID.(EAX=24H) leaf is supported }
+            if (data.cpuid7_1.edx and (1 shl 19))<>0 then { CPUID.(EAX=24H) leaf is supported }
               data.cpuid24_0_ebx:=CPUID($24, 0).ebx;
 
             data.LZCNTSupport:=(CPUID($80000001).ecx and (1 shl 5))<>0;
@@ -337,9 +337,9 @@ type
       end;
 
 
-    function APXFSupport: boolean;inline;  { APX_F Advanced Performance Extension Foundation }
+    function APXSupport: boolean;inline;  { APX_F Advanced Performance Extension Foundation }
       begin
-        result:=(data.cpuid7_1.ebx and (1 shl 21))<>0;
+        result:=(data.cpuid7_1.edx and (1 shl 21))<>0;
       end;
 
 
