@@ -62,6 +62,7 @@ interface
       OT_VECTORBCST = $4000000000;  { BROADCAST-MEM-FLAG  AVX512}
       OT_VECTORSAE  = $8000000000;  { OPTIONAL SAE-FLAG  AVX512}
       OT_VECTORER   = $10000000000; { OPTIONAL ER-FLAG-FLAG  AVX512}
+      OT_VECTORSIB  = $20000000000; { SIB-MEM-FLAG  AMX (in 64 bit mode only)}
 
       OT_VECTOR_EXT = OT_VECTORMASK or OT_VECTORZERO or OT_VECTORBCST or OT_VECTORSAE or OT_VECTORER;
 
@@ -258,7 +259,7 @@ interface
       OT_MEM512    = OT_MEMORY or OT_BITS512;
       OT_MEM512_M  = OT_MEMORY or OT_BITS512 or OT_VECTORMASK;
       OT_MEM80     = OT_MEMORY or OT_BITS80;
-
+      OT_SIBMEM    = OT_MEMORY or OT_VECTORSIB;
 
 
 
@@ -2627,7 +2628,7 @@ implementation
 
 
 
-    function process_ea_ref_64_32(const input:toper;var output:ea;rfield:longint; uselargeoffset: boolean):boolean;
+    function process_ea_ref_64_32(const input:toper;var output:ea;rfield:longint; uselargeoffset,forceSibByte: boolean):boolean;
       var
         sym   : tasmsymbol;
         md,s  : byte;
@@ -2890,7 +2891,7 @@ implementation
            else
             output.bytes:=md;
            { SIB needed ? }
-           if (ir=NR_NO) and (br<>NR_RSP) and (br<>NR_R12) and (br<>NR_ESP) and (br<>NR_R12D)  then
+           if not forceSibByte and (ir=NR_NO) and (br<>NR_RSP) and (br<>NR_R12) and (br<>NR_ESP) and (br<>NR_R12D)  then
             begin
               output.sib_present:=false;
               output.modrm:=(md shl 6) or (rfield shl 3) or base;
@@ -3158,7 +3159,11 @@ implementation
       end;
 {$endif}
 
+{$ifdef x86_64}
+    function process_ea(const input:toper;out output:ea;rfield:longint; uselargeoffset, forceSibByte: boolean):boolean;
+{$else x86_64}
     function process_ea(const input:toper;out output:ea;rfield:longint; uselargeoffset: boolean):boolean;
+{$endif x86_64}
       var
         rv  : byte;
       begin
@@ -3180,7 +3185,7 @@ implementation
         if input.typ<>top_ref then
           internalerror(200409263);
 {$if defined(x86_64)}
-        result:=process_ea_ref_64_32(input,output,rfield, uselargeoffset);
+        result:=process_ea_ref_64_32(input,output,rfield, uselargeoffset,forceSibByte);
 {$elseif defined(i386) or defined(i8086)}
         if is_16_bit_ref(input.ref^) then
           result:=process_ea_ref_16(input,output,rfield, uselargeoffset)
@@ -3390,8 +3395,11 @@ implementation
                     //const aInput:toper; aInsEntry: pInsentry; aIsVector128, aIsVector256, aIsVector512, aIsEVEXW1: boolean);
                   end;
                 end;
-
+{$ifdef x86_64}
+                if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, EVEXTupleState = etsNotTuple, (p^.optypes[(c shr 3) and 7] and ot_sibmem)=ot_sibmem) then
+{$else x86_64}
                 if process_ea(oper[(c shr 3) and 7]^, ea_data, 0, EVEXTupleState = etsNotTuple) then
+{$endif x86_64}
                  inc(len,ea_data.size)
                   else Message(asmw_e_invalid_effective_address);
 
@@ -4641,8 +4649,11 @@ implementation
                    else
                     rfield:=c and 7;
                    opidx:=(c shr 3) and 7;
-
+{$ifdef x86_64}
+                   if not process_ea(oper[opidx]^,ea_data,rfield, EVEXTupleState = etsNotTuple, (insentry^.optypes[(c shr 3) and 7] and ot_sibmem)=ot_sibmem) then
+{$else x86_64}
                    if not process_ea(oper[opidx]^,ea_data,rfield, EVEXTupleState = etsNotTuple) then
+{$endif x86_64}
                     Message(asmw_e_invalid_effective_address);
 
 
