@@ -3408,6 +3408,13 @@ implementation
 {$endif x86_64}
 
               end;
+            &240..&243:
+              begin
+{$ifdef x86_64}
+                rex:=rex or (rexbits(oper[c and 7]^.reg) and $F4);
+{$endif x86_64}
+                inc(len);
+              end;
             &350:
               begin
                 exists_evex := true;
@@ -3593,6 +3600,7 @@ implementation
        *                 field the register value of operand b.
        * \2ab          - a ModRM, calculated on EA in operand a, with the spare
        *                 field equal to digit b.
+       * \24a          - operator a in ModRM.reg. ModRM 11:rrr:000
        * \254,\255,\256 - a signed 32-bit immediate to be extended to 64 bits
        * \300,\301,\302 - might be an 0x67, depending on the address size of
        *                 the memory reference in operand x.
@@ -4001,6 +4009,16 @@ implementation
 
 
                  end;
+           &240..&243:
+              begin
+                opidx := c and 7;
+                if ops > opidx then
+                begin
+                  if (oper[opidx]^.typ=top_reg) then
+                    if getsupreg(oper[opidx]^.reg) and $10 = $0 then EVEXr := 1;
+                end else EVEXr := 1; // modrm:reg not used =>> 1
+                EVEXx:=1; //-- modrm.rm not used;
+              end;
            &333: begin
                    VEXvvvv              := VEXvvvv  OR $02; // set SIMD-prefix $F3
                    //VEXpp                := $02;             // set SIMD-prefix $F3
@@ -4503,6 +4521,11 @@ implementation
               end;
             &74,&75,&76 : ; // 074..076 - vex-coded vector operand
                             // ignore
+            &240..&243:
+              begin
+                bytes[0]:=$C0 or ((byte(oper[c and 7]^.reg) and 7) shl 3); {ModRM 11:rrr:000}
+                objdata.writebytes(bytes,1);
+              end;
             &254,&255,&256 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
               begin
                 getvalsym(c-&254);
