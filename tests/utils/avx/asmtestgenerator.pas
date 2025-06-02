@@ -27,7 +27,7 @@ interface
 uses BaseList, Classes;
 
 type
-  TOpType = (otUnknown, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otZMMReg, otZMMRM, otEAX, otRAX, otMem32,
+  TOpType = (otUnknown, otTMMReg, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otZMMReg, otZMMRM, otEAX, otRAX, otMem32,
              otMem8, otMem16, otMem64, otMem128, otMem256, otMem512, otREG64, otREG32, otREG16, otREG8, otRM16, otRM32, otRM64, otIMM8,
              otXMEM32, otXMEM64, otYMEM32, otYMEM64, otZMEM32, otZMEM64,
              otB16, otB32, otB64, otKREG);
@@ -206,7 +206,7 @@ var
 type
 
 
-    op2strtable=array[tasmop] of string[16];
+    op2strtable=array[tasmop] of string[19];
 
     {Instruction flags }
     tinsflag = (
@@ -252,6 +252,7 @@ type
       IF_AVX,
       IF_AVX2,
       IF_AVX512,
+      IF_AVX102,      { AVX10.2 }
       IF_BMI1,
       IF_BMI2,
       { Intel ADX (Multi-Precision Add-Carry Instruction Extensions) }
@@ -265,9 +266,22 @@ type
       IF_PREFETCHWT1,
       IF_SHA,
       IF_SHA512,
-      IF_SM3NI, { instruction set SM3:  ShangMi 3 hash function }
-      IF_SM4NI, { instruction set SM4 }
+      IF_SM3NI,       { SM3  ShangMi 3 hash function }
+      IF_SM4NI,       { SM4 }
       IF_GFNI,
+      IF_AES,
+      IF_AESKLE,
+      IF_AESKLEWIDE,  { AESKLE WIDE_KL }
+      IF_MOVRS,
+      IF_MOVDIRI,
+      IF_RAOINT,      { RAO-INT }
+      IF_CMPCCXADD,
+      IF_UINTR,
+      IF_SERIALIZE,
+      IF_USERMSR,     { USER_MSR }
+      IF_AVXVNNI,     { AVX-VNNI }
+      IF_AMX,         { AMX-BF16, AMX-TILE, AMX-INT8, AMX-FP16, AMX-FP8, AMX-TF32, AMX-COMPLEX, AMX-MOVRS, AMX-TRANSPOSE, AMX-AVX512 }
+      IF_APX,         { APX_F }
 
       { mask for processor level }
       { please keep these in order and in sync with IF_PLEVEL }
@@ -362,7 +376,7 @@ const
       OT_VECTORBCST = $4000000000;  { BROADCAST-MEM-FLAG  AVX512}
       OT_VECTORSAE  = $8000000000;  { OPTIONAL SAE-FLAG  AVX512}
       OT_VECTORER   = $10000000000; { OPTIONAL ER-FLAG-FLAG  AVX512}
-
+      OT_VECTORSIB  = $20000000000; { SIB-MEM-FLAG  AMX}
 
       OT_BITSB16    = OT_BITS16 or OT_VECTORBCST;
       OT_BITSB32    = OT_BITS32 or OT_VECTORBCST;
@@ -386,7 +400,7 @@ const
       OT_SIGNED    = $00000100;  { the operand need to be signed -128-127 }
       OT_TO        = $00000200;  { reverse effect in FADD, FSUB &c  }
       OT_COLON     = $00000400;  { operand is followed by a colon  }
-      OT_MODIFIER_MASK = $00000F00;
+      OT_MODIFIER_MASK = $00000700;
 
       { Bits 12..15: type of operand }
       OT_REGISTER  = $00001000;
@@ -408,9 +422,10 @@ const
       otf_reg_xmm  = $04000000;
       otf_reg_ymm  = $08000000;
       otf_reg_zmm  = $10000000;
+      otf_reg_tmm  = $00000800;
 
 
-      otf_reg_extra_mask = $0F000000;
+      otf_reg_extra_mask = $1F000800;
       { Bits 16..19: subclasses, meaning depends on classes field }
       otf_sub0     = $00010000;
       otf_sub1     = $00020000;
@@ -419,7 +434,7 @@ const
       OT_REG_SMASK = otf_sub0 or otf_sub1 or otf_sub2 or otf_sub3;
 
       //OT_REG_EXTRA_MASK = $0F000000;
-      OT_REG_EXTRA_MASK = $1F000000;
+      OT_REG_EXTRA_MASK = $1F000800;
 
       OT_REG_TYPMASK = otf_reg_cdt or otf_reg_gpr or otf_reg_sreg or otf_reg_k or otf_reg_extra_mask;
       { register class 0: CRx, DRx and TRx }
@@ -522,6 +537,10 @@ const
       OT_KREG       = OT_REGNORM or otf_reg_k;
       OT_KREG_M     = OT_KREG or OT_VECTORMASK;
 
+      { register class 6: TMM (both reg and r/m) }
+      OT_TMMREG     = OT_REGNORM or otf_reg_tmm;
+      //OT_TMMRM      = OT_REGMEM or otf_reg_tmm;
+
       { Vector-Memory operands }
       OT_VMEM_ANY  = OT_XMEM32 or OT_XMEM64 or OT_YMEM32 or OT_YMEM64 or OT_ZMEM32 or OT_ZMEM64;
 
@@ -545,7 +564,7 @@ const
       OT_MEM512    = OT_MEMORY or OT_BITS512;
       OT_MEM512_M  = OT_MEMORY or OT_BITS512 or OT_VECTORMASK;
       OT_MEM80     = OT_MEMORY or OT_BITS80;
-
+      OT_SIBMEM    = OT_MEMORY or OT_VECTORSIB;
 
 
 
@@ -592,10 +611,18 @@ const
 
   function EvenOddPairReg (aReg:string):string;
   begin
-    if aReg='K1' then aReg:='K0'
-    else if aReg='K3' then aReg:='K2'
-    else if aReg='K5' then aReg:='K4'
-    else if aReg='K7' then aReg:='K6';
+    if aReg[1]='K' then
+    begin
+      if aReg='K1' then aReg:='K0'
+      else if aReg='K3' then aReg:='K2'
+      else if aReg='K5' then aReg:='K4'
+      else if aReg='K7' then aReg:='K6';
+    end else
+    if aReg[1]='T' then
+      if aReg='TMM1' then aReg:='TMM0'
+      else if aReg='TMM3' then aReg:='TMM2'
+      else if aReg='TMM5' then aReg:='TMM4'
+      else if aReg='TMM7' then aReg:='TMM6';
     EvenOddPairReg:=aReg;
   end;
 
@@ -635,7 +662,7 @@ const
     begin
       ch:=aReg[po-1];
       c2:=' ';c3:=' ';
-      if (ch in ['X','Y','Z']) and (length(aReg)>=po+2) then
+      if (ch in ['X','Y','Z','T']) and (length(aReg)>=po+2) then
       begin
         c2:=aReg[po+2];
         if c2 in ['0'..'9'] then
@@ -689,7 +716,7 @@ const
             if pr<>'{' then
               newStr:=newStr+'%';
           end;
-          if ch in ['D','X','Y','Z'] then
+          if ch in ['D','X','Y','Z','T'] then
           begin
             if n<length(aRegStr) then
             begin
@@ -852,7 +879,8 @@ const
           for i := 0 to insentry^.ops -1 do
           begin
             if (insentry^.optypes[i] and OT_REGISTER) = OT_REGISTER then
-             case insentry^.optypes[i] and (OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+             case insentry^.optypes[i] and (OT_TMMREG or OT_XMMREG or OT_YMMREG or OT_ZMMREG or OT_KREG or OT_REG_EXTRA_MASK) of
+                OT_TMMREG,
                 OT_XMMREG,
                 OT_YMMREG,
                 OT_ZMMREG: ExistsSSEAVXReg := true;
@@ -1401,6 +1429,7 @@ var
   sl_Reg3 : string;
   sPtr : string;
   Distinct : boolean;
+  DistinctAll : boolean;
   MaskRegNeeded:boolean;
   noZSuffix : boolean;
   EvenPair: boolean;
@@ -1454,7 +1483,13 @@ begin
                        (UpperCase(aInst) = 'VCVTNEPS2BF16') or
                        (UpperCase(aInst) = 'VLDMXCSR') or
                        (UpperCase(aInst) = 'VSTMXCSR') or
-                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = 'VCVTTPD2UDQS') or
+                       (UpperCase(aInst) = 'VFPCLASSBF16') or
+                       (UpperCase(aInst) = 'VCVTTPD2DQS') or
+                       (UpperCase(aInst) = 'VCVTPH2HF8') or
+                       (UpperCase(aInst) = 'VCVTPH2BF8S') or
+                       (UpperCase(aInst) = 'VCVTPH2HF8S') or
+                       (UpperCase(aInst) = 'VCVTPH2BF8') or
                        (UpperCase(aInst) = '') or
                        (UpperCase(aInst) = '') or
                        (UpperCase(aInst) = '')
@@ -1482,7 +1517,17 @@ begin
                        (UpperCase(aInst) = 'VCVTUDQ2PH') or // no Z
                        (UpperCase(aInst) = 'VCVTNEPS2BF16') or
                        (UpperCase(aInst) = 'VLDMXCSR') or
-                       (UpperCase(aInst) = 'VSTMXCSR')
+                       (UpperCase(aInst) = 'VSTMXCSR') or
+                       (UpperCase(aInst) = 'VCVTTPD2UDQS') or
+                       (UpperCase(aInst) = 'VCVTTPD2DQS') or
+                       (UpperCase(aInst) = 'VCVTPH2HF8') or
+                       (UpperCase(aInst) = 'VCVTPH2BF8S') or
+                       (UpperCase(aInst) = 'VCVTPH2HF8S') or
+                       (UpperCase(aInst) = 'VCVTPH2BF8') or
+                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = '') or
+                       (UpperCase(aInst) = '')
                        ;
 
 
@@ -1493,12 +1538,70 @@ begin
                        (UpperCase(aInst) = 'VFCMULCPH') OR
                        (UpperCase(aInst) = 'VFCMULCSH') OR
                        (UpperCase(aInst) = 'VFMULCPH') OR
-                       (UpperCase(aInst) = 'VFMULCSH')
-                       { (UpperCase(aInst) = '') OR }
+                       (UpperCase(aInst) = 'VFMULCSH') OR
+                       (UpperCase(aInst) = 'TCONJTCMMIMFP16PS') OR
+                       (UpperCase(aInst) = 'TTCMMIMFP16PS') OR
+                       (UpperCase(aInst) = 'TTCMMRLFP16PS') OR
+                       (UpperCase(aInst) = 'TTDPBF16PS') OR
+                       (UpperCase(aInst) = 'TTDPFP16PS') OR
+                       (UpperCase(aInst) = 'TTMMULTF32PS') OR
+                       (UpperCase(aInst) = 'TMMULTF32PS') OR
+                       (UpperCase(aInst) = 'TDPHF8PS') OR
+                       (UpperCase(aInst) = 'TDPHBF8PS') OR
+                       (UpperCase(aInst) = 'TDPBHF8PS') OR
+                       (UpperCase(aInst) = 'TDPBF8PS') OR
+                       (UpperCase(aInst) = 'TCMMRLFP16PS') OR
+                       (UpperCase(aInst) = 'TCMMIMFP16PS') OR
+                       (UpperCase(aInst) = 'TDPFP16PS') OR
+                       (UpperCase(aInst) = 'TDPBUUD') OR
+                       (UpperCase(aInst) = 'TDPBUSD') OR
+                       (UpperCase(aInst) = 'TDPBSUD') OR
+                       (UpperCase(aInst) = 'TDPBSSD') OR
+                       (UpperCase(aInst) = 'TDPBF16PS') OR
+                       (UpperCase(aInst) = '') OR
+                       (UpperCase(aInst) = '') OR
+                       (UpperCase(aInst) = '')
+                       ;
+
+          DistinctAll := (UpperCase(aInst) = 'TCONJTCMMIMFP16PS') OR
+                       (UpperCase(aInst) = 'TTCMMIMFP16PS') OR
+                       (UpperCase(aInst) = 'TTCMMRLFP16PS') OR
+                       (UpperCase(aInst) = 'TTDPBF16PS') OR
+                       (UpperCase(aInst) = 'TTDPFP16PS') OR
+                       (UpperCase(aInst) = 'TTMMULTF32PS') OR
+                       (UpperCase(aInst) = 'TMMULTF32PS') OR
+                       (UpperCase(aInst) = 'TDPHF8PS') OR
+                       (UpperCase(aInst) = 'TDPHBF8PS') OR
+                       (UpperCase(aInst) = 'TDPBHF8PS') OR
+                       (UpperCase(aInst) = 'TDPBF8PS') OR
+                       (UpperCase(aInst) = 'TCMMRLFP16PS') OR
+                       (UpperCase(aInst) = 'TCMMIMFP16PS') OR
+                       (UpperCase(aInst) = 'TDPFP16PS') OR
+                       (UpperCase(aInst) = 'TDPBUUD') OR
+                       (UpperCase(aInst) = 'TDPBUSD') OR
+                       (UpperCase(aInst) = 'TDPBSUD') OR
+                       (UpperCase(aInst) = 'TDPBSSD') OR
+                       (UpperCase(aInst) = 'TDPBF16PS') OR
+                       (UpperCase(aInst) = '') OR
+                       (UpperCase(aInst) = '')
                        ;
 
           EvenPair:= (UpperCase(aInst) = 'VP2INTERSECTD') OR { kreg even-odd pair}
-                      (UpperCase(aInst) = 'VP2INTERSECTQ')
+                      (UpperCase(aInst) = 'VP2INTERSECTQ') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ1RST1') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ1RS') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ0RST1') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ0RS') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ1T1') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ1') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ0T1') OR
+                      (UpperCase(aInst) = 'T2RPNTLVWZ0') OR
+                      (UpperCase(aInst) = '') OR
+                      (UpperCase(aInst) = '') OR
+                      (UpperCase(aInst) = '') OR
+                      (UpperCase(aInst) = '') OR
+                      (UpperCase(aInst) = '') OR
+                      (UpperCase(aInst) = '')
                       ;
           GroupOf4:= (UpperCase(aInst) = 'V4FMADDPS') OR   { src reg group of 4 registers }
                      (UpperCase(aInst) = 'V4FMADDSS') OR
@@ -1513,6 +1616,7 @@ begin
 			   (Pos('VPSCATTER', Uppercase(aInst)) = 1) or
 			   (Pos('VSCATTER', Uppercase(aInst)) = 1);
 
+          DistinctAll:=DistinctAll or MaskRegNeeded;
           Distinct:=Distinct or MaskRegNeeded;
 
           for il_Op := 1 to 4 do
@@ -1540,7 +1644,26 @@ begin
 
             sl_Operand := PrepareOperandTyp(sl_Operand);
 
-            if (AnsiSameText(sl_Operand, 'XMMREG')) or
+            if (AnsiSameText(sl_Operand, 'TMMREG')) then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMMReg; { pretend as XMMREG }
+              Item.OpActive := true;
+
+              sSuffix := '';
+              sPrefix := '';
+
+              Item.Values.Add(sPrefix + 'TMM0' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM1' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM2' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM3' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM4' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM5' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM6' + sSuffix);
+              Item.Values.Add(sPrefix + 'TMM7' + sSuffix);
+
+            end
+            else if (AnsiSameText(sl_Operand, 'XMMREG')) or
                (AnsiSameText(sl_Operand, 'XMMREG_M')) or
                (AnsiSameText(sl_Operand, 'XMMREG_MZ')) or
                (AnsiSameText(sl_Operand, 'XMMREG_ER')) or
@@ -2224,7 +2347,8 @@ begin
             end
             else if (AnsiSameText(sl_Operand, 'MEM512')) or
                     (AnsiSameText(sl_Operand, 'MEM512_M')) or
-                    (AnsiSameText(sl_Operand, 'MEM512_MZ')) then
+                    (AnsiSameText(sl_Operand, 'MEM512_MZ')) or
+                    (AnsiSameText(sl_Operand, 'SIBMEM')) then
             begin
               Item.OpNumber := il_Op;
               Item.OpTyp    := otMEM512;
@@ -2352,6 +2476,14 @@ begin
               Item.OpActive := true;
 
               if FGas then Item.Values.Add('$0') else Item.Values.Add('0');
+            end
+            else if AnsiSameText(sl_Operand, 'IMM32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otIMM8;
+              Item.OpActive := true;
+
+              if FGas then Item.Values.Add('$512') else Item.Values.Add('512');
             end
             else if AnsiSameText(sl_Operand, 'XMEM32') or
                     AnsiSameText(sl_Operand, 'XMEM32_M') then
@@ -2856,7 +2988,7 @@ begin
                     if sl_RegCombi <> '' then
                     begin
                       if not Distinct or (Distinct and notEqualRegs (sl_Reg1,sl_Reg2,sl_Reg3) ) then
-                      if not MaskRegNeeded or (MaskRegNeeded and notEqualRegs (sl_Reg2,sl_Reg3,'') ) then
+                      if not DistinctAll or (DistinctAll and notEqualRegs (sl_Reg2,sl_Reg3,'') ) then
                       begin
                         if FGas then sl_RegCombi := ConvertToGasReg(sl_RegCombi);
                         if not FGas then
@@ -2923,7 +3055,7 @@ begin
                     begin
                       //result.Add(format('%-20s%s', [aInst, sl_RegCombi]));
                       if not Distinct or (Distinct and notEqualRegs (sl_Reg1,sl_Reg2,sl_Reg3) ) then
-                      if not MaskRegNeeded or (MaskRegNeeded and notEqualRegs (sl_Reg2,sl_Reg3,'') ) then
+                      if not DistinctAll or (DistinctAll and notEqualRegs (sl_Reg2,sl_Reg3,'') ) then
                       begin
                         if FGas then sl_RegCombi := ConvertToGasReg(sl_RegCombi);
                         if not FGas then
@@ -6093,6 +6225,7 @@ begin
   FReg64ZMMIndex := TStringList.Create;
   FRegKREG       := TStringList.Create;
 
+
   FReg8.Add('AL');
   FReg8.Add('BL');
   FReg8.Add('CL');
@@ -6580,15 +6713,18 @@ var
   sX8664: string;
   sAVX512: string;
   sOperands: string;
+  sImmSize : String;
 
   sLine: string;
 
 
   sl: TStringList;
+  bSSE: boolean;
   bVEX: boolean;
   bEVEX: boolean;
   b256 : boolean;
   b512 : boolean;
+  ignoreCount:integer;
 begin
   sl := TStringList.Create;
   try
@@ -6604,10 +6740,14 @@ begin
 
     for i := 0 to length(InsTab) - 1 do
     begin
+      bSSE := false;
       bVEX := false;
       bEVEX := false;
       b256 := false;
       b512 := false;
+
+      sImmSize:='IMM8,';
+      ignoreCount:=0;
 
       //TG TODO delete
       if instab[i].opcode = a_vtestps then
@@ -6617,9 +6757,16 @@ begin
 
       for j := 0 to length(InsTab[i].code) - 1 do
       begin
+        if ignoreCount>0 then
+        begin
+          dec(ignoreCount);
+          continue;
+        end;
         case ord(InsTab[i].code[j]) of
             0: break;
-            1,2,3: break;
+             1,2,3: ignoreCount:=ord(InsTab[i].code[j]);
+          &10..&13: ignoreCount:=1;
+          &40..&43: sImmSize:='IMM32,';
           232: bEVEX := true;
           233: b512 := true;
           242: bVEX := true;
@@ -6627,7 +6774,11 @@ begin
         end;
       end;
 
-      if bVEX or bEVEX then
+      if not bVEX and not bEVEX then
+        for j := 0 to InsTab[i].ops-1 do
+          if InsTab[i].optypes[j] = OT_XMMREG then bSSE:=true;
+
+      if bSSE or bVEX or bEVEX then
       begin
         sInst  :=  std_op2str[InsTab[i].opcode];
         sI386  := '1';
@@ -6668,6 +6819,9 @@ begin
                 OT_ZMMRM: sOperands := sOperands + 'ZMMRM,';
              OT_ZMMRM_MZ: sOperands := sOperands + 'ZMMRM_MZ,';
 
+               OT_TMMREG: sOperands := sOperands + 'TMMREG,';
+
+                 OT_MEM8: sOperands := sOperands + 'MEM8,';
                 OT_MEM16: sOperands := sOperands + 'MEM16,';
               OT_MEM16_M: sOperands := sOperands + 'MEM16_M,';
                 OT_MEM32: sOperands := sOperands + 'MEM32,';
@@ -6675,8 +6829,13 @@ begin
                 OT_MEM64: sOperands := sOperands + 'MEM64,';
               OT_MEM64_M: sOperands := sOperands + 'MEM64_M,';
                OT_MEM128: sOperands := sOperands + 'MEM128,';
+             OT_MEM128_M: sOperands := sOperands + 'MEM128_M,';
                OT_MEM256: sOperands := sOperands + 'MEM256,';
+             OT_MEM256_M: sOperands := sOperands + 'MEM256_M,';
                OT_MEM512: sOperands := sOperands + 'MEM512,';
+             OT_MEM512_M: sOperands := sOperands + 'MEM512_M,';
+               OT_SIBMEM: sOperands := sOperands + 'SIBMEM,';
+               OT_MEMORY: sOperands := sOperands + 'MEM128,'; {any memory}
 
                 OT_REG16: sOperands := sOperands + 'REG16,';
                 OT_REG32: sOperands := sOperands + 'REG32,';
@@ -6689,23 +6848,97 @@ begin
                           sOperands := sOperands + 'RM64,';
 
                OT_XMEM32: sOperands := sOperands + 'XMEM32,';
-               OT_XMEM64: sOperands := sOperands + 'XMEM64,';
-
                OT_YMEM32: sOperands := sOperands + 'YMEM32,';
+               OT_ZMEM32: sOperands := sOperands + 'ZMEM32,';
+             OT_XMEM32_M: sOperands := sOperands + 'XMEM32_M,';
+             OT_YMEM32_M: sOperands := sOperands + 'YMEM32_M,';
+             OT_ZMEM32_M: sOperands := sOperands + 'ZMEM32_M,';
+               OT_XMEM64: sOperands := sOperands + 'XMEM64,';
                OT_YMEM64: sOperands := sOperands + 'YMEM64,';
+               OT_ZMEM64: sOperands := sOperands + 'ZMEM64,';
+             OT_XMEM64_M: sOperands := sOperands + 'XMEM64_M,';
+             OT_YMEM64_M: sOperands := sOperands + 'YMEM64_M,';
+             OT_ZMEM64_M: sOperands := sOperands + 'ZMEM64_M,';
 
                  OT_IMM8: sOperands := sOperands + 'IMM8,';
+            OT_IMMEDIATE: sOperands := sOperands + sImmSize;
                  OT_NONE: sOperands := sOperands + ',';
+{
 
-               OT_BMEM16: if b512 then sOperands := sOperands + '32B16,'
-                           else if b256 then sOperands := sOperands + '16B16,'
-                           else sOperands := sOperands + '8B16,';
-               OT_BMEM32: if b512 then sOperands := sOperands + '16B32,'
-                           else if b256 then sOperands := sOperands + '8B32,'
-                           else sOperands := sOperands + '4B32,';
-               OT_BMEM64: if b512 then sOperands := sOperands + '8B32,'
-                           else if b256 then sOperands := sOperands + '4B32,'
-                           else sOperands := sOperands + '2B64,';
+                     16      32     64
+      IF_BCST2,                   '2B64,'
+      IF_BCST4,            '4B32,''4B64,'
+      IF_BCST8,    '8B16,' '8B32,''8B64,'
+      IF_BCST16,  '16B16,''16B32,'
+      IF_BCST32,  '32B16,'
+
+}
+               OT_BMEM16: begin
+                            if b512 then
+                            begin
+                              if IF_BCST32 in instab[i].flags then  sOperands := sOperands + '32B16,'
+                              else if IF_BCST16 in instab[i].flags then  sOperands := sOperands + '16B32,'
+                              else if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B64,'
+                              else sOperands := sOperands + '32B16,'
+                            end
+                            else if b256 then
+                            begin
+                              if IF_BCST16 in instab[i].flags then  sOperands := sOperands + '16B16,'
+                              else if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B32,'
+                              else if IF_BCST4 in instab[i].flags then  sOperands := sOperands + '4B64,'
+                              else sOperands := sOperands + '16B16,'
+                            end else
+                            begin
+                              if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B16,'
+                              else if IF_BCST4 in instab[i].flags then  sOperands := sOperands + '4B32,'
+                              else if IF_BCST2 in instab[i].flags then  sOperands := sOperands + '2B64,'
+                              else sOperands := sOperands + '8B16,';
+                            end;
+                          end;
+               OT_BMEM32: begin
+                            if b512 then
+                            begin
+                              if IF_BCST32 in instab[i].flags then  sOperands := sOperands + '32B16,'
+                              else if IF_BCST16 in instab[i].flags then  sOperands := sOperands + '16B32,'
+                              else if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B64,'
+                              else sOperands := sOperands + '16B32,'
+                            end
+                            else if b256 then
+                            begin
+                              if IF_BCST16 in instab[i].flags then  sOperands := sOperands + '16B16,'
+                              else if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B32,'
+                              else if IF_BCST4 in instab[i].flags then  sOperands := sOperands + '4B64,'
+                              else sOperands := sOperands + '8B32,'
+                            end else
+                            begin
+                              if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B16,'
+                              else if IF_BCST4 in instab[i].flags then  sOperands := sOperands + '4B32,'
+                              else if IF_BCST2 in instab[i].flags then  sOperands := sOperands + '2B64,'
+                              else sOperands := sOperands + '4B32,';
+                            end;
+                          end;
+               OT_BMEM64: begin
+                            if b512 then
+                            begin
+                              if IF_BCST32 in instab[i].flags then  sOperands := sOperands + '32B16,'
+                              else if IF_BCST16 in instab[i].flags then  sOperands := sOperands + '16B32,'
+                              else if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B64,'
+                              else sOperands := sOperands + '8B64,'
+                            end
+                            else if b256 then
+                            begin
+                              if IF_BCST16 in instab[i].flags then  sOperands := sOperands + '16B16,'
+                              else if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B32,'
+                              else if IF_BCST4 in instab[i].flags then  sOperands := sOperands + '4B64,'
+                              else sOperands := sOperands + '4B64,'
+                            end else
+                            begin
+                              if IF_BCST8 in instab[i].flags then  sOperands := sOperands + '8B16,'
+                              else if IF_BCST4 in instab[i].flags then  sOperands := sOperands + '4B32,'
+                              else if IF_BCST2 in instab[i].flags then  sOperands := sOperands + '2B64,'
+                              else sOperands := sOperands + '2B64,';
+                            end;
+                          end;
 
                  OT_KREG: sOperands := sOperands + 'KREG,';
                OT_KREG_M: sOperands := sOperands + 'KREG_M,';
