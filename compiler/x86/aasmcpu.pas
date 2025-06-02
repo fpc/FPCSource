@@ -5725,6 +5725,13 @@ implementation
                      (AsmOp = A_VCVTNEPS2BF16) or
                      (AsmOp = A_vcvtps2phx) or
 
+                     (AsmOp = A_vcvtph2bf8) or
+                     (AsmOp = A_vcvtph2bf8s) or
+                     (AsmOp = A_vcvtph2hf8) or
+                     (AsmOp = A_vcvtph2hf8s) or
+                     (AsmOp = A_vcvttpd2dqs) or
+                     (AsmOp = A_vcvttpd2udqs) or
+
                      // TODO check
                      (AsmOp = A_VCMPSS)
 
