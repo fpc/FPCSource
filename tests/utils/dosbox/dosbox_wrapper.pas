@@ -5,7 +5,7 @@ uses
 {$ifdef UseSignals}
   signals,
 {$endif def UseSignals}
-  testu, classes,
+  tsutils, tstypes, classes,
   Process;
 
 const
@@ -284,7 +284,7 @@ begin
     end
   else if verbose then
     writeln('Analyzing source file ',SourceFileName);
-  if not GetConfig(SourceFileName,config) then
+  if not GetConfig('',SourceFileName,config) then
     exit;
 
   RelativeToConfigMarker:=TObject.Create;
