@@ -7245,7 +7245,7 @@ begin
           CmdCreateDir(ExtractFilePath(DestFileName));
           SysCopyFile(AddPathPrefix(APackage, List.Names[i]),DestFileName)
         end
-      else
+      else if List[i]<>'' then
         SysCopyFile(AddPathPrefix(APackage, List[i]), DestDir);
 end;
 
