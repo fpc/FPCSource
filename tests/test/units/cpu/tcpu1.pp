@@ -3,9 +3,14 @@
 uses
   cpu;
 
+procedure test_cpu;
+{$ifndef cpui386}
 var
   dummy16b : array[0..15] of byte;
-
+  val_rax, val_rdx : qword;
+  i : byte;
+  dummy_matched : boolean;
+{$endif ndef cpui386}
 begin
   write('CMOV support: ');
   if CMOVSupport then
@@ -213,16 +218,45 @@ begin
   if CMPXCHG16BSupport then
     begin
       writeln('yes');
+      val_rax:=qword($123456789ABCDEF0);
+      val_rdx:=qword($9ABCDEF012345678);
+      pqword(@Dummy16b)^:=val_rax;
+      pqword(@Dummy16b[8])^:=val_rdx;
+      write('Dummy16b  values: ');
+      for i:=0 to 15 do
+	write(hexstr(Dummy16b[i],2));
+      writeln;
       asm
-{$ifdef FPC_PIC}
-        cmpxchg16b       Dummy16b@GOTPCREL(%rip)
-{$else FPC_PIC}
-        cmpxchg16b       Dummy16b(%rip)
-{$endif FPC_PIC}
+        movq val_rax,%rax
+        movq val_rdx,%rdx
+	xor %rcx,%rcx
+        add $512,%rcx
+	xor %rbx,%rbx
+        add $2048,%rbx
+        cmpxchg16b Dummy16b
+        jz .Lchanged
+        mov %rax,val_rax
+        mov %rdx,val_rdx
+        mov $0,dummy_matched
+        jmp .Lend
+        .Lchanged:
+        mov $1,dummy_matched
+        .Lend:
       end;
+      writeln('Dummy16b was modified: ',dummy_matched);
+      write('Dummy16b  values: ');
+      for i:=0 to 15 do
+	write(hexstr(Dummy16b[i],2));
+      writeln;
+      if not dummy_matched then
+        halt(1);
     end
   else
     writeln('no');
 {$endif cpui386}
+end;
+
+begin
+  test_cpu;
 end.
 
