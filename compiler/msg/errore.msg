@@ -409,7 +409,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 % value is not a power of two.
 scanner_w_alignment_large_than_max=02114_W_Variable "$1" has align directive larger than system maximum alignment for variables
 % The type of the variable has an 'align' directive which is larger than current_settings.alignment.varalignmax
-scanner_w_local_alignment_large_than_max=02115_W_Local variable "$1" has align directive larger than system maximum alignment for local variables
+scanner_w_local_alignment_large_than_max=02115_N_Local variable "$1" has align directive larger than system maximum alignment for local variables
 % The type of the variable has an 'align' directive which is larger than current_settings.alignment.stackalignmax
 scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
 % All source code that is part of a single compilation entity (program, library, unit) must be encoded
