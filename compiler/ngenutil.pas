@@ -955,7 +955,7 @@ implementation
   class procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
     var
       l : asizeint;
-      varalign : shortint;
+      varalign,wantedalign : shortint;
       storefilepos : tfileposinfo;
       list : TAsmList;
       sectype : TAsmSectiontype;
@@ -964,11 +964,18 @@ implementation
       storefilepos:=current_filepos;
       current_filepos:=sym.fileinfo;
       l:=sym.getsize;
-      varalign:=sym.vardef.alignment;
-      if (varalign=0) then
+      wantedalign:=sym.vardef.alignment;
+      if (wantedalign=0) then
         varalign:=var_align_size(l)
       else
-        varalign:=var_align(varalign);
+        begin
+          varalign:=var_align(wantedalign);
+          if (wantedalign>varalign) then
+            begin
+              varalign:=wantedalign;
+              Message1(scanner_w_alignment_large_than_max,sym.name);
+	    end;
+	end;
       asmtype:=AT_DATA;
       if tf_section_threadvars in target_info.flags then
         begin
