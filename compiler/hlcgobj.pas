@@ -5359,7 +5359,7 @@ implementation
 
   procedure thlcgobj.getlocal(list: TAsmList; sym: tsym; size: asizeint; alignment: shortint; def: tdef; out ref: treference);
     begin
-      tg.getlocal(list,size,alignment,def,ref);
+      tg.getlocal(list,size,alignment,def,sym,ref);
       recordnewsymloc(list,sym,def,ref,true);
     end;
 

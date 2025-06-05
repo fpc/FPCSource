@@ -67,7 +67,7 @@ unit tgllvm;
         destructor destroy; override;
         procedure setfirsttemp(l: asizeint); override;
         procedure temp_to_ref(p: ptemprecord; out ref: treference); override;
-        procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
+        procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref: treference); override;
         procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
       end;
 
@@ -203,7 +203,7 @@ implementation
       end;
 
 
-    procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
+    procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref: treference);
       begin
         alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         gethltempintern(list,def,alignment,size,tt_persistent,ref);

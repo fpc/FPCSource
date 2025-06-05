@@ -45,7 +45,7 @@ unit tgcpu;
          procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
         public
          procedure setfirsttemp(l : asizeint); override;
-         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
+         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref: treference); override;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
        end;
@@ -250,7 +250,7 @@ unit tgcpu;
       end;
 
 
-    procedure ttgjvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
+    procedure ttgjvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref: treference);
       begin
         if not getifspecialtemp(list,def,size,tt_persistent,ref) then
           inherited;

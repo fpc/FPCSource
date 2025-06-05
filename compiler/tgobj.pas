@@ -125,7 +125,7 @@ unit tgobj;
 
           { Allocate space for a local }
           procedure getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
-          procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference); virtual;
+          procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
        ttgobjclass = class of ttgobj;
@@ -742,14 +742,21 @@ implementation
 
     procedure ttgobj.getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
       begin
-        getlocal(list, size, def.alignment, def, ref);
+        getlocal(list, size, def.alignment, def, nil, ref);
       end;
 
 
-    procedure ttgobj.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference);
+    procedure ttgobj.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref : treference);
+      var
+        lalign : shortint;
       begin
-        alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        alloctemp(list,size,alignment,tt_persistent,def,false,ref);
+        lalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
+        if (alignment>lalign) then
+          if assigned(sym) then
+            CGMessage1(scanner_w_local_alignment_large_than_max,sym.name)
+          else
+            CGMessage1(scanner_w_local_alignment_large_than_max,def.typename);
+        alloctemp(list,size,lalign,tt_persistent,def,false,ref);
       end;
 
 

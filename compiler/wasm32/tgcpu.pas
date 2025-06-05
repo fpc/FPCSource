@@ -86,7 +86,7 @@ unit tgcpu;
          procedure ungettemp(list: TAsmList; const ref : treference); override;
          procedure allocframepointer(list: TAsmList; out ref: treference);
          procedure allocbasepointer(list: TAsmList; out ref: treference);
-         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference); override;
+         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref : treference); override;
        end;
 
     function defToWasmBasic(def: tdef; var wbt: TWasmBasicType): Boolean;
@@ -300,7 +300,7 @@ unit tgcpu;
         updateFirstTemp;
       end;
 
-    procedure ttgwasm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference);
+    procedure ttgwasm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; sym : tsym; var ref : treference);
       var
         wbt: TWasmBasicType;
       begin
