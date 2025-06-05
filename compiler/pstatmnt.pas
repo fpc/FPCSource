@@ -30,6 +30,7 @@ interface
 
 
     function statement_block(starttoken : ttoken) : tnode;
+    function statement_expr(var p1 : tnode) : boolean;
 
     { reads an assembler block }
     function assembler_block : tnode;
@@ -64,24 +65,130 @@ implementation
 
     function statement : tnode;forward;
 
+    function branch_type(olddef : tdef; branchtree : tnode; var oldtree:tnode): tdef;
 
-    function if_statement : tnode;
+      function commonancestor(c1,c2:tobjectdef;var a:tdef):boolean;
+        var
+          curr , check : tobjectdef;
+        begin
+          result:=False;
+          curr:=c1;
+          while assigned(curr) do
+            begin
+              check:=c2;
+              while assigned(check) do
+                begin
+                  if check=curr then
+                    begin
+                      result:=true;
+                      a:=curr;
+                      exit;
+                    end;
+                  check:=check.childof;
+                end;
+              curr:=curr.childof;
+            end;
+        end;
+
       var
-         ex,if_a,else_a : tnode;
+        branchdef : tdef;
+        cmp: tequaltype;
+      begin
+        if not assigned(olddef) then
+        begin
+          oldtree:=branchtree;
+          exit(branchtree.resultdef);
+        end;
+        if not assigned(branchtree.resultdef) then
+          exit(olddef);
+        branchdef:=branchtree.resultdef;
+        { Handle promotion of string types to widestring and char types
+          to either char or widechar }
+        if (is_anychar(olddef) and is_string(branchdef)) then
+          result:=branchdef
+        else if is_widestring(branchdef) or is_widestring(olddef) or
+                ((is_ansistring(olddef) or is_chararray(olddef)) and is_widechar(branchdef)) then
+          result:=cwidestringtype
+        else if is_unicodestring(branchdef) or is_unicodestring(olddef) then
+          result:=cunicodestringtype
+        else if is_char(olddef) and is_widechar(branchdef) then
+          result:=cwidechartype
+        { When constant strings, result should be as long as the longest }
+        else if is_chararray(olddef) and is_chararray(branchdef) then
+          begin
+            result:=olddef;
+            if tarraydef(olddef).elecount<tarraydef(branchdef).elecount then
+              result:=branchdef;
+          end
+        { When shortstrings, extend to the longest shortstring }
+        else if is_shortstring(olddef) and is_shortstring(branchdef) then
+          begin
+            result:=olddef;
+            if tstringdef(olddef).len<tstringdef(branchdef).len then
+              result:=branchdef;
+          end
+        { if any variant is involved, return variant }
+        else if (olddef.typ=variantdef) or (branchdef.typ=variantdef) then
+          result:=cvarianttype
+        else if (olddef.typ=objectdef) and (branchdef.typ=objectdef) and
+                commonancestor(tobjectdef(olddef),tobjectdef(branchdef),result) then
+          begin { no-op } end
+        else
+          begin
+            result:=olddef;
+            cmp:=compare_defs(olddef,branchdef,oldtree.nodetype);
+            if (cmp<te_equal) and
+               (cmp>compare_defs(branchdef,olddef,branchtree.nodetype)) then
+              result:=branchdef;
+          end;
+        if result<>olddef then
+          oldtree:=branchtree;
+      end;
+
+    function if_statement(is_expr:boolean=false) : tnode;
+      function statementorexpr : tnode; inline;
+        begin
+          if is_expr then
+            result:=expr(true)
+          else
+            result:=statement;
+        end;
+
+      var
+         ex,if_a,else_a , dummy: tnode;
+         statements : tstatementnode;
+         resultvar : ttempcreatenode;
+         resultdef : tdef;
       begin
          consume(_IF);
          ex:=comp_expr([ef_accept_equal]);
          consume(_THEN);
          if not(current_scanner.token in endtokens) then
-           if_a:=statement
+           if_a:=statementorexpr
          else
            if_a:=nil;
 
+         else_a:=nil;
          if try_to_consume(_ELSE) then
-            else_a:=statement
-         else
-           else_a:=nil;
-         result:=cifnode.create(ex,if_a,else_a);
+            else_a:=statementorexpr
+         else if is_expr then
+           consume(_ELSE);
+         if (not is_expr) then
+           begin
+             result:=cifnode.create(ex,if_a,else_a);
+             exit;
+           end;
+         result:=internalstatements(statements);
+         dummy:=if_a;
+         resultdef:=branch_type(if_a.resultdef,else_a,dummy);
+         resultvar:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+         addstatement(statements,resultvar);
+         addstatement(statements,cifnode.create(ex,
+           cassignmentnode.create(ctemprefnode.create(resultvar),if_a),
+           cassignmentnode.create(ctemprefnode.create(resultvar),else_a)
+         ));
+         addstatement(statements,ctempdeletenode.create_normal_temp(resultvar));
+         addstatement(statements,ctemprefnode.create(resultvar));
       end;
 
     { creates a block (list) of statements, til the next END token }
@@ -116,7 +223,38 @@ implementation
       end;
 
 
-    function case_statement : tnode;
+    function case_statement(is_expr:boolean=false) : tnode;
+      var
+        resultdef : tdef;
+        resultdefnode : tnode;
+
+      function statementorexpr : tnode;inline;
+        begin
+          if is_expr then
+            begin
+               result:=expr(true);
+               resultdef:=branch_type(resultdef,result,resultdefnode);
+            end
+          else
+            result:=statement;
+        end;
+
+        function requires_else(casenode : tcasenode) : boolean; inline;
+          var
+            lv,hv : TConstExprInt;
+          begin
+            if is_string(casenode.left.resultdef) then
+              exit(true);
+            if is_boolean(casenode.left.resultdef) then
+              begin
+                lv:=0;
+                hv:=1;
+              end
+            else
+              getrange(casenode.left.resultdef,lv,hv);
+            Result:=casenode.labelcoverage<hv-lv;
+          end;
+
       var
          casedef : tdef;
          caseexpr,p : tnode;
@@ -125,7 +263,12 @@ implementation
          sl1,sl2 : tstringconstnode;
          casedeferror, caseofstring : boolean;
          casenode : tcasenode;
+         i : longint;
+         statements : tstatementnode;
+         resultvar : ttempcreatenode;
       begin
+         resultdef:=nil;
+         resultdefnode:=nil;
          consume(_CASE);
          caseexpr:=comp_expr([ef_accept_equal]);
          { determines result type }
@@ -273,7 +416,7 @@ implementation
            consume(_COLON);
 
            { add instruction block }
-           casenode.addblock(blockid,statement);
+           casenode.addblock(blockid,statementorexpr);
 
            { next block }
            inc(blockid);
@@ -284,14 +427,40 @@ implementation
 
          if (current_scanner.token in [_ELSE,_OTHERWISE]) then
            begin
-              if not try_to_consume(_ELSE) then
+              if ([m_extpas,m_iso]*current_settings.modeswitches<>[]) or not try_to_consume(_ELSE) then
                 consume(_OTHERWISE);
-              casenode.addelseblock(statements_til_end);
+              if is_expr then
+                casenode.addelseblock(statementorexpr)
+              else
+                casenode.addelseblock(statements_til_end);
            end
+         else if is_expr and requires_else(casenode) then
+         begin
+           if ([m_extpas,m_iso]*current_settings.modeswitches<>[]) then
+             consume(_OTHERWISE)
+           else
+             consume(_ELSE);
+         end
          else
            consume(_END);
 
-         result:=casenode;
+         if not is_expr then
+           begin
+             result:=casenode;
+             exit;
+           end;
+         result:=internalstatements(statements);
+         resultvar:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+         addstatement(statements,resultvar);
+         for i:=0 to casenode.blocks.Count-1 do
+           pcaseblock(casenode.blocks[i])^.statement:=cassignmentnode.create(
+             ctemprefnode.create(resultvar), pcaseblock(casenode.blocks[i])^.statement
+           );
+         if assigned(casenode.elseblock) then
+           casenode.elseblock:=cassignmentnode.create(ctemprefnode.create(resultvar), casenode.elseblock);
+         addstatement(statements,casenode);
+         addstatement(statements,ctempdeletenode.create_normal_temp(resultvar));
+         addstatement(statements,ctemprefnode.create(resultvar));
       end;
 
 
@@ -1704,6 +1873,18 @@ implementation
         last_endtoken_filepos:=current_tokenpos;
 
         assembler_block:=p;
+      end;
+
+
+    function statement_expr(var p1 : tnode) : boolean;
+      begin
+        result:=true;
+        case current_scanner.token of
+        _IF: p1:=if_statement(true);
+        _CASE: p1:=case_statement(true);
+        else
+          result:=false;
+        end;
       end;
 
 end.

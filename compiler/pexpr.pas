@@ -80,7 +80,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pinline,ptype,pgenutil,psub,procinfo,cpuinfo
+       pbase,pstatmnt,pinline,ptype,pgenutil,psub,procinfo,cpuinfo
        ;
 
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;
@@ -4398,7 +4398,7 @@ implementation
                    end;
                end
 
-             else
+             else if not statement_expr(p1) then
                begin
                  Message(parser_e_illegal_expression);
                  p1:=cerrornode.create;
