@@ -972,7 +972,9 @@ implementation
           varalign:=var_align(wantedalign);
           if (wantedalign>varalign) then
             begin
-              varalign:=wantedalign;
+              { varalign:=wantedalign; this can lead to
+                troubles on systems like for instance
+                msdos which do not support 8-byte alignment }
               Message1(scanner_w_alignment_large_than_max,sym.name);
 	    end;
 	end;
