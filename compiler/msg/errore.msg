@@ -407,7 +407,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 % The alignment directive is not valid. Either the alignment type is not known or the alignment
 % value is not a power of two.
-scanner_w_alignment_large_than_max=02114_W_Variable "$1" has align directive larger than system maximum alignment for variables
+scanner_w_alignment_large_than_max=02114_N_Variable "$1" has align directive larger than system maximum alignment for variables
 % The type of the variable has an 'align' directive which is larger than  current maximum
 scanner_w_local_alignment_large_than_max=02115_N_Local variable "$1" has align directive larger than system maximum alignment for local variables
 % The type of the variable has an 'align' directive which is larger than current  maximum.
