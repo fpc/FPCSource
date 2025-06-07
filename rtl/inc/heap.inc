@@ -1698,8 +1698,7 @@ var
 begin
   h := HeapInc.pCommonHeader(p - HeapInc.CommonHeaderSize)^.h;
   if h and HeapInc.FixedFlag <> 0 then
-    { Don’t shrink fixed chunk. }
-    result := size <= SizeUint(HeapInc.IndexToSize(h and HeapInc.SizeIndexMask) - HeapInc.CommonHeaderSize)
+    result := (size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize) and (h and HeapInc.SizeIndexMask = HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1)))
   else
   begin
     ts := @HeapInc.thisTs;
