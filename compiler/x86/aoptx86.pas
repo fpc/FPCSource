@@ -16503,7 +16503,7 @@ unit aoptx86;
           but do it only on level 4 because it destroys stack back traces
         }
         if (cs_opt_level4 in current_settings.optimizerswitches) and
-          MatchOpType(taicpu(p),top_ref,top_reg) and
+          (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
           (taicpu(p).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
           (taicpu(p).oper[0]^.ref^.index=NR_NO) and
           { the -8, -24, -40 are not required, but bail out early if possible,
@@ -16513,7 +16513,6 @@ unit aoptx86;
            (taicpu(p).oper[0]^.ref^.offset=-40))  and
           (taicpu(p).oper[0]^.ref^.symbol=nil) and
           (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
-          (taicpu(p).oper[1]^.reg=NR_STACK_POINTER_REG) and
           GetNextInstruction(p, hp1) and
           { Take a copy of hp1 }
           SetAndTest(hp1, hp4) and
@@ -16536,14 +16535,13 @@ unit aoptx86;
             GetNextInstruction(hp2,hp2) and
             MatchInstruction(hp2,A_LEA,[taicpu(p).opsize]))
           ) and
-          MatchOpType(taicpu(hp2),top_ref,top_reg) and
+          (taicpu(hp2).oper[1]^.reg=NR_STACK_POINTER_REG) and
           (taicpu(hp2).oper[0]^.ref^.offset=-taicpu(p).oper[0]^.ref^.offset) and
           (taicpu(hp2).oper[0]^.ref^.base=NR_STACK_POINTER_REG) and
           (taicpu(hp2).oper[0]^.ref^.index=NR_NO) and
           (taicpu(hp2).oper[0]^.ref^.symbol=nil) and
           (taicpu(hp2).oper[0]^.ref^.relsymbol=nil) and
           { Segment register will be NR_NO }
-          (taicpu(hp2).oper[1]^.reg=NR_STACK_POINTER_REG) and
           GetNextInstruction(hp2, hp3) and
           { trick to skip label }
           ((hp3.typ=ait_instruction) or GetNextInstruction(hp3, hp3)) and
