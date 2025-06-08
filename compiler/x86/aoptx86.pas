@@ -16458,6 +16458,32 @@ unit aoptx86;
         hp1, hp2, hp3, hp4, hp5, hp6, hp7, hp8: tai;
       begin
         Result:=false;
+
+{$ifdef x86_64}
+        { Change:
+            lea x(%reg1d,%reg2d),%reg3d
+
+          To:
+            lea x(%reg1q,%reg2q),%reg3d
+
+          Reduces the number of bytes of machine code
+        }
+        if (getsubreg(taicpu(p).oper[1]^.reg)=R_SUBD) and
+          (
+            (getsubreg(taicpu(p).oper[0]^.ref^.base)=R_SUBD) or
+            (getsubreg(taicpu(p).oper[0]^.ref^.index)=R_SUBD)
+          ) then
+          begin
+            DebugMsg(SPeepholeOptimization + 'Changed 32-bit registers in reference to 64-bit (reduces instruction size)', p);
+            if (getsubreg(taicpu(p).oper[0]^.ref^.base)=R_SUBD) then
+              setsubreg(taicpu(p).oper[0]^.ref^.base,R_SUBQ);
+            if (getsubreg(taicpu(p).oper[0]^.ref^.index)=R_SUBD) then
+              setsubreg(taicpu(p).oper[0]^.ref^.index,R_SUBQ);
+
+            { No reason to set Result to true }
+          end;
+{$endif x86_64}
+
         hp5:=nil;
         hp6:=nil;
         hp7:=nil;
