@@ -464,10 +464,10 @@ const
   RLIMIT_LOCKS = 10;    { maximum file locks held  }
 
 type
-{$ifdef fs32bit}
-  rlim_t = cULong;
-{$else}
+{$ifdef CPU64}
   rlim_t = cULongLong;
+{$else}
+  rlim_t = cULong;
 {$endif}
   PRLimit = ^TRLimit;
   TRLimit = record
@@ -514,7 +514,7 @@ const
   { For 32 bit 2038 safe support, we have to use the kernel_timespec on linux which
     makes all fields 64 bit regardless of the bit size of the CPU.
 
-    I have no idea though how to work around this when libc is used 
+    I have no idea though how to work around this when libc is used
   }
 {$ifndef FPC_USE_LIBC}
   kernel_time64_t = clonglong;
