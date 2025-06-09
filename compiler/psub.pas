@@ -493,7 +493,7 @@ implementation
                             nil));
                       end
                     else
-                      internalerror(200305108);
+                      Message(parser_e_no_suitable_newinstance_method_found);
                   end
                 else
                   if is_object(current_structdef) then

@@ -1705,6 +1705,9 @@ parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Expression cannot be
 parser_e_type_alread_forward=03373_E_Duplicate forward type declaration: $1
 % Types might be defined only once as forward:
 % \var{type myclass = class; myclass = class;} is not allowed
+parser_e_no_suitable_newinstance_method_found=03374_E_No suitable NewInstance method for class instance creation found
+% To create a new instance of a class, a suitable NewInstance (like \var{TObject.NewInstance}) method must be found. The symbol name NewInstance
+% might not be used for other purposes than to create a new instance of a class.
 %
 % \end{description}
 %
