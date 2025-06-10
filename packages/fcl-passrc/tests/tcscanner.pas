@@ -138,6 +138,7 @@ type
     procedure TestMultilineStringTrimAll;
     procedure TestMultilineStringTrimAuto;
     procedure TestMultilineStringTrim2;
+    procedure TestMultilineStringQuoted;
     Procedure TestDelphiMultiLine;
     procedure TestDelphiMultiLineNotEnabled;
     procedure TestDelphiMultiLineWrongIndent;
@@ -923,6 +924,23 @@ begin
   AssertEquals('Correct trim',S,TestTokenString);
   DoTestToken(pscanner.tkString,' `AB'#13#10' CD`');
   AssertEquals('Correct trim 2',S2,TestTokenString);
+end;
+
+procedure TTestScanner.TestMultilineStringQuoted;
+
+const Src = '`'+sLineBreak+
+    'message: ''DataNodeProcessor "'' + this.nodeID + ''" already waiting for data'''+sLineBreak+
+    '`';
+   Res = #39+sLineBreak+
+       'message: ''''DataNodeProcessor "'''' + this.nodeID + ''''" already waiting for data'''''+sLineBreak+
+       '''';
+begin
+  SCanner.MultilineStringsTrimLeft:=2;
+  Scanner.CurrentModeSwitches:=[msMultiLineStrings];
+  Scanner.MultilineStringsEOLStyle:=elLF;
+  Scanner.SkipWhiteSpace:=True;
+  DoTestToken(pscanner.tkString,Src);
+  AssertEquals('Correct trim',Res,TestTokenString);
 end;
 
 

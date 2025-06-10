@@ -4032,26 +4032,29 @@ var
     i : Integer;
 
   begin
-    i:=MultilineStringsTrimLeft;
-    if I=-1 then
-      // auto unindent -> use line indent of first line
-      I:=StartPos+1;
-    if I>0 then
+    // Start of line, take indent into account
+    if ({$ifdef UsePChar}TokenStart=PAnsichar(FCurLine){$ELSE}Tokenstart=1{$ENDIF}) then
       begin
-      // fixed unindent -> remove up to I leading spaces
-      While ({$ifdef UsePChar} TokenStart^{$ELSE}FCurLine[TokenStart]{$ENDIF} in [' ',#9]) and (TokenStart<=FTokenPos) and (I>0) do
+      i:=MultilineStringsTrimLeft;
+      if I=-1 then
+        // auto unindent -> use line indent of first line
+        I:=StartPos+1;
+      if I>0 then
         begin
-        Inc(TokenStart);
-        Dec(I);
+        // fixed unindent -> remove up to I leading spaces
+        While ({$ifdef UsePChar} TokenStart^{$ELSE}FCurLine[TokenStart]{$ENDIF} in [' ',#9]) and (TokenStart<=FTokenPos) and (I>0) do
+          begin
+          Inc(TokenStart);
+          Dec(I);
+          end;
+        end
+      else if I=-2 then
+        begin
+        // no indent -> remove all leading spaces
+        While ({$ifdef UsePChar} TokenStart^{$ELSE}FCurLine[TokenStart]{$ENDIF} in [' ',#9]) and (TokenStart<=FTokenPos) do
+          Inc(TokenStart);
         end;
-      end
-    else if I=-2 then
-      begin
-      // no indent -> remove all leading spaces
-      While ({$ifdef UsePChar} TokenStart^{$ELSE}FCurLine[TokenStart]{$ENDIF} in [' ',#9]) and (TokenStart<=FTokenPos) do
-        Inc(TokenStart);
       end;
-
     {$ifdef UsePChar}
     Add(TokenStart,FTokenPos - TokenStart);
     {$else}
@@ -4189,6 +4192,9 @@ begin
                 AddToCurString(false);
                 AddApostroph;
                 TokenStart := FTokenPos;
+                // Can happen if the last char on the line was the quote..
+                if ({$ifdef UsePChar}FTokenPos[0] = #0{$else}FTokenPos>l{$endif}) then
+                  Dec(FTokenPos);
                 end;
               end;
               Inc(FTokenPos);
