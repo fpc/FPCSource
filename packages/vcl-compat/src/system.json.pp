@@ -1035,14 +1035,13 @@ var
 
 begin
   lValue:=FindValue(aPath);
-  Result:=Assigned(lValue);
+  Result:=Assigned(lValue) and not (lValue is TJSONNull);
   if Result then
     Try
       aValue:=lValue.specialize AsType<T>;
     except
       on E : Exception do
         begin
-        Writeln('Err',E.Message);
         Result:=False;
         end;
     end;
@@ -1066,6 +1065,8 @@ var
 begin
   lValue:=FindValue(aPath);
   if not Assigned(lValue) then
+    Result:=aDefaultValue
+  else if lValue is TJSONNull then
     Result:=aDefaultValue
   else if not lValue.specialize TryGetValue<T>(Result) then
     Result:=aDefaultValue;
