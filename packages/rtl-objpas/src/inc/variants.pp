@@ -376,6 +376,10 @@ uses
   VarUtils;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$IFDEF MSWINDOWS}
+procedure SysFreeString(bstr:pointer); stdcall; external 'oleaut32.dll' name 'SysFreeString';
+{$ENDIF}
+
 var
   customvarianttypes    : array of TCustomVariantType;
   customvarianttypelock : trtlcriticalsection;
@@ -4103,7 +4107,9 @@ var
   arg_data: PVarData;
   dummy_data: TVarData;
   arg_advanced: boolean;
-
+  i : integer;
+  nextstring: integer;
+  StringMap : array[0..255] of record passtr : pansistring; paswstr : punicodestring; comstr : pwidechar; end;
 const
   argtype_mask = $7F;
   argref_mask = $80;
@@ -4111,6 +4117,8 @@ begin
   arg_count := CallDesc^.ArgCount;
   method_name := ansistring(PAnsiChar(@CallDesc^.ArgTypes[arg_count]));
   setLength(args, arg_count);
+  nextstring:=0;
+  try
   if arg_count > 0 then
   begin
     arg_ptr := Params;
@@ -4127,8 +4135,29 @@ begin
       end;
       if arg_byref then
       begin
-        arg_data^.vType := arg_data^.vType or varByRef;
-        arg_data^.vPointer := PPointer(arg_ptr)^;
+        case arg_type of
+          varStrArg:  begin
+                       StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(ppointer(arg_ptr)^)^);
+                       StringMap[NextString].PasStr:=PAnsiString(ppointer(arg_ptr)^);
+                       StringMap[NextString].PasWStr:=nil;
+                       arg_data^.vType := arg_data^.vType or varByRef;
+                       arg_data^.volestr:=StringMap[NextString].ComStr;
+                       inc(NextString);
+                      end;
+          varUStrArg:  begin
+                       StringMap[NextString].ComStr:=StringToOleStr(PUnicodeString(ppointer(arg_ptr)^)^);
+                       StringMap[NextString].PasStr:=nil;
+                       StringMap[NextString].PasWStr:=PUnicodeString(ppointer(arg_ptr)^);
+                       arg_data^.vType := arg_data^.vType or varByRef;
+                       arg_data^.volestr:=StringMap[NextString].ComStr;
+                       inc(NextString);
+                      end;
+          else
+            begin
+             arg_data^.vType := arg_data^.vType or varByRef;
+             arg_data^.vPointer := PPointer(arg_ptr)^;
+             end;
+          end;
         Inc(arg_ptr,sizeof(Pointer));
       end
       else
@@ -4167,6 +4196,22 @@ begin
               arg_data^.vByte := PLongint(arg_ptr)^;
             varWord:
               arg_data^.vWord := PLongint(arg_ptr)^;
+            varStrArg:  begin
+                         StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(arg_ptr)^);
+                         StringMap[NextString].PasStr:=nil;
+                         StringMap[NextString].PasWStr:=Nil;
+                         arg_data^.volestr:=StringMap[NextString].ComStr;
+                         inc(NextString);
+                        end;
+            varUStrArg:  begin
+                         StringMap[NextString].ComStr:=StringToOleStr(PunicodeString(arg_ptr)^);
+                         StringMap[NextString].PasStr:=nil;
+                         StringMap[NextString].PasWStr:=Nil;
+                         arg_data^.volestr:=StringMap[NextString].ComStr;
+                         inc(NextString);
+                        end;
+
+
             else
               arg_data^.vAny := PPointer(arg_ptr)^; // 32 or 64bit
           end;
@@ -4227,6 +4272,21 @@ begin
   else
     RaiseDispError;
   end;
+    { translate strings back }
+    for i:=0 to NextString-1 do begin
+      if assigned(StringMap[i].passtr) then
+        OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^)
+      else if assigned(StringMap[i].paswstr) then
+        OleStrToStrVar(StringMap[i].comstr,StringMap[i].paswstr^);
+    end;
+ finally
+    for i:=0 to NextString-1 do
+      {$ifdef MSWindows}
+      SysFreeString(StringMap[i].ComStr);
+      {$else}
+      dispose(StringMap[i].ComStr);
+      {$endif}
+    end;
 end;
 
 function TInvokeableVariantType.DoFunction(var Dest: TVarData; const V: TVarData; const Name: AnsiString; const Arguments: TVarDataArray): Boolean;
