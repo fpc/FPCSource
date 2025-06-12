@@ -455,9 +455,6 @@ type
     {$ifdef FPC_HAS_FEATURE_THREADING}
       lock: TRTLCriticalSection;
       lockUse: int32;
-
-      { Data from dead threads (“orphaned”), protected by gs.lock. }
-      varOS: pVarOSChunk;
     {$ifndef HAS_SYSOSFREE}
       freeOS: FreeOSChunkList;
     {$endif not HAS_SYSOSFREE}
@@ -1464,7 +1461,7 @@ type
   procedure HeapInc.ThreadState.Orphan;
   var
     arena: pFixedArena;
-    vOs, nextVOs, lastVOs: pVarOSChunk;
+    vOs: pVarOSChunk;
   {$ifndef HAS_SYSOSFREE}
     lastFree, nextFree: pFreeOSChunk;
   {$endif not HAS_SYSOSFREE}
@@ -1496,20 +1493,11 @@ type
       gs.freeOS.first := freeOS.first;
     end;
 {$endif not HAS_SYSOSFREE}
-    { Prepend varOS to gs.varOS. }
     vOs := varOS;
-    if Assigned(vOs) then
+    while Assigned(vOs) do
     begin
-      nextVOs := gs.varOS;
-      gs.varOS := vOs;
-      repeat
-        lastVOs := vOs;
-        ChangeThreadState(vOs, nil);
-        vOs := vOs^.next;
-      until not Assigned(vOs);
-      lastVOs^.next := nextVOs;
-      if Assigned(nextVOs) then
-        nextVOs^.prev := lastVOs;
+      ChangeThreadState(vOs, nil);
+      vOs := vOs^.next;
     end;
     if gs.lockUse > 0 then
       LeaveCriticalSection(gs.lock);
@@ -1550,23 +1538,15 @@ type
   var
     prevSize, statv: SizeUint;
     h: uint32;
-    vOs, osPrev, osNext: pVarOSChunk;
+    vOs, osNext: pVarOSChunk;
   begin
     repeat
       prevSize := pVarHeader(p - VarHeaderSize)^.prevSize;
       dec(p, prevSize);
     until prevSize = 0;
 
-    { Move OS chunk from gs.varOS to varOS. }
+    { Add OS chunk to varOS. }
     vOs := p - (VarOSChunkDataOffset + VarHeaderSize);
-    osPrev := vOs^.prev;
-    osNext := vOs^.next;
-    if Assigned(osPrev) then
-      osPrev^.next := osNext
-    else
-      gs.varOS := osNext;
-    if Assigned(osNext) then
-      osNext^.prev := osPrev;
     vOs^.prev := nil;
     osNext := varOS;
     vOs^.next := osNext;
