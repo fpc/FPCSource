@@ -6325,6 +6325,7 @@ end;
 
 function TPasLabels.GetDeclaration(full: Boolean): TPasTreeString;
 begin
+  if Full then ;
   Result:=Labels.CommaText;
 end;
 
