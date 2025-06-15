@@ -1990,6 +1990,7 @@ implementation
       old_filepos: tfileposinfo;
       symname,
       symrealname: TSymStr;
+      highsym: tabstractvarsym;
     begin
       nestedvarsdef:=tlocalvarsym(pd.parentfpstruct).vardef;
       { redirect all aliases for the function result also to the function
@@ -2044,6 +2045,13 @@ implementation
               tblocknode(pd.parentfpinitblock).left:=cstatementnode.create
                 (initcode,tblocknode(pd.parentfpinitblock).left);
               current_filepos:=old_filepos;
+
+              { also add the associated high para, if any. It may not be accessed
+                during code generation, and we need to catch 'em all (TM) during
+                the typecheck/firstpass }
+              highsym:=get_high_value_sym(tparavarsym(sym));
+              if assigned(highsym) then
+                maybe_add_sym_to_parentfpstruct(pd, highsym, highsym.vardef, false);
             end;
         end;
     end;
