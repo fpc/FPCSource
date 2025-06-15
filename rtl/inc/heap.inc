@@ -383,6 +383,7 @@ type
       bins: array[0 .. VarSizesCount - 1] of pFreeVarChunk;
       procedure Add(c: pFreeVarChunk; binIndex: SizeUint);
       procedure Remove(c: pFreeVarChunk);
+      function Find(binIndex: SizeUint): pFreeVarChunk;
     end;
 
     ThreadState = object
@@ -419,7 +420,7 @@ type
       function AllocFixed(size: SizeUint): pointer; inline;
       function FreeFixed(p: pointer): SizeUint; inline;
 
-      function GetOSChunk(minSize, maxSize: SizeUint): pOSChunk;
+      function GetOSChunk(minSize, maxSize: SizeUint): pOSChunk; {$if defined(HAS_SYSOSFREE) or not defined(FPC_HAS_FEATURE_THREADING)} inline; {$endif}
       function AllocateOSChunk(minSize, maxSize: SizeUint): pOSChunk;
 
       function AllocVar(size: SizeUint; isArena: boolean): pointer;
@@ -438,7 +439,6 @@ type
       procedure Orphan;
       procedure AdoptArena(arena: pFixedArena);
       procedure AdoptVarOwner(p: pointer); { Adopts the OS chunk that contains p. Must be performed under gs.lock. }
-      class procedure ChangeThreadState(vOs: pVarOSChunk; ts: pThreadState); static;
 
     {$ifndef FPC_SECTION_THREADVARS}
       procedure FixupSelfPtr;
@@ -455,6 +455,9 @@ type
     {$ifdef FPC_HAS_FEATURE_THREADING}
       lock: TRTLCriticalSection;
       lockUse: int32;
+
+      { Like ThreadState.varFree but over orphaned OS chunks. Protected by gs.lock. }
+      varFree: VarFreeMap;
     {$ifndef HAS_SYSOSFREE}
       freeOS: FreeOSChunkList;
     {$endif not HAS_SYSOSFREE}
@@ -617,6 +620,24 @@ type
     end;
   end;
 
+  function HeapInc.VarFreeMap.Find(binIndex: SizeUint): pFreeVarChunk;
+  var
+    mask: uint32;
+  begin
+    result := bins[binIndex];
+    if Assigned(result) then
+      exit;
+    mask := L0[binIndex div L0BinSize] shr (binIndex mod L0BinSize); { Logically should be “1 + binIndex mod L0BinSize” but the bit that represents the binIndex-th bin is 0 anyway. }
+    if mask <> 0 then
+      exit(bins[binIndex + BsfDWord(NonZeroDWord(mask))]);
+    mask := L1 and (SizeUint(-2) shl (binIndex div L0BinSize));
+    if mask <> 0 then
+    begin
+      binIndex := BsfDWord(NonZeroDWord(mask)); { Index at L0. }
+      result := bins[binIndex * L0BinSize + BsfDWord(NonZeroDWord(L0[binIndex]))];
+    end;
+  end;
+
 {$ifdef DEBUG_HEAP_INC}
   procedure HeapInc.ThreadState.Dump(var f: text);
   var
@@ -636,6 +657,51 @@ type
       if needLE then
         writeln(f);
       needLE := false;
+    end;
+
+    procedure DumpVarFree(const varFree: VarFreeMap; const name: string);
+    var
+      i: SizeInt;
+    begin
+      if varFree.L1 = 0 then
+        exit;
+      MaybeLE;
+      write(f, name, LineEnding, 'L1:');
+      for i := 0 to VarSizesCount div L0BinSize - 1 do
+        if varFree.L1 shr i and 1 <> 0 then
+        begin
+          write(f, ' #', i, ' ', BinIndexToVarSize(i * L0BinSize), '-');
+          if i = VarSizesCount div L0BinSize - 1 then
+            write(f, 'inf')
+          else
+            write(f, BinIndexToVarSize((i + 1) * L0BinSize) - 1);
+        end;
+      writeln(f);
+      write(f, 'L0 (bins):');
+      for i := 0 to VarSizesCount - 1 do
+      begin
+        if varFree.L0[SizeUint(i) div L0BinSize] shr (SizeUint(i) mod L0BinSize) and 1 <> 0 then
+        begin
+          write(f, ' #', i, ' ', BinIndexToVarSize(i), '-');
+          if i = VarSizesCount - 1 then
+            write(f, 'inf')
+          else
+            write(f, BinIndexToVarSize(i + 1) - 1);
+        end;
+        if Assigned(varFree.bins[i]) then
+        begin
+          write(f, ' (');
+          vf := varFree.bins[i];
+          repeat
+            if Assigned(vf^.prev) then write(f, ' ');
+            write(f, pVarHeader(vf)[-1].ch.h and VarSizeMask);
+            vf := vf^.next;
+          until not Assigned(vf);
+          write(f, ')');
+        end;
+      end;
+      writeln(f);
+      needLE := true;
     end;
 
   begin
@@ -705,47 +771,9 @@ type
       until {$ifdef HAS_SYSOSFREE} true {$else} not Assigned(fr) {$endif};
       needLE := true;
     end;
-    if varFree.L1 <> 0 then
-    begin
-      MaybeLE;
-      write(f, 'L1:');
-      for i := 0 to VarSizesCount div L0BinSize - 1 do
-        if varFree.L1 shr i and 1 <> 0 then
-        begin
-          write(f, ' #', i, ' ', BinIndexToVarSize(i * L0BinSize), '-');
-          if i = VarSizesCount div L0BinSize - 1 then
-            write(f, 'inf')
-          else
-            write(f, BinIndexToVarSize((i + 1) * L0BinSize) - 1);
-        end;
-      writeln(f);
-      write(f, 'L0 (bins):');
-      for i := 0 to VarSizesCount - 1 do
-      begin
-        if varFree.L0[SizeUint(i) div L0BinSize] shr (SizeUint(i) mod L0BinSize) and 1 <> 0 then
-        begin
-          write(f, ' #', i, ' ', BinIndexToVarSize(i), '-');
-          if i = VarSizesCount - 1 then
-            write(f, 'inf')
-          else
-            write(f, BinIndexToVarSize(i + 1) - 1);
-        end;
-        if Assigned(varFree.bins[i]) then
-        begin
-          write(f, ' (');
-          vf := varFree.bins[i];
-          repeat
-            if Assigned(vf^.prev) then write(f, ' ');
-            write(f, pVarHeader(vf)[-1].ch.h and VarSizeMask);
-            vf := vf^.next;
-          until not Assigned(vf);
-          write(f, ')');
-        end;
-      end;
-      writeln(f);
-      needLE := true;
-    end;
+    DumpVarFree(varFree, 'varFree');
   {$ifdef FPC_HAS_FEATURE_THREADING}
+    DumpVarFree(gs.varFree, 'Orphaned varFree');
     tf := toFree;
     if Assigned(tf) then
     begin
@@ -934,17 +962,15 @@ type
   begin
   {$ifdef HAS_SYSOSFREE}
     result := freeOS1;
-    if Assigned(result) and (result^.size >= minSize) and (result^.size <= maxSize) then
-    begin
-      freeOS1 := nil;
-      exit;
-    end;
+    if Assigned(result) then
+      if (result^.size >= minSize) and (result^.size <= maxSize) then
+        freeOS1 := nil
+      else
+        result := nil;
   {$else HAS_SYSOSFREE}
     result := freeOS.Get(minSize, maxSize);
-    if Assigned(result) then
-      exit;
   {$ifdef FPC_HAS_FEATURE_THREADING}
-    if Assigned(gs.freeOS.first) then { Racing precheck. }
+    if not Assigned(result) and Assigned(gs.freeOS.first) then { Racing precheck. }
     begin
       EnterCriticalSection(gs.lock);
       result := gs.freeOS.Get(minSize, maxSize);
@@ -956,12 +982,10 @@ type
         inc(statv, gs.hugeUsed);
         if statv > maxAllocated then
           maxAllocated := statv;
-        exit;
       end;
     end;
   {$endif FPC_HAS_FEATURE_THREADING}
   {$endif HAS_SYSOSFREE}
-    result := AllocateOSChunk(minSize, maxSize);
   end;
 
   function HeapInc.ThreadState.AllocateOSChunk(minSize, maxSize: SizeUint): pOSChunk;
@@ -995,7 +1019,6 @@ type
     fv: pFreeVarChunk;
     osChunk, osNext: pVarOSChunk;
     binIndex, vSizeFlags, statv: SizeUint;
-    mask: uint32;
   begin
     size := (size + (VarHeaderSize + VarSizeQuant - 1)) and SizeUint(-VarSizeQuant);
 
@@ -1015,46 +1038,51 @@ type
 
     { Search varFree for (roughly) smallest chunk ≥ size. }
     binIndex := VarSizeToBinIndex(size, true);
-    fv := varFree.bins[binIndex];
-    osChunk := nil; { If remains nil, fv comes from varFree and must be removed. }
+    fv := varFree.Find(binIndex);
     if not Assigned(fv) then
     begin
-      mask := varFree.L0[binIndex div L0BinSize] shr (binIndex mod L0BinSize); { Logically should be “1 + binIndex mod L0BinSize” but the bit that represents the binIndex-th bin is 0 anyway. }
-      if mask <> 0 then
-        fv := varFree.bins[binIndex + BsfDWord(NonZeroDWord(mask))]
-      else
+      { Find either other fv or other osChunk that can fit the requested size. }
+      osChunk := pVarOSChunk(GetOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
+      if not Assigned(osChunk) then
       begin
-        mask := varFree.L1 and (SizeUint(-2) shl (binIndex div L0BinSize));
-        if mask <> 0 then
+      {$ifdef FPC_HAS_FEATURE_THREADING}
+        { Preliminary search without blocking, assuming varFree.Find doesn’t do anything that can go wrong. }
+        fv := gs.varFree.Find(binIndex);
+        if Assigned(fv) then
         begin
-          binIndex := BsfDWord(NonZeroDWord(mask)); { Index at L0. }
-          fv := varFree.bins[binIndex * L0BinSize + BsfDWord(NonZeroDWord(varFree.L0[binIndex]))];
-        end else
+          EnterCriticalSection(gs.lock);
+          fv := gs.varFree.Find(binIndex); { True search. }
+          if Assigned(fv) then
+            AdoptVarOwner(fv); { Moves fv to own varFree. }
+          LeaveCriticalSection(gs.lock);
+        end;
+        if not Assigned(fv) then
+      {$endif FPC_HAS_FEATURE_THREADING}
         begin
-          { No such a chunk, allocate a new one. }
-          osChunk := pVarOSChunk(GetOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
+          osChunk := pVarOSChunk(AllocateOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
           if not Assigned(osChunk) then
             exit(nil);
-
-          { Add osChunk to varOS. }
-          osNext := varOS;
-          osChunk^.prev := nil;
-          osChunk^.next := osNext;
-          if Assigned(osNext) then
-            osNext^.prev := osChunk;
-          varOS := osChunk;
-
-          { Format new free var chunk spanning the entire osChunk. }
-          fv := pointer(osChunk) + (VarOSChunkDataOffset + VarHeaderSize);
-          pVarHeader(pointer(fv) - VarHeaderSize)^.prevSize := 0;
-        {$ifdef FPC_HAS_FEATURE_THREADING}
-          pVarHeader(pointer(fv) - VarHeaderSize)^.threadState := @self;
-        {$endif}
-          pVarHeader(pointer(fv) - VarHeaderSize)^.ch.h := (uint32(osChunk^.size) - VarOSChunkDataOffset) and VarSizeMask + LastFlag;
         end;
       end;
     end;
-    if not Assigned(osChunk) then
+    if not Assigned(fv) then
+    begin
+      { Add osChunk to varOS. }
+      osNext := varOS;
+      osChunk^.prev := nil;
+      osChunk^.next := osNext;
+      if Assigned(osNext) then
+        osNext^.prev := osChunk;
+      varOS := osChunk;
+
+      { Format new free var chunk spanning the entire osChunk. }
+      fv := pointer(osChunk) + (VarOSChunkDataOffset + VarHeaderSize);
+      pVarHeader(pointer(fv) - VarHeaderSize)^.prevSize := 0;
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      pVarHeader(pointer(fv) - VarHeaderSize)^.threadState := @self;
+    {$endif}
+      pVarHeader(pointer(fv) - VarHeaderSize)^.ch.h := (uint32(osChunk^.size) - VarOSChunkDataOffset) and VarSizeMask + LastFlag;
+    end else
       varFree.Remove(fv);
 
     { Result will be allocated at the beginning of fv; maybe format the remainder and add it back to varFree. }
@@ -1343,9 +1371,13 @@ type
   {$else HAS_SYSOSFREE}
     result := GetOSChunk(size, High(SizeUint));
     if not Assigned(result) then
-      exit; { GetOSChunk throws an error if required. }
+    begin
+      result := AllocateOSChunk(size, High(SizeUint));
+      if not Assigned(result) then
+        exit; { AllocateOSChunk throws an error if required. }
+    end;
     size := pOSChunk(result)^.size;
-    dec(allocated, size); { After GetOSChunk chunk size is counted in “allocated”; don’t count. }
+    dec(allocated, size); { After GetOSChunk* chunk size is counted in “allocated”; don’t count. }
   {$endif HAS_SYSOSFREE}
     pCommonHeader(result + HugeChunkDataOffset)^.h := HugeHeader;
     inc(result, HugeChunkDataOffset + CommonHeaderSize);
@@ -1462,6 +1494,8 @@ type
   var
     arena: pFixedArena;
     vOs: pVarOSChunk;
+    p: pointer;
+    h: uint32;
   {$ifndef HAS_SYSOSFREE}
     lastFree, nextFree: pFreeOSChunk;
   {$endif not HAS_SYSOSFREE}
@@ -1496,7 +1530,14 @@ type
     vOs := varOS;
     while Assigned(vOs) do
     begin
-      ChangeThreadState(vOs, nil);
+      p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
+      repeat
+        pVarHeader(p - VarHeaderSize)^.threadState := nil;
+        h := pVarHeader(p - VarHeaderSize)^.ch.h;
+        if h and UsedFlag = 0 then
+          gs.varFree.Add(p, pFreeVarChunk(p)^.binIndex);
+        inc(p, h and VarSizeMask);
+      until h and LastFlag <> 0;
       vOs := vOs^.next;
     end;
     if gs.lockUse > 0 then
@@ -1564,7 +1605,10 @@ type
       pVarHeader(p - VarHeaderSize)^.threadState := @self;
       h := pVarHeader(p - VarHeaderSize)^.ch.h;
       if h and UsedFlag = 0 then
-        varFree.Add(p, pFreeVarChunk(p)^.binIndex)
+      begin
+        gs.varFree.Remove(p);
+        varFree.Add(p, pFreeVarChunk(p)^.binIndex);
+      end
       else if h and FixedArenaFlag <> 0 then
          AdoptArena(p)
       else
@@ -1577,28 +1621,22 @@ type
       maxUsed := statv;
   end;
 
-  class procedure HeapInc.ThreadState.ChangeThreadState(vOs: pVarOSChunk; ts: pThreadState);
-  var
-    h: uint32;
-    p: pointer;
-  begin
-    p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
-    repeat
-      pVarHeader(p - VarHeaderSize)^.threadState := ts;
-      h := pVarHeader(p - VarHeaderSize)^.ch.h;
-      inc(p, h and VarSizeMask);
-    until h and LastFlag <> 0;
-  end;
-
 {$ifndef FPC_SECTION_THREADVARS}
   procedure HeapInc.ThreadState.FixupSelfPtr;
   var
     vOs: pVarOSChunk;
+    p: pointer;
+    h: uint32;
   begin
     vOs := varOS;
     while Assigned(vOs) do
     begin
-      ChangeThreadState(vOs, @self);
+      p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
+      repeat
+        pVarHeader(p - VarHeaderSize)^.threadState := @self;
+        h := pVarHeader(p - VarHeaderSize)^.ch.h;
+        inc(p, h and VarSizeMask);
+      until h and LastFlag <> 0;
       vOs := vOs^.next;
     end;
   end;
