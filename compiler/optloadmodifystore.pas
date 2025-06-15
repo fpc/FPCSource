@@ -59,8 +59,6 @@ unit optloadmodifystore;
       begin
         result:=nil;
 {$ifndef llvm}
-        foreachnodestatic(pm_postprocess,rootnode,@try_opt_node,nil);
-
         with assignmentnode do
           begin
             { *** Here are simple optimizations which are performed
