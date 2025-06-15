@@ -836,6 +836,7 @@ var rtl = {
 
   _ReleaseArray: function(a,dim){
     if (!a) return null;
+    if (!dim) dim = 1;
     for (var i=0; i<a.length; i++){
       if (dim<=1){
         if (a[i]) a[i]._Release();
@@ -1017,8 +1018,9 @@ var rtl = {
   },
 
   arrayClone: function(type,src,srcpos,endpos,dst,dstpos){
-    // type: 0 for references, "refset" for calling refSet(), a function for new type()
+    // type: 0 for references or simple values
     // src must not be null
+    // dst at dstpos must not contain managed old values
     // This function does not range check.
     if(type === 'refSet') {
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = rtl.refSet(src[srcpos]); // ref set
@@ -1028,7 +1030,13 @@ var rtl = {
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = type(src[srcpos]); // clone function
     } else if (rtl.isTRecord(type)){
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = type.$clone(src[srcpos]); // clone record
-    }  else {
+    } else if (type === 'COM'){
+      // clone COM intf references
+      for (; srcpos<endpos; srcpos++){
+        dst[dstpos]=null;
+        rtl.setIntfP(dst,dstpos++,src[srcpos]);
+      }
+    } else {
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = src[srcpos]; // reference
     };
   },

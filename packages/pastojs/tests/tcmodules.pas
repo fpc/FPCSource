@@ -536,6 +536,7 @@ type
     Procedure TestRecord_TypecastFail;
     Procedure TestRecord_InFunction;
     Procedure TestRecord_ArrayConstMultiline;
+    // ToDo: insert(record,ArrayOfRecord,0)
 
     // anonymous record
     Procedure TestRecordAnonym_Field;
@@ -735,6 +736,7 @@ type
     Procedure TestClassInterface_COM_ForInterfaceInObject;
     Procedure TestClassInterface_COM_ArrayOfIntf; // todo
     Procedure TestClassInterface_COM_ArrayOfIntfFail;
+    Procedure TestClassInterface_COM_StaticArrayOfIntfFail;
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
     Procedure TestClassInterface_Corba_GUID;
@@ -22954,15 +22956,19 @@ begin
   '  i: IBird;',
   '  a,b: TBirdArray;',
   'begin',
-  //'  SetLength(a,3);',
+  '  SetLength(a,3);',
   '  a:=b;',
   '  i:=a[1];',
   '  a[2]:=i;',
   //'  for i in a do i.fly(3);',
-  // a:=copy(b,1,2);
-  // a:=concat(b,a);
-  // insert(i,b,1);
+  '  a:=copy(b,1,2);',
+  '  a:=concat(b,a);',
+  '  insert(i,b,1);',
   // a:=[i,i];
+  // a:=a+[i];
+  // a:=[i]+a;
+  // a:=[i]+[];
+  // a:=[]+[i];
   'end;',
   // ToDo: pass TBirdArray as arg
   'begin',
@@ -22977,12 +22983,16 @@ begin
     '  var a = [];',
     '  var b = [];',
     '  try {',
+    '    a = rtl.arraySetLength(a, null, 3);',
     '    a = rtl.arrayRef(b);',
     '    i = rtl.setIntfL(i, a[1]);',
     '    rtl.setIntfP(a, 2, i);',
+    '    a = rtl.arrayCopy("COM", b, 1, 2);',
+    '    a = rtl.arrayConcat("COM", b, a);',
+    '    b = rtl.arrayInsert(rtl._AddRef(i), b, 1);',
     '  } finally {',
     '    rtl._Release(i);',
-    '    rtl._ReleaseArray(a,1);',
+    '    rtl._ReleaseArray(a);',
     '  };',
     '};',
     '']),
@@ -23003,6 +23013,25 @@ begin
   '  TObject = class',
   '  end;',
   '  TArrOfIntf = array of IUnknown;',
+  'begin',
+  '']);
+  SetExpectedPasResolverError('Not supported: array of COM-interface',nNotSupportedX);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestClassInterface_COM_StaticArrayOfIntfFail;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TObject = class',
+  '  end;',
+  '  TArrOfIntf = array[0..1] of IUnknown;',
   'begin',
   '']);
   SetExpectedPasResolverError('Not supported: array of COM-interface',nNotSupportedX);

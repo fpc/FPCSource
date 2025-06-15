@@ -699,6 +699,7 @@ type
     pbivnIntfGUID,
     pbivnIntfKind,
     pbivnIntfMaps,
+    pbivnIntfCOM, // param for arrayClone
     pbivnImplementation,
     pbivnImplCode,
     pbivnMessageInt,
@@ -797,33 +798,33 @@ const
     'createClass', // pbifnCreateClass   rtl.createClass
     'createClassExt', // pbifnCreateClassExt  rtl.createClassExt
     'createHelper', // pbifnCreateHelper  rtl.createHelper
-    'getChar', // rtl.getChar
-    'getNumber', // rtl.getNumber
-    'getObject', // rtl.getObject
-    'getResStr', // rtl.getResStr
-    '$new', // helpertype.$new
-    '_AddRef', // rtl._AddRef
-    '_Release', // rtl._Release
-    '_ReleaseArray', // rtl._ReleaseArray
-    'addIntf', // rtl.addIntf  pbifnIntfAddMap
-    'intfAsClass', // rtl.intfAsClass
-    'intfAsIntfT', // rtl.intfAsIntfT
-    'createInterface', // rtl.createInterface
-    'createTGUID', // rtl.createTGUID
-    'ref', // $ir.ref  pbifnIntfExprRefsAdd
-    'createIntfRefs', // rtl.createIntfRefs
-    'free', // $ir.free
-    'getIntfGUIDR', // rtl.getIntfGUIDR
-    'getIntfT',   // rtl.getIntfT
-    'guidrToStr', // rtl.guidrToStr
-    'intfIsClass', // rtl.intfIsClass
-    'intfIsIntfT', // rtl.intfIsIntfT
-    'intfToClass', // rtl.intfToClass
-    'setIntfL', // rtl.setIntfL
-    'setIntfP', // rtl.setIntfP
-    'strToGUIDR', // rtl.strToGUIDR
-    'queryIntfIsT', // rtl.queryIntfIsT
-    'queryIntfT', // rtl.queryIntfT
+    'getChar', // pbifnGetChar rtl.getChar
+    'getNumber', // pbifnGetNumber rtl.getNumber
+    'getObject', // pbifnGetObject rtl.getObject
+    'getResStr', // pbifnGetResourcestring rtl.getResStr
+    '$new', // pbifnHelperNew helpertype.$new
+    '_AddRef', // pbifnIntf_AddRef rtl._AddRef
+    '_Release', // pbifnIntf_Release rtl._Release
+    '_ReleaseArray', // pbifnIntf_ReleaseArray rtl._ReleaseArray
+    'addIntf', // pbifnIntfAddMap rtl.addIntf
+    'intfAsClass', // pbifnIntfAsClass rtl.intfAsClass
+    'intfAsIntfT', // pbifnIntfAsIntfT rtl.intfAsIntfT
+    'createInterface', // pbifnIntfCreate rtl.createInterface
+    'createTGUID', // pbifnIntfCreateTGUID rtl.createTGUID
+    'ref', // pbifnIntfExprRefsAdd $ir.ref
+    'createIntfRefs', // pbifnIntfExprRefsCreate rtl.createIntfRefs
+    'free', // pbifnIntfExprRefsFree $ir.free
+    'getIntfGUIDR', // pbifnIntfGetGUIDR rtl.getIntfGUIDR
+    'getIntfT',   // pbifnIntfGetIntfT rtl.getIntfT
+    'guidrToStr', // pbifnIntfGuidRToStr rtl.guidrToStr
+    'intfIsClass', // pbifnIntfIsClass rtl.intfIsClass
+    'intfIsIntfT', // pbifnIntfIsIntf rtl.intfIsIntfT
+    'intfToClass', // pbifnIntfToClass rtl.intfToClass
+    'setIntfL', // pbifnIntfSetIntfL rtl.setIntfL
+    'setIntfP', // pbifnIntfSetIntfP rtl.setIntfP
+    'strToGUIDR', // pbifnIntfStrToGUIDR rtl.strToGUIDR
+    'queryIntfIsT', // pbifnIntfQueryIntfIsT rtl.queryIntfIsT
+    'queryIntfT', // pbifnIntfQueryIntfT rtl.queryIntfT
     'is', // pbifnIs  rtl.is
     'isExt', // pbifnIsExt  rtl.isExt
     'floatToStr', // pbifnFloatToStr  rtl.floatToStr
@@ -891,6 +892,7 @@ const
     '$guid',// pbivnIntfGUID
     '$kind', // pbivnIntfKind
     '$intfmaps', // pbivnIntfMaps
+    'COM', // pbivnIntfCOM param for arrayClone
     '$impl', // pbivnImplementation
     '$implcode', // pbivnImplCode
     '$msgint', // pbivnMessageInt
@@ -2066,9 +2068,9 @@ type
     Function CreateArrayEl(El: TPasExpr; JS: TJSElement; AContext: TConvertContext): TJSElement; virtual;
     Function CreateArgumentAccess(Arg: TPasArgument; AContext: TConvertContext;
       PosEl: TPasElement): TJSElement; virtual;
-    Function CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
+    Function CreateUnary(const Members: array of string; E: TJSElement): TJSUnary;
     Function CreateUnaryPlus(Expr: TJSElement; El: TPasElement): TJSUnaryPlusExpression;
-    Function CreateMemberExpression(Members: array of string): TJSElement;
+    Function CreateMemberExpression(const Members: array of string): TJSElement;
     Function CreateCallExpression(El: TPasElement): TJSCallExpression;
     Function CreateCallCharCodeAt(Arg: TJSElement; aNumber: integer; El: TPasElement): TJSCallExpression; virtual;
     Function CreateCallFromCharCode(Arg: TJSElement; El: TPasElement): TJSCallExpression; virtual;
@@ -14753,6 +14755,7 @@ var
   Call: TJSCallExpression;
   ArrayType: TPasArrayType;
   aResolver: TPas2JSResolver;
+  LoElType: TPasType;
 begin
   Result:=nil;
   aResolver:=AContext.Resolver;
@@ -14776,10 +14779,18 @@ begin
     TypeParam:=nil;
     if ElTypeResolved.BaseType=btContext then
       begin
-      C:=ElTypeResolved.LoTypeEl.ClassType;
+      LoElType:=ElTypeResolved.LoTypeEl;
+      C:=LoElType.ClassType;
       if C=TPasRecordType then
         // copy array of record
-        TypeParam:=CreateReferencePathExpr(TPasRecordType(ElTypeResolved.LoTypeEl),AContext);
+        TypeParam:=CreateReferencePathExpr(TPasRecordType(LoElType),AContext)
+      else if (C=TPasClassType)
+          and (TPasClassType(LoElType).ObjKind=okInterface)
+          and (TPasClassType(LoElType).InterfaceType=citCom) then
+        begin
+        // copy array of COM interface
+        TypeParam:=CreateLiteralString(El,GetBIName(pbivnIntfCOM));
+        end;
       end
     else if ElTypeResolved.BaseType=btSet then
       // copy array of set
@@ -14816,10 +14827,17 @@ function TPasToJSConverter.ConvertBuiltIn_InsertArray(El: TParamsExpr;
 // procedure insert(item,var AnArray,const position)
 // ->  AnArray=rtl.arrayInsert(item,AnArray,position);
 var
-  Call: TJSCallExpression;
+  Call, SubCall: TJSCallExpression;
   AssignSt: TJSSimpleAssignStatement;
+  aResolver: TPas2JSResolver;
+  Param: TPasExpr;
+  ParamJS: TJSElement;
+  ParamResolved: TPasResolverResult;
+  ItemType: TPasType;
+  C: TClass;
 begin
   Result:=nil;
+  aResolver:=AContext.Resolver;
   AssignSt:=nil;
   try
     // AnArray=
@@ -14830,7 +14848,31 @@ begin
     // rtl.arrayInsert
     Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnArray_Insert)]);
     // param: item
-    Call.AddArg(ConvertExpression(El.Params[0],AContext));
+    Param:=El.Params[0];
+    ParamJS:=ConvertExpression(Param,AContext);
+
+    aResolver.ComputeElement(Param,ParamResolved,[]);
+    if (ParamResolved.BaseType=btContext) then
+      begin
+      ItemType:=ParamResolved.LoTypeEl;
+      C:=ItemType.ClassType;
+      if C=TPasRecordType then
+        begin
+        // todo: clone
+        end
+      else if (C=TPasClassType)
+          and (TPasClassType(ItemType).ObjKind=okInterface)
+          and (TPasClassType(ItemType).InterfaceType=citCom) then
+        begin
+        // rtl._AddRef(Item)
+        SubCall:=CreateCallExpression(Param);
+        SubCall.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(pbifnIntf_AddRef)]);
+        SubCall.AddArg(ParamJS);
+        ParamJS:=SubCall;
+        end;
+      end;
+
+    Call.AddArg(ParamJS);
     // param: AnArray
     Call.AddArg(ConvertExpression(El.Params[1],AContext));
     // param: position
@@ -19092,6 +19134,7 @@ var
   Func: TPas2JSBuiltInName;
   TypeEl: TPasType;
   ArrayType: TPasArrayType;
+  C: TClass;
 begin
   Result:=nil;
   Call:=CreateCallExpression(PosEl);
@@ -19106,12 +19149,14 @@ begin
     if ElTypeResolved.BaseType=btContext then
       begin
       TypeEl:=ElTypeResolved.LoTypeEl;
+      C:=TypeEl.ClassType;
       if TypeEl.ClassType=TPasArrayType then
         begin
+        // array of array
         ArrayType:=TPasArrayType(TypeEl);
         if length(ArrayType.Ranges)>0 then
           begin
-          // static array
+          // array of static array
           Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
           if AContext.Resolver.HasStaticArrayCloneFunc(ArrayType) then
             // static array with $clone: rtl.arrayConcat(TArrayOfStaticRec$clone,array1,array2,...)
@@ -19119,18 +19164,26 @@ begin
           else
             // static array of simple type: rtl.arrayConcat("slice",array1,array2,...)
             Call.AddArg(CreateLiteralString(PosEl,'slice'));
-          end;
+          end
         end
-      else if TypeEl.ClassType=TPasRecordType then
+      else if C=TPasRecordType then
         begin
-        // record: rtl.arrayConcat(RecordType,array1,array2,...)
+        // array of record: rtl.arrayConcat(RecordType,array1,array2,...)
         Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
         Call.AddArg(CreateReferencePathExpr(TypeEl,AContext));
+        end
+      else if (C=TPasClassType)
+          and (TPasClassType(TypeEl).ObjKind=okInterface)
+          and (TPasClassType(TypeEl).InterfaceType=citCom) then
+        begin
+        // array of COM interface
+        Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
+        Call.AddArg(CreateLiteralString(TypeEl,GetBIName(pbivnIntfCOM)));
         end;
       end
     else if ElTypeResolved.BaseType=btSet then
       begin
-      // set: rtl.arrayConcat("refSet",array1,array2,...)
+      // array of set: rtl.arrayConcat("refSet",array1,array2,...)
       Call.Expr:=CreateMemberExpression([GetBIName(pbivnRTL),GetBIName(Func)]);
       Call.AddArg(CreateLiteralString(PosEl,GetBIName(pbifnSet_Reference)));
       end;
@@ -24873,7 +24926,7 @@ begin
     end;
 end;
 
-function TPasToJSConverter.CreateUnary(Members: array of string; E: TJSElement): TJSUnary;
+function TPasToJSConverter.CreateUnary(const Members: array of string; E: TJSElement): TJSUnary;
 var
   unary: TJSUnary;
   asi: TJSSimpleAssignStatement;
@@ -24893,8 +24946,7 @@ begin
   Result.A:=Expr;
 end;
 
-function TPasToJSConverter.CreateMemberExpression(Members: array of string
-  ): TJSElement;
+function TPasToJSConverter.CreateMemberExpression(const Members: array of string): TJSElement;
 // Examples:
 //   foo   ->  foo
 //   foo,bar  -> foo.bar
