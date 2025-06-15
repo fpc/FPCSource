@@ -52,10 +52,15 @@ unit optloadmodifystore;
       symdef;
 
     function try_opt_assignmentnode(assignmentnode: tassignmentnode): tnode;
+{$ifndef llvm}
       var
         newinlinenodetype: tinlinenumber;
+{$endif llvm}
       begin
         result:=nil;
+{$ifndef llvm}
+        foreachnodestatic(pm_postprocess,rootnode,@try_opt_node,nil);
+
         with assignmentnode do
           begin
             { *** Here are simple optimizations which are performed
@@ -626,6 +631,7 @@ unit optloadmodifystore;
               end;
 {$endif enable_sar_assign_x_y or enable_rox_assign_x_y}
           end;
+{$endif llvm}
       end;
 
     function try_opt_node(var n: tnode; arg: pointer): foreachnoderesult;
@@ -649,7 +655,9 @@ unit optloadmodifystore;
 
     procedure do_optloadmodifystore(var rootnode : tnode);
       begin
+{$ifndef llvm}
         foreachnodestatic(pm_postprocess,rootnode,@try_opt_node,nil);
+{$endif llvm}
       end;
 
 end.
