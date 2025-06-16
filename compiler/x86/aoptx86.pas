@@ -3145,7 +3145,8 @@ unit aoptx86;
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
     var
       hp1, hp2, hp3, hp4: tai;
-      DoOptimisation, TempBool: Boolean;
+      GetNextInstruction_p, DoOptimisation, TempBool: Boolean;
+      p_SourceReg, p_TargetReg, NewMMReg: TRegister;
 {$ifdef x86_64}
       NewConst: TCGInt;
 {$endif x86_64}
@@ -3159,6 +3160,15 @@ unit aoptx86;
             end
           else
             taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and max_value; { Trim to unsigned }
+        end;
+
+      function GetNextHp1(const in_p: tai): Boolean;
+        begin
+          if NotFirstIteration and (cs_opt_level3 in current_settings.optimizerswitches) then
+            GetNextInstruction_p := GetNextInstructionUsingReg(in_p, hp1, p_TargetReg)
+          else
+            GetNextInstruction_p := GetNextInstruction(in_p, hp1);
+          Result := GetNextInstruction_p and (hp1.typ = ait_instruction);
         end;
 
       function TryConstMerge(var p1, p2: tai): Boolean;
@@ -3246,13 +3256,11 @@ unit aoptx86;
         end;
 
       var
-        GetNextInstruction_p, TempRegUsed, CrossJump: Boolean;
+        TempRegUsed, CrossJump: Boolean;
         PreMessage, RegName1, RegName2, InputVal, MaskNum: string;
         NewSize: topsize; NewOffset: asizeint;
-        p_SourceReg, p_TargetReg, NewMMReg: TRegister;
         SourceRef, TargetRef: TReference;
         MovAligned, MovUnaligned: TAsmOp;
-        ThisRef: TReference;
         JumpTracking: TLinkedList;
       begin
         Result:=false;
@@ -3271,26 +3279,22 @@ unit aoptx86;
         { Prevent compiler warnings }
         p_SourceReg := NR_NO;
         p_TargetReg := NR_NO;
+        hp1 := nil;
 
         if taicpu(p).oper[1]^.typ = top_reg then
           begin
             { Saves on a large number of dereferences }
             p_TargetReg := taicpu(p).oper[1]^.reg;
 
-            if NotFirstIteration and (cs_opt_level3 in current_settings.optimizerswitches) then
-              GetNextInstruction_p := GetNextInstructionUsingReg(p, hp1, p_TargetReg)
-            else
-              GetNextInstruction_p := GetNextInstruction(p, hp1);
-
-            if GetNextInstruction_p and (hp1.typ = ait_instruction) then
+            if GetNextHp1(p) then
               while True do
                 begin
                   if (taicpu(hp1).opcode = A_AND) and
-                    MatchOpType(taicpu(hp1),top_const,top_reg) then
+                    (taicpu(hp1).oper[1]^.typ = top_reg) and
+                    SuperRegistersEqual(p_TargetReg, taicpu(hp1).oper[1]^.reg) then
                     begin
-                      { A change has occurred, just not in p }
-                      Include(OptsToCheck, aoc_ForceNewIteration);
-                      if MatchOperand(taicpu(hp1).oper[1]^, p_TargetReg) then
+                      if (taicpu(hp1).oper[0]^.typ = top_const) and
+                        (taicpu(p).opsize = taicpu(hp1).opsize) then
                         begin
                           case taicpu(p).opsize of
                             S_L:
@@ -3301,9 +3305,15 @@ unit aoptx86;
                                       and ffffffffh, %reg
                                   }
                                   DebugMsg(SPeepholeOptimization + 'MovAnd2Mov 1 done',p);
+                                  hp2 := tai(hp1.Previous);
                                   RemoveInstruction(hp1);
-                                  Result:=true;
-                                  exit;
+
+                                  //Include(OptsToCheck, aoc_ForceNewIteration);
+
+                                  if GetNextHp1(hp2) then
+                                    Continue
+                                  else
+                                    Exit;
                                 end;
                             S_Q: { TODO: Confirm if this is even possible }
                               if (taicpu(hp1).oper[0]^.val = $ffffffffffffffff) then
@@ -3313,9 +3323,16 @@ unit aoptx86;
                                       and ffffffffffffffffh, %reg
                                   }
                                   DebugMsg(SPeepholeOptimization + 'MovAnd2Mov 2 done',p);
+
+                                  hp2 := tai(hp1.Previous);
                                   RemoveInstruction(hp1);
-                                  Result:=true;
-                                  exit;
+
+                                  //Include(OptsToCheck, aoc_ForceNewIteration);
+
+                                  if GetNextHp1(hp2) then
+                                    Continue
+                                  else
+                                    Exit;
                                 end;
                             else
                               ;
@@ -3440,11 +3457,42 @@ unit aoptx86;
                             end;
                         end;
 
+                      if (taicpu(p).opsize = taicpu(hp1).opsize) and
+                        (taicpu(hp1).oper[0]^.typ <> top_ref) and
+                        MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
+                        MatchOperand(taicpu(p).oper[1]^, taicpu(hp1).oper[1]^) and
+                        (
+                          not (cs_opt_level3 in current_settings.optimizerswitches) or
+                          (taicpu(hp1).oper[0]^.typ = top_const) or
+                          not RegModifiedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)
+                        ) then
+                        begin
+                          { With:
+                              mov %reg1,%reg2
+                              ...
+                              and %reg1,%reg2
+                            Or:
+                              mov $x,%reg2
+                              ...
+                              and $x,%reg2
+
+                            Remove the 'and' instruction
+                          }
+                          DebugMsg(SPeepholeOptimization + 'MovAnd2Mov 4 done',hp1);
+
+                          hp2 := tai(hp1.Previous);
+                          RemoveInstruction(hp1);
+
+                          //Include(OptsToCheck, aoc_ForceNewIteration);
+
+                          if GetNextHp1(hp2) then
+                            Continue
+                          else
+                            Exit;
+                        end;
+
                       if IsMOVZXAcceptable and
-                        (taicpu(hp1).oper[1]^.typ = top_reg) and
-                        (taicpu(p).oper[0]^.typ <> top_const) and { MOVZX only supports registers and memory, not immediates (use MOV for that!) }
-                        (getsupreg(p_TargetReg) = getsupreg(taicpu(hp1).oper[1]^.reg))
-                        then
+                        (taicpu(p).oper[0]^.typ <> top_const) then { MOVZX only supports registers and memory, not immediates (use MOV for that!) }
                         begin
                           InputVal := debug_operstr(taicpu(p).oper[0]^);
                           MaskNum := debug_tostr(taicpu(hp1).oper[0]^.val);
