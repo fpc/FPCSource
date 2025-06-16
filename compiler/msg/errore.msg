@@ -3554,7 +3554,7 @@ unit_w_unsupported_esp_idf_version=10071_W_Unsupported esp-idf version
 #
 #  Options
 #
-# 11068 is the last used one
+# 11070 is the last used one
 #
 # BeginOfTeX
 %
@@ -3724,6 +3724,10 @@ option_x_ignored=11067_N_Ignoring compiler executable suffix $1.
 option_switch_bin_to_src_assembler_cross_endian=11068_N_Switching assembler to default source writing assembler in cross-endian configuration
 % This notifies you that the assembler has been changed because
 % the binary assembler writer is not yet ready for cross-endian configuration.
+option_e_win16_unsupported_memory_model=11069_W_Unsupported memory model $1 for Win16 OS
+% i8086-win16 system only supports large and huge memory models.
+option_n_win16_set_default_large_memory_model=11070_N_Setting memory model for Win16 system to "large"
+% i8086-win16 requires at least large memory model.
 %
 % \end{description}
 # EndOfTeX
