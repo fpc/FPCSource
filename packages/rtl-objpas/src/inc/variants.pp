@@ -377,8 +377,12 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$IFDEF MSWINDOWS}
-procedure SysFreeString(bstr:pointer); stdcall; external 'oleaut32.dll' name 'SysFreeString';
-{$ENDIF}
+  {$IFNDEF WIN16}
+    { i8086-win16 system define MSWINDOWS macro but does not support OLE strings }
+    procedure SysFreeString(bstr:pointer); stdcall; external 'oleaut32.dll' name 'SysFreeString';
+    {$DEFINE USE_MSWINDOWS_OLE}
+  {$ENDIF not WIN16}
+{$ENDIF MSWINDOWS}
 
 var
   customvarianttypes    : array of TCustomVariantType;
@@ -4107,7 +4111,7 @@ var
   arg_data: PVarData;
   dummy_data: TVarData;
   arg_advanced: boolean;
-{$IFDEF MSWINDOWS}
+{$IFDEF USE_MSWINDOWS_OLE}
   i : integer;
   nextstring: integer;
   StringMap : array[0..255] of record passtr : pansistring; paswstr : punicodestring; comstr : pwidechar; end;
@@ -4119,7 +4123,7 @@ begin
   arg_count := CallDesc^.ArgCount;
   method_name := ansistring(PAnsiChar(@CallDesc^.ArgTypes[arg_count]));
   setLength(args, arg_count);
-  {$IFDEF MSWINDOWS}
+  {$IFDEF USE_MSWINDOWS_OLE}
   nextstring:=0;
   try
   {$ENDIF}
@@ -4139,7 +4143,7 @@ begin
       end;
       if arg_byref then
       begin
-      {$IFDEF MSWINDOWS}
+      {$IFDEF USE_MSWINDOWS_OLE}
         case arg_type of
           varStrArg:  begin
                        StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(ppointer(arg_ptr)^)^);
@@ -4205,7 +4209,7 @@ begin
               arg_data^.vByte := PLongint(arg_ptr)^;
             varWord:
               arg_data^.vWord := PLongint(arg_ptr)^;
-{$IFDEF MSWINDOWS}
+{$IFDEF USE_MSWINDOWS_OLE}
             varStrArg:  begin
                          StringMap[NextString].ComStr:=StringToOleStr(PAnsiString(arg_ptr)^);
                          StringMap[NextString].PasStr:=nil;
@@ -4281,7 +4285,7 @@ begin
   else
     RaiseDispError;
   end;
-  {$IFDEF MSWINDOWS}
+  {$IFDEF USE_MSWINDOWS_OLE}
     { translate strings back }
     for i:=0 to NextString-1 do begin
       if assigned(StringMap[i].passtr) then
