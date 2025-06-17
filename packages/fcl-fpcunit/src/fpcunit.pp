@@ -1387,8 +1387,6 @@ class procedure TAssert.AssertException(const AMessage: string; const AFormatArg
 var
   Msg,FailMsg : string;
 begin
-  If AErrorAddr=Nil then
-    AErrorAddr:=CallerAddr;
   FailMsg:='';
   try
     AMethod;
@@ -1414,6 +1412,8 @@ begin
   end;
   if aMessage<>'' then
     Msg:=Format(AMessage, AFormatArgs) + ': '+Msg;
+  If AErrorAddr=Nil then
+    AErrorAddr:=CallerAddr;
   Fail(Msg, AErrorAddr);
 end;
 
@@ -1486,8 +1486,6 @@ var
   Msg,FailMsg : string;
 
 begin
-  If AErrorAddr=Nil then
-    AErrorAddr:=CallerAddr;
   FailMsg:='';
   try
     AMethod;
@@ -1513,6 +1511,8 @@ begin
   end;
   if aMessage<>'' then
     Msg:=Format(AMessage, AFormatArgs) + ': '+Msg;
+  If AErrorAddr=Nil then
+    AErrorAddr:=CallerAddr;
   Fail(Msg, AErrorAddr);
 end;
 
