@@ -50,7 +50,6 @@ Const
   StrDataCount = 2; // 0 based.
 
 Type
-  { TSSLSocketHandler }
 
   { TCertificateData }
 
@@ -81,11 +80,14 @@ Type
     Property TrustedCertsDir : String Read FTrustedCertsDir Write FTrustedCertsDir;
   end;
 
-    { TX509Certificate }
+  { TCertAndKey }
+
   TCertAndKey = Record
     Certificate : TBytes;
     PrivateKey : TBytes;
   end;
+
+  { TX509Certificate }
 
   TX509Certificate = Class (TObject)
   private
@@ -120,7 +122,6 @@ Type
     Property Version : Integer Read GetVersion Write FVersion;
     // Serial. If zero, then a serial is generated.
     Property Serial : Integer Read FSerial Write FSerial;
-
   end;
 
 implementation
