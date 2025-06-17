@@ -909,7 +909,7 @@ end;
 
 class procedure TAssert.AssertNotSame(Expected, Actual: TObject);
 begin
-  AssertFalse(SExpectedNotSame, Expected = Actual);
+  AssertFalse(SExpectedNotSame, Expected = Actual,CallerAddr);
 end;
 
 
@@ -1063,7 +1063,7 @@ begin
   Msg:=Format(SErrUnexpectedException,[aClass,aExceptionMessage]);
   if aMessage<>'' then
     Msg:=aMessage+': '+Msg;
-  AssertTrue(Msg,aClass='');
+  AssertTrue(Msg,aClass='',CallerAddr);
 end;
 
 class procedure TAssert.AssertNoException(AMethod: TRunMethod);
@@ -1135,7 +1135,7 @@ begin
   Msg:=Format(SErrUnexpectedException,[aClass,aExceptionMessage]);
   if aMessage<>'' then
     Msg:=aMessage+': '+Msg;
-  AssertTrue(Msg,aClass='');
+  AssertTrue(Msg,aClass='',CallerAddr);
 end;
 
 class procedure TAssert.AssertNoException(AMethod: TRunLocalMethod);
