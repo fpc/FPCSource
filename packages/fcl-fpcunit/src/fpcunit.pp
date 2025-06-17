@@ -758,9 +758,13 @@ end;
 class procedure TAssert.AssertFalse(const AMessage: string; ACondition: boolean; AErrorAddrs: Pointer = nil
   );
 begin
+  if not ACondition then begin
+    Inc(AssertCount); // Fail will increae AssertCount
+    exit;
+  end;
   if AErrorAddrs=Nil then
     AErrorAddrs:=CallerAddr;
-  AssertTrue(AMessage, not ACondition,AErrorAddrs);
+  Fail(AMessage, AErrorAddrs);
 end;
 
 class procedure TAssert.AssertFalse(const AMessage: string; const AFormatArgs: array of const;
