@@ -2131,7 +2131,7 @@ unit rgobj;
 {$ifdef DEBUG_REGISTERLIFE}
                               write(live_registers.length,'  ');
                               for i:=0 to live_registers.length-1 do
-                                write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
+                                write(std_regname(newreg(regtype,live_registers.buf[i],defaultsub)),' ');
                               writeln;
 {$endif DEBUG_REGISTERLIFE}
                               add_edges_used(supreg);
@@ -2142,7 +2142,7 @@ unit rgobj;
 {$ifdef DEBUG_REGISTERLIFE}
                               write(live_registers.length,'  ');
                               for i:=0 to live_registers.length-1 do
-                                write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
+                                write(std_regname(newreg(regtype,live_registers.buf[i],defaultsub)),' ');
                               writeln;
 {$endif DEBUG_REGISTERLIFE}
                               add_edges_used(supreg);
