@@ -1232,12 +1232,10 @@ end;
 
 Procedure system_exit;forward;{$ifdef FPC_SYSTEM_EXIT_NO_RETURN}noreturn;{$endif}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
-{$ifndef HAS_MEMORYMANAGER}
+{$if defined(FPC_HAS_FEATURE_HEAP) and not defined(HAS_MEMORYMANAGER)}
 //not needed if independant memory manager
 Procedure FinalizeHeap;forward;
-{$endif HAS_MEMORYMANAGER}
-{$endif FPC_HAS_FEATURE_HEAP}
+{$endif FPC_HAS_FEATURE_HEAP and not HAS_MEMORYMANAGER}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 procedure SysFlushStdIO;
@@ -1333,13 +1331,9 @@ Begin
     sysfreemem(cmdline);
 {$endif}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
-{$ifndef HAS_MEMORYMANAGER}
-{$ifndef FPC_NO_DEFAULT_HEAP}
+{$if defined(FPC_HAS_FEATURE_HEAP) and not defined(HAS_MEMORYMANAGER)}
   FinalizeHeap;
-{$endif not FPC_NO_DEFAULT_HEAP}
-{$endif not HAS_MEMORYMANAGER}
-{$endif FPC_HAS_FEATURE_HEAP}
+{$endif FPC_HAS_FEATURE_HEAP and not HAS_MEMORYMANAGER}
 End;
 
 

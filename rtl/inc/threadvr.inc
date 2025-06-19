@@ -116,13 +116,9 @@ begin
    fpc_threadvar_relocate_proc:=RelocProc;
 {$endif FPC_SECTION_THREADVARS}
 
-{$ifdef FPC_HAS_FEATURE_HEAP}
-{$ifndef HAS_MEMORYMANAGER}
-{$ifndef FPC_NO_DEFAULT_HEAP}
+{$if defined(FPC_HAS_FEATURE_HEAP) and not defined(HAS_MEMORYMANAGER)}
    RelocateHeap;
-{$endif ndef FPC_NO_DEFAULT_HEAP}
-{$endif HAS_MEMORYMANAGER}
-{$endif}
+{$endif FPC_HAS_FEATURE_HEAP and not HAS_MEMORYMANAGER}
 end;
 
 

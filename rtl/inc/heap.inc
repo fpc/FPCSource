@@ -18,7 +18,6 @@
 { $define HAS_MEMORYMANAGER}
 
 { Memory manager }
-{$if not defined(FPC_NO_DEFAULT_MEMORYMANAGER)}
 const
   MemoryManager: TMemoryManager = (
     NeedLock: false;  // Obsolete
@@ -33,30 +32,12 @@ const
     RelocateHeap: nil;
     GetHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetHeapStatus{$else}nil{$endif};
     GetFPCHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetFPCHeapStatus{$else}nil{$endif};
-  );
-{$elseif not defined(FPC_IN_HEAPMGR)}
-const
-  MemoryManager: TMemoryManager = (
-    NeedLock: false;  // Obsolete
-    GetMem: nil;
-    FreeMem: nil;
-    FreeMemSize: nil;
-    AllocMem: nil;
-    ReAllocMem: nil;
-    MemSize: nil;
-    InitThread: nil;
-    DoneThread: nil;
-    RelocateHeap: nil;
-    GetHeapStatus: nil;
-    GetFPCHeapStatus: nil;
-  );public name 'FPC_SYSTEM_MEMORYMANAGER';
-{$endif FPC_IN_HEAPMGR}
+  ); {$ifdef FPC_NO_DEFAULT_HEAP} public name 'FPC_SYSTEM_MEMORYMANAGER'; {$endif}
 
 {*****************************************************************************
                              Memory Manager
 *****************************************************************************}
 
-{$ifndef FPC_IN_HEAPMGR}
 procedure GetMemoryManager(var MemMgr:TMemoryManager);
 begin
   MemMgr := MemoryManager;
@@ -70,12 +51,12 @@ end;
 
 function IsMemoryManagerSet:Boolean;
 begin
-{$if defined(HAS_MEMORYMANAGER) or defined(FPC_NO_DEFAULT_MEMORYMANAGER)}
+{$if defined(HAS_MEMORYMANAGER) or defined(FPC_NO_DEFAULT_HEAP)}
   Result:=false;
-{$else not FPC_NO_DEFAULT_MEMORYMANAGER}
+{$else not FPC_NO_DEFAULT_HEAP}
   IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem)
     or (MemoryManager.FreeMem<>@SysFreeMem);
-{$endif HAS_MEMORYMANAGER or FPC_NO_DEFAULT_MEMORYMANAGER}
+{$endif HAS_MEMORYMANAGER or FPC_NO_DEFAULT_HEAP}
 end;
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
@@ -166,11 +147,8 @@ procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
   MemoryManager.FreeMem(p);
 end;
-{$endif FPC_HAS_FEATURE_HEAP}
-{$endif FPC_IN_HEAPMGR}
 
-{$if (defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)) and not defined(HAS_MEMORYMANAGER)}
-
+{$ifndef HAS_MEMORYMANAGER}
 type
 
 {
@@ -1804,7 +1782,6 @@ end;
                                  InitHeap
 *****************************************************************************}
 
-{$ifndef FPC_NO_DEFAULT_HEAP}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -1860,6 +1837,5 @@ begin
 {$endif FPC_HAS_FEATURE_THREADING | defined(HAS_SYSOSFREE)}
 end;
 
-{$endif ndef FPC_NO_DEFAULT_HEAP}
-
-{$endif ndef HAS_MEMORYMANAGER and (defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR))}
+{$endif ndef HAS_MEMORYMANAGER}
+{$endif FPC_HAS_FEATURE_HEAP}

@@ -40,10 +40,8 @@ Var
         SysResetFPU;
 {$endif}
 {$ifndef HAS_MEMORYMANAGER}
-{$ifndef FPC_NO_DEFAULT_HEAP}
         { initialize this thread's heap }
         InitHeapThread;
-{$endif ndef FPC_NO_DEFAULT_HEAP}
 {$else HAS_MEMORYMANAGER}
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
@@ -81,9 +79,9 @@ Var
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
         if MemoryManager.DoneThread <> nil then
           MemoryManager.DoneThread();
-{$if not defined(HAS_MEMORYMANAGER) and not defined(FPC_NO_DEFAULT_HEAP)}
+{$ifndef HAS_MEMORYMANAGER}
         FinalizeHeap;
-{$endif ndef HAS_MEMORYMANAGER and ndef FPC_NO_DEFAULT_HEAP}
+{$endif ndef HAS_MEMORYMANAGER}
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
         { Open all stdio fds again }
         SysFlushStdio;

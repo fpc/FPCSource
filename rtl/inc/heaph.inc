@@ -67,15 +67,7 @@ const
 var
   ReturnNilIfGrowHeapFails : boolean;
 
-{$ifdef EMBEDDED}
-  {$define FPC_NO_DEFAULT_MEMORYMANAGER}
-{$endif EMBEDDED}
-
-{$ifdef FREERTOS}
-  {$define FPC_NO_DEFAULT_MEMORYMANAGER}
-{$endif FREERTOS}
-
-{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
 { Default MemoryManager functions }
 Function  SysGetmem(Size:ptruint):Pointer;
 Function  SysFreemem(p:pointer):ptruint;
@@ -86,7 +78,7 @@ function  SysTryResizeMem(var p:pointer;size:ptruint):boolean;
 Function  SysReAllocMem(var p:pointer;size:ptruint):Pointer;
 function  SysGetHeapStatus:THeapStatus;
 function  SysGetFPCHeapStatus:TFPCHeapStatus;
-{$endif FPC_NO_DEFAULT_MEMORYMANAGER}
+{$endif FPC_NO_DEFAULT_HEAP}
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 { Tp7 functions }
