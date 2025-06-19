@@ -1427,6 +1427,8 @@ begin
       Res:=Res+Term;
       end;
     end;
+  if Res='' then
+    Res:='*';
   Result:=Res;
 end;
 
