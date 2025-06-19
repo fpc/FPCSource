@@ -1274,9 +1274,7 @@ begin
             Move(i128, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_DEC16:
-          begin
-          // ToDo
-          end;
+          PQWord(VSQLVar^.SQLData)^ := BCDToDPDec64(AParam.AsFMTBCD);
       else
         if (VSQLVar^.sqltype <> SQL_NULL) then
           DatabaseErrorFmt(SUnsupportedParameter,[FieldTypeNames[AParam.DataType]],self);
@@ -1320,7 +1318,7 @@ begin
     // if VSQLVar^.AliasName <> FieldDef.Name then
     // DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
     if assigned(VSQLVar^.SQLInd) and (VSQLVar^.SQLInd^ = -1) then
-      result := false
+      Result := False
     else
       begin
 
@@ -1336,7 +1334,7 @@ begin
           VarCharLen := FieldDef.Size;
           end;
 
-      Result := true;
+      Result := True;
       case FieldDef.DataType of
         ftBCD :
           begin
@@ -1356,8 +1354,9 @@ begin
           begin
             case (VSQLVar^.sqltype and not 1) of
               SQL_DEC16:
-                // ToDo
-                AFmtBcd := 0;
+                AFmtBcd := DPDec64ToBcd(PQWord(CurrBuff)^);
+              SQL_DEC34:
+                Result := False; // Not implemented yet
               else
                 case VSQLVar^.SQLLen of
                   2 : AFmtBcd := BcdDivPower10(PSmallint(CurrBuff)^, -VSQLVar^.SQLScale);
@@ -1412,8 +1411,8 @@ begin
           end
         else
           begin
-            result := false;
-            databaseerrorfmt(SUnsupportedFieldType, [Fieldtypenames[FieldDef.DataType], Self]);
+            Result := False;
+            DatabaseErrorFmt(SUnsupportedFieldType, [Fieldtypenames[FieldDef.DataType], Self]);
           end
       end;  { case }
       end; { if/else }
