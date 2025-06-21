@@ -240,18 +240,14 @@ begin
 end;
 
 class function THash.DigestAsString(const aDigest: TBytes; UpperCase: Boolean): UnicodeString;
-
 const
   HexDigitsWL: array[0..15] of widechar = '0123456789abcdef';
-
-
 var
   S : UnicodeString;
   I,Len: Integer;
   H,Res : PWideChar;
   PB : PByte;
   B : Byte;
-
 begin
   S:='';
   if Uppercase then
@@ -275,8 +271,6 @@ begin
 end;
 
 class function THash.DigestAsStringGUID(const aDigest: TBytes): UnicodeString;
-
-
 begin
   With TGUID.Create(aDigest,TEndian.Little) do
     begin
@@ -292,11 +286,9 @@ begin
 end;
 
 class function THash.GetRandomString(const aLen: Integer): UnicodeString;
-
 var
   I : Integer;
   Res: PWideChar;
-
 begin
   Result:='';
   SetLength(Result,aLen);
@@ -327,7 +319,6 @@ begin
 end;
 
 class function THashMD5.GetHashBytes(const aData: UnicodeString): TBytes;
-
 begin
   With THashMD5.Create do
     begin
@@ -337,7 +328,6 @@ begin
 end;
 
 class function THashMD5.GetHashString(const aData: UnicodeString): UnicodeString;
-
 begin
   With THashMD5.Create do
     begin
@@ -347,11 +337,9 @@ begin
 end;
 
 class function THashMD5.GetHashBytes(const aStream: TStream): TBytes;
-
 var
   Buf: TBytes;
   Len,Count: Longint;
-
 begin
   Buf:=Default(TBytes);
   Len:=HashReadBufferSize;
@@ -416,59 +404,49 @@ begin
 end;
 
 class function THashMD5.GetHMACAsBytes(const aData, aKey: TBytes): TBytes;
-
 var
-  I: Byte;
-  MD5_BLOCK_SIZE : Integer;
-  VLength: PtrUInt;
-  PKey, POPad, PIPad: PByte;
-  VKey, VOPad, VIPad: TBytes;
-  MD5  : THashMD5;
-
+  Count: UInt32;
+  KeySize,DataSize,BufSize : Integer;
+  aDigest,KeyBuffer, PadBuffer: TBytes;
+  MD5: THashMD5;
 begin
-  VKey:=Default(TBytes);
-  VOPad:=Default(TBytes);
-  VIPad:=Default(TBytes);
+  Result:=[];
+  KeySize:=Length(akey);
+  DataSize:=Length(aData);
   MD5:=THashMD5.Create;
-  MD5_BLOCK_SIZE:=MD5.GetBlockSize;
-  VLength:=Length(aKey);
-  if VLength > MD5_BLOCK_SIZE then
-    begin
-    SetLength(VKey,MD5_BLOCK_SIZE);
-    FillChar(VKey[0],MD5_BLOCK_SIZE, #0);
+  BufSize:=MD5.GetBlockSize;
+  SetLength(KeyBuffer,BufSize);
+  SetLength(PadBuffer,BufSize);
+  if KeySize>BufSize then
+  begin
     MD5.Update(aKey);
-    VKey:=Concat(MD5.GetDigest,VKey);
-    end
-  else
-    begin
-    SetLength(VKey,MD5_BLOCK_SIZE-VLength);
-    FillChar(VKey[0],MD5_BLOCK_SIZE-VLength, #0);
-    VKey:=Concat(aKey,VKey);
-    end;
-  SetLength(VOPad,MD5_BLOCK_SIZE);
-  POPad:=PByte(VOPad);
-  FillChar(POPad^, MD5_BLOCK_SIZE, $5c);
-  SetLength(VIPad, MD5_BLOCK_SIZE);
-  PIPad := PByte(VIPad);
-  FillChar(PIPad^, MD5_BLOCK_SIZE, $36);
-  PKey := PByte(VKey);
-  for I:=1 to VLength do
-    begin
-    POPad^:=(POPad^ xor PKey^);
-    PIPad^:=(PIPad^ xor PKey^);
-    Inc(POPad);
-    Inc(PIPad);
-    Inc(PKey);
-    end;
-  VIPad:=Concat(VIPad,aData);
+    aDigest:=MD5.GetDigest;
+    System.Move(aDigest[0],KeyBuffer[0],MD5.GetHashSize);
+  end else
+    if KeySize>0 then
+      System.Move(aKey[0], KeyBuffer[0], KeySize);
+  // XOR the key buffer with the iPad value
+  for Count := 0 to BufSize -1 do
+    PadBuffer[Count] := KeyBuffer[Count] xor $36;
   MD5.Reset;
-  MD5.Update(VIPad);
-  Result:=Concat(VOPad,MD5.GetDigest);
+  MD5.Update(PadBuffer);
+  MD5.Update(aData);
+  aDigest:=MD5.GetDigest;
+  // XOR the key buffer with the oPad value
+  for Count := 0 to BufSize -1 do
+    PadBuffer[Count] := KeyBuffer[Count] xor $5C;
+  // MD5 the key buffer and the result of the inner MD5 (Outer)
+  MD5.Reset;
+  MD5.Update(PadBuffer);
+  MD5.Update(aDigest);
+  Result:=MD5.GetDigest;
 end;
 
 procedure THashMD5.Reset;
 begin
   MD5Init(_MD5);
+  FillChar(_Digest, sizeof(TMD5Digest), 0);
+  _DidFinal:=False;
 end;
 
 procedure THashMD5.Update(var aData; aLength: Cardinal);
@@ -489,7 +467,6 @@ begin
 end;
 
 function THashMD5.GetDigest: TBytes;
-
 begin
   Result:=[];
   if not _DidFinal then
@@ -516,6 +493,8 @@ end;
 procedure THashSHA1.Reset;
 begin
   SHA1Init(_SHA1);
+  FillChar(_Digest, sizeof(TSHA1Digest), 0);
+  _DidFinal:=False;
 end;
 
 class function THashSHA1.Create: THashSHA1;
@@ -525,7 +504,6 @@ begin
 end;
 
 procedure THashSHA1.Update(var aData; aLength: Cardinal);
-
 begin
   SHA1Update(_SHA1,aData,aLength);
 end;
@@ -581,11 +559,9 @@ begin
 end;
 
 class function THashSHA1.GetHashBytes(const aStream: TStream): TBytes;
-
 var
   Buf: TBytes;
   Len,Count: Longint;
-
 begin
   Buf:=Default(TBytes);
   Len:=HashReadBufferSize;
@@ -608,10 +584,8 @@ begin
 end;
 
 class function THashSHA1.GetHashBytesFromFile(const aFileName: TFileName): TBytes;
-
 var
   F: TFileStream;
-
 begin
   F:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
   try
@@ -650,58 +624,45 @@ begin
 end;
 
 class function THashSHA1.GetHMACAsBytes(const aData, aKey: TBytes): TBytes;
-
 var
-  I: Byte;
-  SHA1_BLOCK_SIZE : Integer;
-  VLength: PtrUInt;
-  PKey, POPad, PIPad: PByte;
-  VKey, VOPad, VIPad: TBytes;
-  Sha1  : THashSha1;
-
+  Count: UInt32;
+  KeySize,DataSize,BufSize : Integer;
+  aDigest,KeyBuffer, PadBuffer: TBytes;
+  SHA1: THashSHA1;
 begin
-  VKey:=Default(TBytes);
-  VOPad:=Default(TBytes);
-  VIPad:=Default(TBytes);
-  Sha1:=THashSha1.Create;
-  SHA1_BLOCK_SIZE:=Sha1.GetBlockSize;
-  VLength:=Length(aKey);
-  if VLength > SHA1_BLOCK_SIZE then
-    begin
-    SetLength(VKey,SHA1_BLOCK_SIZE);
-    FillChar(VKey[0],SHA1_BLOCK_SIZE, #0);
-    Sha1.Update(aKey);
-    VKey:=Concat(Sha1.GetDigest,VKey);
-    end
-  else
-    begin
-    SetLength(VKey,SHA1_BLOCK_SIZE-VLength);
-    FillChar(VKey[0],SHA1_BLOCK_SIZE-VLength, #0);
-    VKey:=Concat(aKey,VKey);
-    end;
-  SetLength(VOPad,SHA1_BLOCK_SIZE);
-  POPad:=PByte(VOPad);
-  FillChar(POPad^, SHA1_BLOCK_SIZE, $5c);
-  SetLength(VIPad, SHA1_BLOCK_SIZE);
-  PIPad := PByte(VIPad);
-  FillChar(PIPad^, SHA1_BLOCK_SIZE, $36);
-  PKey := PByte(VKey);
-  for I:=1 to VLength do
-    begin
-    POPad^:=(POPad^ xor PKey^);
-    PIPad^:=(PIPad^ xor PKey^);
-    Inc(POPad);
-    Inc(PIPad);
-    Inc(PKey);
-    end;
-  VIPad:=Concat(VIPad,aData);
-  Sha1.Reset;
-  Sha1.Update(VIPad);
-  Result:=Concat(VOPad,Sha1.GetDigest);
+  Result:=[];
+  KeySize:=Length(akey);
+  DataSize:=Length(aData);
+  SHA1:=THashSHA1.Create;
+  BufSize:=SHA1.GetBlockSize;
+  SetLength(KeyBuffer,BufSize);
+  SetLength(PadBuffer,BufSize);
+  if KeySize>BufSize then
+  begin
+    SHA1.Update(aKey);
+    aDigest:=SHA1.GetDigest;
+    System.Move(aDigest[0],KeyBuffer[0],SHA1.GetHashSize);
+  end else   
+    if KeySize>0 then
+      System.Move(aKey[0], KeyBuffer[0], KeySize);
+  // XOR the key buffer with the iPad value
+  for Count := 0 to BufSize -1 do
+    PadBuffer[Count] := KeyBuffer[Count] xor $36;
+  SHA1.Reset;
+  SHA1.Update(PadBuffer);
+  SHA1.Update(aData);
+  aDigest:=SHA1.GetDigest;
+  // XOR the key buffer with the oPad value
+  for Count := 0 to BufSize -1 do
+    PadBuffer[Count] := KeyBuffer[Count] xor $5C;
+  // SHA1 the key buffer and the result of the inner SHA1 (Outer)
+  SHA1.Reset;
+  SHA1.Update(PadBuffer);
+  SHA1.Update(aDigest);
+  Result:=SHA1.GetDigest;
 end;
 
 function THashSHA1.GetDigest: TBytes;
-
 begin
   Result:=[];
   if not _DidFinal then
@@ -717,17 +678,14 @@ end;
 { THashSHA2 }
 
 Procedure NotSupportedVersion(aHashVersion : THashSHA2.TSHA2Version);
-
 var
   S : String;
-
 begin
   WriteStr(S,aHashversion);
   Raise EHashException.CreateFmt('SHA2 - %s not yet supported',[S]);
 end;
 
 class function THashSHA2.Create(aHashVersion: TSHA2Version): THashSHA2;
-
 begin
   if aHashVersion in [SHA512_224, SHA512_256] then
     NotSupportedVersion(aHashVersion);
@@ -736,10 +694,8 @@ begin
 end;
 
 class function THashSHA2.GetHashBytes(const aData: UnicodeString; aHashVersion: TSHA2Version): TBytes;
-
 var
   H : THashSHA2;
-
 begin
   H:=THashSHA2.Create(aHashVersion);
   H.Update(AData);
@@ -747,10 +703,8 @@ begin
 end;
 
 class function THashSHA2.GetHashString(const aData: UnicodeString; aHashVersion: TSHA2Version): UnicodeString;
-
 var
   H: THashSHA2;
-
 begin
   H:=THashSHA2.Create(aHashVersion);
   H.Update(aData);
@@ -758,11 +712,9 @@ begin
 end;
 
 class function THashSHA2.GetHashBytes(const aStream: TStream; aHashVersion: TSHA2Version): TBytes;
-
 var
   Buf: TBytes;
   Len,Count: Longint;
-
 begin
   Buf:=Default(TBytes);
   Len:=HashReadBufferSize;
@@ -785,10 +737,8 @@ begin
 end;
 
 class function THashSHA2.GetHashBytesFromFile(const aFileName: TFileName; aHashVersion: TSHA2Version): TBytes;
-
 var
   F: TFileStream;
-
 begin
   F:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
   try
@@ -827,21 +777,15 @@ begin
 end;
 
 class function THashSHA2.GetHMACAsBytes(const aData, aKey: TBytes; aHashVersion: TSHA2Version): TBytes;
-
 var
   Count: UInt32;
   KeySize,DataSize,BufSize : Integer;
   aDigest,KeyBuffer, PadBuffer: TBytes;
-  SHA2 : THashSHA2;
-
+  SHA2: THashSHA2;
 begin
   Result:=[];
   KeySize:=Length(akey);
   DataSize:=Length(aData);
-  if aKey = nil then
-    Exit;
-  if aData = nil then
-    Exit;
   SHA2:=THashSHA2.Create(aHashversion);
   BufSize:=SHA2.GetBlockSize;
   SetLength(KeyBuffer,BufSize);
@@ -851,19 +795,20 @@ begin
     SHA2.Update(aKey);
     aDigest:=SHA2.GetDigest;
     System.Move(aDigest[0],KeyBuffer[0],SHA2.GetHashSize);
-  end else
-    System.Move(aKey[0], KeyBuffer[0], KeySize);
+  end else  
+    if KeySize>0 then
+      System.Move(aKey[0], KeyBuffer[0], KeySize);
   // XOR the key buffer with the iPad value
-  for Count := 0 to BufSize do
+  for Count := 0 to BufSize -1 do
     PadBuffer[Count] := KeyBuffer[Count] xor $36;
   SHA2.Reset;
   SHA2.Update(PadBuffer);
   SHA2.Update(aData);
   aDigest:=SHA2.GetDigest;
   // XOR the key buffer with the oPad value
-  for Count := 0 to 63 do
+  for Count := 0 to BufSize -1 do
     PadBuffer[Count] := KeyBuffer[Count] xor $5C;
-  // SHA256 the key buffer and the result of the inner SHA256 (Outer)
+  // SHA2 the key buffer and the result of the inner SHA2 (Outer)
   SHA2.Reset;
   SHA2.Update(PadBuffer);
   SHA2.Update(aDigest);
@@ -914,7 +859,6 @@ begin
 end;
 
 procedure THashSHA2.DoFinal;
-
 begin
   case FHashVersion of
     Sha224 : _S224.Final;
@@ -926,12 +870,9 @@ begin
 end;
 
 function THashSHA2.GetDigest: TBytes;
-
 Var
   P : PByte;
   L : Integer;
-
-
 begin
   if Not FDidFinal then
     DoFinal;
@@ -956,7 +897,6 @@ begin
 end;
 
 function THashSHA2.GetHashSize: Integer;
-
 Const
   Sizes : Array[TSHA2Version] of integer
         = (28,32,48,64,28,32);
@@ -1076,10 +1016,8 @@ begin
 end;
 
 class function THashFNV1a32.GetHashBytes(const aData: UnicodeString): TBytes;
-
 var
   C : Cardinal;
-
 begin
   Result:=Default(TBytes);
   SetLength(Result,SizeOf(Fnv32_t));
@@ -1098,10 +1036,8 @@ begin
 end;
 
 class function THashFNV1a32.GetHashValue(const aData: UnicodeString): Integer;
-
 var
   C : Cardinal;
-
 begin
   C:=FNV1_32a(PByte(aData),Length(aData)*SizeOf(UnicodeChar),FNV_SEED);
   Result:=Integer(C);

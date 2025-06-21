@@ -502,10 +502,6 @@ var
   SHA512, SHA512_: TSHA512;
 begin
   Result:=False;
-  if Key = nil then
-    Exit;
-  if Data = nil then
-    Exit;
   KeyBuffer:=Default(TBuf128);
   SHA512.Init;
   if KeySize > 128 then
@@ -513,7 +509,7 @@ begin
     SHA512.Update(Key, KeySize);
     SHA512.Final;
     System.Move(SHA512.Digest[0], KeyBuffer[0], SizeOf(SHA512.Digest));
-  end else
+  end else if KeySize>0 then
     System.Move(Key^, KeyBuffer[0], KeySize);
   // XOR the key buffer with the iPad value
   for Count := 0 to 127 do
@@ -760,10 +756,6 @@ var
   SHA384, SHA384_: TSHA384;
 begin
   Result:=False;
-  if Key = nil then
-    Exit;
-  if Data = nil then
-    Exit;
   KeyBuffer:=Default(TBuf128);
   SHA384.Init;
   if KeySize > 128 then
@@ -771,7 +763,7 @@ begin
     SHA384.Update(Key, KeySize);
     SHA384.Final;
     System.Move(SHA384.Digest[0], KeyBuffer[0], SizeOf(SHA384.Digest));
-  end else
+  end else if KeySize>0 then
     System.Move(Key^, KeyBuffer[0], KeySize);
   // XOR the key buffer with the iPad value
   for Count := 0 to 127 do
