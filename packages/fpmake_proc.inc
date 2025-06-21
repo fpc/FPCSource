@@ -918,6 +918,12 @@ begin
 {$include fcl-openapi/fpmake.pp}
 end;
 
+procedure add_fcl_wit(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-wit/fpmake.pp}
+end;
+
 procedure add_fcl_yaml(const ADirectory: string);
 begin
   with Installer do
