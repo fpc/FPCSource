@@ -158,7 +158,10 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
     inc(i);
     SkipModifiers(s, i);
     inc(i);
-    if i<=Length(s) then
+    // Only accept common ASCII separators, such as ':', '.', '-', etc.
+    // Skip CJK-style language-specific date/time units like "时", "分", "초", "년".
+    // e.g. skip "14时05分30秒" or "2024년6월19일"
+    if (i<=Length(s)) and (s[i] in [':', '.', '-', '/', ' ', '_']) then
       FindSeparator := s[i];
   end;
 
