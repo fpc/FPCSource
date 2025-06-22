@@ -1954,9 +1954,14 @@ unit rgobj;
                 p:=live_end;
                 while assigned(p) and
                       assigned(p.previous) and
-                      (tai(p.previous).typ=ait_regalloc) and
-                      (tai_regalloc(p.previous).ratype=ra_alloc) and
-                      (tai_regalloc(p.previous).reg<>r) do
+                      (
+                        (tai(p.previous).typ in [ait_comment,ait_tempalloc,ait_varloc]) or
+                        (
+                          (tai(p.previous).typ=ait_regalloc) and
+                          (tai_regalloc(p.previous).ratype=ra_alloc) and
+                          (tai_regalloc(p.previous).reg<>r)
+                        )
+                      ) do
                   p:=tai(p.previous);
                 { , but add release after a reg_a_sync }
                 if assigned(p) and
@@ -2395,6 +2400,23 @@ unit rgobj;
                       it is a move and both arguments are the same }
                     if is_same_reg_move(regtype) then
                       begin
+                        { Be careful of dangling pointers in previous reg_allocs,
+                          ss these can confuse the register allocator }
+                        hp:=tai(p.previous);
+                        while Assigned(hp) do
+                          begin
+                            if (hp.typ in [ait_comment,ait_varloc]) then
+                              { Do nothing, but pass control flow to
+                                "hp:=tai(hp.previous)" and continue the loop }
+                            else if (hp.typ=ait_regalloc) then
+                              begin
+                                if tai_regalloc(hp).instr=p then
+                                  tai_regalloc(hp).instr:=nil;
+                              end
+                            else
+                              Break;
+                            hp:=tai(hp.previous);
+                          end;
                         remove_ai(list,p);
                         continue;
                       end;
@@ -2877,13 +2899,21 @@ unit rgobj;
           they can't be used during the spilling }
         loadpos:=tai(instr.previous);
         while assigned(loadpos) and
+          (
+            (loadpos.typ in [ait_comment,ait_tempalloc,ait_varloc]) or
+            (
               (loadpos.typ=ait_regalloc) and
-              ((tai_regalloc(loadpos).instr=nil) or
-               (tai_regalloc(loadpos).instr=instr)) do
+              (
+                (tai_regalloc(loadpos).instr=nil) or
+                (tai_regalloc(loadpos).instr=instr)
+              )
+            )
+          ) do
           begin
             { Only add deallocs belonging to the instruction. Explicit inserted deallocs
               belong to the previous instruction and not the current instruction }
-            if (tai_regalloc(loadpos).instr=instr) and
+            if (loadpos.typ=ait_regalloc) and
+               (tai_regalloc(loadpos).instr=instr) and
                (tai_regalloc(loadpos).ratype=ra_dealloc) then
               live_registers.add(get_alias(getsupreg(tai_regalloc(loadpos).reg)));
             loadpos:=tai(loadpos.previous);
