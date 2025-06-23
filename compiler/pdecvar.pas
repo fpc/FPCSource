@@ -1329,8 +1329,9 @@ implementation
                   { the same size since it refers to the field and not to   }
                   { the whole record -- which is why we use pt and not hp)  }
 
-                  { we can't take the size of an open array }
+                  { we can't take the size of an open array or an array of const }
                   if is_open_array(pt.resultdef) or
+                     is_array_of_const(pt.resultdef) or
                      (vs.vardef.size <> pt.resultdef.size) then
                     make_not_regable(pt,[ra_addr_regable]);
                 end
