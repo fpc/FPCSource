@@ -3144,7 +3144,7 @@ unit aoptx86;
 
     function TX86AsmOptimizer.OptPass1MOV(var p : tai) : boolean;
     var
-      hp1, hp2, hp3, hp4: tai;
+      hp1, hp2, hp3, hp4, last_hp1: tai;
       GetNextInstruction_p, DoOptimisation, TempBool: Boolean;
       p_SourceReg, p_TargetReg, NewMMReg: TRegister;
 {$ifdef x86_64}
@@ -3286,6 +3286,8 @@ unit aoptx86;
             { Saves on a large number of dereferences }
             p_TargetReg := taicpu(p).oper[1]^.reg;
 
+            TransferUsedRegs(TmpUsedRegs);
+            last_hp1 := p;
             if GetNextHp1(p) then
               while True do
                 begin
@@ -3293,7 +3295,10 @@ unit aoptx86;
                     (taicpu(hp1).oper[1]^.typ = top_reg) and
                     SuperRegistersEqual(p_TargetReg, taicpu(hp1).oper[1]^.reg) then
                     begin
-                      if (taicpu(hp1).oper[0]^.typ = top_const) and
+                      UpdateUsedRegsBetween(TmpUsedRegs, last_hp1, hp1);
+
+                      if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                        (taicpu(hp1).oper[0]^.typ = top_const) and
                         (taicpu(p).opsize = taicpu(hp1).opsize) then
                         begin
                           case taicpu(p).opsize of
@@ -3457,7 +3462,8 @@ unit aoptx86;
                             end;
                         end;
 
-                      if (taicpu(p).opsize = taicpu(hp1).opsize) and
+                      if not RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs) and
+                        (taicpu(p).opsize = taicpu(hp1).opsize) and
                         (taicpu(hp1).oper[0]^.typ <> top_ref) and
                         MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                         MatchOperand(taicpu(p).oper[1]^, taicpu(hp1).oper[1]^) and
