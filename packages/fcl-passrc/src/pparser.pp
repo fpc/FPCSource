@@ -3150,9 +3150,9 @@ begin
     else
       begin
       NextToken;
-      // Empty record constant: a: Record .. end = ();
       if (CurToken=tkBraceClose) then
         begin
+        // Empty record constant: a: Record .. end = ();
         Result:=CreateRecordValues(AParent);
         NextToken;
         Exit;

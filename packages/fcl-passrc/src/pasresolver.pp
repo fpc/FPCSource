@@ -12217,7 +12217,8 @@ begin
     end;
   PopGenericParamScope(El);
 
-  if El.Name<>'' then begin
+  if El.Name<>'' then
+    begin
     if not (TopScope is TPasIdentifierScope) then
       RaiseInvalidScopeForElement(20190812215622,El);
 
@@ -12228,7 +12229,8 @@ begin
       Scope:=TPasArrayScope(PushScope(El,ScopeClass_Array));
       AddGenericTemplateIdentifiers(TypeParams,Scope);
       end;
-  end else if TypeParams<>nil then
+    end
+  else if TypeParams<>nil then
     RaiseNotYetImplemented(20190812215851,El); // anonymous generic array type
 end;
 
@@ -14629,7 +14631,7 @@ begin
         [],'array values',GetTypeDescription(ResolvedEl),El);
     end
   else
-    SetResolverValueExpr(ResolvedEl,btArrayLit,nil,nil,TArrayValues(El),[rrfReadable]);
+    SetResolverValueExpr(ResolvedEl,btArrayLit,nil,nil,El,[rrfReadable]);
 end;
 
 procedure TPasResolver.ComputeRecordValues(El: TRecordValues; out
