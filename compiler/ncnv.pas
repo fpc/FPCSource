@@ -4672,9 +4672,11 @@ implementation
         { the same goes for changing the sign of equal-sized values which
           are smaller than an entire register }
         if result and
-           { don't try to check the size of an open array }
+           { don't try to check the size of an open array or an array of const }
            (is_open_array(resultdef) or
             is_open_array(left.resultdef) or
+            is_array_of_const(resultdef) or
+            is_array_of_const(left.resultdef) or
             (resultdef.size<left.resultdef.size) or
             ((resultdef.size=left.resultdef.size) and
              (left.resultdef.size<sizeof(aint)) and
