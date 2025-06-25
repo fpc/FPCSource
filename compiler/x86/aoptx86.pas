@@ -9586,8 +9586,11 @@ unit aoptx86;
                         RemoveInstruction(hp2)
                       else
                         begin
+                          { Upper 128 bits will be set to zero; change to XMM
+                            to avoid requirement of AVX2 }
+                          setsubreg(CurrentReg, R_SUBMMX);
                           taicpu(hp2).opcode := A_VPXOR;
-                          taicpu(hp2).opsize := S_YMM;
+                          taicpu(hp2).opsize := S_XMM;
                           taicpu(hp2).loadreg(0, CurrentReg);
                           taicpu(hp2).loadreg(1, CurrentReg);
                           taicpu(hp2).loadreg(2, CurrentReg);
@@ -9647,8 +9650,11 @@ unit aoptx86;
                             RemoveInstruction(hp1)
                           else
                             begin
+                              { Upper 128 bits will be set to zero; change to
+                                XMM to avoid requirement of AVX2 }
+                              setsubreg(CurrentReg, R_SUBMMX);
                               taicpu(hp1).opcode := A_VPXOR;
-                              taicpu(hp1).opsize := S_YMM;
+                              taicpu(hp1).opsize := S_XMM;
                               taicpu(hp1).loadreg(0, CurrentReg);
                               taicpu(hp1).loadreg(1, CurrentReg);
                               taicpu(hp1).loadreg(2, CurrentReg);
