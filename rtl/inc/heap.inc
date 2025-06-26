@@ -240,9 +240,7 @@ type
     MaxVarHeaderAndPayload = (MaxFixedHeaderAndPayload + (1 shl VarSizeClassesCount - 1) shl FirstVarRangeP2) and -VarSizeQuant; {$if MaxVarHeaderAndPayload <> MaxFixedHeaderAndPayload + 1047552} {$error does not match the explanation above :D} {$endif}
 
     class function VarSizeToBinIndex(size: SizeUint; roundUp: boolean): SizeUint; static;
-  {$ifdef DEBUG_HEAP_INC}
-    class function BinIndexToVarSize(binIndex: SizeUint): SizeUint; static;
-  {$endif DEBUG_HEAP_INC}
+    class function BinIndexToVarSize(binIndex: SizeUint): SizeUint; static; inline;
 
   type
     { Common header of any memory chunk, residing immediately to the left of the ~payload~ (block).
@@ -507,13 +505,11 @@ type
       dec(result);
   end;
 
-{$ifdef DEBUG_HEAP_INC}
   class function HeapInc.BinIndexToVarSize(binIndex: SizeUint): SizeUint;
   begin
     result := binIndex div VarSizesPerClass;
     result := MaxFixedHeaderAndPayload + (SizeUint(1) shl result - 1) shl FirstVarRangeP2 + (1 + binIndex mod VarSizesPerClass) shl (FirstVarStepP2 + result);
   end;
-{$endif DEBUG_HEAP_INC}
 
 {$ifndef HAS_SYSOSFREE}
   function HeapInc.FreeOSChunkList.Get(minSize, maxSize: SizeUint): pOSChunk;
@@ -796,7 +792,7 @@ type
       result := MinFixedArenaSize;
     if result > MaxFixedArenaSize then
       result := MaxFixedArenaSize;
-    dec(result, VarHeaderSize + VarSizeQuant); { Prettier fit into OS chunks. }
+    dec(result, result shr (FirstVarRangeP2 - FirstVarStepP2)); { Prettier fit into OS chunks. }
   end;
 
   function HeapInc.ThreadState.AllocFixed(size: SizeUint): pointer;
@@ -1021,24 +1017,16 @@ type
     osChunk, osNext: pVarOSChunk;
     binIndex, vSizeFlags, statv: SizeUint;
   begin
-    size := (size + (VarHeaderSize + VarSizeQuant - 1)) and SizeUint(-VarSizeQuant);
-
-  {$if (MaxFixedHeaderAndPayload - CommonHeaderSize + 1 + VarHeaderSize + VarSizeQuant - 1) div VarSizeQuant * VarSizeQuant < MinEmptyVarHeaderAndPayload}
-    { Chunk will get freed one day. As a result, it might turn into a free chunk of the same size.
-      Consequently, it must not be smaller than MinEmptyVarHeaderAndPayload.
-      This can be a dead case depending on the constants, which is checked by the enclosing compile-time check. :)
-      Also applies to TryResizeVar. }
-    if size < MinEmptyVarHeaderAndPayload then
-      size := MinEmptyVarHeaderAndPayload;
-  {$endif}
-
   {$ifdef FPC_HAS_FEATURE_THREADING}
     if Assigned(toFree) then
       FlushToFree;
   {$endif}
 
     { Search varFree for (roughly) smallest chunk ≥ size. }
-    binIndex := VarSizeToBinIndex(size, true);
+    binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
+    { Round the size up to the bin size.
+      Can do without that, but not doing that will often mean the inability to reuse the hole because varFree rounds up for searches and down for additions. }
+    size := BinIndexToVarSize(binIndex);
     fv := varFree.Find(binIndex);
     if not Assigned(fv) then
     begin
@@ -1264,11 +1252,13 @@ type
     {$endif}
     then
       exit(nil);
-    size := (size + (VarHeaderSize + VarSizeQuant - 1)) and SizeUint(-VarSizeQuant);
-  {$if (MaxFixedHeaderAndPayload - CommonHeaderSize + 1 + VarHeaderSize + VarSizeQuant - 1) div VarSizeQuant * VarSizeQuant < MinEmptyVarHeaderAndPayload}
-    if size < MinEmptyVarHeaderAndPayload then
-      size := MinEmptyVarHeaderAndPayload;
-  {$endif}
+
+    { Round the size up, but only if supported by VarSizeToBinIndex: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
+    if size <= MaxVarHeaderAndPayload then
+      size := BinIndexToVarSize(VarSizeToBinIndex(size + VarHeaderSize, true))
+    else
+      size := (size + (VarHeaderSize + VarSizeQuant - 1)) and SizeUint(-VarSizeQuant); { Just do the strictly necessary quantization... }
+
     result := p; { From now on use result instead of p (saves a register). }
 
     oldpsize := pVarHeader(result - VarHeaderSize)^.ch.h and VarSizeMask;
