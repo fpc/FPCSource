@@ -39,6 +39,7 @@
       <Unit>
         <Filename Value="utmessagemanager.pp"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="utMessageManager"/>
       </Unit>
       <Unit>
         <Filename Value="utcdevices.pas"/>

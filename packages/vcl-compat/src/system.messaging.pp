@@ -19,6 +19,9 @@ unit System.Messaging;
 {$modeswitch functionreferences}
 {$modeswitch advancedrecords}
 
+{.$DEFINE DEBUG_SYSTEM_MESSAGING}
+{.$DEFINE DECLARE_COMPATIBLEMANAGER}
+
 interface
 
 uses
@@ -86,6 +89,7 @@ type
   end;
 
 
+{$ifdef DECLARE_COMPATIBLEMANAGER}
   { TMessageManager }
   // Default, delphi compatible implementation
 
@@ -154,6 +158,7 @@ type
     procedure SendMessage(const Sender: TObject; AMessage: TMessageBase; ADispose: Boolean); override;
   end;
   TMessageManagerClass = class of TMessageManager;
+{$ENDIF DECLARE_COMPATIBLEMANAGER}
 
 { ---------------------------------------------------------------------
   TMessageClientList
@@ -163,14 +168,20 @@ type
    // Used as default.
    // Set TBaseMessageManager.DefaultManagerClass if you want to change the default.
 
+  TMessageClientList = class;
+
   { TMessageClient }
 
-  TMessageClient = class (TCollectionItem)
-  Public
-    Disabled : boolean; // Unsubscribed but not yet deleted...
+  TMessageClient = class
+  Protected
+    Disabled : Boolean; // Unsubscribed but not yet deleted...
     ClientID : TMessageSubscriptionId;
   Public
-    constructor Create(aCollection : TCollection; aClientID : TMessageSubscriptionId); overload;
+    constructor Create(aClientID : TMessageSubscriptionId);
+
+    function SameListener(const aListener: TMessageListener) : Boolean; virtual; abstract;
+    function SameListenerMethod(const aListenerMethod: TMessageListenerMethod) : Boolean; virtual; abstract;
+
     Procedure CallNotify(Sender : TObject; aMessage : TMessageBase); virtual; abstract;
   end;
 
@@ -182,7 +193,11 @@ type
   Protected
     Property Listener : TMessageListener Read FListener;
   Public
-    constructor Create(aCollection : TCollection; aClientID : TMessageSubscriptionId; aListener: TMessageListener); overload;
+    constructor Create(aClientID : TMessageSubscriptionId; aListener: TMessageListener);
+
+    function SameListener(const aListener: TMessageListener) : Boolean; override;
+    function SameListenerMethod(const aListenerMethod: TMessageListenerMethod) : Boolean; override;
+
     Procedure CallNotify(Sender : TObject; aMessage : TMessageBase); override;
   end;
 
@@ -190,25 +205,60 @@ type
 
   TMessageListenerMethodClient = class(TMessageClient)
   Private
-    FListener: TMessageListenerMethod;
+    FListenerMethod: TMessageListenerMethod;
+    {$ifdef DEBUG_SYSTEM_MESSAGING}
+    FListenerClassname : shortstring;
+    {$endif}
   Protected
-    Property Listener : TMessageListenerMethod Read FListener;
+    Property ListenerMethod : TMessageListenerMethod Read FListenerMethod;
   Public
-    constructor Create(aCollection : TCollection; aClientID : TMessageSubscriptionId; aListener: TMessageListenerMethod); overload;
+    constructor Create(aClientID : TMessageSubscriptionId; aListenerMethod: TMessageListenerMethod);
+
+    function SameListener(const aListener: TMessageListener) : Boolean; override;
+    function SameListenerMethod(const aListenerMethod: TMessageListenerMethod) : Boolean; override;
+
     Procedure CallNotify(Sender : TObject; aMessage : TMessageBase); override;
   end;
 
   { TMessageClientList }
 
-  TMessageClientList = class(TCollection)
+  (*
+  List with a delayed released of its items
+
+  When an item is "removed" it's marked as Disabled and FDisabledCount is increased
+  When FDisabledCount goes above cRemoveDisabledTreshold the RemoveDisabled
+  method is triggered which performs the actual release & packs the internal list
+
+  Class isn't thread-safe and should be protected by message manager
+
+  *)
+  TMessageClientList = class
   private
-    FBusy : Boolean;
-  Protected
-    Procedure Update(aItem: TCollectionItem); override;
-    procedure RemoveDisabled; virtual;
-    Property Busy : Boolean Read FBusy Write FBusy;
+    FItems : array of TMessageClient;
+    FCount : Integer;
+    FUpdateCount : Integer;
+    FDisabledCount : Integer;
+
+  protected
+    function GetItems(aIndex : Integer) : TMessageClient;
+    procedure AddClient(aClient : TMessageClient);
+
+    // Wait until at least that many items have been removed before packing
+    const cRemoveDisabledTreshold = 10;
+
+    procedure RemoveDisabled;
+
   public
-    constructor Create(aItemClass : TCollectionItemClass);
+    constructor Create(aItemClass : TClass);
+    destructor Destroy; override;
+
+    // Use Begin/EndUpdate to protect a loop that's susceptible of triggering Remove
+    procedure BeginUpdate;
+    procedure EndUpdate;
+
+    property Items[aIndex : Integer] : TMessageClient read GetItems;
+    property Count : Integer read FCount;
+
     function Add(aId : Integer; const aListener: TMessageListener) : TMessageClient; virtual;
     function Add(aId : Integer; const aListenerMethod: TMessageListenerMethod): TMessageClient; virtual;
     procedure NotifyClients(const Sender: TObject; const aMessage: TMessageBase);
@@ -216,62 +266,119 @@ type
     function IndexOf(const aClientID: TMessageSubscriptionId) : integer; virtual; overload;
     function IndexOf(const aListener: TMessageListener): integer; virtual; overload;
     function IndexOf(const aListenerMethod: TMessageListenerMethod): integer; virtual; overload;
+
     procedure Remove(aIndex : Integer);
+    procedure Clear;
   end;
 
   { TSimpleMessageManager }
 
   TSimpleMessageManager = class(TBaseMessageManager)
   protected
-    Type
+    type
        TMessageClientListDict = specialize TObjectDictionary<TClass, TMessageClientList>;
-  Private
+
+  private
     FMessageClients: TMessageClientListDict;
-  Protected
+
+  protected
+    FLockCount : Integer;
+
     function CreateMessageTypeDict: TMessageClientListDict; virtual;
     function CreateMessageClientList: TMessageClientList; virtual;
-    Function GetList(const aMessageClass: TClass; Out aList : TMessageClientList) : Boolean;
-    Function GetOrCreateList(const aMessageClass: TClass) : TMessageClientList;
+    function GetList(const aMessageClass: TClass; out aList : TMessageClientList) : Boolean;
+    function GetOrCreateList(const aMessageClass: TClass) : TMessageClientList;
+
+    procedure Lock;
+    procedure UnLock;
+
   public
     constructor Create; override;
     destructor Destroy; override;
+
     function SubscribeToMessage(const aMessageClass: TClass; const aListener: TMessageListener): TMessageSubscriptionId; override;
     function SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionId; override;
+
     // Immediate not used, it will break during sending of message
     procedure Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean = False); override;
     procedure Unsubscribe(const aMessageClass: TClass; const aListener: TMessageListener; Immediate: Boolean = False); override;
     procedure Unsubscribe(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod; Immediate: Boolean = False); override;
+
     procedure SendMessage(const Sender: TObject; aMessage: TMessageBase; aDispose: Boolean); override;
   end;
 
+  {$ifndef DECLARE_COMPATIBLEMANAGER}
+  TMessageManager = class (TSimpleMessageManager) end;
+  {$endif}
+
 implementation
+
+{$ifdef DEBUG_SYSTEM_MESSAGING}
+uses fresnel.wasm.api;
+{$endif}
+
+// SameMethode
+//
+function SameMethod(const aMethod1, aMethod2 : TMessageListenerMethod) : Boolean; inline;
+begin
+  Result :=     (TMethod(aMethod1).Code = TMethod(aMethod2).Code)
+            and (TMethod(aMethod1).Data = Tmethod(aMethod2).Data);
+end;
 
 { TMessageListenerMethodClient }
 
-constructor TMessageListenerMethodClient.Create(aCollection: TCollection;  aClientID: TMessageSubscriptionId; aListener: TMessageListenerMethod);
+constructor TMessageListenerMethodClient.Create(aClientID: TMessageSubscriptionId; aListenerMethod: TMessageListenerMethod);
 begin
-  Inherited Create(aCollection,aClientID);
-  FListener:=aListener;
+  inherited Create(aClientID);
+  FListenerMethod := aListenerMethod;
+  {$ifdef DEBUG_SYSTEM_MESSAGING}
+  FListenerClassname := TObject(TMethod(aListenerMethod).Data).ClassName;
+  {$endif}
 end;
 
-procedure TMessageListenerMethodClient.CallNotify(Sender: TObject;
-  aMessage: TMessageBase);
+function TMessageListenerMethodClient.SameListener(const aListener: TMessageListener): Boolean;
 begin
-  FListener(Sender,aMessage);
+  Result := False;
+end;
+
+function TMessageListenerMethodClient.SameListenerMethod(const aListenerMethod: TMessageListenerMethod): Boolean;
+begin
+  Result := SameMethod(aListenerMethod, FListenerMethod);
+end;
+
+procedure TMessageListenerMethodClient.CallNotify(Sender: TObject; aMessage: TMessageBase);
+begin
+  {$ifdef DEBUG_SYSTEM_MESSAGING}
+  if Disabled then
+  begin
+    __fresnel_console_log('TMessageListenerMethodClient.CallNotify DISABLED');
+    __fresnel_console_log(FListenerClassname);
+  end;
+  {$endif}
+  FListenerMethod(Sender, aMessage);
 end;
 
 { TMessageListenerClient }
 
-constructor TMessageListenerClient.Create(aCollection: TCollection;
-  aClientID: TMessageSubscriptionId; aListener: TMessageListener);
+constructor TMessageListenerClient.Create(aClientID: TMessageSubscriptionId; aListener: TMessageListener);
 begin
-  Inherited Create(aCollection,aClientID);
-  FListener:=aListener;
+  inherited Create(aClientID);
+  FListener := aListener;
+end;
+
+function TMessageListenerClient.SameListener(const aListener: TMessageListener): Boolean;
+begin
+  Result := (aListener = FListener);
+end;
+
+function TMessageListenerClient.SameListenerMethod(const aListenerMethod: TMessageListenerMethod): Boolean;
+begin
+  Result := False;
 end;
 
 procedure TMessageListenerClient.CallNotify(Sender: TObject; aMessage: TMessageBase);
 begin
-  FListener(Sender,aMessage);
+  FListener(Sender, aMessage);
 end;
 
 { TSimpleMessageManager }
@@ -309,10 +416,27 @@ end;
 function TSimpleMessageManager.GetOrCreateList(const aMessageClass: TClass): TMessageClientList;
 
 begin
-  if GetList(aMessageClass,Result) then
-    exit;
-  Result:=CreateMessageClientList;
+  if GetList(aMessageClass, Result) then
+    Exit;
+
+  Result := CreateMessageClientList;
   FMessageClients.Add(AMessageClass, Result);
+end;
+
+procedure TSimpleMessageManager.Lock;
+begin
+  {$ifdef DEBUG_SYSTEM_MESSAGING}
+  if FLockCount > 0 then
+    __fresnel_console_log('ALREADY LOCKED');
+  {$endif}
+  TMonitor.Enter(Self);
+  Inc(FLockCount);
+end;
+
+procedure TSimpleMessageManager.UnLock;
+begin
+  Dec(FLockCount);
+  TMonitor.Exit(Self);
 end;
 
 
@@ -322,20 +446,29 @@ var
   Clients: TMessageClientList;
 
 begin
-  Clients:=GetOrCreateList(aMessageClass);
-  Result:=GenerateClientID;
-  Clients.Add(Result,AListener);
+  Lock;
+  try
+    Clients:=GetOrCreateList(aMessageClass);
+    Result:=GenerateClientID;
+    Clients.Add(Result,AListener);
+  finally
+    UnLock;
+  end;
 end;
 
 function TSimpleMessageManager.SubscribeToMessage(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod): TMessageSubscriptionId;
 
 var
   Clients: TMessageClientList;
-
 begin
-  Clients:=GetOrCreateList(aMessageClass);
-  Result:=GenerateClientID;
-  Clients.Add(Result,AListenerMethod);
+  Lock;
+  try
+    Clients:=GetOrCreateList(aMessageClass);
+    Result:=GenerateClientID;
+    Clients.Add(Result,AListenerMethod);
+  finally
+    UnLock;
+  end;
 end;
 
 procedure TSimpleMessageManager.Unsubscribe(const aMessageClass: TClass; const aListener: TMessageListener; Immediate: Boolean);
@@ -345,11 +478,16 @@ var
   Idx : Integer;
 
 begin
-  if Not FMessageClients.TryGetValue(aMessageClass,Clients) then
-    exit;
-  Idx:=Clients.IndexOf(aListener);
-  if Idx<>-1 then
-    Clients.Remove(Idx);
+  Lock;
+  try
+    if Not FMessageClients.TryGetValue(aMessageClass,Clients) then
+      exit;
+    Idx:=Clients.IndexOf(aListener);
+    if Idx >= 0 then
+      Clients.Remove(Idx);
+  finally
+    UnLock;
+  end;
 end;
 
 procedure TSimpleMessageManager.Unsubscribe(const aMessageClass: TClass; const aListenerMethod: TMessageListenerMethod; Immediate: Boolean);
@@ -357,13 +495,24 @@ procedure TSimpleMessageManager.Unsubscribe(const aMessageClass: TClass; const a
 var
   Clients : TMessageClientList;
   Idx : Integer;
-
 begin
-  if Not FMessageClients.TryGetValue(aMessageClass,Clients) then
-    exit;
-  Idx:=Clients.IndexOf(aListenerMethod);
-  if Idx<>-1 then
-    Clients.Remove(Idx);
+  Lock;
+  try
+    if not FMessageClients.TryGetValue(aMessageClass,Clients) then
+      Exit;
+
+    Idx:=Clients.IndexOf(aListenerMethod);
+    if Idx >= 0 then
+      Clients.Remove(Idx)
+    else
+    begin
+      {$ifdef DEBUG_SYSTEM_MESSAGING}
+      __fresnel_console_log('TSimpleMessageManager.Unsubscribe NOT FOUND for ' + aMessageClass.ClassName);
+      {$endif}
+    end;
+  finally
+    UnLock;
+  end;
 end;
 
 procedure TSimpleMessageManager.Unsubscribe(const aMessageClass: TClass; SubscriptionId: TMessageSubscriptionId; Immediate: Boolean);
@@ -372,10 +521,16 @@ var
   Idx : Integer;
 
 begin
-  if Not FMessageClients.TryGetValue(aMessageClass,Clients) then
-    exit;
-  Idx:=Clients.IndexOf(SubscriptionId);
-  Clients.Remove(Idx);
+  Lock;
+  try
+     if Not FMessageClients.TryGetValue(aMessageClass,Clients) then
+       exit;
+     Idx:=Clients.IndexOf(SubscriptionId);
+     if Idx >= 0 then
+       Clients.Remove(Idx);
+  finally
+    UnLock;
+  end;
 end;
 
 procedure TSimpleMessageManager.SendMessage(const Sender: TObject;
@@ -385,111 +540,122 @@ var
   Clients: TMessageClientList;
 begin
   if (AMessage=nil) then exit;
+
+  Lock;
   try
-    if not GetList(aMessage.ClassType,Clients) then
-      exit;
-    Clients.NotifyClients(Sender,AMessage);
+    try
+      if GetList(aMessage.ClassType, Clients) then
+        Clients.NotifyClients(Sender, aMessage);
+    finally
+      if ADispose then
+        AMessage.Free;
+    end;
   finally
-    if ADispose then
-      AMessage.Free;
+    UnLock;
   end;
 end;
 
 { TClientList }
 
-procedure TMessageClientList.Update(aItem: TCollectionItem);
+constructor TMessageClientList.Create(aItemClass : TClass);
 begin
-  inherited Update(aItem);
-  if (aItem=Nil) and not Busy then
-    RemoveDisabled;
+  Inherited Create;
+  Assert(aItemClass.InheritsFrom(TMessageClient));  // for backward compatibility
 end;
 
-constructor TMessageClientList.Create(aItemClass : TCollectionItemClass);
+destructor TMessageClientList.Destroy;
 begin
-  Inherited Create(aItemClass);
+  Clear;
+  inherited Destroy;
+end;
+
+procedure TMessageClientList.BeginUpdate;
+begin
+  Inc(FUpdateCount);
+end;
+
+procedure TMessageClientList.EndUpdate;
+begin
+  Dec(FUpdateCount);
+  if FUpdateCount <= 0 then
+  begin
+    if FUpdateCount < 0 then
+      raise EListError.Create('TMessageClientList.EndUpdate unbalanced');
+    if FDisabledCount > cRemoveDisabledTreshold then
+      RemoveDisabled;
+  end;
 end;
 
 function TMessageClientList.Add(aId: Integer; const aListener: TMessageListener ): TMessageClient;
-
 begin
-  FBusy:=True;// Prevent cleaning
-  try
-    Result:=TMessageListenerClient.Create(Self,aId,aListener);
-  finally
-    FBusy:=False;
-  end;
+  Result := TMessageListenerClient.Create(aId, aListener);
+  AddClient(Result);
 end;
 
 function TMessageClientList.Add(aId: Integer; const aListenerMethod: TMessageListenerMethod): TMessageClient;
-
 begin
-  FBusy:=True;// Prevent cleaning
-  try
-    Result:=TMessageListenerMethodClient.Create(Self,aID,aListenerMethod);
-  finally
-    FBusy:=False;
-  end;
+  Result:=TMessageListenerMethodClient.Create(aID, aListenerMethod);
+  AddClient(Result);
 end;
 
-procedure TMessageClientList.NotifyClients(const Sender: TObject;
-  const aMessage: TMessageBase);
-
+procedure TMessageClientList.NotifyClients(const Sender: TObject; const aMessage: TMessageBase);
 var
-  Listener: TMessageClient;
-  I : integer;
-
+  lMessageClient: TMessageClient;
+  i : Integer;
 begin
   BeginUpdate;
   try
-    for I:=0 to Count-1 do
-      begin
-      Listener:=TMessageClient(Items[I]);
-      if Not Listener.Disabled then
-        Listener.CallNotify(Sender, AMessage)
-      end;
+    for i:=0 to Count-1 do
+    begin
+      lMessageClient := FItems[i];
+      if not lMessageClient.Disabled then
+        lMessageClient.CallNotify(Sender, AMessage)
+    end;
   finally
     EndUpdate;
   end;
 end;
 
 function TMessageClientList.IndexOf(const aClientID: TMessageSubscriptionId): integer;
+var
+  i : Integer;
+  lItem : TMessageClient;
 begin
-  Result:=Count-1;
-  While (Result>=0) and (TMessageClient(Items[Result]).ClientID<>aClientID) do
-    Dec(Result);
+  for i := 0 to Count-1 do
+  begin
+    lItem := Items[i];
+    if (not lItem.Disabled) and (lItem.ClientID = aClientID) then
+      Exit(i);
+  end;
+  Result := -1;
 end;
 
 function TMessageClientList.IndexOf(const aListener: TMessageListener): integer;
-
-  Function IsMatch(C : TMessageClient) : Boolean;
-
-  var
-    L : TMessageListenerClient absolute C;
-
-  begin
-    Result:=(C is TMessageListenerClient) and (L.Listener=aListener);
-  end;
-
+var
+  i : Integer;
+  lItem : TMessageClient;
 begin
-  Result:=Count-1;
-  While (Result>=0) and Not IsMatch(TMessageClient(Items[Result])) do
-    Dec(Result);
+  for i := 0 to Count-1 do
+  begin
+    lItem := Items[i];
+    if (not lItem.Disabled) and lItem.SameListener(aListener) then
+      Exit(i);
+  end;
+  Result := -1;
 end;
 
 function TMessageClientList.IndexOf(const aListenerMethod: TMessageListenerMethod): integer;
-  Function IsMatch(C : TMessageClient) : Boolean;
-
-  var
-    L : TMessageListenerMethodClient absolute C;
-
-  begin
-    Result:=(C is TMessageListenerMethodClient) and (L.Listener=aListenerMethod);
-  end;
-
+var
+  i : Integer;
+  lItem : TMessageClient;
 begin
-  Result:=Count-1;
-  While (Result>=0) and Not IsMatch(TMessageClient(Items[Result])) do
-    Dec(Result);
+  for i := 0 to Count-1 do
+  begin
+    lItem := Items[i];
+    if (not lItem.Disabled) and lItem.SameListenerMethod(aListenerMethod) then
+      Exit(i);
+  end;
+  Result := -1;
 end;
 
 procedure TMessageClientList.Remove(aIndex: Integer);
@@ -501,44 +667,94 @@ procedure TMessageClientList.Remove(aIndex: Integer);
   This can change the indexes in the list if done incorrectly.
 
   So we can only delete when all messages have been processed.
-  We use the standard TCollection Begin/EndUdpate mechansim for this.
 }
 
 begin
-  if (aIndex<0) or (aIndex>=Count) then exit;
+  if Cardinal(aIndex) >= Cardinal(Count) then
+    raise ERangeError.CreateFmt('TMessageClientList.Remove invalid index (%d)', [ aIndex ]);
+
+  // Begin/EnUpdate is here to "less delay" the delayed release
+  // not sure if it's worth it, can probably be dropped
   BeginUpdate;
   try
-    TMessageClient(Items[aIndex]).Disabled:=True;
+    if FItems[aIndex].Disabled then
+      raise EListError.CreateFmt('TMessageClientList.Remove already removed (%d)', [ aIndex ]);
+    FItems[aIndex].Disabled := True;
+    Inc(FDisabledCount);
   finally
     EndUpdate;
   end;
 end;
 
-procedure TMessageClientList.RemoveDisabled;
-
+procedure TMessageClientList.Clear;
 var
-  I : Integer;
-
+  i : Integer;
 begin
-  FBusy:=True;
-  BeginUpdate;
-  try
-    for I:=Count-1 downto 0 do
-      if TMessageClient(Items[I]).Disabled then
-        Delete(I);
-  finally
-    EndUpdate;
-    FBusy:=False;
+  if FUpdateCount > 0 then
+    raise Exception.Create('TMessageClientList.Clear while an update is ongoing (NOT supported yet)');
+
+  for i := 0 to Count-1 do
+    FreeAndNil(FItems[i]);
+  SetLength(FItems, 0);
+  FDisabledCount := 0;
+end;
+
+function TMessageClientList.GetItems(aIndex: Integer): TMessageClient;
+begin
+  Result := FItems[aIndex];
+end;
+
+procedure TMessageClientList.AddClient(aClient: TMessageClient);
+var
+  lCapacity : Integer;
+begin
+  lCapacity := Length(FItems);
+  if Count = lCapacity then
+  begin
+    lCapacity := lCapacity + (lCapacity shr 2) + 8;
+    SetLength(FItems, lCapacity);
+  end;
+
+  FItems[FCount] := aClient;
+  Inc(FCount);
+end;
+
+procedure TMessageClientList.RemoveDisabled;
+var
+  iSrc, iDest : Integer;
+begin
+  if FUpdateCount > 0 then
+    raise Exception.Create('TMessageClientList.RemoveDisabled while an update is ongoing');
+
+  iDest := 0;
+  for iSrc := 0 to Count-1 do
+  begin
+    if FItems[iSrc].Disabled then
+    begin
+      FreeAndNil(FItems[iSrc]);
+      Dec(FCount);
+      Dec(FDisabledCount);
+    end
+    else
+    begin
+      if iSrc <> iDest then
+        FItems[iDest] := FItems[iSrc];
+      Inc(iDest);
+    end;
+  end;
+
+  // if less 25% used, relinquish 50%
+  if iDest < (Length(FItems) shr 2) then
+  begin
+    SetLength(FItems, Length(FItems) shr 1);
   end;
 end;
 
 { TClient }
 
-
-constructor TMessageClient.Create(aCollection: TCollection; aClientID: TMessageSubscriptionId);
+constructor TMessageClient.Create(aClientID: TMessageSubscriptionId);
 begin
-  Disabled:=False; // Safety: set before inherited, make sure cleanup does not happen.
-  Inherited Create(aCollection);
+  inherited Create;
   ClientID:=aClientID;
 end;
 
@@ -578,6 +794,8 @@ begin
   SendMessage(Sender,aMessage,True);
 end;
 
+{$ifdef DECLARE_COMPATIBLEMANAGER}
+
 { TMessageManager.TListenerWithId }
 
 constructor TMessageManager.TListenerWithId.Create(const aId: TMessageSubscriptionId; const aListenerMethod: TMessageListenerMethod);
@@ -605,12 +823,8 @@ begin
 end;
 
 function TMessageManager.TListenerWithId.Matches(aListener: TMessageListenerMethod): Boolean;
-Var
-  M1,M2 : TMethod;
 begin
-  M1:=TMethod(aListener);
-  M2:=TMethod(ListenerMethod);
-  Result:=(M1.Code=M2.Code) and (M2.Data=M2.Data);
+  Result := SameMethod(aListener, ListenerMethod);
 end;
 
 procedure TMessageManager.TListenerWithId.MarkAsRemoved;
@@ -711,7 +925,7 @@ begin
   Idx:=FList.Count-1;
   While (Idx>=0) and not FList[Idx].Matches(Index) do
     Dec(Idx);
-  If Idx>0 then
+  If Idx >= 0 then
     DoUnsubscribe(Idx);
 end;
 
@@ -724,7 +938,7 @@ begin
   Idx:=FList.Count-1;
   While (Idx>=0) and not FList[Idx].Matches(aListener) do
     Dec(Idx);
-  If Idx>0 then
+  If Idx >= 0 then
     DoUnsubscribe(Idx);
 end;
 
@@ -736,7 +950,7 @@ begin
   Idx:=FList.Count-1;
   While (Idx>=0) and not FList[Idx].Matches(aListener) do
     Dec(Idx);
-  If Idx>0 then
+  If Idx >= 0 then
     DoUnsubscribe(Idx);
 end;
 
@@ -868,6 +1082,7 @@ begin
   end
 end;
 
+{$endif DECLARE_COMPATIBLEMANAGER}
 
 constructor TMessage.Create(const aValue: T);
 begin
@@ -893,7 +1108,6 @@ begin
     FValue.Free;
   inherited Destroy;
 end;
-
 
 end.
 
