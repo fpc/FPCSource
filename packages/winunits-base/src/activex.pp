@@ -3850,6 +3850,7 @@ type
 
 { redefinitions }
   function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
+  function CoGetCancelObject (InThreadId : DWORD; constref InIid : TIID; out ppunk : IUnknown):HRESULT;stdcall;external 'ole32.dll' name 'CoGetCancelObject';
 
 { additional definitions }
 {$ifndef wince}
