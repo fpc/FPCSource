@@ -15480,6 +15480,9 @@ unit aoptx86;
         if (taicpu(p).oper[1]^.typ <> top_reg) then
           Exit;
 
+        { Saves on a bunch of dereferences }
+        ActiveReg := taicpu(p).oper[1]^.reg;
+
         while GetNextInstruction(p, hp1) and
           (hp1.typ = ait_instruction) do
           begin
@@ -15745,9 +15748,6 @@ unit aoptx86;
                 TransferUsedRegs(TmpUsedRegs);
                 UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
 
-                { Saves on a bunch of dereferences }
-                ActiveReg := taicpu(p).oper[1]^.reg;
-
                 case taicpu(hp1).opcode of
                   A_MOV, A_MOVZX, A_MOVSX{$ifdef x86_64}, A_MOVSXD{$endif x86_64}:
 
@@ -15887,26 +15887,33 @@ unit aoptx86;
         { Backward check to determine necessity of and %reg,%reg }
         if (taicpu(p).oper[0]^.typ = top_reg) and
           (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
-          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) and
-          GetLastInstruction(p, hp2) and
-          RegModifiedByInstruction(taicpu(p).oper[1]^.reg, hp2) and
-          { Check size of adjacent instruction to determine if the AND is
-            effectively a null operation }
-          (
-            (taicpu(p).opsize = taicpu(hp2).opsize) or
-            { Note: Don't include S_Q }
-            ((taicpu(p).opsize = S_L) and (taicpu(hp2).opsize in [S_BL, S_WL])) or
-            ((taicpu(p).opsize = S_W) and (taicpu(hp2).opsize in [S_BW, S_BL, S_WL, S_L])) or
-            ((taicpu(p).opsize = S_B) and (taicpu(hp2).opsize in [S_BW, S_BL, S_WL, S_W, S_L]))
-          ) then
+          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
           begin
-            DebugMsg(SPeepholeOptimization + 'And2Nop', p);
-            { If GetNextInstruction returned False, hp1 will be nil }
-            RemoveCurrentP(p, hp1);
-            Result := True;
-            Exit;
-          end;
+            hp2:=p;
+            while GetLastInstruction(hp2, hp2) and
+              (cs_opt_level3 in current_settings.optimizerswitches) and
+              (hp2.typ=ait_instruction) and
+              not RegModifiedByInstruction(ActiveReg,hp2) do { loop };
 
+            if Assigned(hp2) and
+              RegModifiedByInstruction(ActiveReg,hp2) and { Also checks if hp2 is an instruction }
+              { Check size of instruction to determine if the AND is effectively
+                a null operation }
+              (
+                (taicpu(p).opsize = taicpu(hp2).opsize) or
+                { Note: Don't include S_Q }
+                ((taicpu(p).opsize = S_L) and (taicpu(hp2).opsize in [S_BL, S_WL])) or
+                ((taicpu(p).opsize = S_W) and (taicpu(hp2).opsize in [S_BW, S_BL, S_WL, S_L])) or
+                ((taicpu(p).opsize = S_B) and (taicpu(hp2).opsize in [S_BW, S_BL, S_WL, S_W, S_L]))
+              ) then
+              begin
+                { AND %reg,%reg is unnecessary to zero the upper 32 bits. }
+                DebugMsg(SPeepholeOptimization + 'AND %reg,%reg proven unnecessary after backward search (And2Nop)', p);
+                RemoveCurrentP(p, hp1);
+                Result:=True;
+                Exit;
+              end;
+          end;
       end;
 
 
