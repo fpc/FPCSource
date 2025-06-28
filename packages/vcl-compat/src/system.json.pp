@@ -348,7 +348,8 @@ type
     function AddPair(const aPair: TJSONPair): TJSONObject; overload;
     function AddPair(const aStr: TJSONString; const aVal: TJSONValue): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: TJSONValue): TJSONObject; overload;
-    function AddPair(const aStr: UnicodeString; const aVal: UnicodeString): TJSONObject; overload;
+    function AddPair(const aStr: UnicodeString; const aVal: UnicodeString): TJSONObject; overload;     
+    function AddPair(const aStr: UnicodeString; const aVal: String): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: Int64): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: Integer): TJSONObject; overload;
     function AddPair(const aStr: UnicodeString; const aVal: Double): TJSONObject; overload;
@@ -1469,18 +1470,105 @@ begin
 end;
 
 procedure TJSONString.ToChars(aBuilder: TUnicodeStringBuilder; aOptions: TJSONAncestor.TJSONOutputOptions);
+  procedure AppendWithSpecialChars(Builder: TUnicodeStringBuilder; Options: TJSONAncestor.TJSONOutputOptions);
+    var
+      P, PEnd: PWideChar;
+      UnicodeValue: Integer;
+      Buff: array [0 .. 5] of WideChar;
+    begin
+      P := Pointer(FValue);
+      PEnd := P + Length(FValue);
+      while P < PEnd do
+      begin
+        case P^ of
+        '"': Builder.Append('\"');
+        '\': Builder.Append('\\');
+        #$8: Builder.Append('\b');
+        #$9: Builder.Append('\t');
+        #$a: Builder.Append('\n');
+        #$c: Builder.Append('\f');
+        #$d: Builder.Append('\r');
+        #0 .. #7, #$b, #$e .. #31, #$0080 .. High(WideChar):
+          begin
+            UnicodeValue := Ord(P^);
+            if (TJSONOutputOption.EncodeBelow32 in Options) and (UnicodeValue < 32) or
+               (TJSONOutputOption.EncodeAbove127 in Options) and (UnicodeValue > 127) then
+            begin
+              Buff[0] := '\';
+              Buff[1] := 'u';
+              Buff[2] := Char(DecimalToHex((UnicodeValue and 61440) shr 12));
+              Buff[3] := Char(DecimalToHex((UnicodeValue and 3840) shr 8));
+              Buff[4] := Char(DecimalToHex((UnicodeValue and 240) shr 4));
+              Buff[5] := Char(DecimalToHex((UnicodeValue and 15)));
+              Builder.Append(Buff, 0, High(Buff) + 1);
+            end
+            else
+              Builder.Append(P^);
+          end;
+        else
+          Builder.Append(P^);
+        end;
+        Inc(P);
+      end;
+    end;
 
+  {$WARNINGS OFF}
+    function ContainsSpecialChars: Boolean;
+    var
+      P, PEnd: PWideChar;
+    begin
+      P := Pointer(FValue);
+      PEnd := P + Length(FValue);
+      while P < PEnd do
+      begin
+        if P^ in ['"', '\', #$8, #$9, #$a, #$c, #$d] then
+          Exit(True);
+        Inc(P);
+      end;
+      Result := False;
+    end;
+
+    function ContainsSpecialCharsExt(Options: TJSONOutputOptions): Boolean;
+    var
+      P, PEnd: PWideChar;
+    begin
+      P := Pointer(FValue);
+      PEnd := P + Length(FValue);
+      while P < PEnd do
+      begin
+        case P^ of
+        '"', '\', #$8, #$9, #$a, #$c, #$d:
+          Exit(True);
+        #0 .. #7, #$b, #$e .. #31:
+          if TJSONOutputOption.EncodeBelow32 in Options then
+            Exit(True);
+        #$0080 .. High(Char):
+          if TJSONOutputOption.EncodeAbove127 in Options then
+            Exit(True);
+        end;
+        Inc(P);
+      end;
+      Result := False;
+    end;
+  {$WARNINGS ON}
 var
-  Len : Integer;
-  B : TBytes;
-  S : UTF8String;
-
+  LSpecChars: Boolean;
 begin
-  Len:=EstimatedByteSize;
-  SetLength(B,Len);
-  Len:=ToBytes(B,0,aOptions);
-  S:=TEncoding.UTF8.GetAnsiString(B,0,Len);
-  aBuilder.Append(S);
+  if FIsNull then
+    aBuilder.Append('null')
+  else
+  begin
+    aBuilder.Append('"');
+    if aOptions <> [] then
+      LSpecChars := ContainsSpecialCharsExt(aOptions)
+    else
+      LSpecChars := ContainsSpecialChars;
+    if LSpecChars then
+      AppendWithSpecialChars(aBuilder, aOptions)
+    else
+      aBuilder.Append(FValue);
+    aBuilder.Append('"');
+  end;
 end;
 
 function TJSONString.Value: UnicodeString;
@@ -2005,6 +2093,11 @@ begin
   Result:=Self;
 end;
 
+function TJSONObject.AddPair(const aStr: UnicodeString; const aVal: String): TJSONObject;
+begin
+  AddPair(TJSONPair.Create(aStr, UTF8Decode(aVal)));
+  Result:=Self;
+end;
 
 function TJSONObject.AddPair(const aStr: UnicodeString; const aVal: Int64): TJSONObject;
 
