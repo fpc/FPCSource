@@ -4,8 +4,7 @@ program testcompat;
 
 uses
   {$IFDEF UNIX}cwstring, cthreads,{$ENDIF}
-  fpmonitor,
-  Classes, consoletestrunner, tcnetencoding, tciotuils, 
+  Classes, consoletestrunner, tcnetencoding, tciotuils,
   utmessagemanager, utcdevices, utcanalytics, utcimagelist, 
   utcnotifications, utcjson, utcpush, utchash, utcregex, 
   utcregexapi, utthreading, utccredentials;

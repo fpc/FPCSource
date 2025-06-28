@@ -26,9 +26,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.SysUtils, System.Classes, System.Generics.Collections;
+  System.SysUtils, System.Classes, System.Generics.Collections, System.SyncObjs;
 {$ELSE}  
-  SysUtils, Classes, Generics.Collections;
+  SysUtils, Classes, Generics.Collections, syncobjs;
 {$ENDIF}
 
 type
@@ -280,6 +280,7 @@ type
 
   private
     FMessageClients: TMessageClientListDict;
+    FLock : TCriticalSection;
 
   protected
     FLockCount : Integer;
@@ -386,10 +387,12 @@ end;
 constructor TSimpleMessageManager.Create;
 begin
   FMessageClients:=CreateMessageTypeDict;
+  FLock:=TCriticalSection.Create;
 end;
 
 destructor TSimpleMessageManager.Destroy;
 begin
+  FreeAndNil(FLock);
   FreeAndNil(FMessageClients);
   inherited;
 end;
@@ -429,14 +432,14 @@ begin
   if FLockCount > 0 then
     __fresnel_console_log('ALREADY LOCKED');
   {$endif}
-  TMonitor.Enter(Self);
+  FLock.Enter;
   Inc(FLockCount);
 end;
 
 procedure TSimpleMessageManager.UnLock;
 begin
   Dec(FLockCount);
-  TMonitor.Exit(Self);
+  FLock.Leave;
 end;
 
 
