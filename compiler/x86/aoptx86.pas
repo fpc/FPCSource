@@ -153,6 +153,11 @@ unit aoptx86;
         function DeepMOVOpt(const p_mov: taicpu; const hp: taicpu): Boolean;
 
         function FuncMov2Func(var p: tai; const hp1: tai): Boolean;
+{$ifdef x86_64}
+        { If a "mov %reg1d,%reg2d; and %reg1d,%reg1d" is found, we can possibly
+          replace %reg2q with %reg1q in later instructions }
+        function DoZeroUpper32Opt(var mov_p: tai; var and_p: tai): Boolean;
+{$endif x86_64}
 
         procedure DebugMsg(const s : string; p : tai);inline;
 
@@ -3682,6 +3687,17 @@ unit aoptx86;
                               { %reg1 = %reg3 }
                               DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 1)', hp1);
                               taicpu(hp1).opcode := A_AND;
+
+                              { We may be able to do more and replace references
+                                to %reg2q with %reg1q etc. }
+                              if (cs_opt_level3 in current_settings.optimizerswitches) and
+                                { p_TargetReg is not used between, otherwise the earlier
+                                  GetNextInstructionUsingReg would have stopped sooner }
+                                DoZeroUpper32Opt(p,hp1) then
+                                begin
+                                  Result := True;
+                                  Exit;
+                                end;
                             end
                           else
                             begin
@@ -3706,6 +3722,32 @@ unit aoptx86;
                               if taicpu(hp1).opcode = A_AND then
                                 Exit;
                             end;
+                        end;
+
+                      {
+                        If we have the following already in the code...
+                          movl %reg1l,%reg2l
+                          andl %reg1l,%reg1l
+
+                        ...we may be able to do more and replace references to
+                        %reg2q with %reg1q etc. (program flow won't reach this
+                        point if the second instruction was originally a MOV
+                        and just got changed to AND)
+                      }
+                      if (cs_opt_level3 in current_settings.optimizerswitches) and
+                        (taicpu(p).opsize = S_L) and MatchInstruction(hp1,A_AND,[S_L]) and
+                        not RegModifiedBetween(p_SourceReg, p, hp1) and
+                        { p_TargetReg is not used between, otherwise the earlier
+                          GetNextInstructionUsingReg would have stopped sooner }
+                        MatchOperand(taicpu(hp1).oper[1]^, p_SourceReg) and
+                        (
+                          MatchOperand(taicpu(hp1).oper[0]^, p_SourceReg) or
+                          MatchOperand(taicpu(hp1).oper[0]^, $ffffffff)
+                        ) and
+                        DoZeroUpper32Opt(p,hp1) then
+                        begin
+                          Result := True;
+                          Exit;
                         end;
 {$endif x86_64}
                     end
@@ -15465,6 +15507,75 @@ unit aoptx86;
               end;
           end;
       end;
+
+{$ifdef x86_64}
+    function TX86AsmOptimizer.DoZeroUpper32Opt(var mov_p: tai; var and_p: tai): Boolean;
+      var
+        hp1, old_hp1: tai;
+        FullSourceReg, FullTargetReg: TRegister;
+      begin
+        if (mov_p.typ<>ait_instruction) or
+          (taicpu(mov_p).opsize<>S_L) or
+          not MatchOpType(taicpu(mov_p),top_reg,top_reg) then
+          InternalError(2025062801);
+
+        Result:=False;
+
+        FullSourceReg:=taicpu(mov_p).oper[0]^.reg; setsubreg(FullSourceReg, R_SUBQ);
+        FullTargetReg:=taicpu(mov_p).oper[1]^.reg; setsubreg(FullTargetReg, R_SUBQ);
+
+        { Mark the registers in the MOV command as "used" }
+        IncludeRegInUsedRegs(FullSourceReg,UsedRegs);
+        IncludeRegInUsedRegs(FullTargetReg,UsedRegs);
+
+        { This is a little hack to get DeepMOVOpt to replace the full 64-bit
+          registers.  The MOV instruction will be put back as it was afterwards
+          (unless it got removed). }
+        taicpu(mov_p).oper[0]^.reg:=FullSourceReg;
+        taicpu(mov_p).oper[1]^.reg:=FullTargetReg;
+
+        { Start after the and_p otherwise that instruction will be considered
+          to have modified the source register }
+        old_hp1:=and_p;
+
+        while GetNextInstructionUsingReg(old_hp1,hp1,FullTargetReg) and
+          (hp1.typ=ait_instruction) do
+          begin
+            if RegReadByInstruction(FullTargetReg,hp1) and
+              not RegModifiedBetween(FullSourceReg,old_hp1,hp1) and
+              DeepMOVOpt(taicpu(mov_p),taicpu(hp1)) then
+              begin
+                { A change has occurred, just not in mov_p }
+                Include(OptsToCheck, aoc_ForceNewIteration);
+
+                TransferUsedRegs(TmpUsedRegs);
+                UpdateUsedRegsBetween(TmpUsedRegs,tai(mov_p.Next), hp1);
+
+                if not RegUsedAfterInstruction(FullTargetReg,hp1,TmpUsedRegs) and
+                  { Just in case something didn't get modified (e.g. an
+                    implicit register) }
+                  not RegReadByInstruction(FullTargetReg,hp1) then
+                  begin
+                    { We can remove the original MOV }
+                    DebugMsg(SPeepholeOptimization + 'Mov2Nop 3d done',mov_p);
+                    RemoveCurrentP(mov_p);
+
+                    Result := True;
+                    Exit;
+                  end;
+              end
+            else
+              Break;
+
+            old_hp1:=hp1;
+          end;
+
+        { Put the MOV instruction back as it was }
+        setsubreg(taicpu(mov_p).oper[0]^.reg,R_SUBD);
+        setsubreg(taicpu(mov_p).oper[1]^.reg,R_SUBD);
+      end;
+
+{$endif x86_64}
 
 
     function TX86AsmOptimizer.OptPass1AND(var p : tai) : boolean;
