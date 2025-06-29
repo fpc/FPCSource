@@ -354,6 +354,8 @@ Var
   MC : TCustomHTTPModuleClass;
   M  : TCustomHTTPModule;
   MN : String;
+  lNewName : string;
+  i : Integer;
 
 begin
   MC:=Sender.ModuleClass;
@@ -362,10 +364,25 @@ begin
   ARequest.GetNextPathInfo;
   M:=FindModule(MC);
   if (M=Nil) then
+    begin
     if Sender.SkipStreaming then
-      M:=MC.CreateNew(Self)
+      M:=MC.CreateNew(Nil)
     else
-      M:=MC.Create(Self);
+      M:=MC.Create(Nil);
+    lNewName:=M.Name;
+    if lNewName<>'' then
+      begin
+      // Make sure we have a unique name.
+      i:=1;
+      While Self.FindComponent(lNewName)<>Nil do
+        begin
+        Inc(I);
+        lNewName:=M.Name+IntTostr(I);
+        end;
+      M.Name:=lNewName;
+      end;
+    Self.InsertComponent(M);
+    end;
   DoCallModule(M,MN,ARequest,AResponse);
 end;
 
