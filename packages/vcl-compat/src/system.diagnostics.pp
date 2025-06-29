@@ -178,7 +178,7 @@ var
 
 begin
   clock_gettime(CLOCK_MONOTONIC, @res);
-  Result:=((Int64(1000000000)*res.tv_sec)+res.tv_nsec) div 100;
+  Result:=((Int64(100*StopWatchResolution)*res.tv_sec)+res.tv_nsec) div 100;
 end;
 
 
