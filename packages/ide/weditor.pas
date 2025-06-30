@@ -2643,7 +2643,9 @@ var
                   Dec(ClassStart,length(MatchingSymbol)-1);
                 end
               else if (InComment=false) and (InString=true) and IsStringSuffix then
-               InString:=false;
+                InString:=false
+              else if (InAsm) and (C='@') then
+                CC:=ccAlpha;  { local labels in asm block will be normal words }
         end;
         if MatchedSymbol and (InComment=false) then
           SymbolConcat:='';
