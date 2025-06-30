@@ -62,6 +62,7 @@ const
 
 var
   mousecurcell : TVideoCell;
+  MouseCurBkg : Byte; { for mouse draw in EnhancedVideoBuf }
   SysLastMouseEvent : TMouseEvent;
 
 const
@@ -127,22 +128,40 @@ procedure PlaceMouseCur(ofs:longint);
 var
   upd : boolean;
 begin
-  if (VideoBuf=nil) or (MouseCurOfs=Ofs) then
-   exit;
-  upd:=false;
-
-  if (MouseCurOfs<>-1) and (VideoBuf^[MouseCurOfs]=MouseCurCell) then
-   begin
-     VideoBuf^[MouseCurOfs]:=MouseCurCell xor $7f00;
-     upd:=true;
-   end;
-  MouseCurOfs:=ofs;
-  if (MouseCurOfs<>-1) then
-   begin
-     MouseCurCell:=VideoBuf^[MouseCurOfs] xor $7f00;
-     VideoBuf^[MouseCurOfs]:=MouseCurCell;
-     upd:=true;
-   end;
+  if MouseCurOfs=Ofs then
+    exit;
+   upd:=false;
+  if assigned(EnhancedVideoBuf) then
+    begin
+      if (MouseCurOfs<>-1) then
+        if EnhancedVideoBuf[MouseCurOfs].BackgroundColor=MouseCurBkg then
+        begin
+          EnhancedVideoBuf[MouseCurOfs].BackgroundColor:=byte(MouseCurBkg xor $f);
+          upd:=true;
+        end;
+      MouseCurOfs:=ofs;
+      if (MouseCurOfs<>-1) then
+        begin
+          MouseCurBkg:=byte(EnhancedVideoBuf[MouseCurOfs].BackgroundColor xor $f);
+          EnhancedVideoBuf[MouseCurOfs].BackgroundColor:=byte(MouseCurBkg);
+          upd:=true;
+        end;
+    end
+  else if assigned(VideoBuf) then
+    begin
+      if (MouseCurOfs<>-1) and (VideoBuf^[MouseCurOfs]=MouseCurCell) then
+        begin
+          VideoBuf^[MouseCurOfs]:=MouseCurCell xor $7f00;
+          upd:=true;
+        end;
+      MouseCurOfs:=ofs;
+      if (MouseCurOfs<>-1) then
+        begin
+          MouseCurCell:=VideoBuf^[MouseCurOfs] xor $7f00;
+          VideoBuf^[MouseCurOfs]:=MouseCurCell;
+          upd:=true;
+        end;
+    end;
   if upd then
    Updatescreen(false);
 end;
