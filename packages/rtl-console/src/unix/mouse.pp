@@ -85,11 +85,15 @@ begin
    MouseEvent.y:=0;
   MouseEvent.buttons:=0;
   if e.buttons and Gpm_b_left<>0 then
-   inc(MouseEvent.buttons,1);
+   inc(MouseEvent.buttons,MouseLeftButton);
   if e.buttons and Gpm_b_right<>0 then
-   inc(MouseEvent.buttons,2);
+   inc(MouseEvent.buttons,MouseRightButton);
   if e.buttons and Gpm_b_middle<>0 then
-   inc(MouseEvent.buttons,4);
+   inc(MouseEvent.buttons,MouseMiddleButton);
+  if e.buttons and $08<>0 then
+   inc(MouseEvent.buttons,MouseXButton1);
+  if e.buttons and $10<>0 then
+   inc(MouseEvent.buttons,MouseXButton2);
   case (e.EventType and $f) of
     GPM_MOVE,
     GPM_DRAG :
