@@ -68,6 +68,7 @@ type
     TCodeEditorCore = object(TCustomCodeEditorCore)
     protected
       Lines      : PLineCollection;
+      MaxDispLen : Cardinal;
       CanUndo    : Boolean;
       StoreUndo  : boolean;
       Modified   : Boolean;
@@ -103,6 +104,7 @@ type
       procedure   ISetLineFormat(Binding: PEditorBinding; LineNo: sw_integer;const S: sw_astring); virtual;
     public
       { Text & info storage abstraction }
+      function    GetMaxDisplayLength: sw_integer; virtual;
       function    GetLineCount: sw_integer; virtual;
       function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
       function    GetLineText(LineNo: sw_integer): sw_AString; virtual;
@@ -176,6 +178,7 @@ type
     public
 {      ChangedLine : sw_integer;}
       { Text & info storage abstraction }
+      function    GetMaxDisplayLength: sw_integer; virtual;
       function    GetLineCount: sw_integer; virtual;
       function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
       function    CharIdxToLinePos(Line,CharIdx: sw_integer): sw_integer; virtual;
@@ -389,6 +392,7 @@ begin
   new(UndoList,init(500,1000));
   new(RedoList,init(500,1000));
   New(Lines, Init(500,1000));
+  MaxDispLen:=0;
   TabSize:=DefaultTabSize;
   IndentSize:=DefaultIndentSize;
   OnDiskLoadTime:=0;
@@ -400,6 +404,11 @@ begin
   if assigned(lines) then
     Dispose(Lines,Done);
   Lines:=ALines;
+end;
+
+function TCodeEditorCore.GetMaxDisplayLength: sw_integer;
+begin
+  GetMaxDisplayLength:=MaxDispLen;
 end;
 
 function TCodeEditorCore.GetLineCount: sw_integer;
@@ -566,6 +575,7 @@ procedure TCodeEditorCore.SetLineText(I: sw_integer;const S: sw_AString);
 var
   L : PCustomLine;
   AddCount : Sw_Integer;
+  DS : sw_AString;
 begin
   AddCount:=0;
   while (Lines^.Count<I+1) do
@@ -573,10 +583,16 @@ begin
      LinesInsert(-1,New(PLine, Init(@Self,'',0)));
      Inc(AddCount);
    end;
-  if AddCount>0 then
-   LimitsChanged;
   L:=Lines^.At(I);
   L^.SetText(S);
+  DS:=GetDisplayText(I);
+  if MaxDispLen<Length(DS) then
+  begin
+    MaxDispLen:=Length(DS);
+    inc(AddCount); { indicate to call LimitChanged }
+  end;
+  if AddCount>0 then
+    LimitsChanged;
   ContentsChanged;
 end;
 
@@ -997,6 +1013,11 @@ procedure TCodeEditor.SetErrorMessage(const S: string);
 begin
   SetStr(ErrorMessage,S);
   DrawView;
+end;
+
+function TCodeEditor.GetMaxDisplayLength: sw_integer;
+begin
+  GetMaxDisplayLength:=Core^.GetMaxDisplayLength;
 end;
 
 function TCodeEditor.GetLineCount: sw_integer;
