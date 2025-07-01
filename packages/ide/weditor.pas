@@ -3777,7 +3777,10 @@ begin
               PrevP:=P;
               if PointOfs(P)<PointOfs(StartP)
                  then SetSelection(P,StartP)
-                 else SetSelection(StartP,P);
+              else if PointOfs(P)>PointOfs(StartP)
+                 then SetSelection(StartP,P)
+              else if PointOfs(SelStart)<>PointOfs(SelEnd) { if selected only then remove selection }
+                 then SetSelection(StartP,P);
               DrawView;
               UnLock;
             end;
@@ -5653,14 +5656,14 @@ end;
 
 procedure TCustomCodeEditor.EndSelect;
 var P: TPoint;
-    LS: sw_integer;
+   { LS: sw_integer;}
 begin
   P:=CurPos;
-{  P.X:=Min(SelEnd.X,length(GetLineText(SelEnd.Y)));}
-  LS:=length(GetLineText(SelEnd.Y));
-  if LS<P.X then P.X:=LS;
-  CheckSels;
+  { don't try to jump to end of line, not for now
+  LS:=length(GetLineText(P.Y));
+  if LS<P.X then P.X:=LS; }
   SetSelection(SelStart,P);
+  CheckSels;
   DrawView;
 end;
 
