@@ -3763,9 +3763,16 @@ begin
           PrevP.X:=-1; { first time previous point is different }
           repeat
             GetMousePos(P);
-            if (P.X<>PrevP.X) or (P.Y<>PrevP.Y) then
+            if ((P.X<>PrevP.X) or (P.Y<>PrevP.Y)) or (Event.What = evMouseWheel) then
             begin
               Lock;
+              if Event.What = evMouseWheel then
+              begin
+                E:=Event;
+                HandleEvent(Event); { do scrolling }
+                Event:=E;
+                GetMousePos(P); { new mouse position after scroll up/down }
+              end;
               SetCurPtr(P.X,P.Y);
               PrevP:=P;
               if PointOfs(P)<PointOfs(StartP)
@@ -3774,7 +3781,7 @@ begin
               DrawView;
               UnLock;
             end;
-          until not MouseEvent(Event, evMouseMove+evMouseAuto);
+          until not MouseEvent(Event, evMouseMove+evMouseAuto+evMouseWheel);
           DrawView;
           ClearEvent(Event);
         end else
