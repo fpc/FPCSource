@@ -139,6 +139,7 @@ type
       CompileStamp : longint;
       CodeCompleteTip: PFPToolTip;
       {for nested comments managment}
+      SwitchesNestedComments : boolean;
       NestedComments : boolean;
       FixedNestedComments : TPoint;
       NestnessPoints:TNestnessPoints;
@@ -1382,9 +1383,10 @@ begin
   IsAsmReservedWord:=IsFPAsmReservedWord(S);
 end;
 
-function TSourceEditor.ParseSourceNestedComments(X,Y : sw_integer): boolean;
 const cModeNestedComments : array [TCompilerMode] of boolean =
  (false,true{fpc},true{objfpc},false,false,false,false,false,false,false);
+
+function TSourceEditor.ParseSourceNestedComments(X,Y : sw_integer): boolean;
 
 function CompilerModeToNestedComments(AMode: String; ACurrentNestedComments:boolean):boolean;
 var SourceCompilerMode : TCompilerMode;
@@ -1441,6 +1443,7 @@ var CurrentCompilerMode : TCompilerMode;
 begin
   CurrentCompilerMode:=TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID);
   NestedComments:=cModeNestedComments[CurrentCompilerMode];
+  SwitchesNestedComments:=NestedComments;
   ParseSourceNestedComments:=NestedComments;
   ResultIsSet:=false;
   RegisterNestnessPoint(0,0);
@@ -1617,7 +1620,7 @@ begin
     IsNestedComments:=NestedComments;
   end else
   begin
-    lastNC:=NestedComments;
+    lastNC:=SwitchesNestedComments;
     if NestPos>0 then
       for iPos:=0 to NestPos-1 do
       begin
@@ -1673,6 +1676,9 @@ var Points : TNestnessPoints;
     iPos,iFrom,oNest : sw_integer;
 begin
   NestedCommentsChangeCheck:=false;
+  if SwitchesNestedComments<>cModeNestedComments[TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID)] then
+    FixedNestedComments.Y:=2000000; {force to parse again}
+
   if (FixedNestedComments.Y>=CurLine) then
   begin
     if FixedNestedComments.Y>=2000000 then

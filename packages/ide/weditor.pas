@@ -2258,7 +2258,7 @@ begin
   AAttrs:=Attrs;
   if P^.Editor^.NestedCommentsChangeCheck(FromLine) then
     AAttrs:=Attrs or attrForceFull;
-  I:=DoUpdateAttrsRange(P^.Editor,FromLine,ToLine,Attrs);
+  I:=DoUpdateAttrsRange(P^.Editor,FromLine,ToLine,AAttrs);
   if (I<MinLine) or (MinLine=-1) then MinLine:=I;
 end;
 begin
