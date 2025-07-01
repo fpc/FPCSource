@@ -3296,12 +3296,17 @@ begin
         LineStartX:=0;
 
       if (LineDelta=LineCount-1) or VerticalBlock then
-        LineEndX:=Editor^.SelEnd.X-1
+        begin
+          LineEndX:=Editor^.SelEnd.X-1;
+          CharIdxEnd:=Editor^.LinePosToCharIdx(Editor^.SelStart.Y+LineDelta,LineEndX);
+        end
       else
-        LineEndX:=Length(S);
+        begin
+          LineEndX:=Length(S);
+          CharIdxEnd:=LineEndX;
+        end;
 
       CharIdxStart:=Editor^.LinePosToCharIdx(Editor^.SelStart.Y+LineDelta,LineStartX);
-      CharIdxEnd:=Editor^.LinePosToCharIdx(Editor^.SelStart.Y+LineDelta,LineEndX);
       if LineEndX<LineStartX then
         S:=''
       else if VerticalBlock then
