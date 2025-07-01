@@ -979,6 +979,7 @@ implementation
     constructor tcallparanode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
+        originalindex:=-1;
         ppufile.getset(tppuset1(callparaflags));
         fparainit:=ppuloadnode(ppufile);
         fparacopyback:=ppuloadnode(ppufile);
