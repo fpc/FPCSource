@@ -782,8 +782,8 @@ const
     PutMouseEvent(MouseEvent);
     if (ButtonMask and (MouseButton4 or MouseButton5)) <> 0 then
     begin
-      MouseEvent.Action:=MouseActionUp; {to trick LastMouseEvent pretend that we have MouseActionUp event }
-      MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
+      MouseEvent.Action:=MouseActionUp; {to trick LastMouseEvent that we have MouseActionUp event }
+      MouseEvent.Buttons:=LastMouseEvent.Buttons and not (MouseButton4 or MouseButton5);
       {PutMouseEvent(MouseEvent); do not put actual event }
     end;
     LastMouseEvent:=MouseEvent;
@@ -878,14 +878,14 @@ begin
       { maybe we should claim }
       with CurPTree^ do
         begin
-{$ifdef DEBUG}
+{$ifdef DEBUG1}
           if (ScanValue<>AScan) or (CharValue<>AChar) then
             Writeln(system.stderr,'key "',st,'" changed value');
           if (ScanValue<>AScan) then
             Writeln(system.stderr,'Scan was ',ScanValue,' now ',AScan);
           if (CharValue<>AChar) then
             Writeln(system.stderr,'AnsiChar was ',chr(CharValue),' now ',chr(AChar));
-{$endif DEBUG}
+{$endif DEBUG1}
           ScanValue:=AScan;
           CharValue:=AChar;
           ShiftValue:=AShift;
