@@ -1410,6 +1410,8 @@ begin
      MouseWhere.Y:=e.y;
      Event.Double:=false;
      Event.Triple:=false;
+     if (e.Buttons and (MouseButton4 or MouseButton5))<>0 then
+       e.Action:=MouseActionDown; { wheel buttons process in mouse down event }
      case e.Action of
        MouseActionMove :
          Event.What:=evMouseMove;
