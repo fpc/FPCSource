@@ -7405,7 +7405,6 @@ begin
   for i:=SelStart.Y to ey do
    begin
      S:=GetLineText(i);
-     fog('S "'+S+'"');
      if Length(S)<2 then continue;
      WhiteLen:=0;
      for k:=1 to Length(S)-1 do
