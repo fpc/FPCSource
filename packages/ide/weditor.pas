@@ -562,6 +562,7 @@ type
       procedure   UnLock; virtual;
     public
       { Text & info storage abstraction }
+   {a}function    GetMaxDisplayLength: sw_integer; virtual; {Max display code points}
    {a}function    GetLineCount: sw_integer; virtual;
    {a}function    GetLine(LineNo: sw_integer): PCustomLine; virtual;
    {a}function    CharIdxToLinePos(Line,CharIdx: sw_integer): sw_integer; virtual;
@@ -3049,6 +3050,12 @@ begin
   IsClipboard:=false;
 end;
 
+function TCustomCodeEditor.GetMaxDisplayLength: sw_integer;
+begin
+  Abstract;
+  GetMaxDisplayLength:=0;
+end;
+
 function TCustomCodeEditor.GetLineCount: sw_integer;
 begin
   Abstract;
@@ -3634,8 +3641,11 @@ begin
 end;
 
 procedure TCustomCodeEditor.DoLimitsChanged;
+var DisplayLength : sw_integer;
 begin
-  SetLimit(MaxLineLength+1,EditorToViewLine(GetLineCount));
+  DisplayLength:=((GetMaxDisplayLength+128) shr 6) shl 6;
+  DisplayLength:=Min(DisplayLength,MaxLineLength+1);
+  SetLimit(DisplayLength,EditorToViewLine(GetLineCount));
 end;
 
 procedure TCustomCodeEditor.BindingsChanged;
