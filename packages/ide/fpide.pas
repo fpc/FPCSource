@@ -260,6 +260,8 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_edit_showclipboard= '~S~how clipboard';
                 menu_edit_selectall    = 'Select ~A~ll';
                 menu_edit_unselect     = 'U~n~select';
+                menu_edit_comment      = 'Com~m~ent selection';
+                menu_edit_uncomment    = 'Unc~o~mment selection';
 
                 menu_search            = '~S~earch';
                 menu_search_find       = '~F~ind...';
@@ -941,8 +943,11 @@ begin
       NewItem(menu_edit_selectall,menu_key_edit_all, all_Key, cmSelectAll, hcSelectAll,
       NewItem(menu_edit_unselect,'', kbNoKey, cmUnselect, hcUnselect,
       NewLine(
+      NewItem(menu_edit_comment,'', kbNoKey, cmCommentSel, hcCommentSel,
+      NewItem(menu_edit_uncomment,'', kbNoKey, cmUnCommentSel, hcUnCommentSel,
+      NewLine(
       NewItem(menu_edit_showclipboard,'', kbNoKey, cmShowClipboard, hcShowClipboard,
-      WinPMI))))))))
+      WinPMI)))))))))))
 {$ifdef DebugUndo}))){$endif DebugUndo}
       )))),
     NewSubMenu(menu_search,hcSearchMenu, NewMenu(

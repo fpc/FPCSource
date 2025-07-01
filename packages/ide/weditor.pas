@@ -198,15 +198,18 @@ const
       eaUpperCase         = 19;
       eaLowerCase         = 20;
       eaToggleCase        = 21;
-      eaDummy             = 22;
+      eaCommentSel        = 22;
+      eaUnCommentSel      = 23;
+      eaDummy             = 24;
       LastAction          = eaDummy;
 
-      ActionString : array [0..LastAction-1] of string[13] =
+      ActionString : array [0..LastAction-1] of string[14] =
         ('','Move','InsLine','InsText','DelLine','DelText',
          'SelChange','Cut','Paste','PasteWin','DelChar','Clear',
          'CopyBlock','MoveBlock','DelBlock',
          'ReadBlock','IndentBlock','UnindentBlock','Overwrite',
-         'UpperCase','LowerCase','ToggleCase');
+         'UpperCase','LowerCase','ToggleCase',
+         'CommentBlock','UnCommentBlock');
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49#50;
@@ -678,6 +681,8 @@ type
     public
       { Editor primitives }
       procedure   SelectAll(Enable: boolean); virtual;
+      procedure   CommentSel; virtual;
+      procedure   UnCommentSel; virtual;
     public
       { Editor commands }
       SearchRunCount: integer;
@@ -799,7 +804,7 @@ const
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin,
        { cmUnselect should because like cut, copy, copywin:
          if there is a selection, it is active, else it isn't }
-       cmUnselect]);
+       cmUnselect,cmCommentSel,cmUnCommentSel]);
      FromClipCmds       : TCommandSet = ([cmPaste]);
      NulClipCmds        : TCommandSet = ([cmClear]);
      UndoCmd            : TCommandSet = ([cmUndo]);
@@ -3936,6 +3941,8 @@ begin
 
           cmSelectAll   : SelectAll(true);
           cmUnselect    : SelectAll(false);
+          cmCommentSel  : CommentSel;
+          cmUnCommentSel: UnCommentSel;
 {$ifdef WinClipSupported}
           cmCopyWin     : ClipCopyWin;
           cmPasteWin    : ClipPasteWin;
@@ -7283,6 +7290,158 @@ begin
      end;
   SetSelection(A,B);
   DrawView;
+end;
+
+procedure TCustomCodeEditor.CommentSel;
+var
+  ey,i : Sw_Integer;
+  S,Ind : Sw_AString;
+  Pos : Tpoint;
+  WasPersistentBlocks : boolean;
+  WhiteLen, k : Sw_Integer;
+  LLen : Sw_Integer; { length of longest line }
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  Lock;
+  ey:=SelEnd.Y;
+  if SelEnd.X=0 then
+   dec(ey);
+  S:='';
+  { Find shortest white space of beginning of line from all lines
+    for simplisity reason Tab is not recognized as white space in this regard }
+  LLen:=0;
+  WhiteLen:=-1;
+  WhiteLen:= WhiteLen shr 1; { logical SHR to get max sw_integer }
+  for i:=SelStart.Y to ey do
+    begin
+      S:=GetDisplayText(i);
+      LLen:=Max(LLen,Length(S));
+      S:=GetLineText(i);
+      LLen:=Max(LLen,Length(S)); {whatever is longer displayed text or actual line text }
+      WhiteLen:=Min(WhiteLen,Length(S));
+      if WhiteLen = 0 then
+        break; {string length is zero, no lower where to go }
+      k:=1;
+      while (k<=WhiteLen) and (S[k]=' ') do { Tab do not count in }
+        inc(k);
+      WhiteLen:=k-1;
+      if WhiteLen = 0 then
+        break; { we have done enough, no white spaces at all }
+    end;
+  if WhiteLen=(sw_integer(-1) shr 1) then
+    WhiteLen:=0; { eee, never can happen, but if ever then we will be safe }
+{$if sizeof(sw_astring)>8}
+  if LLen > 252 then { if lines are shortstrings and there is no room to add 2 chars }
+  begin
+    UnLock;
+    MessageBox('Lines too long!', nil, mfOKButton);
+    exit;
+  end;
+{$endif}
+  AddGroupedAction(eaCommentSel);
+  WasPersistentBlocks:=IsFlagSet(efPersistentBlocks);
+  if not WasPersistentBlocks then
+    SetFlags(GetFlags or efPersistentBlocks);
+  {selection Start and End move along}
+  if SelStart.X>WhiteLen then inc(SelStart.X,2);
+  if SelEnd.X>WhiteLen then inc(SelEnd.X,2);
+  { put line comment in front of every selected line }
+  Ind:='//';
+  for i:=SelStart.Y to ey do
+   begin
+     S:=GetLineText(i);
+     S:=copy(S,1,WhiteLen)+Ind+copy(S,WhiteLen+1,Length(S));
+     SetLineText(i,S);
+     Pos.X:=WhiteLen;Pos.Y:=i;
+     AddAction(eaInsertText,Pos,Pos,Ind,GetFlags);
+   end;
+  Pos:=CurPos;
+  { this removes selection if Shift is pressed as well }
+  if (CurPos.X > WhiteLen) and (SelStart.Y<=CurPos.Y) and (CurPos.Y<=ey) then
+    SetCurPtr(CurPos.X+2,CurPos.Y);
+  {after SetCurPtr return PersistentBlocks as it was before}
+  if not WasPersistentBlocks then
+    SetFlags(GetFlags and (not longword(efPersistentBlocks)));
+  { must be added manually here PM }
+  AddAction(eaMoveCursor,Pos,CurPos,'',GetFlags);
+  UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
+  DrawLines(CurPos.Y);
+  SetModified(true);
+  CloseGroupedAction(eaCommentSel);
+  UnLock;
+end;
+
+procedure TCustomCodeEditor.UnCommentSel;
+var
+  ey,i : Sw_Integer;
+  S,Ind : Sw_AString;
+  Pos : Tpoint;
+  WasPersistentBlocks : boolean;
+  WhiteLen, k : Sw_Integer;
+  WasGroupAction : boolean;
+  NeedToMoveCursor:boolean;
+begin
+  if IsReadOnly then Exit;
+  if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  Lock;
+  ey:=SelEnd.Y;
+  if SelEnd.X=0 then
+   dec(ey);
+  WasGroupAction:=false;
+  NeedToMoveCursor:=false;
+  { remove line comment from beginning of every selected line ( if there is any) }
+  Ind:='//';
+  for i:=SelStart.Y to ey do
+   begin
+     S:=GetLineText(i);
+     fog('S "'+S+'"');
+     if Length(S)<2 then continue;
+     WhiteLen:=0;
+     for k:=1 to Length(S)-1 do
+       if not (S[k] in [' ',#9]) then
+         break; { white space is over }
+     if (S[k]<>'/') or (S[k+1]<>'/') then continue;  { continue if comment not found }
+     WhiteLen:=k-1;
+     if not WasGroupAction then
+     begin
+       {add group action only if there is at least one action
+        because empty group action throw segment fault when do Undo }
+       WasGroupAction:=true;
+       AddGroupedAction(eaUnCommentSel);
+     end;
+     S:=copy(S,1,WhiteLen)+copy(S,WhiteLen+1+2,Length(S)); { delete line comment string '//' }
+     SetLineText(i,S);
+     Pos.X:=WhiteLen;Pos.Y:=i;
+     AddAction(eaDeleteText,Pos,Pos,Ind,GetFlags);
+     {selection Start and End move along}
+     if i=SelStart.Y then
+       if (SelStart.X>1) and (SelStart.X>WhiteLen+1) then dec(SelStart.X,2);
+     if i=SelEnd.Y then
+       if (SelEnd.X>1) and (SelEnd.X>WhiteLen+1) then dec(SelEnd.X,2);
+     if i=CurPos.Y then
+       if (CurPos.X>1) and (CurPos.X>WhiteLen+1) then NeedToMoveCursor:=true;
+   end;
+  if WasGroupAction then
+  begin
+    WasPersistentBlocks:=IsFlagSet(efPersistentBlocks);
+    if not WasPersistentBlocks then
+      SetFlags(GetFlags or efPersistentBlocks);
+    Pos:=CurPos;
+    { this removes selection if Shift is pressed as well }
+    if NeedToMoveCursor then
+      SetCurPtr(CurPos.X-2,CurPos.Y);
+    {after SetCurPtr return PersistentBlocks as it was before}
+    if not WasPersistentBlocks then
+      SetFlags(GetFlags and (not longword(efPersistentBlocks)));
+    { must be added manually here PM }
+    AddAction(eaMoveCursor,Pos,CurPos,'',GetFlags);
+    UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
+    DrawLines(CurPos.Y);
+    SetModified(true);
+    CloseGroupedAction(eaUnCommentSel);
+  end;
+  UnLock;
 end;
 
 procedure TCustomCodeEditor.SelectionChanged;

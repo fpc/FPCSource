@@ -138,6 +138,8 @@ const
       hint_editselectall     = 'Select the whole text';
       hint_editunselect      = 'Unselect everything';
       hint_showclipboard     = 'Open then clipboard window';
+      hint_commentsel        = 'Insert line comment in front of each selected line';
+      hint_uncommentsel      = 'Remove line comment (if any) from beginning of every selected line';
       hint_searchmenu        = 'Text and symbols search commands';
       hint_searchfind        = 'Search for text';
       hint_searchreplace     = 'Search for text and replace it with new text';
@@ -301,6 +303,8 @@ begin
     hcPasteWin      : S:=hint_editpastewin;
     hcClear         : S:=hint_editclear;
     hcShowClipboard : S:=hint_showclipboard;
+    hcCommentSel    : S:=hint_commentsel;
+    hcUnCommentSel  : S:=hint_uncommentsel;
 
     hcSearchMenu    : S:=hint_searchmenu;
     hcFind          : S:=hint_searchfind;

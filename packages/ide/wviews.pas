@@ -21,10 +21,12 @@ uses Objects,Drivers,Views,Menus,Dialogs,Outline;
 const
       evIdle                 = $8000;
 
-      cmCopyWin = 240;
-      cmPasteWin = 241;
+      cmCopyWin           = 240;
+      cmPasteWin          = 241;
       cmSelectAll         = 246;
       cmUnselect          = 247;
+      cmCommentSel        = 249;
+      cmUnCommentSel      = 250;
 
       cmLocalMenu            = 54100;
       cmUpdate               = 54101;

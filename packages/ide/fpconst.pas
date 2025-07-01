@@ -221,6 +221,12 @@ const
      }
 
      cmPrint             = 248;
+     { in wviews.pas defined
+     cmCommentSel        = 249;
+     cmUnCommentSel      = 250;
+     }
+
+
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -394,6 +400,8 @@ const
      hcPasteWin          = hcShift+cmPasteWin;
      hcSelectAll         = hcShift+cmSelectAll;
      hcUnselect          = hcShift+cmUnselect;
+     hcCommentSel        = hcShift+cmCommentSel;
+     hcUnCommentSel      = hcShift+cmUnCommentSel;
 
      hcFindProcedure     = hcShift+cmFindProcedure;
      hcObjects           = hcShift+cmObjects;
