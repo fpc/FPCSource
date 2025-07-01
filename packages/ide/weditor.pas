@@ -5791,15 +5791,16 @@ var
   ey,i,Indlen : Sw_Integer;
   S,Ind : Sw_AString;
   Pos : Tpoint;
-  WasPersistentBlocks : boolean;
+  {WasPersistentBlocks : boolean;}
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
   AddGroupedAction(eaIndentBlock);
+  { as SetCurPtr commented out, no need take care of Persistent Blocks
   WasPersistentBlocks:=IsFlagSet(efPersistentBlocks);
   if not WasPersistentBlocks then
-    SetFlags(GetFlags or efPersistentBlocks);
+    SetFlags(GetFlags or efPersistentBlocks); }
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
@@ -5847,10 +5848,12 @@ begin
      Pos.X:=0;Pos.Y:=i;
      AddAction(eaInsertText,Pos,Pos,Ind,GetFlags);
    end;
-  SetCurPtr(CurPos.X,CurPos.Y);
+  { this removes selection if Shift is pressed as well and we do not change cursor position anyway
+  SetCurPtr(CurPos.X,CurPos.Y); }
   {after SetCurPtr return PersistentBlocks as it was before}
+  { as SetCurPtr commented out, no need take care of Persistent Blocks
   if not WasPersistentBlocks then
-    SetFlags(GetFlags and (not longword(efPersistentBlocks)));
+    SetFlags(GetFlags and (not longword(efPersistentBlocks))); }
   { must be added manually here PM }
   AddAction(eaMoveCursor,Pos,CurPos,'',GetFlags);
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
@@ -5865,15 +5868,17 @@ var
   ey,i,j,k,indlen : Sw_integer;
   S : Sw_AString;
   Pos : TPoint;
-  WasPersistentBlocks : boolean;
+  {WasPersistentBlocks : boolean;}
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
   Lock;
   AddGroupedAction(eaUnindentBlock);
+  {  as SetCurPtr commented out, no need take care of Persistent Blocks
   WasPersistentBlocks:=IsFlagSet(efPersistentBlocks);
   if not WasPersistentBlocks then
     SetFlags(GetFlags or efPersistentBlocks);
+  }
   ey:=selend.y;
   if selend.x=0 then
    dec(ey);
@@ -5936,10 +5941,13 @@ begin
          AddAction(eaDeleteText,Pos,Pos,CharStr(' ',k),GetFlags);
        end;
    end;
-  SetCurPtr(CurPos.X,CurPos.Y);
+  { Removes selection if Shift is pressed as well and we do not change cursor position anyway
+  SetCurPtr(CurPos.X,CurPos.Y); }
   {after SetCurPtr return PersistentBlocks as it was before}
+  { as SetCurPtr commented out, no need take care of Persistent Blocks
   if not WasPersistentBlocks then
     SetFlags(GetFlags and (not longword(efPersistentBlocks)));
+  }
   UpdateAttrsRange(SelStart.Y,SelEnd.Y,attrAll);
   DrawLines(CurPos.Y);
   SetModified(true);
