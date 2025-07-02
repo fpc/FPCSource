@@ -734,11 +734,16 @@ type
     Procedure TestClassInterface_COM_With;
     Procedure TestClassInterface_COM_ForObjectInInterface;
     Procedure TestClassInterface_COM_ForInterfaceInObject;
-    Procedure TestClassInterface_COM_ArrayOfIntf_AssignVar; // todo
+    Procedure TestClassInterface_COM_ArrayOfIntf_AssignVar;
+    Procedure TestClassInterface_COM_ArrayOfIntf_AssignPlus;
     Procedure TestClassInterface_COM_ArrayOfIntf_AssignArg;
-    Procedure TestClassInterface_COM_ArrayOfIntfFail; // todo
     Procedure TestClassInterface_COM_ArrayOfIntf_InitFail;
     Procedure TestClassInterface_COM_ArrayOfIntf_FunctionResult;
+    Procedure TestClassInterface_COM_ArrayOfIntf_InheritedFuncResult;
+    Procedure TestClassInterface_COM_ArrayOfIntf_FunctionExit;
+    Procedure TestClassInterface_COM_ArrayOfIntf_Property;
+    Procedure TestClassInterface_COM_ArrayOfIntf_BIFuncs;
+    Procedure TestClassInterface_COM_ArrayOfIntf_ForIn;
     Procedure TestClassInterface_COM_StaticArrayOfIntfFail;
     Procedure TestClassInterface_COM_RecordIntfFail;
     Procedure TestClassInterface_COM_UnitInitialization;
@@ -2960,7 +2965,8 @@ begin
   if IsErrorExpected(E) then exit;
   P:=E.SourcePos;
   WriteSources(P.FileName,P.Row,P.Column);
-  writeln('ERROR: TCustomTestModule.HandlePasResolveError '+E.ClassName+':'+E.Message
+  writeln('ERROR: TCustomTestModule.HandlePasResolveError '+E.ClassName+'['+IntToStr(E.Id)+']:'
+    +E.Message
     +' '+P.FileName+'('+IntToStr(P.Row)+','+IntToStr(P.Column)+')');
   FailException(E);
 end;
@@ -21950,11 +21956,13 @@ begin
     '});',
     'this.DoDefault = function (i, j) {',
     '  rtl._AddRef(i);',
+    '  rtl._AddRef(j);',
     '  try {',
     '    i = rtl.setIntfL(i, null);',
     '    i = rtl.setIntfL(i, j);',
     '  } finally {',
     '    rtl._Release(i);',
+    '    rtl._Release(j);',
     '  };',
     '};',
     '']),
@@ -21999,6 +22007,7 @@ begin
     '});',
     'this.DoDefault = function (i) {',
     '  var Result = null;',
+    '  rtl._AddRef(i);',
     '  var $ok = false;',
     '  try {',
     '    Result = rtl.setIntfL(Result, i);',
@@ -22008,6 +22017,7 @@ begin
     '    };',
     '    $ok = true;',
     '  } finally {',
+    '    rtl._Release(i);',
     '    if(!$ok) rtl._Release(Result);',
     '  };',
     '  return Result;',
@@ -22203,6 +22213,7 @@ begin
     '});',
     'this.DoDefault = function (i, j, o) {',
     '  rtl._AddRef(i);',
+    '  rtl._AddRef(j);',
     '  try {',
     '    if (rtl.intfIsIntfT(i, $mod.IUnknown)) ;',
     '    if (rtl.queryIntfIsT(o, $mod.IUnknown)) ;',
@@ -22215,6 +22226,7 @@ begin
     '    o = rtl.intfToClass(i, $mod.TObject);',
     '  } finally {',
     '    rtl._Release(i);',
+    '    rtl._Release(j);',
     '  };',
     '};',
     '']),
@@ -22585,7 +22597,6 @@ begin
     '};',
     '']),
     LinesToStr([ // $mod.$main
-
     '']));
 end;
 
@@ -22953,9 +22964,6 @@ end;
 
 procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_AssignVar;
 begin
-  {$IFNDEF EnableCOMArrayOfIntf}
-  exit;
-  {$ENDIF}
   StartProgram(false);
   Add([
   '{$interfaces com}',
@@ -22977,23 +22985,7 @@ begin
   '  b:=a;',
   '  i:=a[1];',
   '  a[2]:=i;',
-  //'  for i in a do i.fly(3);',
-  //'  a:=copy(b,1,2);',
-  //'  copy(b,1,2);',
-  //'  a:=concat(b);',
-  //'  a:=concat(b,a);',
-  //'  concat(b,a);',
-  //'  insert(i,b,1);',
-  //'  delete(a,1,2);', // array,index,count
-  //'  a:=[i,i];',
-  // a:=a+[i];
-  // a:=b+[i];
-  // a:=[i]+a;
-  // a:=[i]+[];
-  // a:=[]+[i];
   'end;',
-  // ToDo: Call(a, var a, const a, out a)
-  // ToDo: Call([i], const [i])
   'begin',
   '']);
   ConvertProgram;
@@ -23008,13 +23000,10 @@ begin
     '  try {',
     '    a = rtl.setIntfL(a, null);',
     '    a = rtl.setIntfL(a, null);',
-    '    a = rtl.arraySetLength(a, "COM", 3);',
+    '    a = rtl.arraySetLength(a, "R", 3);',
     '    b = rtl.setIntfL(b, a);',
     '    i = rtl.setIntfL(i, a[1]);',
     '    rtl.setIntfP(a, 2, i);',
-    //'    a = rtl.arrayCopy("R", b, 1, 2);',
-    //'    a = rtl.arrayConcat("R", b, a);',
-    //'    b = rtl.arrayInsert(rtl._AddRef(i), b, 1);',
     '  } finally {',
     '    rtl._Release(a);',
     '    rtl._Release(b);',
@@ -23026,11 +23015,60 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_AssignPlus;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  '{$modeswitch ArrayOperators}',
+  'type',
+  '  IUnknown = interface end;',
+  '  IBird = interface(IUnknown)',
+  '    function Fly(w: word): word;',
+  '  end;',
+  '  TBirdArray = array of IBird;',
+  'procedure Run;',
+  'var',
+  '  i: IBird;',
+  '  a: TBirdArray;',
+  '  b: TBirdArray = nil;',
+  'begin',
+  '  a:=a+b;',
+  '  a:=[i,i];',
+  '  a:=a+[i];',
+  '  a:=b+[i];',
+  '  a:=[i]+a;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf_AssignPlus',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface(this, "IBird", "{478D080B-C0F6-396E-AE88-000B87785B07}", ["Fly"], this.IUnknown);',
+    'this.Run = function () {',
+    '  var i = null;',
+    '  var a = null;',
+    '  var b = null;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  try {',
+    '    a = rtl.setIntfL(a, rtl.arrayConcat("R", a, b), true);',
+    '    a = rtl.setIntfL(a, rtl.arrayManaged(1, 2, [i, i]), true);',
+    '    a = rtl.setIntfL(a, rtl.arrayPush("R", a, i), true);',
+    '    a = rtl.setIntfL(a, rtl.arrayConcat("R", b, $ir.ref(1, rtl.arrayManaged(1, 2, [i]))), true);',
+    '    a = rtl.setIntfL(a, rtl.arrayConcat("R", $ir.ref(2, rtl.arrayManaged(1, 2, [i])), a), true);',
+    '  } finally {',
+    '    $ir.free();',
+    '    rtl._Release(a);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_AssignArg;
 begin
-  {$IFNDEF EnableCOMArrayOfIntf}
-  exit;
-  {$ENDIF}
   StartProgram(false);
   Add([
   '{$interfaces com}',
@@ -23041,7 +23079,9 @@ begin
   '  end;',
   '  TBirdArray = array of IBird;',
   'procedure ArgDefault(a: TBirdArray);',
+  'var b: TBirdArray;',
   'begin',
+  '  b:=a;',
   'end;',
   'procedure ArgConst(const a: TBirdArray);',
   'begin',
@@ -23049,6 +23089,9 @@ begin
   'procedure ArgVar(var a: TBirdArray);',
   'begin',
   '  a:=nil;',
+  'end;',
+  'procedure ArgOut(out a: TBirdArray);',
+  'begin',
   'end;',
   'procedure Run;',
   'var',
@@ -23061,6 +23104,7 @@ begin
   '  ArgConst(a);',
   '  ArgConst([i]);',
   '  ArgVar(a);',
+  '  ArgOut(a);',
   'end;',
   'begin',
   '']);
@@ -23070,11 +23114,21 @@ begin
     'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
     'rtl.createInterface(this, "IBird", "{478D080B-C0F6-396E-AE88-000B87785B07}", ["Fly"], this.IUnknown);',
     'this.ArgDefault = function (a) {',
+    '  var b = null;',
+    '  rtl._AddRef(a);',
+    '  try {',
+    '    b = rtl.setIntfL(b, a);',
+    '  } finally {',
+    '    rtl._Release(a);',
+    '    rtl._Release(b);',
+    '  };',
     '};',
     'this.ArgConst = function (a) {',
     '};',
     'this.ArgVar = function (a) {',
     '  a.set(null);',
+    '};',
+    'this.ArgOut = function (a) {',
     '};',
     'this.Run = function () {',
     '  var i = null;',
@@ -23083,10 +23137,18 @@ begin
     '  try {',
     '    $mod.ArgDefault(a);',
     '    $mod.ArgDefault(null);',
-    '    $mod.ArgDefault($ir.ref(1, rtl.arrayManaged(0, [rtl._AddRef(i)])));',
+    '    $mod.ArgDefault($ir.ref(1, rtl.arrayManaged(1, 2, [i])));',
     '    $mod.ArgConst(a);',
-    '    $mod.ArgConst($ir.ref(2, rtl.arrayManaged(0, [rtl._AddRef(i)])));',
+    '    $mod.ArgConst($ir.ref(2, rtl.arrayManaged(1, 2, [i])));',
     '    $mod.ArgVar({',
+    '      get: function () {',
+    '          return a;',
+    '        },',
+    '      set: function (v) {',
+    '          a = rtl.setIntfL(a, v);',
+    '        }',
+    '    });',
+    '    $mod.ArgOut({',
     '      get: function () {',
     '          return a;',
     '        },',
@@ -23104,33 +23166,8 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestClassInterface_COM_ArrayOfIntfFail;
-begin
-  {$IFDEF EnableCOMArrayOfIntf}
-  exit;
-  {$ENDIF}
-  StartProgram(false);
-  Add([
-  '{$interfaces com}',
-  'type',
-  '  IUnknown = interface',
-  '    function _AddRef: longint;',
-  '    function _Release: longint;',
-  '  end;',
-  '  TObject = class',
-  '  end;',
-  '  TArrOfIntf = array of IUnknown;',
-  'begin',
-  '']);
-  SetExpectedPasResolverError('Not supported: array of COM-interface',nNotSupportedX);
-  ConvertProgram;
-end;
-
 procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_InitFail;
 begin
-  {$IFNDEF EnableCOMArrayOfIntf}
-  exit;
-  {$ENDIF}
   StartProgram(false);
   Add([
   '{$interfaces com}',
@@ -23153,9 +23190,6 @@ end;
 
 procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_FunctionResult;
 begin
-  {$IFNDEF EnableCOMArrayOfIntf}
-  exit;
-  {$ENDIF}
   StartProgram(false);
   Add([
   '{$interfaces com}',
@@ -23188,6 +23222,7 @@ begin
     '});',
     'this.DoDefault = function (i) {',
     '  var Result = null;',
+    '  rtl._AddRef(i);',
     '  var $ok = false;',
     '  try {',
     '    Result = rtl.setIntfL(Result, i);',
@@ -23197,6 +23232,7 @@ begin
     '    };',
     '    $ok = true;',
     '  } finally {',
+    '    rtl._Release(i);',
     '    if(!$ok) rtl._Release(Result);',
     '  };',
     '  return Result;',
@@ -23214,11 +23250,314 @@ begin
     '']));
 end;
 
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_InheritedFuncResult;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TBird = array of IUnknown;',
+  '  TObject = class',
+  '    function GetIntf: TBird; virtual;',
+  '  end;',
+  '  TMouse = class',
+  '    function GetIntf: TBird; override;',
+  '  end;',
+  'function TObject.GetIntf: TBird; begin end;',
+  'function TMouse.GetIntf: TBird;',
+  'var i: TBird;',
+  'begin',
+  '  inherited;',
+  '  inherited GetIntf;',
+  '  inherited GetIntf();',
+  '  Result:=inherited GetIntf;',
+  '  Result:=inherited GetIntf();',
+  '  i:=inherited GetIntf;',
+  '  i:=inherited GetIntf();',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf_InheritedFuncResult',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.GetIntf = function () {',
+    '    var Result = null;',
+    '    return Result;',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TMouse", this.TObject, function () {',
+    '  this.GetIntf = function () {',
+    '    var Result = null;',
+    '    var i = null;',
+    '    var $ir = rtl.createIntfRefs();',
+    '    var $ok = false;',
+    '    try {',
+    '      $ir.ref(1, $mod.TObject.GetIntf.call(this));',
+    '      $ir.ref(2, $mod.TObject.GetIntf.call(this));',
+    '      $ir.ref(3, $mod.TObject.GetIntf.call(this));',
+    '      Result = rtl.setIntfL(Result, $mod.TObject.GetIntf.call(this), true);',
+    '      Result = rtl.setIntfL(Result, $mod.TObject.GetIntf.call(this), true);',
+    '      i = rtl.setIntfL(i, $mod.TObject.GetIntf.call(this), true);',
+    '      i = rtl.setIntfL(i, $mod.TObject.GetIntf.call(this), true);',
+    '      $ok = true;',
+    '    } finally {',
+    '      $ir.free();',
+    '      rtl._Release(i);',
+    '      if (!$ok) rtl._Release(Result);',
+    '    };',
+    '    return Result;',
+    '  };',
+    '});',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_FunctionExit;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TBird = array of IUnknown;',
+  '  TObject = class',
+  '    constructor Create;',
+  '  end;',
+  'constructor TObject.Create;',
+  'begin',
+  'end;',
+  'function GetIntf: TBird;',
+  'var b: TBird;',
+  'begin',
+  '  b:=[];',
+  '  Exit(b);',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf_FunctionExit',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '  this.Create = function () {',
+    '    return this;',
+    '  };',
+    '});',
+    'this.GetIntf = function () {',
+    '  var Result = null;',
+    '  var b = null;',
+    '  var $ok = false;',
+    '  try {',
+    '    b = rtl.setIntfL(b, null);',
+    '    $ok = true;',
+    '    Result = rtl.setIntfL(Result, b);',
+    '    return Result;',
+    '    $ok = true;',
+    '  } finally {',
+    '    rtl._Release(b);',
+    '    if (!$ok) rtl._Release(Result);',
+    '  };',
+    '  return Result;',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_Property;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface',
+  '    function _AddRef: longint;',
+  '    function _Release: longint;',
+  '  end;',
+  '  TAnimal = array of IUnknown;',
+  '  TObject = class',
+  '    FAnt: TAnimal;',
+  '    function GetBird: TAnimal; virtual; abstract;',
+  '    procedure SetBird(Value: TAnimal); virtual; abstract;',
+  '    function GetItems(Index: longint): TAnimal; virtual; abstract;',
+  '    procedure SetItems(Index: longint; Value: TAnimal); virtual; abstract;',
+  '    property Ant: TAnimal read FAnt write FAnt;',
+  '    property Bird: TAnimal read GetBird write SetBird;',
+  '    property Items[Index: longint]: TAnimal read GetItems write SetItems; default;',
+  '  end;',
+  'procedure DoIt;',
+  'var',
+  '  o: TObject;',
+  '  v: TAnimal;',
+  'begin',
+  '  v:=o.Ant;',
+  '  o.Ant:=v;',
+  '  o.Ant:=o.Ant;',
+  '  v:=o.Bird;',
+  '  o.Bird:=v;',
+  '  o.Bird:=o.Bird;',
+  '  v:=o.Items[1];',
+  '  o.Items[2]:=v;',
+  '  o.Items[3]:=o.Items[4];',
+  '  v:=o[5];',
+  '  o[6]:=v;',
+  '  o[7]:=o[8];',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf_Property',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{D7ADB0E1-758A-322B-BDDF-21CD521DDFA9}", ["_AddRef", "_Release"], null);',
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '    this.FAnt = null;',
+    '  };',
+    '  this.$final = function () {',
+    '    rtl.setIntfP(this, "FAnt", null);',
+    '  };',
+    '});',
+    'this.DoIt = function () {',
+    '  var o = null;',
+    '  var v = null;',
+    '  var $ir = rtl.createIntfRefs();',
+    '  try {',
+    '    v = rtl.setIntfL(v, o.FAnt);',
+    '    rtl.setIntfP(o, "FAnt", v);',
+    '    rtl.setIntfP(o, "FAnt", o.FAnt);',
+    '    v = rtl.setIntfL(v, o.GetBird(), true);',
+    '    o.SetBird(v);',
+    '    o.SetBird($ir.ref(1, o.GetBird()));',
+    '    v = rtl.setIntfL(v, o.GetItems(1), true);',
+    '    o.SetItems(2, v);',
+    '    o.SetItems(3, $ir.ref(2, o.GetItems(4)));',
+    '    v = rtl.setIntfL(v, o.GetItems(5), true);',
+    '    o.SetItems(6, v);',
+    '    o.SetItems(7, $ir.ref(3, o.GetItems(8)));',
+    '  } finally {',
+    '    $ir.free();',
+    '    rtl._Release(v);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_BIFuncs;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface end;',
+  '  IBird = interface(IUnknown)',
+  '  end;',
+  '  TBirdArray = array of IBird;',
+  'procedure Run;',
+  'var',
+  '  i: IBird;',
+  '  a, b: TBirdArray;',
+  'begin',
+  '  SetLength(a,3);',
+  '  a:=copy(b,1,2);',
+  '  a:=concat(b);',
+  '  a:=concat(b,a);',
+  '  insert(i,b,1);',
+  '  delete(a,1,2);', // array,index,count
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf_BIFuncs',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface(this, "IBird", "{4B0D080B-C0F6-396E-AE88-000B87785074}", [], this.IUnknown);',
+    'this.Run = function () {',
+    '  var i = null;',
+    '  var a = null;',
+    '  var b = null;',
+    '  try {',
+    '    a = rtl.arraySetLength(a, "R", 3);',
+    '    a = rtl.setIntfL(a, rtl.arrayCopy("R", b, 1, 2), true);',
+    '    a = rtl.setIntfL(a, b);',
+    '    a = rtl.setIntfL(a, rtl.arrayConcat("R", b, a), true);',
+    '    b = rtl.arrayInsert(i, b, 1, "R");',
+    '    a = rtl.arrayDeleteR(a, 1, 2);',
+    '  } finally {',
+    '    rtl._Release(a);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
+procedure TTestModule.TestClassInterface_COM_ArrayOfIntf_ForIn;
+begin
+  StartProgram(false);
+  Add([
+  '{$interfaces com}',
+  'type',
+  '  IUnknown = interface end;',
+  '  IBird = interface(IUnknown)',
+  '  end;',
+  '  TBirdArray = array of IBird;',
+  'procedure Run;',
+  'var',
+  '  i, j: IBird;',
+  '  a: TBirdArray;',
+  'begin',
+  '  for i in a do begin',
+  '    j:=i;',
+  '  end;',
+  'end;',
+  'begin',
+  '']);
+  ConvertProgram;
+  CheckSource('TestClassInterface_COM_ArrayOfIntf_ForIn',
+    LinesToStr([ // statements
+    'rtl.createInterface(this, "IUnknown", "{B92D5841-758A-322B-B800-000000000000}", [], null);',
+    'rtl.createInterface(this, "IBird", "{4B0D080B-C0F6-396E-AE88-000B87785074}", [], this.IUnknown);',
+    'this.Run = function () {',
+    '  var i = null;',
+    '  var j = null;',
+    '  var a = null;',
+    '  try {',
+    '    for (var $in = a, $l = 0, $end = rtl.length($in) - 1; $l <= $end; $l++) {',
+    '      i = rtl.setIntfL(i, $in[$l]);',
+    '      j = rtl.setIntfL(j, i);',
+    '    };',
+    '  } finally {',
+    '    rtl._Release(i);',
+    '    rtl._Release(j);',
+    '  };',
+    '};',
+    '']),
+    LinesToStr([ // $mod.$main
+    '']));
+end;
+
 procedure TTestModule.TestClassInterface_COM_StaticArrayOfIntfFail;
 begin
-  {$IFNDEF EnableCOMArrayOfIntf}
-  exit;
-  {$ENDIF}
   StartProgram(false);
   Add([
   '{$interfaces com}',

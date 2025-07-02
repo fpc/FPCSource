@@ -834,19 +834,6 @@ var rtl = {
     return intf;
   },
 
-  _ReleaseArray: function(a,dim){
-    if (!a) return null;
-    if (!dim) dim = 1;
-    for (var i=0; i<a.length; i++){
-      if (dim<=1){
-        if (a[i]) a[i]._Release();
-      } else {
-        rtl._ReleaseArray(a[i],dim-1);
-      }
-    }
-    return null;
-  },
-
   trunc: function(a){
     return a<0 ? Math.ceil(a) : Math.floor(a);
   },
@@ -922,7 +909,34 @@ var rtl = {
   },
 
   arrayRef: function(a){
-    if (a!=null) rtl.hideProp(a,'$pas2jsrefcnt',1);
+    if (a!=null) rtl.hideProp(a,'$pas2jsrefcnt',2);
+    return a;
+  },
+
+  arrayManaged: function(refCnt,mode,a){
+    // mode: 0: don't touch elements, 1: null elements, 2: _AddRef elements
+    if(!a) a = [];
+    a.$pas2jsrefcnt = refCnt?refCnt:0;
+    a._AddRef = function(){
+      this.$pas2jsrefcnt++;
+    };
+    a._Release = function(){
+      this.$pas2jsrefcnt--;
+      if (this.$pas2jsrefcnt==0){
+        for (var i=0; i<this.length; i++){
+          rtl.setIntfP(this,i,null);
+        }
+      }
+    };
+    if (mode>0){
+      for (var i=0; i<a.length; i++){
+        if (mode === 2){
+          rtl._AddRef(a[i]);
+        } else {
+          a[i]=null;
+        }
+      }
+    }
     return a;
   },
 
@@ -938,37 +952,82 @@ var rtl = {
     }
     var dimmax = stack.length-1;
     var depth = 0;
-    var lastlen = 0;
+    var newlen = 0;
     var item = null;
     var a = null;
     var src = arr;
     var srclen = 0, oldlen = 0;
+    var type = 0;
+    var managed = false;
+    if (rtl.isArray(defaultvalue)){
+      // array of dyn array
+      type = 1;
+    } else if (rtl.isObject(defaultvalue)) {
+      if (rtl.isTRecord(defaultvalue)){
+        // array of record
+        type = 2;
+      } else {
+        // array of set
+        type = 3;
+      }
+    } else if (defaultvalue == 'R'){
+      // array of COM interface
+      type = 4;
+      managed = true;
+    }
+
     do{
       if (depth>0){
-        item=stack[depth-1];
-        src = (item.src && item.src.length>item.i)?item.src[item.i]:null;
+        item = stack[depth-1];
+        src = (item.src && item.src.length>item.i) ? item.src[item.i] : null;
       }
       if (!src){
-        a = [];
+        // init array
+        managed ? a=rtl.arrayManaged(1) : a=[];
         srclen = 0;
         oldlen = 0;
-      } else if (src.$pas2jsrefcnt>0 || depth>=s){
-        a = [];
+      } else if (src.$pas2jsrefcnt>1 || depth>=s){
+        // clone
+        if (managed){
+          a = rtl.arrayManaged(1);
+          src.$pas2jsrefcnt--;
+        } else {
+          a = [];
+        }
         srclen = src.length;
         oldlen = srclen;
       } else {
+        // keep old
         a = src;
         srclen = 0;
         oldlen = a.length;
       }
-      lastlen = stack[depth].dim;
-      a.length = lastlen;
+      newlen = stack[depth].dim;
+      if (managed){
+        if (a.length>=newlen){
+          // shrink -> release elements
+          for (var i=a.length-1; i>=newlen; i--){
+            rtl.setIntfP(a,i,null);
+          }
+          a.length = newlen;
+        } else {
+          // enlarge -> null elements
+          var l = a.length;
+          a.length = newlen;
+          for (var i=l; i<newlen; i++){
+            a[i]=null;
+          }
+          oldlen = newlen;
+        }
+      } else {
+        a.length = newlen;
+      }
       if (depth>0){
         item.a[item.i]=a;
         item.i++;
-        if ((lastlen===0) && (item.i<item.a.length)) continue;
+        if ((newlen===0) && (item.i<item.a.length)) continue;
       }
-      if (lastlen>0){
+      if (newlen>0){
         if (depth<dimmax){
           item = stack[depth];
           item.a = a;
@@ -977,24 +1036,27 @@ var rtl = {
           depth++;
           continue;
         } else {
-          if (srclen>lastlen) srclen=lastlen;
-          if (rtl.isArray(defaultvalue)){
+          if (srclen>newlen) srclen=newlen;
+          if (type == 0){
+            // array of simple value
+            for (var i=0; i<srclen; i++) a[i]=src[i];
+            for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue;
+          } else if (type == 1){
             // array of dyn array
             for (var i=0; i<srclen; i++) a[i]=src[i];
-            for (var i=oldlen; i<lastlen; i++) a[i]=[];
-          } else if (rtl.isObject(defaultvalue)) {
-            if (rtl.isTRecord(defaultvalue)){
-              // array of record
-              for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
-              for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue.$new();
-            } else {
-              // array of set
-              for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
-              for (var i=oldlen; i<lastlen; i++) a[i]={};
-            }
-          } else {
-            for (var i=0; i<srclen; i++) a[i]=src[i];
-            for (var i=oldlen; i<lastlen; i++) a[i]=defaultvalue;
+            for (var i=oldlen; i<newlen; i++) a[i]=[];
+          } else if (type == 2) {
+            // array of record
+            for (var i=0; i<srclen; i++) a[i]=defaultvalue.$clone(src[i]);
+            for (var i=oldlen; i<newlen; i++) a[i]=defaultvalue.$new();
+          } else if (type == 3) {
+            // array of set
+            for (var i=0; i<srclen; i++) a[i]=rtl.refSet(src[i]);
+            for (var i=oldlen; i<newlen; i++) a[i]={};
+          } else if (type == 4){
+            // array of interface
+            for (var i=0; i<srclen; i++) rtl.setIntfP(a,i,src[i]);
+            for (var i=oldlen; i<newlen; i++) a[i]=null;
           }
         }
       }
@@ -1003,8 +1065,7 @@ var rtl = {
         depth--;
       };
       if (depth===0){
-        if (dimmax===0) return a;
-        return stack[0].a;
+        return dimmax===0 ? a : stack[0].a;
       }
     }while (true);
   },
@@ -1030,11 +1091,10 @@ var rtl = {
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = type(src[srcpos]); // clone function
     } else if (rtl.isTRecord(type)){
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = type.$clone(src[srcpos]); // clone record
-    } else if (type === 'COM'){
-      // clone COM intf references
+    } else if (type === 'R'){
+      // clone managed instance
       for (; srcpos<endpos; srcpos++){
-        dst[dstpos]=null;
-        rtl.setIntfP(dst,dstpos++,src[srcpos]);
+        dst[dstpos++]=rtl._AddRef(src[srcpos]);
       }
     } else {
       for (; srcpos<endpos; srcpos++) dst[dstpos++] = src[srcpos]; // reference
@@ -1043,6 +1103,7 @@ var rtl = {
 
   arrayConcat: function(type){
     // type: see rtl.arrayClone
+    // returns refCnt=1
     var a = [];
     var l = 0;
     for (var i=1; i<arguments.length; i++){
@@ -1050,6 +1111,9 @@ var rtl = {
       if (src !== null) l+=src.length;
     };
     a.length = l;
+    if (type === 'R'){
+      rtl.arrayManaged(1,1,a);
+    }
     l=0;
     for (var i=1; i<arguments.length; i++){
       var src = arguments[i];
@@ -1066,8 +1130,8 @@ var rtl = {
       var src = arguments[i];
       if (src === null) continue;
       if (a===null){
-        a=rtl.arrayRef(src); // Note: concat(a) does not clone
-      } else if (a['$pas2jsrefcnt']){
+        a=rtl.arrayRef(src); // Note: concat(arr) does not clone
+      } else if (a.$pas2jsrefcnt>1){
         a=a.concat(src); // clone a and append src
       } else {
         for (var i=0; i<src.length; i++){
@@ -1080,8 +1144,8 @@ var rtl = {
 
   arrayPush: function(type,a){
     if(a===null){
-      a=[];
-    } else if (a['$pas2jsrefcnt']){
+      a=(type==='R') ? rtl.arrayManaged(1) : [];
+    } else if (a.$pas2jsrefcnt>1){
       a=rtl.arrayCopy(type,a,0,a.length);
     }
     rtl.arrayClone(type,arguments,2,arguments.length,a,a.length);
@@ -1091,7 +1155,7 @@ var rtl = {
   arrayPushN: function(a){
     if(a===null){
       a=[];
-    } else if (a['$pas2jsrefcnt']){
+    } else if (a.$pas2jsrefcnt>1){
       a=a.concat();
     }
     for (var i=1; i<arguments.length; i++){
@@ -1103,29 +1167,61 @@ var rtl = {
   arrayCopy: function(type, srcarray, index, count){
     // type: see rtl.arrayClone
     // if count is missing, use srcarray.length
-    if (srcarray === null) return [];
-    if (index < 0) index = 0;
+    if (srcarray === null) return (type === 'R') ? null : [];
     if (count === undefined) count=srcarray.length;
+    if (index < 0){
+      count+=index;
+      index = 0;
+    }
     var end = index+count;
     if (end>srcarray.length) end = srcarray.length;
-    if (index>=end) return [];
+    if (index>=end) return (type === 'R') ? null : [];
     if (type===0){
       return srcarray.slice(index,end);
     } else {
       var a = [];
       a.length = end-index;
+      if (type === 'R'){
+        rtl.arrayManaged(1,1,a);
+      }
       rtl.arrayClone(type,srcarray,index,end,a,0);
       return a;
     }
   },
 
-  arrayInsert: function(item, arr, index){
-    if (arr){
-      arr.splice(index,0,item);
-      return arr;
+  arrayInsert: function(item, a, index, type){
+    var m = (type === 'R');
+    if (m) rtl._AddRef(item);
+    if (a){
+      if (a.$pas2jsrefcnt>1){
+        if (m){
+          // clone
+          a.$pas2jsrefcnt--;
+          a=rtl.arrayManaged(1,2,a.concat());
+        } else {
+          a=a.concat();
+        }
+      }
+      a.splice(index,0,item);
+      return a;
     } else {
-      return [item];
+      a = [item];
+      if (m) a=rtl.arrayManaged(1,0,a);
+      return a;
     }
+  },
+
+  arrayDeleteR: function(a, index, count){
+    if (a===null || index<0 || index>=a.length || count<=0) return a;
+    if (index+count>a.length) count=a.length-index;
+    if (a.$pas2jsrefcnt>1){
+      // clone
+      a.$pas2jsrefcnt--;
+      a=rtl.arrayManaged(1,2,a.concat());
+    }
+    for (var i=0; i<count; i++) rtl.setIntfP(a,index+i,null);
+    a.splice(index,count);
+    return a;
   },
 
   setCharAt: function(s,index,c){
