@@ -236,7 +236,11 @@ type
     VarSizesPerClass = 32;
     VarSizesCount = VarSizeClassesCount * VarSizesPerClass;
     L0BinSize = 32;
-    MinEmptyVarHeaderAndPayload = (MaxFixedHeaderAndPayload + 1 shl FirstVarStepP2 + VarSizeQuant - 1) and -VarSizeQuant;
+
+    { Minimum size of the chunk that can be added to varFree.
+      Medium chunks can be smaller than this, all the way down to MinAnyVarHeaderAndPayload defined later in terms of things it must fit;
+      they aren’t visible for varFree searches but are visible for merging with freed neighbors. }
+    MinSearchableVarHeaderAndPayload = (MaxFixedHeaderAndPayload + 1 shl FirstVarStepP2 + VarSizeQuant - 1) and -VarSizeQuant;
     MaxVarHeaderAndPayload = (MaxFixedHeaderAndPayload + (1 shl VarSizeClassesCount - 1) shl FirstVarRangeP2) and -VarSizeQuant; {$if MaxVarHeaderAndPayload <> MaxFixedHeaderAndPayload + 1047552} {$error does not match the explanation above :D} {$endif}
 
     class function VarSizeToBinIndex(size: SizeUint; roundUp: boolean): SizeUint; static;
@@ -470,6 +474,7 @@ type
     FreeVarTailSize = sizeof(FreeVarTail);
     VarOSChunkDataOffset = (sizeof(VarOSChunk) + VarHeaderSize + Alignment - 1) and -Alignment - VarHeaderSize;
     HugeChunkDataOffset = (sizeof(HugeChunk) + CommonHeaderSize + Alignment - 1) and -Alignment - CommonHeaderSize;
+    MinAnyVarHeaderAndPayload = (sizeof(VarHeader) + sizeof(FreeVarChunk) + sizeof(FreeVarTail) + VarSizeQuant - 1) and -VarSizeQuant;
   end;
 
   class function HeapInc.SizeMinus1ToIndex(sizeMinus1: SizeUint): SizeUint;
@@ -1078,7 +1083,9 @@ type
     { Result will be allocated at the beginning of fv; maybe format the remainder and add it back to varFree. }
     result := fv;
     vSizeFlags := pVarHeader(fv)[-1].ch.h - size; { Inherits LastFlag. }
-    if vSizeFlags >= MinEmptyVarHeaderAndPayload then { Logically “vSizeFlags and VarSizeMask” but here it’s okay to not mask. }
+    { Allow leaving a non-searchable tail if non-last.
+      “vSizeFlags >= MinAnyVarHeaderAndPayload” if non-last, “vSizeFlags >= MinSearchableVarHeaderAndPayload” if last. }
+    if vSizeFlags >= MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (vSizeFlags and LastFlag) then
     begin
       pVarHeader(result - VarHeaderSize)^.ch.h := uint32(size) + UsedFlag;
       inc(pointer(fv), size); { result = allocated block, fv = remainder. }
@@ -1087,7 +1094,8 @@ type
       { Chunk to the right retains its PrevFreeFlag. }
       if vSizeFlags and LastFlag = 0 then
         pFreeVarTail(pointer(fv) + vSizeFlags - VarHeaderSize - FreeVarTailSize)^.size := vSizeFlags;
-      varFree.Add(fv, VarSizeToBinIndex(vSizeFlags and VarSizeMask, false));
+      if vSizeFlags >= MinSearchableVarHeaderAndPayload then
+        varFree.Add(fv, VarSizeToBinIndex(vSizeFlags, false)); { Rounding down, so not masking is ok. }
     end else
     begin
       { Use the entire chunk. }
@@ -1157,7 +1165,8 @@ type
       if uint32(hNext) and UsedFlag = 0 then
       begin
         inc(fSizeFlags, hNext); { Inherit LastFlag, other p2 flags must be 0. }
-        varFree.Remove(p2);
+        if hNext >= MinSearchableVarHeaderAndPayload then { Logically “hNext and VarSizeMask”. }
+          varFree.Remove(p2);
         { Chunk to the right retains its PrevFreeFlag. }
       end;
     end;
@@ -1171,7 +1180,8 @@ type
       begin
         p := p2;
         inc(fSizeFlags, hPrev); { All p2 flags must be 0. }
-        varFree.Remove(p2);
+        if hPrev >= MinSearchableVarHeaderAndPayload then { Logically “hPrev and VarSizeMask”. }
+          varFree.Remove(p2);
       end;
     end;
 
@@ -1181,7 +1191,7 @@ type
     begin
       dec(fSizeFlags, UsedFlag);
       pVarHeader(p - VarHeaderSize)^.ch.h := fSizeFlags;
-      varFree.Add(p, VarSizeToBinIndex(fSizeFlags and VarSizeMask, false));
+      varFree.Add(p, VarSizeToBinIndex(fSizeFlags, false));
       if fSizeFlags and LastFlag = 0 then
       begin
         pVarHeader(p + fSizeFlags - VarHeaderSize)^.ch.h := pVarHeader(p + fSizeFlags - VarHeaderSize)^.ch.h or PrevIsFreeFlag; { Could have it already. }
@@ -1254,7 +1264,7 @@ type
       exit(nil);
 
     { Round the size up, but only if supported by VarSizeToBinIndex: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
-    if size <= MaxVarHeaderAndPayload then
+    if size <= MaxVarHeaderAndPayload - VarHeaderSize then
       size := BinIndexToVarSize(VarSizeToBinIndex(size + VarHeaderSize, true))
     else
       size := (size + (VarHeaderSize + VarSizeQuant - 1)) and SizeUint(-VarSizeQuant); { Just do the strictly necessary quantization... }
@@ -1271,8 +1281,8 @@ type
 
       if (pVarHeader(result - VarHeaderSize)^.ch.h and LastFlag <> 0) or (pVarHeader(p2 - VarHeaderSize)^.ch.h and UsedFlag <> 0) then
       begin
-        { No empty chunk to the right: create free chunk if ≥ MinEmptyVarHeaderAndPayload, otherwise report success but change nothing. }
-        if fSizeFlags < MinEmptyVarHeaderAndPayload then
+        { No empty chunk to the right: create free chunk following the same logic as in AllocVar regarding the non-searchable tail, otherwise report success but change nothing. }
+        if fSizeFlags < MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (pVarHeader(result)[-1].ch.h and LastFlag) then
           exit;
         dec(used, fSizeFlags);
         inc(fSizeFlags, pVarHeader(result - VarHeaderSize)^.ch.h and LastFlag);
@@ -1285,7 +1295,8 @@ type
         { Has empty chunk to the right: extend with freed space. }
         dec(pVarHeader(result - VarHeaderSize)^.ch.h, fSizeFlags);
         inc(fSizeFlags, pVarHeader(p2 - VarHeaderSize)^.ch.h);
-        varFree.Remove(p2);
+        if pVarHeader(p2)[-1].ch.h >= MinSearchableVarHeaderAndPayload then
+          varFree.Remove(p2);
       end;
     end
     { Grow if there is free space. Note this can result in a chunk larger than e.g. SysGetMem allows (GrowHeapSize div 2 or so). That’s okay as it saves a Move. }
@@ -1294,7 +1305,7 @@ type
     then
     begin
       fSizeFlags := pVarHeader(p2)[-1].ch.h - (size - oldpsize); { Inherits LastFlag, other flags are 0. }
-      if fSizeFlags < MinEmptyVarHeaderAndPayload then
+      if fSizeFlags < MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (fSizeFlags and LastFlag) then
         fSizeFlags := fSizeFlags and LastFlag;
 
       growby := pVarHeader(p2)[-1].ch.h - fSizeFlags;
@@ -1307,7 +1318,8 @@ type
       { Update p size. }
       inc(pVarHeader(result - VarHeaderSize)^.ch.h, growby);
 
-      varFree.Remove(p2);
+      if pVarHeader(p2)[-1].ch.h >= MinSearchableVarHeaderAndPayload then
+        varFree.Remove(p2);
       { No empty chunk? }
       if fSizeFlags <= LastFlag then
       begin
@@ -1330,7 +1342,8 @@ type
       pVarHeader(fp + fSizeFlags - VarHeaderSize)^.ch.h := pVarHeader(fp + fSizeFlags - VarHeaderSize)^.ch.h or PrevIsFreeFlag; { Could have it already. }
       pFreeVarTail(fp + fSizeFlags - VarHeaderSize - FreeVarTailSize)^.size := fSizeFlags;
     end;
-    varFree.Add(fp, VarSizeToBinIndex(fSizeFlags and VarSizeMask, false));
+    if fSizeFlags >= MinSearchableVarHeaderAndPayload then
+      varFree.Add(fp, VarSizeToBinIndex(fSizeFlags, false));
   end;
 
   { If SysOSFree is available, huge chunks aren’t cached by any means.
@@ -1511,6 +1524,10 @@ type
       else
         gs.freeOS.last := lastFree;
       gs.freeOS.first := freeOS.first;
+      { Zeroing is probably required, because Orphan is called from FinalizeHeap which is called from DoneThread which can be called twice, according to this comment from syswin.inc: }
+      // DoneThread; { Assume everything is idempotent there }
+      freeOS.first := nil;
+      freeOS.last := nil;
     end;
 {$endif not HAS_SYSOSFREE}
     vOs := varOS;
@@ -1520,23 +1537,23 @@ type
       p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
       repeat
         h := pVarHeader(p - VarHeaderSize)^.ch.h;
-        if h and UsedFlag = 0 then
+        if (h and UsedFlag = 0) and (h >= MinSearchableVarHeaderAndPayload) then
           gs.varFree.Add(p, pFreeVarChunk(p)^.binIndex);
         inc(p, h and VarSizeMask);
       until h and LastFlag <> 0;
       vOs := vOs^.next;
     end;
+    varOS := nil;
     if gs.lockUse > 0 then
       LeaveCriticalSection(gs.lock);
 
 {$ifdef HAS_SYSOSFREE}
     if Assigned(freeOS1) then
+    begin
       SysOSFree(freeOS1, freeOS1^.size); { Does not require gs.lock. }
+      freeOS1 := nil;
+    end;
 {$endif HAS_SYSOSFREE}
-
-    { Zeroing is probably required, because Orphan is called from FinalizeHeap which is called from DoneThread which can be called twice, according to this comment from syswin.inc: }
-    // DoneThread; { Assume everything is idempotent there }
-    FillChar(self, sizeof(self), 0);
   end;
 
   procedure HeapInc.ThreadState.AdoptArena(arena: pFixedArena);
@@ -1589,8 +1606,11 @@ type
       h := pVarHeader(p - VarHeaderSize)^.ch.h;
       if h and UsedFlag = 0 then
       begin
-        gs.varFree.Remove(p);
-        varFree.Add(p, pFreeVarChunk(p)^.binIndex);
+        if h >= MinSearchableVarHeaderAndPayload then
+        begin
+          gs.varFree.Remove(p);
+          varFree.Add(p, pFreeVarChunk(p)^.binIndex);
+        end;
       end
       else if h and FixedArenaFlag <> 0 then
          AdoptArena(p)
@@ -1660,7 +1680,7 @@ begin
   if size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize then
     result := ts^.AllocFixed(size)
   else if (size < GrowHeapSize2 div 2) { Approximate idea on the max size of the variable chunk. Approximate because size does not include headers but GrowHeapSize2 does. }
-    and (size < HeapInc.MaxVarHeaderAndPayload - HeapInc.VarHeaderSize) then
+    and (size <= HeapInc.MaxVarHeaderAndPayload - HeapInc.VarHeaderSize) then
     result := ts^.AllocVar(size, false)
   else
     result := ts^.AllocHuge(size);
