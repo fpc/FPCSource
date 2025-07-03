@@ -2485,7 +2485,7 @@ TYPE
      IMallocSpy = Interface(IUnknown)
         ['{0000001d-0000-0000-C000-000000000046}']
 
-        Function  PreAlloc(cbrequest:Size_t):Longint; StdCall;
+        Function  PreAlloc(cbrequest:Size_t):Size_t; StdCall;
         function  PostAlloc(Pactual:Pointer):Pointer;StdCall;
         Function  PreFree(pRequest:Pointer;fSpyed:bool):pointer;StdCall;
         Procedure PostFree(fspyed:Bool);Stdcall;
