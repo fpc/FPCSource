@@ -2405,7 +2405,7 @@ unit rgobj;
                         hp:=tai(p.previous);
                         while Assigned(hp) do
                           begin
-                            if (hp.typ in [ait_comment,ait_varloc]) then
+                            if (hp.typ in [ait_comment,ait_tempalloc,ait_varloc]) then
                               { Do nothing, but pass control flow to
                                 "hp:=tai(hp.previous)" and continue the loop }
                             else if (hp.typ=ait_regalloc) then
