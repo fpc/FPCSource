@@ -3338,7 +3338,7 @@ TYPE
      Function  GetRefTypeOfImplType(index: UINT; OUT pRefType: HREFTYPE):HResult;StdCall;
      Function  GetImplTypeFlags(index: UINT; OUT pImplTypeFlags: WINT):HResult;StdCall;
      {$ifndef Call_as}
-      Function  GetIDsOfNames(CONST rgszNames: pOleStr; cNames: UINT; OUT pMemId: MEMBERID):HResult;StdCall;
+      Function  GetIDsOfNames(rgszNames: POleStrList; cNames: UINT; OUT pMemId: MEMBERID):HResult;StdCall;
      {$else}
       Function  LocalGetIDsOfNames():HResult;StdCall;
      {$endif}
