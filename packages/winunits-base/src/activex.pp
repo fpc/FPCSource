@@ -4410,8 +4410,8 @@ type
   type
      LPOLESTREAM = ^_OLESTREAM;
      _OLESTREAMVTBL = record
-       Get : function (p : POleStr;out o;dw : DWORD) : DWORD;
-       Put : function (p : POleStr;const o;dw : DWORD) : DWORD;
+       Get : function (p : POleStr;out o;dw : DWORD) : DWORD; stdcall;
+       Put : function (p : POleStr;const o;dw : DWORD) : DWORD; stdcall;
      end;
      OLESTREAMVTBL =  _OLESTREAMVTBL;
 
