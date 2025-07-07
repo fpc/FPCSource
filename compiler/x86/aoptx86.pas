@@ -3712,20 +3712,17 @@ unit aoptx86;
 {$ifdef x86_64}
                       { Change:
                           movl %reg1l,%reg2l
-                          movq %reg2q,%reg3q  (%reg1 <> %reg3)
+                          movq %reg2q,%reg1q
 
                         To:
-                          movl %reg1l,%reg2l
-                          movl %reg1l,%reg3l  (Upper 32 bits of %reg3q will be zero)
-
-                        If %reg1 = %reg3, convert to:
                           movl %reg1l,%reg2l
                           andl %reg1l,%reg1l
                       }
                       if (taicpu(p).opsize = S_L) and MatchInstruction(hp1,A_MOV,[S_Q]) and
                         not RegModifiedBetween(p_SourceReg, p, hp1) and
                         MatchOpType(taicpu(hp1), top_reg, top_reg) and
-                        SuperRegistersEqual(p_TargetReg, taicpu(hp1).oper[0]^.reg) then
+                        SuperRegistersEqual(p_TargetReg, taicpu(hp1).oper[0]^.reg) and
+                        SuperRegistersEqual(p_SourceReg, taicpu(hp1).oper[1]^.reg) then
                         begin
                           TransferUsedRegs(TmpUsedRegs);
                           UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
@@ -3736,45 +3733,18 @@ unit aoptx86;
 
                           AllocRegBetween(p_SourceReg, p, hp1, UsedRegs);
 
-                          if (p_SourceReg = taicpu(hp1).oper[1]^.reg) then
-                            begin
-                              { %reg1 = %reg3 }
-                              DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 1)', hp1);
-                              taicpu(hp1).opcode := A_AND;
+                          DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlAndl 1)', hp1);
+                          taicpu(hp1).opcode := A_AND;
 
-                              { We may be able to do more and replace references
-                                to %reg2q with %reg1q etc. }
-                              if (cs_opt_level3 in current_settings.optimizerswitches) and
-                                { p_TargetReg is not used between, otherwise the earlier
-                                  GetNextInstructionUsingReg would have stopped sooner }
-                                DoZeroUpper32Opt(p,hp1) then
-                                begin
-                                  Result := True;
-                                  Exit;
-                                end;
-                            end
-                          else
+                          { We may be able to do more and replace references
+                            to %reg2q with %reg1q etc. }
+                          if (cs_opt_level3 in current_settings.optimizerswitches) and
+                            { p_TargetReg is not used between, otherwise the earlier
+                              GetNextInstructionUsingReg would have stopped sooner }
+                            DoZeroUpper32Opt(p,hp1) then
                             begin
-                              { %reg1 <> %reg3 }
-                              DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
-                            end;
-
-                          if not RegUsedAfterInstruction(p_TargetReg, hp1, TmpUsedRegs) then
-                            begin
-                              DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
-                              RemoveCurrentP(p);
                               Result := True;
                               Exit;
-                            end
-                          else
-                            begin
-                              { Initial instruction wasn't actually changed }
-                              Include(OptsToCheck, aoc_ForceNewIteration);
-
-                              { if %reg1 = %reg3, don't do the long-distance lookahead that
-                                appears below since %reg1 has technically changed }
-                              if taicpu(hp1).opcode = A_AND then
-                                Exit;
                             end;
                         end;
 
@@ -11361,6 +11331,57 @@ unit aoptx86;
               called, so FuncMov2Func below is safe to call }
 {$endif x86_64}
           end;
+
+{$ifdef x86_64}
+        { Note, this optimisation was moved from Pass 1 because the CMOV
+          optimisations in OptPass2Jcc fall foul of the loss of information
+          about the upper 32 bits of the target register.  Fixes #41317. }
+
+        { Change:
+            movl %reg1l,%reg2l
+            movq %reg2q,%reg3q  (%reg1 <> %reg3)
+
+          To:
+            movl %reg1l,%reg2l
+            movl %reg1l,%reg3l  (Upper 32 bits of %reg3q will be zero)
+        }
+        if MatchOpType(taicpu(p), top_reg, top_reg) and
+          (taicpu(p).opsize = S_L) and
+          (
+            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            { Look further ahead for this one }
+            GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[1]^.reg)
+          ) and
+          MatchInstruction(hp1,A_MOV,[S_Q]) and
+          not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1) and
+          MatchOpType(taicpu(hp1), top_reg, top_reg) and
+          SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^.reg) then
+          begin
+            TransferUsedRegs(TmpUsedRegs);
+            UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+
+            taicpu(hp1).opsize := S_L;
+            taicpu(hp1).loadreg(0, taicpu(p).oper[0]^.reg);
+            setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+
+            AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
+
+            DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
+
+            if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp1, TmpUsedRegs) then
+              begin
+                DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
+                RemoveCurrentP(p);
+                Result := True;
+                Exit;
+              end
+            else
+              begin
+                { Initial instruction wasn't actually changed }
+                Include(OptsToCheck, aoc_ForceNewIteration);
+              end;
+          end;
+{$endif x86_64}
 
         if FuncMov2Func(p, hp1) then
           begin
