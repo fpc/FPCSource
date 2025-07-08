@@ -1656,12 +1656,12 @@ end;
 
 procedure TJSONNumber.ToChars(aBuilder: TUnicodeStringBuilder; aOptions: TJSONAncestor.TJSONOutputOptions);
 begin
-  inherited ToChars(aBuilder, aOptions);
+  aBuilder.Append(Value);
 end;
 
 function TJSONNumber.Clone: TJSONAncestor;
 begin
-  Result:=inherited Clone;
+  Result:=TJSONNumber.Create(Self.Value);
 end;
 
 { TJSONNull }
@@ -2223,6 +2223,7 @@ var
   O : TJSONObject absolute v;
 
 begin
+  Result:=0;
   V:=TJSONValue.ParseJSONValue(aData,aPos,aCount,[TJSONParseOption.UseBool]);
   if not (V is TJSONObject) then
     begin
