@@ -49,6 +49,16 @@ begin
       T.Dependencies.AddUnit('wasm.http.api');
       T.Dependencies.AddUnit('wasm.http.shared');
 
+    // Messsage channel
+    T:=P.Targets.AddUnit('wasm.messagechannel.shared.pas');
+
+    T:=P.Targets.AddUnit('wasm.messagechannel.api.pas');
+      T.Dependencies.AddUnit('wasm.messagechannel.shared');
+      
+    T:=P.Targets.AddUnit('wasm.messagechannel.objects.pas');
+      T.Dependencies.AddUnit('wasm.messagechannel.api');
+      T.Dependencies.AddUnit('wasm.messagechannel.shared');
+
     // Websocket
     T:=P.Targets.AddUnit('wasm.websocket.shared.pas');
     
