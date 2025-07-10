@@ -18,7 +18,7 @@ const
     pcrelibname = 'libpcre2-8.so.0';
   {$ELSE}
     {$IFDEF windows}
-      pcrelibname = 'libpcre-1.dll'; // As used in Mingw64
+      pcrelibname = 'libpcre2-8-0.dll'; // As used in Mingw64
     {$ELSE}
       {$IFDEF DARWIN}
         pcrelibname = 'libpcre2-8.dylib';

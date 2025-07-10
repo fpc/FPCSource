@@ -18,7 +18,7 @@ const
     pcrelibname = 'libpcre2-16.so.0';
   {$ELSE}
     {$IFDEF windows}
-      pcrelibname = 'libpcre16-0.dll'; // As used in Mingw64
+      pcrelibname = 'libpcre2-16-0.dll'; // As used in Mingw64
     {$ELSE}
       {$ERROR: platform not supported by pcre}
     {$ENDIF}
