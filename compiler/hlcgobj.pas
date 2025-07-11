@@ -4577,10 +4577,7 @@ implementation
                      end;
 {$endif cpuflags}
                    else
-                     begin
-                       printnode(output,p);
-                       internalerror(2011010418);
-                     end;
+                     internalerror(2011010418);
                  end;
               end;
             location_reset_jump(p.location,truelabel,falselabel);
