@@ -9,6 +9,7 @@ Type
   TApp = Class(TObject)
     FChannel : TWasmMessageChannel;
     FCounter : Integer;
+    procedure HandleMessage(Sender: TObject; const aMessage: string);
     procedure SendMessage;
     constructor create;
   end;
@@ -26,7 +27,7 @@ exports SendMessage;
 
 { TApp }
 
-procedure HandleMessage(Sender: TObject; const aMessage: string);
+procedure TApp.HandleMessage(Sender: TObject; const aMessage: string);
 begin
   Writeln('WASM received on "some_channel" a message: ',aMessage);
 end;

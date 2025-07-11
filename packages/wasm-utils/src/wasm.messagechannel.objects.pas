@@ -31,7 +31,7 @@ uses
 
 Type
   EMessageChannel = class(Exception);
-  TMessageChannelEvent = procedure(Sender : TObject; const aMessage : string);
+  TMessageChannelEvent = procedure(Sender : TObject; const aMessage : string) of object;
 
   { TWasmMessageChannel }
 
