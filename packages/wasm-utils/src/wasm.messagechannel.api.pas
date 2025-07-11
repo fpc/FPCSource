@@ -92,15 +92,15 @@ end;
 procedure messagechannel_onmesssage_callback_utf16(aID: TWasmMessageChannelID; aMsg: PUnicodeChar; aMsgLen: Longint);
 
 var
-  S : UTF8String;
+  S : UnicodeString;
 
 begin
   if assigned(OnMessageUTF16) then
     begin
     SetLength(S,aMsgLen);
     if aMsgLen>0 then
-      Move(aMsg^,S[1],aMsgLen);
-    OnMessageUTF8(aID,S);
+      Move(aMsg^,S[1],aMsgLen*2);
+    OnMessageUTF16(aID,S);
     end;
 end;
 
