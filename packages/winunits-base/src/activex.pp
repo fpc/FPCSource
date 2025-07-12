@@ -99,6 +99,7 @@ type
    POleColor           = LPOle_Color;
    HHandle             = UINT_PTR;
 
+{$PUSH}{$WRITABLECONST OFF}
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
    IID_IPrint : TGUID = '{B722BCC9-4E68-101B-A2BC-00AA00404770}';
@@ -186,7 +187,7 @@ CONST
    IID_IOleCache2 : TGUID = '{00000128-0000-0000-C000-000000000046}';
    IID_IOleCacheControl : TGUID = '{00000129-0000-0000-C000-000000000046}';
    IID_IOleItemContainer : TGUID = '{0000011C-0000-0000-C000-000000000046}';
-
+{$POP}
 
      // bit flags for IExternalConnection
 CONST
