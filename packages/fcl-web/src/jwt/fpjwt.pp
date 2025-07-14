@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.TypInfo, System.Classes, System.SysUtils, FpJson.Data, Fcl.BaseNEnc;
+  System.TypInfo, System.Classes, System.SysUtils, FpJson.Data, Fcl.BaseNEnc, System.Types;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  TypInfo, Classes, SysUtils, fpjson, basenenc;
+  TypInfo, Classes, SysUtils, fpjson, basenenc, types;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -59,6 +59,8 @@ Type
   Protected
     // Override this to disable writing a property to the JSON.
     function WriteProp(P: PPropInfo; All: Boolean): Boolean; virtual;
+    // Override this to disable reading a property from the JSON.
+    function ReadProp(P: PPropInfo; Data: TJSONData): Boolean; virtual;
     function GetAsEncodedString: String; virtual;
     procedure SetAsEncodedString(const AValue: String); virtual;
     function GetAsString: TJSONStringType; virtual;
@@ -114,21 +116,29 @@ Type
   TJOSEClass = Class of TJOSE;
 
   { TClaims }
-
+  
   TClaims = Class(TBaseJWT)
   private
-    FAud: String;
+    FAuds: TStringDynArray;
     FExp: Int64;
     FIat: Int64;
     FIss: String;
     FJTI: String;
     FNbf: Int64;
     FSub: String;
+    procedure SetAud(avalue : string);
+    function GetAud : String;
+  protected
+    function WriteProp(P: PPropInfo; All: Boolean): Boolean; override;
+    function ReadProp(P: PPropInfo; Data: TJSONData): Boolean; override;
+    Procedure DoSaveToJSON(JSON : TJSONObject; All : Boolean); override;
+  public
+    property auds : TStringDynArray read FAuds Write Fauds;
   Published
     // Registered Claim Names. Keep the case lowercase, the RTTI must match the registered name.
     Property iss : String Read FIss Write FIss;
     Property sub : String Read FSub Write FSub;
-    Property aud : String Read FAud Write FAud;
+    Property aud : String Read GetAud Write SetAud;
     Property exp : Int64 Read FExp Write FExp;
     Property nbf : Int64 Read FNbf Write FNbf;
     Property iat : Int64 Read FIat Write FIat;
@@ -582,31 +592,38 @@ begin
     begin
     P:=GetPropInfo(Self,D.Key);
     if (P<>Nil) and not D.Value.IsNull then
-      Case P^.PropType^.Kind of
-        tkInteger : SetOrdProp(Self,P,D.Value.AsInteger);
-        tkChar :
-          if D.Value.AsString<>'' then
-            SetOrdProp(Self,P,Ord(D.Value.AsString[1]));
-        tkEnumeration :
-          if (D.Value.JSONType=jtNumber) and (TJSONNumber(D.Value).NumberType=ntInteger) then
-            SetOrdProp(Self,P,D.Value.AsInteger)
-          else
-            SetOrdProp(Self,P,GetEnumValue(p^.PropType,D.Value.AsString));
-        tkFloat :
-          SetFloatProp(Self,P,D.Value.AsFloat);
-        tkSString,tkLString,tkAString :
-          SetStrProp(Self,P,D.Value.AsString);
-        tkWChar, tkUString,tkWString,tkUChar:
-          SetWideStrProp(Self,P,D.Value.AsString);
-        tkBool :
-          SetOrdProp(Self,P,Ord(D.Value.AsBoolean));
-        tkInt64,tkQWord:
-          SetInt64Prop(Self,P,Ord(D.Value.AsInt64));
-        end;
+      if ReadProp(P,D.Value) then
+        Case P^.PropType^.Kind of
+          tkInteger : SetOrdProp(Self,P,D.Value.AsInteger);
+          tkChar :
+            if D.Value.AsString<>'' then
+              SetOrdProp(Self,P,Ord(D.Value.AsString[1]));
+          tkEnumeration :
+            if (D.Value.JSONType=jtNumber) and (TJSONNumber(D.Value).NumberType=ntInteger) then
+              SetOrdProp(Self,P,D.Value.AsInteger)
+            else
+              SetOrdProp(Self,P,GetEnumValue(p^.PropType,D.Value.AsString));
+          tkFloat :
+            SetFloatProp(Self,P,D.Value.AsFloat);
+          tkSString,tkLString,tkAString :
+            SetStrProp(Self,P,D.Value.AsString);
+          tkWChar, tkUString,tkWString,tkUChar:
+            SetWideStrProp(Self,P,D.Value.AsString);
+          tkBool :
+            SetOrdProp(Self,P,Ord(D.Value.AsBoolean));
+          tkInt64,tkQWord:
+            SetInt64Prop(Self,P,Ord(D.Value.AsInt64));
+          end;
    end;
 end;
 
 function TBaseJWT.WriteProp(P: PPropInfo; All: Boolean): Boolean;
+
+begin
+  Result:=True;
+end;
+
+function TBaseJWT.ReadProp(P: PPropInfo; Data: TJSONData): Boolean;
 
 begin
   Result:=True;
@@ -741,6 +758,70 @@ begin
   if not (D is TJSONData) then
     FreeAndNil(D);
   Result:=TJSONObject(D);
+end;
+
+procedure TClaims.SetAud(avalue : string);
+begin
+  SetLength(Fauds,1);
+  Fauds[0]:=aValue;
+end;
+
+function TClaims.GetAud : String;
+
+begin
+  if Length(Fauds)>0 then
+    Result:=Fauds[0]
+  else
+    Result:='';  
+end;
+
+function TClaims.WriteProp(P: PPropInfo; All: Boolean): Boolean;
+
+begin
+  Result:=(P^.Name<>'aud');
+end;
+
+function TClaims.ReadProp(P: PPropInfo; Data: TJSONData): Boolean;
+
+var
+  lArr : TJSONarray absolute Data;
+  I : Integer;
+
+begin
+  Result:=(P^.Name<>'aud');
+  if not Result then
+    if Data is TJSONString then
+      begin
+      SetLength(fauds,1);
+      Fauds[0]:=Data.AsString;
+      end
+    else if Data is TJSONArray then
+      begin
+      SetLength(Fauds,lArr.Count);
+      For I:=0 to lArr.Count-1 do
+        if lArr.Types[i]=jtString then
+          Fauds[i]:=lArr.Strings[i];
+      end;
+end;
+
+Procedure TClaims.DoSaveToJSON(JSON : TJSONObject; All : Boolean); 
+
+var
+ lAuds : TJSONArray;
+ S : String;
+
+begin
+  if Length(FAuds)=1 then
+    JSON.Add('aud',fauds[0])
+  else if Length(FAuds)=0 then
+    JSON.Add('aud','')
+  else
+    begin
+    lAuds:=TJSONArray.Create;
+    JSON.Add('aud',lAuds);
+    for S in FAuds do
+      lAuds.Add(S);
+    end;
 end;
 
 initialization
