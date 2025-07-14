@@ -174,15 +174,12 @@ end;
 
 procedure TEllipseInfo.GatherEllipseInfo (const bounds:TRect);
 var infoP, infoM : PEllipseInfoData;
-    halfnumber,
     r, NumberPixels, xtemp,yt,yb : integer;
-    pPy, pMy, x,y, rx,ry, xd,yd,ra, rdelta : real;
+    x,y, rx,ry, xd,yd,ra, rdelta : real;
     ras,rac : single;
-    
 begin
   ClearList;
   CalculateCircular (bounds, x,y,rx,ry);
-  with bounds do
   fcx := x;
   fcy := y;
   frx := rx;
@@ -198,9 +195,6 @@ begin
   else
     begin
     PrepareCalculation (NumberPixels, rdelta);
-    halfnumber := NumberPixels div 2;
-    pPy := maxint;
-    pMy := maxint;
     ra := 0;
     infoP := NewInfoRec (round(x + rx));
     infoM := NewInfoRec (round(x - rx));
@@ -216,26 +210,6 @@ begin
       // quarter 1 and 4 at the same x line
       if infoP^.x <> xtemp then                  // has correct record ?
         begin
-        with infoP^ do                           // ensure single width
-          begin
-          if r < halfnumber then
-            begin
-            if ytopmin = yt then
-              begin
-              inc (ytopmin);
-              dec (ybotmax);
-              end;
-            end
-          else
-            begin
-            if (ytopmax = pPy) and (ytopmax <> ytopmin) then
-              begin
-              dec (ytopmax);
-              inc (ybotmin);
-              end;
-            end;
-          pPy := ytopmin;
-          end;
         if not GetInfoForX (xtemp, infoP) then  // record exists already ?
           infoP := NewInfoRec (xtemp);          // create a new recod
         end;
@@ -255,26 +229,6 @@ begin
       xtemp := round(x - xd);
       if infoM^.x <> xtemp then                  // has correct record ?
         begin
-        with infoM^ do             // ensure single width
-          begin
-          if r < halfnumber then
-            begin
-            if ytopmin = yt then
-              begin
-              inc (ytopmin);
-              dec (ybotmax);
-              end;
-            end
-          else
-            begin
-            if (ytopmax = pMy) and (ytopmax <> ytopmin) then
-              begin
-              dec (ytopmax);
-              inc (ybotmin);
-              end;
-            end;
-          pMy := ytopmin;
-          end;
         if not GetInfoForX (xtemp, infoM) then  // record exists already ?
           infoM := NewInfoRec (xtemp);          // create a new recod
         end;
@@ -371,9 +325,10 @@ end;
 
 procedure DrawSolidEllipse (Canv:TFPCustomCanvas; const Bounds:TRect; Width:integer; const c:TFPColor);
 var infoOut, infoIn : TEllipseInfo;
-    r, y : integer;
+    r, y, dw : integer;
     id : PEllipseInfoData;
     MyPutPix : TPutPixelProc;
+    rct: TRect;
 begin
   with canv.pen do
     case mode of
@@ -384,12 +339,15 @@ begin
     end;
   infoIn := TEllipseInfo.Create;
   infoOut := TEllipseInfo.Create;
-  dec (width);
+  dec(Width);
+  dw := Width div 2;
   id:=Nil;
   try
-    infoOut.GatherEllipseInfo(bounds);
-    with bounds do
-      infoIn.GatherEllipseInfo (Rect(left+width,top+width,right-width,bottom-width));
+    rct := bounds;
+    rct.Inflate(dw, dw);
+    infoOut.GatherEllipseInfo(rct);
+    rct.Inflate(-Width, -Width);
+    infoIn.GatherEllipseInfo(rct);
     with Canv do
       for r := 0 to infoOut.infolist.count-1 do
         with PEllipseInfoData (infoOut.infolist[r])^ do
