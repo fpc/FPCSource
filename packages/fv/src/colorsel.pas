@@ -483,10 +483,10 @@ procedure TColorDisplay.Store(var S: TStream);
 var vColor : byte;
 begin
   inherited Store(S);
-  S.WriteStr(Text);
   vColor:=0;
   if Assigned(Color) then vColor:=Color^;
   S.Write(vColor, SizeOf(vColor));
+  S.WriteStr(Text);
 end;
 
 procedure TColorDisplay.HandleEvent(var Event: TEvent);
