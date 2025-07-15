@@ -306,6 +306,7 @@ TYPE
       PROCEDURE GetTileRect (Var R: TRect); Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       procedure WriteShellMsg; virtual;
+      procedure ResizeApplication(x, y : sw_integer); Virtual;
    END;
    PApplication = ^TApplication;                      { Application ptr }
 
@@ -1062,6 +1063,12 @@ BEGIN
 {$else FV_UNICODE}
                {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}Drivers.GetSystemEvent(Event);         { Load system event }
 {$endif FV_UNICODE}
+               if Event.What <> evNothing then
+                   { System events handle right away.
+                     Needed to respond correctly to cmResizeApp.
+                     If you need Event before hand then call GetSystemEvent(Event) instead. }
+                   HandleEvent (Event);
+
                If (Event.What = evNothing) Then
 {$ENDIF}
                  Idle;     { Idle if no event }
@@ -1183,6 +1190,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TApplication.DosShell;
 
+var PrevHeight,PrevWidth : Sw_Word;
 {$ifdef unix}
 var s:string;
 {$endif}
@@ -1211,6 +1219,8 @@ BEGIN                                                 { Compatability only }
   SwapVectors;
 {$endif}
 {  InitDosMem;}
+  PrevHeight:=ScreenHeight;
+  PrevWidth:=ScreenWidth;
 {$ifdef FV_UNICODE}
   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}udrivers.initkeyboard;
   {$IFDEF FPC_DOTTEDUNITS}FreeVision.{$ENDIF}udrivers.initvideo;
@@ -1223,7 +1233,12 @@ BEGIN                                                 { Compatability only }
   InitEvents;
   InitSysError;
   {$ifdef unix}InitClip(@Self);{$endif}
-  Redraw;
+  if (PrevHeight<>ScreenHeight) or (PrevWidth<>ScreenWidth) then
+    { acknowledge new screen dimensions }
+    { prevents to draw out of boundaries of new video buffer }
+    ResizeApplication(ScreenWidth,ScreenHeight)
+  else
+    Redraw;
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1246,6 +1261,7 @@ BEGIN
        cmTile: Tile;                                  { Tile request }
        cmCascade: Cascade;                            { Cascade request }
        cmDosShell: DosShell;                          { DOS shell request }
+       cmResizeApp: ResizeApplication(Event.Id, Event.InfoWord); { Resize App }
        Else Exit;                                     { Unhandled exit }
      End;
      ClearEvent(Event);                               { Clear the event }
@@ -1258,6 +1274,23 @@ begin
   writeln(sTypeExitOnReturn);
 end;
 
+procedure TApplication.ResizeApplication(x, y : sw_integer);
+var
+  OldR : TRect;
+  Mode : TVideoMode;
+begin
+  GetBounds(OldR);
+  { adapt to new size }
+  if (OldR.B.Y-OldR.A.Y<>y) or
+     (OldR.B.X-OldR.A.X<>x) then
+    begin
+      Mode.color:=ScreenMode.Color;
+      Mode.col:=x;
+      Mode.row:=y;
+      SetScreenVideoMode(Mode);
+      Redraw;
+    end;
+end;
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
