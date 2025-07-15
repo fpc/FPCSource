@@ -398,27 +398,27 @@ TYPE
 
 CONST
   { VMT constants. }
-  REditor   : TStreamRec = (ObjType : 70;
+  REditor   : TStreamRec = (ObjType : idEditor;
                             VmtLink : Ofs (TypeOf (TEditor)^);
                                Load : @TEditor.Load;
                               Store : @TEditor.Store);
 
-  RMemo     : TStreamRec = (ObjType : 71;
+  RMemo     : TStreamRec = (ObjType : idMemo;
                             VmtLink : Ofs (TypeOf (TMemo)^);
                                Load : @TMemo.Load;
                               Store : @TMemo.Store);
 
-  RFileEditor : TStreamRec = (ObjType : 72;
+  RFileEditor : TStreamRec = (ObjType : idFileEditor;
                               VmtLink : Ofs (TypeOf (TFileEditor)^);
                                  Load : @TFileEditor.Load;
                                 Store : @TFileEditor.Store);
 
-  RIndicator : TStreamRec = (ObjType : 73;
+  RIndicator : TStreamRec = (ObjType : idIndicator;
                              VmtLink : Ofs (TypeOf (TIndicator)^);
                                 Load : @TIndicator.Load;
                                Store : @TIndicator.Store);
 
-  REditWindow : TStreamRec = (ObjType : 74;
+  REditWindow : TStreamRec = (ObjType : idEditWindow;
                               VmtLink : Ofs (TypeOf (TEditWindow)^);
                                  Load : @TEditWindow.Load;
                                 Store : @TEditWindow.Store);
