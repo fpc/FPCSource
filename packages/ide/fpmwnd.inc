@@ -141,8 +141,11 @@ end;
 function TWindowListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PView;
     S: string;
+    savMaxLen: Sw_Integer;
 begin
   P:=List^.At(Item);
+  savMaxLen:=MaxLen;
+  MaxLen:=MaxLen-9; { have to have less to actually fit in long file paths }
   case P^.HelpCtx of
     hcSourceWindow : S:=PSourceWindow(P)^.GetTitle(MaxLen);
     hcHelpWindow   : S:=PHelpWindow(P)^.GetTitle(MaxLen);
@@ -164,6 +167,7 @@ begin
       S:=PWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
   end;
+  MaxLen:=savMaxLen;
   if PWindow(P)^.Number<>0 then
     S:=S+'('+IntToStr(PWindow(P)^.Number)+')';
   if P^.GetState(sfVisible) then S:=' '+S else
