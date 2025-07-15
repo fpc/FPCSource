@@ -397,7 +397,7 @@ begin
           if Color<>sColor then
           begin
             Color:=sColor;
-            Draw;
+            DrawView;
           end;
         end;
       end;
@@ -412,7 +412,7 @@ begin
       Message(Owner, evBroadcast, cmColorForegroundChanged, pointer(byte(Color)))
     else
       Message(Owner, evBroadcast, cmColorBackgroundChanged, pointer(byte(Color)));
-    Owner^.Draw;
+    Owner^.DrawView;
   end;
 end;
 
@@ -497,12 +497,12 @@ begin
       case Event.Command of
         cmColorForegroundChanged:if assigned(Color) then begin
           Color^:=(Color^ and  $f0) or (Event.InfoByte and $0f);
-          Draw;
+          DrawView;
           ClearEvent(Event);                             { Event was handled }
         end;
         cmColorBackgroundChanged:if assigned(Color) then begin
           Color^:= (Color^ and $0f) or((Event.InfoByte shl 4) and $f0);
-          Draw;
+          DrawView;
           ClearEvent(Event);                             { Event was handled }
         end;
       end;
@@ -513,7 +513,7 @@ procedure TColorDisplay.SetColor(var AColor: Byte);
 begin
   Color:=@AColor;
   Message(Owner, evBroadcast, cmColorSet, pointer(byte(Color^))); {intended type cast byte to pointer}
-  Draw;
+  DrawView;
 end;
 
 procedure TColorDisplay.Draw;
@@ -833,7 +833,7 @@ begin
             SetItems(x^.Items)
           else SetItems(nil);
           FocusItem(ItemIndex);
-          Draw;
+          DrawView;
           ClearEvent(Event);                             { Event was handled }
         end;
       end;
