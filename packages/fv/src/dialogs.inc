@@ -3254,7 +3254,8 @@ BEGIN
        else
        begin
          AtStartOfLine := False;
-         if (EGC <> #13) and (EGC <> #10) then
+         { ha, #13#10 is one unicode character }
+         if (EGC <> #13#10) and (EGC <> #13) and (EGC <> #10) then
          begin
            if EGC = ' ' then
            begin
@@ -3269,7 +3270,7 @@ BEGIN
              LastTruncatedBoundaryWidth := CurLineWidth;
            end;
          end;
-         if (CurLineWidth >= Size.X) or (EGC = #13) then
+         if (CurLineWidth >= Size.X) or (EGC = #13#10) or (EGC = #13) or (EGC = #10) then
          begin
            if CurLineWidth >= Size.X then
            begin
