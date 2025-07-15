@@ -94,6 +94,7 @@ type
     constructor Load(var S: TStream);
     procedure   Store(var S: TStream);
     procedure HandleEvent(var Event:TEvent); virtual;
+    procedure SizeLimits (Var Min, Max: TPoint); Virtual;
   end;
 
 {---------------------------------------------------------------------------}
@@ -321,6 +322,14 @@ begin
     end
   else inherited HandleEvent(Event);
 end;
+
+procedure TASCIIChart.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=34;
+  Min.Y:=12;
+  Max:=Min;  { make sure no resize can take place }
+end;
+
 {---------------------------------------------------------------------------}
 { Registration procedure                                                    }
 {---------------------------------------------------------------------------}
