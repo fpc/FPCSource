@@ -234,6 +234,7 @@ type
     function   Do_Word_Wrap (Select_Mode : Byte; Center_Cursor : Boolean) : Boolean;
     procedure  DrawLines (Y, Count : Sw_Integer; LinePtr : Sw_Word);
     procedure  Find;
+    function   GetLineDisplayLen: Sw_word;
     function   GetMousePtr (Mouse : TPoint) : Sw_Word;
     function   HasSelection : Boolean;
     procedure  HideSelect;
@@ -2000,6 +2001,15 @@ begin
 end; {TEditor.FormatLine}
 
 
+function TEditor.GetLineDisplayLen: Sw_word;
+var S, E : Sw_word;
+begin
+  S:=LineStart(CurPtr);
+  E:=LineEnd(CurPtr);
+  GetLineDisplayLen:=Min(E-S,MaxLineLength-1);
+end; {TEditor.GetLineDisplayLen}
+
+
 function TEditor.GetMousePtr (Mouse : TPoint) : Sw_Word;
 begin
   MakeLocal (Mouse, Mouse);
@@ -2339,6 +2349,8 @@ begin
   if not IsClipboard then
     Modified := True;
   SetBufSize (BufLen + DelCount);
+  if Not Word_Wrap then
+    Limit.X:=Max(Limit.X,GetLineDisplayLen+1);
   if (SelLines = 0) and (Lines = 0) then
     Update (ufLine)
   else
