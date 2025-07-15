@@ -269,7 +269,7 @@ BEGIN
 END;
 
 {--TClockView---------------------------------------------------------------}
-{  FormatStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB         }
+{  FormatTimeStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB     }
 {---------------------------------------------------------------------------}
 FUNCTION TClockView.FormatTimeStr (H, M, S: Word): String;
 VAR Hs, Ms, Ss: String;
