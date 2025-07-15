@@ -1071,7 +1071,7 @@ var R,R2: TRect;
     ScreenModeInfo : array[1..3] of longint;
     CurVP,VP: PVideoMode;
     RB1: PPlainRadioButtons;
-    CB1,CB2: PPlainCheckBoxes;
+    CB1,CB2,CB3: PPlainCheckBoxes;
     CurIdx: integer;
     i : word;
 begin
@@ -1128,7 +1128,19 @@ begin
 
     GetExtent(R); R.Grow(-2,-2);
     R.A.X:=R.B.X-(R.B.X-R.A.X) div 2 + 1;
-    R.B.Y:=R.A.Y+7;
+    R.B.Y:=R.A.Y+3;
+
+    R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+4;
+    R2.Copy(R); R2.Grow(-1,-1);
+    New(CB3, Init(R2,
+      NewSItem(label_preferences_showclock,
+      NewSItem(label_preferences_showheapmonitor,
+      nil))));
+    CB3^.Value:=DesktopPreferences;
+    if OverrideHeapMonitor then  { if heap motior state is set by fp parameter }
+      CB3^.EnableMask:=CB3^.EnableMask and not(dpHeapMonitor); { disable heap monitor check box }
+    Insert(New(PGroupView, Init(R, label_preferences_clockheap, CB3)));
+    Insert(CB3);
 
     R.Move(0,R.B.Y-R.A.Y{+1}); R.B.Y:=R.A.Y+5;
     R2.Copy(R); R2.Grow(-1,-1);
@@ -1180,6 +1192,8 @@ begin
      AutoSaveOptions:=CB1^.Value;
      MiscOptions:=CB2^.Value;
      DesktopLocation:=RB1^.Value;
+     DesktopPreferences:=CB3^.Value;
+     UpdateClockAndHeap;
    end;
   Dispose(D, Done);
   Dispose(C, Done);

@@ -157,6 +157,7 @@ type
       procedure RemoveRecentFile(Index: integer);
     public
       procedure CurDirChanged;
+      procedure UpdateClockAndHeap; { update visiblity of ClockView and HeapView }
     private
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
@@ -664,6 +665,9 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_preferences_closeongotosource = 'C~l~ose on go to source';
                 label_preferences_changedironopen = 'C~h~ange dir on open';
                 label_preferences_options = 'Options';
+                label_preferences_showclock = 'Show ~c~lock';
+                label_preferences_showheapmonitor = 'Show heap ~m~onitor';
+                label_preferences_clockheap = 'Desktop';
 
                 {Desktop preferences dialog.}
                 dialog_desktoppreferences = 'Desktop Preferences';
@@ -862,10 +866,11 @@ begin
   InitAdvMsgBox;
   InsideDone:=false;
   IsRunning:=true;
-  MenuBar^.GetBounds(R); R.A.X:=R.B.X-8;
+  MenuBar^.GetBounds(R); R.A.X:=R.B.X-9;
   New(ClockView, Init(R));
   ClockView^.GrowMode:=gfGrowLoX+gfGrowHiX;
-  Application^.Insert(ClockView);
+  {  Insert only if and when we are going to look at it (hide is not sufficient measure)
+  Application^.Insert(ClockView);   }
   New(ClipboardWindow, Init);
   Desktop^.Insert(ClipboardWindow);
   New(CalcWindow, Init); CalcWindow^.Hide;
@@ -875,10 +880,10 @@ begin
   Desktop^.Insert(CompilerMessageWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
   { heap viewer }
-  GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
+  GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-8; R.A.Y:=R.B.Y-1;
   New(HeapView, InitKb(R));
-  if (StartupOptions and soHeapMonitor)=0 then HeapView^.Hide;
-  Insert(HeapView);
+  if OverrideHeapMonitor and ((StartupOptions and soHeapMonitor)<>0) then
+    Insert(HeapView);
   Drivers.ShowMouse;
 {$ifdef Windows}
   // WindowsShowMouse;
@@ -1129,7 +1134,14 @@ begin
        end;
    end;
    loadmenubar;
-   insert(menubar);
+   Insert(MenuBar);
+   if (DesktopPreferences and dpClockView)<>0 then
+   begin
+     { In theory InsertBefore should do the trick, but it does not }
+     { Push ClockView in front of MenuBar }
+     Delete(ClockView);
+     Insert(ClockView);
+   end;
 end;
 
 procedure TIDEApp.InitStatusLine;
@@ -1819,6 +1831,19 @@ begin
   end;
 end;
 
+procedure TIDEApp.UpdateClockAndHeap;
+begin
+  if not OverrideHeapMonitor then
+  begin
+    Application^.Delete(HeapView);
+    if ((DesktopPreferences and dpHeapMonitor)<>0) then
+      Application^.Insert(HeapView);
+  end;
+  Application^.Delete(ClockView);
+  if (DesktopPreferences and dpClockView)<>0 then
+    Application^.Insert(ClockView);
+end;
+
 procedure TIDEApp.DosShell;
 var
   s : string;
@@ -1949,6 +1974,11 @@ destructor TIDEApp.Done;
 begin
   InsideDone:=true;
   IsRunning:=false;
+  {manualy dispose ClockView and HeapView}
+  Delete(ClockView);
+  Dispose(ClockView);
+  Delete(HeapView);
+  Dispose(HeapView);
   inherited Done;
   Desktop:=nil;
   RemoveBrowsersCollection;

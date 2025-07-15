@@ -43,7 +43,7 @@ const
       cmUserBtn3             = $fee2;
       cmUserBtn4             = $fee3;
 
-      CPlainCluster          = #7#8#9#9;
+      CPlainCluster          = #7#8#9#9#13#9;{normal}{ active }{shortcut}{..}{disabled}{..}
 
 type
     longstring = ansistring;

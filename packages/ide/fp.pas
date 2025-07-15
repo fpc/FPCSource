@@ -172,7 +172,7 @@ begin
             else
             if (copy(Param,3,1)='-') then
               StartupOptions:=StartupOptions and not soHeapMonitor;
-            OverrideLastDirOption:=true;
+            OverrideHeapMonitor:=true;
           end else
 {$ifdef go32v2}
         if (UpcaseStr(Param)='NOLFN') or (UpcaseStr(Param)='N') then
@@ -225,6 +225,7 @@ begin
               else
               if (Param='-') then
                 StartupOptions:=StartupOptions and (not soReturnToLastDir);
+              OverrideLastDirOption:=true;
             end;
           'S' :
              if Length(Param)=1 then
@@ -480,6 +481,7 @@ BEGIN
   IDEApp.Update;
   IDEApp.UpdateMode;
   IDEApp.UpdateTarget;
+  IDEApp.UpdateClockAndHeap;
 
   ProcessParams(false);
 

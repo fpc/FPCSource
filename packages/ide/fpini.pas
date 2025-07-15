@@ -154,6 +154,7 @@ const
   ieAutoSave         = 'AutoSaveFlags';
   ieMiscOptions      = 'MiscOptions';
   ieDesktopLocation  = 'DesktopLocation';
+  ieDesktopPreferences= 'DesktopPreferences';
   ieDesktopFlags     = 'DesktopFileFlags';
   ieCenterDebuggerRow= 'CenterCurrentLineWhileDebugging';
   ieShowReadme       = 'ShowReadme';
@@ -591,6 +592,7 @@ begin
   AutoSaveOptions:=INIFile^.GetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   MiscOptions:=INIFile^.GetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
   DesktopLocation:=INIFile^.GetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
+  DesktopPreferences:=INIFile^.GetIntEntry(secPreferences,ieDesktopPreferences,DesktopPreferences);
   { Misc }
   ShowReadme:=INIFile^.GetIntEntry(secMisc,ieShowReadme,{integer(ShowReadme)}1)<>0;
   Dispose(INIFile, Done);
@@ -776,6 +778,7 @@ begin
   INIFile^.SetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   INIFile^.SetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
   INIFile^.SetIntEntry(secPreferences,ieDesktopLocation,DesktopLocation);
+  INIFile^.SetIntEntry(secPreferences,ieDesktopPreferences,DesktopPreferences);
   { Misc }
   INIFile^.SetIntEntry(secMisc,ieShowReadme,integer(ShowReadme));
   OK:=INIFile^.Update;

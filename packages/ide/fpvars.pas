@@ -104,6 +104,7 @@ const INIFileName      : string = ININame;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       OverrideLastDirOption : boolean = false;
+      OverrideHeapMonitor   : boolean = false;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
       BackgroundPath   : string = BackgroundName;
@@ -111,6 +112,7 @@ const INIFileName      : string = ININame;
                                    dfCodeCompleteWords+dfCodeTemplates;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
+      DesktopPreferences:longint = 0; { by default show no Clock, no Heap mointor }
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
       EditorModified   : boolean = false;
       IniCenterDebuggerRow : tcentre = do_centre;
