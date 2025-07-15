@@ -25,8 +25,8 @@ const
       cmPasteWin          = 241;
       cmSelectAll         = 246;
       cmUnselect          = 247;
-      cmCommentSel        = 249;
-      cmUnCommentSel      = 250;
+      cmCommentSel        = 250;
+      cmUnCommentSel      = 251;
 
       cmLocalMenu            = 54100;
       cmUpdate               = 54101;

@@ -225,12 +225,6 @@ const
      }
 
      cmPrint             = 248;
-     { in wviews.pas defined
-     cmCommentSel        = 249;
-     cmUnCommentSel      = 250;
-     }
-
-
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
