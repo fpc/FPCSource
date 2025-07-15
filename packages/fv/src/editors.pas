@@ -466,6 +466,7 @@ resourcestring  sClipboard='Clipboard';
                 sUntitled='Untitled';
                 sWordWrapNotPossible='Wordwrap on:  Wordwrap not possible in current margins with continuous line.';
                 sWordWrapOff='You must turn on wordwrap before you can reformat.';
+                sSaveFileAs='Save file as';
 
                 slCaseSensitive='~C~ase sensitive';
                 slCurrentLine='~C~urrent line';
@@ -941,7 +942,7 @@ begin
       StdEditorDialog := MessageBox(sFileUntitled, nil, mfInformation + mfYesNoCancel);
     edSaveAs:
       StdEditorDialog := Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
-        slSaveFileAs, slName, fdOkButton, 101)), Info);
+        sSaveFileAs, slName, fdOkButton, 101)), Info);
     edFind:
       StdEditorDialog := Application^.ExecuteDialog(CreateFindDialog, Info);
     edSearchFailed:
@@ -1097,7 +1098,7 @@ Var
 begin
   BMMakeTable(str,bt);
   len:=length(str);
-  s2[0]:=chr(len);       { sets the length to that of the search String }
+  SetLength(s2,len);       { sets the length to that of the search String }
   found:=False;
   numb:=pred(len);
   While (not found) and (numb<(size-len)) do
@@ -1146,7 +1147,7 @@ begin
     exit;
   end;
   { create uppercased string }
-  s[0]:=chr(len);
+  SetLength(s,len);
   for x:=1 to len do
    begin
      if str[x] in ['a'..'z'] then
@@ -3197,7 +3198,6 @@ begin
           if Length (Tab_String) = 0 then
             begin
               FillChar (Tab_Settings, SizeOf (Tab_Settings), #0);
-              Tab_Settings[0] := #0;
               Exit;
             end
           else
@@ -3254,7 +3254,7 @@ begin
   Position := CurPos.X + 1;
   repeat
     Inc (Position);
-  until (Tab_Settings[Position] <> #32) or (Position >= Ord (Tab_Settings[0]));
+  until (Tab_Settings[Position] <> #32) or (Position >= Length (Tab_Settings));
   E := CurPos.X;
   Index := 1;
   { Now we enter a loop to go to the next tab position.  }
@@ -3267,7 +3267,7 @@ begin
       if Overwrite then
         begin
           if (Position > LineEnd (CurPtr) - LineStart (CurPtr))
-              or (Position > Ord (Tab_Settings[0])) then
+              or (Position > Length (Tab_Settings)) then
             begin
               SetCurPtr (LineStart (LineMove (CurPtr, 1)), Select_Mode);
               Exit;
@@ -3278,7 +3278,7 @@ begin
         end
       else
         begin
-          if (Position > Right_Margin) or (Position > Ord (Tab_Settings[0])) then
+          if (Position > Right_Margin) or (Position > Length (Tab_Settings)) then
             begin
               SetCurPtr (LineStart (LineMove (CurPtr, 1)), Select_Mode);
               Exit;

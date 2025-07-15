@@ -680,7 +680,7 @@ begin
   begin
     { do not change '/' into '' }
     if (Length(ExpPath)>1) and (ExpPath[Length(ExpPath)] = DirSeparator) then
-      Dec(ExpPath[0]);
+      SetLength(ExpPath,Length(ExpPath)-1);
     // This function is called on current directories.
     // If the current dir starts with a . on Linux it is is hidden.
     // That's why we allow hidden dirs below (bug 6173)
@@ -1320,7 +1320,7 @@ end;
   begin
     I := 1;
     while (I < Length(S)) and (S[I] = ' ') do Inc(I);
-    LTrim := Copy(S, I, 255);
+    LTrim := Copy(S, I, length(S));
   end;
 
   function RTrim(const S: String): String;
@@ -1328,6 +1328,7 @@ end;
     I: Sw_Integer;
   begin
     I := Length(S);
+    if I = 0 then begin RTrim:=''; exit; end;
     while S[I] = ' ' do Dec(I);
     RTrim := Copy(S, 1, I);
   end;
@@ -2341,7 +2342,7 @@ begin
    Dec(SearchPos);
           if SearchPos = 0 then
             HandleDir:= ((GetShiftState and $3) <> 0) or (Event.CharCode in ['A'..'Z']);
-   CurString[0] := AnsiChar(SearchPos);
+          SetLength(CurString,SearchPos);
       end
       else if (Event.CharCode = '.') then
         SearchPos := Pos('.',CurString)
@@ -2350,7 +2351,7 @@ begin
    Inc(SearchPos);
           if SearchPos = 1 then
             HandleDir := ((GetShiftState and 3) <> 0) or (Event.CharCode in ['A'..'Z']);
-   CurString[0] := AnsiChar(SearchPos);
+          SetLength(CurString,SearchPos);
    CurString[SearchPos] := Event.CharCode;
       end;
       K := GetKey(CurString);
@@ -2490,9 +2491,9 @@ begin
     ExtractDir := '';
     Exit;
   end;
-  if (D[Byte(D[0])] <> DirSeparator)
+  if (D[Length(D)] <> DirSeparator)
   {$ifdef HASAMIGA}
-    and (D[Byte(D[0])] <> DriveSeparator)
+    and (D[Length(D)] <> DriveSeparator)
   {$endif}
   then
     D := D + DirSeparator;
@@ -2530,7 +2531,7 @@ begin
   GetDir(0, CurDir);
   if (Length(CurDir) > 3) then
   begin
-    Inc(CurDir[0]);
+    SetLength(CurDir,Length(CurDir)+1);
     CurDir[Length(CurDir)] := DirSeparator;
   end;
   GetCurDir := CurDir;
