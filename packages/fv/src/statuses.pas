@@ -752,6 +752,7 @@ var
 begin
   C := GetColor(1);
   Len := Round(Size.X * Current/(Max - Min));
+  if Len>Size.X then Len:=Size.X;
   MoveChar(B,' ',C,Size.X);
   if Right then
     MoveChar(B,Arrows[Byte(Right)],C,Len)
@@ -1014,7 +1015,7 @@ begin
   WriteLine(0,0,Size.X,Size.Y,B);
   PercentDone := Percent;
   FormatStr(S,'%d%%',PercentDone);
-  MoveStr(B[(Size.X - Byte(S[0])) div 2],S,C);
+  MoveStr(B[(Size.X - Length(S)) div 2],S,C);
   WriteLine(0,0,Size.X,Size.Y,B);
 end;
 
@@ -1321,8 +1322,8 @@ begin
   begin
     Status^.GrowMode := gfGrowHiX;
     { resize dialog to hold all requested buttons }
-    if Size.X < ((Buttons * 12) + 2) then
-      GrowTo((Buttons * 12) + 2,Size.Y + 2)
+    if Size.X < ((Buttons * 13) + 3+1) then
+      GrowTo((Buttons * 13) + 2+1,Size.Y + 2)
     else GrowTo(Size.X,Size.Y + 2);
     { find correct starting position for first button }
     Gap := Size.X - (Buttons * 10) - 2;
