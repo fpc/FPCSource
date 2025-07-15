@@ -1412,7 +1412,8 @@ begin
                 SetCurPtr(EndPos.X,EndPos.Y);
                 Line:=Copy(GetDisplayText(StartPos.Y),1,StartPos.X);
                 If Length(Line)<StartPos.X then
-                  Line:=Line+CharStr(' ',StartPos.X-length(Line))+uText;
+                  Line:=Line+CharStr(' ',StartPos.X-length(Line))+uText
+                else Line:=Line+uText;
                 SetDisplayText(StartPos.Y,Line+Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
                 SetMinMax(EndPos.Y);
                 SetCurPtr(0,EndPos.Y);

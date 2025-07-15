@@ -5246,8 +5246,8 @@ begin
 {      SelBack:=length(S)-SelEnd.X;}
       SetLineText(CurPos.Y,RTrim(S,not IsFlagSet(efUseTabCharacters)));
     end;
-    SetLineText(CurPos.Y,copy(S,1,CI-1));
     CalcIndent(CurPos.Y);
+    SetLineText(CurPos.Y,copy(S,1,CI-1));
     S:=copy(S,CI,Length(S));
     i:=1;
     while (i<=length(s)) and (i<=length(IndentStr)) and (s[i]=' ') do
