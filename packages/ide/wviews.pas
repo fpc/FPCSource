@@ -2403,6 +2403,8 @@ procedure TScrollerRadioButtons.HandleEvent (Var Event: TEvent);
 VAR I: Sw_Integer; Mouse: TPoint;
    LinesScroll : sw_integer;
 begin
+   TView.HandleEvent(Event);                              { Call TView, skip TCluster }
+                                                          { Set focus to this view    }
    If ((Options AND ofSelectable) <> 0) Then
    begin
      If (Event.What = evMouseWheel) Then Begin            { Mouse wheel event }
