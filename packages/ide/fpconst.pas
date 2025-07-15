@@ -144,6 +144,10 @@ const
      moCloseOnGotoSource  = $00000002;
      moChangeDirOnOpen    = $00000004;
 
+     { Desktop Option constants }
+     dpClockView          = $00000001;
+     dpHeapMonitor        = $00000002;
+
      { Desktop Location constants }
      dlCurrentDir         = $00;
      dlConfigFileDir      = $01;
