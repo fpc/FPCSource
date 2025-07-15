@@ -2026,6 +2026,7 @@ VAR
   D            : TPoint;
   Mouse        : TPoint;
   LinesScroll  : Sw_Integer;
+  E            : TEvent;
 
   function CheckScrollBar (P : PScrollBar; var D : Sw_Integer) : Boolean;
   begin
@@ -2051,15 +2052,19 @@ begin
       begin
         if (Event.Wheel=mwDown) then { Mouse scroll down}
           begin
+            Lock;
             LinesScroll:=1;
             if Event.Double then LinesScroll:=LinesScroll+4;
             ScrollTo(Delta.X, Delta.Y + LinesScroll);
+            Unlock;
           end else
         if (Event.Wheel=mwUp) then  { Mouse scroll up }
           begin
+            Lock;
             LinesScroll:=-1;
             if Event.Double then LinesScroll:=LinesScroll-4;
             ScrollTo(Delta.X, Delta.Y + LinesScroll);
+            Unlock;
           end
         else exit;
       end;
@@ -2069,6 +2074,12 @@ begin
           SelectMode := SelectMode or smDouble;
         repeat
           Lock;
+          if Event.What = evMouseWheel then
+            begin
+              E:=Event;
+              HandleEvent(Event); { Scroll }
+              Event:=E;
+            end;
           if Event.What = evMouseAuto then
           begin
             MakeLocal (Event.Where, Mouse);
@@ -2086,7 +2097,7 @@ begin
           SetCurPtr (GetMousePtr (Event.Where), SelectMode);
           SelectMode := SelectMode or smExtend;
           Unlock;
-        until not MouseEvent (Event, evMouseMove + evMouseAuto);
+        until not MouseEvent (Event, evMouseMove + evMouseAuto + evMouseWheel);
       end; { evMouseDown }
 
     evKeyDown:
