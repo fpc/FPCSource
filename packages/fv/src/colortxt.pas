@@ -123,18 +123,25 @@ begin
       repeat
         J := P;
         while (P <= L) and (S[P] = ' ') do Inc(P);
-        while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) do Inc(P);
-      until (P > L) or (P >= I + Size.X) or (S[P] = #13);
+        while (P <= L) and (S[P] <> ' ') and ((S[P] <> #13) and (S[P] <> #10)) do Inc(P);
+      until (P > L) or (P >= I + Size.X) or ((S[P] = #13) or (S[P] = #10));  { line ending #13 or #10 }
       if P > I + Size.X then
         if J > I then P := J else P := I + Size.X;
       if Center then J := (Size.X - P + I) div 2 else J := 0;
       MoveBuf(B[J], S[I], Color, P - I);
       while (P <= L) and (S[P] = ' ') do Inc(P);
-      if (P <= L) and (S[P] = #13) then
+      if (P <= L) and ((S[P] = #13) or (S[P] = #10)) then
       begin
         Center := False;
-        Inc(P);
-        if (P <= L) and (S[P] = #10) then Inc(P);
+        if (S[P] = #13) then
+        begin
+          Inc(P);
+          if (P <= L) and (S[P] = #10) then Inc(P);  { line ending #13#10 }
+        end else
+        begin
+          Inc(P);
+          if (P <= L) and (S[P] = #13) then Inc(P);  { line ending #10#13 }
+        end;
       end;
     end;
     WriteLine(0, Y, Size.X, 1, B);
