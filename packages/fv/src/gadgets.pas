@@ -143,6 +143,29 @@ TYPE
    END;
    PClockView = ^TClockView;                          { Clockview ptr }
 
+{---------------------------------------------------------------------------}
+{ Registrations records                                                     }
+{---------------------------------------------------------------------------}
+const
+  RHeapView: TStreamRec = (
+     ObjType: idHeap;
+     VmtLink: Ofs(TypeOf(THeapView)^);
+     Load:    @THeapView.Load;
+     Store:   @THeapView.Store
+  );
+
+  RClockView: TStreamRec = (
+     ObjType: idClock;
+     VmtLink: Ofs(TypeOf(TClockView)^);
+     Load:    @TClockView.Load;
+     Store:   @TClockView.Store
+  );
+
+{---------------------------------------------------------------------------}
+{ Registration procedure                                                    }
+{---------------------------------------------------------------------------}
+procedure RegisterGadgets;
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -310,5 +333,14 @@ BEGIN
   MoveStr(B,TimeStr,C);
   WriteLine(0,0,Size.X,1,B);
 END;
+
+{---------------------------------------------------------------------------}
+{ Registration procedure                                                    }
+{---------------------------------------------------------------------------}
+procedure RegisterGadgets;
+begin
+  RegisterType(RHeapView);
+  RegisterType(RClockView);
+end;
 
 END.

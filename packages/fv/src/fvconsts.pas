@@ -90,13 +90,17 @@ const
   idStringCollection = 51;
   idStringList = 52;
   idStrListMaker = 52;
-  idStrCollection = 69;
+  idStrCollection = 53;
 
   { Resource Unit }
-  idMemStringList = 52;
+  idMemStringList = 54;
 
   { Tabs Unit }
   idTab = 55;
+
+  { Gadgets Unit }
+  idHeap = 58;
+  idClock = 59;
 
   { StdDlg Unit }
   idFileInputLine = 60;
