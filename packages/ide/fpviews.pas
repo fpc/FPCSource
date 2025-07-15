@@ -4663,8 +4663,8 @@ begin
    {resize}
    if Desktop^.Size.Y > 26 then
      GrowTo(Size.X,Desktop^.Size.Y-6);
-   if Desktop^.Size.X > 80 then
-     GrowTo(Min(Desktop^.Size.X-(80-Size.X),102),Size.Y);
+   if Desktop^.Size.X > 60 then
+     GrowTo(Min(Desktop^.Size.X-(60-Size.X),102),Size.Y);
    {set focus on the new input line}
    DirInput^.Focus;
 end;

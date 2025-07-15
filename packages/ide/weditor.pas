@@ -7876,8 +7876,8 @@ begin
   {resize}
   if Desktop^.Size.Y > 26 then
     GrowTo(Size.X,Desktop^.Size.Y-6);
-  if Desktop^.Size.X > 80 then
-    GrowTo(Min(Desktop^.Size.X-(80-Size.X),102),Size.Y);
+  if Desktop^.Size.X > 70 then
+    GrowTo(Min(Desktop^.Size.X-(70-Size.X),102),Size.Y);
   FileList^.NumCols:= Max((FileList^.Size.X-(FileList^.Size.X div 14)) div 14,2);
   { Adjust scrollbar step and page step }
   FileList^.SetRange(FileList^.Range); {set again for scrollbar min max values}
