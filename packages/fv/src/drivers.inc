@@ -1792,10 +1792,10 @@ VAR W, ResultLength : SmallInt;
              Inc(ResultLength,Length(S));
              Continue;
            end;
-           'c': S := AnsiChar(TLongArray(Params)[I]);  { Character parameter }
+           'c': S := Sw_Char (TLongArray(Params)[I]);  { Character parameter }
              'd': S := LongToStr(TLongArray(Params)[I],
                10);                                   { Decimal parameter }
-             's': S := PString(TLongArray(Params)[I])^;{ String parameter }
+             's': S := Sw_String(Pointer(TLongArray(Params)[I])^); { String parameter }
              'x': S := LongToStr(TLongArray(Params)[I],
                16);                                   { Hex parameter }
            end;
