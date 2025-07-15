@@ -3345,9 +3345,9 @@ BEGIN
         J := P;
         while (P <= L) and (S[P] = ' ') do
           Inc(P);
-        while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) do
+        while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) and (S[P] <> #10) do
           Inc(P);
-      until (P > L) or (P >= I + Size.X) or (S[P] = #13);
+      until (P > L) or (P >= I + Size.X) or (S[P] = #13) or (S[P] = #10);
       If P > I + Size.X Then                           { Text to long }
         If J > I Then
           P := J
@@ -3359,8 +3359,14 @@ BEGIN
         2: J := Size.X - (P-I);              { Right justify }
       End;
       MoveBuf(B[J], S[I], Color, P - I);
-      While (P <= L) AND (P-I <= Size.X) AND ((S[P] = #13) OR (S[P] = #10))
-        Do Inc(P);                                     { Remove CR/LF }
+      While (P <= L) AND (P-I <= Size.X) AND ((S[P] = #13) or (S[P] = #10))  do
+        begin
+          inc(P);                            { Remove CR or LF }
+          if length(S)>=P then
+            if (Ord (S[P]) + Ord (S[P-1])) = 23 then
+              Inc(P);                        { Remove CRLF }
+          break;
+        end;
     End;
     WriteLine(0, Y, Size.X, 1, B);
     Inc(Y);                                          { Next line }
