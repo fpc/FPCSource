@@ -106,7 +106,15 @@ BEGIN
   GetExtent(R);
   R.A.X := R.B.X - 9; R.B.Y := R.A.Y + 1;
   Clock := New(PClockView, Init(R));
+  Clock^.GrowMode:=gfGrowLoX+gfGrowHiX;
   Insert(Clock);
+
+  GetExtent(R);
+  Dec(R.B.X);
+  R.A.X := R.B.X - 12; R.A.Y := R.B.Y - 1;
+  Heap := New(PHeapView, Init(R));
+  Heap^.GrowMode:=gfGrowAll;
+  Insert(Heap);
 
   GetExtent(R);
   ClipboardWindow := New(PEditWindow, Init(R, '', wnNoNumber));
@@ -251,7 +259,6 @@ var
 begin
   GetExtent(R);
   R.A.Y := R.B.Y - 1;
-  R.B.X := R.B.X - 12;
   New(StatusLine,
     Init(R,
       NewStatusDef(0, $EFFF,
@@ -263,11 +270,6 @@ begin
       )
     )
   );
-
-  GetExtent(R);
-  R.A.X := R.B.X - 12; R.A.Y := R.B.Y - 1;
-  Heap := New(PHeapView, Init(R));
-  Insert(Heap);
 end;
 
 PROCEDURE TTvDemo.Window1;
