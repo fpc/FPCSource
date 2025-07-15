@@ -87,41 +87,41 @@ const
   CStatus    =  #1#2#3;
 {$ifndef cdPrintDoc}
 {#F+}
-{İTStatus.CStatus palette
-ßßßßßßßßßßßßßßßßßßßßßßßßß}
+{*TStatus.CStatus palette
+*************************}
 {#F-}
 {$endif cdPrintDoc}
 { Status views use the default palette, CStatus, to map onto the first three
 entries in the standard window palette. }
 {#F+}
-{              1    2    3
-           ÉÍÍÍÍÑÍÍÍÍÑÍÍÍÍ»
- CStatus   º  1 ³  2 ³  3 º
-           ÈÍÍÑÍÏÍÍÑÍÏÍÍÑÍ¼
-Normal TextÄÄÄÙ    ³    ³
-OtherÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ    ³
-Highlighted TextÄÄÄÄÄÄÄÄÙ }
+{             1    2    3
+           +====+====+====+
+ CStatus   |  1 |  2 |  3 |
+           +==+=+==+=+==+=+
+Normal Text---+    |    |
+Other--------------+    |
+Highlighted Text--------+ }
 {#F-}
 {#X TStatus }
 
   CAppStatus =  #2#5#4;
 {$ifndef cdPrintDoc}
 {#F+}
-{İTAppStatus.CAppStatus palette
-ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß}
+{*TAppStatus.CAppStatus palette
+*******************************}
 {#F-}
 {$endif cdPrintDoc}
 { Status views which are inserted into the application rather than a dialog
 or window use the default palette, CAppStatus, to map onto the application
 object's palette. }
 {#F+}
-{                 1    2    3
-              ÉÍÍÍÍÑÍÍÍÍÑÍÍÍÍ»
- CAppStatus   º  2 ³  5 ³  4 º
-              ÈÍÍÑÍÏÍÍÑÍÏÍÍÑÍ¼
-Normal TextÄÄÄÄÄÄÙ    ³    ³
-OtherÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ    ³
-Highlighted TextÄÄÄÄÄÄÄÄÄÄÄÙ }
+{                1    2    3
+              +====+====+====+
+ CAppStatus   |  2 |  5 |  4 |
+              +==+=+==+=+==+=+
+Normal Text------+    |    |
+Other-----------------+    |
+Highlighted Text-----------+ }
 {#F-}
     {#X tvStatus TAppStatus }
 
@@ -129,20 +129,20 @@ Highlighted TextÄÄÄÄÄÄÄÄÄÄÄÙ }
   CBarGauge = CStatus + #16#19;
 {$ifndef cdPrintDoc}
 {#F+}
-{İTBarGauge.CBarGauge palette
-ßßßßßßßßßßßßßßßßßßßßßßßßßßßßß}
+{*TBarGauge.CBarGauge palette
+*****************************}
 {#F-}
 {$endif cdPrintDoc}
 { TBarGauge's use the default palette, CBarGauge, to map onto the dialog or
 window owner's palette. }
 {#F+}
-{                 1    2    3   4    5
-              ÉÍÍÍÍÑÍÍÍÍÑÍÍÍÍÑÍÍÍÍÑÍÍÍÍ»
- CAppStatus   º  2 ³  5 ³  4 ³ 16 ³ 19 º
-              ÈÍÍÑÍÏÍÍÑÍÏÍÍÑÍÏÍÍÑÍÏÍÍÑÍ¼
-Normal TextÄÄÄÄÄÄÙ    ³    ³    ³    ÀÄÄÄÄ filled in bar
-OtherÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ    ³    ÀÄÄÄÄÄÄÄÄÄ empty bar
-Highlighted TextÄÄÄÄÄÄÄÄÄÄÄÙ }
+{                1    2    3   4    5
+              +====+====+====+====+====+
+ CAppStatus   |  2 |  5 |  4 | 16 | 19 |
+              +==+=+==+=+==+=+==+=+==+=+
+Normal Text------+    |    |    |    +---- filled in bar
+Other-----------------+    |    +--------- empty bar
+Highlighted Text-----------+ }
 {#F-}
     {#X tvStatus TBarGauge }
 
@@ -150,22 +150,22 @@ Highlighted TextÄÄÄÄÄÄÄÄÄÄÄÙ }
 {#T sdXXXX }
 {$ifndef cdPrintDoc}
 {#F+}
-{ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
-İ sdXXXX constants   (STDDLG unit) Ş
-ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß}
+{***********************************
+* sdXXXX constants   (STDDLG unit) *
+************************************}
 {#F-}
 {$endif cdNoPrintDoc}
 { sdXXXX constants are used to determine the types of buttons displayed in a
 #TStatusDlg# or #TStatusMessageDlg#. }
 {#F+}
-{    Constant      ³ Value ³ Meaning
-ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
-  sdNone          ³ $0000 ³ no buttons
-  sdCancelButton  ³ $0001 ³ show Cancel button
-  sdPauseButton   ³ $0002 ³ show Pause button
-  sdResumeButton  ³ $0004 ³ show Resume button
-  sdAllButtons    ³ $0008 ³ show Cancel, Pause and Resume
-                  ³       ³   buttons }
+{   Constant      | Value | Meaning
+==================+=======+=================================
+  sdNone          | $0000 | no buttons
+  sdCancelButton  | $0001 | show Cancel button
+  sdPauseButton   | $0002 | show Pause button
+  sdResumeButton  | $0004 | show Resume button
+  sdAllButtons    | $0008 | show Cancel, Pause and Resume
+                  |       |   buttons }
 {#Z+}
   sdNone                 = $0000;
   sdCancelButton         = $0001;
@@ -674,9 +674,9 @@ const
 procedure RegisterStatuses;
 {$ifndef cdPrintDoc}
 {#F+}
-{ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
-İRegisterStatuses procedure   (Statuses unit)Ş
-ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß}
+{*********************************************
+*RegisterStatuses procedure   (Statuses unit)*
+**********************************************}
 {#F-}
 {$endif cdPrintDoc}
   { RegisterStatuses calls RegisterType for each of the status view and
