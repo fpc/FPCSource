@@ -65,22 +65,22 @@ uses
   UnixApi.Base, System.Console.Keyboard,
 {$endif}
 {$ifdef FV_UNICODE}
-  FreeVision.UDrivers,
+  FreeVision.UDrivers, FreeVision.Ufvcommon,
 {$else FV_UNICODE}
-  FreeVision.Drivers,
+  FreeVision.Drivers, FreeVision.Fvcommon,
 {$endif FV_UNICODE}
-  FreeVision.Fvconsts,FreeVision.Fvcommon;
+  FreeVision.Fvconsts;
 {$ELSE}
 uses
 {$ifdef unix}
   baseUnix,keyboard,
 {$endif}
 {$ifdef FV_UNICODE}
-  udrivers,
+  udrivers, UFVCommon,
 {$else FV_UNICODE}
-  drivers,
+  drivers, FVCommon,
 {$endif FV_UNICODE}
-  fvconsts,FVCommon;
+  fvconsts;
 {$ENDIF}
 var cProgram : PProgram;
   PText : PAnsiChar;
