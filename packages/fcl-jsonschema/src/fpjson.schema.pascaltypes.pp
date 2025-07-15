@@ -530,8 +530,6 @@ constructor TPascalTypeData.Create(aIndex: integer; aType: TPascalType; const aS
   );
 
 begin
-  if (aType=ptArray) and (Pos('Meeting',aSchemaName)>0) then
-    Writeln('ah');
   FIndex:=aIndex;
   FSchema:=ASchema;
   FSchemaName:=aSchemaName;
