@@ -2486,7 +2486,7 @@ begin
   if P>CurPtr then
    begin
      start:=PAnsiChar(Buffer)+GapLen;
-     pc:=start;
+     pc:=start+P;
      i:=P-CurPtr;
      dec(pc);
      while (i>0) do
