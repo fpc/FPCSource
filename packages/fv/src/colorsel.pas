@@ -76,6 +76,7 @@ const dialog_colorsel_colors        = 'Colors';
       label_colors_normalcluster    = 'Cluster normal';
       label_colors_selectedcluster  = 'Cluster selected';
       label_colors_shortcutcluster  = 'Cluster shortcut';
+      label_colors_disabledcluster  = 'Cluster disabled';
       label_colors_normalinput      = 'Input normal';
       label_colors_selectedinput    = 'Input selected';
       label_colors_inputarrow       = 'Input arrow';
@@ -1080,6 +1081,7 @@ begin
     ColorItem(label_colors_normalcluster,    Offset + 15,
     ColorItem(label_colors_selectedcluster,  Offset + 16,
     ColorItem(label_colors_shortcutcluster,  Offset + 17,
+    ColorItem(label_colors_disabledcluster,  Offset + 30,
 
     ColorItem(label_colors_normalinput,      Offset + 18,
     ColorItem(label_colors_selectedinput,    Offset + 19,
@@ -1096,7 +1098,7 @@ begin
     ColorItem(label_colors_listdivider,      Offset + 28,
 
     ColorItem(label_colors_infopane,         Offset + 29,
-    Next)))))))))))))))))))))))))))));
+    Next))))))))))))))))))))))))))))));
 end;
 
 function MenuColorItems(const Next: PColorItem): PColorItem;
