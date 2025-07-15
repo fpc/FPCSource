@@ -1818,21 +1818,19 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
     wlen : sw_integer;
    begin
      {$ifdef FV_UNICODE}
-     wlen:=ASize;
+     wlen:=ASize*2+2;  { over estimate length }
      Setlength(S,wlen);
      wlen:=Utf8ToUnicode(@S[1],wlen,P,ASize);
+     if wlen>0 then
+       dec(wlen);
      Setlength(S,wlen);
      {$else}
      Setlength(S,Min(ASize,255));
      Move(P^,s[1],Min(ASize,255));
      {$endif}
-     for i:=1 to Min(length(s),255) do
+     for i:=1 to length(S) {Min(length(s),255)} do
      begin
-       {$ifdef FV_UNICODE}
-       st:=Data+S[i];
-       {$else}
-       st:=Data^+s[i];
-       {$endif}
+       st:=Data Sw_PString_DeRef+s[i];
        If not assigned(validator) or
           Validator^.IsValidInput(st,False)  then
          Begin
@@ -1845,7 +1843,9 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
            Event.Scancode:=0;
            TInputLine.HandleEvent(Event);             { add pasted chars}
          End;
+       {$ifndef FV_UNICODE}
        if length(st)=255 then break;
+       {$endif}
      end;
    end;
 
