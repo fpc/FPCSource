@@ -732,7 +732,7 @@ const Arrows : array[0..1] of Char = '<>';
 var
   B : TDrawBuffer;
   C : Word;
-  Len : Byte;
+  Len : Sw_Integer;
 begin
   C := GetColor(1);
   Len := Round(Size.X * Current/(Max - Min));
