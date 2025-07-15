@@ -1447,7 +1447,8 @@ begin
                MouseButton5: Event.Wheel:=mwDown;
              end;
              e.Buttons:=e.Buttons and( not word( MouseButton4 or MouseButton5)); {remove wheel buttons for Buttons}
-             AutoTicks:=0;  {there is no "holding down" mouse wheel }
+             { do not temper with AutoTicks because other buttons can be held down while scrolling
+             AutoTicks:=0;}  {there is no "holding down" mouse wheel }
            end;
          end;
        MouseActionUp :
