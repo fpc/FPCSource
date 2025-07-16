@@ -46,11 +46,16 @@ type
 
   TAPITypeData = Class(TPascalTypeData)
   private
+    FBinaryData: Boolean;
+    FContentType: String;
     FIndex: Integer;
   protected
     function CreateProperty(const aAPIName, aPascalName: string): TPascalPropertyData; override;
   public
+    constructor CreateBinaryData(const aContentType : string); overload;
     function AddProperty(const aApiName, aPascalName: String): TAPIProperty; reintroduce;
+    property BinaryData : Boolean Read FBinaryData Write FBinaryData;
+    Property ContentType : String read FContentType Write FContentType;
     // Index in openAPI #components
     Property Index : Integer Read FIndex;
   end;
@@ -205,6 +210,7 @@ type
     FServices : TFPObjectList;
     FServiceOperationMap : TFPStringHashTable;
     FAPI : TOpenAPI;
+    FStreamContentTypes: TStrings;
     FVoidResultCallbackType: String;
     function AllowOperation(aKeyword: TPathItemOperationKeyword; aOperation: TAPIOperation): boolean;
     function GetAPITypeCount: Integer;
@@ -212,6 +218,7 @@ type
     function GetServiceCount: Integer;
     function GetTypeData(aIndex : Integer): TAPITypeData;
     function GetVoidResultCallbackType: String;
+    procedure SetStreamContentTypes(const aValue: TStrings);
   Protected
     //
     // Type management
@@ -226,10 +233,15 @@ type
     // Check whether a type needs to be de-serialized (i.e. is received from the REST service)
     Function NeedsDeSerialize(aData : TAPITypeData) : Boolean; virtual;
     // Is the request body application/json or no request body
-    function IsRequestBodyApplicationJSON(aOperation: TAPIOperation): Boolean;
+    function IsRequestBodyApplicationJSON(aOperation: TAPIOperation): Boolean; virtual;
     // Is the response content application/json or no response content
-    function IsResponseContentApplicationJSON(aOperation: TAPIOperation): boolean;
-   //
+    function IsResponseContentApplicationJSON(aOperation: TAPIOperation): boolean; virtual;
+    // is the response content streamable ?
+    function IsResponseContentStreamable(aOperation: TAPIOperation): boolean; virtual;
+    // Is the request body application/json or no request body
+    function IsRequestBodyStreamable(aOperation: TAPIOperation): Boolean; virtual;
+    // Find streaming schema pascal type data. Create if needed
+    function GetStreamTypeData(const aContentType : String) : TAPITypeData;
     // Service/Method management
     //
     // Generate the name of the service, based on URL/Operation. Takes into account the mapping.
@@ -258,6 +270,7 @@ type
     function CheckOperationsOutput(aPath: TPathItem; aData: TAPITypeData): Boolean;
     // Check input/output for serialization
     procedure CheckInputOutput(aIncludeServer : Boolean);
+
   Public
     // Create. API must be alive while the data is kept alive.
     constructor Create(aAPI : TOpenAPI); reintroduce;
@@ -326,6 +339,8 @@ type
     Property VoidResultCallbackType : String Read GetVoidResultCallbackType Write FVoidResultCallbackType;
     // Name of generic Interface that implements an array
     Property InterfaceArrayType : String Read FInterfaceArrayType Write FInterfaceArrayType;
+    // Stream content types: these content types will be streamed.
+    Property StreamContentTypes : TStrings Read FStreamContentTypes Write SetStreamContentTypes;
   end;
 
 implementation
@@ -615,6 +630,12 @@ begin
     Result:='TVoidResultCallBack';
 end;
 
+procedure TAPIData.SetStreamContentTypes(const aValue: TStrings);
+begin
+  if FStreamContentTypes=aValue then Exit;
+  FStreamContentTypes.Assign(aValue);
+end;
+
 function TAPIData.CreatePascalType(aIndex: integer; aPascalType: TPascaltype; const aAPIName, aPascalName: String;
   aSchema: TJSONSchema): TAPITypeData;
 begin
@@ -682,6 +703,9 @@ constructor TAPIData.Create(aAPI: TOpenAPI);
 
 begin
   Inherited Create;
+  FStreamContentTypes:=TStringList.Create;
+  FStreamContentTypes.Add('application/octet-stream');
+  FStreamContentTypes.Add('*/*');
   FServices:=TFPObjectList.Create(True);
   FServiceOperationMap:=TFPStringHashTable.Create;
   FAPI:=aAPI;
@@ -692,6 +716,7 @@ end;
 destructor TAPIData.Destroy;
 
 begin
+  FreeAndNil(FStreamContentTypes);
   FreeAndNil(FServices);
   FreeAndNil(FServiceOperationMap);
   inherited Destroy;
@@ -710,7 +735,7 @@ procedure TAPIData.ConfigType(aType :TAPITypeData);
 begin
   if aType.Pascaltype in [ptAnonStruct,ptSchemaStruct] then
     begin
-    aType.InterfaceName:=EscapeKeyWord(InterfaceTypePrefix+aType.SchemaName);
+    aType.InterfaceName:=EscapeKeyWord(Sanitize(InterfaceTypePrefix+aType.SchemaName));
     aType.InterfaceUUID:=TGUID.NewGUID.ToString(False);
     end;
 end;
@@ -812,6 +837,7 @@ begin
     end;
 end;
 
+
 procedure TAPIData.CreateDefaultAPITypeMaps(aIncludeServer : Boolean);
 
   Procedure AddProperties(aType : TAPITypeData);
@@ -840,7 +866,7 @@ begin
     lType:=lSchema.Validations.GetFirstType;
     if (lType in [sstObject,sstString]) then
       begin
-      lTypeName:=EscapeKeyWord(ObjectTypePrefix+lName+ObjectTypeSuffix);
+      lTypeName:=EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix);
       case lType of
         sstObject : lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
         sstString :
@@ -1043,6 +1069,7 @@ function TAPIData.GetMethodResultTypeData(aMethod: TAPIServiceMethod): TAPITypeD
 var
   lResponse: TResponse;
   lMedia : TMediaType;
+  S : String;
 
 begin
   if AMethod.Operation.Responses.Count>0 then
@@ -1050,8 +1077,20 @@ begin
     lResponse:=AMethod.Operation.Responses.ResponseByindex[0];
     lMedia:=lResponse.Content.MediaTypes['application/json'];
     if lMedia=Nil then
-      Raise EGenAPI.CreateFmt('No application/json response media type for %s.%s',[aMethod.Service.ServiceName,aMethod.MethodName]);
-    Result:=GetSchemaTypeData(Nil,lMedia.Schema,True) as TAPITypeData;
+      begin
+      // Check if we must stream
+      For S in StreamContentTypes do
+        begin
+        lMedia:=lResponse.Content.MediaTypes[S];
+        if lMedia<>nil then
+          break;
+        end;
+      if lMedia=nil then
+        Raise EGenAPI.CreateFmt('No application/json response media type for %s.%s',[aMethod.Service.ServiceName,aMethod.MethodName]);
+      Result:=GetStreamTypeData(S);
+      end
+    else
+      Result:=GetSchemaTypeData(Nil,lMedia.Schema,True) as TAPITypeData;
     end
   else
     Result:=Nil; // FindApiType('boolean');
@@ -1090,7 +1129,8 @@ function TAPIData.GetMethodRequestBodyType(aMethod: TAPIServiceMethod): TAPIType
 
 var
   lMedia : TMediaType;
-
+  i : Integer;
+  S : String;
 begin
   Result:=Nil;
   if Not aMethod.Operation.HasKeyWord(okRequestBody) then
@@ -1101,7 +1141,17 @@ begin
     begin
     lMedia:=aMethod.Operation.RequestBody.Content['application/json'];
     if lMedia<>Nil then
-      Result:=TAPITypeData(GetSchemaTypeData(Nil,lMedia.Schema,True));
+      Result:=TAPITypeData(GetSchemaTypeData(Nil,lMedia.Schema,True))
+    else
+      begin
+      I:=0;
+      While (lMedia=Nil) and (I<StreamContentTypes.Count) do
+        begin
+        S:=StreamContentTypes[I];
+        lMedia:=aMethod.Operation.RequestBody.Content[S];
+        end;
+      Result:=TAPITypeData.CreateBinaryData(S);
+      end;
     end;
   if Result=Nil then
     with aMethod do
@@ -1117,14 +1167,80 @@ begin
   aMethod.RequestBodyDataType:=GetMethodRequestBodyType(aMethod);
 end;
 
+function TAPIData.IsResponseContentStreamable(aOperation : TAPIOperation) : boolean;
+var
+  i : Integer;
+  lResponse : TResponse;
+  lMedia : TMediaType;
+begin
+  if aOperation.Responses.Count=0 then
+    Result:=False
+  else
+    begin
+    lResponse:=aOperation.Responses.ResponseByindex[0];
+    I:=0;
+    lMedia:=Nil;
+    While (lMedia=Nil) and (I<StreamContentTypes.Count) do
+      begin
+      lMedia:=lResponse.Content.MediaTypes[StreamContentTypes[i]];
+      inc(i);
+      end;
+    Result:=lMedia<>nil;
+    end;
+end;
+
+function TAPIData.IsRequestBodyStreamable(aOperation: TAPIOperation): Boolean;
+var
+  lMedia : TMediaType;
+  I : Integer;
+begin
+  Result:=False;
+  if Not aOperation.HasKeyWord(okRequestBody) then
+    exit(True);
+  if aOperation.RequestBody.HasReference then
+    // We have a definition
+    Result:=GetRefSchemaTypeName(aOperation.RequestBody.Reference.Ref,ntPascal)<>''
+  else
+    begin
+    lMedia:=Nil;
+    I:=0;
+    While (I<StreamContentTypes.Count) and (lMedia=Nil) do
+      lMedia:=aOperation.RequestBody.Content[StreamContentTypes[i]];
+    Result:=lMedia<>Nil;
+    end;
+end;
+
+function TAPIData.GetStreamTypeData(const aContentType: String): TAPITypeData;
+var
+  I : Integer;
+  S : String;
+begin
+  I:=0;
+  Result:=Nil;
+  While (Result=Nil) and (I<APITypeCount) do
+    begin
+    Result:=APITypes[i];
+    if not (Result.BinaryData and (Result.ContentType=aContentType)) then
+      Result:=Nil;
+    Inc(I);
+    end;
+  if Result=Nil then
+    begin
+    Result:=TAPITypeData.CreateBinaryData(aContentType);
+    S:=ObjectTypePrefix+StringReplace(aContentType,'/','_',[])+'StreamData';
+    AddType(S,Result);
+    end;
+end;
 
 function TAPIData.AllowOperation(aKeyword: TPathItemOperationKeyword; aOperation: TAPIOperation): boolean;
 
 begin
   Result:=True;
-  Result:=IsResponseContentApplicationJSON(aOperation);
+  Result:=IsResponseContentApplicationJSON(aOperation)
+          or IsResponseContentStreamable(aOperation);
   if (aKeyword in [pkPost,pkPut,pkPatch]) then
-    Result:=IsRequestBodyApplicationJSON(aOperation);
+    Result:=IsRequestBodyApplicationJSON(aOperation)
+            or IsRequestBodyStreamable(aOperation);
 end;
 
 procedure TAPIData.CreateServiceDefs;
@@ -1441,6 +1557,12 @@ end;
 function TAPITypeData.CreateProperty(const aAPIName, aPascalName: string): TPascalPropertyData;
 begin
   Result:=TAPIProperty.Create(aAPIName,aPascalName);
+end;
+
+constructor TAPITypeData.CreateBinaryData(const aContentType: string);
+begin
+  Inherited Create(0,ptUnknown,'','TStream',Nil);
+  FContentType:=aContentType;
 end;
 
 function TAPITypeData.AddProperty(const aApiName, aPascalName: String): TAPIProperty;
