@@ -83,19 +83,21 @@ Type
   private
     FConvertUTC: Boolean;
     FDataUnitName: string;
-    function FieldToJSON(aProperty: TPascalPropertyData) : string;
-    function ArrayMemberToField(aType: TPropertyType; const aPropertyTypeName: String; const aFieldName: string): string;
-    function FieldToJSON(aType: TPropertyType; aFieldName: String): string;
-    procedure GenerateConverters;
-    function JSONToField(aProperty: TPascalPropertyData) : string;
-    function JSONToField(aType: TPropertyType; const aPropertyTypeName: string; const aKeyName: string): string;
-    procedure WriteFieldDeSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData);
-    procedure WriteFieldSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData);
-    procedure WriteDtoObjectSerializer(aType: TPascalTypeData);
-    procedure WriteDtoSerializer(aType: TPascalTypeData);
-    procedure WriteDtoObjectDeserializer(aType: TPascalTypeData);
-    procedure WriteDtoDeserializer(aType: TPascalTypeData);
-    procedure WriteDtoHelper(aType: TPascalTypeData);
+  protected
+    function MustSerializeType(aType : TPascalTypeData) : boolean; virtual;
+    function FieldToJSON(aProperty: TPascalPropertyData) : string; virtual;
+    function ArrayMemberToField(aType: TPropertyType; const aPropertyTypeName: String; const aFieldName: string): string; virtual;
+    function FieldToJSON(aType: TPropertyType; aFieldName: String): string; virtual;
+    procedure GenerateConverters; virtual;
+    function JSONToField(aProperty: TPascalPropertyData) : string; virtual;
+    function JSONToField(aType: TPropertyType; const aPropertyTypeName: string; const aKeyName: string): string; virtual;
+    procedure WriteFieldDeSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData); virtual;
+    procedure WriteFieldSerializer(aType : TPascalTypeData; aProperty: TPascalPropertyData); virtual;
+    procedure WriteDtoObjectSerializer(aType: TPascalTypeData); virtual;
+    procedure WriteDtoSerializer(aType: TPascalTypeData); virtual;
+    procedure WriteDtoObjectDeserializer(aType: TPascalTypeData); virtual;
+    procedure WriteDtoDeserializer(aType: TPascalTypeData); virtual;
+    procedure WriteDtoHelper(aType: TPascalTypeData); virtual;
   public
     procedure Execute(aData: TSchemaData);
     property DataUnitName: string read FDataUnitName write FDataUnitName;
@@ -435,6 +437,11 @@ end;
 
 
 { TSerializerCodeGenerator }
+
+function TSerializerCodeGenerator.MustSerializeType(aType: TPascalTypeData): boolean;
+begin
+  Result:=Assigned(aType);
+end;
 
 function TSerializerCodeGenerator.FieldToJSON(aProperty: TPascalPropertyData): string;
 
@@ -943,13 +950,15 @@ begin
     indent;
     for I := 0 to aData.TypeCount-1 do
     begin
-      with aData.Types[I] do
-        if Pascaltype in [ptSchemaStruct,ptAnonStruct] then
-          begin
-          DoLog('Generating serialization helper type %s for Dto %s', [SerializerName, PascalName]);
-          WriteDtoHelper(aData.Types[I]);
-          Addln('');
-          end;
+      lType := aData.Types[I];
+      if MustSerializeType(lType) then
+        with lType do
+          if Pascaltype in [ptSchemaStruct,ptAnonStruct] then
+            begin
+            DoLog('Generating serialization helper type %s for Dto %s', [SerializerName, PascalName]);
+            WriteDtoHelper(lType);
+            Addln('');
+            end;
     end;
     undent;
     Addln('implementation');
@@ -963,19 +972,22 @@ begin
     for I := 0 to aData.TypeCount-1 do
     begin
       lType := aData.Types[I];
-      if LType.Pascaltype in [ptSchemaStruct,ptAnonStruct] then
-        begin
-        if stSerialize in lType.SerializeTypes then
-        begin
-          WriteDtoObjectSerializer(aData.Types[I]);
-          WriteDtoSerializer(aData.Types[I]);
-        end;
-        if stDeserialize in lType.SerializeTypes then
-        begin
-          WriteDtoObjectDeserializer(aData.Types[I]);
-          WriteDtoDeserializer(aData.Types[I]);
-        end;
-        end;
+      if MustSerializeType(lType) then
+      begin
+        if LType.Pascaltype in [ptSchemaStruct,ptAnonStruct] then
+          begin
+          if stSerialize in lType.SerializeTypes then
+          begin
+            WriteDtoObjectSerializer(aData.Types[I]);
+            WriteDtoSerializer(aData.Types[I]);
+          end;
+          if stDeserialize in lType.SerializeTypes then
+          begin
+            WriteDtoObjectDeserializer(aData.Types[I]);
+            WriteDtoDeserializer(aData.Types[I]);
+          end;
+          end;
+      end;
     end;
     Addln('');
     Addln('end.');
