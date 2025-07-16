@@ -275,7 +275,7 @@ Type
     // Add a type to the list
     Procedure AddType(const aSchemaName: String; aType : TPascalTypeData); virtual;
     // Add a type definition to the type map.
-    procedure AddAliasToTypeMap(aType: TPascalType; const aAlias, aSchemaTypeName, aPascalTypeName: String; aSchema: TJSONSchema); overload;
+    function AddAliasToTypeMap(aType: TPascalType; const aAlias, aSchemaTypeName, aPascalTypeName: String; aSchema: TJSONSchema) : TPascalTypeData; overload;
     // Add a property to a type
     function AddTypeProperty(aType: TPascalTypeData; lProp: TJSONSchema; aName : string = ''; Recurse : Boolean = True): TPascalPropertyData;
     // Add properties to structured pascal type from aSchema. if aSchema = nil then use aType.Schema
@@ -1040,7 +1040,8 @@ begin
 end;
 
 
-procedure TSchemaData.AddAliasToTypeMap(aType : TPascalType; const aAlias,aSchemaTypeName, aPascalTypeName: String; aSchema: TJSONSchema);
+function TSchemaData.AddAliasToTypeMap(aType: TPascalType; const aAlias, aSchemaTypeName, aPascalTypeName: String;
+  aSchema: TJSONSchema): TPascalTypeData;
 
 var
   lType : TPascalTypeData;
@@ -1051,6 +1052,7 @@ begin
     lType.InterfaceName:=aPascalTypeName;
   AddToTypeMap(aAlias,lType);
   AddAliasType(lType);
+  Result:=lType;
 end;
 
 
@@ -1079,24 +1081,40 @@ begin
 end;
 
 procedure TSchemaData.DefineStandardPascalTypes;
+var
+  lArr,lElem : TPascalTypeData;
+
 begin
   // typename--format
-  AddAliasToTypeMap(ptInteger,'integer','integer','integer',Nil);
+  lElem:=AddAliasToTypeMap(ptInteger,'integer','integer','integer',Nil);
+  lArr:=AddAliasToTypeMap(ptArray,'[integer]','[integer]','TIntegerDynArray',Nil);
+  lArr.ElementTypeData:=lElem;
+
   AddAliasToTypeMap(ptInteger,'integer--int32','integer','integer',Nil);
-  AddAliasToTypeMap(ptInt64,'integer--int64','integer','int64',Nil);
-  AddAliasToTypeMap(ptString,'string','string','string',Nil);
+
+  lElem:=AddAliasToTypeMap(ptInt64,'integer--int64','integer','int64',Nil);
+  lArr:=AddAliasToTypeMap(ptArray,'[integer--int64]','[integer--int64]','TInt64DynArray',Nil);
+  lArr.ElementTypeData:=lElem;
+
+  lElem:=AddAliasToTypeMap(ptString,'string','string','string',Nil);
+  lArr:=AddAliasToTypeMap(ptArray,'[string]','[string]','TStringDynArray',Nil);
+  lArr.ElementTypeData:=lElem;
+
   AddAliasToTypeMap(ptDateTime,'string--date','string','TDateTime',Nil);
   AddAliasToTypeMap(ptDateTime,'string--time','string','TDateTime',Nil);
   AddAliasToTypeMap(ptDateTime,'string--date-time','string','TDateTime',Nil);
-  AddAliasToTypeMap(ptBoolean,'boolean','boolean','boolean',Nil);
-  AddAliasToTypeMap(ptFloat64,'number','number','double',Nil);
+
+  lElem:=AddAliasToTypeMap(ptFloat64,'number','number','double',Nil);
+  lArr:=AddAliasToTypeMap(ptArray,'[number]','[number]','TDoubleDynArray',Nil);
+  lArr.ElementTypeData:=lElem;
+
   AddAliasToTypeMap(ptJSON,'JSON','object','string',Nil);
   AddAliasToTypeMap(ptJSON,'any','object','string',Nil);
-  AddAliasToTypeMap(ptArray,'[string]','[string]','TStringDynArray',Nil);
-  AddAliasToTypeMap(ptArray,'[integer]','[integer]','TIntegerDynArray',Nil);
-  AddAliasToTypeMap(ptArray,'[integer--int64]','[integer--int64]','TInt64DynArray',Nil);
-  AddAliasToTypeMap(ptArray,'[number]','[number]','TDoubleDynArray',Nil);
-  AddAliasToTypeMap(ptArray,'[boolean]','[boolean]','TBooleanDynArray',Nil);
+
+  lElem:=AddAliasToTypeMap(ptBoolean,'boolean','boolean','boolean',Nil);
+  lArr:=AddAliasToTypeMap(ptArray,'[boolean]','[boolean]','TBooleanDynArray',Nil);
+  lArr.ElementTypeData:=lElem;
+
 end;
 
 
