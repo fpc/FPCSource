@@ -776,7 +776,8 @@ begin
   For I:=0 to aMap.Count-1 do
     begin
     aMap.GetNameValue(I,N,V);
-    FServiceOperationMap.Add(N,V);
+    if (N<>'') and (V<>'') then
+      FServiceOperationMap.Add(N,V);
     end;
 end;
 
@@ -897,7 +898,7 @@ function TAPIData.GenerateServiceName(const aUrl: String; const aPath: TPathItem
     Result:=StringReplace(S,' ','',[rfReplaceAll])
   end;
 {
-  the maps contain ServiceName.MethodName.
+  the maps contain ServiceName[.MethodName]
   We use ServiceName if there is an entry in the map.
   if there is no entry in the map and there is 1 tag, we take the name of the tag.
   if there is no tag, we take the first component of the URL path.
@@ -909,17 +910,14 @@ var
 
 begin
   Result:='';
-  if (aOperation.Tags.Count=1) then
-    lTag:=ServiceNamePrefix+CleanIdentifier(aOperation.Tags[0])+ServiceNameSuffix
-  else
-    lTag:='';
+  // We need to take into account the full map first, as is done for the method.
   if aOperation.OperationID<>'' then
     lFullName:=FServiceOperationMap.Items[aOperation.OperationID]
-  else if LTag<>'' then
-    lFullName:=lTag+'.'+aOperation.OperationID
   else
     lFullName:=FServiceOperationMap.Items[aOperation.PathComponent+'.'+aURL];
-  if lFullName='' then
+  if (lFullName='') and (aOperation.Tags.Count=1) then
+    lFullName:=ServiceNamePrefix+CleanIdentifier(aOperation.Tags[0])+ServiceNameSuffix;
+  if (lFullName='') then
     begin
     lStrings:=SplitString(aURL,'/');
     // First non-empty
@@ -976,8 +974,7 @@ begin
         S:=lStrings[i];
         S:=StringReplace(S,'{','',[rfReplaceAll]);
         S:=StringReplace(S,'}','',[rfReplaceAll]);
-        For J:=1 to Length(S)-1 do
-          if not (Upcase(S[J]) in ['A'..'Z','0'..'9','_']) then
+        S:=Sanitize(S);
         Result:=Result+'_'+S;
         end;
       end;
@@ -1227,7 +1224,7 @@ begin
   if Result=Nil then
     begin
     Result:=TAPITypeData.CreateBinaryData(aContentType);
-    S:=ObjectTypePrefix+StringReplace(aContentType,'/','_',[])+'StreamData';
+    S:=ObjectTypePrefix+Sanitize(aContentType)+'StreamData';
     AddType(S,Result);
     end;
 end;
@@ -1563,6 +1560,7 @@ constructor TAPITypeData.CreateBinaryData(const aContentType: string);
 begin
   Inherited Create(0,ptUnknown,'','TStream',Nil);
   FContentType:=aContentType;
+  FBinaryData:=True;
 end;
 
 function TAPITypeData.AddProperty(const aApiName, aPascalName: String): TAPIProperty;
