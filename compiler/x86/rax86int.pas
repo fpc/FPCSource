@@ -162,6 +162,8 @@ Unit Rax86int;
         'LOW','OFFSET','SIZEOF','VMTOFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
         'OR','XOR','WRT','GOTPCREL');
 
+      high_priority_tokens: set of tasmtoken = [AS_STAR,AS_SLASH,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR];
+
       token2str : array[tasmtoken] of string[10] = (
         '','Label','LLabel','String','Integer',
         ',','[',']','(',
@@ -1283,6 +1285,7 @@ Unit Rax86int;
         sym : tsym;
         srsymtable : TSymtable;
         hastypecast : boolean;
+	stop_at_plus_minus: boolean;
       Begin
         { reset }
         value:=0;
@@ -1299,6 +1302,7 @@ Unit Rax86int;
         parenlevel:=0;
         sym:=nil;
         needvmtofs:=FALSE;
+	stop_at_plus_minus:=(prevasmtoken in high_priority_tokens);
         Repeat
           { Support ugly delphi constructs like: [ECX].1+2[EDX] }
           if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
@@ -1374,6 +1378,8 @@ Unit Rax86int;
               end;
             AS_PLUS:
               Begin
+                if (parenlevel=0) and stop_at_plus_minus then
+                 break;
                 Consume(AS_PLUS);
                 if (cseif_isref in in_flags) and ((actasmtoken=AS_REGISTER) or (actasmtoken=AS_LBRACKET)) then
                  break;
@@ -1381,6 +1387,8 @@ Unit Rax86int;
               end;
             AS_MINUS:
               Begin
+                if (parenlevel=0) and stop_at_plus_minus then
+                 break;
                 Consume(AS_MINUS);
                 expr:=expr + '-';
               end;
