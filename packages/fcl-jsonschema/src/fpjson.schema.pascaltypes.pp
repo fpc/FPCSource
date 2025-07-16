@@ -247,6 +247,8 @@ Type
     function GetSchemaTypeData(aType: TPascalTypeData; lSchema: TJSONSchema; AllowCreate: Boolean=False): TPascalTypeData;
     // Add a type to the alias list
     Procedure AddAliasType(aType : TPascalTypeData); virtual;
+    // Sanitize identifier
+    function Sanitize(const aName : string) : String;
     // Sort types in dependency order
     procedure SortTypes;
   Public
@@ -803,6 +805,19 @@ begin
   FAliasList.Add(aType);
 end;
 
+function TSchemaData.Sanitize(const aName: string): String;
+var
+  i : integer;
+  lRes : string;
+begin
+  lRes:=aName;
+  UniqueString(lRes);
+  For I:=1 to Length(lRes) do
+    if not (lRes[i] in ['a'..'z','A'..'Z','0'..'9','_']) then
+      lRes[i]:='_';
+  Result:=lRes;
+end;
+
 
 // Determine the PascalType and pascal type name of the given schema
 
@@ -825,7 +840,7 @@ begin
     end;
 end;
 
-Procedure TSchemaData.FinishAutoCreatedType(aName : string; aType: TPascalTypeData; lElementTypeData: TPascalTypeData);
+procedure TSchemaData.FinishAutoCreatedType(aName: string; aType: TPascalTypeData; lElementTypeData: TPascalTypeData);
 
 begin
   AddType(aName,aType);
@@ -899,7 +914,7 @@ begin
         lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
 //        if
 //         Data.FindSchemaTypeData('Array of string')
-        lPascalName:=ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix;
+        lPascalName:=Sanitize(ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix);
         if lElTypeData.SchemaName='MeetingOption' then
           Writeln('Ah');
         lName:='['+lElTypeData.SchemaName;
@@ -929,7 +944,7 @@ begin
           else
             lBaseName:='Nested_'+lSchema.Name;
           lName:='{'+lBaseName+'}';
-          lPascalName:='T'+lBaseName;
+          lPascalName:=ObjectTypePrefix+Sanitize(lBaseName);
           Result:=FindSchemaTypeData(lName);
           if (Result=Nil) and AllowCreate then
             begin
@@ -961,7 +976,7 @@ var
 begin
   lName:=aName;
   if lName='' then
-    lName:=EscapeKeyWord(lProp.Name);
+    lName:=EscapeKeyWord(Sanitize(lProp.Name));
   Writeln('Adding property name ',lName,' to ',aType.PascalName);
   if lProp.Validations.TypesCount>1 then
     Raise ESchemaData.CreateFmt('Creating property for schema with multiple types ("%s") is not supported',[lName]);
