@@ -70,6 +70,7 @@ type
 
   TSerializerCodeGen = class(TSerializerCodeGenerator)
   protected
+    function MustSerializeType(aType : TPascalTypeData) : boolean; override;
     procedure GenerateHeader; override;
   end;
 
@@ -313,6 +314,13 @@ begin
 end;
 
 { TSerializerCodeGen }
+
+function TSerializerCodeGen.MustSerializeType(aType: TPascalTypeData): boolean;
+begin
+  Result:=inherited MustSerializeType(aType);
+  if Result and (aType is TAPITypeData) then
+     Result:=Not TAPITypeData(aType).BinaryData;
+end;
 
 procedure TSerializerCodeGen.GenerateHeader;
 begin
