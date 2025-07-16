@@ -59,6 +59,7 @@ Type
   private
     FTypeParentClass: string;
     procedure GenerateClassTypes(aData: TSchemaData);
+    procedure GeneratePascalArrayTypes(aData: TSchemaData);
     procedure GenerateStringTypes(aData: TSchemaData);
     procedure WriteDtoConstructor(aType: TPascalTypeData); virtual;
     procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
@@ -313,9 +314,10 @@ end;
 procedure TTypeCodeGenerator.GenerateStringTypes(aData : TSchemaData);
 
 var
-  I: integer;
+  I,lCount: integer;
   lType,lArray : TPascalTypeData;
 begin
+  lCount:=0;
   for I := 0 to aData.TypeCount-1 do
     begin
     lType:=aData.Types[I];
@@ -323,11 +325,17 @@ begin
       begin
       DoLog('Generating string type %s', [lType.PascalName]);
       WriteStringType(lType);
+      inc(lCount);
       lArray:=aData.FindSchemaTypeData('['+lType.SchemaName+']');
       if lArray<>Nil then
-         WriteStringArrayType(lArray);
+        begin
+        WriteStringArrayType(lArray);
+        inc(lCount);
+        end;
       end;
     end;
+  if lCount>0 then
+    AddLn('');
 end;
 
 procedure TTypeCodeGenerator.GenerateClassTypes(aData : TSchemaData);
@@ -335,16 +343,49 @@ procedure TTypeCodeGenerator.GenerateClassTypes(aData : TSchemaData);
 var
   I: integer;
   lArray : TPascalTypeData;
+  lName : string;
 begin
   for I := 0 to aData.TypeCount-1 do
     if aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct] then
       begin
         DoLog('Generating DTO class type %s', [aData.Types[I].PascalName]);
+        lName:=aData.Types[I].PascalName;
+        if lName='Tapi_Message' then
+          Writeln('ag');
         WriteDtoType(aData.Types[I]);
         lArray:=aData.FindSchemaTypeData('['+aData.Types[I].SchemaName+']');
         if lArray<>Nil then
           WriteDtoArrayType(lArray);
       end
+end;
+
+procedure TTypeCodeGenerator.GeneratePascalArrayTypes(aData : TSchemaData);
+
+// Generate a definition of an array of a standard pascal type.
+
+var
+  I, lCount: integer;
+  lType : TPascalTypeData;
+
+begin
+  lCount := 0;
+  for I := 0 to aData.TypeCount-1 do
+    begin
+    lType:=aData.Types[I];
+    // It is an array
+    if (lType.PascalType=ptArray) then
+      begin
+      // the element type is a standard type
+      if (lType.ElementTypeData.Schema=Nil) then
+        begin
+        DoLog('Generating array type %s', [lType.PascalName]);
+        WriteDtoArrayType(lType);
+        inc(lCount);
+        end;
+      end;
+    end;
+  if lCount>0 then
+    AddLn('');
 end;
 
 procedure TTypeCodeGenerator.Execute(aData: TSchemaData);
@@ -371,6 +412,7 @@ begin
     Addln('');
     indent;
     GenerateStringTypes(aData);
+    GeneratePascalArrayTypes(aData);
     GenerateClassTypes(aData);
     undent;
     Addln('implementation');
@@ -576,6 +618,7 @@ begin
     ptFloat32,
     ptFloat64,
     ptJSON,
+    ptAnonStruct,
     ptSchemaStruct:
     begin
       if lNilCheck then
