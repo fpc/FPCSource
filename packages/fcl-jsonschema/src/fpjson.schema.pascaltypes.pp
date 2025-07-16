@@ -912,11 +912,7 @@ begin
       sstArray:
         begin
         lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
-//        if
-//         Data.FindSchemaTypeData('Array of string')
         lPascalName:=Sanitize(ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix);
-        if lElTypeData.SchemaName='MeetingOption' then
-          Writeln('Ah');
         lName:='['+lElTypeData.SchemaName;
         if lSchema.Items[0].Validations.HasKeywordData(jskformat) then
           lName:=lName+'--'+lSchema.Items[0].Validations.Format;
@@ -926,8 +922,6 @@ begin
           lName:='';
         if (Result=Nil) and AllowCreate then
           begin
-          if (lName='[MeetingOption]') then
-            Writeln('ah');
           Result:=CreatePascalType(-1,ptArray,lName,lPascalName,lSchema);
           FinishAutoCreatedType(lName,Result,lElTypeData);
           lName:='';
@@ -977,7 +971,7 @@ begin
   lName:=aName;
   if lName='' then
     lName:=EscapeKeyWord(Sanitize(lProp.Name));
-  Writeln('Adding property name ',lName,' to ',aType.PascalName);
+  DoLog(etInfo,'Adding property name %s to %s',[lName,aType.PascalName]);
   if lProp.Validations.TypesCount>1 then
     Raise ESchemaData.CreateFmt('Creating property for schema with multiple types ("%s") is not supported',[lName]);
   if (lProp.Validations.GetFirstType=sstArray) then
