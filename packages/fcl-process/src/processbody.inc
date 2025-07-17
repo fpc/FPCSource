@@ -144,6 +144,7 @@ Type
     FXTermProgram: String;
     FPipeBufferSize : cardinal;
     FDescriptors: Array [TProcessHandleType] of TIODescriptor;
+    FSkipCommandLineQuotes : Boolean;
     function GetDescriptor(AIndex: Integer): TIODescriptor;
     Function  GetExitStatus : Integer;
     Function  GetExitCode : Integer;
@@ -231,6 +232,8 @@ Type
     Property StartupOptions : TStartupOptions Read FStartupOptions Write FStartupOptions;
     Property Running : Boolean Read GetRunning;
     Property ShowWindow : TShowWindowOptions Read FShowWindow Write SetShowWindow;
+    // This option is only used on windows. When set to True, the quoting of executable and parameters is skipped when constructing the command-line.
+    Property SkipCommandLineQuotes : Boolean Read FSkipCommandLineQuotes Write FSkipCommandLineQuotes;
     Property WindowColumns : Cardinal Read dwXCountChars Write SetWindowColumns;
     Property WindowHeight : Cardinal Read dwYSize Write SetWindowHeight;
     Property WindowLeft : Cardinal Read dwX Write SetWindowLeft;
@@ -402,6 +405,7 @@ begin
   FParameters:=TProcessStringList.Create;
   FRunCommandSleepTime:=100;
   FOnRunCommandEvent:=@IntOnIdleSleep;
+  FSkipCommandLineQuotes:=False;
   For HT in TProcessHandleType do
     FDescriptors[HT]:=CreateIODescriptor(Self,HT)
 end;

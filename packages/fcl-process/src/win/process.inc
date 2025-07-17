@@ -208,9 +208,18 @@ Var
     WCommandLine:=FCommandLine
   else if (FExecutable<>'') then
     begin
-    Cmd:=MaybeQuoteIfNotQuoted(Executable);
+    if FSkipCommandLineQuotes then
+      Cmd:=Executable
+    else
+      Cmd:=MaybeQuoteIfNotQuoted(Executable);
     For I:=0 to Parameters.Count-1 do
-      Cmd:=Cmd+' '+MaybeQuoteIfNotQuoted(Parameters[i]);
+      begin
+      Cmd:=Cmd+' ';
+      if FSkipCommandLineQuotes then
+        Cmd:=Cmd+Parameters[i]
+      else
+        Cmd:=Cmd+MaybeQuoteIfNotQuoted(Parameters[i]);
+      end;
     WCommandLine:=Cmd;
     end;
   If FCurrentDirectory<>'' then
