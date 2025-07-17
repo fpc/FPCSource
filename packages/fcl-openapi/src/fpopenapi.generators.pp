@@ -410,7 +410,9 @@ begin
   if Assigned(aMethod.RequestBodyDataType) then
     lBodyType:=aMethod.RequestBodyDataType.GetTypeName(ntPascal);
   if lBodyType<>'' then
-    AddTo(lParams, 'aBody : '+lBodyType);
+    AddTo(lParams, 'aRequest : '+lBodyType);
+  if aMethod.ResultDataType.BinaryData then
+    AddTo(lParams, 'aResponseStream : TStream');
   if AsyncService then
     AddTo(lParams, 'aCallback : '+MethodResultCallbackName(aMethod));
   // Optional
@@ -615,7 +617,7 @@ begin
     Addln('');
     Addln('uses');
     indent;
-    Addln(' fpopenapiclient, %s;', [DtoUnit]);
+    Addln(' classes, fpopenapiclient, %s;', [DtoUnit]);
     undent;
     Addln('');
     EnsureSection(csType);
@@ -771,7 +773,8 @@ var
   lDecl: string;
   lHTTPMethod: string;
   lBodyArg: string;
-  lName: string;
+  S,lName: string;
+  lResultType : TAPITypeData;
 
 begin
   lName:=aService.ServiceProxyImplementationClassName;
@@ -796,21 +799,51 @@ begin
   Addln('Result:=Default(%s);', [GetMethodResultType(aMethod)]);
   GenerateURLConstruction(aService, aMethod);
   lHTTPMethod:=aMethod.Operation.PathComponent;
-  if aMethod.RequestBodyDataType<>nil then
-    lBodyArg:='aBody.Serialize'
+  if (aMethod.RequestBodyDataType=nil) then
+    lBodyArg:=''''''
+  else if (not aMethod.RequestBodyDataType.BinaryData) then
+    lBodyArg:='aRequest.Serialize'
   else
-    lBodyArg:='''''';
-  Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s);', [lHTTPMethod, lBodyArg]);
+    lBodyArg:='aRequest';
+  if aMethod.ResultDataType.BinaryData then
+    Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s,aResponseStream);', [lHTTPMethod, lBodyArg])
+  else
+    Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s);', [lHTTPMethod, lBodyArg]);
   AddLn('Result:=%s.Create(lResponse);', [GetMethodResultType(aMethod)]);
-  if aMethod.ResultDataType<>nil then
+  lResultType:=aMethod.ResultDataType;
+  if (aMethod.ResultDataType=nil) then
+    Addln('Result.Value:=Result.Success;')
+  else if lResultType.BinaryData then
+    Addln('Result.Value:=aResponseStream;')
+  else
     begin
     Addln('if Result.Success then');
     indent;
-    Addln('Result.Value:=%s.Deserialize(lResponse.Content);', [aMethod.ResultDtoType]);
+    S:=lResultType.PascalName;
+    Case lResultType.Pascaltype of
+    ptSchemaStruct,ptAnonStruct,ptArray:
+      Addln('Result.Value:=%s.Deserialize(lResponse.Content);', [S]);
+    ptString,
+    ptJSON:
+      Addln('Result.Value:=lResponse.Content;');
+    ptBoolean:
+      Addln('Result.Value:=StrToBoolDef(lResponse.Content,False);');
+    ptInteger:
+      Addln('Result.Value:=StrToIntDef(lResponse.Content,0);');
+    ptInt64:
+      Addln('Result.Value:=StrToInt64Def(lResponse.Content,0);');
+    ptDateTime:
+      Addln('Result.Value:=ISO8601ToDateDef(lResponse.Content,0);');
+    ptFloat32,
+    ptFloat64:
+      Addln('Result.Value:=StrToFloatDef(lResponse.Content,0.0);');
+    ptEnum:
+      begin
+      Raise EOpenAPi.Create('Enum result not supported');
+      end;
+    end;
     Undent;
-    end
-  else
-    Addln('Result.Value:=Result.Success;');
+    end;
   undent;
   Addln('end;');
   Addln('');
@@ -850,7 +883,8 @@ begin
   Addln('');
   Addln('uses');
   indent;
-  AddLn('fpopenapiclient');
+
+  AddLn('classes, fpopenapiclient');
   if ServiceInterfaceUnit<>'' then
     Addln(', %s                     // Service definition ', [ServiceInterfaceUnit]);
   if (ServiceParentUnit<>'') and not SameText(ServiceParentUnit, 'fpopenapiclient') then
@@ -946,7 +980,7 @@ begin
     begin
     if Result<>'' then
       Result:=Result+'; ';
-    Result:=Result+'aBody : '+aMethod.RequestBodyDataType.PascalName;
+    Result:=Result+'aRequest : '+aMethod.RequestBodyDataType.PascalName;
     end;
 end;
 
