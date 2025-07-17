@@ -634,8 +634,8 @@ begin
   {$endif}
 
   FBigTiff:=false;
-  case TIFHeader.Version of
-  42 : IFDStart:=TIFHeader.IFDStart;
+  case FixEndian(TIFHeader.Version) of
+  42 : IFDStart:=FixEndian(TIFHeader.IFDStart);
   43 : {$ifdef CPU64}
        begin
          IFDStart:=ReadQWord;
