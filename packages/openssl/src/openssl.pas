@@ -3895,8 +3895,7 @@ end;
 //
 function EVP_CIPHER_CTX_new(): PEVP_CIPHER_CTX;
 begin
-  if InitSSLInterface then
-   if Assigned(_EVP_CIPHER_CTX_new) then
+  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_new) then
     Result := _EVP_CIPHER_CTX_new()
   else
     Result := nil;
@@ -3920,13 +3919,12 @@ end;
 
 function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
 begin
+  Result := -1;
   if InitSSLInterface then
    if  Assigned(_EVP_CIPHER_CTX_cleanup) then
     Result := _EVP_CIPHER_CTX_cleanup(a)
   else if  Assigned(_EVP_CIPHER_CTX_reset) then
-    Result := _EVP_CIPHER_CTX_reset(a)
-  else
-    Result := -1;
+    Result := _EVP_CIPHER_CTX_reset(a);
 end;
 
 function EVP_CIPHER_CTX_set_key_length(x: PEVP_CIPHER_CTX; keylen: cint): cint;
