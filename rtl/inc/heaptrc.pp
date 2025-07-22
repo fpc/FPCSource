@@ -1324,6 +1324,7 @@ var
   loc_info: pheap_info;
 begin
   loc_info:=@heap_info;
+  try_finish_heap_free_todo_list(loc_info);
   if useownfile then
     ptext:=@ownfile
   else
