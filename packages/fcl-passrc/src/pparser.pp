@@ -5147,6 +5147,7 @@ begin
   if not ParseRTTIDirective(Param,NewVisibility) then
     ParseExc(nErrInvalidParamsForDirectiveX,SErrInvalidParamsForDirectiveX,[Directive]);
   RTTIVisibility:=NewVisibility;
+  if Sender=nil then ;
 end;
 
 function TPasParser.SaveComments: String;
