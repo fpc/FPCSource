@@ -5910,8 +5910,8 @@ begin
     begin
     CurrentParser.NextToken;
     if CurrentParser.Scanner.CurToken<>tkEOF then
-      LogMsg(20180628131456,mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored,
-        [],nil);
+      LogMsg(20180628131456,mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored+' '+CurrentParser.Scanner.FormatCurrentSrcPos,
+        [],CurModule);
     end;
   {$IFDEF VerbosePasResolver}
   writeln('TPasResolver.FinishModule END ',CurModule.Name);

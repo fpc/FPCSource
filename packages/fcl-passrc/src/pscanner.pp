@@ -39,7 +39,6 @@ uses
   {$IFDEF NODEJS}
   Node.FS,
   {$ENDIF}
-  Types,
   {$endif}
   SysUtils, Classes, Types;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -946,6 +945,8 @@ type
     procedure OpenFile(AFilename: TPasScannerString);
     procedure FinishedModule; virtual; // called by parser after end.
     function FormatPath(const aFilename: String): String; virtual;
+    function FormatSrcPos(const p: TPasSourcePos): String;
+    function FormatCurrentSrcPos: String;
     procedure DisablePackageTokens;
     procedure SetNonToken(aToken : TToken);
     procedure UnsetNonToken(aToken : TToken);
@@ -3537,6 +3538,19 @@ begin
     Result:=OnFormatPath(aFilename)
   else
     Result:=aFilename;
+end;
+
+function TPascalScanner.FormatSrcPos(const p: TPasSourcePos): String;
+begin
+  Result:=FormatPath(p.FileName)+'('+IntToStr(p.Row);
+  if p.Column>0 then
+    Result+=','+IntToStr(p.Column);
+  Result+=')';
+end;
+
+function TPascalScanner.FormatCurrentSrcPos: String;
+begin
+  Result:=FormatSrcPos(CurSourcePos);
 end;
 
 procedure TPascalScanner.DisablePackageTokens;
