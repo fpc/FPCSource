@@ -301,8 +301,10 @@ end;
 procedure THTTPCompilerApplication.WriteOptions;
 begin
   inherited WriteOptions;
+  {AllowWriteln}
   Writeln('-s --simpleserver        Only serve files, do not enable compilation.');
   Writeln('-w --watch               Watch directory for changes');
+  {AllowWriteln-}
 end;
 
 procedure THTTPCompilerApplication.ReportBuilding(AItem: TCompileItem);
