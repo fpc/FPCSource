@@ -924,6 +924,12 @@ begin
 {$include fcl-wit/fpmake.pp}
 end;
 
+procedure add_fcl_ebnf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-ebnf/fpmake.pp}
+end;
+
 procedure add_fcl_yaml(const ADirectory: string);
 begin
   with Installer do
