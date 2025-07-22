@@ -840,13 +840,13 @@ end;
   {$I pas2jsfileutilswasm.inc}
 {$ENDIF}
 
-initialization
 {$IFDEF HAVE_INITPLATFORM}
+initialization
   InitPlatform;
 {$ENDIF} 
 
-finalization
 {$IFDEF HAVE_FINALIZEPLATFORM}
+finalization
   FinalizePlatform;
 {$ENDIF}  
   
