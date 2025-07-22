@@ -816,7 +816,6 @@ begin
   if Position<=length(List) then inc(Position); // skip Delimiter
 end;
 
-
 procedure IncreaseChangeStamp(var Stamp: TChangeStamp);
 begin
   if Stamp<High(TChangeStamp) then

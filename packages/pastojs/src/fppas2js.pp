@@ -14894,7 +14894,7 @@ function TPasToJSConverter.ConvertBuiltIn_InsertArray(El: TParamsExpr;
 // ->  AnArray=rtl.arrayInsert(item,AnArray,position);
 //   for array of COM interface: rtl.arrayInsert(item,AnArray,position,"R");
 var
-  Call, SubCall: TJSCallExpression;
+  Call: TJSCallExpression;
   AssignSt: TJSSimpleAssignStatement;
   aResolver: TPas2JSResolver;
   Param: TPasExpr;
@@ -19823,7 +19823,6 @@ var
   VarType: TPasType;
   AssignSt: TJSSimpleAssignStatement;
   C: TClass;
-  ElClass: TPasClassType;
   Call: TJSCallExpression;
 begin
   // add instance members
@@ -22116,21 +22115,11 @@ procedure TPasToJSConverter.AddInterfaceReleases(FuncContext: TFunctionContext;
   PosEl: TPasElement);
 // add the interface release object $ir
 var
-  aResolver: TPas2JSResolver;
-
-  function IsArray(aType: TPasType): boolean;
-  begin
-    aType:=aResolver.ResolveAliasType(aType);
-    Result:=aType is TPasArrayType;
-  end;
-
-var
   i: Integer;
   P: TPasElement;
   Call: TJSCallExpression;
   VarSt: TJSVariableStatement;
 begin
-  aResolver:=FuncContext.Resolver;
   if FuncContext.IntfExprReleaseCount>0 then
     begin
     // add in front of try..finally "var $ir = rtl.createIntfRefs();"

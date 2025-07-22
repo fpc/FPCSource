@@ -158,6 +158,7 @@ var
 begin
   CurFile:=FileCache.FindFile(aFilename);
   Result:=(CurFile=nil) or (not CurFile.AllowSrcMap);
+  if Sender=nil then ;
 end;
 
 procedure TPas2jsFSCompiler.SetWorkingDir(const aDir: String);

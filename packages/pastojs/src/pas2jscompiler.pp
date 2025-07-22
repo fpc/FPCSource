@@ -2443,6 +2443,7 @@ Var
   LibModuleName : String;
 begin
   Handled:=true;
+  if Sender=nil then ;
   if aLibOptions<>'' then
     ParamFatal('[20210919141030] linklib options not supported');
 
@@ -3046,8 +3047,8 @@ begin
         Exc:=Exception(TObject(obj));
         {$ifdef NodeJS}
         {AllowWriteln}
-        if Exc.NodeJSError<>nil then
-          writeln(Exc.NodeJSError.stack);
+        if Exc.JSError<>nil then
+          writeln(Exc.JSError.stack);
         {AllowWriteln-}
         {$endif}
         Log.Log(mtFatal,Msg+': ('+Exc.ClassName+') '+Exc.Message);
