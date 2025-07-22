@@ -1721,6 +1721,7 @@ end;
 procedure TJSONData.DoFormatJSON(var Ctx: TFormatJSONContext; CurrentIndent : SizeInt);
 
 begin
+  if CurrentIndent=0 then ;
   Ctx.Append(AsJSON);
 end;
 
@@ -2229,9 +2230,8 @@ begin
     Ctx.Append(TJSONStringType(FloatToStr(FValue,JSONFormatSettings)))
   else
     Ctx.Append(AsJSON);
+  if CurrentIndent=0 then ;
 end;
-
-
 
 constructor TJSONFloatNumber.Create(AValue: TJSONFloat);
 begin
