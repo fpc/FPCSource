@@ -378,7 +378,7 @@ end;
 {$ifdef Has_EventWait}
 procedure TFPTimerThread.Execute;
 var
-  WakeTime, StartTime: TDateTime;
+  WakeTime: TDateTime;
   WakeInterval: Integer;
   Counter: int64; { use Int64 to avoid overflow with Counter*fInterval (~49 days)}
   AInterval: int64;
@@ -444,12 +444,12 @@ end;
 procedure TFPTimerThread.Execute;
 
 var
-  WakeTime, StartTime: TDateTime;
+  WakeTime: TDateTime;
   WakeInterval: Integer;
   Counter: int64; { use Int64 to avoid overflow with Counter*fInterval (~49 days)}
   AInterval: int64;
   Diff: Extended;
-  S,Last: Cardinal;
+  S: Cardinal;
   RecheckTimeCounter: integer;
   
 const
@@ -480,7 +480,7 @@ begin
             fSignaled := False;
             Counter := 1;            // Restart timer
             AInterval := fInterval;
-            StartTime := Now;
+            FStartTime := Now;
             end;
           break;                     // Need to break out of sleep loop
           end;
