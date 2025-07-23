@@ -481,11 +481,7 @@ Var
 Procedure StartLog;
 
 begin
-{$if defined(win32) or defined(win64)}
-  Assign(FL,'c:\service.log');
-{$else}
-  Assign(FL,'/tmp/service.log');
-{$endif}
+  Assign(FL,GetTempDir+'service.log');
   Rewrite(FL);
   InitCriticalSection(LCS);
   DebugLog('Start logging');
