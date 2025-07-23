@@ -106,7 +106,6 @@ const
     be allocated for this information }
   extra_info_size : ptruint = 0;
   exact_info_size : ptruint = 0;
-  EntryMemUsed    : ptruint = 0;
   { function to fill this info up }
   fill_extra_info_proc : TFillExtraInfoProc = nil;
   display_extra_info_proc : TDisplayExtraInfoProc = nil;
@@ -164,9 +163,8 @@ type
     getmem_cnt,
     freemem_cnt   : ptruint;
     getmem_size,
-    freemem_size  : ptruint;
-    getmem8_size,
-    freemem8_size : ptruint;
+    freemem_size,
+    EntryMemUsed : ptruint;
     error_in_heap : boolean;
     inside_trace_getmem : boolean;
   end;
@@ -539,10 +537,8 @@ begin
     end;
   pp:=pheap_mem_info(p);
   inc(p,sizeof(theap_mem_info));
-  { Update getmem_size and getmem8_size only after successful call 
-    to SysGetMem }
+  { Update getmem_size only after successful call to SysGetMem }
   inc(loc_info^.getmem_size,size);
-  inc(loc_info^.getmem8_size,(size+7) and not 7);
 { Create the info block }
   pp^.sig:=longword(AllocateSig);
   pp^.todolist:=@loc_info^.heap_free_todo;
@@ -623,7 +619,6 @@ var
 {$endif}
 begin
   inc(loc_info^.freemem_size,size);
-  inc(loc_info^.freemem8_size,(size+7) and not 7);
   if not quicktrace then
     begin
       if not(is_in_getmem_list(loc_info, pp)) then
@@ -985,9 +980,7 @@ begin
   { adjust like a freemem and then a getmem, so you get correct
     results in the summary display }
   inc(loc_info^.freemem_size,oldsize);
-  inc(loc_info^.freemem8_size,(oldsize+7) and not 7);
   inc(loc_info^.getmem_size,size);
-  inc(loc_info^.getmem8_size,(size+7) and not 7);
   { generate new backtrace }
   CaptureBacktrace(1,tracesize,@pp^.calls[1]);
   { regenerate signature }
@@ -1321,18 +1314,18 @@ begin
   status:=SysGetFPCHeapStatus;
   Write(ptext^,
     'Heap dump by heaptrc unit of "'+GetModuleName()+'"',LineEnding,
-    loc_info^.getmem_cnt, ' memory blocks allocated : ',loc_info^.getmem_size,'/',loc_info^.getmem8_size,LineEnding,
-    loc_info^.freemem_cnt,' memory blocks freed     : ',loc_info^.freemem_size,'/',loc_info^.freemem8_size,LineEnding,
+    loc_info^.getmem_cnt, ' memory blocks allocated : ',loc_info^.getmem_size,LineEnding,
+    loc_info^.freemem_cnt,' memory blocks freed     : ',loc_info^.freemem_size,LineEnding,
     loc_info^.getmem_cnt-loc_info^.freemem_cnt,' unfreed memory blocks : ',loc_info^.getmem_size-loc_info^.freemem_size,LineEnding,
     'True heap size : ',status.CurrHeapSize);
-  if EntryMemUsed > 0 then
-    Write(ptext^,' (',EntryMemUsed,' used in System startup)');
+  if loc_info^.EntryMemUsed > 0 then
+    Write(ptext^,' (',loc_info^.EntryMemUsed,' used in System startup)');
   Writeln(ptext^,LineEnding,
     'True free heap : ',status.CurrHeapFree);
   ExpectedHeapFree:=status.CurrHeapSize
-    -(loc_info^.getmem8_size-loc_info^.freemem8_size)
+    -(loc_info^.getmem_size-loc_info^.freemem_size)
     -(loc_info^.getmem_cnt-loc_info^.freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size)
-    -EntryMemUsed;
+    -loc_info^.EntryMemUsed;
   If ExpectedHeapFree<>status.CurrHeapFree then
     Writeln(ptext^,'Should be : ',ExpectedHeapFree);
   i:=loc_info^.getmem_cnt-loc_info^.freemem_cnt;
@@ -1405,20 +1398,8 @@ var
   loc_info: pheap_info;
 begin
   loc_info := @heap_info;
-{$ifdef EXTRA}
-  loc_info^.heap_valid_first := nil;
-  loc_info^.heap_valid_last := nil;
-{$endif}
-  loc_info^.heap_mem_root := nil;
-  loc_info^.getmem_cnt := 0;
-  loc_info^.freemem_cnt := 0;
-  loc_info^.getmem_size := 0;
-  loc_info^.freemem_size := 0;
-  loc_info^.getmem8_size := 0;
-  loc_info^.freemem8_size := 0;
-  loc_info^.error_in_heap := false;
-  loc_info^.inside_trace_getmem := false;
-  EntryMemUsed := SysGetFPCHeapStatus.CurrHeapUsed;
+  FillChar(loc_info^,sizeof(loc_info^),0);
+  loc_info^.EntryMemUsed := SysGetFPCHeapStatus.CurrHeapUsed;
 end;
 
 procedure TraceRelocateHeap;
@@ -1452,10 +1433,8 @@ begin
   end;
   inc(dst_info^.getmem_cnt, src_info^.getmem_cnt);
   inc(dst_info^.getmem_size, src_info^.getmem_size);
-  inc(dst_info^.getmem8_size, src_info^.getmem8_size);
   inc(dst_info^.freemem_cnt, src_info^.freemem_cnt);
   inc(dst_info^.freemem_size, src_info^.freemem_size);
-  inc(dst_info^.freemem8_size, src_info^.freemem8_size);
   dst_info^.error_in_heap := dst_info^.error_in_heap or src_info^.error_in_heap;
 {$ifdef EXTRA}
   if assigned(dst_info^.heap_valid_first) then
