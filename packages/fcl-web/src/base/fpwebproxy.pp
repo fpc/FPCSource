@@ -267,7 +267,8 @@ begin
       begin
       V:=Trim(ExtractWord(2,N,[':']));
       {$IFDEF DEBUGPROXY}Writeln('Returning header: ',N);{$ENDIF}
-      AResponse.SetCustomHeader(H,V);
+      if Not SameText(V,'chunked') then
+        AResponse.SetCustomHeader(H,V);
       end;
     end;
   AResponse.Code:=T.ResponseStatusCode;
