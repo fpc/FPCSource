@@ -2216,7 +2216,7 @@ begin
 
     ACompareRec.Desc := ixDescending in AIndexOptions;
     if assigned(ADescFields) then
-      ACompareRec.Desc := ACompareRec.Desc or (ADescFields.IndexOf(AField)>-1);
+      ACompareRec.Desc := ACompareRec.Desc and (ADescFields.IndexOf(AField)>-1);
 
     ACompareRec.Options := ALocateOptions;
     if assigned(ACInsFields) and (ACInsFields.IndexOf(AField)>-1) then
