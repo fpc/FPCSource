@@ -3449,7 +3449,7 @@ function VarTypeIsValidElementType(const aVarType: TVarType): Boolean;
       varSingle,varDouble,varDate,
 {$endif}
       varCurrency,varOleStr,varDispatch,varError,varBoolean,
-      varVariant,varUnknown,varShortInt,varByte,varWord,varLongWord,varInt64]) or
+      varVariant,varUnknown,varShortInt,varByte,varWord,varLongWord,varInt64, varQWord]) or
     FindCustomVariantType(aVarType,customvarianttype);
   end;
 
