@@ -592,6 +592,13 @@ function LogN(n,x : float) : float;
 
 { returns natural logarithm of x+1, accurate for x values near zero }
 function LnXP1(x : float) : float;
+{ Return exp(x)-1, accurate even for x near 0 }
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function ExpM1(x : double) : double;
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function ExpM1(x : extended) : extended;
+{$endif}
 
 { exponential functions }
 
@@ -1815,6 +1822,92 @@ function lnxp1(x : float) : float;
           end;
       end;
   end;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+{ Ref: Boost, expm1.hpp }
+function PolyEval(x: double; const a: array of double): double;
+var
+  i : sizeint;
+begin
+  result:=a[High(a)];
+  for i:=High(a)-1 downto 0 do result:=result*x+a[i];
+end;
+
+function ExpM1(x : double) : double;
+const
+  P: array[0..5] of double = (
+    -2.8127670288085937500E-2,
+    +5.1278186299064532072E-1,
+    -6.3100290693501981387E-2,
+    +1.1638457975729295593E-2,
+    -5.2143390687520998431E-4,
+    +2.1491399776965686808E-5);
+  Q: array[0..5] of double = (
+    +1.0000000000000000000,
+    -4.5442309511354755935E-1,
+    +9.0850389570911710413E-2,
+    -1.0088963629815501238E-2,
+    +6.3003407478692265934E-4,
+    -1.7976570003654402936E-5);
+var
+  a : double;
+begin
+  a:=abs(x);
+  if a>0.5 then
+    result:=exp(x)-1.0
+  else if a<3e-16 then
+    result:=x
+  else
+    result:=x*double(0.10281276702880859e1)+x*(PolyEval(x,P)/PolyEval(x,Q));
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function PolyEval(x: extended; const a: array of extended): extended;
+var
+  i : sizeint;
+begin
+  result:=a[High(a)];
+  for i:=High(a)-1 downto 0 do result:=result*x+a[i];
+end;
+
+function ExpM1(x : extended) : extended;
+const
+  P: array[0..9] of extended = (
+    -0.28127670288085937499999999999999999854e-1,
+    +0.51278156911210477556524452177540792214e0,
+    -0.63263178520747096729500254678819588223e-1,
+    +0.14703285606874250425508446801230572252e-1,
+    -0.8675686051689527802425310407898459386e-3,
+    +0.88126359618291165384647080266133492399e-4,
+    -0.25963087867706310844432390015463138953e-5,
+    +0.14226691087800461778631773363204081194e-6,
+    -0.15995603306536496772374181066765665596e-8,
+    +0.45261820069007790520447958280473183582e-10);
+  Q: array[0..10] of extended = (
+    +1,
+    -0.45441264709074310514348137469214538853e0,
+    +0.96827131936192217313133611655555298106e-1,
+    -0.12745248725908178612540554584374876219e-1,
+    +0.11473613871583259821612766907781095472e-2,
+    -0.73704168477258911962046591907690764416e-4,
+    +0.34087499397791555759285503797256103259e-5,
+    -0.11114024704296196166272091230695179724e-6,
+    +0.23987051614110848595909588343223896577e-8,
+    -0.29477341859111589208776402638429026517e-10,
+    +0.13222065991022301420255904060628100924e-12);
+var
+  a : extended;
+begin
+  a:=abs(x);
+  if a>0.5 then
+    result:=exp(x)-1
+  else if a<2e-19 then
+    result:=x
+  else
+    result:=x*extended(0.10281276702880859375e1)+x*(PolyEval(x,P)/PolyEval(x,Q));
+end;
+{$endif}
 
 
 function power(base,exponent : float) : float;
