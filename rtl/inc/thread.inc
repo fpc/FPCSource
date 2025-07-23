@@ -42,10 +42,9 @@ Var
 {$ifndef HAS_MEMORYMANAGER}
         { initialize this thread's heap }
         InitHeapThread;
-{$else HAS_MEMORYMANAGER}
+{$endif ndef HAS_MEMORYMANAGER}
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
-{$endif HAS_MEMORYMANAGER}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
         if assigned(widestringmanager.ThreadInitProc) then
           widestringmanager.ThreadInitProc;
