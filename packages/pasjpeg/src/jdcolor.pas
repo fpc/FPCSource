@@ -302,7 +302,7 @@ begin
   begin
     inptr := JSAMPLE_PTR(input_buf^[0]^[input_row]);
     Inc(input_row);
-    outptr := JSAMPLE_PTR(@output_buf^[0]);
+    outptr := JSAMPLE_PTR(output_buf^[0]);
     Inc(JSAMPROW_PTR(output_buf));
     for col := 0 to pred(num_cols) do
     begin
