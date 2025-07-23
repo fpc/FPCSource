@@ -29,11 +29,16 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 Const
-{$ifndef darwin}
-  DefaultLibName = 'libfontconfig.so';
-{$else}  
+  {$if defined(MSWINDOWS)}
+  DefaultLibName = 'fontconfig.dll');
+  {$elseif defined(darwin)}
   DefaultLibName = 'libfontconfig.dylib';
-{$endif}  
+  {$elseif defined(haiku) or defined(OpenBSD)}
+  DefaultLibName = 'libfontconfig.so';
+  {$else}
+  DefaultLibName = 'libfontconfig.so.1';
+  {$endif}
+  
 {$ifdef MSWINDOWS}
   {$calling stdcall}
 {$else}
