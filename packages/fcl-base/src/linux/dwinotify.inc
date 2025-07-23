@@ -183,7 +183,7 @@ begin
       lEvent.Entry:=Watch.DirectoryEntryForFileName(FN);
     lEvent.Events:=NativeEventsToEvents(E^.mask);
     Watch.DoChangeEvent(lEvent);
-    PByte(e):=PByte(e)+sizeof(inotify_event)+e^.len-1;
+    PByte(e):=PByte(e)+sizeof(inotify_event)+e^.len;
     Inc(Result);
     end;
 end;
