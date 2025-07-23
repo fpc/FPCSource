@@ -239,10 +239,10 @@ unit ComObj;
       TAutoObject = class(TTypedComObject, IDispatch)
       protected
         { IDispatch }
-        function GetTypeInfoCount(out count : longint) : HResult;stdcall;
-        function GetTypeInfo(Index,LocaleID : longint; out TypeInfo): HResult;stdcall;
-        function GetIDsOfNames(const iid: TGUID; names: Pointer; NameCount, LocaleID: LongInt; DispIDs: Pointer) : HResult;stdcall;
-        function Invoke(DispID: LongInt;const iid : TGUID; LocaleID : longint; Flags: Word;var params; VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
+        function GetTypeInfoCount(out count : longint) : HResult; virtual; stdcall;
+        function GetTypeInfo(Index,LocaleID : longint; out TypeInfo): HResult; virtual; stdcall;
+        function GetIDsOfNames(const iid: TGUID; names: Pointer; NameCount, LocaleID: LongInt; DispIDs: Pointer) : HResult; virtual; stdcall;
+        function Invoke(DispID: LongInt;const iid : TGUID; LocaleID : longint; Flags: Word;var params; VarResult,ExcepInfo,ArgErr : pointer) : HResult; virtual; stdcall;
       public
 
       end;
