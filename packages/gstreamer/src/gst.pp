@@ -37,7 +37,14 @@ uses glib2;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  gstreamerlib = 'libgstreamer-1.0'; {Setup as you need}
+  { Setup as you need } 
+
+{$ifdef Linux}
+  gstreamerlib = 'libgstreamer-1.0'; 
+{$endif}
+{$ifdef Windows}
+  gstreamerlib = 'gstreamer-1.0-0.dll';
+{$endif}
 
 Const
   GST_PADDING	=	4;
