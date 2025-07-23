@@ -850,6 +850,8 @@ begin
     Add(AccessNames[aArg.Access]+' ');
   Add(aArg.SafeName+' : ');
   WriteType(aArg.ArgType,False);
+  if aArg.Value<>'' then  
+    Add(' = '+aArg.Value);
 end;
 
 procedure TPasWriter.WriteOverloadedProc(aProc: TPasOverloadedProc; ForceBody: Boolean = False; NamePrefix : String = '');

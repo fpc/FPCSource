@@ -3812,7 +3812,11 @@ begin
     else
       Result:=ArgType.GetDeclaration(False);
     If Full and (Name<>'') then
+      begin
       Result:=SafeName+': '+Result;
+      if Value<>'' then            
+        Result:=Result+'='+Value;  
+      end;
     end
   else If Full then
     Result:=SafeName
