@@ -90,8 +90,9 @@ Const
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
     const
-      MinExtended  =  3.4e-4932;
-      MaxExtended  =  1.1e+4932;
+      MinExtended  =  3.36210314311209350626e-4932;
+      MaxExtended  =  1.18973149535723176502e+4932;
+
 {$endif FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_HAS_TYPE_COMP}
     const
