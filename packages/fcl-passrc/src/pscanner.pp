@@ -3544,8 +3544,8 @@ function TPascalScanner.FormatSrcPos(const p: TPasSourcePos): String;
 begin
   Result:=FormatPath(p.FileName)+'('+IntToStr(p.Row);
   if p.Column>0 then
-    Result+=','+IntToStr(p.Column);
-  Result+=')';
+    Result:=Result+','+IntToStr(p.Column);
+  Result:=Result+')';
 end;
 
 function TPascalScanner.FormatCurrentSrcPos: String;
