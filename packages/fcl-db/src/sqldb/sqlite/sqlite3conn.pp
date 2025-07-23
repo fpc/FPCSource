@@ -1058,51 +1058,52 @@ begin
   PKFields.Delimiter:=';';
   IXFields:=TStringList.Create;
   IXFields.Delimiter:=';';
-
-  //check for multipart unquoted identifier: DatabaseName.TableName
-  if Pos('"',TableName) = 0 then
-    i := Pos('.',TableName)
-  else
-    i := 0;
-  if i>0 then
-    begin
-    DbName := Copy(TableName,1,i);
-    Delete(TableName,1,i);
-    end
-  else
-    DbName := '';
-
-  //primary key fields; 5th column "pk" is zero for columns that are not part of PK
-  artableinfo := stringsquery('PRAGMA '+DbName+'table_info('+TableName+');');
-  for ii:=low(artableinfo) to high(artableinfo) do
-    if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] >= '1') then
-      PKFields.Add(artableinfo[ii][1]);
-
-  //list of all table indexes
-  arindexlist:=stringsquery('PRAGMA '+DbName+'index_list('+TableName+');');
-  for il:=low(arindexlist) to high(arindexlist) do
-    begin
-    IndexName:=arindexlist[il][1];
-    if arindexlist[il][2]='1' then
-      IndexOptions:=[ixUnique]
+  try
+    //check for multipart unquoted identifier: DatabaseName.TableName
+    if Pos('"',TableName) = 0 then
+      i := Pos('.',TableName)
     else
-      IndexOptions:=[];
-    //list of columns in given index
-    arindexinfo:=stringsquery('PRAGMA index_info('+IndexName+');');
-    IXFields.Clear;
-    for ii:=low(arindexinfo) to high(arindexinfo) do
-      IXFields.Add(arindexinfo[ii][2]);
+      i := 0;
+    if i>0 then
+      begin
+      DbName := Copy(TableName,1,i);
+      Delete(TableName,1,i);
+      end
+    else
+      DbName := '';
 
-    if CheckPKFields then IndexOptions:=IndexOptions+[ixPrimary];
+    //primary key fields; 5th column "pk" is zero for columns that are not part of PK
+    artableinfo := stringsquery('PRAGMA '+DbName+'table_info('+TableName+');');
+    for ii:=low(artableinfo) to high(artableinfo) do
+      if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] >= '1') then
+        PKFields.Add(artableinfo[ii][1]);
 
-    IndexDefs.Add(IndexName, IXFields.DelimitedText, IndexOptions);
-    end;
+    //list of all table indexes
+    arindexlist:=stringsquery('PRAGMA '+DbName+'index_list('+TableName+');');
+    for il:=low(arindexlist) to high(arindexlist) do
+      begin
+      IndexName:=arindexlist[il][1];
+      if arindexlist[il][2]='1' then
+        IndexOptions:=[ixUnique]
+      else
+        IndexOptions:=[];
+      //list of columns in given index
+      arindexinfo:=stringsquery('PRAGMA index_info('+IndexName+');');
+      IXFields.Clear;
+      for ii:=low(arindexinfo) to high(arindexinfo) do
+        IXFields.Add(arindexinfo[ii][2]);
 
-  if PKFields.Count > 0 then //in special case for INTEGER PRIMARY KEY column, unique index is not created
-    IndexDefs.Add('$PRIMARY_KEY$', PKFields.DelimitedText, [ixPrimary,ixUnique]);
+      if CheckPKFields then IndexOptions:=IndexOptions+[ixPrimary];
 
-  PKFields.Free;
-  IXFields.Free;
+      IndexDefs.Add(IndexName, IXFields.DelimitedText, IndexOptions);
+      end;
+
+    if PKFields.Count > 0 then //in special case for INTEGER PRIMARY KEY column, unique index is not created
+      IndexDefs.Add('$PRIMARY_KEY$', PKFields.DelimitedText, [ixPrimary,ixUnique]);
+  finally
+    PKFields.Free;
+    IXFields.Free;
+  end;
 end;
 
 function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
