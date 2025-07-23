@@ -443,6 +443,12 @@ function DecodeURLElement(const S: UnicodeString): UnicodeString;
 
 implementation
 
+{$IFDEF FPC_DOTTEDUNITS}
+uses System.StrUtils;
+{$ELSE}
+uses StrUtils;
+{$ENDIF}
+
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
   SErrReadingSocket = 'Error reading data from socket';
@@ -1023,7 +1029,7 @@ Var
 
 begin
   S:=Uppercase(GetNextWord(AStatusLine));
-  If (Copy(S,1,5)<>'HTTP/') then
+  If StartsStr('HTTP/',S) then
     Raise EHTTPClient.CreateFmt(SErrInvalidProtocolVersion,[S]);
   System.Delete(S,1,5);
   FServerHTTPVersion:=S;
@@ -1071,7 +1077,7 @@ begin
     if ReadString(S) and (S<>'') then
       begin
       ResponseHeaders.Add(S);
-      If (LowerCase(Copy(S,1,Length(SetCookie)))=SetCookie) then
+      If StartsText(SetCookie,S) then
         DoCookies(S);
       end
   Until (S='') or Terminated;
@@ -1117,7 +1123,7 @@ begin
   While (Result=-1) and (I<FResponseHeaders.Count) do
     begin
     S:=Trim(LowerCase(FResponseHeaders[i]));
-    If (Copy(S,1,Length(Cl))=Cl) then
+    If StartsStr(Cl,S) then
       begin
       System.Delete(S,1,Length(CL));
       Result:=StrToInt64Def(Trim(S),-1);
@@ -1141,7 +1147,7 @@ begin
   While (I<FResponseHeaders.Count) do
     begin
     S:=Trim(LowerCase(FResponseHeaders[i]));
-    If (Copy(S,1,Length(Cl))=Cl) then
+    If StartsStr(Cl,S) then
       begin
       System.Delete(S,1,Length(CL));
       Result:=Trim(S);
@@ -1582,7 +1588,7 @@ begin
   H:=LowerCase(Aheader)+':';
   l:=Length(H);
   Result:=HTTPHeaders.Count-1;
-  While (Result>=0) and ((LowerCase(Copy(HTTPHeaders[Result],1,l)))<>h) do
+  While (Result>=0) and not StartsText(H,HTTPHeaders[Result]) do
     Dec(Result);
 end;
 
