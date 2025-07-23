@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
+Procedure SysGetEnvironmentList(List : TStrings; NamesOnly : Boolean);
 
 Var
   P : PPAnsiChar;
@@ -31,7 +31,7 @@ begin
         begin
         I:=Pos('=',S);
         If (I>1) then
-          S:=Copy(S,1,I-1);
+          SetLength(S,I-1);
         end;
       List.Add(S);
       Inc(P);

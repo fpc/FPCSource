@@ -186,22 +186,22 @@ begin
 end;
 {$endif darwin}
 
-Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
+Procedure SysGetEnvironmentList(List : TStrings; NamesOnly : Boolean);
 
 var
-   s : string;
-   i,j,count : longint;
+   S : String;
+   I,J,Count : Integer;
 
 begin
-  count:=GetEnvironmentVariableCount;
-  for j:=1 to count  do
+  Count:=GetEnvironmentVariableCount;
+  for J:=1 to Count do
     begin
-    s:=GetEnvironmentString(j);
+    S:=GetEnvironmentString(J);
     If NamesOnly then
       begin
-      I:=pos('=',s);
+      I:=Pos('=',S);
       If (I>1) then
-        S:=Copy(S,1,I-1);
+        SetLength(S,I-1);
       end;
     List.Add(S);
     end;
