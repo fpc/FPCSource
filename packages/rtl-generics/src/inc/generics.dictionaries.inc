@@ -364,8 +364,11 @@ procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.UpdateItemsThreshold(ASiz
 begin
   if ASize = $40000000 then
     FItemsThreshold := $40000001
-  else
+  else begin
     FItemsThreshold := Pred(Round(ASize * FMaxLoadFactor));
+    if FItemsThreshold < 0 then
+      FItemsThreshold := 0;
+  end;
 end;
 
 procedure TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.AddItem(var AItem: TItem; const AKey: TKey;
