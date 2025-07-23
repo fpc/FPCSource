@@ -2773,7 +2773,7 @@ begin
   if Length(FStreamingContent) < FStreamingContentRead then
     SetLength(FStreamingContent, FStreamingContentRead);
   if Size > 0 then
-    Move(Buf, FStreamingContent[CL+1], Size);
+    Move(Buf, FStreamingContent[CL], Size);
   if State=cssEnd then
     begin
     SetLength(FStreamingContent, FStreamingContentRead);
