@@ -189,6 +189,22 @@ var
 {$endif}
   heap_info: theap_info;
 
+function GetOutput : PText;
+begin
+  if useownfile then
+    GetOutput:=@ownfile
+  else
+    GetOutput:=textoutput;
+end;
+
+procedure CloseOwnFile;
+begin
+  if not useownfile then
+    exit;
+  useownfile:=false;
+  close(ownfile);
+end;
+
 {*****************************************************************************
                                    Crc 32
 *****************************************************************************}
@@ -296,9 +312,8 @@ begin
     write(ptext, hexstr(pbyte(p + i)^,2));
 
   if size > maxprintedblocklength then
-    writeln(ptext,'.. - ')
-  else
-    writeln(ptext, ' - ');
+    write(ptext,'..');
+  writeln(ptext,' - ');
 
   for i:=0 to s-1 do
     if pansichar(p + sizeof(theap_mem_info) + i)^ < ' ' then
@@ -307,9 +322,8 @@ begin
       write(ptext, pansichar(p + i)^);
 
   if size > maxprintedblocklength then
-    writeln(ptext,'..')
-  else
-    writeln(ptext);
+    write(ptext,'..');
+  writeln(ptext);
 end;
 
 procedure call_stack(pp : pheap_mem_info;var ptext : text);
@@ -365,8 +379,8 @@ end;
 
 procedure dump_error(p : pheap_mem_info;var ptext : text);
 begin
-  Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
-  Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
+  Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid',LineEnding,
+                'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
   if printfaultyblock then
     begin
       write(ptext, 'Block content: ');
@@ -414,9 +428,9 @@ procedure dump_change_after(p : pheap_mem_info;var ptext : text);
  var pp : pansichar;
      i : ptruint;
 begin
-  Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
-  Writeln(ptext,'Wrong release CRC $',hexstr(p^.release_sig,8),' instead of ',hexstr(calculate_release_sig(p),8));
-  Writeln(ptext,'This memory was changed after call to freemem !');
+  Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid',LineEnding,
+                'Wrong release CRC $',hexstr(p^.release_sig,8),' instead of ',hexstr(calculate_release_sig(p),8),LineEnding,
+                'This memory was changed after call to freemem !');
   call_free_stack(p,ptext);
   pp:=pointer(p)+sizeof(theap_mem_info);
   for i:=0 to p^.size-1 do
@@ -427,8 +441,8 @@ end;
 
 procedure dump_wrong_size(p : pheap_mem_info;size : ptruint;var ptext : text);
 begin
-  Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
-  Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
+  Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid',LineEnding,
+                'Wrong size : ',p^.size,' allocated ',size,' freed');
   dump_stack(ptext,1);
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(p^.extra_info) and
@@ -448,25 +462,18 @@ begin
   i:=0;
   while pp<>nil do
    begin
-     if ((pp^.sig<>longword(AllocateSig)) or usecrc) and
-        ((pp^.sig<>calculate_sig(pp)) or not usecrc) and
+     if (i>=loc_info^.getmem_cnt-loc_info^.freemem_cnt) or
+        (usecrc or (pp^.sig<>longword(AllocateSig))) and
+        (not usecrc or (pp^.sig<>calculate_sig(pp))) and
         (pp^.sig <>longword(ReleaseSig)) then
       begin
-        if useownfile then
-          writeln(ownfile,'error in linked list of heap_mem_info')
-        else
-          writeln(textoutput^,'error in linked list of heap_mem_info');
+        writeln(GetOutput^,'error in linked list of heap_mem_info');
         RunError(204);
       end;
      if pp=p then
       is_in_getmem_list:=true;
      pp:=pp^.previous;
      inc(i);
-     if i>loc_info^.getmem_cnt-loc_info^.freemem_cnt then
-       if useownfile then
-         writeln(ownfile,'error in linked list of heap_mem_info')
-       else
-         writeln(textoutput^,'error in linked list of heap_mem_info');
    end;
 end;
 
@@ -610,16 +617,11 @@ end;
 
 function CheckFreeMemSize(loc_info: pheap_info; pp: pheap_mem_info;
   size, ppsize: ptruint): boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-var
-  ptext : ^text;
 {$ifdef EXTRA}
+var
   pp2 : pheap_mem_info;
 {$endif}
 begin
-  if useownfile then
-    ptext:=@ownfile
-  else
-    ptext:=textoutput;
   inc(loc_info^.freemem_size,size);
   inc(loc_info^.freemem8_size,(size+7) and not 7);
   if not quicktrace then
@@ -630,14 +632,14 @@ begin
   if (pp^.sig=longword(ReleaseSig)) then
     begin
        loc_info^.error_in_heap:=true;
-       dump_already_free(pp,ptext^);
+       dump_already_free(pp,GetOutput^);
        if haltonerror then halt(1);
     end
   else if ((pp^.sig<>longword(AllocateSig)) or usecrc) and
         ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
     begin
        loc_info^.error_in_heap:=true;
-       dump_error(pp,ptext^);
+       dump_error(pp,GetOutput^);
 {$ifdef EXTRA}
        dump_error(pp,error_file);
 {$endif EXTRA}
@@ -648,7 +650,7 @@ begin
   else if pp^.size<>size then
     begin
        loc_info^.error_in_heap:=true;
-       dump_wrong_size(pp,size,ptext^);
+       dump_wrong_size(pp,size,GetOutput^);
 {$ifdef EXTRA}
        dump_wrong_size(pp,size,error_file);
 {$endif EXTRA}
@@ -812,11 +814,7 @@ begin
   { this can never happend normaly }
   if pp^.size>l then
    begin
-     if useownfile then
-       dump_wrong_size(pp,l,ownfile)
-     else
-       dump_wrong_size(pp,l,textoutput^);
-
+     dump_wrong_size(pp,l,GetOutput^);
 {$ifdef EXTRA}
      dump_wrong_size(pp,l,error_file);
 {$endif EXTRA}
@@ -867,10 +865,7 @@ begin
      ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
    begin
      loc_info^.error_in_heap:=true;
-     if useownfile then
-       dump_error(pp,ownfile)
-     else
-       dump_error(pp,textoutput^);
+     dump_error(pp,GetOutput^);
 {$ifdef EXTRA}
      dump_error(pp,error_file);
 {$endif EXTRA}
@@ -1078,17 +1073,12 @@ var
 {$ifdef windows}
   datap : pointer;
 {$endif windows}
-  ptext : ^text;
 begin
   if p=nil then
     runerror(204);
 
   i:=0;
   loc_info:=@heap_info;
-  if useownfile then
-    ptext:=@ownfile
-  else
-    ptext:=textoutput;
 
 {$ifdef go32v2}
   if ptruint(p)<$1000 then
@@ -1196,8 +1186,8 @@ begin
             exit
           else
             begin
-              writeln(ptext^,'corrupted heap_mem_info');
-              dump_error(pp,ptext^);
+              writeln(GetOutput^,'corrupted heap_mem_info');
+              dump_error(pp,GetOutput^);
               halt(1);
             end;
        end
@@ -1206,7 +1196,7 @@ begin
      inc(i);
      if i>loc_info^.getmem_cnt-loc_info^.freemem_cnt then
       begin
-         writeln(ptext^,'error in linked list of heap_mem_info');
+         writeln(GetOutput^,'error in linked list of heap_mem_info');
          halt(1);
       end;
    end;
@@ -1224,20 +1214,20 @@ begin
           exit
        else
          begin
-            writeln(ptext^,'pointer $',hexstr(p),' points into invalid memory block');
-            dump_error(pp,ptext^);
+            writeln(GetOutput^,'pointer $',hexstr(p),' points into invalid memory block');
+            dump_error(pp,GetOutput^);
             runerror(204);
          end;
      pp:=pp^.previous;
      inc(i);
      if i>loc_info^.getmem_cnt then
       begin
-         writeln(ptext^,'error in linked list of heap_mem_info');
+         writeln(GetOutput^,'error in linked list of heap_mem_info');
          halt(1);
       end;
    end;
-  writeln(ptext^,'pointer $',hexstr(p),' does not point to valid memory block');
-  dump_stack(ptext^,1);
+  writeln(GetOutput^,'pointer $',hexstr(p),' does not point to valid memory block');
+  dump_stack(GetOutput^,1);
   runerror(204);
 end;
 
@@ -1324,28 +1314,21 @@ var
   loc_info: pheap_info;
 begin
   loc_info:=@heap_info;
-  try_finish_heap_free_todo_list(loc_info);
-  if useownfile then
-    ptext:=@ownfile
-  else
-    ptext:=textoutput;
+  ptext:=GetOutput;
   pp:=loc_info^.heap_mem_root;
   if ((loc_info^.getmem_size-loc_info^.freemem_size)=0) and SkipIfNoLeaks then
     exit;
-  Writeln(ptext^,'Heap dump by heaptrc unit of "'+GetModuleName()+'"');
-  Writeln(ptext^,loc_info^.getmem_cnt, ' memory blocks allocated : ',
-    loc_info^.getmem_size,'/',loc_info^.getmem8_size);
-  Writeln(ptext^,loc_info^.freemem_cnt,' memory blocks freed     : ',
-    loc_info^.freemem_size,'/',loc_info^.freemem8_size);
-  Writeln(ptext^,loc_info^.getmem_cnt-loc_info^.freemem_cnt,
-    ' unfreed memory blocks : ',loc_info^.getmem_size-loc_info^.freemem_size);
   status:=SysGetFPCHeapStatus;
-  Write(ptext^,'True heap size : ',status.CurrHeapSize);
+  Write(ptext^,
+    'Heap dump by heaptrc unit of "'+GetModuleName()+'"',LineEnding,
+    loc_info^.getmem_cnt, ' memory blocks allocated : ',loc_info^.getmem_size,'/',loc_info^.getmem8_size,LineEnding,
+    loc_info^.freemem_cnt,' memory blocks freed     : ',loc_info^.freemem_size,'/',loc_info^.freemem8_size,LineEnding,
+    loc_info^.getmem_cnt-loc_info^.freemem_cnt,' unfreed memory blocks : ',loc_info^.getmem_size-loc_info^.freemem_size,LineEnding,
+    'True heap size : ',status.CurrHeapSize);
   if EntryMemUsed > 0 then
-    Writeln(ptext^,' (',EntryMemUsed,' used in System startup)')
-  else
-    Writeln(ptext^);
-  Writeln(ptext^,'True free heap : ',status.CurrHeapFree);
+    Write(ptext^,' (',EntryMemUsed,' used in System startup)');
+  Writeln(ptext^,LineEnding,
+    'True free heap : ',status.CurrHeapFree);
   ExpectedHeapFree:=status.CurrHeapSize
     -(loc_info^.getmem8_size-loc_info^.freemem8_size)
     -(loc_info^.getmem_cnt-loc_info^.freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size)
@@ -1357,8 +1340,8 @@ begin
    begin
      if i<0 then
        begin
-          Writeln(ptext^,'Error in heap memory list');
-          Writeln(ptext^,'More memory blocks than expected');
+          Writeln(ptext^,'Error in heap memory list',LineEnding,
+                         'More memory blocks than expected');
           exit;
        end;
      if ((pp^.sig=longword(AllocateSig)) and not usecrc) or
@@ -1515,11 +1498,7 @@ end;
 Procedure SetHeapTraceOutput(const name : string);
 var i : ptruint;
 begin
-   if useownfile then
-     begin
-       useownfile:=false;
-       close(ownfile);
-     end;
+   CloseOwnFile;
    assign(ownfile,name);
 {$I-}
    append(ownfile);
@@ -1626,21 +1605,9 @@ begin
   ioresult;
   if (exitcode<>0) and (erroraddr<>nil) then
     begin
-       if useownfile then
-         begin
-           Writeln(ownfile,'No heap dump by heaptrc unit');
-           Writeln(ownfile,'Exitcode = ',exitcode);
-         end
-       else
-         begin
-           Writeln(textoutput^,'No heap dump by heaptrc unit');
-           Writeln(textoutput^,'Exitcode = ',exitcode);
-         end;
-       if useownfile then
-         begin
-           useownfile:=false;
-           close(ownfile);
-         end;
+       Writeln(GetOutput^,'No heap dump by heaptrc unit',LineEnding,
+                          'Exitcode = ',exitcode);
+       CloseOwnFile;
        exit;
     end;
   { Disable heaptrc memory manager to avoid problems }
@@ -1656,11 +1623,7 @@ begin
 {$ifdef EXTRA}
   Close(error_file);
 {$endif EXTRA}
-   if useownfile then
-     begin
-       useownfile:=false;
-       close(ownfile);
-     end;
+  CloseOwnFile;
   if useowntextoutput then
   begin
     useowntextoutput := false;
