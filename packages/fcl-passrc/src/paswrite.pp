@@ -1248,6 +1248,8 @@ begin
     WriteImplExceptOn(TPasImplExceptOn(aElement))
   else if AElement.InheritsFrom(TPasImplWithDo) then
       WriteImplWithDo(TPasImplWithDo(aElement))
+  else if AElement.InheritsFrom(TPasImplLabelMark) then
+      WriteImplLabelMark(TPasImplLabelMark(aElement))
   else
     raise EPasWriter.CreateFmt('Writing not yet implemented for %s implementation elements',[AElement.ClassName]);
 end;
