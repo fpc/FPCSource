@@ -986,6 +986,7 @@ type
     // Typerefs cannot be parented! -> AParent _must_ be NIL
     constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
     function ElementTypeName: TPasTreeString; override;
+    function GetDeclaration(full : Boolean) : TPasTreeString; override;
   end;
 
   { TPasUnresolvedUnitRef }
@@ -3972,6 +3973,14 @@ begin
   inherited Create(AName, nil);
   if AParent=nil then ;
 end;
+
+function TPasUnresolvedTypeRef.GetDeclaration(full: Boolean): TPasTreeString;
+begin
+  Result:=Name;
+  if Full then
+    Result:=FixTypeDecl(Result);
+end;
+
 
 procedure TPasVariable.FreeChildren(Prepare: boolean);
 begin
