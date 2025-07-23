@@ -75,8 +75,25 @@ end;
 
 class function TStringHelper.Compare(const A: TStringType; const B: TStringType;
   Options: TCompareOptions): Integer;
+var
+  LenA,LenB : integer;
 begin
-  Result:=Compare(A,0,B,0,System.Length(B),Options);
+  LenB:=System.Length(B);
+  LenA:=System.Length(A);
+  if LenB=LenA then
+    Result:=Compare(A,0,B,0,LenB,Options)
+  else if (LenB>LenA) then
+    begin
+    Result:=Compare(A,0,B,0,LenA,Options);
+    if Result=0 then // over the length of A, both are equal.
+      Result:=-1;
+    end
+  else // lenB<LenA
+    begin
+    Result:=Compare(A,0,B,0,LenB,Options);
+    if Result=0 then     // Over the length of B, both are equal
+       Result:=1;
+    end;
 end;
 
 
