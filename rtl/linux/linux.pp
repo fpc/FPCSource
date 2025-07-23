@@ -410,7 +410,7 @@ Type
     mask   : cuint32;
     cookie : cuint32;
     len    : cuint32;
-    name   : AnsiChar;
+    name   : record end;
   end;
   Pinotify_event = ^inotify_event;
 
