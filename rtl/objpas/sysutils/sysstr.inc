@@ -292,7 +292,7 @@ end;
 function SameText(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 begin
- Result:=CompareText(S1,S2)=0;
+ Result:=(Length(s1)=Length(s2)) and (CompareText(S1,S2)=0);
 end;
 
 function SameText(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -307,7 +307,7 @@ end;
 function SameStr(const s1,s2:String):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 begin
- Result:=CompareStr(S1,S2)=0;
+ Result:=(Length(s1)=Length(s2)) and (CompareStr(S1,S2)=0);
 end;
 
 function SameStr(const s1,s2:String; LocaleOptions: TLocaleOptions):Boolean; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
