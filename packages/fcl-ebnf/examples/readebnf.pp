@@ -21,7 +21,7 @@ program readebnf;
 {$ENDIF}
 
 uses
-  SysUtils,
+  SysUtils, classes,
   ebnf.tree,
   ebnf.parser;
 
@@ -30,6 +30,7 @@ var
   Parser: TEBNFParser;
   Grammar: TEBNFGrammar;
   Rule: TEBNFRule;
+  List : TStrings;
 
 begin
   // Our example
@@ -66,6 +67,17 @@ begin
     begin
       Writeln('Details for rule "program":');
       Writeln(Rule.ToString);
+    end;
+    List:=TStringList.Create;
+    try
+      Grammar.FindUndefinedIdentifiers(List);
+      if List.Count>0 then
+        begin
+        Writeln('Undefined meta-identifiers:');
+        Writeln(list.text);
+        end;
+    finally
+      list.Free;
     end;
 
   except

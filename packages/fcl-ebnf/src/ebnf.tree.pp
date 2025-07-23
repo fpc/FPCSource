@@ -98,6 +98,7 @@ type
     destructor Destroy; override;
     procedure AddFactor(aFactor: TEBNFFactor);
     property Factors [aIndex : Integer] : TEBNFFactor read GetFactor;
+    property FactorCount : Integer Read GetChildCount;
     function ToString: string; override;
     property newline : boolean Read FNewLine Write FNewLine;
   end;
@@ -111,6 +112,7 @@ type
     constructor Create;
     procedure AddTerm(aTerm: TEBNFTerm);
     property Terms[aIndex : integer] : TEBNFTerm read GetTerm; default;
+    property TermCount : Integer Read GetChildCount;
     function ToString: string; override;
   end;
 
@@ -120,6 +122,9 @@ type
   private
     FIdentifier: string;
     FExpression: TEBNFElement; // Will be TEBNFExpression
+  protected
+    function GetChildCount: Integer; override;
+    function GetChild(aIndex: Integer): TEBNFElement; override;
   public
     constructor Create(aIdentifier: string; aExpression: TEBNFElement);
     destructor Destroy; override;
@@ -133,12 +138,18 @@ type
   TEBNFGrammar = class(TEBNFElementWithChildren)
   private
     FRules: TFPObjectHashTable;
-    function GetRule(const aName : string) : TEBNFRule; 
+    function GetIndexedRule(aIndex : Integer): TEBNFRule;
+    function GetRule(const aName : string) : TEBNFRule;
+  protected
+    procedure FindUndefinedIdentifiers(aElement : TEBNFElement; aList : TStrings);
   public
     constructor Create;
     destructor Destroy; override;
+    procedure FindUndefinedIdentifiers(aList : TStrings);
     procedure AddRule(aRule: TEBNFRule);
+    Property IndexedRules[aIndex : Integer] : TEBNFRule Read GetIndexedRule;
     property Rules[aName : string]: TEBNFRule read GetRule;
+    property RuleCount : Integer Read GetChildCount;
     function ToString: string; override;
   end;
 
@@ -194,6 +205,19 @@ begin
 end;
 
 // --- TEBNFRule Implementation ---
+
+function TEBNFRule.GetChildCount: Integer;
+begin
+  Result:=1;
+end;
+
+function TEBNFRule.GetChild(aIndex: Integer): TEBNFElement;
+begin
+  if aIndex=0 then
+    Result:=FExpression
+  else
+    Result:=Nil;
+end;
 
 constructor TEBNFRule.Create(aIdentifier: string; aExpression: TEBNFElement);
 begin
@@ -339,6 +363,36 @@ begin
   Result:=TEBNFRule(FRules.Items[aName]);
 end;
 
+procedure TEBNFGrammar.FindUndefinedIdentifiers(aElement: TEBNFElement; aList: TStrings);
+var
+  I : Integer;
+  lElement : TEBNFElement;
+  lName : string;
+
+begin
+  Writeln('Checking ',aelement.ClassName,' ',aElement.NodeType,'(Children: ',aElement.GetChildCount,')');
+  for I:=0 to aElement.GetChildCount-1 do
+    begin
+    lElement:=aElement.Child[i];
+    if lElement.NodeType=etFactorIdentifier then
+      begin
+      lName:=TEBNFFactor(lElement).Value;
+      if Rules[lName]=Nil then
+        begin
+        Writeln('o: ',lName);
+        if aList.IndexOf(lName)=-1 then
+          aList.Add(lName);
+        end;
+      end;
+    FindUndefinedIdentifiers(lElement,aList);
+    end;
+end;
+
+function TEBNFGrammar.GetIndexedRule(aIndex : Integer): TEBNFRule;
+begin
+  Result:=Child[aIndex] as TEBNFRule;
+end;
+
 constructor TEBNFGrammar.Create;
 begin
   inherited Create(etGrammar);
@@ -350,6 +404,12 @@ destructor TEBNFGrammar.Destroy;
 begin
   FreeAndNil(FRules);
   inherited;
+end;
+
+procedure TEBNFGrammar.FindUndefinedIdentifiers(aList: TStrings);
+
+begin
+  FindUndefinedIdentifiers(Self,aList);
 end;
 
 procedure TEBNFGrammar.AddRule(aRule: TEBNFRule);
