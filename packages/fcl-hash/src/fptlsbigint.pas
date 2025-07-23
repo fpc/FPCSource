@@ -395,7 +395,7 @@ begin
     Carry := 0;
     RIndex := I;
     J := 0;
-    if (OuterPartial > 0) and ((OuterPartial-I) > 0) and (OuterPartial < N) then
+    if (OuterPartial > I) and (OuterPartial < N) then
     begin
       RIndex := OuterPartial-1;
       J := OuterPartial-I-1;
