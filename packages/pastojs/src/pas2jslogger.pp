@@ -1112,7 +1112,7 @@ begin
   if LogFile=nil then
     LogFile:=TStringList.Create;
   LogFile.Add(TPas2jsLogger.Concatenate(args));
-  LogFile.SaveToFile('c:\tmp\libpas2jsparams.txt');
+  LogFile.SaveToFile(GetTempDir+'libpas2jsparams.txt');
 end;
 {$ENDIF}
 
