@@ -687,7 +687,7 @@ const
   BufferLength = 1024; // should be at least 1024 according to the ODBC specification
 var
   ConnectionString:string;
-  OutConnectionString:string;
+  WideConnectionString:widestring;
   ActualLength:SQLSMALLINT;
   DBMS_NAME: array[0..20] of AnsiChar;
 begin
@@ -711,14 +711,14 @@ begin
   try
     // connect
     ConnectionString:=CreateConnectionString;
-    SetLength(OutConnectionString,BufferLength-1); // allocate completed connection string buffer (using the ansistring #0 trick)
+    WideConnectionString:=UTF8Decode(ConnectionString);
     CheckResult(
-      SQLDriverConnect(FDBCHandle,               // the ODBC connection handle
+      SQLDriverConnectW(FDBCHandle,               // the ODBC connection handle
                        nil,                      // no parent window (would be required for prompts)
-                       PAnsiChar(ConnectionString),  // the connection string
-                       Length(ConnectionString), // connection string length
-                       @(OutConnectionString[1]),// buffer for storing the completed connection string
-                       BufferLength,             // length of the buffer
+                       PWideChar(WideConnectionString),  // the connection string
+                       Length(WideConnectionString), // connection string length
+                       Nil,// buffer for storing the completed connection string
+                       0,             // length of the buffer
                        ActualLength,             // the actual length of the completed connection string
                        SQL_DRIVER_NOPROMPT),     // don't prompt for password etc.
       SQL_HANDLE_DBC,FDBCHandle,'Could not connect with connection string "%s".',[ConnectionString]
