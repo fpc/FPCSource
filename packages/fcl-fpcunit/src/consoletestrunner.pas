@@ -63,6 +63,7 @@ type
     FSkipAddressInfo : Boolean;
     FSuite: String;
     FRunMode : TRunMode;
+    FNoExitCodeOnError : boolean;
     procedure DoStatus(const msg: string);
   protected
     Class function StrToFormat(const S: String): TFormat;
@@ -76,6 +77,7 @@ type
     property ShowProgress: boolean read FShowProgress write FShowProgress;
     property StyleSheet: string read FStyleSheet write FStyleSheet;
     property FormatParam: TFormat read FFormatParam write FFormatParam;
+    property NoExitCodeOnError : boolean read FNoExitCodeOnError Write FNoExitCodeOnError;
     procedure DoRun; override;
     procedure DoTestRun(ATest: TTest); virtual;
     function GetShortOpts: string; virtual;
@@ -98,10 +100,10 @@ uses inifiles, testdecorator;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  ShortOpts = 'alhpsyrnu';
-  DefaultLongOpts: array[1..12] of string =
+  ShortOpts = 'alhpsyrnux';
+  DefaultLongOpts: array[1..13] of string =
      ('all', 'list', 'progress', 'help', 'skiptiming',
-      'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses','status');
+      'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses','status','no-exitcode');
 
 Type
   TTestDecoratorClass = Class of TTestDecorator;
@@ -235,6 +237,7 @@ begin
   FLongOpts := TStringList.Create;
   AppendLongOpts;
   StopOnException:=True;
+  NoExitCodeOnError:=false; 
 end;
 
 destructor TTestRunner.Destroy;
@@ -300,7 +303,7 @@ begin
     ATest.Run(TestResult);
     ResultsWriter.WriteResult(TestResult);
   finally
-    if Assigned(ProgressWriter) then
+    if Assigned(ProgressWriter) and not NoExitCodeOnError then
       ExitCode:=ProgressWriter.GetExitCode;
     TestResult.Free;
     ResultsWriter.Free;
@@ -350,6 +353,7 @@ begin
     writeln('  -p or --progress          show progress');
     writeln('  -u or --status            show status messages on stderr');
     writeln('  -s or --suite=MyTestSuiteName   run single test suite class');
+    writeln('  -x or --no-exitcode       do not set exit code on errors');
     WriteCustomHelp;
     writeln;
     Writeln('Defaults for long options will be read from ini file ',DefaultsFileName);
@@ -389,6 +393,7 @@ begin
       FSkipTiming:=Ini.ReadBool(S,'skiptiming',FSKipTiming);
       FSparse:=Ini.ReadBool(S,'sparse',FSparse);
       FSkipAddressInfo:=Ini.ReadBool(S,'no-addresses',FSkipAddressInfo);
+      NoExitCodeOnError:=Ini.ReadBool(S,'no-exitocde',FNoExitCodeOnError);
       // Determine runmode
       FSuite:=Ini.ReadString(S,'suite','');
       if (FSuite<>'') then
@@ -429,6 +434,8 @@ begin
     FSparse:=True;
   If HasOption('n','no-addresses') then
     FSkipAddressInfo:=True;
+  if HasOption('x','no-exitcode') then
+    NoExitCodeOnError:=True;  
   If HasOption('u','status') then
     TAssert.StatusEvent:=@DoStatus;
   // Determine runmode
