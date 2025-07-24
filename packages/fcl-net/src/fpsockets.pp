@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Net.Sockets, System.Nullable;
+  System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  sysutils, sockets, nullable;
+  sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -77,9 +77,9 @@ type
   EDualStackNotSupported = class(Exception);
   EUnsupportedAddress = class(Exception);
 
-  { ESocketError }
+  { ESocketCodeError }
 
-  ESocketError = class(Exception)
+  ESocketCodeError = class(Exception)
   private
     FCode: Integer;
   public
@@ -125,6 +125,9 @@ function IN6Equal(const A, B: String): Boolean;
 operator =(const A, B: TNetworkAddress): Boolean; inline;
 operator <>(const A, B: TNetworkAddress): Boolean; inline;
 operator :=(const AStr: String): TNetworkAddress; inline;
+operator :=(const AAddr: TNetworkAddress): String; inline;
+operator =(const AStr: String; const AAddr: TNetworkAddress): Boolean; inline;
+operator =(const AAddr: TNetworkAddress; const AStr: String): Boolean; inline;
 
   { Socket Functions }
 
@@ -171,6 +174,9 @@ generic function SendArrayTo<T>(const ASocket: TFPSocket; const ReceiverAddr: TN
 
 procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
 
+function LocalEndpoint(const ASocket: TFPSocket): specialize TPair<TNetworkAddress, Word>;
+function RemoteEndpoint(const ASocket: TFPSocket): specialize TPair<TNetworkAddress, Word>;
+
 // Timeout in MS
 function DataAvailable(const SocketArray: specialize TArray<TFPSocket>; TimeOut: Integer = 0): specialize TArray<TFPSocket>; overload;
 function DataAvailable(const ASocket: TFPSocket; TimeOut: Integer = 0): Boolean; overload; //inline;
@@ -185,6 +191,25 @@ function StreamClosed(const ASocket: TFPSocket): Boolean; inline;
 // If it has been closed by the other side, it is still csConnected, use StreamClosed to figure out
 // if the stream is actually open
 function ConnectionState(const ASocket: TFPSocket): TConnectionState;
+
+
+{ Helper }
+
+type
+  PAddressUnion = ^TAddressUnion;
+  TAddressUnion = record
+  case TFPSocketType of
+  stIPv4: (In4Addr: sockaddr_in);
+  stIPv6: (In6Addr: sockaddr_in6);
+  stUnixSocket: (UnixAddr: sockaddr_un);
+  end;
+
+function SocketInvalid(ASocket: TSocket): Boolean; inline;
+
+function CreateAddr(AAddress: TNetworkAddress; APort: Word; DualStack: Boolean): TAddressUnion;
+procedure ReadAddr(constref Addr: TAddressUnion; DualStack: Boolean; out
+  AAddress: TNetworkAddress; out APort: Word);
+function CreateRawSocket(ADomain: TFPSocketType; ASockProto: TFPSocketProto; AProto: Integer; RaiseSocketException: Boolean=True): TSocket;
 
 implementation
 
@@ -205,15 +230,6 @@ uses
 
 { Helper }
 
-type
-  _PAddressUnion = ^_TAddressUnion;
-  _TAddressUnion = record
-  case TFPSocketType of
-  stIPv4: (In4Addr: socketsunit.sockaddr_in);
-  stIPv6: (In6Addr: socketsunit.sockaddr_in6);
-  stUnixSocket: (UnixAddr: socketsunit.sockaddr_un);
-  end;
-
 const
   IPPROTO_IPV6 = {$IfDef WINDOWS}41{$Else}41{$EndIf};
   IPV6_V6ONLY = {$IfDef WINDOWS}27{$Else}26{$EndIf};
@@ -224,7 +240,8 @@ begin
             {$IfDef Unix} or (SockErr = ESysEAGAIN) {$EndIf}
 end;
 
-function CreateAddr(AAddress: TNetworkAddress; APort: Word; DualStack: Boolean): _TAddressUnion;
+function CreateAddr(AAddress:TNetworkAddress;APort:Word;DualStack:Boolean)
+  :TAddressUnion;
 begin
   if (AAddress.AddressType = atIN4) and DualStack then
     AAddress := IN4MappedIN6Address(AAddress.Address);
@@ -254,7 +271,7 @@ begin
     raise EUnsupportedAddress.Create('Address type ' + ord(AAddress.AddressType).ToString + ' not supported');
 end;
 
-procedure ReadAddr(constref Addr: _TAddressUnion; DualStack: Boolean; out
+procedure ReadAddr(constref Addr: TAddressUnion; DualStack: Boolean; out
   AAddress: TNetworkAddress; out APort: Word);
 var
   i:Integer;
@@ -297,7 +314,7 @@ begin
   {$EndIf}
 end;
 
-function CreateRawSocket(ADomain: TFPSocketType; ASockProto: TFPSocketProto; AProto: Integer): TSocket;
+function CreateRawSocket(ADomain: TFPSocketType; ASockProto: TFPSocketProto; AProto: Integer; RaiseSocketException: Boolean): TSocket;
 var
   AFam, AType, v6Only: Integer;
 begin
@@ -313,7 +330,10 @@ begin
   end;
   Result := fpsocket(AFam, AType, AProto);
   if SocketInvalid(Result) then
-    raise ESocketError.Create(socketerror, 'socket');
+    if RaiseSocketException then
+      raise ESocketCodeError.Create(socketerror, 'socket')
+    else
+      exit;
 
   if ADomain = stIPDualStack then
   begin
@@ -477,29 +497,29 @@ procedure Bind(const ASocket: TFPSocket; const AAddress: TNetworkAddress;
   APort: Word; ReuseAddr: Boolean);
 var
   enableReuse: Integer = 1;
-  addr: _TAddressUnion;
+  addr: TAddressUnion;
 begin
   if ReuseAddr then
     fpsetsockopt(ASocket.FD, SOL_SOCKET, SO_REUSEADDR, @enableReuse, SizeOf(enableReuse));
   addr := CreateAddr(AAddress, APort, ASocket.SocketType = stIPDualStack);
   if fpbind(ASocket.FD, socketsunit.PSockAddr(@addr), SizeOf(addr)) <> 0 then raise
-    ESocketError.Create(socketerror, 'bind (%s:%d)'.Format([AAddress.Address, APort]));
+    ESocketCodeError.Create(socketerror, 'bind (%s:%d)'.Format([AAddress.Address, APort]));
 end;
 
 procedure Listen(const ASocket: TFPSocket; Backlog: Integer);
 begin
   if fplisten(ASocket.FD, Backlog) <> 0 then raise
-    ESocketError.Create(socketerror, 'listen');
+    ESocketCodeError.Create(socketerror, 'listen');
 end;
 
 function AcceptConnection(const ASocket: TFPSocket): TFPSocketConnection;
 var
-  addr: _TAddressUnion;
+  addr: TAddressUnion;
   addrLen: TSocklen = SizeOf(addr);
 begin
   Result.Socket.FD := fpaccept(ASocket.FD, socketsunit.psockaddr(@addr), @addrLen);
   if SocketInvalid(Result.Socket.FD) then
-    raise ESocketError.Create(socketerror, 'accept');
+    raise ESocketCodeError.Create(socketerror, 'accept');
   Result.Socket.SocketType := ASocket.SocketType;
   Result.Socket.Protocol := ASocket.Protocol;
   ReadAddr(addr, ASocket.SocketType = stIPDualStack, Result.ClientAddress, Result.ClientPort);
@@ -508,7 +528,7 @@ end;
 function AcceptNonBlocking(const ASocket: TFPSocket): specialize TNullable<
   TFPSocketConnection>;
 var
-  addr: _TAddressUnion;
+  addr: TAddressUnion;
   addrLen: TSocklen = SizeOf(addr);
 begin
   Result.Ptr^.Socket.FD := fpaccept(ASocket.FD, socketsunit.psockaddr(@addr), @addrLen);
@@ -516,7 +536,7 @@ begin
     if WouldBlock(socketerror) then
       Exit(null)
     else
-      raise ESocketError.Create(socketerror, 'accept');
+      raise ESocketCodeError.Create(socketerror, 'accept');
   Result.Ptr^.Socket.SocketType := ASocket.SocketType;
   Result.Ptr^.Socket.Protocol := ASocket.Protocol;
   ReadAddr(addr, ASocket.SocketType = stIPDualStack, Result.Ptr^.ClientAddress, Result.Ptr^.ClientPort);
@@ -525,7 +545,7 @@ end;
 function Connect(const ASocket: TFPSocket; const AAddress: TNetworkAddress;
   APort: Word): TConnectionState;
 var
-  addr: _TAddressUnion;
+  addr: TAddressUnion;
 const
   EALREADY = {$IfDef Windows}WSAEALREADY{$Else}ESysEALREADY{$EndIf};
   EINPROGRESS = {$IfDef Windows}WSAEINPROGRESS{$Else}ESysEINPROGRESS{$EndIf};
@@ -541,7 +561,7 @@ begin
     ECONNREFUSED:
       Exit(csRefused);
     else
-      raise ESocketError.Create(socketerror, 'connect');
+      raise ESocketCodeError.Create(socketerror, 'connect');
     end;
   if ASocket.Protocol<>spStream then
     Result := csNotConnected
@@ -559,23 +579,23 @@ begin
     if WouldBlock(socketerror) then
       Result := 0
     else
-      raise ESocketError.Create(socketerror, 'recv');
+      raise ESocketCodeError.Create(socketerror, 'recv');
 end;
 
 function ReceiveFrom(const ASocket: TFPSocket; ABuffer: Pointer; MaxSize: SizeInt;
   AFlags: Integer): TReceiveFromResult;
 var
-  addr: _TAddressUnion;
+  addr: TAddressUnion;
   addrLen: TSocklen;
 begin
   Result := Default(TReceiveFromResult);
-  addrLen := SizeOf(_TAddressUnion);
+  addrLen := SizeOf(TAddressUnion);
   Result.DataSize := fprecvfrom(ASocket.FD, ABuffer, MaxSize, AFlags, socketsunit.PSockAddr(@addr), @addrLen);
   if Result.DataSize < 0 then
     if WouldBlock(socketerror) then
       Exit(Default(TReceiveFromResult)) // Will set the DataSize of return to 0
     else
-      raise ESocketError.Create(socketerror, 'recvfrom');
+      raise ESocketCodeError.Create(socketerror, 'recvfrom');
   ReadAddr(addr, ASocket.SocketType = stIPDualStack, Result.FromAddr, Result.FromPort);
 end;
 
@@ -595,14 +615,14 @@ begin
     if WouldBlock(socketerror) then
       Result := 0
     else
-      raise ESocketError.Create(socketerror, 'send');
+      raise ESocketCodeError.Create(socketerror, 'send');
 end;
 
 function SendTo(const ASocket: TFPSocket; const ReceiverAddr: TNetworkAddress;
   ReceiverPort: Word; ABuffer: Pointer; ASize: SizeInt; AFlags: Integer
   ): SizeInt;
 var
-  addr: _TAddressUnion;
+  addr: TAddressUnion;
 begin
   addr := CreateAddr(ReceiverAddr, ReceiverPort, ASocket.SocketType = stIPDualStack);
   Result := fpsendto(ASocket.FD, ABuffer, ASize, AFlags, socketsunit.psockaddr(@addr), SizeOf(addr));
@@ -610,7 +630,7 @@ begin
     if WouldBlock(socketerror) then
       Result := 0
     else
-      raise ESocketError.Create(socketerror, 'sendto');
+      raise ESocketCodeError.Create(socketerror, 'sendto');
 end;
 
 function ReceiveStr(const ASocket: TFPSocket; MaxLength: SizeInt;
@@ -703,7 +723,7 @@ begin
     ReadLen := Receive(ASocket, @PByte(@Result)[Len], SizeOf(Result) - Len, AFlags);
     if ReadLen = 0 then
       if Len = 0 then
-        raise ESocketError.Create(EsockEWOULDBLOCK, 'recv')
+        raise ESocketCodeError.Create(EsockEWOULDBLOCK, 'recv')
       else // Fragment received but non blocking afterwards
       begin
         SetLength(Frag, Len);
@@ -745,7 +765,7 @@ begin
   UdpMessage := ReceiveFrom(ASocket, @Result.Data, SizeOf(Result.Data), AFlags);
   if UdpMessage.DataSize < SizeOf(T) then
     if UdpMessage.DataSize = 0 then
-        raise ESocketError.Create(EsockEWOULDBLOCK, 'recvfrom')
+        raise ESocketCodeError.Create(EsockEWOULDBLOCK, 'recvfrom')
     else
     begin
       SetLength(Frag, UdpMessage.DataSize);
@@ -966,7 +986,7 @@ begin
   timeval.tv_usec := (TimeOut mod 1000) * 1000;
   Ret := {$IfDef UNIX}fpselect{$else}select{$endif}(MaxSock + 1, @FDSet, nil, nil, @timeval);
   if Ret < 0 then
-    raise ESocketError.Create(socketerror, 'select');
+    raise ESocketCodeError.Create(socketerror, 'select');
 
   SetLength(Result, Ret);
   WriteHead := 0;
@@ -1040,9 +1060,48 @@ begin
   end;
 end;
 
-{ ESocketError }
+function LocalEndpoint(const ASocket:TFPSocket):specialize TPair<TNetworkAddress
+  ,Word>;
+var
+  addr: TAddressUnion;
+  len: TSocklen;
+begin
+  len:=SizeOf(addr);
+  if fpGetSockName(ASocket.FD,psockaddr(@addr),@len) <> 0 then
+    raise ESocketCodeError.Create(socketerror,'getsockname');
+  ReadAddr(addr,ASocket.SocketType=stIPDualStack,Result.First,Result.Second);
+end;
 
-constructor ESocketError.Create(ACode: Integer; const FunName: String);
+function RemoteEndpoint(const ASocket:TFPSocket):specialize TPair<
+  TNetworkAddress,Word>;
+var
+  addr: TAddressUnion;
+  len: TSocklen;
+begin
+  len:=SizeOf(addr);
+  if fpGetPeerName(ASocket.FD,psockaddr(@addr),@len) <> 0 then
+    raise ESocketCodeError.Create(socketerror,'getpeername');
+  ReadAddr(addr,ASocket.SocketType=stIPDualStack,Result.First,Result.Second);
+end;
+
+operator:=(const AAddr:TNetworkAddress):String;
+begin
+  Result := AAddr.Address;
+end;
+
+operator=(const AStr:String;const AAddr:TNetworkAddress):Boolean;
+begin
+  Result:=NetAddr(AStr)=AAddr;
+end;
+
+operator=(const AAddr:TNetworkAddress;const AStr:String):Boolean;
+begin
+  Result:=AAddr=NetAddr(AStr);
+end;
+
+{ ESocketCodeError }
+
+constructor ESocketCodeError.Create(ACode: Integer; const FunName: String);
 begin
   inherited CreateFmt('[Socket Error: %d] %s call failed',  [ACode, FunName]);
   FCode := ACode;
