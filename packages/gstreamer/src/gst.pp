@@ -39,11 +39,10 @@ uses glib2;
 const
   { Setup as you need } 
 
-{$ifdef Linux}
-  gstreamerlib = 'libgstreamer-1.0'; 
-{$endif}
 {$ifdef Windows}
   gstreamerlib = 'gstreamer-1.0-0.dll';
+{$else}
+  gstreamerlib = 'libgstreamer-1.0';
 {$endif}
 
 Const
