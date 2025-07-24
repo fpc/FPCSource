@@ -21,9 +21,15 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
+{$ifdef Windows}
+  WinApi.Winsock2, WinApi.Windows,
+{$endif}
   System.SysUtils, System.Classes, System.CTypes, System.Net.Sockets, System.Net.FPSockets, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
+{$ifdef windows}
+  winsock2, windows,
+{$endif}
   SysUtils, Classes, ctypes, sockets, fpsockets, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -374,18 +380,12 @@ uses
 {$ifdef unix}
   UnixApi.Base,UnixApi.Unix,
 {$endif}
-{$ifdef Windows}
-  WinApi.Winsock2, WinApi.Windows,
-{$endif}
   System.Net.Resolve;
 {$ELSE FPC_DOTTEDUNITS}
 uses
 // This must be here, to prevent it from overriding the sockets definitions... :/
 {$ifdef unix}
   BaseUnix,Unix,
-{$endif}
-{$ifdef windows}
-  winsock2, windows,
 {$endif}
   resolve;
 {$ENDIF FPC_DOTTEDUNITS}
