@@ -330,7 +330,7 @@ type
     property OnMessage: TPAMessageEvent read FOnMessage write FOnMessage;
     property Options: TPasAnalyzerOptions read FOptions write SetOptions;
     property Resolver: TPasResolver read FResolver write FResolver;
-    property ScopeModule: TPasModule read FScopeModule write FScopeModule;
+    property ScopeModule: TPasModule read FScopeModule write FScopeModule; // if set analyzing a unit else whole program
   end;
 
 {$ifdef pas2js}
@@ -1181,9 +1181,6 @@ begin
     El:=El.Parent;
     if not (El is TPasType) then break;
     UseType(TPasType(El),paumElement);
-    //MarkElementAsUsed(El);
-    //if El is TPasMembersType then
-    //  UseClassConstructor(TPasMembersType(El));
   until false;
 end;
 
@@ -1754,7 +1751,6 @@ begin
     Access:=Ref.Access;
     MarkImplScopeRef(El,Decl,ResolvedToPSRefAccess[Access]);
     UseElement(Decl,Access,false);
-
     if Ref.Context<>nil then
       begin
       if Ref.Context.ClassType=TResolvedRefCtxAttrProc then
@@ -2294,6 +2290,10 @@ begin
   else
     RaiseInconsistency(20170414152143,IntToStr(ord(Mode)));
   end;
+
+  if (ScopeModule<>nil) and (ScopeModule<>El.GetModule) then
+    exit; // analyzing an unit and El is not from this unit
+
   {$IFDEF VerbosePasAnalyzer}
   writeln('TPasAnalyzer.UseClassOrRecType ',GetElModName(El),' ',Mode,' First=',FirstTime);
   {$ENDIF}
@@ -2427,7 +2427,7 @@ begin
         and IsModuleInternal(El) then
       // protected or strict protected and
       continue
-    else if (Mode=paumAllPasUsable) and FirstTime then
+    else if (Mode=paumAllPasUsable) then
       begin
       if C=TPasProperty then
         begin
@@ -2636,6 +2636,8 @@ begin
     end
   else
     begin
+    if (ScopeModule<>nil) and (ScopeModule<>El.GetModule) then
+      exit; // analyzing an unit and El is not from this unit
     Usage:=FindElement(El);
     if Usage=nil then
       exit; // element outside of scope
@@ -2730,6 +2732,8 @@ begin
   else
     begin
     // used again
+    if (ScopeModule<>nil) and (ScopeModule<>El.GetModule) then
+      exit; // analyzing an unit and El is not from this unit
     Usage:=FindElement(El);
     if Usage=nil then
       RaiseNotSupported(20170308121928,El);
@@ -2764,6 +2768,8 @@ begin
   else
     begin
     // used again
+    if (ScopeModule<>nil) and (ScopeModule<>El.GetModule) then
+      exit; // analyzing an unit and El is not from this unit
     Usage:=FindElement(El);
     if Usage=nil then
       RaiseNotSupported(20170308122333,El);
