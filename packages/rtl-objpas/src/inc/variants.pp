@@ -3161,6 +3161,37 @@ begin
 end;
 
 
+function DoVarArraySameValue(const A, B: Variant): Boolean;
+  var
+    i: Integer;
+    Dims: Integer;
+    Bounds: array[0..63] of TVarArrayBound;
+    Iterator: TVariantArrayIterator;
+    vA, vB: Variant;
+  begin
+    if (VarArrayDimCount(A) <> VarArrayDimCount(B)) then Exit(false);
+    Dims := VarArrayDimCount(A);
+    for i := 1 to Dims do begin
+      if (VarArrayLowBound(A, i) <> VarArrayLowBound(B, i)) then Exit(false);
+      if (VarArrayHighBound(A, i) <> VarArrayHighBound(B, i)) then Exit(false);
+      Bounds[Pred(i)].lowbound := VarArrayLowBound(A, i);
+      Bounds[Pred(i)].elementcount := VarArrayHighBound(A, i) - VarArrayLowBound(A, i) + 1;
+    end;
+    Iterator.Init(Dims, @Bounds);
+    try
+      if not(Iterator.AtEnd) then
+        repeat
+          vA := sysvararrayget(A, Dims, PLongint(Iterator.Coords));
+          vB := sysvararrayget(B, Dims, PLongint(Iterator.Coords));
+          if not VarSameValue(vA, vB) then Exit(false);
+        until not Iterator.Next;
+    finally
+      Iterator.Done;
+    end;
+    Exit(true);
+  end;
+
+
 function VarSameValue(const A, B: Variant): Boolean;
   var
     v1,v2 : TVarData;
@@ -3171,6 +3202,8 @@ function VarSameValue(const A, B: Variant): Boolean;
       Result:=v1.vType=v2.vType
     else if v2.vType in [varEmpty,varNull] then
       Result:=False
+    else if VarIsArray(A) and VarIsArray(B) then
+      Result:=DoVarArraySameValue(a, b)
     else
       Result:=A=B;
   end;
