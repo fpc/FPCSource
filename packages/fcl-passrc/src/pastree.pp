@@ -5868,7 +5868,7 @@ end;
 function TPasImplExceptOn.TypeName: TPasTreeString;
 begin
   If assigned(TypeEl) then
-    Result:=TypeEl.GetDeclaration(True)
+    Result:=TypeEl.GetDeclaration(false)
   else
     Result:='';
 end;
