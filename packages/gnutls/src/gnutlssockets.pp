@@ -285,7 +285,7 @@ begin
      exit;
   if (Socket is TInetSocket) then
     begin
-    FCurrentHostName:=(Socket as TInetSocket).Host;
+    FCurrentHostName:=(Socket as TInetSocket).NetworkAddress.Address;
     if SendHostAsSNI then
       begin
       Result:=CheckOK(gnutls_server_name_set(FSession, GNUTLS_NAME_DNS,PAnsiChar(FCurrentHostName), length(FCurrentHostName)));

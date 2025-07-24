@@ -21,10 +21,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Classes, System.CTypes, System.Net.Sockets;
+  System.SysUtils, System.Classes, System.CTypes, System.Net.Sockets, System.Net.FPSockets, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  SysUtils, Classes, ctypes, sockets;
+  SysUtils, Classes, ctypes, sockets, fpsockets, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -99,9 +99,11 @@ type
 
   { TSocketStream }
   TSocketStreamArray = Array of TSocketStream;
+  TEndPoint = specialize TPair<TNetworkAddress,Word>;
 
   TSocketStream = class(THandleStream)
   Private
+    FSocket: TFPSocket;
     FClosed: Boolean;
     FOnClose: TNotifyEvent;
     FPeerClosed: Boolean;
@@ -118,11 +120,14 @@ type
     Procedure SetSocketOptions(Value : TSocketOptions);
     function GetLocalAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.TSockAddr;
     function GetRemoteAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.TSockAddr;
+    function GetLocalEndpoint: TEndPoint;
+    function GetRemoteEndpoint: TEndPoint;
     procedure SetIOTimeout(AValue: Integer);
   Protected
     Procedure DoOnClose; virtual;
   Public
-    Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil);virtual;
+    Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil); virtual; overload;
+    constructor Create(const ASocket:TFPSocket;AHandler:TSocketHandler);virtual; overload;
     destructor Destroy; override;
     Class Function Select(Var aRead,aWrite,aExceptions : TSocketStreamArray; aTimeOut: Integer): Boolean; virtual;
     Procedure Close;
@@ -133,8 +138,10 @@ type
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
                                             Write SetSocketOptions;
-    property LocalAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr read GetLocalAddress;
-    property RemoteAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr read GetRemoteAddress;
+    property LocalAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr read GetLocalAddress;deprecated 'This is IPv4 only, use LocalEndpoint instead';
+    property RemoteAddress: {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}sockets.TSockAddr read GetRemoteAddress;deprecated 'This is IPv4 only, use RemoteEndpoint instead';
+    property LocalEndpoint: TEndPoint read GetLocalEndpoint;
+    property RemoteEndpoint: TEndPoint read GetRemoteEndpoint;
     Property LastError : Integer Read GetLastError;
     Property ReadFlags : Integer Read FReadFlags Write FReadFlags;
     Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
@@ -153,7 +160,9 @@ type
   TDisconnectEvent = TSocketClientEvent;
   TConnectionDroppedEvent = TSocketClientEvent;
   TConnectQuery = Procedure (Sender : TObject; ASocket : Longint; Var Allow : Boolean) of Object;
+  TFPConnectQuery = Procedure (Sender : TObject; ASocket : TFPSocket; Var Allow : Boolean) of Object;
   TOnAcceptError = Procedure (Sender : TObject; ASocket : Longint; E : Exception; Var ErrorAction : TAcceptErrorAction) of Object;
+  TFPOnAcceptError = Procedure (Sender : TObject; ASocket : TFPSocket; E : Exception; Var ErrorAction : TAcceptErrorAction) of Object;
   TGetClientSocketHandlerEvent = Procedure (Sender : TObject; Out AHandler : TSocketHandler) of object;
   TForeachHandler = Procedure (Sender : TObject; aClient : TSocketStream; var aContinue : Boolean) of object;
 
@@ -164,17 +173,19 @@ type
     FIdleTimeOut: Cardinal;
     FMaxSimultaneousConnections: longint;
     FOnAcceptError: TOnAcceptError;
+    FOnAcceptSocketError: TFPOnAcceptError;
     FOnConnectionDropped: TConnectionDroppedEvent;
     FOnCreateClientSocketHandler: TGetClientSocketHandlerEvent;
     FOnDisconnect: TDisconnectEvent;
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
-    FSocket : longint;
+    FSocket : TFPSocket;
     FAccepting : Boolean;
     FMaxConnections : Longint;
     FQueueSize : Longint;
     FOnConnect : TConnectEvent;
     FOnConnectQuery : TConnectQuery;
+    FOnConnectSocketQuery : TFPConnectQuery;
     FHandler : TSocketHandler;
     FConnections : TThreadList;
     Procedure DoOnIdle;
@@ -185,6 +196,7 @@ type
     Procedure SetReuseAddress (AValue : Boolean);
     Procedure SetKeepAlive (AValue : Boolean);
     Procedure SetLinger(ALinger : Integer);
+    function GetRawSocket:LongInt;inline;
   Protected
     FSockType : Longint;
     FBound : Boolean;
@@ -192,10 +204,15 @@ type
     Procedure DoConnectionDropped(aSocket : TSocketStream); virtual;
     Procedure DoDisconnect(aSocket : TSocketStream); virtual;
     Procedure DoConnect(ASocket : TSocketStream); Virtual;
-    Function  DoConnectQuery(ASocket : longint): Boolean ;Virtual;
+    function DoConnectQuery(const ASocket:TFPSocket):Boolean;Virtual;
     Procedure Bind; Virtual; Abstract;
-    Function  Accept: Longint;Virtual;Abstract;
-    Function  SockToStream (ASocket : Longint) : TSocketStream;Virtual;Abstract;
+    // For backwards compatibility, these call accept and socktostream in case
+    // they were overridden and the new calls are not overridden.
+    Function  AcceptSocket: TFPSocket; Virtual;
+    Function  SocketToStream (const ASocket : TFPSocket) : TSocketStream;Virtual;
+    // Do not use these any more, use AcceptSocket and SocketToStream
+    Function  Accept: Longint; Virtual;
+    function  SockToStream (ASocket : Longint) : TSocketStream; virtual;
     Procedure Close; Virtual;
     Procedure Abort;
     Procedure RemoveSelfFromConnections; virtual;
@@ -203,10 +220,10 @@ type
     Function RunIdleLoop : Boolean;
     function GetConnection: TSocketStream; virtual; abstract;
     Function HandleAcceptError(E : ESocketError) : TAcceptErrorAction;
-    Function GetClientSocketHandler(aSocket : Longint) : TSocketHandler; virtual;
+    Function GetClientSocketHandler(aSocket : TFPSocket) : TSocketHandler; virtual;
     Property Handler : TSocketHandler Read FHandler;
   Public
-    Constructor Create(ASocket : Longint; AHandler : TSocketHandler);
+    Constructor Create(ASocket : TFPSocket; AHandler : TSocketHandler);
     Destructor Destroy; Override;
     Procedure Listen;
     function  GetSockopt(ALevel,AOptName : cint; var optval; Var optlen : tsocklen): Boolean;
@@ -224,12 +241,15 @@ type
     Property OnConnect : TConnectEvent Read FOnConnect Write FOnConnect;
     Property OnDisconnect : TDisconnectEvent Read FOnDisconnect Write FOnDisconnect;
     Property OnConnectionDropped : TConnectionDroppedEvent Read FOnConnectionDropped Write FOnConnectionDropped;
-    Property OnConnectQuery : TConnectQuery Read FOnConnectQuery Write FOnConnectQuery;
-    Property OnAcceptError : TOnAcceptError Read FOnAcceptError Write FOnAcceptError;
+    Property OnConnectQuery : TConnectQuery Read FOnConnectQuery Write FOnConnectQuery; deprecated 'Use OnTryToConnect instead';
+    Property OnAcceptError : TOnAcceptError Read FOnAcceptError Write FOnAcceptError; deprecated 'Use OnFPAcceptError instead';
+    Property OnConnectSocketQuery : TFPConnectQuery Read FOnConnectSocketQuery Write FOnConnectSocketQuery;
+    Property OnAcceptSocketError : TFPOnAcceptError Read FOnAcceptSocketError Write FOnAcceptSocketError;
     Property OnIdle : TNotifyEvent Read FOnIdle Write FOnIdle;
     Property NonBlocking : Boolean Read FNonBlocking;
-    Property Socket : Longint Read FSocket;
-    Property SockType : Longint Read FSockType;
+    Property Socket : LongInt Read GetRawSocket; deprecated 'Use FPSocket instead';
+    property FPSocket: TFPSocket read FSocket;
+    Property SockType : Longint Read FSockType; deprecated 'Use FPSocket instead';
     Property KeepAlive : Boolean Read GetKeepAlive Write SetKeepAlive;
     Property ReuseAddress : Boolean Read GetReuseAddress Write SetReuseAddress;
     // -1 means no linger. Any value >=0 sets linger on.
@@ -245,22 +265,24 @@ type
 
   TInetServer = Class(TSocketServer)
   private
-    FAddr : TINetSockAddr;
-    FPort : Word;
-    FHost: string;
+    FEndPoint: TEndPoint;
+    function GetAddr:TAddressUnion;inline;
+    function GetHost: string;
   Protected
     Function GetConnection: TSocketStream; override;
-    Function SockToStream (ASocket : Longint) : TSocketStream;Override;
-    Function Accept : Longint;override;
-    Property Addr : TINetSockAddr Read FAddr;
+    Function SocketToStream (const ASocket : TFPSocket) : TSocketStream;Override;
+    Function AcceptSocket : TFPSocket;override;
+    Property Addr : TAddressUnion Read GetAddr;
   Public
     DefaultServerSocketClass : TServerSocketStreamClass;
   Public
     Procedure Bind; Override;
-    Constructor Create(APort: Word);
+    Constructor Create(APort: Word; SocketType: TFPSocketType = stIPv4);
     Constructor Create(const aHost: string; const APort: Word; AHandler : TSocketHandler = Nil);
-    Property Port : Word Read FPort;
-    Property Host : string Read FHost;
+    Constructor Create(const aHost: TNetworkAddress; const APort: Word; AHandler : TSocketHandler = Nil; DualStack : Boolean = True);
+    Property Port : Word Read FEndPoint.Second;
+    Property NetworkAddress : TNetworkAddress Read FEndPoint.First;
+    Property Host : string Read GetHost;
   end;
 
 {$ifdef Unix}
@@ -273,9 +295,9 @@ type
     FFileName : String;
   Protected
     Procedure Bind; Override;
-    Function Accept : Longint;override;
+    Function AcceptSocket : TFPSocket;override;
     function GetConnection: TSocketStream; override;
-    Function SockToStream (ASocket : Longint) : TSocketStream;Override;
+    Function SocketToStream (const ASocket : TFPSocket) : TSocketStream;Override;
     Procedure Close; override;
   Public
     DefaultUnixSocketClass : TUnixSocketClass;
@@ -314,14 +336,15 @@ type
 
   TInetSocket = Class(TNonBlockingSocketStream)
   Private
-    FHost : String;
-    FPort : Word;
+    FEndPoint : TEndPoint;
+    function GetHost: String;
   Public
-    Constructor Create(const AHost: String; APort: Word; AHandler : TSocketHandler = Nil); Overload;
-    Constructor Create(const AHost: String; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil); Overload;
+    Constructor Create(const AHost: TNetworkAddress; APort: Word; AHandler : TSocketHandler = Nil; DualStack : Boolean = True); Overload;
+    Constructor Create(const AHost: TNetworkAddress; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil; DualStack : Boolean = True); Overload;
     Procedure Connect; Virtual;
-    Property Host : String Read FHost;
-    Property Port : Word Read FPort;
+    Property NetworkAddress : TNetWorkAddress Read FEndPoint.First;
+    Property Host : String Read GetHost; deprecated 'use NetworkAddress instead';
+    Property Port : Word Read FEndPoint.Second;
   end;
 
 {$ifdef Unix}
@@ -330,14 +353,19 @@ type
   Private
     FFileName : String;
   Protected
-    Procedure DoConnect(ASocket : longint); Virtual;
+    Procedure DoConnect(const ASocket : TFPSocket); Virtual;
   Public
-    Constructor Create(ASocket : Longint); Overload;
+    Constructor Create(const ASocket : TFPSocket); Overload;
     Constructor Create(const AFileName : String); Overload;
     Property FileName : String Read FFileName;
   end;
 {$endif}
 
+{ To allow transparent use even if fpsockets is not in uses }
+operator :=(const AStr: String): TNetworkAddress; inline;
+operator :=(const AAddr: TNetworkAddress): String; inline;
+operator =(const AStr: String; const AAddr: TNetworkAddress): Boolean; inline;
+operator =(const AAddr: TNetworkAddress; const AStr: String): Boolean; inline;
 Implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -382,6 +410,26 @@ resourcestring
   strSocketIOTimeOut = 'Failed to set IO Timeout to %d';
   strErrNoStream = 'Socket stream not assigned';
   strSocketConnectTimeOut = 'Connection to %s timed out.';
+
+operator:=(const AStr:String):TNetworkAddress;
+begin
+  Result := NetAddr(AStr);
+end;
+
+operator:=(const AAddr:TNetworkAddress):String;
+begin
+  Result := AAddr.Address;
+end;
+
+operator=(const AStr:String;const AAddr:TNetworkAddress):Boolean;
+begin
+  Result:=NetAddr(AStr)=AAddr;
+end;
+
+operator=(const AAddr:TNetworkAddress;const AStr:String):Boolean;
+begin
+  Result:=AAddr=NetAddr(AStr);
+end;
 
 { TServerSocketStream }
 
@@ -607,10 +655,17 @@ end;
 { ---------------------------------------------------------------------
     TSocketStream
   ---------------------------------------------------------------------}
-constructor TSocketStream.Create(AHandle: Longint; AHandler: TSocketHandler);
+
+Constructor TSocketStream.Create (AHandle : Longint; AHandler : TSocketHandler = Nil); overload;
 
 begin
-  Inherited Create(AHandle);
+  Create(TFPSocket.Create(aHandle,spStream,stIPv4),aHandler);
+end;
+
+constructor TSocketStream.Create(const ASocket:TFPSocket;AHandler:TSocketHandler);
+begin
+  Inherited Create(ASocket.FD);
+  FSocket:=ASocket;
   FSocketInitialized := true;
   GetSockOptions;
   FHandler:=AHandler;
@@ -723,7 +778,7 @@ begin
     FHandler.Close; // Ignore the result
   FSocketInitialized:=False;
   FreeAndNil(FHandler);
-  CloseSocket(Handle);
+  CloseSocket(FSocket);
   FClosed:=True;
 end;
 
@@ -741,12 +796,12 @@ var
 begin
   {$ifdef windows}
   olen:=4;
-  if fpgetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @opt, @olen) = 0 then
+  if fpgetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @opt, @olen) = 0 then
     FIOTimeout:=opt;
   {$endif windows}
   {$ifdef unix}
   olen:=sizeof(time);
-  if fpgetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @time, @olen) = 0 then
+  if fpgetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @time, @olen) = 0 then
     FIOTimeout:=(time.tv_sec*1000)+(time.tv_usec div 1000);
   {$endif}
 end;
@@ -816,6 +871,16 @@ begin
     FillChar(Result, SizeOf(Result), 0);
 end;
 
+function TSocketStream.GetLocalEndpoint: TEndPoint;
+begin
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}fpsockets.LocalEndpoint(FSocket);
+end;
+
+function TSocketStream.GetRemoteEndpoint: TEndPoint;
+begin
+  Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}fpsockets.RemoteEndpoint(FSocket);
+end;
+
 procedure TSocketStream.SetIOTimeout(AValue: Integer);
 
 Var
@@ -834,16 +899,16 @@ begin
 
   {$ifdef windows}
   opt := AValue;
-  E:=fpsetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @opt, 4)<>0;
+  E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @opt, 4)<>0;
   if not E then
-    E:=fpsetsockopt(Handle, SOL_SOCKET, SO_SNDTIMEO, @opt, 4)<>0;
+    E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_SNDTIMEO, @opt, 4)<>0;
   {$endif windows}
   {$ifdef unix}
   time.tv_sec:=avalue div 1000;
   time.tv_usec:=(avalue mod 1000) * 1000;
-  E:=fpsetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @time, sizeof(time))<>0;
+  E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @time, sizeof(time))<>0;
   if not E then
-    E:=fpsetsockopt(Handle, SOL_SOCKET, SO_SNDTIMEO, @time, sizeof(time))<>0;
+    E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_SNDTIMEO, @time, sizeof(time))<>0;
   {$endif}
   if E then
     Raise ESocketError.Create(seIOTimeout,[AValue]);
@@ -859,7 +924,7 @@ end;
     TSocketServer
   ---------------------------------------------------------------------}
 
-constructor TSocketServer.Create(ASocket: Longint; AHandler: TSocketHandler);
+constructor TSocketServer.Create(ASocket:TFPSocket;AHandler:TSocketHandler);
 
 begin
   FSocket:=ASocket;
@@ -884,9 +949,9 @@ end;
 procedure TSocketServer.Close;
 
 begin
-  If FSocket<>-1 Then
+  If not SocketInvalid(FSocket.FD) Then
     CloseSocket(FSocket);
-  FSocket:=-1;
+  FSocket.FD:=-1;
 end;
 
 procedure TSocketServer.Abort;
@@ -897,13 +962,13 @@ var
 {$endif}
 begin
 {$if defined(unix)}
-  fpShutdown(FSocket,SHUT_RDWR);
+  fpShutdown(FSocket.FD,SHUT_RDWR);
 {$elseif defined(mswindows) or defined(hasamiga)}
   CloseSocket(FSocket);
 {$else}
   {$WARNING Method Abort is not tested on this platform!}
   ASocket:=FSocket;
-  fpShutdown(ASocket,SHUT_RDWR);
+  fpShutdown(ASocket.FD,SHUT_RDWR);
   CloseSocket(ASocket);
 {$endif}
 end;
@@ -942,14 +1007,14 @@ begin
 {$ifdef unix}
     FDS := Default(TFDSet);
     fpFD_Zero(FDS);
-    fpFD_Set(FSocket, FDS);
-    Result := fpSelect(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+    fpFD_Set(FSocket.FD, FDS);
+    Result := fpSelect(FSocket.FD + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$else}
 {$ifdef windows}
     FDS := Default(TFDSet);
     FD_Zero(FDS);
-    FD_Set(FSocket, FDS);
-    Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+    FD_Set(FSocket.FD, FDS);
+    Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(FSocket.FD + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$endif}
 {$endif}
     If Result then
@@ -963,37 +1028,47 @@ procedure TSocketServer.Listen;
 begin
   If Not FBound then
     Bind;
-  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpListen(FSocket,FQueueSize)<>0 then
-    Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
+  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpListen(FSocket.FD,FQueueSize)<>0 then
+    Raise ESocketError.Create(seListenFailed,[FSocket.FD,SocketError]);
 end;
 
 function TSocketServer.GetSockopt(ALevel, AOptName: cint; var optval;
   var optlen: tsocklen): Boolean;
 begin
-  Result:=fpGetSockOpt(FSocket,ALevel,AOptName,@optval,@optlen)<>-1;
+  Result:=fpGetSockOpt(FSocket.FD,ALevel,AOptName,@optval,@optlen)<>-1;
 end;
 
 function TSocketServer.SetSockopt(ALevel, AOptName: cint; var optval;
   optlen: tsocklen): Boolean;
 begin
-  Result:=fpSetSockOpt(FSocket,ALevel,AOptName,@optval,optlen)<>-1;
+  Result:=fpSetSockOpt(FSocket.FD,ALevel,AOptName,@optval,optlen)<>-1;
+end;
+
+function TInetServer.GetAddr:TAddressUnion;
+begin
+  Result:=CreateAddr(FEndPoint.First,FEndPoint.Second,FSocket.SocketType=stIPDualStack);
+end;
+
+function TInetServer.GetHost: string;
+begin
+  Result:=FEndPoint.First.Address;
 end;
 
 function TInetServer.GetConnection: TSocketStream;
 
 var
-  NewSocket : longint;
+  NewSocket : TFPSocket;
 
 begin
   Result:=Nil;
-  NewSocket:=Accept;
-  if (NewSocket<0) then
+  NewSocket:=AcceptSocket;
+  if SocketInvalid(NewSocket.FD) then
     if not FAccepting then
       exit
     else
-      Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
+      Raise ESocketError.Create(seAcceptFailed,[FSocket.FD,SocketError]);
   If FAccepting and DoConnectQuery(NewSocket) Then
-    Result:=SockToStream(NewSocket)
+    Result:=SocketToStream(NewSocket)
   else
     CloseSocket(NewSocket);
 end;
@@ -1004,11 +1079,13 @@ begin
     Result:=aeaRaise
   else
     Result:=aeaStop;
-  if Assigned(FOnAcceptError) then
-    FOnAcceptError(Self,FSocket,E,Result);
+  if Assigned(FOnAcceptSocketError) then
+    FOnAcceptSocketError(Self,FSocket,E,Result)
+  else if Assigned(FOnAcceptError) then
+    FOnAcceptError(Self,FSocket.FD,E,Result);
 end;
 
-function TSocketServer.GetClientSocketHandler(aSocket : Longint): TSocketHandler;
+function TSocketServer.GetClientSocketHandler(aSocket:TFPSocket):TSocketHandler;
 begin
   If Assigned(FOnCreateClientSocketHandler) then
     FOnCreateClientSocketHandler(Self,Result)
@@ -1152,19 +1229,41 @@ begin
     FOnConnect(Self,ASocket);
 end;
 
-function TSocketServer.DoConnectQuery(ASocket: longint): Boolean;
+function TSocketServer.DoConnectQuery(const ASocket:TFPSocket):Boolean;
 
 begin
   Result:=True;
-  If Assigned(FOnConnectQuery) then
-    FOnConnectQuery(Self,ASocket,Result);
+  if Assigned(FOnConnectSocketQuery) then
+    FOnConnectSocketQuery(Self,ASocket,Result)
+  else if Assigned(FOnConnectQuery) then
+    FOnConnectQuery(Self,ASocket.FD,Result);
+end;
+
+function TSocketServer.AcceptSocket: TFPSocket;
+begin
+  Result:=TFPSocket.Create(Accept,spStream,stIPv4);
+end;
+
+function TSocketServer.Accept: Longint;
+begin
+  Result:=-1;
+end;
+
+function TSocketServer.SocketToStream(const ASocket: TFPSocket): TSocketStream;
+begin
+  Result:=SockToStream(aSocket.FD);
+end;
+
+function TSocketServer.SockToStream(ASocket: Longint): TSocketStream;
+begin
+  Result:=Nil;
 end;
 
 procedure TSocketServer.SetNonBlocking;
 
 begin
 {$ifdef Unix}
-  fpfcntl(FSocket,F_SETFL,O_NONBLOCK);
+  fpfcntl(FSocket.FD,F_SETFL,O_NONBLOCK);
 {$endif}
   FNonBlocking:=True;
 end;
@@ -1202,6 +1301,11 @@ begin
     l.l_linger:=0;
   if Not SetSockOpt(SOL_SOCKET, SO_LINGER, l, SizeOf(L)) then
     Raise ESocketError.CreateFmt('Failed to set linger: %d',[socketerror]);
+end;
+
+function TSocketServer.GetRawSocket:LongInt;
+begin
+  Result:=FSocket.FD
 end;
 
 procedure TSocketServer.SocketClosed(aSocket: TSocketStream);
@@ -1248,38 +1352,63 @@ end;
     TInetServer
   ---------------------------------------------------------------------}
 
-constructor TInetServer.Create(APort: Word);
+constructor TInetServer.Create(APort: Word; SocketType: TFPSocketType);
 
 begin
-  Create('0.0.0.0', aPort);
+  case SocketType of
+  stIPv4:
+    Create('0.0.0.0', aPort,nil,False);
+  stIPv6:
+    Create('::0',APort,nil,False);
+  stIPDualStack:
+    Create('::0',APort,nil,True);
+  otherwise
+    raise EUnsupportedAddress.Create('TInetServer only supports IPv4, IPv6 and DualStack');
+  end;
 end;
 
-constructor TInetServer.Create(const aHost: string; const APort: Word;
-  AHandler: TSocketHandler);
+constructor TInetServer.Create(const aHost: string; const APort: Word; AHandler: TSocketHandler);
+begin
+  Create(AHost, aPort,nil,False);
+end;
 
-Var S : longint;
+constructor TInetServer.Create(const aHost: TNetworkAddress; const APort: Word;
+  AHandler: TSocketHandler; DualStack: Boolean);
+
+Var S : TFPSocket;
 
 begin
-  FHost:=aHost;
-  FPort:=APort;
-  S:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpSocket(AF_INET,SOCK_STREAM,0);
-  If S=-1 Then
+  case aHost.AddressType of
+  atIN4:
+    S.SocketType:=stIPv4;
+  atIN6:
+    if DualStack then
+      S.SocketType:=stIPDualStack
+    else
+      S.SocketType:=stIPv6;
+  otherwise
+    raise EUnsupportedAddress.Create('TInetServer only supports IPv4, IPv6 and DualStack');
+  end;
+  FEndPoint.First:=aHost;
+  FEndPoint.Second:=APort;
+  S.Protocol:=spStream;
+  S.FD:=CreateRawSocket(S.SocketType,spStream,0,False);
+  If SocketInvalid(S.FD) Then
     Raise ESocketError.Create(seCreationFailed,[Format('%d',[APort])]);
   Inherited Create(S,AHandler);
 end;
 
 procedure TInetServer.Bind;
-
+var
+  naddr: TAddressUnion;
 begin
-  Faddr.sin_family := AF_INET;
-  Faddr.sin_port := ShortHostToNet(FPort);
-  Faddr.sin_addr.s_addr := LongWord(StrToNetAddr(FHost));
-  if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpBind(FSocket, @FAddr, Sizeof(FAddr))<>0 then
-    raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
+  naddr:=CreateAddr(FEndPoint.First,FEndPoint.Second,FSocket.SocketType=stIPDualStack);
+  if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpBind(FSocket.FD, @naddr, Sizeof(naddr))<>0 then
+    raise ESocketError.Create(seBindFailed, [IntToStr(FEndPoint.Second)]);
   FBound:=True;
 end;
 
-function TInetServer.SockToStream(ASocket: Longint): TSocketStream;
+function TInetServer.SocketToStream(const ASocket: TFPSocket): TSocketStream;
 Var
   H : TSocketHandler;
   ok : Boolean;
@@ -1308,33 +1437,37 @@ begin
   end;
 end;
 
-function TInetServer.Accept: Longint;
+function TInetServer.AcceptSocket:TFPSocket;
 
 Var
   L : longint;
   R : integer;
+  naddr: TAddressUnion;
 begin
-  L:=SizeOf(FAddr);
+  // Is basically the same except that the handle will be overwritten
+  Result:=FSocket;
+  L:=SizeOf(naddr);
 {$IFDEF UNIX}
   R:=ESysEINTR;
-  While (R=ESysEINTR) do
+  Result.FD:=-1;
+  While SocketInvalid(Result.FD) and (R=ESysEINTR) do
 {$ENDIF UNIX}
    begin
-   Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(Socket,@Faddr,@L);
+   Result.FD:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(FSocket.FD,@naddr,@L);
    R:=SocketError;
    end;
 {$ifdef Unix}
-  If (Result<0) then
+  If SocketInvalid(Result.FD) then
     If R=ESysEWOULDBLOCK then
-      Raise ESocketError.Create(seAcceptWouldBlock,[socket]);
+      Raise ESocketError.Create(seAcceptWouldBlock,[FSocket.FD]);
 {$endif}
-  if (Result<0) or Not FAccepting then
+  if SocketInvalid(Result.FD) or Not FAccepting then
     begin
-    If (Result>=0) then
+    If not SocketInvalid(Result.FD) then
       CloseSocket(Result);
     // Do not raise an error if we've stopped accepting.
     if FAccepting then
-      Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError])
+      Raise ESocketError.Create(seAcceptFailed,[FSocket.FD,SocketError])
     end;
 end;
 
@@ -1344,12 +1477,14 @@ end;
 {$ifdef Unix}
 Constructor TUnixServer.Create(const AFileName : String; AHandler : TSocketHandler = Nil);
 
-Var S : Longint;
+Var S : TFPSocket;
 
 begin
   FFileName:=AFileName;
-  S:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpSocket(AF_UNIX,SOCK_STREAM,0);
-  If S=-1 then
+  S.Protocol:=spStream;
+  s.SocketType:=stUnixSocket;
+  S.FD:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpSocket(AF_UNIX,SOCK_STREAM,0);
+  If SocketInvalid(S.FD) then
     Raise ESocketError.Create(seCreationFailed,[AFileName])
   else
     Inherited Create(S,AHandler);
@@ -1368,26 +1503,28 @@ var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(FFilename,FUnixAddr,AddrLen);
-  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpBind(Socket,@FUnixAddr,AddrLen)<>0 then
+  If  {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.FpBind(FSocket.FD,@FUnixAddr,AddrLen)<>0 then
     Raise ESocketError.Create(seBindFailed,[FFileName]);
   FBound:=True;
 end;
 
-Function TUnixServer.Accept : Longint;
+function TUnixServer.AcceptSocket:TFPSocket;
 
 Var L : longint;
+  addr: sockaddr_un;
 
 begin
-  L:=Length(FFileName);
-  Result:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(Socket,@FUnixAddr,@L);
-  If Result<0 then
+  Result:=FSocket;
+  L:=SizeOf(addr);
+  Result.FD:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(FSocket.FD,@addr,@L);
+  If SocketInvalid(Result.FD) then
     If SocketError=ESysEWOULDBLOCK then
-      Raise ESocketError.Create(seAcceptWouldBlock,[socket])
+      Raise ESocketError.Create(seAcceptWouldBlock,[FSocket.FD])
     else
-      Raise ESocketError.Create(seAcceptFailed,[socket,SocketError]);
+      Raise ESocketError.Create(seAcceptFailed,[FSocket.FD,SocketError]);
 end;
 
-Function  TUnixServer.SockToStream (ASocket : Longint) : TSocketStream;
+function TUnixServer.SocketToStream(const ASocket:TFPSocket):TSocketStream;
 
 var
   aClass : TUnixSocketClass;
@@ -1403,15 +1540,15 @@ end;
 Function TUnixServer.GetConnection : TSocketStream;
 
 var
-  NewSocket : longint;
+  NewSocket : TFPSocket;
 
 begin
   Result:=Nil;
-  NewSocket:=Accept;
-  if (NewSocket<0) then
-    Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
+  NewSocket:=AcceptSocket;
+  if SocketInvalid(NewSocket.FD) then
+    Raise ESocketError.Create(seAcceptFailed,[FSocket.FD,SocketError]);
   If FAccepting and DoConnectQuery(NewSocket) Then
-    Result:=SockToStream(NewSocket)
+    Result:=SocketToStream(NewSocket)
   else
     CloseSocket(NewSocket);
 end;
@@ -1422,20 +1559,36 @@ end;
     TInetSocket
   ---------------------------------------------------------------------}
 
-Constructor TInetSocket.Create(const AHost: String; APort: Word;AHandler : TSocketHandler = Nil);
+function TInetSocket.GetHost: String;
 begin
-  Create(AHost,aPort,0,AHandler);
+  Result:=FEndPoint.First.Address;
 end;
 
-Constructor TInetSocket.Create(const AHost: String; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil);
+constructor TInetSocket.Create(const AHost: TNetworkAddress; APort: Word; AHandler: TSocketHandler; DualStack: Boolean);
+begin
+  Create(AHost,aPort,0,AHandler,DualStack);
+end;
+
+constructor TInetSocket.Create(const AHost: TNetworkAddress; APort: Word; aConnectTimeout: Integer; AHandler: TSocketHandler;
+  DualStack: Boolean);
 Var
-  S : Longint;
+  S : TFPSocket;
 
 begin
-  FHost:=AHost;
-  FPort:=APort;
+  if DualStack then
+    S.SocketType:=stIPDualStack
+  else if AHost.AddressType=atIN6 then
+    S.SocketType:=stIPv6
+  else
+    S.SocketType:=stIPv4;
+
+  FEndPoint.First:=AHost;
+  FEndPoint.Second:=APort;
   ConnectTimeout:=aConnectTimeout;
-  S:=fpSocket(AF_INET,SOCK_STREAM,0);
+  S.Protocol:=spStream;
+  S.FD:=CreateRawSocket(S.SocketType,spStream,0,False);
+  If SocketInvalid(S.FD) Then
+    Raise ESocketError.Create(seCreationFailed,[Format('%d',[APort])]);
   Inherited Create(S,AHandler);
   if (AHandler=Nil) then // Backwards compatible behaviour.
     Connect;
@@ -1524,6 +1677,7 @@ begin
       end;
     end;
 end;
+
 {$ENDIF HAVENONBLOCKING}
 
 procedure TInetSocket.Connect;
@@ -1538,8 +1692,7 @@ Const
 {$ENDIF}
 
 Var
-  A : THostAddr;
-  addr: TInetSockAddr;
+  addr: TAddressUnion;
   IsError : Boolean;
   TimeOutResult : TCheckTimeOutResult;
   Err: Integer;
@@ -1549,19 +1702,23 @@ Var
   TimeV: TTimeVal;
 {$endif}
 begin
-  A := StrToHostAddr(FHost);
-  if A.s_bytes[1] = 0 then
+  { Hack: atUnixSock is basically anything thats not an IP address
+    therefore hostnames fall under this }
+  if FEndPoint.First.AddressType=atUnixSock then
     With THostResolver.Create(Nil) do
       try
-        If Not NameLookup(FHost) then
-          raise ESocketError.Create(seHostNotFound, [FHost]);
-        A:=HostAddress;
+        { TODO: As long as resolve is only IPv4 capable, porting this to IPv6 is
+          not possible (note to self: rework resolve) }
+        If Not NameLookup(FEndPoint.First.Address) then
+          raise ESocketError.Create(seHostNotFound, [FEndPoint.First.Address]);
+        addr.In4Addr.sin_family := AF_INET;
+        addr.In4Addr.sin_port := ShortHostToNet(FEndPoint.Second);
+        addr.In4Addr.sin_addr.s_addr := HostToNet(HostAddress.s_addr);
       finally
         free;
-      end;
-  addr.sin_family := AF_INET;
-  addr.sin_port := ShortHostToNet(FPort);
-  addr.sin_addr.s_addr := HostToNet(a.s_addr);
+      end
+  else
+    addr:=CreateAddr(FEndPoint.First,FEndPoint.Second,FSocket.SocketType=stIPDualStack);
 {$IFDEF HAVENONBLOCKING}
   if ConnectTimeOut>0 then
     SetSocketBlockingMode(Handle, bmNonBlocking, @FDS) ;
@@ -1592,18 +1749,18 @@ begin
     begin
     IsError:=Not FHandler.Connect;
     if IsError then
-      CloseSocket(Handle);
+      CloseSocket(FSocket);
     end;
   If IsError then
     if TimeoutResult=ctrTimeout then
-      Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FHost, FPort])])
+      Raise ESocketError.Create(seConnectTimeOut, [Format('%s:%d',[FEndPoint.First.Address, Port])])
     else
       begin
       if Assigned(FHandler) then
         aErrMsg:=FHandler.GetLastErrorDescription
       else
         aErrMsg:='Error connecting';
-      Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort]),aErrMsg]);
+      Raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FEndPoint.First.Address, Port]),aErrMsg]);
       end;
 end;
 
@@ -1611,32 +1768,36 @@ end;
     TUnixSocket
   ---------------------------------------------------------------------}
 {$ifdef Unix}
-Constructor TUnixSocket.Create(ASocket : Longint);
-
-begin
-  Inherited Create(ASocket);
-end;
 
 Constructor TUnixSocket.Create(const AFileName : String);
 
-Var S : Longint;
+Var S : tfpsocket;
 
 begin
   FFileName:=AFileName;
-  S:=FpSocket(AF_UNIX,SOCK_STREAM,0);
+  S.Protocol:=spStream;
+  S.SocketType:=stUnixSocket;
+  S.FD:=FpSocket(AF_UNIX,SOCK_STREAM,0);
   DoConnect(S);
-  Inherited Create(S);
+  Inherited Create(S,nil);
 end;
 
-Procedure TUnixSocket.DoConnect(ASocket : longint);
+Procedure TUnixSocket.DoConnect(const ASocket : TFPSocket);
 
 Var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(FFilename,UnixAddr,AddrLen);
-  If  FpConnect(ASocket,@UnixAddr,AddrLen)<>0 then
+  If  FpConnect(ASocket.FD,@UnixAddr,AddrLen)<>0 then
     Raise ESocketError.Create(seConnectFailed,[FFilename,'']);
 end;
+
+constructor TUnixSocket.Create(const ASocket:TFPSocket);
+begin
+  FFileName:='';
+  Inherited Create(ASocket,nil);
+end;
+
 {$endif}
 end.

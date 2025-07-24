@@ -17,6 +17,7 @@ unit fpsockets;
 
 {$mode ObjFPC}{$H+}
 {$TypedAddress on}
+{$modeswitch advancedrecords}
 
 interface
 
@@ -33,11 +34,16 @@ type
   { Basic Socket Types }
 
   TFPSocketType = (stIPv4, stIPv6, stIPDualStack, stUnixSocket);
-  TFPSocketProto = (spStream, spDatagram);
+  TFPSocketProtocol = (spStream, spDatagram);
+  TFPSocketProto = TFPSocketProtocol;
+
+  { TFPSocket }
+
   TFPSocket = record
     FD: TSocket;
     Protocol: TFPSocketProto;
     SocketType: TFPSocketType;
+    Constructor create(aFD : TSocket; aProtocol : TFPSocketProtocol; aType : TFPSocketType);
   end;
 
   TAddressType = (atIN4, atIN6, atUnixSock);
@@ -1097,6 +1103,15 @@ end;
 operator=(const AAddr:TNetworkAddress;const AStr:String):Boolean;
 begin
   Result:=AAddr=NetAddr(AStr);
+end;
+
+{ TFPSocket }
+
+constructor TFPSocket.create(aFD: TSocket; aProtocol: TFPSocketProtocol; aType: TFPSocketType);
+begin
+  FD:=aFD;
+  Protocol:=aProtocol;
+  SocketType:=aType;
 end;
 
 { ESocketCodeError }
