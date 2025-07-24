@@ -199,6 +199,7 @@ type
     procedure SetCookie(Index: Integer; Value: TCookie);
   public
     function  Add: TCookie;
+    function AddFromString(S: String): TCookie;
     Function CookieByName(const AName : String) : TCookie;
     Function FindCookie(const AName : String): TCookie;
     Function IndexOfCookie(const AName : String) : Integer;
@@ -3205,6 +3206,69 @@ end;
 function TCookies.Add: TCookie;
 begin
   Result:=TCookie(Inherited Add);
+end;
+
+function TCookies.AddFromString(S: String): TCookie;
+var
+  P, Q: Integer;
+  CookieLine, AttributeLine, AttributeName, AttributeValue: String;
+  C: TCookie;
+begin
+  Result := Add;
+
+  // Remove 'Set-Cookie:'
+  P := Pos(':',S);
+  System.Delete(S, 1, P);
+
+  // Get cookie name by getting either the position of attribute start/separator (;) or the end of string
+  P := Pos(';',S);
+  if P = 0 then
+    P := Length(S) + 1;
+  CookieLine := Trim(Copy(S, 1, P - 1));
+  System.Delete(S, 1, P);
+
+  // Split the cookie name and value
+  Q := Pos('=', CookieLine);
+  if Q = 0 then
+    Q := Length(CookieLine) + 1;
+  Result.Name := Trim(Copy(CookieLine, 1, Q - 1));
+  if Q > 0 then
+    Result.Value := Trim(Copy(CookieLine, Q + 1, Length(CookieLine) - Q));
+
+  // Get cookie attributes, if any
+  while P > 0 do begin
+    Q := Pos(';',S);
+    if Q = 0 then begin
+      P := 0;
+      Q := Length(S) + 1;
+    end;
+    AttributeLine := Trim(Copy(S, 1, Q - 1));
+    System.Delete(S, 1, Q);
+
+    // Split the attribute name and value, assign to each corresponding field
+    Q := Pos('=', AttributeLine);
+    if Q = 0 then
+      Q := Length(AttributeLine) + 1;
+    AttributeName := LowerCase(Trim(Copy(AttributeLine, 1, Q - 1)));
+    AttributeValue := '';
+    if Q > 0 then
+      AttributeValue := Trim(Copy(AttributeLine, Q + 1, Length(AttributeLine) - Q));
+
+    case AttributeName of
+      'domain'  : Result.Domain   := AttributeValue;
+      'path'    : Result.Path     := AttributeValue;
+      // I'm not sure with these 3 below
+      'expires' : Result.Expires  := StrToDateTime(AttributeValue);
+      'secure'  : Result.Secure   := StrToBoolDef(AttributeValue, true);
+      'httponly': Result.HttpOnly := StrToBoolDef(AttributeValue, true);
+      'samesite': case LowerCase(AttributeValue) of
+        ''      : Result.SameSite := ssEmpty;
+        'none'  : Result.SameSite := ssNone;
+        'strict': Result.SameSite := ssStrict;
+        'lax'   : Result.SameSite := ssLax;
+      end;
+    end;
+  end;
 end;
 
 function TCookies.CookieByName(const AName: String): TCookie;
