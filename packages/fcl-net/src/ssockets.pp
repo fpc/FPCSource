@@ -52,6 +52,7 @@ type
   TAcceptErrorAction = (aeaRaise,aeaIgnore,aeaStop);
   TSocketStream = Class;
   TSocketServer = Class;
+  TServerSocketStream = class;
   TInetSocket = Class;
 {$IFDEF UNIX}
   TUnixSocket = class;
@@ -59,6 +60,7 @@ type
 {$ENDIF}
   TSocketStreamClass = Class of TSocketStream;
   TInetSocketClass = Class of TInetSocket;
+  TServerSocketStreamClass = Class of TServerSocketStream;
 
 
 
@@ -252,7 +254,7 @@ type
     Function Accept : Longint;override;
     Property Addr : TINetSockAddr Read FAddr;
   Public
-    DefaultInetSocketClass : TInetSocketClass;
+    DefaultServerSocketClass : TServerSocketStreamClass;
   Public
     Procedure Bind; Override;
     Constructor Create(APort: Word);
@@ -288,9 +290,19 @@ type
   TBlockingModes = Set of TBlockingMode;
   TCheckTimeoutResult = (ctrTimeout,ctrError,ctrOK);
 
-  { TServerSocketStream }
+  {$if defined(unix) or defined(windows)}
+  {$DEFINE HAVENONBLOCKING}
+  {$endif}
 
-  TServerSocketStream = class(TSocketStream)
+  TNonBlockingSocketStream = class(TSocketStream)
+  {$IFDEF HAVENONBLOCKING}
+  function SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): boolean; virtual;
+  function CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): TCheckTimeoutResult; virtual;
+  {$ENDIF}
+  end;
+
+  { TServerSocketStream }
+  TServerSocketStream = class(TNonBlockingSocketStream)
   Protected
     FServer : TSocketServer;
   Protected
@@ -300,18 +312,10 @@ type
     Function CanRead(TimeOut : Integer): Boolean; override;
   end;
 
-{$if defined(unix) or defined(windows)}
-{$DEFINE HAVENONBLOCKING}
-{$endif}
-  TInetSocket = Class(TSocketStream)
+  TInetSocket = Class(TNonBlockingSocketStream)
   Private
     FHost : String;
     FPort : Word;
-  Protected
-{$IFDEF HAVENONBLOCKING}
-    function SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): boolean; virtual;
-    function CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): TCheckTimeoutResult; virtual;
-{$ENDIF}
   Public
     Constructor Create(const AHost: String; APort: Word; AHandler : TSocketHandler = Nil); Overload;
     Constructor Create(const AHost: String; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil); Overload;
@@ -322,7 +326,7 @@ type
 
 {$ifdef Unix}
 
-  TUnixSocket = Class(TSocketStream)
+  TUnixSocket = Class(TNonBlockingSocketStream)
   Private
     FFileName : String;
   Protected
@@ -1279,7 +1283,7 @@ function TInetServer.SockToStream(ASocket: Longint): TSocketStream;
 Var
   H : TSocketHandler;
   ok : Boolean;
-  aClass : TInetSocketClass;
+  aClass : TServerSocketStreamClass;
 
   procedure ShutDownH;
   begin
@@ -1289,15 +1293,11 @@ Var
 
 begin
   H:=GetClientSocketHandler(aSocket);
-  aClass:=DefaultInetSocketClass;
-
-  // Should be: Result:=TServerSocketStream.Create(ASocket,H);
+  aClass:=DefaultServerSocketClass;
 
   if aClass=Nil then
-    aClass:=TInetSocket;
+    aClass:=TServerSocketStream;
   Result:=aClass.Create(ASocket,H);
-  (Result as TInetSocket).FHost:='';
-  (Result as TInetSocket).FPort:=FPort;
 
   ok:=false;
   try
@@ -1442,7 +1442,7 @@ begin
 end;
 
 {$IFDEF HAVENONBLOCKING}
-function TInetSocket.SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Boolean;
+function TNonBlockingSocketStream.SetSocketBlockingMode(ASocket: cint; ABlockMode: TBlockingMode; AFDSPtr: Pointer): Boolean;
 
 Const
     BlockingModes : Array[TBlockingMode] of DWord =
@@ -1483,7 +1483,7 @@ begin
 end;
 
 // Return true if a timeout happened. Will only be called in case of eWouldBlock.
-function TInetSocket.CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): TCheckTimeoutResult;
+function TNonBlockingSocketStream.CheckSocketConnectTimeout(ASocket: cint; AFDSPtr: Pointer; ATimeVPtr: Pointer): TCheckTimeoutResult;
 
 var
   Err,ErrLen : Longint;
