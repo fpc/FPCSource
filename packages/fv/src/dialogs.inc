@@ -1417,18 +1417,24 @@ END;
 FUNCTION TInputLine.DataSize: Sw_Word;
 VAR DSize: Sw_Word;
 BEGIN
-   DSize := 0;                                        { Preset zero datasize }
 {$ifdef FV_UNICODE}
-   If (Validator <> Nil) AND (Data <> '') Then
-     DSize := Validator^.Transfer(Data, Nil,
-       vtDataSize);                                   { Add validator size }
+   DataSize := SizeOf(Sw_String);                     { DataSize return the
+                                                        actual size of the field
+                                                        in record. Unlike
+                                                        ShortString field which is
+                                                        allocated on stack and thus
+                                                        has variable size,
+                                                        UnicodeString field's size
+                                                        is determined by it's
+                                                        data type size }
 {$else FV_UNICODE}
+   DSize := 0;                                        { Preset zero datasize }
    If (Validator <> Nil) AND (Data <> Nil) Then
      DSize := Validator^.Transfer(Data^, Nil,
        vtDataSize);                                   { Add validator size }
-{$endif FV_UNICODE}
    If (DSize <> 0) Then DataSize := DSize             { Use validtor size }
      Else DataSize := MaxLen + 1;                     { No validator use size }
+{$endif FV_UNICODE}
 END;
 
 {--TInputLine---------------------------------------------------------------}
@@ -1643,15 +1649,20 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.SetData (Var Rec);
 BEGIN
+{$ifdef FV_UNICODE}
+                                                      { We do not check for Data <> Sw_PString_Empty
+                                                        in the Unicode version, or else this function
+                                                        will always fail to set the data }
+   if (Validator = Nil) OR (Validator^.Transfer(
+     Data Sw_PString_DeRef, @Rec, vtSetData) = 0) Then
+     Data := Sw_String(Rec);
+{$else FV_UNICODE}
    If Data <> Sw_PString_Empty Then Begin             { Data ptr valid }
      If (Validator = Nil) OR (Validator^.Transfer(
        Data Sw_PString_DeRef, @Rec, vtSetData) = 0) Then              { No validator/data }
-{$ifdef FV_UNICODE}
-       Data := Sw_String(Rec);
-{$else FV_UNICODE}
        Move(Rec, Data^[0], DataSize);                 { Set our data }
-{$endif FV_UNICODE}
    End;
+{$endif FV_UNICODE}
    SelectAll(True);                                   { Now select all }
 END;
 
