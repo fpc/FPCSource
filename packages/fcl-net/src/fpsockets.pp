@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
+  {$IfDef WINDOWS}WinApi.WinSock2{$Else}UnixApi.Base, UnixApi.TermIO{$EndIf}, System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  sysutils, sockets, nullable, tuples;
+  {$IfDef WINDOWS}WinSock2{$Else}BaseUnix, termio{$EndIf},  sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -215,10 +215,10 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  {$IfDef WINDOWS}WinApi.WinSock2{$Else}UnixApi.Base, UnixApi.TermIO{$EndIf}, System.Math;
+  System.Math;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  {$IfDef WINDOWS}WinSock2{$Else}BaseUnix, termio{$EndIf}, math;
+  math;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$macro on}
