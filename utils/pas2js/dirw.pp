@@ -441,7 +441,11 @@ begin
 //                InotifyEventsToString(e^.mask),
                 ') detected for file "',fn,'"');
         {$endif}
-        ptrint(e):=ptrint(e)+sizeof(inotify_event)+e^.len-1;
+        {$IFNDEF VER3_2}
+        ptrint(e):=ptrint(e)+sizeof(inotify_event)+e^.len;
+        {$ELSE}
+        ptrint(e):=ptrint(e)+sizeof(inotify_event)+e^.len;
+        {$ENDIF}
         end;
       end;
   finally
@@ -545,7 +549,11 @@ begin
     if (fnl>0) then
       move(e^.name,fn[1],fnl);
     DoChangeEvent(DirectoryEntryForFileName(FN),NativeEventsToEvents(E^ .mask));
+    {$IFNDEF VER3_2}
+    ptrint(e):=ptrint(e)+sizeof(inotify_event)+e^.len;
+    {$ELSE}
     ptrint(e):=ptrint(e)+sizeof(inotify_event)+e^.len-1;
+    {$ENDIF}
     end;
 end;
 {$ENDIF}
