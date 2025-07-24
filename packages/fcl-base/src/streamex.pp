@@ -119,9 +119,11 @@ type
    Protected  
      function IsEof: Boolean; override;
    public
-     constructor Create(AStream: TStream; ABufferSize: Integer;
-       AOwnsStream: Boolean); virtual;
+     constructor Create(AStream: TStream; ABufferSize: Integer; AOwnsStream: Boolean); virtual;
      constructor Create(AStream: TStream); virtual;
+     constructor Create(const aFilename: string);
+     constructor Create(const aFilename: string; aDetectBOM: Boolean);
+     constructor Create(const aFilename: string; aEncoding: TEncoding; aDetectBOM: Boolean; aBufferSize: Integer); overload;
      destructor Destroy; override;
      procedure Reset; override;
      procedure Close; override;
@@ -949,6 +951,26 @@ begin
   Create(AStream, BUFFER_SIZE, False);
 end;
 
+constructor TStreamReader.Create(const aFilename: string);
+begin
+  Create(aFileName,False);
+end;
+
+constructor TStreamReader.Create(const aFilename: string; aDetectBOM: Boolean);
+begin
+  Create(aFileName,TEncoding.Default, aDetectBOM, BUFFER_SIZE);
+end;
+
+constructor TStreamReader.Create(const aFilename: string; aEncoding: TEncoding; aDetectBOM: Boolean; aBufferSize: Integer);
+var
+  F : TFileStream;
+
+begin
+  // DetectBOM & encoding ignored for the moment.
+  F:=TFileStream.Create(aFileName,fmOpenRead or fmShareDenyWrite);
+  Create(F,aBufferSize,True);
+end;
+
 destructor TStreamReader.Destroy;
 begin
   Close;
@@ -997,7 +1019,7 @@ begin
   end;
 end;
 
-procedure TStreamReader.ReadLine(out AString: AnsiString );
+procedure TStreamReader.ReadLine(out AString: Ansistring);
 var
   VPByte: PByte;
   VPosition, VStrLength, VLength: Integer;
