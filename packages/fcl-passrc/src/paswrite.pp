@@ -1266,6 +1266,7 @@ var
   ind : integer;
   Expr : string;
 begin
+  Expr:='';
   With aWith do
     begin
     for ind:=0 to Expressions.Count-1 do
