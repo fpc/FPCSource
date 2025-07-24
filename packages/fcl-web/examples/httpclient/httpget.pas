@@ -101,6 +101,7 @@ begin
     end;
   With TFPHTTPClient.Create(Nil) do
     try
+      RequestCookies.Add.Name:='me';
       AllowRedirect:=True;
       OnRedirect:=@ShowRedirect;
       OnPassword:=@DoPassword;
