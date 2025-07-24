@@ -2413,6 +2413,7 @@ begin
     and only for external classes/interfaces }
   is_java_external:=
     (pd.typ=procdef) and
+    assigned(pd.owner) and
     is_java_class_or_interface(tdef(pd.owner.defowner)) and
     (oo_is_external in tobjectdef(pd.owner.defowner).objectoptions);
   with tprocdef(pd) do
