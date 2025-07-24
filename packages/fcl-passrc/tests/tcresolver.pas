@@ -17607,7 +17607,7 @@ begin
   'begin',
   'end.']);
   ParseProgram;
-  CheckResolverHint(mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored);
+  CheckResolverHint(mtHint,nTextAfterFinalIgnored,sTextAfterFinalIgnored+' afile.pp(4,4)');
   CheckResolverUnexpectedHints(true);
 end;
 
