@@ -1029,7 +1029,7 @@ Var
 
 begin
   S:=Uppercase(GetNextWord(AStatusLine));
-  If StartsStr('HTTP/',S) then
+  If not StartsStr('HTTP/',S) then
     Raise EHTTPClient.CreateFmt(SErrInvalidProtocolVersion,[S]);
   System.Delete(S,1,5);
   FServerHTTPVersion:=S;
