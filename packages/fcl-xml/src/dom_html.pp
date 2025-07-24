@@ -1191,13 +1191,14 @@ begin
     Result := frFalse;
 end;
 
-TByClassNameNodeList = class(TDOMNodeList)
-protected
-  FFilter: DOMString;
-  function NodeFilter(aNode: TDOMNode): TFilterResult; override;
-public
-  constructor Create(aNode: TDOMNode; const aFilter: DOMString);
-end;  
+type
+  TByClassNameNodeList = class(TDOMNodeList)
+  protected
+    FFilter: DOMString;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; override;
+  public
+    constructor Create(aNode: TDOMNode; const aFilter: DOMString);
+  end;  
 
 constructor TByClassNameNodeList.Create(aNode: TDOMNode;
   const aFilter: DOMString);
