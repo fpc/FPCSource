@@ -706,8 +706,8 @@ Type
     procedure Iterate(Iterator : TJSONObjectIterator; Data: TObject);
     function IndexOf(Item: TJSONData): Integer;
     Function IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
-    Function Find(Const AName : String) : TJSONData; overload;
-    Function Find(Const AName : String; AType : TJSONType) : TJSONData; overload;
+    Function Find(Const AName : TJSONStringType) : TJSONData; overload;
+    Function Find(Const AName : TJSONStringType; AType : TJSONType) : TJSONData; overload;
     function Find(const key: TJSONStringType; out AValue: TJSONData): boolean;
     function Find(const key: TJSONStringType; out AValue: TJSONObject): boolean;
     function Find(const key: TJSONStringType; out AValue: TJSONArray): boolean;
@@ -4198,7 +4198,7 @@ begin
     Result:=ADefault;
 end;
 
-function TJSONObject.Find(const AName: String): TJSONData;
+function TJSONObject.Find(const AName: TJSONStringType): TJSONData;
 {$IFDEF PAS2JS}
 begin
   if FHash.hasOwnProperty('%'+AName) then
@@ -4219,7 +4219,7 @@ begin
 end;
 {$ENDIF}
 
-function TJSONObject.Find(const AName: String; AType: TJSONType): TJSONData;
+function TJSONObject.Find(const AName: TJSONStringType; AType: TJSONType): TJSONData;
 begin
   Result:=Find(AName);
   If Assigned(Result) and (Result.JSONType<>AType) then
