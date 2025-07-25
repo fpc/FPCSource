@@ -1162,8 +1162,12 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.GetItemRectX (Item: PMenuItem; Var R: TRect);
 VAR X, Y: SmallInt; P: PMenuItem;
+    O : TPoint;
 BEGIN
-   Y := 1;                                   { Initial y position }
+   O.Y:=0;
+   if Owner<>nil then
+     O:=Owner^.Origin;
+   Y := 1 + O.Y;                                      { Initial y position }
    P := Menu^.Items;                                  { Initial item }
    While (P <> Item) Do Begin                         { Valid item }
      Inc(Y);                              { Inc position }
