@@ -55,6 +55,7 @@ type
       constructor Init(var Bounds: TRect);
       constructor InitKb(var Bounds: TRect);
       procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetPalette: PPalette; virtual;
     end;
 
     PFPClockView = ^TFPClockView;
@@ -2352,6 +2353,12 @@ begin
       Update;
   end;
   inherited HandleEvent(Event);
+end;
+
+function TFPHeapView.GetPalette: PPalette;
+const P: string[length(CFPClockView)] = CFPClockView;
+begin
+  GetPalette:=@P;
 end;
 
 constructor TFPClockView.Init(var Bounds: TRect);
