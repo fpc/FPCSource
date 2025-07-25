@@ -955,7 +955,7 @@ begin
 end;
 
 procedure TSocketServer.Abort;
-{$if defined(unix) or defined(mswindows) or defined(hasamiga)}
+{$if defined(unix) or defined(windows) or defined(hasamiga)}
 {$else}
 var
   ASocket: longint;
@@ -963,11 +963,10 @@ var
 begin
 {$if defined(unix)}
   fpShutdown(FSocket.FD,SHUT_RDWR);
-{$elseif defined(mswindows) or defined(hasamiga)}
+{$elseif defined(windows) or defined(hasamiga)}
   CloseSocket(FSocket);
 {$else}
   {$WARNING Method Abort is not tested on this platform!}
-  ASocket:=FSocket;
   fpShutdown(ASocket.FD,SHUT_RDWR);
   CloseSocket(ASocket);
 {$endif}
