@@ -124,7 +124,7 @@ type
                         ccOldFPCCall,ccSafeCall,ccSysCall,ccMWPascal,
                         ccHardFloat,ccSysV_ABI_Default,ccSysV_ABI_CDecl,
                         ccMS_ABI_Default,ccMS_ABI_CDecl,
-                        ccVectorCall);
+                        ccVectorCall, ccWinApi);
   TProcTypeModifier = (ptmOfObject,ptmIsNested,ptmStatic,ptmVarargs,
                        ptmReferenceTo,ptmAsync,ptmFar,ptmCblock);
   TProcTypeModifiers = set of TProcTypeModifier;
@@ -1874,7 +1874,7 @@ const
       ( '', 'Register','Pascal','cdecl','stdcall','OldFPCCall','safecall','SysCall','MWPascal',
                         'HardFloat','SysV_ABI_Default','SysV_ABI_CDecl',
                         'MS_ABI_Default','MS_ABI_CDecl',
-                        'VectorCall');
+                        'VectorCall','WinApi');
   ProcTypeModifiers : Array[TProcTypeModifier] of TPasTreeString =
       ('of Object', 'is nested','static','varargs','reference to','async','far','cblock');
 

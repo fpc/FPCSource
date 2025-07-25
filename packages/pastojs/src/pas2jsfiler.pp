@@ -466,7 +466,8 @@ const
     'SysV_ABI_CDecl',
     'MS_ABI_Default',
     'MS_ABI_CDecl',
-    'VectorCall'
+    'VectorCall',
+    'WinApi'
     );
 
   PCUProcTypeModifierNames: array[TProcTypeModifier] of string = (

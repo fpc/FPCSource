@@ -755,7 +755,7 @@ Var
   CCNames : Array[TCallingConvention] of String
          = ('','register','pascal','cdecl','stdcall','oldfpccall','safecall','syscall',
            'mwpascal', 'hardfloat','sysv_abi_default','sysv_abi_cdecl',
-           'ms_abi_default','ms_abi_cdecl','vectorcall');
+           'ms_abi_default','ms_abi_cdecl','vectorcall','winapi');
 Var
   C : TCallingConvention;
 
