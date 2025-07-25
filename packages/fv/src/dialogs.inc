@@ -1769,6 +1769,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
    PROCEDURE SaveState;
    BEGIN
      If (Validator <> Nil) Then Begin                 { Check for validator }
+       OldData := '';                                 { Initialize OldData }
        If Data <> Sw_PString_Empty Then OldData := Data Sw_PString_DeRef;        { Hold data }
        OldCurPos := CurPos;                           { Hold cursor position }
        OldFirstPos := FirstPos;                       { Hold first position }
