@@ -550,7 +550,8 @@ const
     'NoStackFrame', 
     'section', 
     'RtlProc', 
-    'InternProc'
+    'InternProc',
+    'WeakExternal'
     );
   PCUProcedureModifiersImplProc = [pmInline,pmAssembler,pmCompilerProc,pmNoReturn];
 

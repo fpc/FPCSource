@@ -4355,7 +4355,7 @@ begin
       else if CurToken=tkSemicolon then
         begin
         NextToken;
-        if CurTokenIsIdentifier('external') then
+        if CurTokenIsIdentifier('external') or CurTokenIsIdentifier('weakexternal') then
           begin
           // typed external const without expression is allowed
           Result.IsConst:=true;
@@ -4905,7 +4905,7 @@ begin
     NextToken;
     end;
   s:=LowerCase(CurTokenText);
-  if (vmExternal in AllowedMods) and (s='external') then
+  if (vmExternal in AllowedMods) and ((s='external') or (s='weakexternal')) then
     ExtMod:=vmExternal
   else if (vmPublic in AllowedMods) and (s='public') then
     ExtMod:=vmPublic

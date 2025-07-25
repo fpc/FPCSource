@@ -1137,7 +1137,8 @@ type
                         pmInline, pmAssembler, pmPublic,
                         pmCompilerProc, pmExternal, pmForward, pmDispId,
                         pmNoReturn, pmFar, pmFinal, pmDiscardResult,
-                        pmNoStackFrame, pmsection, pmRtlProc, pmInternProc);
+                        pmNoStackFrame, pmsection, pmRtlProc, pmInternProc,
+                        pmWeakExternal);
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtNone,pmtInteger,pmtString);
 
@@ -1884,7 +1885,7 @@ const
                    'inline','assembler','public',
                    'compilerproc','external','forward','dispid',
                    'noreturn','far','final','discardresult','nostackframe',
-                   'section','rtlproc','internproc');
+                   'section','rtlproc','internproc','weakexternal');
 
   VariableModifierNames : Array[TVariableModifier] of TPasTreeString
      = ('cvar', 'external', 'public', 'export', 'class', 'static','far');
