@@ -60,6 +60,18 @@ type
   THostEnt = hostent;
   PHostEnt = ^THostEnt;
 
+const
+  BITSINWORD = 8 * SizeOf(PtrUInt);
+  FD_MAXFDSET = 1024;
+
+type
+  TFDSet = array[0..(FD_MAXFDSET div BITSINWORD) - 1] of PtrUInt;
+  PFDSet = ^TFDSet;
+  TTimeVal = record
+    tv_sec: PtrInt;
+    tv_usec: PtrInt;
+  end;
+  PTimeVal = ^TTimeVal;
 
 const
   AF_UNSPEC      = 0;               {* unspecified *}
@@ -91,8 +103,22 @@ const
   AF_SIP         = 24;              {* Simple Internet Protocol *}
   pseudo_AF_PIP  = 25;              {* Help Identify PIP packets *}
 
+  AF_INET6 = 30; // not supported, but we need the constant, taken from BSD
+
   AF_MAX         = 26;
-  SO_LINGER     = $0080;
+
+// Option flags per-socket.
+  SO_DEBUG       = $0001;   //* turn on debugging info recording */
+  SO_ACCEPTCONN  = $0002;   //* socket has had listen() */
+  SO_REUSEADDR   = $0004;   //* allow local address reuse */
+  SO_KEEPALIVE   = $0008;   //* keep connections alive */
+  SO_DONTROUTE   = $0010;   //* just use interface addresses */
+  SO_BROADCAST   = $0020;   //* permit sending of broadcast msgs */
+  SO_USELOOPBACK = $0040;   //* bypass hardware when possible */
+  SO_LINGER      = $0080;   //* linger on close if data present */
+  SO_OOBINLINE   = $0100;   //* leave received OOB data in line */
+  SO_REUSEPORT   = $0200;   //* allow local address & port reuse */
+
   SOL_SOCKET    = $FFFF;
 
 const
@@ -106,6 +132,15 @@ const
   EsockENOTCONN         = 57; //ESysENotConn;
   EsockEPROTONOSUPPORT  = 43; //ESysEProtoNoSupport;
   EsockEWOULDBLOCK      = 35; //ESysEWouldBlock; // same as eagain on morphos
+  ESockEALREADY         = 37;
+  EsockEINPROGRESS      = 36;
+  EsockECONNREFUSED     = 61;
+
+const
+  FIONBIO = $8004667e;
+  FIONREAD = $8004667f;
+
+
 
 { unix socket specific functions }
 {*
@@ -139,12 +174,15 @@ function bsd_setsockopt(s: LongInt location 'd0'; level: LongInt location 'd1'; 
 function bsd_getsockopt(s: LongInt location 'd0'; Level: LongInt location 'd1'; OptName: LongInt location 'd2'; OptVal: Pointer location 'a0'; OptLen: PSockLen location 'a1'): LongInt; syscall SocketBase 96;
 function bsd_getsockname(s: LongInt location 'd0'; HostName: PSockaddr location 'a0'; NameLen: PSockLen location 'a1'): LongInt; syscall SocketBase 102;
 function bsd_getpeername(s: LongInt location 'd0'; HostName: PSockaddr location 'a0'; NameLen: PSockLen location 'a1'): LongInt; syscall SocketBase 108;
+function bsd_ioctlsocket(d: LongInt location 'd0'; request: LongWord location 'd1'; argp: PChar location 'a0'): LongInt; syscall SocketBase 114;
 function bsd_closesocket(s: LongInt location 'd0'): LongInt; syscall SocketBase 120;
+function bsd_waitselect(nfds: LongInt location 'd0'; readfds: Pfdset location 'a0'; writefds: Pfdset location 'a1'; exceptfds: Pfdset location 'a2'; timeout: Ptimeval location 'a3'; sigmask: PLongWord location 'd1'): LongInt syscall SocketBase 126;
 function bsd_Errno: LongInt; syscall SocketBase 162;
 function bsd_inet_ntoa(in_: LongWord location 'd0'): PAnsiChar; syscall SocketBase 174;
 function bsd_inet_addr(const cp: PAnsiChar location 'a0'): LongWord; syscall SocketBase 180;
 function bsd_gethostbyname(const Name: PAnsiChar location 'a0'): PHostEnt; syscall SocketBase 210;
 function bsd_gethostbyaddr(const Addr: PByte location 'a0'; Len: LongInt location 'd0'; Type_: LongInt location 'd1'): PHostEnt; syscall SocketBase 216;
+
 
 { Amiga-specific functions for passing socket descriptors between threads (processes) }
 function ObtainSocket(id: LongInt location 'd0'; domain: LongInt location 'd1'; _type: LongInt location 'd2'; protocol: LongInt location 'd3'): LongInt; syscall SocketBase 144;
@@ -171,7 +209,9 @@ function bsd_setsockopt(s: LongInt; level: LongInt; optname: LongInt; const optv
 function bsd_getsockopt(s: LongInt; Level: LongInt; OptName: LongInt; OptVal: Pointer; OptLen: PSockLen): LongInt; syscall ISocket 120;
 function bsd_getsockname(s: LongInt; HostName: PSockaddr; NameLen: PSockLen): LongInt; syscall ISocket 124;
 function bsd_getpeername(s: LongInt; HostName: PSockaddr; NameLen: PSockLen): LongInt; syscall ISocket 128;
+function bsd_ioctlsocket(s: LongInt; req: LongWord; argp: Pointer): LongInt; syscall ISocket 132;
 function bsd_closesocket(s: LongInt): LongInt; syscall ISocket 136;
+function bsd_waitselect(nfds: LongInt; readfds: Pfdset; writefds: Pfdset; exceptfds: Pfdset; timeout: Ptimeval; sigmask: PLongWord): LongInt syscall ISocket 140;
 function bsd_Errno: LongInt; syscall ISocket 164;
 function bsd_inet_ntoa(in_: LongWord): PAnsiChar; syscall ISocket 172;
 function bsd_inet_addr(const cp: PAnsiChar): LongWord; syscall ISocket 176;
@@ -184,6 +224,13 @@ function ReleaseSocket(s: LongInt; id: LongInt): LongInt; syscall ISocket 156;
 function ReleaseCopyOfSocket(s: LongInt; id: LongInt): LongInt; syscall ISocket 160;
 {$endif AMIGAOS4}
 
+function FpIOCtl(d: Cint; request: LongWord; Data: Pointer): cint;
+function fpSelect(N: LongInt; readfds, writefds, exceptfds: pfdset; TimeOut: PTimeVal):LongInt;
+
+
+function fpFD_ZERO(out NSet: TFDSet): LongInt;
+function fpFD_SET(FDNo: longint; var NSet: TFDSet): LongInt;
+function fpFD_ISSET(FDNo:LongInt; const NSet: TFDSet): LongInt;
 
 { Definition for Release(CopyOf)Socket unique id }
 const
@@ -197,9 +244,59 @@ threadvar internal_socketerror: cint;
 {.$i filerec.inc}
 {.$i textrec.inc}
 
+const
+  {$ifdef cpu32}
+  Ln2BitsInWord = 5;                                 { 32bit : ln(32)/ln(2)=5 }
+  {$endif cpu32}
+  {$ifdef cpu64}
+  Ln2BitsInWord = 6;                                 { 64bit : ln(64)/ln(2)=6 }
+  {$endif cpu64}
+  Ln2BitMask = 1 shl Ln2BitsInWord - 1;
+  WordsInFDSet = FD_MAXFDSET div BITSINWORD;
+
+function fpFD_ZERO(out NSet: TFDSet): LongInt;
+var
+  i: LongInt;
+begin
+  for i := 0 to WordsInFDSet - 1 do
+    NSet[i] := 0;
+  fpFD_ZERO := 0;
+end;
+
+function fpFD_ISSET(FDNo:LongInt; const NSet: TFDSet): LongInt;
+begin
+  if (FDNo < 0) or (FDNo >  FD_MAXFDSET) then
+    Exit(-1);
+  if ((NSet[FDNo shr Ln2BitsInWord]) and (PtrUInt(1) shl ((FDNo) and Ln2BitMask))) > 0 Then
+    fpFD_ISSET := 1
+  else
+    fpFD_ISSET := 0;
+end;
+
+function fpFD_SET(FDNo: longint; var NSet: TFDSet): LongInt;
+begin
+  if (FDNo < 0) or (FDNo > FD_MAXFDSET) then
+    Exit(-1);
+  NSet[FDNo shr Ln2BitsInWord] := NSet[FDNo shr Ln2BitsInWord] or (PtrUInt(1) shl (FDNo and Ln2BitMask));
+  fpFD_SET := 0;
+end;
+
 {******************************************************************************
                           Kernel Socket Callings
 ******************************************************************************}
+
+function FpIOCtl(d: Cint; request: LongWord; Data: Pointer): cint;
+begin
+  FpIOCtl := bsd_ioctlsocket(d, request, Data);
+end;
+
+function fpSelect(N: LongInt; readfds, writefds, exceptfds: pfdset; TimeOut: PTimeVal):LongInt;
+var
+  Lw: LongWord;
+begin
+  Lw := 0;
+  fpSelect := bsd_waitselect(N, Readfds, WriteFds, ExceptFds, Timeout, @LW);
+end;
 
 function socketerror: cint;
 begin

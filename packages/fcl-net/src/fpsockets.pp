@@ -22,7 +22,7 @@ unit fpsockets;
 interface
 
 // If a platform is fully operational, add it here
-{$IF DEFINED(WINDOWS) or DEFINED(UNIX) }
+{$IF DEFINED(WINDOWS) or DEFINED(UNIX) or DEFINED(HASAMIGA) }
 {$DEFINE FULL_IP_STACK}
 {$DEFINE HAVE_SELECT_CALL}
 {$ENDIF}
@@ -31,11 +31,13 @@ interface
 uses
   {$IfDef WINDOWS}WinApi.WinSock2, {$ENDIF}
   {$ifdef unix} UnixApi.Base, UnixApi.TermIO, {$EndIf}
+  {$IfDef HASAMIGA}system.ctypes, {$EndIf}
   System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$IfDEF WINDOWS}WinSock2, {$ENDIF}
   {$IFDEF LINUX}BaseUnix, termio, {$EndIf}  
+  {$IfDef HASAMIGA}ctypes, {$EndIf}
   sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -257,7 +259,11 @@ const
   IPPROTO_IPV6 = 41;
   IPV6_V6ONLY = 26;
   {$ENDIF}
-  
+  {$IFDEF HASAMIGA}
+  IPPROTO_IPV6 = 41;
+  IPV6_V6ONLY = 26;
+  {$ENDIF}
+
   {$IFNDEF FULL_IP_STACK}
   IPPROTO_IPV6 = -1;
   IPV6_V6ONLY = -1;
@@ -590,7 +596,12 @@ const
   EINPROGRESS = ESysEINPROGRESS;
   ECONNREFUSED = ESysECONNREFUSED;
   {$ENDIF}
-  
+  {$IFDEF HASAMIGA}
+  EALREADY = ESockEALREADY;
+  EINPROGRESS = ESockEINPROGRESS;
+  ECONNREFUSED = ESockECONNREFUSED;
+  {$ENDIF}
+
   {$IFNDEF FULL_IP_STACK}
   // Fallback
   EALREADY     = -2;
@@ -1016,6 +1027,18 @@ begin
   FpFcntl(ASocket.FD, F_SetFL, state);
 end;
 {$EndIf}
+{$IfDef HASAMIGA}
+procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
+var
+  Arg: LongInt;
+begin
+  if AValue then
+    arg := 1
+  else
+    Arg := 0;
+  FpIOCtl(ASocket.FD, FIONBIO, @arg);
+end;
+{$EndIf}
 
 {$IFNDEF FULL_IP_STACK}
 procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
@@ -1038,22 +1061,22 @@ var
 begin
   Result := nil;
   MaxSock := 0;
-  {$IfDef UNIX}fpFD_ZERO{$else}FD_ZERO{$endif}(FDSet);
+  {$If Defined(UNIX) or Defined(HASAMIGA)}fpFD_ZERO{$else}FD_ZERO{$endif}(FDSet);
   for i:=0 to Length(SocketArray) - 1 do
   begin
     MaxSock := Max(MaxSock, SocketArray[i].FD);
-    {$IfDef UNIX}fpFD_SET{$else}FD_SET{$endif}(SocketArray[i].FD, FDSet);
+    {$If Defined(UNIX) or Defined(HASAMIGA)}fpFD_SET{$else}FD_SET{$endif}(SocketArray[i].FD, FDSet);
   end;
   timeval.tv_sec := TimeOut div 1000;
   timeval.tv_usec := (TimeOut mod 1000) * 1000;
-  Ret := {$IfDef UNIX}fpselect{$else}select{$endif}(MaxSock + 1, @FDSet, nil, nil, @timeval);
+  Ret := {$If Defined(UNIX) or Defined(HASAMIGA)}fpselect{$else}select{$endif}(MaxSock + 1, @FDSet, nil, nil, @timeval);
   if Ret < 0 then
     raise ESocketCodeError.Create(socketerror, 'select');
 
   SetLength(Result, Ret);
   WriteHead := 0;
   for i:=0 to Length(SocketArray) - 1 do
-    if {$IfDef UNIX}fpFD_ISSET{$else}FD_ISSET{$endif}(SocketArray[i].FD, FDSet) {$Ifdef Unix}> 0{$Endif} then
+    if {$If Defined(UNIX) or Defined(HASAMIGA)}fpFD_ISSET{$else}FD_ISSET{$endif}(SocketArray[i].FD, FDSet) {$If Defined(UNIX) or Defined(HASAMIGA)}> 0{$Endif} then
     begin
       Result[WriteHead] := SocketArray[i];
       Inc(WriteHead);
@@ -1128,7 +1151,11 @@ const
   {$IFDEF UNIX}
   ECONNREFUSED = ESysECONNREFUSED;
   {$EndIf}
-  
+
+  {$IFDEF HASAMIGA}
+  ECONNREFUSED = ESockECONNREFUSED;
+  {$EndIf}
+
   {$IFNDEF FULL_IP_STACK}
   ECONNREFUSED = -999;
   {$ENDIF}
