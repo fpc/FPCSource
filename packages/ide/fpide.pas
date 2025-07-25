@@ -1834,14 +1834,19 @@ begin
 end;
 
 procedure TIDEApp.UpdateClockAndHeap;
+var R : TRect;
 begin
   if not OverrideHeapMonitor then
   begin
     Application^.Delete(HeapView);
+    GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-8; R.A.Y:=R.B.Y-1;
+    HeapView^.MoveTo(R.A.X,R.A.Y);       {move to correct position}
     if ((DesktopPreferences and dpHeapMonitor)<>0) then
       Application^.Insert(HeapView);
   end;
   Application^.Delete(ClockView);
+  MenuBar^.GetBounds(R); R.A.X:=R.B.X-9;
+  ClockView^.MoveTo(R.A.X,R.A.Y);        {move to correct position}
   if (DesktopPreferences and dpClockView)<>0 then
     Application^.Insert(ClockView);
 end;
