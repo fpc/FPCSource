@@ -186,7 +186,6 @@ TYPE
          ValidChars: CharSet;                         { Valid AnsiChar set }
       CONSTRUCTOR Init (AValidChars: CharSet);
       CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION IsValid (CONST S: Sw_String): Boolean; Virtual;
       FUNCTION IsValidInput (Var S: Sw_String;
         SuppressFill: Boolean): Boolean; Virtual;
       PROCEDURE Error; Virtual;
@@ -859,25 +858,13 @@ BEGIN
 END;
 
 {--TFilterValidator---------------------------------------------------------}
-{  IsValid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB           }
-{---------------------------------------------------------------------------}
-FUNCTION TFilterValidator.IsValid (Const S: Sw_String): Boolean;
-VAR I: SmallInt;
-BEGIN
-   I := 1;                                            { Start at position 1 }
-   While S[I] In ValidChars Do Inc(I);                { Check each AnsiChar }
-   If (I > Length(S)) Then IsValid := True Else       { All characters valid }
-     IsValid := False;                                { Invalid characters }
-END;
-
-{--TFilterValidator---------------------------------------------------------}
 {  IsValidInput -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB      }
 {---------------------------------------------------------------------------}
 FUNCTION TFilterValidator.IsValidInput (Var S: Sw_String; SuppressFill: Boolean): Boolean;
 VAR I: SmallInt;
 BEGIN
    I := 1;                                            { Start at position 1 }
-   While S[I] In ValidChars Do Inc(I);                { Check each AnsiChar }
+   While(Length(S)>=I)and(S[I]In ValidChars)Do Inc(I);{ Check each AnsiChar }
    If (I > Length(S)) Then IsValidInput := True       { All characters valid }
      Else IsValidInput := False;                      { Invalid characters }
 END;
