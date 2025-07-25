@@ -1,0 +1,3 @@
+{s*:src/}=namespaced/
+{i+:src/}
+src/redis.pp=namespaced/Api.Redis.pp

@@ -955,3 +955,9 @@ begin
   with Installer do
 {$include libsndfile/fpmake.pp}
 end;
+
+procedure add_redis(const ADirectory: string);
+begin
+  with Installer do
+{$include redis/fpmake.pp}
+end;
