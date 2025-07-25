@@ -966,9 +966,7 @@ begin
 {$elseif defined(windows) or defined(hasamiga)}
   CloseSocket(FSocket);
 {$else}
-  {$WARNING Method Abort is not tested on this platform!}
-  fpShutdown(ASocket.FD,SHUT_RDWR);
-  CloseSocket(ASocket);
+  CloseSocket(FSocket);
 {$endif}
 end;
 

@@ -21,12 +21,22 @@ unit fpsockets;
 
 interface
 
+// If a platform is fully operational, add it here
+{$IF DEFINED(WINDOWS) or DEFINED(UNIX) }
+{$DEFINE FULL_IP_STACK}
+{$DEFINE HAVE_SELECT_CALL}
+{$ENDIF}
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  {$IfDef WINDOWS}WinApi.WinSock2{$Else}UnixApi.Base, UnixApi.TermIO{$EndIf}, System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
+  {$IfDef WINDOWS}WinApi.WinSock2, {$ENDIF}
+  {$ifdef unix} UnixApi.Base, UnixApi.TermIO, {$EndIf}
+  System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  {$IfDef WINDOWS}WinSock2{$Else}BaseUnix, termio{$EndIf},  sysutils, sockets, nullable, tuples;
+  {$IfDEF WINDOWS}WinSock2, {$ENDIF}
+  {$IFDEF LINUX}BaseUnix, termio, {$EndIf}  
+  sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -184,9 +194,11 @@ function LocalEndpoint(const ASocket: TFPSocket): specialize TPair<TNetworkAddre
 function RemoteEndpoint(const ASocket: TFPSocket): specialize TPair<TNetworkAddress, Word>;
 
 // Timeout in MS
+{$IFDEF HAVE_SELECT_CALL}
 function DataAvailable(const SocketArray: specialize TArray<TFPSocket>; TimeOut: Integer = 0): specialize TArray<TFPSocket>; overload;
 function DataAvailable(const ASocket: TFPSocket; TimeOut: Integer = 0): Boolean; overload; //inline;
 function DataAvailable(const SocketArray: array of TFPSocket; TimeOut: Integer = 0): specialize TArray<TFPSocket>; overload; inline;
+{$ENDIF}
 
 function BytesAvailable(const ASocket: TFPSocket): SizeInt;
 
@@ -237,8 +249,19 @@ uses
 { Helper }
 
 const
-  IPPROTO_IPV6 = {$IfDef WINDOWS}41{$Else}41{$EndIf};
-  IPV6_V6ONLY = {$IfDef WINDOWS}27{$Else}26{$EndIf};
+  {$IFDEF WINDOWS}
+  IPPROTO_IPV6 = 41;
+  IPV6_V6ONLY = 27;
+  {$ENDIF}
+  {$IFDEF UNIX}
+  IPPROTO_IPV6 = 41;
+  IPV6_V6ONLY = 26;
+  {$ENDIF}
+  
+  {$IFNDEF FULL_IP_STACK}
+  IPPROTO_IPV6 = -1;
+  IPV6_V6ONLY = -1;
+  {$ENDIF}
 
 function WouldBlock(SockErr: Integer): Boolean; inline;
 begin
@@ -323,6 +346,7 @@ end;
 function CreateRawSocket(ADomain: TFPSocketType; ASockProto: TFPSocketProto; AProto: Integer; RaiseSocketException: Boolean): TSocket;
 var
   AFam, AType, v6Only: Integer;
+  IPV6 : Boolean;
 begin
   case ADomain of
   stIPv4: AFam := AF_INET;
@@ -344,11 +368,13 @@ begin
   if ADomain = stIPDualStack then
   begin
     v6Only := 0;
+    if IPV6_V6ONLY=-1 then
+      raise EDualStackNotSupported.Create('Dualstack option not supported on this system.');
     if fpsetsockopt(Result, IPPROTO_IPV6, IPV6_V6ONLY, @v6Only, SizeOf(v6Only)) <> 0 then
-    begin
-      socketsunit.CloseSocket(Result);
+      begin
+        socketsunit.CloseSocket(Result);
       raise EDualStackNotSupported.Create('Dualstack option not supported on this system: ' + socketerror.ToString);
-    end;
+      end;
   end;
 end;
 
@@ -553,9 +579,20 @@ function Connect(const ASocket: TFPSocket; const AAddress: TNetworkAddress;
 var
   addr: TAddressUnion;
 const
+  {$IFDEF WINDOWS} 
   EALREADY = {$IfDef Windows}WSAEALREADY{$Else}ESysEALREADY{$EndIf};
   EINPROGRESS = {$IfDef Windows}WSAEINPROGRESS{$Else}ESysEINPROGRESS{$EndIf};
   ECONNREFUSED = {$IfDef Windows}WSAECONNREFUSED{$Else}ESysECONNREFUSED{$EndIf};
+  {$ENDIF}
+  {$IFDEF UNIX}
+  {$ENDIF}
+  
+  {$IFNDEF FULL_IP_STACK}
+  // Fallback
+  EALREADY     = -2;
+  EINPROGRESS  = -3;
+  ECONNREFUSED = -4;
+  {$ENDIF}
 begin
   addr := CreateAddr(AAddress, APort, ASocket.SocketType = stIPDualStack);
   if fpconnect(ASocket.FD, socketsunit.psockaddr(@addr), SizeOf(addr)) <> 0 then
@@ -697,6 +734,7 @@ begin
   UdpMessage := ReceiveFrom(ASocket, @Result.Ptr^.Data[1], MaxLength, AFlags);
   if UdpMessage.DataSize = 0 then
     Exit(null);
+    
   SetLength(Result.Ptr^.Data, UdpMessage.DataSize);
   Result.Ptr^.FromAddr := UdpMessage.FromAddr;
   Result.Ptr^.FromPort := UdpMessage.FromPort;
@@ -879,6 +917,7 @@ begin
       end;
     Len += ReadLen;
     MaxCount := BytesAvailable(ASocket) div SizeOfT;
+    
   until ((Len<Length(Result)*SizeOf(T)) Or (MaxCount = 0)) And ((Len mod SizeOf(T)) = 0);
   SetLength(Result, Len div SizeOf(T));
 end;
@@ -950,15 +989,18 @@ begin
   Result := SendTo(ASocket, ReceiverAddr, ReceiverPort, @AData[0], Length(AData) * SizeOf(T), AFlags);
 end;
 
-procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
 {$IfDef Windows}
+procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
 var
   nonblock: u_long;
 begin
   nonblock := Ord(AValue);
   ioctlsocket(ASocket.FD, LongInt(FIONBIO), @nonblock);
 end;
-{$Else}
+{$ENDIF}
+{$IFDEF UNIX}
+procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
+
 var
   State: cint;
 begin
@@ -971,6 +1013,16 @@ begin
 end;
 {$EndIf}
 
+{$IFNDEF FULL_IP_STACK}
+procedure SetNonBlocking(const ASocket: TFPSocket; AValue: Boolean);
+
+begin
+  if avalue then
+    Raise ENotImplemented.Create('NonBlocking socket')
+end;
+{$ENDIF}
+
+{$IFDEF HAVE_SELECT_CALL}
 function DataAvailable(const SocketArray: specialize TArray<TFPSocket>;
   TimeOut: Integer): specialize TArray<TFPSocket>;
 var
@@ -1040,17 +1092,42 @@ begin
     Result := Count;
 end;
 
+{$ELSE HAVE_SELECT_CALL}
+
+function BytesAvailable(const ASocket: TFPSocket): SizeInt;
+begin
+  Result:=0;
+end;
+
+{$ENDIF HAVE_SELECT_CALL}
+
+
+
 function StreamClosed(const ASocket:TFPSocket):Boolean;
 begin
-  Result := (ASocket.Protocol <> spStream) Or (
+  Result := (ASocket.Protocol <> spStream) 
+            {$IFDEF HAVE_SELECT_CALL}
+            Or (
               DataAvailable(ASocket, 0) And
               (BytesAvailable(ASocket) = 0)
-            );
+            )
+            {$ENDIF}
+            ;
 end;
 
 function ConnectionState(const ASocket:TFPSocket): TConnectionState;
 const
-  ECONNREFUSED = {$IfDef WINDOWS}WSAECONNREFUSED{$ELSE}ESysECONNREFUSED{$EndIf};
+  {$IFDEF WINDOWS}
+  ECONNREFUSED = WSAECONNREFUSED;
+  {$ENDIF}
+  
+  {$IFDEF UNIX}
+  ECONNREFUSED = ESysECONNREFUSED;
+  {$EndIf}
+  
+  {$IFNDEF FULL_IP_STACK}
+  ECONNREFUSED = -999;
+  {$ENDIF}
 begin
   if (ASocket.Protocol <> spStream) then
     Exit(csNotConnected);
