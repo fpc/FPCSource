@@ -3320,6 +3320,7 @@ BEGIN
    if Y < Size.Y then
    begin
      {we have to draw blank lines}
+     NextLine:='';
      for I:=Y to Size.Y-1 do
      begin
        BeginNewLine;
