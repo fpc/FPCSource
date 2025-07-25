@@ -1,9 +1,6 @@
-{$IFNDEF FPC_DOTTEDUNITS}
-unit Editors;
-{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Vision package
-   
+
     The main source editor
 
     Copyright (c) 1999-2022 by Peter Vreman
@@ -16,6 +13,13 @@ unit Editors;
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+unit uEditors;
+{$else FV_UNICODE}
+unit Editors;
+{$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
 
 {$i platform.inc}
 
@@ -42,11 +46,20 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
+{$ifdef FV_UNICODE}
+  System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Udialogs,
+  FreeVision.Ufvcommon, FreeVision.Fvconsts;
+{$else FV_UNICODE}
   System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Dialogs,
   FreeVision.Fvcommon, FreeVision.Fvconsts;
+{$ENDIF}
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Objects, Drivers,Views,Dialogs,FVCommon,FVConsts;
+{$ifdef FV_UNICODE}
+  Objects,uDrivers,uViews,uDialogs,uFVCommon,FVConsts;
+{$else FV_UNICODE}
+  Objects,Drivers,Views,Dialogs,FVCommon,FVConsts;
+{$ENDIF}
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -106,6 +119,11 @@ const
   CEditor    = #6#7;
   CMemo      = #26#27;
 
+{$ifdef FV_UNICODE}
+type
+  FNameStr = Sw_String;
+{$endif}
+
 type
   TEditorDialog = function (Dialog : SmallInt; Info : Pointer) : Word;
 
@@ -146,6 +164,9 @@ type
 
   PEditBuffer = ^TEditBuffer;
   TEditBuffer = array[0..MaxBufLength] of AnsiChar;
+
+  PLineLookup = ^TLineLookup;
+  TLineLookup = array[0..MaxLineLength*2 - 1] of Word;
 
   PEditor = ^TEditor;
   TEditor = object (TView)
@@ -201,6 +222,7 @@ type
     function   InsertBuffer (var P : PEditBuffer; Offset, Length : Sw_Word;AllowUndo, SelectText : Boolean) : Boolean;
     function   InsertFrom (Editor : PEditor) : Boolean; virtual;
     function   InsertText (Text : Pointer; Length : Sw_Word; SelectText : Boolean) : Boolean;
+    function   InsertChar (AChar : Sw_Char) : Boolean;
     procedure  ScrollTo (X, Y : Sw_Integer);
     function   Search (const FindStr : String; Opts : Word) : Boolean;
     function   SetBufSize (NewSize : Sw_Word) : Boolean; virtual;
@@ -220,7 +242,11 @@ type
     UpdateFlags    : Byte;
     Place_Marker   : Array [1..10] of Sw_Word; { Inserted array to hold place markers. }
     Search_Replace : Boolean; { Added boolean to test for Search and Replace insertions. }
+{$ifdef FV_UNICODE}
+    PendingWChar   : Sw_Char;  { hold first part of double wide char until next InsertChar }
+{$endif FV_UNICODE}
 
+    function   BuildLookups(LinePtr : Sw_Word; lookUpCharToPosX, lookUpPosXToChar : PLineLookup):Sw_Word;
     procedure  Center_Text (Select_Mode : Byte);
     function   CharPos (P, Target : Sw_Word) : Sw_Integer;
     function   CharPtr (P : Sw_Word; Target : Sw_Integer) : Sw_Word;
@@ -234,7 +260,8 @@ type
     function   Do_Word_Wrap (Select_Mode : Byte; Center_Cursor : Boolean) : Boolean;
     procedure  DrawLines (Y, Count : Sw_Integer; LinePtr : Sw_Word);
     procedure  Find;
-    function   GetLineDisplayLen: Sw_word;
+    procedure  GetLimits(Count: sw_Word;var lim:TPoint);
+    function   GetLineDisplayLen(P: Sw_word): Sw_word;
     function   GetMousePtr (Mouse : TPoint) : Sw_Word;
     function   HasSelection : Boolean;
     procedure  HideSelect;
@@ -275,7 +302,12 @@ type
 
   TMemoData = record
     Length : Sw_Word;
+{$ifdef FV_UNICODE}
+    Buffer : Sw_String;  { In Unicode version use UnicodeString for data transfer }
+                         { even thou internaly we use TEditBuffer as utf8 data buffer }
+{$else}
     Buffer : TEditBuffer;
+{$endif}
   end;
 
   PMemo = ^TMemo;
@@ -291,7 +323,8 @@ type
 
   PFileEditor = ^TFileEditor;
   TFileEditor = object (TEditor)
-    FileName : FNameStr;
+    //FileName : FNameStr;
+    FileName : Sw_String;
     constructor Init (var Bounds : TRect; AHScrollBar, AVScrollBar : PScrollBar;
                           AIndicator : PIndicator; AFileName : FNameStr);
     constructor Load (var S : TStream);
@@ -434,10 +467,20 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  TP.DOS, FreeVision.App, FreeVision.Stddlg, FreeVision.Msgbox{, System.Resources.Resource};
+  TP.DOS,
+{$ifdef FV_UNICODE}
+  System.Console.Video, System.Unicode.Graphemebreakproperty, FreeVision.Uapp, FreeVision.Ustddlg, FreeVision.Umsgbox;
+{$else FV_UNICODE}
+  FreeVision.App, FreeVision.Stddlg, FreeVision.Msgbox;
+{$ENDIF}
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Dos, App, StdDlg, MsgBox{, Resource};
+  Dos,
+{$ifdef FV_UNICODE}
+  Video, Graphemebreakproperty, uApp, uStdDlg, uMsgBox;
+{$else FV_UNICODE}
+  App, StdDlg, MsgBox;
+{$ENDIF}
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -990,6 +1033,26 @@ end;
                                  Helpers
 ****************************************************************************}
 
+function DetectUtf8ByteSequenceStart(ch: AnsiChar): LongInt;
+begin
+  if Ord(ch)<128 then
+    DetectUtf8ByteSequenceStart:=1
+  else if (Ord(ch) and %11100000)=%11000000 then
+    DetectUtf8ByteSequenceStart:=2
+  else if (Ord(ch) and %11110000)=%11100000 then
+    DetectUtf8ByteSequenceStart:=3
+  else if (Ord(ch) and %11111000)=%11110000 then
+    DetectUtf8ByteSequenceStart:=4
+  else
+    DetectUtf8ByteSequenceStart:=0;
+end;
+
+
+function IsValidUtf8ContinuationByte(ch: AnsiChar): Boolean;
+begin
+  IsValidUtf8ContinuationByte:=(Ord(ch) and %11000000)=%10000000;
+end;
+
 function CountLines(var Buf; Count: sw_Word): sw_Integer;
 var
   p : PAnsiChar;
@@ -1017,28 +1080,44 @@ begin
 end;
 
 
-procedure GetLimits(var Buf; Count: sw_Word;var lim:TPoint);
+procedure TEditor.GetLimits(Count: sw_Word;var lim:TPoint);
 { Get the limits needed for Buf, its an extended version of countlines (lim.y),
   which also gets the maximum line length in lim.x }
 var
-  p : PAnsiChar;
+  P: PAnsiChar;
   len : sw_word;
+  S : Sw_Word;
+  iStart : Sw_Word;
 begin
   lim.x:=0;
   lim.y:=0;
   len:=0;
-  p:=PAnsiChar(@buf);
+  S:=0;
+  iStart:=0;
+  p:=PAnsiChar(Buffer);
   while (count>0) do
    begin
+     if iStart = CurPtr then
+       inc(p,GapLen);
      if p^ in [#10,#13] then
       begin
+{$ifdef FV_UNICODE}
+        if len>(lim.x shr 2) then
+        begin
+          len:=GetLineDisplayLen(S);
+          if len>lim.x then
+            lim.x:=len;
+        end;
+{$else FV_UNICODE}
         if len>lim.x then
          lim.x:=len;
+{$endif FV_UNICODE}
         inc(lim.y);
-        if ord((p+1)^)+ord(p^)=23 then
+        if count>1 then if ord((p+1)^)+ord(p^)=23 then
          begin
            inc(p);
            dec(count);
+           inc(iStart);
          end;
         len:=0;
       end
@@ -1046,8 +1125,11 @@ begin
       inc(len);
      inc(p);
      dec(count);
+     inc(iStart);
+     if len = 0 then
+       S:=iStart;
    end;
-end;
+end; {TEditor.GetLimits}
 
 
 function ScanKeyMap(KeyMap: Pointer; KeyCode: Word): Word;
@@ -1209,22 +1291,37 @@ end; { TIndicator.Init }
 procedure TIndicator.Draw;
 VAR
   Color : Byte;
-  Frame : AnsiChar;
+  Frame : Sw_Char;
   L     : array[0..1] of PtrInt;
-  S     : String[15];
+  S     : {$ifdef FV_UNICODE}Sw_String{$else}String[15]{$endif};
   B     : TDrawBuffer;
 begin
   if State and sfDragging = 0 then
     begin
       Color := GetColor (1);
-      Frame := #205;
+      Frame := {$ifdef FV_UNICODE}#$2550{$else}#205{$endif};  { = }
     end
   else
     begin
       Color := GetColor (2);
-      Frame := #196;
+      Frame := {$ifdef FV_UNICODE}#$2500{$else}#196{$endif}; { - }
     end;
   MoveChar (B, Frame, Color, Size.X);
+{$ifdef FV_UNICODE}
+  { If the text has been modified, put an 'M' in the TIndicator display. }
+  if Modified then
+    B[1].ExtendedGraphemeCluster := 'M';
+  { If WordWrap is active put a 'W' in the TIndicator display. }
+  if WordWrap then
+    B[2].ExtendedGraphemeCluster := 'W'
+  else
+    B[2].ExtendedGraphemeCluster := Frame;
+  { If AutoIndent is active put an 'I' in TIndicator display. }
+  if AutoIndent then
+    B[0].ExtendedGraphemeCluster := 'I'
+  else
+    B[0].ExtendedGraphemeCluster := Frame;
+{$else}
   { If the text has been modified, put an 'M' in the TIndicator display. }
   if Modified then
     WordRec (B[1]).Lo := 77;
@@ -1238,6 +1335,7 @@ begin
     WordRec (B[0]).Lo := 73
   else
     WordRec (B[0]).Lo := Byte (Frame);
+{$endif}
   L[0] := Location.Y + 1;
   L[1] := Location.X + 1;
   FormatStr (S, ' %d:%d ', L);
@@ -1484,14 +1582,14 @@ begin
       SetCurPtr (LineStart (CurPtr), Select_Mode);
     end
   else
-    if E - CurPtr > Right_Margin then
+    if GetLineDisplayLen(CurPtr) > Right_Margin then
       Exit;
   { Now we determine the real length of the line.       }
   { Then we subtract the Line_Length from Right_Margin. }
   { Dividing the result by two tells us how many spaces }
   { must be inserted at start of line to center it.     }
   { When we're all done, set the CurPtr to end of line. }
-  Line_Length := E - CurPtr;
+  Line_Length := GetLineDisplayLen(CurPtr);
   for Index := 1 to ((Right_Margin - Line_Length) shr 1) do
     Spaces[Index] := #32;
   InsertText (@Spaces, Index, False);
@@ -1511,7 +1609,15 @@ end; { TEditor.ChangeBounds }
 function TEditor.CharPos (P, Target : Sw_Word) : Sw_Integer;
 VAR
   Pos : Sw_Integer;
+{$ifdef FV_UNICODE}
+  lookUpCharToPosX: TLineLookup;
+  lookUpPosXToChar: TLineLookup;
+{$endif}
 begin
+{$ifdef FV_UNICODE}
+  buildLookups(P,@lookUpCharToPosX,@lookUpPosXToChar);
+  Pos:=lookUpCharToPosX[Target-P];
+{$else}
   Pos := 0;
   while P < Target do
    begin
@@ -1520,6 +1626,7 @@ begin
      Inc (Pos);
      Inc (P);
    end;
+{$endif}
   CharPos := Pos;
 end; { TEditor.CharPos }
 
@@ -1527,7 +1634,27 @@ end; { TEditor.CharPos }
 function TEditor.CharPtr (P : Sw_Word; Target : Sw_Integer) : Sw_Word;
 VAR
   Pos : Sw_Integer;
+{$ifdef FV_UNICODE}
+  T : sw_word;
+  lookUpCharToPosX: TLineLookup;
+  lookUpPosXToChar: TLineLookup;
+{$endif}
 begin
+{$ifdef FV_UNICODE}
+  BuildLookups(P,@lookUpCharToPosX,@lookUpPosXToChar);
+  T:=lookUpPosXToChar[Target];
+  if (T=0) then
+  begin
+    while (Target>0) do
+    begin
+       dec(Target);
+       T:=lookUpPosXToChar[Target];
+       if T<> 0 then
+         break;
+    end;
+  end;
+  P:=T+P;
+{$else}
   Pos := 0;
   while (Pos < Target) and (P < BufLen) and  not(BufChar (P) in [#10,#13]) do
   begin
@@ -1538,6 +1665,7 @@ begin
   end;
   if Pos > Target then
     Dec (P);
+{$endif}
   CharPtr := P;
 end; { TEditor.CharPtr }
 
@@ -1894,7 +2022,12 @@ end; { TEditor.Draw }
 procedure TEditor.DrawLines (Y, Count : Sw_Integer; LinePtr : Sw_Word);
 VAR
   Color : Word;
+{$ifdef FV_UNICODE}
+  B     : array[0..MaxLineLength - 1] of TEnhancedVideoCell;
+{$else FV_UNICODE}
   B     : array[0..MaxLineLength - 1] of Word;  { This is array of video buffer cells. Has to be Word}
+{$endif FV_UNICODE}
+
 begin
   Color := GetColor ($0201);
   while Count > 0 do
@@ -1926,21 +2059,240 @@ begin
 end; { TEditor.Find }
 
 
+{ Functon have functionality only in unicode version of fv. }
+{ It mimic FormatLine but instead of drawing line gather }
+{ information on character posisionings }
+function TEditor.BuildLookups(LinePtr : Sw_Word; lookUpCharToPosX, lookUpPosXToChar : PLineLookup):Sw_Word;
+var idxpos : sw_word;
+    Width  : Sw_Integer;
+    bStr : RawByteString;
+    iB,iU : sw_word;
+
+    lookUpUnicodeToUtf8Pos : TLineLookup;
+
+  function FormatUntil(endpos:Sw_word):boolean;
+  var
+    p : PAnsiChar;
+{$ifdef FV_UNICODE}
+     utf8innerindex : sw_integer;
+     len8 : sw_integer;
+     savLen8 : sw_integer;
+     uLen : sw_integer;
+     iUtf8Char : sw_word;
+{$endif}
+  begin
+    FormatUntil:=false;
+    p:=PAnsiChar(Buffer)+idxpos;
+{$ifdef FV_UNICODE}
+    utf8innerindex:=0;
+    while endpos>idxpos do
+     begin
+       inc(iB);
+       case p^ of
+         #9 :begin
+            inc(iU);
+            lookUpUnicodeToUtf8Pos[iU]:=iB;
+            bStr[iB]:=p^;
+            end;
+         #10,#13 :
+           begin
+             FormatUntil:=true;
+             inc(iU);
+             lookUpUnicodeToUtf8Pos[iU]:=iB;
+             bStr[iB]:=#13;
+             break;
+           end;
+         else
+           begin
+             bStr[iB]:=p^;
+             len8:=DetectUtf8ByteSequenceStart(p^);
+             if len8>0 then {utf8 char begins}
+             begin
+               savLen8:=len8;
+               iUtf8Char:=iB;
+               utf8innerindex:=len8-1;
+               inc(iU);
+               lookUpUnicodeToUtf8Pos[iU]:=iB;
+             end else
+             if (len8=0) and  IsValidUtf8ContinuationByte(p^) and (utf8innerindex>0)  then
+             begin    { into utf8 char }
+               dec(utf8innerindex);
+               if utf8innerindex = 0 then    { we have complite utf8 char }
+               begin
+                 uLen:=Utf8ToUnicode(nil,15,@bStr[iUtf8Char],savLen8);
+                 if uLen =3 then   {encoded as unicode pair}
+                 begin
+                   inc(iU);
+                   lookUpUnicodeToUtf8Pos[iU]:=iUtf8Char;
+                  end;
+               end;
+             end else
+             begin  {invalid utf8 sequence }
+               inc(iU);
+               lookUpUnicodeToUtf8Pos[iU]:=iB;
+             end;
+
+           end;
+       end; { case }
+       inc(p);
+       inc(idxpos);
+     end;
+{$else FV_UNICODE}
+      { not implemented }
+{$endif FV_UNICODE}
+  end;
+
+
+  function calPositions:Sw_Word; {return display length of line}
+  var uU : sw_word;
+      iX, iC : sw_word;
+      uStr : Sw_String;
+      uS_Size : SizeUInt;
+      out_size : sw_word;
+      z       : sw_integer;
+      prevX : sw_word;
+      len : sw_word;
+      OutCnt: sw_word;
+      k : sw_integer;
+{$ifdef FV_UNICODE}
+      EGC: Sw_String;
+{$endif FV_UNICODE}
+  begin
+     if iB = 0 then exit;
+     if bStr[iB]<>#13 then  { not end char add one }
+     begin
+       { Mark end of line even for last line  }
+       inc(iB);
+       bStr[iB]:=#13;
+       inc(iU);
+       lookUpUnicodeToUtf8Pos[iU]:=iB;
+     end;
+     SetLength(bStr,iB);
+     SetLength(uStr, iB*2+2); { over estimate length }
+     OutCnt:=0;
+{$ifdef FV_UNICODE}
+     uS_Size:=Utf8ToUnicode(@uStr[1], iB*2, @bStr[1], length(bStr));
+     if uS_Size > 0 then
+       dec(uS_Size);
+     SetLength(uStr,uS_Size);
+
+     if length(bStr) > 0 then
+       setLength(bStr,length(bStr)-1);
+
+     uU:=1;
+     prevX:=0;
+     iX:=0;
+
+     for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(uStr) do
+       begin
+         if (OutCnt)>=Width then
+         begin
+           calPositions:=iX;
+           exit;
+         end;
+
+         if EGC = #9 then
+         begin
+           out_size:=Tabsize-( OutCnt mod Tabsize);
+           OutCnt:=OutCnt+Tabsize-( OutCnt mod Tabsize);
+         end else
+         begin
+             out_size:=ExtendedGraphemeClusterDisplayWidth(EGC);
+             inc(OutCnt, out_size);
+         end;
+
+         iC:=lookUpUnicodeToUtf8Pos[uU];
+         if iC>0 then dec(iC);
+
+         for z:=iX to iX+out_size-1 do
+           lookUpPosXToChar^[z]:=iC;
+
+         if iC>=0 then
+           lookUpCharToPosX^[iC]:=iX;
+
+         if iC > 0 then
+         begin
+           z:=iC-1;
+           while lookUpCharToPosX^[z]=0 do
+           begin
+             lookUpCharToPosX^[z]:=prevX;
+             if z = 0 then break;
+             dec(z);
+           end;
+         end;
+
+         uU:=uU+length(EGC);
+         prevX:=iX;
+         iX:=iX+out_size;
+
+         if (EGC = #13) then
+         begin
+           calPositions:=iX;
+           exit;
+         end;
+       end;
+     calPositions:=iX;
+{$else FV_UNICODE}
+     {not implemented for non unicode version}
+     calPositions:=0;
+{$endif FV_UNICODE}
+  end;
+
+begin
+{$ifdef FV_UNICODE}
+  fillchar(lookUpCharToPosX^,sizeof(lookUpCharToPosX^),0);
+  fillchar(lookUpPosXToChar^,sizeof(lookUpPosXToChar^),0);
+{$endif FV_UNICODE}
+  SetLength(bStr,MaxLineLength*4); {  utf8 can have 4 bytes per charater... }
+  bStr[1]:=#0;
+  iB:=0;
+  iU:=0;
+
+  Width:=MaxLineLength-1;
+  idxPos:=LineStart(LinePtr);
+  if FormatUntil(CurPtr) then
+  begin
+   BuildLookups:=calPositions;
+   exit;
+  end;
+  inc(idxPos,GapLen);
+  if FormatUntil(BufSize) then
+  begin
+   BuildLookups:=calPositions;
+   exit;
+  end;
+  BuildLookups:=calPositions;
+end; { TEditor.buildLookups }
+
+
 procedure TEditor.FormatLine (var DrawBuf; LinePtr : Sw_Word;
                                   Width  : Sw_Integer;
                                   Colors : Word);
 var
+{$ifdef FV_UNICODE}
+  outptr : PEnhancedVideoCell;
+{$else FV_UNICODE}
   outptr : pword;
+{$endif FV_UNICODE}
   outcnt,
   idxpos : Sw_Word;
   attr   : Word;
 
   procedure FillSpace(i:Sw_Word);
   var
+{$ifdef FV_UNICODE}
+    w : TEnhancedVideoCell;
+{$else FV_UNICODE}
     w : word;
+{$endif FV_UNICODE}
   begin
     inc(OutCnt,i);
+{$ifdef FV_UNICODE}
+    w.Attribute:=attr shr 8;
+    w.ExtendedGraphemeCluster:=widechar(' ');
+{$else FV_UNICODE}
     w:=32 or attr;
+{$endif FV_UNICODE}
     while (i>0) do
      begin
        OutPtr^:=w;
@@ -1952,10 +2304,76 @@ var
   function FormatUntil(endpos:Sw_word):boolean;
   var
     p : PAnsiChar;
+{$ifdef FV_UNICODE}
+    uStr : UnicodeString;
+    bStr : RawByteString;
+    iB : sw_word;
+    uS_Size : SizeUInt;
+    out_size : sw_word;
+    EGC: Sw_String;
+{$endif}
   begin
     FormatUntil:=false;
     p:=PAnsiChar(Buffer)+idxpos;
+{$ifdef FV_UNICODE}
+    { prepare string for drawing }
+    SetLength(bStr,MaxLineLength*4); {  utf8 can have 4 bytes per charater... }
+    iB:=0;
     while endpos>idxpos do
+     begin
+       inc(iB);
+       if p^ in [#10,#13] then
+         begin
+           bStr[iB]:=#13; { line ending is line endig }
+           break;
+         end
+       else
+         bStr[iB]:=p^;
+       inc(p);
+       inc(idxpos);
+     end;
+     if iB = 0 then exit; { no charatcters, leave early }
+     SetLength(bStr,iB);
+     if bStr = #13 then { empyt line }
+     begin
+       FillSpace(Width-OutCnt+0);
+       FormatUntil:=true;
+       exit;
+     end;
+     { convert to unicode string }
+     SetLength(uStr, iB*2+2); { over estimate length }
+     uS_Size:=Utf8ToUnicode(@uStr[1], iB*2, @bStr[1], length(bStr));
+     if uS_Size > 0 then
+       dec(uS_Size);
+     SetLength(uStr,uS_Size);
+     { draw unicode string }
+     for EGC in TUnicodeStringExtendedGraphemeClustersEnumerator.Create(uStr) do
+       begin
+         if (OutCnt)>=Width then
+         begin
+           FormatUntil:=true;
+           exit;
+         end;
+         if EGC = #9 then
+         begin
+           FillSpace(Tabsize-(outcnt mod Tabsize));
+         end else
+         if (EGC = #13) {or (EGC = #10)} then
+         begin
+           FillSpace(Width-OutCnt+0);
+           FormatUntil:=true;
+           exit;
+         end else
+         begin
+             OutPtr^.Attribute:=attr shr 8;
+             OutPtr^.ExtendedGraphemeCluster:=EGC;
+             out_size:=ExtendedGraphemeClusterDisplayWidth(EGC);
+             Inc(OutPtr, out_size);  { Next position }
+             inc(OutCnt, out_size);
+           end
+       end;
+{$else FV_UNICODE}
+   while endpos>idxpos do
      begin
        if OutCnt>=Width then
         exit;
@@ -1978,6 +2396,7 @@ var
        inc(p);
        inc(idxpos);
      end;
+{$endif FV_UNICODE}
   end;
 
 begin
@@ -2001,12 +2420,22 @@ begin
 end; {TEditor.FormatLine}
 
 
-function TEditor.GetLineDisplayLen: Sw_word;
+function TEditor.GetLineDisplayLen(P: Sw_word): Sw_word;
 var S, E : Sw_word;
+{$ifdef FV_UNICODE}
+  lookUpCharToPosX: TLineLookup;
+  lookUpPosXToChar: TLineLookup;
+{$endif}
 begin
-  S:=LineStart(CurPtr);
-  E:=LineEnd(CurPtr);
+{$ifdef FV_UNICODE}
+  S:=LineStart(P);
+  E:=BuildLookups(S,@lookUpCharToPosX,@lookUpPosXToChar);
+  GetLineDisplayLen:=Min(E,MaxLineLength-1);
+{$else}
+  S:=LineStart(P);
+  E:=LineEnd(P);
   GetLineDisplayLen:=Min(E-S,MaxLineLength-1);
+{$endif}
 end; {TEditor.GetLineDisplayLen}
 
 
@@ -2111,6 +2540,29 @@ begin
       end; { evMouseDown }
 
     evKeyDown:
+{$ifdef FV_UNICODE}
+      Case Event.UnicodeChar Of
+        ' '..#$FFFF:   { Character key }
+          Begin
+            Lock;
+            if Overwrite and not HasSelection then
+              if CurPtr <> LineEnd (CurPtr) then
+                SelEnd := NextChar (CurPtr);
+            InsertChar(Event.UnicodeChar);
+            if Word_Wrap then
+              Check_For_Word_Wrap (SelectMode, CenterCursor);
+            TrackCursor (CenterCursor);
+            Unlock;
+          End;
+   {
+        ^Y: If Data <> Sw_PString_Empty Then Begin          { Clear all data }
+           Data Sw_PString_DeRef := '';          { Set empty string }
+           CurPos := 0;                          { Cursor to start }
+        End;
+    }
+        Else Exit;                               { Unused key }
+      End;
+{$else FV_UNICODE}
       case Event.CharCode of
         #32..#255:
           begin
@@ -2128,6 +2580,7 @@ begin
       else
         Exit;
       end; { evKeyDown }
+{$endif}
 
     evCommand:
       case Event.Command of
@@ -2350,12 +2803,53 @@ begin
     Modified := True;
   SetBufSize (BufLen + DelCount);
   if Not Word_Wrap then
-    Limit.X:=Max(Limit.X,GetLineDisplayLen+1);
+    Limit.X:=Max(Limit.X,GetLineDisplayLen(CurPtr)+1);
   if (SelLines = 0) and (Lines = 0) then
     Update (ufLine)
   else
     Update (ufView);
 end; { TEditor.InsertBuffer }
+
+
+function TEditor.InsertChar ( AChar : Sw_Char) : boolean;
+var CharCode : string[7];
+    wStr : array [1..2] of Sw_Char;
+    iW : sw_word;
+begin
+{$ifdef FV_UNICODE}
+  InsertChar:=true;
+  iW:=0;
+  if PendingWChar<>#0 then
+    begin
+      inc(iW);
+      wStr[iW]:=PendingWChar;
+      PendingWChar:=#0;
+    end;
+
+  if not ((AChar >=#$D800) and (AChar <=#$DBFF)) then
+    begin
+      inc(iW);
+      wStr[iW]:=AChar;
+    end
+  else
+    PendingWChar:=AChar;
+
+  if iW=0 then exit; { no data this time }
+
+  SetLength(CharCode,0);
+  iW:=UnicodeToUtf8( @CharCode[1], 7, @wStr[1],iW);
+
+  if iW>0 then
+    begin
+      dec(iW);
+      SetLength(CharCode,iW);
+    end;
+{$else}
+  CharCode:=AChar;
+{$endif}
+  if length(CharCode) > 0 then
+    InsertChar:=InsertText (@CharCode[1], length(CharCode), False);
+end; { TEditor.InsertChar }
 
 
 function TEditor.InsertFrom (Editor : PEditor) : Boolean;
@@ -2526,7 +3020,7 @@ begin
    begin
      start:=PAnsiChar(Buffer);
      i:=P;
-     pc:=start+p;
+     pc:=start+P;
      dec(pc);
      while (i>0) do
       begin
@@ -2617,7 +3111,40 @@ end; { TEditor.NewLine }
 function TEditor.NextChar (P : Sw_Word) : Sw_Word;
 var
   pc : PAnsiChar;
+  chh : AnsiChar;
+  len : sw_integer;
+  savP,myP : Sw_word;
 begin
+{$ifdef FV_UNICODE}
+{ simplified next utf8 char }
+  savP:=P;
+  while true do
+  begin
+  if P<BufLen then
+   begin
+     pc:=PAnsiChar(Buffer)+P;
+     if P>=CurPtr then
+       inc(pc,GapLen);
+     chh:=pc^;
+
+     if (P+1)<BufLen then
+     begin
+       if ord(chh)+ord((pc+1)^)=23 then
+       begin
+         inc(P,2);
+         break;
+       end;
+     end;
+
+     len:=DetectUtf8ByteSequenceStart(chh);
+     if len=0 then len:=1;
+
+     inc(P,len);
+     P:=Min(P,BufLen);
+   end;
+   break;
+  end;
+{$else}
   if P<>BufLen then
    begin
      inc(P);
@@ -2631,6 +3158,7 @@ begin
          inc(p);
       end;
    end;
+{$endif}
   NextChar:=P;
 end; { TEditor.NextChar }
 
@@ -2656,7 +3184,43 @@ end; { TEditor.NextWord }
 function TEditor.PrevChar (P : Sw_Word) : Sw_Word;
 var
   pc : PAnsiChar;
+  chh : AnsiChar;
+  len: Sw_integer;
+  sk : sw_integer;
 begin
+{$ifdef FV_UNICODE}
+{ simplified prev utf8 char }
+  if p<>0 then
+   begin
+     dec(p);
+     if p<>0 then
+      begin
+        pc:=PAnsiChar(Buffer);
+        if P>=CurPtr then
+         inc(pc,GapLen);
+        inc(pc,P);
+        chh:=pc^;
+        if ord(chh)+ord((pc-1)^)=23 then
+        begin
+         dec(p);
+         PrevChar:=P;
+         exit;
+        end;
+        len:=DetectUtf8ByteSequenceStart(chh);
+        while (len = 0) and IsValidUtf8ContinuationByte(chh) do
+        begin
+
+           if P=CurPtr then
+             pc:=PAnsiChar(Buffer)+P;
+           dec(p);
+           if p = 0 then break;
+           dec(pc);
+           chh:=pc^;
+           len:=DetectUtf8ByteSequenceStart(chh);
+        end;
+      end;
+   end;
+{$else}
   if p<>0 then
    begin
      dec(p);
@@ -2670,6 +3234,7 @@ begin
          dec(p);
       end;
    end;
+{$endif}
   PrevChar:=P;
 end; { TEditor.PrevChar }
 
@@ -3048,7 +3613,7 @@ begin
   CurPos.Y:=0;
   Delta.X:=0;
   Delta.Y:=0;
-  GetLimits(Buffer^[GapLen], BufLen,Limit);
+  GetLimits(BufLen,Limit);
   inc(Limit.X);
   inc(Limit.Y);
   DrawLine := 0;
@@ -3459,18 +4024,49 @@ end; { TMemo.Load }
 
 function TMemo.DataSize : Sw_Word;
 begin
+{$ifdef FV_UNICODE}
+  DataSize := SizeOf (TMemoData);
+{$else}
   DataSize := BufSize + SizeOf (Sw_Word);
+{$endif}
 end; { TMemo.DataSize }
 
 
 procedure TMemo.GetData (var Rec);
 VAR
   Data : TMemoData absolute Rec;
+{$ifdef FV_UNICODE}
+  S : Sw_String;
+  sBuf: RawByteString;
+  wLen:Sw_integer;
+{$endif}
 begin
+{$ifdef FV_UNICODE}
+  { Move buffer in sBuf string }
+  SetLength(sBuf,BufLen);
+  if CurPtr>0 then
+    Move (Buffer^, sBuf[1], CurPtr);
+  if (BufLen - CurPtr)>0 then
+    Move (Buffer^[CurPtr + GapLen], sBuf[CurPtr+1], BufLen - CurPtr);
+  { Convert sBuf string to UnicodeString }
+  wLen:=BufLen*2+2;
+  SetLength(S,wLen);
+  if length(sBuf)>0 then
+    wLen:=Utf8ToUnicode(@S[1],wLen,@sBuf[1],Length(sBuf))
+  else
+    wLen:=0;
+  if wLen > 0 then
+    dec(wLen);
+  Setlength(S,wLen);
+  { Return UnicodeString }
+  Data.Buffer:=S;
+  Data.Length:=Length(S);
+{$else}
   Data.Length := BufLen;
   Move (Buffer^, Data.Buffer, CurPtr);
   Move (Buffer^[CurPtr + GapLen], Data.Buffer[CurPtr], BufLen - CurPtr);
   FillChar (Data.Buffer[BufLen], BufSize - BufLen, 0);
+{$endif}
 end; { TMemo.GetData }
 
 
@@ -3492,9 +4088,35 @@ end; { TMemo.HandleEvent }
 procedure TMemo.SetData (var Rec);
 VAR
   Data : TMemoData absolute Rec;
+  DataLength : Sw_word;
+{$ifdef FV_UNICODE}
+  sBuf : RawByteString;
+  wLen : Sw_integer;
+  uLen : Sw_integer;
+{$endif}
 begin
-  Move (Data.Buffer, Buffer^[BufSize - Data.Length], Data.Length);
-  SetBufLen (Data.Length);
+{$ifdef FV_UNICODE}
+  { Convert UnicodeString to utf8 string }
+  wLen:=Length(Data.Buffer);
+  uLen:=wLen*4+2;
+  SetLength(sBuf,uLen);
+  if wLen > 0 then
+    uLen:=UnicodeToUtf8(@sBuf[1],uLen, @Data.Buffer[1], wLen)
+  else
+    uLen:=0;
+  if uLen >0 then
+    dec(uLen);  { no need for that additional null char at the end }
+  SetLength(sBuf,uLen);
+  { Move utf8 data to memo Buffer }
+  DataLength:=Min(BufSize,uLen); { ensure not to overwrite Buffer }
+  if Length(sBuf)>0 then
+    Move (sBuf[1], Buffer^[BufSize - DataLength], DataLength);
+  SetBufLen (DataLength);
+{$else}
+  DataLength:=Min(BufSize,Data.Length); { ensure not to overwrite Buffer }
+  Move (Data.Buffer, Buffer^[BufSize - DataLength], DataLength);
+  SetBufLen (DataLength);
+{$endif}
 end; { TMemo.SetData }
 
 
@@ -3533,8 +4155,12 @@ VAR
 begin
   Inherited Load (S);
   BufSize := 0;
+{$ifdef FV_UNICODE}
+  FileName:=S.ReadUnicodeString;;
+{$else}
   S.Read (FileName[0], SizeOf (Byte));
   S.Read (Filename[1], Length (FileName));
+{$endif}
   if IsValid then
     IsValid := LoadFile;
   S.Read (SStart, SizeOf (SStart));
@@ -3712,7 +4338,11 @@ end; { TFileEditor.SetBufSize }
 procedure TFileEditor.Store (var S : TStream);
 begin
   Inherited Store (S);
+{$ifdef FV_UNICODE}
+  S.WriteUnicodeString(FileName);
+{$else}
   S.Write (FileName, Length (FileName) + 1);
+{$endif}
   S.Write (SelStart, SizeOf (SelStart));
   S.Write (SelEnd, SizeOf (SelEnd));
   S.Write (CurPtr, SizeOf (CurPtr));

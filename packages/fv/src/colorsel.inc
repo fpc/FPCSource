@@ -21,7 +21,11 @@
  ****************************************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+unit UColorSel;
+{$else FV_UNICODE}
 unit ColorSel;
+{$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 {====Include file to sort compiler platform out =====================}
 {$I platform.inc}
@@ -29,11 +33,24 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Objects, FreeVision.Drivers, FreeVision.Dialogs, FreeVision.Views, 
+  System.Objects,
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon,
+  FreeVision.Udrivers, FreeVision.Udialogs, FreeVision.Uviews,
+{$else}
+  FreeVision.Fvcommon,
+  FreeVision.Drivers, FreeVision.Dialogs, FreeVision.Views,
+{$endif}
   FreeVision.Fvconsts;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Objects, Drivers, Dialogs, Views, fvconsts;
+  Objects,
+{$ifdef FV_UNICODE}
+  UFVCommon,UDrivers, UDialogs, UViews,
+{$else}
+  FVCommon,Drivers, Dialogs, Views,
+{$endif}
+  FVConsts;
 {$ENDIF FPC_DOTTEDUNITS}
 
 const dialog_colorsel_colors        = 'Colors';
@@ -95,14 +112,14 @@ type
 
   PColorItem = ^TColorItem;
   TColorItem = record
-    Name: PString;
+    Name: Sw_PString;
     Index: Byte;
     Next: PColorItem;
   end;
 
   PColorGroup = ^TColorGroup;
   TColorGroup = record
-    Name: PString;
+    Name: Sw_PString;
     Index: Byte;
     Items: PColorItem;
     Next: PColorGroup;
@@ -122,7 +139,7 @@ type
     constructor Load(var S: TStream);
     procedure Store(var S: TStream);
     procedure FocusItem(Item: Sw_Integer); virtual;
-    function GetText(Item: Sw_Integer; MaxLen: Sw_Integer): String; virtual;
+    function GetText(Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
     procedure SetGroupIndex(GroupNum, ItemNum: Byte);
     function GetGroup(GroupNum: Byte): PColorGroup;
@@ -136,7 +153,7 @@ type
     Items: PColorItem;
     constructor Init(var Bounds: TRect; AScrollBar: PScrollBar; AItems: PColorItem);
     procedure FocusItem(Item: Sw_Integer); virtual;
-    function GetText(Item: Sw_Integer; MaxLen: Sw_Integer): String; virtual;
+    function GetText(Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
     procedure SetItems(AItems: PColorItem);
     function GetColorIndex(Item: Sw_integer): Sw_integer;
@@ -156,8 +173,8 @@ type
   PColorDisplay = ^TColorDisplay;
   TColorDisplay = object(TView)
     Color: PByte;
-    Text: PString;
-    constructor Init(var Bounds: TRect; AText: PString);
+    Text: Sw_PString;
+    constructor Init(var Bounds: TRect; AText: Sw_PString);
     constructor Load(var S: TStream);
     procedure Store(var S: TStream);
     procedure HandleEvent(var Event: TEvent); virtual;
@@ -195,8 +212,8 @@ const ColorIndexes : PColorIndex = nil;
 
 procedure RegisterColorsel;
 
-function ColorGroup(Name: string; Items: PColorItem; Next: PColorGroup): PColorGroup;
-function ColorItem(Name: string; Index: Byte; Next: PColorItem): PColorItem;
+function ColorGroup(Name: Sw_String; Items: PColorItem; Next: PColorGroup): PColorGroup;
+function ColorItem(Name: Sw_String; Index: Byte; Next: PColorItem): PColorItem;
 
 procedure LoadIndexes(var S: TStream);
 procedure StoreIndexes(var S: TStream);
@@ -261,22 +278,22 @@ begin
 end;
 
 
-function ColorGroup(Name: string; Items: PColorItem; Next: PColorGroup): PColorGroup;
+function ColorGroup(Name: Sw_String; Items: PColorItem; Next: PColorGroup): PColorGroup;
 var
   R: PColorGroup;
 begin
   New(R);
-  R^.Name := NewStr(Name);
+  R^.Name := Sw_NewStr(Name);
   R^.Items := Items;
   R^.Next := Next;
   ColorGroup := R;
 end;
 
-function ColorItem(Name: string; Index: Byte; Next: PColorItem): PColorItem;
+function ColorItem(Name: Sw_String; Index: Byte; Next: PColorItem): PColorItem;
 var R: PColorItem;
 begin
   New(R);
-  R^.Name := NewStr(Name);
+  R^.Name := Sw_NewStr(Name);
   R^.Index := Index;
   R^.Next := Next;
   ColorItem := R
@@ -426,17 +443,25 @@ var
 
 procedure DrawColorLine (LineNr : sw_word);
 var k: sw_integer;
+const
+{$ifdef FV_UNICODE}
+      ccBlock = WideChar(9608);
+      ccPoint = WideChar(9689); {#$25D9}
+{$else}
+      ccBlock = AnsiChar(#219);
+      ccPoint = AnsiChar(#8);
+{$endif}
 begin
   for k:=0 to 3 do
   begin
-    MoveChar (B[0+k*3], #219, SelColor, 3);
+    MoveChar (B[0+k*3], ccBlock, SelColor, 3);
     if CurColor = Color then
     begin
       if ((k = 0) or (k = 1)) and (CurColor<2) then
         SelColor:=SelColor or $70
       else
         SelColor:=SelColor and $f;
-      MoveChar (B[0+k*3+1], #8, SelColor, 1);
+      MoveChar (B[0+k*3+1], ccPoint, SelColor, 1);
       SelColor:=SelColor or $10;
       SelColor:=SelColor and $1f;
     end;
@@ -464,7 +489,7 @@ end;
 {                      TColorDisplay                                 }
 {--------------------------------------------------------------------}
 
-constructor TColorDisplay.Init(var Bounds: TRect; AText: PString);
+constructor TColorDisplay.Init(var Bounds: TRect; AText: Sw_PString);
 begin
   inherited init(Bounds);
   EventMask := EventMask OR evBroadcast;
@@ -477,7 +502,11 @@ begin
   if not Assigned(Color) then
     GetMem(Color,1);
   S.Read(Color^, SizeOf(Color^));
-  Text:=S.ReadStr;
+{$ifdef FV_UNICODE}
+  Text:=S.ReadUnicodeString;                      { Read title }
+{$else FV_UNICODE}
+  Text:=S.ReadStr;                                { Read title }
+{$endif FV_UNICODE}
 end;
 
 procedure TColorDisplay.Store(var S: TStream);
@@ -487,7 +516,11 @@ begin
   vColor:=0;
   if Assigned(Color) then vColor:=Color^;
   S.Write(vColor, SizeOf(vColor));
+{$ifdef FV_UNICODE}
+  S.WriteUnicodeString(Text);
+{$else FV_UNICODE}
   S.WriteStr(Text);
+{$endif FV_UNICODE}
 end;
 
 procedure TColorDisplay.HandleEvent(var Event: TEvent);
@@ -521,7 +554,7 @@ procedure TColorDisplay.Draw;
 var
   FColor : Byte;
   Y      : sw_integer;
-  S      : String;
+  S      : Sw_String;
   B      : TDrawBuffer;
 begin
   if Assigned(Color) then
@@ -532,8 +565,8 @@ begin
   end else
     FColor := GetColor (2);
   MoveChar (B, ' ', FColor, Size.X);
-  if Assigned(Text) then
-    S:=Text^
+  if (Text <> Sw_PString_Empty) then
+    S:=Text Sw_PString_DeRef
   else
     S:='';
   if length(S) < Size.X then
@@ -549,10 +582,12 @@ end;
 
 destructor TColorDisplay.Done;
 begin
-  if assigned(Text) then
+  if (Text <> Sw_PString_Empty) then
   begin
+{$ifndef FV_UNICODE}
     Dispose(Text);
-    Text:=nil;
+{$endif}
+    Text:=Sw_PString_Empty;
   end;
   inherited Done;
 end;
@@ -598,7 +633,11 @@ begin
     for iI:=1 to numItems do
     begin
       New(R);
+{$ifdef FV_UNICODE}
+      R^.Name:=S.ReadUnicodeString;
+{$else FV_UNICODE}
       R^.Name:=S.ReadStr;
+{$endif FV_UNICODE}
       S.Read(R^.Index, SizeOf(R^.Index));
       R^.Next:=nil;
       if assigned(Q) then
@@ -607,7 +646,11 @@ begin
       if iI=1 then x^.Items:=R;
     end;
     {read group}
+{$ifdef FV_UNICODE}
+    x^.Name:=S.ReadUnicodeString;
+{$else FV_UNICODE}
     x^.Name:=S.ReadStr;
+{$endif FV_UNICODE}
     S.Read(x^.Index, SizeOf(x^.Index));
     x^.Next:=nil;
     if assigned(z) then
@@ -640,12 +683,20 @@ begin
     S.Write(numItems,Sizeof(numItems)); {  write Item count }
     {write items}
     while Assigned(R) do begin
+{$ifdef FV_UNICODE}
+      S.WriteUnicodeString(R^.Name);
+{$else FV_UNICODE}
       S.WriteStr(R^.Name);
+{$endif FV_UNICODE}
       S.Write(R^.Index,Sizeof(R^.Index));
       R := R^.Next;
     end;
     {write gropu}
+{$ifdef FV_UNICODE}
+    S.WriteUnicodeString(x^.Name);
+{$else FV_UNICODE}
     S.WriteStr(x^.Name);
+{$endif FV_UNICODE}
     S.Write(x^.Index,Sizeof(x^.Index));
     x := x^.Next;
   end;
@@ -663,7 +714,7 @@ begin
   end;
 end;
 
-function TColorGroupList.GetText(Item: Sw_Integer; MaxLen: Sw_Integer): String;
+function TColorGroupList.GetText(Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String;
 var x: PColorGroup;
     Num : sw_integer;
 begin
@@ -673,7 +724,7 @@ begin
   while Assigned(x) do begin
     if Num = Item then
     begin
-      GetText:=x^.Name^;
+      GetText:=x^.Name Sw_PString_DeRef;
       exit;
     end;
     inc(Num);
@@ -754,12 +805,20 @@ begin
   while Assigned(x) do begin
     R:=x^.Items;
     while Assigned(R) do begin
+{$ifdef FV_UNICODE}
+      R^.Name:=Sw_PString_Empty;
+{$else}
       Dispose(R^.Name);
+{$endif}
       Q:=R;
       R := R^.Next;
       Dispose(Q);
     end;
+{$ifdef FV_UNICODE}
+    x^.Name:=Sw_PString_Empty;
+{$else}
     Dispose(x^.Name);
+{$endif}
     z:=x;
     x := x^.Next;
     Dispose(z);
@@ -793,7 +852,7 @@ begin
   end;
 end;
 
-function TColorItemList.GetText(Item: Sw_Integer; MaxLen: Sw_Integer): String;
+function TColorItemList.GetText(Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String;
 var count : sw_integer;
     x :PColorItem;
 begin
@@ -806,7 +865,7 @@ begin
     begin
       if count=Item then
       begin
-        GetText:=x^.Name^;
+        GetText:=x^.Name Sw_PString_DeRef;
         {SetLength(GetText,Min(Length(GetText),MaxLen));}
         exit;
       end;
@@ -936,7 +995,7 @@ begin
   Insert(BakLabel);
   {-- Color Display --}
   R.Assign(45, 12, 59, 15);
-  Display:=New(PColorDisplay,Init(R,NewStr(label_colorsel_displaytext)));
+  Display:=New(PColorDisplay,Init(R,Sw_NewStr(label_colorsel_displaytext)));
   Insert(Display);
   {-- Buttons --}
   R.Assign(37, 16, 47, 18);

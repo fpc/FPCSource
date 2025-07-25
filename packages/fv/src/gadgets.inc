@@ -64,7 +64,11 @@
 {**********************************************************}
 
 {$IFNDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+UNIT UGadgets;
+{$else FV_UNICODE}
 UNIT Gadgets;
+{$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -99,9 +103,21 @@ UNIT Gadgets;
 {====================================================================}
 
 {$IFDEF FPC_DOTTEDUNITS}
-USES FreeVision.Fvconsts, FreeVision.Time, System.Objects,FreeVision.Drivers, FreeVision.Views, FreeVision.App;      { Standard GFV units }
+USES FreeVision.Fvconsts,  System.Objects,
+  {$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon,FreeVision.Udrivers,FreeVision.Uviews,FreeVision.Uapp,     { Standard GFV units }
+  {$else}
+  FreeVision.fvcommon, FreeVision.Drivers, FreeVision.Views, FreeVision.App,      { Standard GFV units }
+  {$endif}
+  FreeVision.Time;
 {$ELSE FPC_DOTTEDUNITS}
-USES FVConsts, Time, Objects, Drivers, Views, App;      { Standard GFV units }
+USES FVConsts, Objects,
+  {$ifdef FV_UNICODE}
+  ufvcommon, uDrivers, uViews, uApp,     { Standard GFV units }
+  {$else}
+  fvcommon, Drivers, Views, App,         { Standard GFV units }
+  {$endif}
+  Time;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {***************************************************************************}
@@ -123,7 +139,7 @@ TYPE
       constructor InitMb(var Bounds: TRect);
       PROCEDURE Update;
       PROCEDURE Draw; Virtual;
-      Function  Comma ( N : LongInt ) : String;
+      Function  Comma ( N : LongInt ) : Sw_String;
    END;
    PHeapView = ^THeapView;                            { Heapview pointer }
 
@@ -135,9 +151,13 @@ TYPE
          am : AnsiChar;
          Refresh : Byte;                              { Refresh rate }
          LastTime: Longint;                           { Last time displayed }
+{$ifdef FV_UNICODE}
+         TimeStr : Sw_String;                         { Time string }
+{$else}
          TimeStr : String[10];                        { Time string }
+{$endif}
       CONSTRUCTOR Init (Var Bounds: TRect);
-      FUNCTION FormatTimeStr (H, M, S: Word): String; Virtual;
+      FUNCTION FormatTimeStr (H, M, S: Word): Sw_String; Virtual;
       PROCEDURE Update; Virtual;
       PROCEDURE Draw; Virtual;
    END;
@@ -226,7 +246,7 @@ END;
 PROCEDURE THeapView.Draw;
 VAR
   C : Byte;
-  S : String;
+  S : Sw_String;
   B : TDrawBuffer;
 begin
   case mode of
@@ -251,11 +271,11 @@ begin
   WriteLine(0,0,Size.X,1,B);
 END;
 
-Function THeapView.Comma ( n : LongInt) : String;
+Function THeapView.Comma ( n : LongInt) : Sw_String;
 Var
   num, loc : Byte;
-  s : String;
-  t : String;
+  s : Sw_String;
+  t : Sw_String;
 Begin
   Str (n,s);
   Str (n:Size.X,t);
@@ -294,8 +314,8 @@ END;
 {--TClockView---------------------------------------------------------------}
 {  FormatTimeStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB     }
 {---------------------------------------------------------------------------}
-FUNCTION TClockView.FormatTimeStr (H, M, S: Word): String;
-VAR Hs, Ms, Ss: String;
+FUNCTION TClockView.FormatTimeStr (H, M, S: Word): Sw_String;
+VAR Hs, Ms, Ss: String[7];
 BEGIN
    Str(H, Hs);                                        { Convert hour string }
    While (Length(Hs) < 2) Do Hs := '0' + Hs;          { Add lead zero's }

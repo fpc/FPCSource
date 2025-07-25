@@ -1,6 +1,10 @@
 {$V-}
 {$IFNDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+unit UStatuses;
+{$else FV_UNICODE}
 unit Statuses;
+{$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$CODEPAGE cp437}
@@ -68,11 +72,24 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  FreeVision.Fvcommon, FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, 
-  FreeVision.Views, FreeVision.Dialogs;
+  System.Objects,
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon, FreeVision.Udrivers, FreeVision.Udialogs,
+  FreeVision.Uviews,
+{$else}
+  FreeVision.Fvcommon, FreeVision.Drivers, FreeVision.Dialogs,
+  FreeVision.Views,
+{$endif}
+  FreeVision.Fvconsts;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  FVCommon, FVConsts, Objects, Drivers, Views, Dialogs;
+  Objects,
+{$ifdef FV_UNICODE}
+  UFVCommon,UDrivers, UDialogs, UViews,
+{$else}
+  FVCommon,Drivers, Dialogs, Views,
+{$endif}
+  FVConsts;
 {$ENDIF FPC_DOTTEDUNITS}
 {  Resource;}
 
@@ -207,7 +224,7 @@ type
         the status view receives an evStatus event it checks the value of the
         Event.Command field against Command before handling the event. }
       {#X HandleEvent }
-    constructor Init (R : TRect; ACommand : Word; AText : String;
+    constructor Init (R : TRect; ACommand : Word; AText : Sw_String;
                       AParamCount : SmallInt);
       { Init calls the inherited constructor then sets #Command# to ACommand.
 
@@ -338,7 +355,7 @@ type
       All status views that are to be inserted into a window or dialog should
       descend from #TStatus# for proper color mapping. }
     constructor Init (ATitle : TTitleStr; AStatus : PStatus; AFlags : Word;
-                      AMessage : String);
+                      AMessage : Sw_String);
       { Init calls the inherited constructor then inserts a TStaticText view
         containing AMessage at the top line of the dialog.
 
@@ -689,10 +706,18 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
+{$ifdef FV_UNICODE}
+  FreeVision.Umsgbox, FreeVision.Uapp;
+{$else}
   FreeVision.Msgbox, FreeVision.App;
+{$endif}
 {$ELSE FPC_DOTTEDUNITS}
 uses
+{$ifdef FV_UNICODE}
+  uMsgBox, uApp;
+{$else}
   MsgBox, App;
+{$endif}
 {$ENDIF FPC_DOTTEDUNITS}
 
 {****************************************************************************}
@@ -803,7 +828,12 @@ var
   C : Word;
   FillSize : Word;
   PercentDone : PtrInt;
+{$ifdef FV_UNICODE}
+  S : Sw_String;
+{$else}
   S : String[4];
+{$endif}
+
 begin
   { fill entire view }
   MoveChar(B,' ',GetColor(4),Size.X);
@@ -868,7 +898,7 @@ end;
 {****************************************************************************}
 procedure TGauge.Draw;
 var
-  S : String;
+  S : Sw_String;
   B : TDrawBuffer;
 begin
   { Blank the gauge }
@@ -1006,7 +1036,7 @@ procedure TPercentGauge.Draw;
 var
   B : TDrawBuffer;
   C : Word;
-  S : String;
+  S : Sw_String;
   PercentDone : LongInt;
   FillSize : SmallInt;
 begin
@@ -1083,7 +1113,7 @@ end;
 {****************************************************************************}
 { TStatus.Init                                                               }
 {****************************************************************************}
-constructor TStatus.Init (R : TRect; ACommand : Word; AText : String;
+constructor TStatus.Init (R : TRect; ACommand : Word; AText : Sw_String;
                           AParamCount : SmallInt);
 begin
   if (not TParamText.Init(R,AText,AParamCount)) then
@@ -1207,8 +1237,13 @@ end;
 {****************************************************************************}
 procedure TStatus.Update (Data : Pointer);
 begin
+{$ifdef FV_UNICODE}
+  Text := Sw_PString_Empty;
+  Text := UnicodeString(Data);
+{$else}
   DisposeStr(Text);
   Text := NewStr(String(Data^));
+{$endif}
   DrawView;
 end;
 
@@ -1368,7 +1403,7 @@ end;
 { TStatusMessageDlg.Init                                                     }
 {****************************************************************************}
 constructor TStatusMessageDlg.Init (ATitle : TTitleStr; AStatus : PStatus;
-                                    AFlags : Word; AMessage : String);
+                                    AFlags : Word; AMessage : Sw_String);
 var
   P : PStaticText;
   X, Y : SmallInt;

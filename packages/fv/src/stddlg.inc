@@ -17,6 +17,10 @@
 
 { Revision History
 
+1.2   (2025/07/07)
+  - Unicode support added. Internal file name handling is done by
+    ShortString as before. Reason is dependence on Dos unit.
+
 1.1a   (97/12/29)
   - fixed bug in TFileDialog.HandleEvent that prevented the user from being
     able to have an action taken automatically when the FileList was
@@ -30,7 +34,11 @@
   - original implementation }
 
 {$IFNDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+unit UStdDlg;
+{$else FV_UNICODE}
 unit StdDlg;
+{$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
 {
@@ -70,11 +78,20 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, FreeVision.Views, 
-  FreeVision.Dialogs, FreeVision.Validate, TP.DOS;
+{$ifdef FV_UNICODE}
+  FreeVision.Fvconsts, System.Objects, FreeVision.Udrivers, FreeVision.Uviews,
+  FreeVision.Udialogs, FreeVision.Uvalidate, FreeVision.Ufvcommon, TP.DOS;
+{$else}
+  FreeVision.Fvconsts, System.Objects, FreeVision.Drivers, FreeVision.Views,
+  FreeVision.Dialogs, FreeVision.Validate, FreeVision.FVCommon, TP.DOS;
+{$endif}
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  FVConsts, Objects, Drivers, Views, Dialogs, Validate, Dos;
+{$ifdef FV_UNICODE}
+  FVConsts, Objects, uDrivers, uViews, uDialogs, uValidate, UFVCommon, Dos;
+{$else}
+  FVConsts, Objects, Drivers, Views, Dialogs, Validate, FVCommon, Dos;
+{$endif}
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
@@ -151,7 +168,7 @@ type
     constructor Init(var Bounds: TRect; ANumCols: Sw_Word;
       AScrollBar: PScrollBar);
     procedure HandleEvent(var Event: TEvent); virtual;
-    function GetKey(var S: String): Pointer; virtual;
+    function GetKey(var S: Sw_String): Pointer; virtual;
     procedure NewList(AList: PCollection); virtual;
   end;
 
@@ -167,8 +184,8 @@ type
     function DataSize: Sw_Word; virtual;
     procedure FocusItem(Item: Sw_Integer); virtual;
     procedure GetData(var Rec); virtual;
-    function GetText(Item,MaxLen: Sw_Integer): String; virtual;
-    function GetKey(var S: String): Pointer; virtual;
+    function GetText(Item,MaxLen: Sw_Integer): Sw_String; virtual;
+    function GetKey(var S: Sw_String): Pointer; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
     procedure ReadDirectory(AWildCard: PathStr);
     procedure SetData(var Rec); virtual;
@@ -207,10 +224,10 @@ type
 
   PFileHistory = ^TFileHistory;
   TFileHistory = object(THistory)
-    CurDir : PString;
+    CurDir : Sw_PString;
     procedure HandleEvent(var Event: TEvent);virtual;
     destructor Done; virtual;
-    procedure AdaptHistoryToDir(Dir : string);
+    procedure AdaptHistoryToDir(Dir : Sw_string);
   end;
 
   PFileDialog = ^TFileDialog;
@@ -219,15 +236,16 @@ type
     FileList: PFileList;
     FileHistory: PFileHistory;
     WildCard: TWildStr;
-    Directory: PString;
+    Directory: Sw_PString;
     constructor Init(AWildCard: TWildStr; const ATitle,
-      InputName: String; AOptions: Word; HistoryId: Byte);
+      InputName: Sw_String; AOptions: Word; HistoryId: Byte);
     constructor Load(var S: TStream);
     destructor Done; virtual;
     procedure GetData(var Rec); virtual;
     procedure GetFileName(var S: PathStr);
     procedure HandleEvent(var Event: TEvent); virtual;
     procedure SetData(var Rec); virtual;
+    function DataSize : Sw_Word; virtual;
     procedure Store(var S: TStream);
     function Valid(Command: Word): Boolean; virtual;
   private
@@ -238,8 +256,8 @@ type
 
   PDirEntry = ^TDirEntry;
   TDirEntry = record
-    DisplayText: PString;
-    Directory: PString;
+    DisplayText: Sw_PString;
+    Directory: Sw_PString;
   end;  { of TDirEntry }
 
   { TDirCollection is a collection of TDirEntry's used by       }
@@ -261,7 +279,7 @@ type
     Cur: Word;
     constructor Init(var Bounds: TRect; AScrollBar: PScrollBar);
     destructor Done; virtual;
-    function GetText(Item,MaxLen: Sw_Integer): String; virtual;
+    function GetText(Item,MaxLen: Sw_Integer): Sw_String; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
     function IsSelected(Item: Sw_Integer): Boolean; virtual;
     procedure NewDirectory(var ADir: DirStr);
@@ -310,8 +328,8 @@ type
   {#Z-}
   TDirValidator = Object(TFilterValidator)
     constructor Init;
-    function IsValid(const S: string): Boolean; virtual;
-    function IsValidInput(var S: string; SuppressFill: Boolean): Boolean;
+    function IsValid(const S: Sw_String): Boolean; virtual;
+    function IsValidInput(var S: Sw_String; SuppressFill: Boolean): Boolean;
       virtual;
   end;  { of TDirValidator }
 
@@ -356,6 +374,7 @@ const
 
   { TStream registration records }
 
+function Contains(S1, S2: UnicodeString): Boolean;
 function Contains(S1, S2: String): Boolean;
   { Contains returns true if S1 contains any characters in S2. }
 
@@ -372,6 +391,7 @@ function ExtractFileName(AFile: FNameStr): NameStr;
   { ExtractFileName returns the file name without any directory or file
     extension information. }
 
+function Equal(const S1, S2: UnicodeString; Count: Sw_word): Boolean;
 function Equal(const S1, S2: String; Count: Sw_word): Boolean;
   { Equal returns True if S1 equals S2 for up to Count characters.  Equal is
     case-insensitive. }
@@ -390,6 +410,7 @@ function FileExists (AFile : FNameStr) : Boolean;
   {#X OpenFile }
 
 function GetCurDir: DirStr;
+function GetCurDirSw: Sw_String;
   { GetCurDir returns the current directory.  The directory returned always
     ends with a trailing backslash '\'. }
 
@@ -413,6 +434,7 @@ function IsDir(const S: String): Boolean;
     appropriate string lists must be initialized prior to calling this
     procedure. }
 
+function NoWildChars(S: UnicodeString): UnicodeString;
 function NoWildChars(S: String): String;
   { NoWildChars deletes the wild card characters ? and * from the string S
     and returns the result. }
@@ -579,10 +601,18 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
+{$ifdef FV_UNICODE}
+  FreeVision.Uapp, {FreeVision.Memory,} FreeVision.UhistList, FreeVision.Umsgbox{, System.Resources.Resource};
+{$else}
   FreeVision.App, {FreeVision.Memory,} FreeVision.HistList, FreeVision.MsgBox{, System.Resources.Resource};
+{$endif}
 {$ELSE FPC_DOTTEDUNITS}
 uses
+{$ifdef FV_UNICODE}
+  UApp, {Memory,} UHistList, UMsgBox{, Resource};
+{$else}
   App, {Memory,} HistList, MsgBox{, Resource};
+{$endif}
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -590,7 +620,7 @@ type
   PStringRec = record
     { PStringRec is needed for properly displaying PStrings using
       MessageBox. }
-    AString : PString;
+    AString : Sw_PString;
   end;
 
 resourcestring  sChangeDirectory='Change Directory';
@@ -635,6 +665,36 @@ resourcestring  sChangeDirectory='Change Directory';
 {$ifdef OS_WINDOWS}
 {$define NetDrive}
 {$endif OS_WINDOWS}
+
+
+procedure RemoveDoubleDirSep(var ExpPath : UnicodeString);
+var
+  p: longint;
+{$ifdef NetDrive}
+  OneDirSepRemoved: boolean;
+{$endif NetDrive}
+begin
+  p:=pos(DirSeparator+DirSeparator,ExpPath);
+{$ifdef NetDrive}
+  if p=1 then
+    begin
+      ExpPath:=Copy(ExpPath,1,high(ExpPath));
+      OneDirSepRemoved:=true;
+      p:=pos(DirSeparator+DirSeparator,ExpPath);
+    end
+  else
+    OneDirSepRemoved:=false;
+{$endif NetDrive}
+  while p>0 do
+    begin
+      ExpPath:=Copy(ExpPath,1,p)+Copy(ExpPath,p+2,high(ExpPath));
+      p:=pos(DirSeparator+DirSeparator,ExpPath);
+    end;
+{$ifdef NetDrive}
+  if OneDirSepRemoved then
+    ExpPath:=DirSeparator+ExpPath;
+{$endif NetDrive}
+end;
 
 procedure RemoveDoubleDirSep(var ExpPath : PathStr);
 var
@@ -725,7 +785,7 @@ end;
 {****************************************************************************}
 { TDirValidator.IsValid                      }
 {****************************************************************************}
-function TDirValidator.IsValid(const S: string): Boolean;
+function TDirValidator.IsValid(const S: Sw_string): Boolean;
 begin
 {  IsValid := False; }
   IsValid := True;
@@ -734,7 +794,7 @@ end;
 {****************************************************************************}
 { TDirValidator.IsValidInput                  }
 {****************************************************************************}
-function TDirValidator.IsValidInput(var S: string; SuppressFill: Boolean): Boolean;
+function TDirValidator.IsValidInput(var S: Sw_string; SuppressFill: Boolean): Boolean;
 begin
 {  IsValid := False; }
   IsValidInput := True;
@@ -763,12 +823,12 @@ begin
   begin
      if PSearchRec(Event.InfoPtr)^.Attr and Directory <> 0 then
        begin
-          Data^ := PSearchRec(Event.InfoPtr)^.Name + DirSeparator +
+          Data Sw_PString_DeRef := PSearchRec(Event.InfoPtr)^.Name + DirSeparator +
             PFileDialog(Owner)^.WildCard;
           { PFileDialog(Owner)^.FileHistory^.AdaptHistoryToDir(
               PSearchRec(Event.InfoPtr)^.Name+DirSeparator);}
        end
-     else Data^ := PSearchRec(Event.InfoPtr)^.Name;
+     else Data Sw_PString_DeRef := PSearchRec(Event.InfoPtr)^.Name;
      DrawView;
   end;
 end;
@@ -979,7 +1039,7 @@ procedure TFileList.GetData(var Rec);
 begin
 end;
 
-function TFileList.GetKey(var S: String): Pointer;
+function TFileList.GetKey(var S: Sw_String): Pointer;
 const
   SR: TSearchRec = ();
 
@@ -1001,7 +1061,7 @@ begin
   GetKey := @SR;
 end;
 
-function TFileList.GetText(Item,MaxLen: Sw_Integer): String;
+function TFileList.GetText(Item,MaxLen: Sw_Integer): Sw_String;
 var
   S: String;
   SR: PSearchRec;
@@ -1018,7 +1078,7 @@ end;
 
 procedure TFileList.HandleEvent(var Event: TEvent);
 var
-  S : String;
+  S : Sw_String;
   K : pointer;
   Value : Sw_integer;
 begin
@@ -1050,7 +1110,7 @@ var
   FileList: PFileCollection;
   NumFiles: Word;
   FindStr,
-  WildName : string;
+  WildName : sw_string;
   Dir: DirStr;
   Ext: ExtStr;
   Name: NameStr;
@@ -1163,7 +1223,7 @@ end;
 procedure TFileList.SetData(var Rec);
 begin
   with PFileDialog(Owner)^ do
-    Self.ReadDirectory(Directory^ + WildCard);
+    Self.ReadDirectory(Directory Sw_PString_DeRef + WildCard);
 end;
 
 {****************************************************************************}
@@ -1182,8 +1242,8 @@ end;
 {****************************************************************************}
 { AdjustNameSize for TFileInfoPane                                           }
 {****************************************************************************}
-function AdjustNameSize(S:String;ASize:sw_integer):String;
-var St: String;
+function AdjustNameSize(S:Sw_String;ASize:sw_integer):Sw_String;
+var St: Sw_String;
     NameLen:sw_integer;
     K,N : sw_integer;
 begin
@@ -1214,15 +1274,22 @@ end;
 procedure TFileInfoPane.Draw;
 var
   B: TDrawBuffer;
+{$ifdef FV_UNICODE}
+  uName : Sw_String;
+  D: Sw_String;
+  M: Sw_String;
+{$else}
+  uName : Sw_String;
   D: String[9];
   M: String[3];
+{$endif}
   PM: Boolean;
   Color: Word;
   Time: DateTime;
   Path: PathStr;
-  FmtId: String;
+  FmtId: Sw_String;
   Params: array[0..7] of PtruInt;
-  Str: String[80];
+  Str: Sw_String;
 const
   sDirectoryLine = ' %-12s %-9s %3s %2d, %4d  %2d:%02d%cm';
   sFileLine      = ' %-12s %-9d %3s %2d, %4d  %2d:%02d%cm';
@@ -1243,8 +1310,8 @@ begin
   Month[11] := smNov;
   Month[12] := smDec;
   { Display path }
-  if (PFileDialog(Owner)^.Directory <> nil) then
-    Path := PFileDialog(Owner)^.Directory^
+  if (PFileDialog(Owner)^.Directory <> Sw_PString_Empty) then
+    Path := PFileDialog(Owner)^.Directory Sw_PString_DeRef
   else Path := '';
   Path := FExpand(Path+PFileDialog(Owner)^.WildCard);
   { avoid B Buffer overflow PM }
@@ -1259,7 +1326,8 @@ begin
     Exit;
 
   { Display file }
-  Params[0] := ptruint(@S.Name);
+  uName:=S.Name;
+  Params[0] := ptruint(@uName);
   if S.Attr and Directory <> 0 then
   begin
     FmtId := sDirectoryLine;
@@ -1282,8 +1350,8 @@ begin
   Params[5] := Time.Hour;
   Params[6] := Time.Min;
   if PM then
-    Params[7] := Byte('p')
-  else Params[7] := Byte('a');
+    Params[7] := word('p')
+  else Params[7] := word('a');
   FormatStr(Str, FmtId, Params);
   MoveStr(B, Str, Color);
   WriteLine(0, 1, Size.X, 1, B);
@@ -1323,6 +1391,15 @@ end;
     LTrim := Copy(S, I, length(S));
   end;
 
+  function LTrim(const S: UnicodeString): UnicodeString;
+  var
+    I: Sw_Integer;
+  begin
+    I := 1;
+    while (I < Length(S)) and (S[I] = ' ') do Inc(I);
+    LTrim := Copy(S, I, length(S));
+  end;
+
   function RTrim(const S: String): String;
   var
     I: Sw_Integer;
@@ -1331,6 +1408,27 @@ end;
     if I = 0 then begin RTrim:=''; exit; end;
     while S[I] = ' ' do Dec(I);
     RTrim := Copy(S, 1, I);
+  end;
+
+  function RTrim(const S: UnicodeString): UnicodeString;
+  var
+    I: Sw_Integer;
+  begin
+    I := Length(S);
+    if I = 0 then begin RTrim:=''; exit; end;
+    while S[I] = ' ' do Dec(I);
+    RTrim := Copy(S, 1, I);
+  end;
+
+
+  function RelativePath(var S: UnicodeString): Boolean;
+  begin
+    S := LTrim(RTrim(S));
+    {$ifdef HASAMIGA}
+    RelativePath := Pos(DriveSeparator, S) = 0;
+    {$ELSE}
+    RelativePath := not ((S <> '') and ((S[1] = DirSeparator) or (S[2] = ':')));
+    {$ENDIF}
   end;
 
   function RelativePath(var S: PathStr): Boolean;
@@ -1345,7 +1443,7 @@ end;
 
 { try to reduce the length of S+dir as a file path+pattern }
 
-  function Simplify (var S,Dir : string) : string;
+  function Simplify (var S: sw_string; Dir : PathStr) : Sw_String;
     var i : sw_integer;
   begin
    if RelativePath(Dir) then
@@ -1377,7 +1475,7 @@ var
   HistoryWindow: PHistoryWindow;
   R,P: TRect;
   C: Word;
-  Rslt: String;
+  Rslt: Sw_String;
 begin
   TView.HandleEvent(Event);
   if (Event.What = evMouseDown) or
@@ -1389,11 +1487,11 @@ begin
       ClearEvent(Event);
       Exit;
     end;
-    if assigned(CurDir) then
-     Rslt:=CurDir^
+    if (CurDir<>Sw_PString_Empty) then
+     Rslt:=CurDir Sw_PString_DeRef
     else
      Rslt:='';
-    Rslt:=Simplify(Rslt,Link^.Data^);
+    Rslt:=Simplify(Rslt,Link^.Data Sw_PString_DeRef);
     RemoveDoubleDirSep(Rslt);
     If IsWild(Rslt) then
       RecordHistory(Rslt);
@@ -1409,8 +1507,8 @@ begin
       if C = cmOk then
       begin
         Rslt := HistoryWindow^.GetSelection;
-        if Length(Rslt) > Link^.MaxLen then Rslt[0] := AnsiChar(Link^.MaxLen);
-        Link^.Data^ := Rslt;
+        if Length(Rslt) > Link^.MaxLen then SetLength(Rslt,Link^.MaxLen);
+        Link^.Data Sw_PString_DeRef := Rslt;
         Link^.SelectAll(True);
         Link^.DrawView;
       end;
@@ -1422,31 +1520,35 @@ begin
     if ((Event.Command = cmReleasedFocus) and (Event.InfoPtr = Link))
       or (Event.Command = cmRecordHistory) then
     begin
-      if assigned(CurDir) then
-       Rslt:=CurDir^
+      if (CurDir<>Sw_PString_Empty) then
+       Rslt:=CurDir Sw_PString_DeRef
       else
        Rslt:='';
-      Rslt:=Simplify(Rslt,Link^.Data^);
+      Rslt:=Simplify(Rslt,Link^.Data Sw_PString_DeRef);
       RemoveDoubleDirSep(Rslt);
       If IsWild(Rslt) then
         RecordHistory(Rslt);
     end;
 end;
 
-procedure TFileHistory.AdaptHistoryToDir(Dir : string);
-  var S,S2 : String;
+procedure TFileHistory.AdaptHistoryToDir(Dir : Sw_String);
+  var S,S2 : Sw_String;
       i,Count : Sw_word;
 begin
-   if assigned(CurDir) then
+   if (CurDir<>Sw_PString_Empty) then
      begin
-        S:=CurDir^;
+        S:=CurDir Sw_PString_DeRef;
         if S=Dir then
           exit;
+{$ifdef FV_UNICODE}
+        CurDir:=Sw_PString_Empty;
+{$else}
         DisposeStr(CurDir);
+{$endif}
      end
    else
      S:='';
-   CurDir:=NewStr(Simplify(S,Dir));
+   CurDir:=Sw_NewStr(Simplify(S,Dir));
 
    Count:=HistoryCount(HistoryId);
    for i:=1 to count do
@@ -1467,8 +1569,12 @@ end;
 
 destructor TFileHistory.Done;
 begin
+{$ifdef FV_UNICODE}
+  CurDir:=Sw_PString_Empty;
+{$else}
   If assigned(CurDir) then
     DisposeStr(CurDir);
+{$endif}
   Inherited Done;
 end;
 
@@ -1477,7 +1583,7 @@ end;
 ****************************************************************************}
 
 constructor TFileDialog.Init(AWildCard: TWildStr; const ATitle,
-  InputName: String; AOptions: Word; HistoryId: Byte);
+  InputName: Sw_String; AOptions: Word; HistoryId: Byte);
 var
   Control: PView;
   R: TRect;
@@ -1491,7 +1597,7 @@ begin
   R.Assign(3,3,31,4);
   FileName := New(PFileInputLine, Init(R, 79));
   FileName^.GrowMode:=gfGrowHiX;
-  FileName^.Data^ := WildCard;
+  FileName^.Data Sw_PString_DeRef := WildCard;
   Insert(FileName);
   R.Assign(2,2,3+CStrLen(InputName),3);
   Control := New(PLabel, Init(R, InputName, FileName));
@@ -1589,13 +1695,23 @@ end;
 
 destructor TFileDialog.Done;
 begin
+{$ifdef FV_UNICODE}
+  Directory:=Sw_PString_Empty;
+{$else FV_UNICODE}
   DisposeStr(Directory);
+{$endif FV_UNICODE}
   TDialog.Done;
 end;
 
 procedure TFileDialog.GetData(var Rec);
+var St : PathStr;
 begin
+{$ifdef FV_UNICODE}
+  GetFilename(St);
+  Sw_String(Rec):=St;
+{$else FV_UNICODE}
   GetFilename(PathStr(Rec));
+{$endif FV_UNICODE}
 end;
 
 procedure TFileDialog.GetFileName(var S: PathStr);
@@ -1604,17 +1720,17 @@ var
   Path: PathStr;
   Name: NameStr;
   Ext: ExtStr;
-  TWild : string;
+  TWild : Sw_String;
   TPath: PathStr;
   TName: NameStr;
   TExt: NameStr;
   i : Sw_integer;
 begin
-  S := FileName^.Data^;
+  S := FileName^.Data Sw_PString_DeRef;
   if RelativePath(S) then
     begin
-      if (Directory <> nil) then
-   S := FExpand(Directory^ + S);
+      if (Directory <> Sw_PString_Empty) then
+   S := FExpand(Directory Sw_PString_DeRef + S);
     end
   else
     S := FExpand(S);
@@ -1673,10 +1789,17 @@ begin
     end;
 end;
 
+function TFileDialog.DataSize : Sw_Word;
+begin
+  DataSize:=SizeOf(Sw_String);
+  if assigned(FileName) then
+     DataSize:=FileName^.DataSize;
+end;
+
 procedure TFileDialog.SetData(var Rec);
 begin
   TDialog.SetData(Rec);
-  if (PathStr(Rec) <> '') and (IsWild(TWildStr(Rec))) then
+  if (Sw_String(Rec) <> '') and (IsWild(TWildStr(Sw_String(Rec)))) then
   begin
     Valid(cmFileInit);
     FileName^.Select;
@@ -1684,10 +1807,16 @@ begin
 end;
 
 procedure TFileDialog.ReadDirectory;
+var S : Sw_String;
 begin
   FileList^.ReadDirectory(WildCard);
-  FileHistory^.AdaptHistoryToDir(GetCurDir);
+  S:=GetCurDirSw;
+  FileHistory^.AdaptHistoryToDir(S);
+{$ifdef FV_UNICODE}
+  Directory := GetCurDirSw;
+{$else}
   Directory := NewStr(GetCurDir);
+{$endif}
 end;
 
 procedure TFileDialog.Store(var S: TStream);
@@ -1770,15 +1899,20 @@ begin
         if CheckDirectory(Dir) then
         begin
           FileHistory^.AdaptHistoryToDir(Dir);
+{$ifdef FV_UNICODE}
+          Directory:=Sw_PString_Empty;
+          Directory:=Dir;
+{$else FV_UNICODE}
           DisposeStr(Directory);
           Directory := NewStr(Dir);
+{$endif FV_UNICODE}
           if Pos(ListSeparator,FName)>0 then
            WildCard:=Copy(FName,length(Dir)+1,255)
           else
            WildCard := Name+Ext;
           if Command <> cmFileInit then
             FileList^.Select;
-          FileList^.ReadDirectory(Directory^+WildCard);
+          FileList^.ReadDirectory(Directory Sw_PString_DeRef+WildCard);
         end;
       end
     else
@@ -1790,10 +1924,16 @@ begin
           if CheckDirectory(FName) then
           begin
             FileHistory^.AdaptHistoryToDir(CompleteDir(FName));
+
+{$ifdef FV_UNICODE}
+            Directory := Sw_PString_Empty;
+            Directory := CompleteDir(FName);
+{$else}
             DisposeStr(Directory);
             Directory := NewSTr(CompleteDir(FName));
+{$endif}
             if Command <> cmFileInit then FileList^.Select;
-            FileList^.ReadDirectory(Directory^+WildCard);
+            FileList^.ReadDirectory(Directory Sw_PString_DeRef+WildCard);
           end
         end
       else
@@ -1816,8 +1956,13 @@ var
   DirItem: PDirEntry;
 begin
   New(DirItem);
+{$ifdef FV_UNICODE}
+  DirItem^.DisplayText := S.ReadUnicodeString;
+  DirItem^.Directory := S.ReadUnicodeString;
+{$else}
   DirItem^.DisplayText := S.ReadStr;
   DirItem^.Directory := S.ReadStr;
+{$endif}
   GetItem := DirItem;
 end;
 
@@ -1825,8 +1970,13 @@ procedure TDirCollection.FreeItem(Item: Pointer);
 var
   DirItem: PDirEntry absolute Item;
 begin
+{$ifdef FV_UNICODE}
+  DirItem^.DisplayText:=Sw_PString_Empty;
+  DirItem^.Directory:=Sw_PString_Empty;
+{$else}
   DisposeStr(DirItem^.DisplayText);
   DisposeStr(DirItem^.Directory);
+{$endif}
   Dispose(DirItem);
 end;
 
@@ -1834,8 +1984,13 @@ procedure TDirCollection.PutItem(var S: TStream; Item: Pointer);
 var
   DirItem: PDirEntry absolute Item;
 begin
+{$ifdef FV_UNICODE}
+  S.WriteUnicodeString(DirItem^.DisplayText);
+  S.WriteUnicodeString(DirItem^.Directory);
+{$else}
   S.WriteStr(DirItem^.DisplayText);
   S.WriteStr(DirItem^.Directory);
+{$endif}
 end;
 
 { TDirListBox }
@@ -1859,9 +2014,9 @@ begin
   TListBox.Done;
 end;
 
-function TDirListBox.GetText(Item,MaxLen: Sw_Integer): String;
+function TDirListBox.GetText(Item,MaxLen: Sw_Integer): Sw_String;
 begin
-  GetText := PDirEntry(List^.At(Item))^.DisplayText^;
+  GetText := PDirEntry(List^.At(Item))^.DisplayText Sw_PString_DeRef;
 end;
 
 procedure TDirListBox.HandleEvent(var Event: TEvent);
@@ -1908,24 +2063,28 @@ const
 var
   AList: PCollection;
   NewDir, Dirct: DirStr;
-  C, OldC: AnsiChar;
+  C, OldC: Sw_Char;
+{$ifdef FV_UNICODE}
+  S, Indent: Sw_String;
+{$else}
   S, Indent: String[80];
-  P: PString;
+{$endif}
+  P: Sw_PString;
   NewCur: Word;
   isFirst: Boolean;
   SR: SearchRec;
   I: Sw_Integer;
 
-  function NewDirEntry(const DisplayText, Directory: String): PDirEntry;{$ifdef PPC_BP}near;{$endif}
+  function NewDirEntry(const DisplayText, Directory: Sw_String): PDirEntry;{$ifdef PPC_BP}near;{$endif}
   var
     DirEntry: PDirEntry;
   begin
     New(DirEntry);
-    DirEntry^.DisplayText := NewStr(DisplayText);
+    DirEntry^.DisplayText := Sw_NewStr(DisplayText);
     If Directory='' then
-      DirEntry^.Directory := NewStr(DirSeparator)
+      DirEntry^.Directory := Sw_NewStr(DirSeparator)
     else
-      DirEntry^.Directory := NewStr(Directory);
+      DirEntry^.Directory := Sw_NewStr(Directory);
     NewDirEntry := DirEntry;
   end;
 
@@ -2011,16 +2170,17 @@ begin
   FindClose(SR);
     P := PDirEntry(AList^.At(AList^.Count-1))^.DisplayText;
 {$ifdef FV_UNICODE}
-    I := Pos(#$2514,P^);
+    I := Pos(#$2514,P);
     if I = 0 then
     begin
-      I := Pos(#$251C,P^);
-      if I <> 0 then P^[I] := #$2514;
+      I := Pos(#$251C,P);
+      if I <> 0 then P[I] := #$2514;
     end else
     begin
-      P^[I+1] := #$2500;
-      P^[I+2] := #$2500;
+      P[I+1] := #$2500;
+      P[I+2] := #$2500;
     end;
+    PDirEntry(AList^.At(AList^.Count-1))^.DisplayText:=P; { we have to reassign again }
 {$else FV_UNICODE}
     I := Pos(#192,P^);
     if I = 0 then
@@ -2154,9 +2314,9 @@ begin
      cmChangeDir:
        begin
          P := DirList^.List^.At(DirList^.Focused);
-         if (P^.Directory^ = Drives^)
-            or DriveValid(P^.Directory^[1]) then
-           CurDir := P^.Directory^
+         if (P^.Directory Sw_PString_DeRef = Drives^)
+            or DriveValid(P^.Directory Sw_PString_DeRef[1]) then
+           CurDir := P^.Directory Sw_PString_DeRef
          else Exit;
        end;
    else
@@ -2166,7 +2326,7 @@ begin
       (CurDir[Length(CurDir)] = DirSeparator) then
      CurDir := Copy(CurDir,1,Length(CurDir)-1);
    DirList^.NewDirectory(CurDir);
-   DirInput^.Data^ := CurDir;
+   DirInput^.Data Sw_PString_DeRef := CurDir;
    DirInput^.DrawView;
    DirList^.Select;
    ClearEvent(Event);
@@ -2196,7 +2356,7 @@ begin
       CurDir := Copy(CurDir,1,Length(CurDir)-1);
     if DirInput <> nil then
     begin
-      DirInput^.Data^ := CurDir;
+      DirInput^.Data Sw_PString_DeRef := CurDir;
       DirInput^.DrawView;
     end;
   end;
@@ -2224,9 +2384,9 @@ begin
   Valid := True;
   if Command = cmOk then
   begin
-    P := FExpand(DirInput^.Data^);
+    P := FExpand(DirInput^.Data Sw_PString_DeRef);
     if (Length(P) > 3) and (P[Length(P)] = DirSeparator) then
-      Dec(P[0]);
+      SetLength(P,Length(P)-1);
     {$push}{$I-}
     ChDir(P);
     if (IOResult <> 0) then
@@ -2246,7 +2406,11 @@ end;
 {****************************************************************************}
 function TEditChDirDialog.DataSize : Sw_Word;
 begin
+{$ifdef FV_UNICODE}
+  DataSize := SizeOf(Sw_String);
+{$else FV_UNICODE}
   DataSize := SizeOf(DirStr);
+{$endif FV_UNICODE}
 end;
 
 {****************************************************************************}
@@ -2254,20 +2418,21 @@ end;
 {****************************************************************************}
 procedure TEditChDirDialog.GetData (var Rec);
 var
-  CurDir : DirStr absolute Rec;
+  CurDir : Sw_String;
 begin
   if (DirInput = nil) then
     CurDir := ''
   else begin
-    CurDir := DirInput^.Data^;
-    
-    if (CurDir[Length(CurDir)] <> DirSeparator) 
+    CurDir := DirInput^.Data Sw_PString_DeRef;
+
+    if (CurDir[Length(CurDir)] <> DirSeparator)
     {$IFDEF HASAMIGA}
-      and (CurDir[Length(CurDir)] <> DriveSeparator) 
+      and (CurDir[Length(CurDir)] <> DriveSeparator)
     {$endif}
     then
       CurDir := CurDir + DirSeparator;
   end;
+  Sw_String(Rec):=CurDir;
 end;
 
 {****************************************************************************}
@@ -2275,16 +2440,27 @@ end;
 {****************************************************************************}
 procedure TEditChDirDialog.SetData (var Rec);
 var
-  CurDir : DirStr absolute Rec;
+  CurDir : Sw_String absolute Rec;
+{$ifdef FV_UNICODE}
+  St : ShortString;
+  size_st : SizeUInt;
+{$endif FV_UNICODE}
 begin
   if DirList <> nil then
   begin
+{$ifdef FV_UNICODE}
+    St:='';
+    if CurDir<>'' then
+      st:=curDir;
+    DirList^.NewDirectory(St);
+{$else FV_UNICODE}
     DirList^.NewDirectory(CurDir);
+{$endif FV_UNICODE}
     if DirInput <> nil then
     begin
       if (Length(CurDir) > 3) and (CurDir[Length(CurDir)] = DirSeparator) then
-   DirInput^.Data^ := Copy(CurDir,1,Length(CurDir)-1)
-      else DirInput^.Data^ := CurDir;
+        DirInput^.Data Sw_PString_DeRef := Copy(CurDir,1,Length(CurDir)-1)
+      else DirInput^.Data Sw_PString_DeRef := CurDir;
       DirInput^.DrawView;
     end;
   end;
@@ -2312,7 +2488,7 @@ procedure TSortedListBox.HandleEvent(var Event: TEvent);
 const
   SpecialChars: set of AnsiChar = [#0,#9,#27];
 var
-  CurString, NewString: String;
+  CurString, NewString: Sw_String;
   K: Pointer;
   Value : Sw_integer;
   OldPos, OldValue: Sw_Integer;
@@ -2384,9 +2560,13 @@ begin
   end;
 end;
 
-function TSortedListBox.GetKey(var S: String): Pointer;
+function TSortedListBox.GetKey(var S: Sw_String): Pointer;
 begin
+{$ifdef FV_UNICODE}
+  GetKey := Pointer(S);
+{$else}
   GetKey := @S;
+{$endif}
 end;
 
 procedure TSortedListBox.NewList(AList: PCollection);
@@ -2402,6 +2582,20 @@ end;
 {****************************************************************************}
 { Contains                          }
 {****************************************************************************}
+
+function Contains(S1, S2: UnicodeString): Boolean;
+  { Contains returns true if S1 contains any characters in S2. }
+var
+  i : Byte;
+begin
+  Contains := True;
+  i := 1;
+  while ((i < Length(S2)) and (i < Length(S1))) do
+    if (Upcase(S1[i]) = Upcase(S2[i])) then
+      Exit
+    else Inc(i);
+  Contains := False;
+end;
 function Contains(S1, S2: String): Boolean;
   { Contains returns true if S1 contains any characters in S2. }
 var
@@ -2426,7 +2620,11 @@ begin
   if CheckOnDelete then
   begin
     AFile := ShrinkPath(AFile,33);
+{$ifdef FV_UNICODE}
+    Rec.AString := AFile;
+{$else}
     Rec.AString := PString(@AFile);
+{$endif}
     StdDeleteFile := (MessageBox(^C + sDeleteFile,
                @Rec,mfConfirmation or mfOkCancel) = cmOk);
   end
@@ -2461,6 +2659,19 @@ end;
 {****************************************************************************}
 { Equal                             }
 {****************************************************************************}
+function Equal(const S1, S2: UnicodeString; Count: Sw_word): Boolean;
+var
+  i: Sw_Word;
+begin
+  Equal := False;
+  if (Length(S1) < Count) or (Length(S2) < Count) then
+    Exit;
+  for i := 1 to Count do
+    if UpCase(S1[I]) <> UpCase(S2[I]) then
+      Exit;
+  Equal := True;
+end;
+
 function Equal(const S1, S2: String; Count: Sw_word): Boolean;
 var
   i: Sw_Word;
@@ -2536,6 +2747,20 @@ begin
   end;
   GetCurDir := CurDir;
 end;
+
+function GetCurDirSw: Sw_String;
+var
+  CurDir: Sw_String{DirStr};
+begin
+  GetDir(0, CurDir);
+  if (Length(CurDir) > 3) then
+  begin
+    SetLength(CurDir,Length(CurDir)+1);
+    CurDir[Length(CurDir)] := DirSeparator;
+  end;
+  GetCurDirSw := CurDir;
+end;
+
 
 {****************************************************************************}
 { GetCurDrive                       }
@@ -2661,6 +2886,23 @@ end;
 {****************************************************************************}
 { NoWildChars                       }
 {****************************************************************************}
+function NoWildChars(S: UnicodeString): UnicodeString;
+var
+  i : Sw_Word;
+begin
+  repeat
+    i := Pos('?',S);
+    if (i > 0) then
+      System.Delete(S,i,1);
+  until (i = 0);
+  repeat
+    i := Pos('*',S);
+    if (i > 0) then
+      System.Delete(S,i,1);
+  until (i = 0);
+  NoWildChars:=S;
+end;
+
 function NoWildChars(S: String): String;
 const
   WildChars : array[0..1] of AnsiChar = ('?','*');
@@ -2747,7 +2989,11 @@ begin
   if CheckOnReplace then
   begin
     AFile := ShrinkPath(AFile,33);
+{$ifdef FV_UNICODE}
+    Rec.AString := AFile;
+{$else}
     Rec.AString := PString(@AFile);
+{$endif}
     StdReplaceFile :=
        (MessageBox(^C + sReplaceFile,
          @Rec,mfConfirmation or mfOkCancel) = cmOk);

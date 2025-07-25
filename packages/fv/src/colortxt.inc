@@ -1,6 +1,3 @@
-{$IFNDEF FPC_DOTTEDUNITS}
-unit ColorTxt;
-{$ENDIF FPC_DOTTEDUNITS}
 {
     This file is part of the Free Vision package
 
@@ -24,6 +21,14 @@ unit ColorTxt;
   the constructor has an extra Byte parameter specifying the attribute
   desired.  (Do not use a 0 attribute, black on black).
 }
+{$IFNDEF FPC_DOTTEDUNITS}
+{$ifdef FV_UNICODE}
+unit UColorTxt;
+{$else FV_UNICODE}
+unit ColorTxt;
+{$endif FV_UNICODE}
+{$ENDIF FPC_DOTTEDUNITS}
+
 
 {$i platform.inc}
 
@@ -41,17 +46,31 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Dialogs, FreeVision.App, FreeVision.Fvconsts;
+  System.Objects,
+{$ifdef FV_UNICODE}
+  FreeVision.Ufvcommon, FreeVision.Udrivers, FreeVision.Uviews,
+  FreeVision.Udialogs, FreeVision.Uapp,
+{$else}
+  FreeVision.Fvcommon, FreeVision.Drivers, FreeVision.Views,
+  FreeVision.Dialogs, FreeVision.App,
+{$endif}
+  FreeVision.Fvconsts;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  objects, drivers, views, dialogs, app, fvconsts;
+  Objects,
+{$ifdef FV_UNICODE}
+  UFvcommon, UDrivers, UViews, Udialogs, UApp,
+{$else}
+  Fvcommon, Drivers, Views, Dialogs, App,
+{$endif}
+  Fvconsts;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
   PColoredText = ^TColoredText;
   TColoredText = object(TStaticText)
     Attr : Byte;
-    constructor Init(var Bounds: TRect; const AText: String; Attribute : Byte);
+    constructor Init(var Bounds: TRect; const AText: Sw_String; Attribute : Byte);
     constructor Load(var S: TStream);
     function GetTheColor : byte; virtual;
     procedure Draw; virtual;
@@ -68,7 +87,7 @@ const
 
 implementation
 
-constructor TColoredText.Init(var Bounds: TRect; const AText: String;
+constructor TColoredText.Init(var Bounds: TRect; const AText: Sw_String;
                                   Attribute : Byte);
 begin
 TStaticText.Init(Bounds, AText);
@@ -101,7 +120,7 @@ var
   Center: Boolean;
   I, J, L, P, Y: Sw_Integer;
   B: TDrawBuffer;
-  S: String;
+  S: Sw_String;
 begin
   Color := GetTheColor;
   GetText(S);
