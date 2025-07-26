@@ -1610,7 +1610,7 @@ var rtl = {
     $ProcVar: function(name,o){ return this.$inherited(name,rtl.tTypeInfoProcVar,o); },
     $RefToProcVar: function(name,o){ return this.$inherited(name,rtl.tTypeInfoRefToProcVar,o); },
     $MethodVar: function(name,o){ return this.$inherited(name,rtl.tTypeInfoMethodVar,o); },
-    $Record: function(name,o){ return this.$Scope(name,rtl.tTypeInfoRecord,o); },
+    $Record: function(name,o,typ){ if(typ) o.$record = typ; return this.$Scope(name,rtl.tTypeInfoRecord,o); },
     $Class: function(name,o){ return this.$Scope(name,rtl.tTypeInfoClass,o); },
     $ClassRef: function(name,o){ return this.$inherited(name,rtl.tTypeInfoClassRef,o); },
     $Pointer: function(name,o){ return this.$inherited(name,rtl.tTypeInfoPointer,o); },
