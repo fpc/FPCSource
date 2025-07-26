@@ -36,7 +36,7 @@ uses
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$IfDEF WINDOWS}WinSock2, {$ENDIF}
-  {$IFDEF LINUX}BaseUnix, termio, {$EndIf}  
+  {$IFDEF unix}BaseUnix, termio, {$EndIf}  
   {$IfDef HASAMIGA}ctypes, {$EndIf}
   sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -218,7 +218,7 @@ function ConnectionState(const ASocket: TFPSocket): TConnectionState;
 type
   PAddressUnion = ^TAddressUnion;
   TAddressUnion = record
-  case TFPSocketType of
+   case TFPSocketType of
   stIPv4: (In4Addr: sockaddr_in);
   stIPv6: (In6Addr: sockaddr_in6);
   stUnixSocket: (UnixAddr: sockaddr_un);
