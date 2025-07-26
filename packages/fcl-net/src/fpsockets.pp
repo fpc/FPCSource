@@ -27,6 +27,10 @@ interface
 {$DEFINE HAVE_SELECT_CALL}
 {$ENDIF}
 
+{$IfDef HASAMIGA}
+{$inline off}  // inlining on Amiga currently does not work, results in linker error on Default() in NetAddr();
+{$EndIf}
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   {$IfDef WINDOWS}WinApi.WinSock2, {$ENDIF}
