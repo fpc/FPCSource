@@ -778,7 +778,14 @@
   XML_PARSE_NOXINCNODE = (1 shl 15);(* do not generate XINCLUDE START/END nodes *)
   XML_PARSE_COMPACT   = (1 shl 16); (* compact small text nodes); no modification of
                                    the tree allowed afterwards (will possibly
-           crash if you try to modify the tree) *)
+                                   crash if you try to modify the tree) *)
+  XML_PARSE_OLD10     = (1 shl 17);(* parse using XML-1.0 before update 5 *)
+  XML_PARSE_NOBASEFIX = (1 shl 18);(* do not fixup XINCLUDE xml:base uris *)
+  XML_PARSE_HUGE      = (1 shl 19);(* relax any hardcoded limit from the parser *)
+  XML_PARSE_OLDSAX    = (1 shl 20);(* parse using SAX2 interface before 2.7.0 *)
+  XML_PARSE_IGNORE_ENC= (1 shl 21);(* ignore internal document encoding hint *)
+  XML_PARSE_BIG_LINES = (1 shl 22);(* Store big lines numbers in text PSVI field *)
+
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -814,6 +821,8 @@
     XML_WITH_DEBUG_MEM = 29,
     XML_WITH_DEBUG_RUN = 30,
     XML_WITH_ZLIB = 31,
+    XML_WITH_ICU = 32,
+    XML_WITH_LZMA = 33,
     XML_WITH_NONE = 99999 (* just to be sure of allocation size *)
   );
 
@@ -975,5 +984,163 @@ function xmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioc
  * They used to be called XML_FEATURE_xxx but this clashed with Expat
  *)
 function xmlHasFeature(feature: xmlFeature): cint; EXTDECL; external xml2lib;
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * Init/Cleanup
+ *)
+  xmlInitParser: procedure; EXTDECL;
+  xmlCleanupParser: procedure; EXTDECL;
+
+(*
+ * Input functions
+ *)
+  xmlParserInputRead: function(_in: xmlParserInputPtr; len: cint): cint; EXTDECL;
+  xmlParserInputGrow: function(_in: xmlParserInputPtr; len: cint): cint; EXTDECL;
+
+(*
+ * Basic parsing Interfaces
+ *)
+{$IFDEF LIBXML_SAX1_ENABLED}
+  xmlParseDoc: function(cur: xmlCharPtr): xmlDocPtr; EXTDECL;
+  xmlParseFile: function(filename: PAnsiChar): xmlDocPtr; EXTDECL;
+  xmlParseMemory: function(buffer: PAnsiChar; size: cint): xmlDocPtr; EXTDECL;
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+  xmlSubstituteEntitiesDefault: function(val: cint): cint; EXTDECL;
+  xmlKeepBlanksDefault: function(val: cint): cint; EXTDECL;
+  xmlStopParser: procedure(ctxt: xmlParserCtxtPtr); EXTDECL;
+  xmlPedanticParserDefault: function(val: cint): cint; EXTDECL;
+  xmlLineNumbersDefault: function(val: cint): cint; EXTDECL;
+
+{$IFDEF LIBXML_SAX1_ENABLED}
+(*
+ * Recovery mode
+ *)
+  xmlRecoverDoc: function(cur: xmlCharPtr): xmlDocPtr; EXTDECL;
+  xmlRecoverMemory: function(buffer: PAnsiChar; size: cint): xmlDocPtr; EXTDECL;
+  xmlRecoverFile: function(filename: PAnsiChar): xmlDocPtr; EXTDECL;
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+
+(*
+ * Less common routines and SAX interfaces
+ *)
+  xmlParseDocument: function(ctxt: xmlParserCtxtPtr): cint; EXTDECL;
+  xmlParseExtParsedEnt: function(ctxt: xmlParserCtxtPtr): cint; EXTDECL;
+{$IFDEF LIBXML_SAX1_ENABLED}
+  xmlSAXUserParseFile: function(sax: xmlSAXHandlerPtr; user_data: pointer; filename: PAnsiChar): cint; EXTDECL;
+  xmlSAXUserParseMemory: function(sax: xmlSAXHandlerPtr; user_data: pointer; buffer: PAnsiChar; size: cint): cint; EXTDECL;
+  xmlSAXParseDoc: function(sax: xmlSAXHandlerPtr; cur: xmlCharPtr; recovery: cint): xmlDocPtr; EXTDECL;
+  xmlSAXParseMemory: function(sax: xmlSAXHandlerPtr; buffer: PAnsiChar; size: cint; recovery: cint): xmlDocPtr; EXTDECL;
+  xmlSAXParseMemoryWithData: function(sax: xmlSAXHandlerPtr; buffer: PAnsiChar; size: cint; recovery: cint; data: pointer): xmlDocPtr; EXTDECL;
+  xmlSAXParseFile: function(sax: xmlSAXHandlerPtr; filename: PAnsiChar; recovery: cint): xmlDocPtr; EXTDECL;
+  xmlSAXParseFileWithData: function(sax: xmlSAXHandlerPtr; filename: PAnsiChar; recovery: cint; data: pointer): xmlDocPtr; EXTDECL;
+  xmlSAXParseEntity: function(sax: xmlSAXHandlerPtr; filename: PAnsiChar): xmlDocPtr; EXTDECL;
+  xmlParseEntity: function(filename: PAnsiChar): xmlDocPtr; EXTDECL;
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+
+{$IFDEF LIBXML_VALID_ENABLED}
+  xmlSAXParseDTD: function(sax: xmlSAXHandlerPtr; ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; EXTDECL;
+  xmlParseDTD: function(ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; EXTDECL;
+  xmlIOParseDTD: function(sax: xmlSAXHandlerPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding): xmlDtdPtr; EXTDECL;
+{$ENDIF} (* LIBXML_VALID_ENABLE *)
+{$IFDEF LIBXML_SAX1_ENABLED}
+  xmlParseBalancedChunkMemory: function(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer; depth: cint; _string: xmlCharPtr; lst: xmlNodePtrPtr): cint; EXTDECL;
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+  xmlParseInNodeContext: function(node: xmlNodePtr; data: PAnsiChar; datalen, options: cint; lst: xmlNodePtrPtr): xmlParserErrors; EXTDECL;
+{$IFDEF LIBXML_SAX1_ENABLED}
+  xmlParseBalancedChunkMemoryRecover: function(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer;
+    depth: cint; _string: xmlCharPtr; lst: xmlNodePtrPtr; recover: cint): cint; EXTDECL;
+  xmlParseExternalEntity: function(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer;
+    depth: cint; URL, ID: xmlCharPtr; lst: xmlNodePtrPtr): cint; EXTDECL;
+
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+  xmlParseCtxtExternalEntity: function(ctx: xmlParserCtxtPtr; URL, ID: xmlCharPtr; lst: xmlNodePtrPtr): cint; EXTDECL;
+
+(*
+ * Parser contexts handling.
+ *)
+  xmlNewParserCtxt: function: xmlParserCtxtPtr; EXTDECL;
+  xmlInitParserCtxt: function(ctxt: xmlParserCtxtPtr): cint; EXTDECL;
+  xmlClearParserCtxt: procedure(ctxt: xmlParserCtxtPtr); EXTDECL;
+  xmlFreeParserCtxt: procedure(ctxt: xmlParserCtxtPtr); EXTDECL;
+{$IFDEF LIBXML_SAX1_ENABLED}
+  xmlSetupParserForBuffer: procedure(ctxt: xmlParserCtxtPtr; buffer: xmlCharPtr; filename: PAnsiChar); EXTDECL;
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+  xmlCreateDocParserCtxt: function(cur: xmlCharPtr): xmlParserCtxtPtr; EXTDECL;
+
+{$IFDEF LIBXML_LEGACY_ENABLED}
+(*
+ * Reading/setting optional parsing features.
+ *)
+  xmlGetFeaturesList: function(var len: cint; var result: PAnsiChar): cint; EXTDECL;
+  xmlGetFeature: function(ctxt: xmlParserCtxtPtr; name: PAnsiChar; result: pointer): cint; EXTDECL;
+  xmlSetFeature: function(ctxt: xmlParserCtxtPtr; name: PAnsiChar; value: pointer): cint; EXTDECL;
+{$ENDIF} (* LIBXML_LEGACY_ENABLED *)
+
+{$IFDEF LIBXML_PUSH_ENABLED}
+(*
+ * Interfaces for the Push mode.
+ *)
+  xmlCreatePushParserCtxt: function(sax: xmlSAXHandlerPtr; user_data: pointer; chunk: PAnsiChar; size: cint; filename: PAnsiChar): xmlParserCtxtPtr; EXTDECL;
+  xmlParseChunk: function(ctxt: xmlParserCtxtPtr; chunk: PAnsiChar; size, terminate: cint): cint; EXTDECL;
+{$ENDIF} (* LIBXML_PUSH_ENABLED *)
+
+(*
+ * Special I/O mode.
+ *)
+  xmlCreateIOParserCtxt: function(sax: xmlSAXHandlerPtr; user_data: pointer; ioread: xmlInputReadCallback;
+    ioclose: xmlInputCloseCallback; ioctx: pointer; enc: xmlCharEncoding): xmlParserCtxtPtr; EXTDECL;
+  xmlNewIOInputStream: function(ctxt: xmlParserCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding): xmlParserInputPtr; EXTDECL;
+
+(*
+ * Node infos.
+ *)
+  xmlParserFindNodeInfo: function(ctxt: xmlParserCtxtPtr; node: xmlNodePtr): xmlParserNodeInfoPtr; EXTDECL;
+  xmlInitNodeInfoSeq: procedure(seq: xmlParserNodeInfoSeqPtr); EXTDECL;
+  xmlClearNodeInfoSeq: procedure(seq: xmlParserNodeInfoSeqPtr); EXTDECL;
+  xmlParserFindNodeInfoIndex: function(seq: xmlParserNodeInfoSeqPtr; node: xmlNodePtr): culong; EXTDECL;
+  xmlParserAddNodeInfo: procedure(ctxt: xmlParserCtxtPtr; info: xmlParserNodeInfoPtr); EXTDECL;
+
+(*
+ * External entities handling actually implemented in xmlIO.
+ *)
+  xmlSetExternalEntityLoader: procedure(f: xmlExternalEntityLoader); EXTDECL;
+  xmlGetExternalEntityLoader: function(): xmlExternalEntityLoader; EXTDECL;
+  xmlLoadExternalEntity: function(URL, ID: PAnsiChar; ctxt: xmlParserCtxtPtr): xmlParserInputPtr; EXTDECL;
+
+(*
+ * Index lookup, actually implemented in the encoding module
+ *)
+  xmlByteConsumed: function(ctxt: xmlParserCtxtPtr): culong; EXTDECL;
+
+(*
+ * New set of simpler/more flexible APIs
+ *)
+  xmlCtxtReset: procedure(ctxt: xmlParserCtxtPtr); EXTDECL;
+  xmlCtxtResetPush: function(ctxt: xmlParserCtxtPtr; chunk: PAnsiChar; size: cint; filename, encoding: PAnsiChar): cint; EXTDECL;
+  xmlCtxtUseOptions: function(ctxt: xmlParserCtxtPtr; options: cint): cint; EXTDECL;
+  xmlReadDoc: function(cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlReadFile: function(filename, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlReadMemory: function(buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlReadFd: function(fd: cint; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlReadIO: function(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlCtxtReadDoc: function(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlCtxtReadFile: function(ctxt: xmlParserCtxtPtr; filename, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlCtxtReadMemory: function(ctxt: xmlParserCtxtPtr; buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlCtxtReadFd: function(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+  xmlCtxtReadIO: function(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: PAnsiChar; URL, encoding: PAnsiChar; options: cint): xmlDocPtr; EXTDECL;
+
+(*
+ * Library wide options
+ *)
+(**
+ * xmlFeature:
+ *
+ * Used to examine the existance of features that can be enabled
+ * or disabled at compile-time.
+ * They used to be called XML_FEATURE_xxx but this clashed with Expat
+ *)
+  xmlHasFeature: function(feature: xmlFeature): cint; EXTDECL;
 {$ENDIF}
 

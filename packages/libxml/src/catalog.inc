@@ -29,7 +29,7 @@
  *
  * The specific XML Catalog Processing Instuction name.
  *)
-  XML_CATALOG_PI: xmlCharPtr = 'urn:oasis:names:tc:entity:xmlns:xml:catalog';
+  XML_CATALOG_PI: xmlCharPtr = 'oasis-xml-catalog';
 {$ENDIF}
 
 {$IFDEF POINTER}
@@ -63,7 +63,8 @@
 function xmlNewCatalog(sgml: cint): xmlCatalogPtr; EXTDECL; external xml2lib;
 function xmlLoadACatalog(filename: PAnsiChar): xmlCatalogPtr; EXTDECL; external xml2lib;
 function xmlLoadSGMLSuperCatalog(filename: PAnsiChar): xmlCatalogPtr; EXTDECL; external xml2lib;
-function xmlLoadACatalog(catal: xmlCatalogPtr): cint; EXTDECL; external xml2lib;
+function xmlConvertSGMLCatalog(catal: xmlCatalogPtr): cint; EXTDECL; external xml2lib;
+//function xmlLoadACatalog(catal: xmlCatalogPtr): cint; EXTDECL; external xml2lib;
 function xmlACatalogAdd(catal: xmlCatalogPtr; _type, orig, replace: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlACatalogRemove(catal: xmlCatalogPtr; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlACatalogResolve(catal: xmlCatalogPtr; pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
@@ -112,4 +113,62 @@ function xmlCatalogSetDefaultPrefer(prefer: xmlCatalogPrefer): cint; EXTDECL; ex
 procedure xmlCatalogSetDefaults(allow: xmlCatalogAllow); EXTDECL; external xml2lib;
 function xmlCatalogGetDefaults: xmlCatalogAllow; EXTDECL; external xml2lib;
 {$ENDIF}
+{$IFDEF FUNCTIONVAR}
+(*
+ * Operations on a given catalog.
+ *)
+  xmlNewCatalog: function(sgml: cint): xmlCatalogPtr; EXTDECL;
+  xmlLoadACatalog: function(filename: PAnsiChar): xmlCatalogPtr; EXTDECL;
+  xmlLoadSGMLSuperCatalog: function(filename: PAnsiChar): xmlCatalogPtr; EXTDECL;
+  xmlConvertSGMLCatalog: function(catal: xmlCatalogPtr): cint; EXTDECL;
+  //xmlLoadACatalog: function(catal: xmlCatalogPtr): cint; EXTDECL;
+  xmlACatalogAdd: function(catal: xmlCatalogPtr; _type, orig, replace: xmlCharPtr): cint; EXTDECL;
+  xmlACatalogRemove: function(catal: xmlCatalogPtr; value: xmlCharPtr): cint; EXTDECL;
+  xmlACatalogResolve: function(catal: xmlCatalogPtr; pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlACatalogResolveSystem: function(catal: xmlCatalogPtr; sysID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlACatalogResolvePublic: function(catal: xmlCatalogPtr; pubID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlACatalogResolveURI: function(catal: xmlCatalogPtr; URI: xmlCharPtr): xmlCharPtr; EXTDECL;
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+  xmlACatalogDump: procedure(catal: xmlCatalogPtr; _out: PFILE); EXTDECL;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+  xmlFreeCatalog: procedure(catal: xmlCatalogPtr); EXTDECL;
+  xmlCatalogIsEmpty: function(catal: xmlCatalogPtr): cint; EXTDECL;
+
+(*
+ * Global operations.
+ *)
+  xmlInitializeCatalog: procedure; EXTDECL;
+  xmlLoadCatalog: function(filename: PAnsiChar): cint; EXTDECL;
+  xmlLoadCatalogs: function(paths: PAnsiChar): cint; EXTDECL;
+  xmlCatalogCleanup: procedure; EXTDECL;
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+  xmlCatalogDump: procedure(_out: PFILE); EXTDECL;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+  xmlCatalogResolve: function(pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlCatalogResolveSystem: function(sysID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlCatalogResolvePublic: function (pubID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlCatalogResolveURI: function(URI: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlCatalogAdd: function(_type, orig, replace: xmlCharPtr): cint; EXTDECL;
+  xmlCatalogRemove: function(value: xmlCharPtr): cint; EXTDECL;
+  xmlParseCatalogFile: function(filename: PAnsiChar): xmlDocPtr; EXTDECL;
+  xmlCatalogConvert: function: cint; EXTDECL;
+
+(*
+ * Strictly minimal interfaces for per-document catalogs used
+ * by the parser.
+ *)
+  xmlCatalogFreeLocal: procedure(catalogs: pointer); EXTDECL;
+  xmlCatalogAddLocal: function(catalogs: pointer; URL: xmlCharPtr): pointer; EXTDECL;
+  xmlCatalogLocalResolve: function(catalogs: pointer; pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlCatalogLocalResolveURI: function(catalogs: pointer; URI: xmlCharPtr): xmlCharPtr; EXTDECL;
+
+(*
+ * Preference settings.
+ *)
+  xmlCatalogSetDebug: function(level: cint): cint; EXTDECL;
+  xmlCatalogSetDefaultPrefer: function(prefer: xmlCatalogPrefer): cint; EXTDECL;
+  xmlCatalogSetDefaults: procedure(allow: xmlCatalogAllow); EXTDECL;
+  xmlCatalogGetDefaults: function: xmlCatalogAllow; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_CATALOG_ENABLED *)

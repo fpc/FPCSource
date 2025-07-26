@@ -227,6 +227,139 @@ procedure xmlTextReaderSetStructuredErrorHandler(reader: xmlTextReaderPtr; f: xm
 procedure xmlTextReaderGetErrorHandler(reader: xmlTextReaderPtr; var f: xmlTextReaderErrorFunc; var arg: pointer); EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(*
+ * Constructors & Destructor
+ *)
+  xmlNewTextReader: function(input: xmlParserInputBufferPtr; URI: PAnsiChar): xmlTextReaderPtr; EXTDECL;
+  xmlNewTextReaderFilename: function(URI: PAnsiChar): xmlTextReaderPtr; EXTDECL;
+  xmlFreeTextReader: procedure(reader: xmlTextReaderPtr); EXTDECL;
+  xmlTextReaderSetup: function(reader: xmlTextReaderPtr; input: xmlParserInputBufferPtr; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL;
+
+(*
+ * Iterators
+ *)
+  xmlTextReaderRead: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+{$IFDEF LIBXML_WRITER_ENABLED}
+  xmlTextReaderReadInnerXml: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderReadOuterXml: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+{$ENDIF}
+  xmlTextReaderReadString: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderReadAttributeValue: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+
+(*
+ * Attributes of the node
+ *)
+  xmlTextReaderAttributeCount: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderDepth: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderHasAttributes: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderHasValue: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderIsDefault: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderIsEmptyElement: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderNodeType: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderQuoteChar: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderReadState: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderIsNamespaceDecl: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+
+  xmlTextReaderConstBaseUri: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstLocalName: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstName: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstNamespaceUri: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstPrefix: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstXmlLang: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstString: function(reader: xmlTextReaderPtr; str: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderConstValue: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+
+(*
+ * use the Const version of the routine for
+ * better performance and simpler code
+ *)
+  xmlTextReaderBaseUri: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderLocalName: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderName: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderNamespaceUri: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderPrefix: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderXmlLang: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderValue: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+
+(*
+ * Methods of the XmlTextReader
+ *)
+  xmlTextReaderClose: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderGetAttributeNo: function(reader: xmlTextReaderPtr; no: cint): xmlCharPtr; EXTDECL;
+  xmlTextReaderGetAttribute: function(reader: xmlTextReaderPtr; name: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderGetAttributeNs: function(reader: xmlTextReaderPtr; localName, namespaceURI: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderGetRemainder: function(reader: xmlTextReaderPtr): xmlParserInputBufferPtr; EXTDECL;
+  xmlTextReaderLookupNamespace: function(reader: xmlTextReaderPtr; prefix: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderMoveToAttributeNo: function(reader: xmlTextReaderPtr; no: cint): cint; EXTDECL;
+  xmlTextReaderMoveToAttribute: function(reader: xmlTextReaderPtr; name: xmlCharPtr): cint; EXTDECL;
+  xmlTextReaderMoveToAttributeNs: function(reader: xmlTextReaderPtr; localName, namespaceURI: xmlCharPtr): cint; EXTDECL;
+  xmlTextReaderMoveToFirstAttribute: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderMoveToNextAttribute: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderMoveToElement: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderNormalization: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderConstEncoding: function (reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+
+(*
+ * Extensions
+ *)
+  xmlTextReaderSetParserProp: function(reader: xmlTextReaderPtr; prop, value: cint): cint; EXTDECL;
+  xmlTextReaderGetParserProp: function(reader: xmlTextReaderPtr; prop: cint): cint; EXTDECL;
+  xmlTextReaderCurrentNode: function(reader: xmlTextReaderPtr): xmlNodePtr; EXTDECL;
+  xmlTextReaderGetParserLineNumber: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderGetParserColumnNumber: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderPreserve: function(reader: xmlTextReaderPtr): xmlNodePtr; EXTDECL;
+{$IFDEF LIBXML_PATTERN_ENABLED}
+  xmlTextReaderPreservePattern: function(reader: xmlTextReaderPtr; pattern: xmlCharPtr; namespaces: xmlCharPtrPtr): cint; EXTDECL;
+{$ENDIF} (* LIBXML_PATTERN_ENABLED *)
+  xmlTextReaderCurrentDoc: function(reader: xmlTextReaderPtr): xmlDocPtr; EXTDECL;
+  xmlTextReaderExpand: function(reader: xmlTextReaderPtr): xmlNodePtr; EXTDECL;
+  xmlTextReaderNext: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderNextSibling: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+  xmlTextReaderIsValid: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+{$IFDEF LIBXML_SCHEMAS_ENABLED}
+
+  xmlTextReaderRelaxNGValidate: function(reader: xmlTextReaderPtr; rng: PAnsiChar): cint; EXTDECL;
+  xmlTextReaderRelaxNGSetSchema: function(reader: xmlTextReaderPtr; schema: xmlRelaxNGPtr): cint; EXTDECL;
+  xmlTextReaderSchemaValidate: function(reader: xmlTextReaderPtr; xsd: PAnsiChar): cint; EXTDECL;
+  xmlTextReaderSchemaValidateCtxt: function(reader: xmlTextReaderPtr; ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; EXTDECL;
+  xmlTextReaderSetSchema: function(reader: xmlTextReaderPtr; schema: xmlSchemaPtr): cint; EXTDECL;
+{$ENDIF}
+  xmlTextReaderConstXmlVersion: function(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderStandalone: function(reader: xmlTextReaderPtr): cint; EXTDECL;
+
+(*
+ * Index lookup
+ *)
+  xmlTextReaderByteConsumed: function(reader: xmlTextReaderPtr): clong; EXTDECL;
+
+(*
+ * New more complete APIs for simpler creation and reuse of readers
+ *)
+  xmlReaderWalker: function(doc: xmlDocPtr): xmlTextReaderPtr; EXTDECL;
+  xmlReaderForDoc: function(cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL;
+  xmlReaderForFile: function(filename, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL;
+  xmlReaderForMemory: function(buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL;
+  xmlReaderForFd: function(fd: cint; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL;
+  xmlReaderForIO: function(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): xmlTextReaderPtr; EXTDECL;
+
+  xmlReaderNewWalker: function(reader: xmlTextReaderPtr; doc: xmlDocPtr): cint; EXTDECL;
+  xmlReaderNewDoc: function(reader: xmlTextReaderPtr; cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL;
+  xmlReaderNewFile: function(reader: xmlTextReaderPtr; filename, encoding: PAnsiChar; options: cint): cint; EXTDECL;
+  xmlReaderNewMemory: function(reader: xmlTextReaderPtr; buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL;
+  xmlReaderNewFd: function(reader: xmlTextReaderPtr; fd: cint; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL;
+  xmlReaderNewIO: function(reader: xmlTextReaderPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): cint; EXTDECL;
+
+(*
+ * Error handling extensions
+ *)
+  xmlTextReaderLocatorLineNumber: function(locator: xmlTextReaderLocatorPtr): cint; EXTDECL;
+  xmlTextReaderLocatorBaseURI: function(locator: xmlTextReaderLocatorPtr): xmlCharPtr; EXTDECL;
+  xmlTextReaderSetErrorHandler: procedure(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); EXTDECL;
+  xmlTextReaderSetStructuredErrorHandler: procedure(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); EXTDECL;
+  xmlTextReaderGetErrorHandler: procedure(reader: xmlTextReaderPtr; var f: xmlTextReaderErrorFunc; var arg: pointer); EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_READER_ENABLED *)
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)
 

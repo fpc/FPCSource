@@ -62,4 +62,24 @@ function xmlStreamPop(stream: xmlStreamCtxtPtr): cint; EXTDECL; external xml2lib
 function xmlStreamWantsAnyNode(stream: xmlStreamCtxtPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+  xmlFreePattern: procedure(comp: xmlPatternPtr); EXTDECL;
+  xmlFreePatternList: procedure(comp: xmlPatternPtr); EXTDECL;
+  xmlPatterncompile: function(pattern: xmlCharPtr; dict: xmlDictPtr; flags: cint; namespaces: xmlCharPtrPtr): xmlPatternPtr; EXTDECL;
+  xmlPatternMatch: function(comp: xmlPatternPtr; node: xmlNodePtr): cint; EXTDECL;
+
+(* streaming interfaces *)
+  xmlPatternStreamable: function(comp: xmlPatternPtr): cint; EXTDECL;
+  xmlPatternMaxDepth: function(comp: xmlPatternPtr): cint; EXTDECL;
+  xmlPatternMinDepth: function(comp: xmlPatternPtr): cint; EXTDECL;
+  xmlPatternFromRoot: function(comp: xmlPatternPtr): cint; EXTDECL;
+  xmlPatternGetStreamCtxt: function(comp: xmlPatternPtr): xmlStreamCtxtPtr; EXTDECL;
+  xmlFreeStreamCtxt: procedure(stream: xmlStreamCtxtPtr); EXTDECL;
+  xmlStreamPushNode: function(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr; nodeType: cint): cint; EXTDECL;
+  xmlStreamPush: function(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; EXTDECL;
+  xmlStreamPushAttr: function(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; EXTDECL;
+  xmlStreamPop: function(stream: xmlStreamCtxtPtr): cint; EXTDECL;
+  xmlStreamWantsAnyNode: function(stream: xmlStreamCtxtPtr): cint; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_PATTERN_ENABLED *)

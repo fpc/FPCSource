@@ -77,13 +77,57 @@ function xmlNanoFTPCheckResponse(ctx: pointer): cint; EXTDECL; external xml2lib;
  * CD/DIR/GET handlers.
  *)
 function xmlNanoFTPCwd(ctx: pointer; directory: PAnsiChar): cint; EXTDECL; external xml2lib;
-function xmlNanoFTPGetResponse(ctx: pointer; _file: PAnsiChar): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPDele(ctx: pointer; _file: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlNanoFTPGetConnection(ctx: pointer): cint; EXTDECL; external xml2lib;
 function xmlNanoFTPCloseConnection(ctx: pointer): cint; EXTDECL; external xml2lib;
 function xmlNanoFTPList(ctx: pointer; callback: ftpListCallback; userData: pointer; filename: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlNanoFTPGetSocket(ctx: pointer; filename: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlNanoFTPGet(ctx: pointer; callback: ftpDataCallback; userData: pointer; filename: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlNanoFTPRead(ctx: pointer; dest: pointer; len: cint): cint; EXTDECL; external xml2lib;
+
+{$ENDIF}
+{$IFDEF FUNCTIONVAR}
+(*
+ * Init
+ *)
+  xmlNanoFTPInit: procedure; EXTDECL;
+  xmlNanoFTPCleanup: procedure; EXTDECL;
+
+(*
+ * Creating/freeing contexts.
+ *)
+  xmlNanoFTPNewCtxt: function(URL: PAnsiChar): pointer; EXTDECL;
+  xmlNanoFTPFreeCtxt: procedure(ctx: pointer); EXTDECL;
+  xmlNanoFTPConnectTo: function(server: PAnsiChar; port: cint): pointer; EXTDECL;
+
+(*
+ * Opening/closing session connections.
+ *)
+  xmlNanoFTPOpen: function(URL: PAnsiChar): pointer; EXTDECL;
+  xmlNanoFTPConnect: function(ctx: pointer): cint; EXTDECL;
+  xmlNanoFTPClose: function(ctx: pointer): cint; EXTDECL;
+  xmlNanoFTPQuit: function(ctx: pointer): cint; EXTDECL;
+  xmlNanoFTPScanProxy: procedure(URL: PAnsiChar); EXTDECL;
+  xmlNanoFTPProxy: procedure(host: PAnsiChar; port: cint; user, passwd: PAnsiChar; _type: cint); EXTDECL;
+  xmlNanoFTPUpdateURL: function(ctx: pointer; URL: PAnsiChar): cint; EXTDECL;
+
+(*
+ * Rather internal commands.
+ *)
+  xmlNanoFTPGetResponse: function(ctx: pointer): cint; EXTDECL;
+  xmlNanoFTPCheckResponse: function(ctx: pointer): cint; EXTDECL;
+
+(*
+ * CD/DIR/GET handlers.
+ *)
+  xmlNanoFTPCwd: function(ctx: pointer; directory: PAnsiChar): cint; EXTDECL;
+  xmlNanoFTPDele: function(ctx: pointer; _file: PAnsiChar): cint; EXTDECL;
+  xmlNanoFTPGetConnection: function(ctx: pointer): cint; EXTDECL;
+  xmlNanoFTPCloseConnection: function(ctx: pointer): cint; EXTDECL;
+  xmlNanoFTPList: function(ctx: pointer; callback: ftpListCallback; userData: pointer; filename: PAnsiChar): cint; EXTDECL;
+  xmlNanoFTPGetSocket: function(ctx: pointer; filename: PAnsiChar): cint; EXTDECL;
+  xmlNanoFTPGet: function(ctx: pointer; callback: ftpDataCallback; userData: pointer; filename: PAnsiChar): cint; EXTDECL;
+  xmlNanoFTPRead: function(ctx: pointer; dest: pointer; len: cint): cint; EXTDECL;
 
 {$ENDIF}
 {$ENDIF} (* LIBXML_FTP_ENABLED *)

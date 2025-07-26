@@ -163,3 +163,42 @@ function UTF8Toisolat1(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pc
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 function isolat1ToUTF8(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; EXTDECL; external xml2lib;
 {$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * Interfaces for encoding handlers.
+ *)
+  xmlInitCharEncodingHandlers: procedure; EXTDECL;
+  xmlCleanupCharEncodingHandlers: procedure; EXTDECL;
+  xmlRegisterCharEncodingHandler: procedure(handler: xmlCharEncodingHandlerPtr); EXTDECL;
+  xmlGetCharEncodingHandler: function(enc: xmlCharEncoding): xmlCharEncodingHandlerPtr; EXTDECL;
+  xmlFindCharEncodingHandler: function(name: PAnsiChar): xmlCharEncodingHandlerPtr; EXTDECL;
+  xmlNewCharEncodingHandler: function(name: PAnsiChar; input: xmlCharEncodingInputFunc; output: xmlCharEncodingOutputFunc): xmlCharEncodingHandlerPtr; EXTDECL;
+
+(*
+ * Interfaces for encoding names and aliases.
+ *)
+  xmlAddEncodingAlias: function(name: PAnsiChar; alias: PAnsiChar): cint; EXTDECL;
+  xmlDelEncodingAlias: function(alias: PAnsiChar): cint; EXTDECL;
+  xmlGetEncodingAlias: function(alias: PAnsiChar): PAnsiChar; EXTDECL;
+  xmlCleanupEncodingAliases: procedure; EXTDECL;
+  xmlParseCharEncoding: function(name: PAnsiChar): xmlCharEncoding; EXTDECL;
+  xmlGetCharEncodingName: function(enc: xmlCharEncoding): PAnsiChar; EXTDECL;
+
+(*
+ * Interfaces directly used by the parsers.
+ *)
+  xmlDetectCharEncoding: function(_in: PAnsiChar; len: cint): xmlCharEncoding; EXTDECL;
+  xmlCharEncOutFunc: function(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; EXTDECL;
+  xmlCharEncInFunc: function(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; EXTDECL;
+  xmlCharEncFirstLine: function(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; EXTDECL;
+  xmlCharEncCloseFunc: function(handler: xmlCharEncodingHandlerPtr): cint; EXTDECL;
+
+(*
+ * Export a few useful functions
+ *)
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+  UTF8Toisolat1: function(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; EXTDECL;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+  isolat1ToUTF8: function(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; EXTDECL;
+{$ENDIF}

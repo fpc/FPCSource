@@ -27,6 +27,14 @@
   xmlDocPtr = ^xmlDoc;
   xmlDOMWrapCtxtPtr = ^xmlDOMWrapCtxt;
   xmlBufferAllocationSchemePtr = ^xmlBufferAllocationScheme;
+
+(**
+ * xmlBufPtr:
+ *
+ * A pointer to a buffer structure, the actual structure internals are not
+ * public
+ *)
+  xmlBufPtr = ^xmlBuf;
 {$ENDIF}
 
 (*
@@ -74,9 +82,12 @@
  * need or double it's allocated size each time it is found too small.
  *)
   xmlBufferAllocationScheme = (
-    XML_BUFFER_ALLOC_DOUBLEIT,
-    XML_BUFFER_ALLOC_EXACT,
-    XML_BUFFER_ALLOC_IMMUTABLE
+    XML_BUFFER_ALLOC_DOUBLEIT,	(* double each time one need to grow *)
+    XML_BUFFER_ALLOC_EXACT,	(* grow only to the minimal size *)
+    XML_BUFFER_ALLOC_IMMUTABLE, (* immutable buffer *)
+    XML_BUFFER_ALLOC_IO,	(* special allocation scheme used for I/O *)
+    XML_BUFFER_ALLOC_HYBRID,	(* exact up to a threshold, and doubleit thereafter *)
+    XML_BUFFER_ALLOC_BOUNDED	(* limit the upper size of the buffer *)
   );
 
 (**
@@ -85,10 +96,11 @@
  * A buffer structure.
  *)
   xmlBuffer = record
-    content : xmlCharPtr;   (* The buffer content UTF8 *)
-    use     : cuint;      (* The buffer size used *)
-    size    : cuint;      (* The buffer size *)
-    alloc   : xmlBufferAllocationScheme; (* The realloc method *)
+    content   : xmlCharPtr;                (* The buffer content UTF8 *)
+    use       : cuint;                     (* The buffer size used *)
+    size      : cuint;                     (* The buffer size *)
+    alloc     : xmlBufferAllocationScheme; (* The realloc method *)
+    contentIO : xmlCharPtr;                (* in IO mode we may have a different base *)
   end;
 
 (*
@@ -283,6 +295,15 @@
 {$ENDIF}
   end;
 
+
+(**
+ * xmlBuf:
+ *
+ * A buffer structure, new one, the actual structure internals are not public
+ *)
+
+ xmlBuf = record end;
+
 (**
  * XML_LOCAL_NAMESPACE:
  *
@@ -429,8 +450,8 @@ function XML_GET_CONTENT(n: pointer): xmlCharPtr;
  *
  * Macro to extract the line number of an element node.
  *)
-{#define XML_GET_LINE(n)						\
-    (xmlGetLineNo(n))}
+function XML_GET_LINE(n: Pointer): clong; inline;
+
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -549,7 +570,7 @@ function xmlValidateName(value: xmlCharPtr; space: cint): cint; EXTDECL; externa
 function xmlValidateNMToken(value: xmlCharPtr; space: cint): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
-function xmlValidateQName(ncname, prefix, memory: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlBuildQName(ncname, prefix, memory: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlSplitQName2(name: xmlCharPtr; var prefix: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 function xmlSplitQName3(name: xmlCharPtr; var prefix: xmlCharPtr; var len: cint): xmlCharPtr; EXTDECL; external xml2lib;
 
@@ -573,6 +594,7 @@ function xmlBufferShrink(buf: xmlBufferPtr; len: cuint): cint; EXTDECL; external
 function xmlBufferGrow(buf: xmlBufferPtr; len: cuint): cint; EXTDECL; external xml2lib;
 procedure xmlBufferEmpty(buf: xmlBufferPtr); EXTDECL; external xml2lib;
 function xmlBufferContent(buf: xmlBufferPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlBufferDetach(buf: xmlBufferPtr): xmlCharPtr; EXTDECL; external xml2lib;
 procedure xmlBufferSetAllocationScheme(buf: xmlBufferPtr; scheme: xmlBufferAllocationScheme); EXTDECL; external xml2lib;
 function xmlBufferLength(buf: xmlBufferPtr): cint; EXTDECL; external xml2lib;
 
@@ -685,7 +707,7 @@ procedure xmlSetListDoc(list: xmlNodePtr; doc: xmlDocPtr); EXTDECL; external xml
 function xmlSearchNs(doc: xmlDocPtr; node: xmlNodePtr; nameSpace: xmlCharPtr): xmlNsPtr; EXTDECL; external xml2lib;
 function xmlSearchNsByHref(doc: xmlDocPtr; node: xmlNodePtr; href: xmlCharPtr): xmlNsPtr; EXTDECL; external xml2lib;
 {$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_XPATH_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-function xmlGetNsList(doc: xmlDocPtr; node: xmlNodePtr): xmlNsPtr; EXTDECL; external xml2lib;
+function xmlGetNsList(doc: xmlDocPtr; node: xmlNodePtr): xmlNsPtrPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_XPATH_ENABLED) *)
 procedure xmlSetNs(node: xmlNodePtr; ns: xmlNsPtr); EXTDECL; external xml2lib;
 function xmlCopyNamespace(cur: xmlNsPtr): xmlNsPtr; EXTDECL; external xml2lib;
@@ -777,6 +799,7 @@ function xmlDocDump(f: PFILE; cur: xmlDocPtr): cint; EXTDECL; external xml2lib;
 function xmlElemDump(f: PFILE; doc: xmlDocPtr; cur: xmlNodePtr): cint; EXTDECL; external xml2lib;
 function xmlSaveFormatFile(filename: PAnsiChar; cur: xmlDocPtr; format: cint): cint; EXTDECL; external xml2lib;
 function xmlSaveFile(filename: PAnsiChar; cur: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlBufNodeDump(buf: xmlBufPtr; doc: xmlDocPtr; cur: xmlNodePtr; level: cint; format: cint): csize_t; EXTDECL; external xml2lib;
 function xmlNodeDump(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint): cint; EXTDECL; external xml2lib;
 function xmlSaveFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: PAnsiChar): cint; EXTDECL; external xml2lib;
 function xmlSaveFormatFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL; external xml2lib;
@@ -794,7 +817,7 @@ function xmlIsXHTML(systemID, publicID: xmlCharPtr): cint; EXTDECL; external xml
  * Compression.
  *)
 function xmlGetDocCompressMode(doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
-procedure xmlSetDocCompressMode(ctxt: xmlDOMWrapCtxtPtr; mode: cint); EXTDECL; external xml2lib;
+procedure xmlSetDocCompressMode(doc: xmlDocPtr; mode: cint); EXTDECL; external xml2lib;
 function xmlGetCompressMode: cint; EXTDECL; external xml2lib;
 procedure xmlSetCompressMode(mode: cint); EXTDECL; external xml2lib;
 
@@ -802,9 +825,308 @@ procedure xmlSetCompressMode(mode: cint); EXTDECL; external xml2lib;
 * DOM-wrapper helper functions.
 *)
 function xmlDOMWrapNewCtxt: xmlDOMWrapCtxtPtr; EXTDECL; external xml2lib;
-procedure xmlDOMWrapNewCtxt(ctxt: xmlDOMWrapCtxtPtr); EXTDECL; external xml2lib;
+procedure xmlDOMWrapFreeCtxt(ctxt: xmlDOMWrapCtxtPtr); EXTDECL; external xml2lib;
 function xmlDOMWrapReconcileNamespaces(ctxt: xmlDOMWrapCtxtPtr; elem: xmlNodePtr; options: cint): cint; EXTDECL; external xml2lib;
 function xmlDOMWrapAdoptNode(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; options: cint): cint; EXTDECL; external xml2lib;
 function xmlDOMWrapRemoveNode(ctxt: xmlDOMWrapCtxtPtr; doc: xmlDocPtr; node: xmlNodePtr; options: cint): cint; EXTDECL; external xml2lib;
 function xmlDOMWrapCloneNode(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; var clonedNode: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; deep, options: cint): cint; EXTDECL; external xml2lib;
+
+{$IFDEF LIBXML_TREE_ENABLED}
+function xmlChildElementCount(parent: xmlNodePtr): clong; EXTDECL; external xml2lib;
+function xmlNextElementSibling(node: xmlNodePtr): xmlNodePtr; EXTDECL; external xml2lib;
+function xmlFirstElementChild(parent: xmlNodePtr): xmlNodePtr; EXTDECL; external xml2lib;
+function xmlLastElementChild(parent: xmlNodePtr): xmlNodePtr; EXTDECL; external xml2lib;
+function xmlPreviousElementSibling(node: xmlNodePtr): xmlNodePtr; EXTDECL; external xml2lib;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * Variables.
+ *)
+(*
+ * Some helper functions
+ *)
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_XPATH_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED) or
+  defined(LIBXML_DEBUG_ENABLED) or defined (LIBXML_HTML_ENABLED) or defined(LIBXML_SAX1_ENABLED) or
+  defined(LIBXML_HTML_ENABLED) or defined(LIBXML_WRITER_ENABLED) or defined(LIBXML_DOCB_ENABLED)}
+  xmlValidateNCName: function(value: xmlCharPtr; space: cint): cint; EXTDECL;
+{$ENDIF}
+
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlValidateQName: function(value: xmlCharPtr; space: cint): cint; EXTDECL;
+  xmlValidateName: function(value: xmlCharPtr; space: cint): cint; EXTDECL;
+  xmlValidateNMToken: function(value: xmlCharPtr; space: cint): cint; EXTDECL;
+{$ENDIF}
+
+  xmlBuildQName: function(ncname, prefix, memory: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;
+  xmlSplitQName2: function(name: xmlCharPtr; var prefix: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlSplitQName3: function(name: xmlCharPtr; var prefix: xmlCharPtr; var len: cint): xmlCharPtr; EXTDECL;
+
+(*
+ * Handling Buffers.
+ *)
+  xmlSetBufferAllocationScheme: procedure(scheme: xmlBufferAllocationScheme); EXTDECL;
+  xmlGetBufferAllocationScheme: function: xmlBufferAllocationScheme; EXTDECL;
+
+  xmlBufferCreate: function: xmlBufferPtr; EXTDECL;
+  xmlBufferCreateSize: function(size: csize_t): xmlBufferPtr; EXTDECL;
+  xmlBufferCreateStatic: function(mem: pointer; size: csize_t): xmlBufferPtr; EXTDECL;
+  xmlBufferResize: function(buf: xmlBufferPtr; size: cuint): cint; EXTDECL;
+  xmlBufferFree: procedure(buf: xmlBufferPtr); EXTDECL;
+  xmlBufferDump: procedure(fp: PFILE; buf: xmlBufferPtr); EXTDECL;
+  xmlBufferAdd: function(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; EXTDECL;
+  xmlBufferAddHead: function(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; EXTDECL;
+  xmlBufferCat: function(buf: xmlBufferPtr; str: xmlCharPtr): cint; EXTDECL;
+  xmlBufferCCat: function(buf: xmlBufferPtr; str: PAnsiChar): cint; EXTDECL;
+  xmlBufferShrink: function(buf: xmlBufferPtr; len: cuint): cint; EXTDECL;
+  xmlBufferGrow: function(buf: xmlBufferPtr; len: cuint): cint; EXTDECL;
+  xmlBufferEmpty: procedure(buf: xmlBufferPtr); EXTDECL;
+  xmlBufferContent: function(buf: xmlBufferPtr): xmlCharPtr; EXTDECL;
+  xmlBufferDetach: function(buf: xmlBufferPtr): xmlCharPtr; EXTDECL;
+  xmlBufferSetAllocationScheme: procedure(buf: xmlBufferPtr; scheme: xmlBufferAllocationScheme); EXTDECL;
+  xmlBufferLength: function(buf: xmlBufferPtr): cint; EXTDECL;
+
+(*
+ * Creating/freeing new structures.
+ *)
+  xmlCreateIntSubset: function(doc: xmlDocPtr; name, ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; EXTDECL;
+  xmlNewDtd: function(doc: xmlDocPtr; name, ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; EXTDECL;
+  xmlGetIntSubset: function(doc: xmlDocPtr): xmlDtdPtr; EXTDECL;
+  xmlFreeDtd: procedure(cur: xmlDtdPtr); EXTDECL;
+{$IFDEF LIBXML_LEGACY_ENABLED}
+  xmlNewGlobalNs: function(doc: xmlDocPtr; href, prefix: xmlCharPtr): xmlNsPtr; EXTDECL;
+{$ENDIF} (* LIBXML_LEGACY_ENABLED *)
+  xmlNewNs: function(node: xmlNodePtr; href, prefix: xmlCharPtr): xmlNsPtr; EXTDECL;
+  xmlFreeNs: procedure(cur: xmlNsPtr); EXTDECL;
+  xmlFreeNsList: procedure(cur: xmlNsPtr); EXTDECL;
+  xmlNewDoc: function(version: xmlCharPtr): xmlDocPtr; EXTDECL;
+  xmlFreeDoc: procedure(cur: xmlDocPtr); EXTDECL;
+  xmlNewDocProp: function(doc: xmlDocPtr; name, value: xmlCharPtr): xmlAttrPtr; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_HTML_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlNewProp: function(node: xmlNodePtr; name, value: xmlCharPtr): xmlAttrPtr; EXTDECL;
+{$ENDIF}
+  xmlNewNsProp: function(node: xmlNodePtr; ns: xmlNsPtr; name, value: xmlCharPtr): xmlAttrPtr; EXTDECL;
+  xmlNewNsPropEatName: function(node: xmlNodePtr; ns: xmlNsPtr; name, value: xmlCharPtr): xmlAttrPtr; EXTDECL;
+  xmlFreePropList: procedure(cur: xmlAttrPtr); EXTDECL;
+  xmlFreeProp: procedure(cur: xmlAttrPtr); EXTDECL;
+  xmlCopyProp: function(target: xmlNodePtr; cur: xmlAttrPtr): xmlAttrPtr; EXTDECL;
+  xmlCopyPropList: function(target: xmlNodePtr; cur: xmlAttrPtr): xmlAttrPtr; EXTDECL;
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlCopyDtd: function(dtd: xmlDtdPtr): xmlDtdPtr; EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlCopyDoc: function(doc: xmlDocPtr; recursive: cint): xmlDocPtr; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) *)
+
+(*
+ * Creating new nodes.
+ *)
+  xmlNewDocNode: function(doc: xmlDocPtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewDocNodeEatName: function(doc: xmlDocPtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewNode: function(ns: xmlNsPtr; name: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewNodeEatName: function(ns: xmlNsPtr; name: xmlCharPtr): xmlNodePtr; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlNewChild: function(parent: xmlNodePtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+{$ENDIF}
+
+  xmlNewDocText: function(doc: xmlDocPtr; content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewText: function(content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewDocPI: function(doc: xmlDocPtr; name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewPI: function(name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewDocTextLen: function(doc: xmlDocPtr; content: xmlCharPtr; len: cint): xmlNodePtr; EXTDECL;
+  xmlNewTextLen: function(content: xmlCharPtr; len: cint): xmlNodePtr; EXTDECL;
+  xmlNewDocComment: function(doc: xmlDocPtr; content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewComment: function(content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewCDataBlock: function(doc: xmlDocPtr; content: xmlCharPtr; len: cint): xmlNodePtr; EXTDECL;
+  xmlNewCharRef: function(doc: xmlDocPtr; name: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewReference: function(doc: xmlDocPtr; name: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlCopyNode: function(node: xmlNodePtr; recursive: cint): xmlNodePtr; EXTDECL;
+  xmlDocCopyNode: function(node: xmlNodePtr; doc: xmlDocPtr; recursive: cint): xmlNodePtr; EXTDECL;
+  xmlDocCopyNodeList: function(doc: xmlDocPtr; node: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlCopyNodeList: function(node: xmlNodePtr): xmlNodePtr; EXTDECL;
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlNewTextChild: function(parent: xmlNodePtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewDocRawNode: function(doc: xmlDocPtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlNewDocFragment: function(doc: xmlDocPtr): xmlNodePtr; EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+
+(*
+ * Navigating.
+ *)
+  xmlGetLineNo: function(node: xmlNodePtr): clong; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_DEBUG_ENABLED)}
+  xmlGetNodePath: function(node: xmlNodePtr): xmlCharPtr; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_DEBUG_ENABLED) *)
+  xmlDocGetRootElement: function(doc: xmlDocPtr): xmlNodePtr; EXTDECL;
+  xmlGetLastChild: function(parent: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlNodeIsText: function(node: xmlNodePtr): cint; EXTDECL;
+  xmlIsBlankNode: function(node: xmlNodePtr): cint; EXTDECL;
+
+(*
+ * Changing the structure.
+ *)
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_WRITER_ENABLED)}
+  xmlDocSetRootElement: function(doc: xmlDocPtr; root: xmlNodePtr): xmlNodePtr; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_WRITER_ENABLED) *)
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlNodeSetName: procedure(cur: xmlNodePtr; name: xmlCharPtr); EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+  xmlAddChild: function (parent, cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlAddChildList: function(parent, cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_WRITER_ENABLED)}
+  xmlReplaceNode: function(old, cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_WRITER_ENABLED) *)
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_HTML_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlAddPrevSibling: function(cur, elem: xmlNodePtr): xmlNodePtr; EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED || LIBXML_HTML_ENABLED || LIBXML_SCHEMAS_ENABLED *)
+  xmlAddSibling: function(cur, elem: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlAddNextSibling: function(cur, elem: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlUnlinkNode: procedure(cur: xmlNodePtr); EXTDECL;
+  xmlTextMerge: function(first, second: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlTextConcat: function(node: xmlNodePtr; name: xmlCharPtr; len: cint): cint; EXTDECL;
+  xmlFreeNodeList: procedure(cur: xmlNodePtr); EXTDECL;
+  xmlFreeNode: procedure(cur: xmlNodePtr); EXTDECL;
+  xmlSetTreeDoc: procedure(tree: xmlNodePtr; doc: xmlDocPtr); EXTDECL;
+  xmlSetListDoc: procedure(list: xmlNodePtr; doc: xmlDocPtr); EXTDECL;
+
+(*
+ * Namespaces.
+ *)
+  xmlSearchNs: function(doc: xmlDocPtr; node: xmlNodePtr; nameSpace: xmlCharPtr): xmlNsPtr; EXTDECL;
+  xmlSearchNsByHref: function(doc: xmlDocPtr; node: xmlNodePtr; href: xmlCharPtr): xmlNsPtr; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_XPATH_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlGetNsList: function(doc: xmlDocPtr; node: xmlNodePtr): xmlNsPtrPtr; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_XPATH_ENABLED) *)
+  xmlSetNs: procedure(node: xmlNodePtr; ns: xmlNsPtr); EXTDECL;
+  xmlCopyNamespace: function(cur: xmlNsPtr): xmlNsPtr; EXTDECL;
+  xmlCopyNamespaceList: function (cur: xmlNsPtr): xmlNsPtr; EXTDECL;
+
+(*
+ * Changing the content.
+ *)
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_XINCLUDE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED) or defined(LIBXML_HTML_ENABLED)}
+  xmlSetProp: function(node: xmlNodePtr; name, value: xmlCharPtr): xmlAttrPtr; EXTDECL;
+  xmlSetNsProp: function(node: xmlNodePtr; ns: xmlNsPtr; name, value: xmlCharPtr): xmlAttrPtr; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_XINCLUDE_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) || defined(LIBXML_HTML_ENABLED) *)
+  xmlGetNoNsProp: function(node: xmlNodePtr; name: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlGetProp: function(node: xmlNodePtr; name: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlHasProp: function(node: xmlNodePtr; name: xmlCharPtr): xmlAttrPtr; EXTDECL;
+  xmlHasNsProp: function(node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlAttrPtr; EXTDECL;
+  xmlGetNsProp: function(node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlStringGetNodeList: function(doc: xmlDocPtr; value: xmlCharPtr): xmlNodePtr; EXTDECL;
+  xmlStringLenGetNodeList: function(doc: xmlDocPtr; value: xmlCharPtr; len: cint): xmlNodePtr; EXTDECL;
+  xmlNodeListGetString: function(doc: xmlDocPtr; list: xmlNodePtr; _inLine: cint): xmlCharPtr; EXTDECL;
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlNodeListGetRawString: function(doc: xmlDocPtr; list: xmlNodePtr; _inLine: cint): xmlCharPtr; EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+  xmlNodeSetContent: procedure(node: xmlNodePtr; content: xmlCharPtr); EXTDECL;
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlNodeSetContentLen: procedure(node: xmlNodePtr; content: xmlCharPtr; len: cint); EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+  xmlNodeAddContent: procedure(cur: xmlNodePtr; content: xmlCharPtr); EXTDECL;
+  xmlNodeAddContentLen: procedure(cur: xmlNodePtr; content: xmlCharPtr; len: cint); EXTDECL;
+  xmlNodeGetContent: function(cur: xmlNodePtr): xmlCharPtr; EXTDECL;
+  xmlNodeBufGetContent: function(buffer: xmlBufferPtr; cur: xmlNodePtr): cint; EXTDECL;
+  xmlNodeGetLang: function(cur: xmlNodePtr): xmlCharPtr; EXTDECL;
+  xmlNodeGetSpacePreserve: function(cur: xmlNodePtr): cint; EXTDECL;
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlNodeSetLang: procedure(cur: xmlNodePtr; lang: xmlCharPtr); EXTDECL;
+  xmlNodeSetSpacePreserve: procedure(cur: xmlNodePtr; val: cint); EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+  xmlNodeGetBase: function(doc: xmlDocPtr; cur: xmlNodePtr): xmlCharPtr; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_XINCLUDE_ENABLED)}
+  xmlNodeSetBase: procedure(cur: xmlNodePtr; uri: xmlCharPtr); EXTDECL;
+{$ENDIF}
+
+(*
+ * Removing content.
+ *)
+  xmlRemoveProp: function(cur: xmlAttrPtr): cint; EXTDECL;
+{$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
+  xmlUnsetNsProp: function(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr): cint; EXTDECL;
+  xmlUnsetProp: function(node: xmlNodePtr; name: xmlCharPtr): cint; EXTDECL;
+{$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) *)
+
+(*
+ * Internal, don't use.
+ *)
+{external xml2lib void EXTDECL
+		xmlBufferWriteCHAR	(xmlBufferPtr buf,
+					 xmlChar *string);
+external xml2lib void EXTDECL
+		xmlBufferWriteChar	(xmlBufferPtr buf,
+					 AnsiChar *string);
+external xml2lib void EXTDECL
+		xmlBufferWriteQuotedString(xmlBufferPtr buf,
+					 xmlChar *string);
+}
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+{external xml2lib void xmlAttrSerializeTxtContent(xmlBufferPtr buf,
+					 xmlDocPtr doc,
+					 xmlAttrPtr attr,
+					 xmlChar *string);}
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+
+{$IFDEF LIBXML_TREE_ENABLED}
+(*
+ * Namespace handling.
+ *)
+  xmlReconciliateNs: function(doc: xmlDocPtr; tree: xmlNodePtr): cint; EXTDECL;
+{$ENDIF}
+
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+(*
+ * Saving.
+ *)
+  xmlDocDumpFormatMemory: procedure(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint; format: cint); EXTDECL;
+  xmlDocDumpMemory: procedure(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint); EXTDECL;
+  xmlDocDumpMemoryEnc: procedure(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: PAnsiChar); EXTDECL;
+  xmlDocDumpFormatMemoryEnc: procedure(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: PAnsiChar; format: cint); EXTDECL;
+  xmlDocFormatDump: function(f: PFILE; cur: xmlDocPtr; format: cint): cint; EXTDECL;
+  xmlDocDump: function(f: PFILE; cur: xmlDocPtr): cint; EXTDECL;
+  xmlElemDump: function(f: PFILE; doc: xmlDocPtr; cur: xmlNodePtr): cint; EXTDECL;
+  xmlSaveFormatFile: function(filename: PAnsiChar; cur: xmlDocPtr; format: cint): cint; EXTDECL;
+  xmlSaveFile: function(filename: PAnsiChar; cur: xmlDocPtr): cint; EXTDECL;
+  xmlBufNodeDump: function(buf: xmlBufPtr; doc: xmlDocPtr; cur: xmlNodePtr; level: cint; format: cint): csize_t; EXTDECL;
+  xmlNodeDump: function(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint): cint; EXTDECL;
+  xmlSaveFileTo: function(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: PAnsiChar): cint; EXTDECL;
+  xmlSaveFormatFileTo: function(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL;
+  xmlNodeDumpOutput: procedure(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint; encoding: PAnsiChar); EXTDECL;
+  xmlSaveFormatFileEnc: function(filename: PAnsiChar; cur: xmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL;
+  xmlSaveFileEnc: function(filename: PAnsiChar; cur: xmlDocPtr; encoding: PAnsiChar): cint; EXTDECL;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+
+(*
+ * XHTML
+ *)
+  xmlIsXHTML: function(systemID, publicID: xmlCharPtr): cint; EXTDECL;
+
+(*
+ * Compression.
+ *)
+  xmlGetDocCompressMode: function(doc: xmlDocPtr): cint; EXTDECL;
+  xmlSetDocCompressMode: procedure(doc: xmlDocPtr; mode: cint); EXTDECL;
+  xmlGetCompressMode: function: cint; EXTDECL;
+  xmlSetCompressMode: procedure(mode: cint); EXTDECL;
+
+(*
+* DOM-wrapper helper functions.
+*)
+  xmlDOMWrapNewCtxt: function: xmlDOMWrapCtxtPtr; EXTDECL;
+  xmlDOMWrapFreeCtxt: procedure(ctxt: xmlDOMWrapCtxtPtr); EXTDECL;
+  xmlDOMWrapReconcileNamespaces: function(ctxt: xmlDOMWrapCtxtPtr; elem: xmlNodePtr; options: cint): cint; EXTDECL;
+  xmlDOMWrapAdoptNode: function(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; options: cint): cint; EXTDECL;
+  xmlDOMWrapRemoveNode: function(ctxt: xmlDOMWrapCtxtPtr; doc: xmlDocPtr; node: xmlNodePtr; options: cint): cint; EXTDECL;
+  xmlDOMWrapCloneNode: function(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; var clonedNode: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; deep, options: cint): cint; EXTDECL;
+
+{$IFDEF LIBXML_TREE_ENABLED}
+  xmlChildElementCount: function(parent: xmlNodePtr): clong; EXTDECL;
+  xmlNextElementSibling: function(node: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlFirstElementChild: function(parent: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlLastElementChild: function(parent: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlPreviousElementSibling: function(node: xmlNodePtr): xmlNodePtr; EXTDECL;
+{$ENDIF} (* LIBXML_TREE_ENABLED *)
+
 {$ENDIF}

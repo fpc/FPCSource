@@ -57,6 +57,31 @@ function xmlAutomataCompile(am: xmlAutomataPtr): xmlRegexpPtr; EXTDECL; external
 function xmlAutomataIsDeterminist(am: xmlAutomataPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(*
+ * Building API
+ *)
+  xmlNewAutomata: function: xmlAutomataPtr; EXTDECL;
+  xmlFreeAutomata: procedure(am: xmlAutomataPtr); EXTDECL;
+  xmlAutomataGetInitState: function(am: xmlAutomataPtr): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataSetFinalState: function(am: xmlAutomataPtr; state: xmlAutomataStatePtr): cint; EXTDECL;
+  xmlAutomataNewState: function(am: xmlAutomataPtr): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewTransition: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewTransition2: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewNegTrans: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewCountTrans: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewCountTrans2: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewOnceTrans: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewOnceTrans2: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewAllTrans: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; lax: cint): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewEpsilon: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewCountedTrans: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; counter: cint): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewCounterTrans: function(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; counter: cint): xmlAutomataStatePtr; EXTDECL;
+  xmlAutomataNewCounter: function(am: xmlAutomataPtr; min, max: cint): cint; EXTDECL;
+  xmlAutomataCompile: function(am: xmlAutomataPtr): xmlRegexpPtr; EXTDECL;
+  xmlAutomataIsDeterminist: function(am: xmlAutomataPtr): cint; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_AUTOMATA_ENABLED *)
 {$ENDIF} (* LIBXML_REGEXP_ENABLED *)
 

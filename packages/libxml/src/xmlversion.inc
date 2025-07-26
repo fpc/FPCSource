@@ -8,48 +8,60 @@
  *)
 
 
+{$IFDEF FUNCTION}
 (*
  * use those to be sure nothing nasty will happen if
  * your library and includes mismatch
  *)
 procedure xmlCheckVersion(version: cint); EXTDECL; external xml2lib;
+{$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(*
+ * use those to be sure nothing nasty will happen if
+ * your library and includes mismatch
+ *)
+  xmlCheckVersion: procedure (version: cint); EXTDECL;
+{$ENDIF}
+
+{$IFDEF CONST}
 (**
  * LIBXML_DOTTED_VERSION:
  *
  * the version string like "1.2.3"
  *)
-const
-  LIBXML_DOTTED_VERSION = '2.6.32';
+  LIBXML_DOTTED_VERSION = '2.9.1';
 
 (**
  * LIBXML_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  *)
-  LIBXML_VERSION = 20632;
+  LIBXML_VERSION = 20901;
 
 (**
  * LIBXML_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  *)
-  LIBXML_VERSION_STRING = '20632';
+  LIBXML_VERSION_STRING = '20901';
 
 (**
  * LIBXML_VERSION_EXTRA:
  *
  * extra version information, used to show a CVS compilation
  *)
-  LIBXML_VERSION_EXTRA = '-CVS2831';
+  LIBXML_VERSION_EXTRA = ''; //'-CVS2831';
+{$ENDIF}
 
+{$IFDEF MACRO}
 (**
  * LIBXML_TEST_VERSION:
  *
  * Macro to check that the libxml version in use is compatible with
  * the version the software has been compiled against
  *)
-procedure LIBXML_TEST_VERSION;
+procedure LIBXML_TEST_VERSION; inline;
 
 (**
  * LIBXML_THREAD_ENABLED:
@@ -62,6 +74,22 @@ procedure LIBXML_TEST_VERSION;
 #define LIBXML_THREAD_ENABLED
 #endif
 #endif}
+{$ENDIF}
+
+{$IFDEF DEFINES}
+(**
+ * LIBXML_THREAD_ENABLED:
+ *
+ * Whether the thread support is configured in
+ *)
+{$DEFINE LIBXML_THREAD_ENABLED}
+
+(**
+ * LIBXML_THREAD_ALLOC_ENABLED:
+ *
+ * Whether the allocation hooks are per-thread
+ *)
+{.$DEFINE LIBXML_THREAD_ALLOC_ENABLED}
 
 (**
  * LIBXML_TREE_ENABLED:
@@ -198,6 +226,13 @@ procedure LIBXML_TEST_VERSION;
 {$DEFINE LIBXML_ICONV_ENABLED}
 
 (**
+ * LIBXML_ICU_ENABLED:
+ *
+ * Whether icu support is available
+ *)
+{.$DEFINE LIBXML_ICU_ENABLED}
+
+(**
  * LIBXML_ISO8859X_ENABLED:
  *
  * Whether ISO-8859-* support is made available in case iconv is not
@@ -273,13 +308,6 @@ procedure LIBXML_TEST_VERSION;
  * Whether the module interfaces are compiled in
  *)
 {$DEFINE LIBXML_MODULES_ENABLED}
-(**
- * LIBXML_MODULE_EXTENSION:
- *
- * the string suffix used by dynamic modules (usually shared libraries)
- *)
-const
-  LIBXML_MODULE_EXTENSION = '.so';
 
 (**
  * LIBXML_ZLIB_ENABLED:
@@ -287,3 +315,25 @@ const
  * Whether the Zlib support is compiled in
  *)
 {$DEFINE LIBXML_ZLIB_ENABLED}
+
+(**
+ * LIBXML_LZMA_ENABLED:
+ *
+ * Whether the Lzma support is compiled in
+ *)
+{.$DEFINE LIBXML_LZMA_ENABLED}
+{$ENDIF DEFINES}
+
+{$IFDEF CONST}
+(**
+ * LIBXML_MODULE_EXTENSION:
+ *
+ * the string suffix used by dynamic modules (usually shared libraries)
+ *)
+  {$IFDEF WINDOWS}
+  LIBXML_MODULE_EXTENSION = '.dll';
+  {$ELSE}
+  LIBXML_MODULE_EXTENSION = '.so';
+  {$ENDIF}
+{$ENDIF}
+

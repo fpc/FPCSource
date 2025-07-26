@@ -61,6 +61,27 @@ function xmlRegExecNextValues(exec: xmlRegExecCtxtPtr; nbval, nbneg: pcint; valu
 function xmlRegExecErrInfo(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(*
+ * The POSIX like API
+ *)
+  xmlRegexpCompile: function(regexp: xmlCharPtr): xmlRegexpPtr; EXTDECL;
+  xmlRegFreeRegexp: procedure(regexp: xmlRegexpPtr); EXTDECL;
+  xmlRegexpExec: function(comp: xmlRegexpPtr; value: xmlCharPtr): cint; EXTDECL;
+  xmlRegexpPrint: procedure(output: PFILE; regexp: xmlRegexpPtr); EXTDECL;
+  xmlRegexpIsDeterminist: function(comp: xmlRegexpPtr): cint; EXTDECL;
+
+(*
+ * The progressive API
+ *)
+  xmlRegNewExecCtxt: function(comp: xmlRegexpPtr; callback: xmlRegExecCallbacks; data: pointer): xmlRegExecCtxtPtr; EXTDECL;
+  xmlRegFreeExecCtxt: procedure(exec: xmlRegExecCtxtPtr); EXTDECL;
+  xmlRegExecPushString: function(exec: xmlRegExecCtxtPtr; value: xmlCharPtr; data: pointer): cint; EXTDECL;
+  xmlRegExecPushString2: function(exec: xmlRegExecCtxtPtr; value, value2: xmlCharPtr; data: pointer): cint; EXTDECL;
+  xmlRegExecNextValues: function(exec: xmlRegExecCtxtPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; EXTDECL;
+  xmlRegExecErrInfo: function(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; EXTDECL;
+{$ENDIF}
+
 {$IFDEF LIBXML_EXPR_ENABLED}
 (*
  * Formal regular expression handling
@@ -85,20 +106,10 @@ function xmlRegExecErrInfo(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbva
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlRegFreeExecCtxt(ctxt: xmlExpCtxtPtr); EXTDECL; external xml2lib;
+procedure xmlExpFreeCtxt(ctxt: xmlExpCtxtPtr); EXTDECL; external xml2lib;
 function xmlExpNewCtxt(maxNodes: cint; dict: xmlDictPtr): xmlExpCtxtPtr; EXTDECL; external xml2lib;
 function xmlExpCtxtNbNodes(ctxt: xmlExpCtxtPtr): cint; EXTDECL; external xml2lib;
 function xmlExpCtxtNbCons(ctxt: xmlExpCtxtPtr): cint; EXTDECL; external xml2lib;
-
-(*
- * 2 core expressions shared by all for the empty language set
- * and for the set with just the empty token
- *)
-{$IFNDEF NO_EXTERNAL_VARS}
-var
-  forbiddenExp: xmlExpNodePtr; cvar; external;
-  emptyExp: xmlExpNodePtr; cvar; external;
-{$ENDIF}
 
 (*
  * Expressions are reference counted internally
@@ -127,5 +138,52 @@ function xmlExpExpDerive(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): xmlExpN
 function xmlExpSubsume(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): cint; EXTDECL; external xml2lib;
 procedure xmlExpDump(buf: xmlBufferPtr; expr: xmlExpNodePtr); EXTDECL; external xml2lib;
 {$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+  xmlExpFreeCtxt: procedure(ctxt: xmlExpCtxtPtr); EXTDECL;
+  xmlExpNewCtxt: function(maxNodes: cint; dict: xmlDictPtr): xmlExpCtxtPtr; EXTDECL;
+  xmlExpCtxtNbNodes: function(ctxt: xmlExpCtxtPtr): cint; EXTDECL;
+  xmlExpCtxtNbCons: function(ctxt: xmlExpCtxtPtr): cint; EXTDECL;
+
+(*
+ * Expressions are reference counted internally
+ *)
+  xmlExpFree: procedure(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr); EXTDECL;
+  xmlExpRef: procedure(expr: xmlExpNodePtr); EXTDECL;
+
+(*
+ * constructors can be either manual or from a string
+ *)
+  xmlExpParse: function(ctxt: xmlExpCtxtPtr; expr: PAnsiChar): xmlExpNodePtr; EXTDECL;
+  xmlExpNewAtom: function(ctxt: xmlExpCtxtPtr; name: xmlCharPtr; len: cint): xmlExpNodePtr; EXTDECL;
+  xmlExpNewOr: function(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; EXTDECL;
+  xmlExpNewSeq: function(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; EXTDECL;
+  xmlExpNewRange: function(ctxt: xmlExpCtxtPtr; subset: xmlExpNodePtr; min, max: cint): xmlExpNodePtr; EXTDECL;
+
+(*
+ * The really interesting APIs
+ *)
+  xmlExpIsNillable: function(expr: xmlExpNodePtr): cint; EXTDECL;
+  xmlExpMaxToken: function(expr: xmlExpNodePtr): cint; EXTDECL;
+  xmlExpGetLanguage: function(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; langList: xmlCharPtrPtr; len: cint): cint; EXTDECL;
+  xmlExpGetStart: function(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; tokList: xmlCharPtrPtr; len: cint): cint; EXTDECL;
+  xmlExpStringDerive: function(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; str: xmlCharPtr; len: cint): xmlExpNodePtr; EXTDECL;
+  xmlExpExpDerive: function(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): xmlExpNodePtr; EXTDECL;
+  xmlExpSubsume: function(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): cint; EXTDECL;
+  xmlExpDump: procedure(buf: xmlBufferPtr; expr: xmlExpNodePtr); EXTDECL;
+{$ENDIF}
+
+{$IFDEF EXTVAR}
+(*
+ * 2 core expressions shared by all for the empty language set
+ * and for the set with just the empty token
+ *)
+{$IFNDEF NO_EXTERNAL_VARS}
+var
+  forbiddenExp: xmlExpNodePtr; cvar; external;
+  emptyExp: xmlExpNodePtr; cvar; external;
+{$ENDIF}
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_EXPR_ENABLED *)
 {$ENDIF} (* LIBXML_REGEXP_ENABLED *)

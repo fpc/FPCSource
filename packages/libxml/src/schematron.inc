@@ -98,4 +98,59 @@ procedure xmlSchematronFreeValidCtxt(ctxt: xmlSchematronValidCtxtPtr); EXTDECL; 
 function xmlSchematronValidateDoc(ctxt: xmlSchematronValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL; external xml2lib;
 
 {$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * Interfaces for parsing.
+ *)
+  xmlSchematronNewParserCtxt: function(URL: PAnsiChar): xmlSchematronParserCtxtPtr; EXTDECL;
+  xmlSchematronNewMemParserCtxt: function(buffer: PAnsiChar; size: cint): xmlSchematronParserCtxtPtr; EXTDECL;
+  xmlSchematronNewDocParserCtxt: function(doc: xmlDocPtr): xmlSchematronParserCtxtPtr; EXTDECL;
+  xmlSchematronFreeParserCtxt: procedure(ctxt: xmlSchematronParserCtxtPtr); EXTDECL;
+(*****
+external xml2lib void EXTDECL
+	    xmlSchematronSetParserErrors(xmlSchematronParserCtxtPtr ctxt,
+					 xmlSchematronValidityErrorFunc err,
+					 xmlSchematronValidityWarningFunc warn,
+					 void *ctx);
+external xml2lib int EXTDECL
+		xmlSchematronGetParserErrors(xmlSchematronParserCtxtPtr ctxt,
+					xmlSchematronValidityErrorFunc * err,
+					xmlSchematronValidityWarningFunc * warn,
+					void **ctx);
+external xml2lib int EXTDECL
+		xmlSchematronIsValid	(xmlSchematronValidCtxtPtr ctxt);
+ *****)
+  xmlSchematronParse: function(ctxt: xmlSchematronParserCtxtPtr): xmlSchematronPtr; EXTDECL;
+  xmlSchematronFree: procedure(schema: xmlSchematronPtr); EXTDECL;
+
+(*
+ * Interfaces for validating
+ *)
+  xmlSchematronSetValidStructuredErrors: procedure(ctxt: xmlSchematronValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL;
+(******
+external xml2lib void EXTDECL
+	    xmlSchematronSetValidErrors	(xmlSchematronValidCtxtPtr ctxt,
+					 xmlSchematronValidityErrorFunc err,
+					 xmlSchematronValidityWarningFunc warn,
+					 void *ctx);
+external xml2lib int EXTDECL
+	    xmlSchematronGetValidErrors	(xmlSchematronValidCtxtPtr ctxt,
+					 xmlSchematronValidityErrorFunc *err,
+					 xmlSchematronValidityWarningFunc *warn,
+					 void **ctx);
+external xml2lib int EXTDECL
+	    xmlSchematronSetValidOptions(xmlSchematronValidCtxtPtr ctxt,
+					 int options);
+external xml2lib int EXTDECL
+	    xmlSchematronValidCtxtGetOptions(xmlSchematronValidCtxtPtr ctxt);
+external xml2lib int EXTDECL
+            xmlSchematronValidateOneElement (xmlSchematronValidCtxtPtr ctxt,
+			                 xmlNodePtr elem);
+ *******)
+  xmlSchematronNewValidCtxt: function(schema: xmlSchematronPtr; options: cint): xmlSchematronValidCtxtPtr; EXTDECL;
+  xmlSchematronFreeValidCtxt: procedure(ctxt: xmlSchematronValidCtxtPtr); EXTDECL;
+  xmlSchematronValidateDoc: function(ctxt: xmlSchematronValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL;
+
+{$ENDIF}
 {$ENDIF} (* LIBXML_SCHEMATRON_ENABLED *)

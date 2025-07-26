@@ -94,6 +94,21 @@
   xmlSchemaValidCtxt = record end;
 
   xmlSchemaSAXPlugStruct = record end;
+
+(**
+ * xmlSchemaValidityLocatorFunc:
+ * @ctx: user provided context
+ * @file: returned file information
+ * @line: returned line information
+ *
+ * A schemas validation locator, a callback called by the validator.
+ * This is used when file or node informations are not available
+ * to find out what file and line number are affected
+ *
+ * Returns: 0 in case of success and -1 in case of error
+ *)
+
+  xmlSchemaValidityLocatorFunc = function(ctx: pointer; const _file: PPAnsiChar; line: pculong): cint; cdecl;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
@@ -106,7 +121,7 @@ function xmlSchemaNewDocParserCtxt(doc: xmlDocPtr): xmlSchemaParserCtxtPtr; EXTD
 procedure xmlSchemaFreeParserCtxt(ctxt: xmlSchemaParserCtxtPtr); EXTDECL; external xml2lib;
 procedure xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
 procedure xmlSchemaSetParserStructuredErrors(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
-function xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlSchemaGetParserErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
 function xmlSchemaIsValid(ctxt: xmlSchemaValidCtxtPtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaParse(ctxt: xmlSchemaParserCtxtPtr): xmlSchemaPtr; EXTDECL; external xml2lib;
 procedure xmlSchemaFree(schema: xmlSchemaPtr); EXTDECL; external xml2lib;
@@ -117,23 +132,69 @@ procedure xmlSchemaDump(output: PFILE; schema: xmlSchemaPtr); EXTDECL; external 
 (*
  * Interfaces for validating
  *)
-procedure xmlSchemaSetValidErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
-procedure xmlSchemaSetValidStructuredErrors(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
+procedure xmlSchemaSetValidErrors(ctxt: xmlSchemaValidCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
+procedure xmlSchemaSetValidStructuredErrors(ctxt: xmlSchemaValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
 function xmlSchemaGetValidErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
 function xmlSchemaSetValidOptions(ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidCtxtGetOptions(ctxt: xmlSchemaValidCtxtPtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaNewValidCtxt(schema: xmlSchemaPtr): xmlSchemaValidCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchemaValidCtxtGetParserCtxt(ctxt: xmlSchemaValidCtxtPtr): xmlParserCtxtPtr; EXTDECL; external xml2lib;
 procedure xmlSchemaFreeValidCtxt(ctxt: xmlSchemaValidCtxtPtr); EXTDECL; external xml2lib;
-function xmlSchemaNewValidCtxt(ctxt: xmlSchemaValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateDoc(ctxt: xmlSchemaValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidateOneElement(ctxt: xmlSchemaValidCtxtPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidateStream(ctxt: xmlSchemaValidCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding; sax: xmlSAXHandlerPtr; user_data: pointer): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidateFile(ctxt: xmlSchemaValidCtxtPtr; filename: PAnsiChar; options: cint): cint; EXTDECL; external xml2lib;
+procedure xmlSchemaValidateSetFilename(vctxt: xmlSchemaValidCtxtPtr; const filename: PAnsiChar); EXTDECL; external xml2lib;
+procedure xmlSchemaValidateSetLocator(vctxt: xmlSchemaValidCtxtPtr; f: xmlSchemaValidityLocatorFunc; ctxt: Pointer); EXTDECL; external xml2lib;
 
 (*
  * Interface to insert Schemas SAX velidation in a SAX stream
  *)
 function xmlSchemaSAXPlug(ctxt: xmlSchemaValidCtxtPtr; var sax: xmlSchemaSAXPlugPtr; var user_data: pointer): xmlSchemaSAXPlugPtr; EXTDECL; external xml2lib;
 function xmlSchemaSAXUnplug(plug: xmlSchemaSAXPlugPtr): cint; EXTDECL; external xml2lib;
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * Interfaces for parsing.
+ *)
+  xmlSchemaNewParserCtxt: function(URL: PAnsiChar): xmlSchemaParserCtxtPtr; EXTDECL;
+  xmlSchemaNewMemParserCtxt: function(buffer: PAnsiChar; size: cint): xmlSchemaParserCtxtPtr; EXTDECL;
+  xmlSchemaNewDocParserCtxt: function(doc: xmlDocPtr): xmlSchemaParserCtxtPtr; EXTDECL;
+  xmlSchemaFreeParserCtxt: procedure(ctxt: xmlSchemaParserCtxtPtr); EXTDECL;
+  xmlSchemaSetParserErrors: procedure(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL;
+  xmlSchemaSetParserStructuredErrors: procedure(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL;
+  xmlSchemaGetParserErrors: function(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL;
+  xmlSchemaIsValid: function(ctxt: xmlSchemaValidCtxtPtr): cint; EXTDECL;
+  xmlSchemaParse: function(ctxt: xmlSchemaParserCtxtPtr): xmlSchemaPtr; EXTDECL;
+  xmlSchemaFree: procedure(schema: xmlSchemaPtr); EXTDECL;
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+  xmlSchemaDump: procedure(output: PFILE; schema: xmlSchemaPtr); EXTDECL;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+
+(*
+ * Interfaces for validating
+ *)
+  xmlSchemaSetValidErrors: procedure(ctxt: xmlSchemaValidCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL;
+  xmlSchemaSetValidStructuredErrors: procedure(ctxt: xmlSchemaValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL;
+  xmlSchemaGetValidErrors: function(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL;
+  xmlSchemaSetValidOptions: function(ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; EXTDECL;
+  xmlSchemaValidCtxtGetOptions: function(ctxt: xmlSchemaValidCtxtPtr): cint; EXTDECL;
+  xmlSchemaNewValidCtxt: function(schema: xmlSchemaPtr): xmlSchemaValidCtxtPtr; EXTDECL;
+  xmlSchemaValidCtxtGetParserCtxt: function(ctxt: xmlSchemaValidCtxtPtr): xmlParserCtxtPtr; EXTDECL;
+  xmlSchemaFreeValidCtxt: procedure(ctxt: xmlSchemaValidCtxtPtr); EXTDECL;
+  xmlSchemaValidateDoc: function(ctxt: xmlSchemaValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL;
+  xmlSchemaValidateOneElement: function(ctxt: xmlSchemaValidCtxtPtr; elem: xmlNodePtr): cint; EXTDECL;
+  xmlSchemaValidateStream: function(ctxt: xmlSchemaValidCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding; sax: xmlSAXHandlerPtr; user_data: pointer): cint; EXTDECL;
+  xmlSchemaValidateFile: function(ctxt: xmlSchemaValidCtxtPtr; filename: PAnsiChar; options: cint): cint; EXTDECL;
+  xmlSchemaValidateSetFilename: procedure(vctxt: xmlSchemaValidCtxtPtr; const filename: PAnsiChar); EXTDECL;
+  xmlSchemaValidateSetLocator: procedure(vctxt: xmlSchemaValidCtxtPtr; f: xmlSchemaValidityLocatorFunc; ctxt: Pointer); EXTDECL;
+
+(*
+ * Interface to insert Schemas SAX velidation in a SAX stream
+ *)
+  xmlSchemaSAXPlug: function(ctxt: xmlSchemaValidCtxtPtr; var sax: xmlSchemaSAXPlugPtr; var user_data: pointer): xmlSchemaSAXPlugPtr; EXTDECL;
+  xmlSchemaSAXUnplug: function(plug: xmlSchemaSAXPlugPtr): cint; EXTDECL;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)

@@ -66,3 +66,46 @@ function xmlUTF8Strlen(utf: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlUTF8Size(utf: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlUTF8Charcmp(utf1: xmlCharPtr; utf2: xmlCharPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(**
+ * BAD_CAST:
+ *
+ * Macro to cast a string to an xmlChar * when one know its safe.
+ *)
+//function BAD_CAST(str: string): xmlCharPtr; inline;
+
+(*
+ * xmlChar handling
+ *)
+  xmlStrdup: function(cur: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlStrndup: function(cur: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;
+  xmlCharStrndup: function(cur: PAnsiChar; len: cint): xmlCharPtr; EXTDECL;
+  xmlCharStrdup: function(cur: PAnsiChar): xmlCharPtr; EXTDECL;
+  xmlStrsub: function(str: xmlCharPtr; start: cint; len: cint): xmlCharPtr; EXTDECL;
+  xmlStrchr: function(str: xmlCharPtr; val: xmlChar): xmlCharPtr; EXTDECL;
+  xmlStrstr: function(str: xmlCharPtr; val: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlStrcasestr: function(str: xmlCharPtr; val: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlStrcmp: function(str1: xmlCharPtr; str2: xmlCharPtr): cint; EXTDECL;
+  xmlStrncmp: function(str1: xmlCharPtr; str2: xmlCharPtr; len: cint): cint; EXTDECL;
+  xmlStrcasecmp: function(str1: xmlCharPtr; str2: xmlCharPtr): cint; EXTDECL;
+  xmlStrncasecmp: function(str1: xmlCharPtr; str2: xmlCharPtr; len: cint): cint; EXTDECL;
+  xmlStrEqual: function(str1: xmlCharPtr; str2: xmlCharPtr): cint; EXTDECL;
+  xmlStrQEqual: function(pref: xmlCharPtr; name: xmlCharPtr; str: xmlCharPtr): cint; EXTDECL;
+  xmlStrlen: function(str: xmlCharPtr): cint; EXTDECL;
+  xmlStrcat: function(cur: xmlCharPtr; add: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlStrncat: function(cur: xmlCharPtr; add: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;
+  xmlStrncatNew: function(str1: xmlCharPtr; str2: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;
+  xmlStrPrintf: function(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; args: array of const): cint; cdecl;
+  xmlStrVPrintf: function(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; ap: va_list): cint; EXTDECL;
+  xmlGetUTF8Char: function(utf: PAnsiChar; len: pcint): cint; EXTDECL;
+  xmlCheckUTF8: function(utf: PAnsiChar): cint; EXTDECL;
+  xmlUTF8Strsize: function(utf: xmlCharPtr; len: cint): cint; EXTDECL;
+  xmlUTF8Strndup: function(utf: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL;
+  xmlUTF8Strpos: function(utf: xmlCharPtr; pos: cint): xmlCharPtr; EXTDECL;
+  xmlUTF8Strloc: function(utf: xmlCharPtr; utfchar: xmlCharPtr): cint; EXTDECL;
+  xmlUTF8Strsub: function(str: xmlCharPtr; start: cint; len: cint): xmlCharPtr; EXTDECL;
+  xmlUTF8Strlen: function(utf: xmlCharPtr): cint; EXTDECL;
+  xmlUTF8Size: function(utf: xmlCharPtr): cint; EXTDECL;
+  xmlUTF8Charcmp: function(utf1: xmlCharPtr; utf2: xmlCharPtr): cint; EXTDECL;
+{$ENDIF}

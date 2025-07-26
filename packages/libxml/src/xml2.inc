@@ -1,4 +1,6 @@
-{$i xmlversion.inc}
+{$DEFINE DEFINES}
+  {$i xmlversion.inc}
+{$UNDEF DEFINES}
 
 type
   PFILE = pointer;
@@ -108,6 +110,7 @@ type
 *)
 {$DEFINE CONST}
 const
+  {$i xmlversion.inc}
   {$i catalog.inc}
   {$i chvalid.inc}
   {$i dict.inc}
@@ -156,7 +159,13 @@ const
 (*
   include functions
 *)
+{$IFDEF LIBXML_DYN}
+{$DEFINE FUNCTIONVAR}
+var
+{$ELSE}
 {$DEFINE FUNCTION}
+{$ENDIF}
+  {$i xmlversion.inc}
   {$i catalog.inc}
   {$i chvalid.inc}
   {$i dict.inc}
@@ -200,5 +209,21 @@ const
   {$i xlink.inc}
   {$i xinclude.inc}
   {$i xpointer.inc}
+{$IFDEF LIBXML_DYN}
+{$UNDEF FUNCTIONVAR}
+{$ELSE}
 {$UNDEF FUNCTION}
+{$ENDIF}
 
+{$DEFINE MACRO}
+  {$i xmlversion.inc}
+  {$i xpath.inc}
+  {$i HTMLparser.inc}
+{$UNDEF MACRO}
+
+{$DEFINE EXTVAR}
+  {$i chvalid.inc}
+  {$i globals.inc}
+  {$i xmlregexp.inc}
+  {$i xpath.inc}
+{$UNDEF EXTVAR}

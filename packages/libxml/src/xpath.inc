@@ -59,7 +59,11 @@
     XPATH_UNDEF_PREFIX_ERROR,
     XPATH_ENCODING_ERROR,
     XPATH_INVALID_CHAR_ERROR,
-    XPATH_INVALID_CTXT
+    XPATH_INVALID_CTXT,
+    XPATH_STACK_ERROR,
+    XPATH_FORBID_VARIABLE_ERROR,
+    XPATH_OP_LIMIT_EXCEEDED,
+    XPATH_RECURSION_LIMIT_EXCEEDED
   );
 
 (*
@@ -323,6 +327,13 @@
 
     (* Cache for reusal of XPath objects *)
     cache               : pointer;
+
+    (* Resource limits *)
+    opLimit             : culong;
+    opCount             : culong;
+    depth               : cint;
+    maxDepth            : cint;
+    maxParserDepth      : cint;
   end;
 
 (*
@@ -351,6 +362,8 @@
     comp          : xmlXPathCompExprPtr;		(* the precompiled expression *)
     xptr          : cint;				(* it this an XPointer expression *)
     ancestor      : xmlNodePtr;	(* used for walking preceding axis *)
+
+    valueFrame    : cint;        (* used to limit Pop on the stack *)
   end;
 {$ENDIF}
 
@@ -360,51 +373,6 @@
  *			Public API					*
  *									*
  ************************************************************************)
-
-(**
- * Objects and Nodesets handling
- *)
-
-{$IFNDEF NO_EXTERNAL_VARS}
-var
-  xmlXPathNAN: cdouble; cvar; external;
-  xmlXPathPINF: cdouble; cvar; external;
-  xmlXPathNINF: cdouble; cvar; external;
-{$ENDIF}
-
-(* These macros may later turn into functions *)
-(**
- * xmlXPathNodeSetGetLength:
- * @ns:  a node-set
- *
- * Implement a functionality similar to the DOM NodeList.length.
- *
- * Returns the number of nodes in the node-set.
- *)
-function xmlXPathNodeSetGetLength(ns: xmlNodeSetPtr): cint;
-
-(**
- * xmlXPathNodeSetItem:
- * @ns:  a node-set
- * @index:  index of a node in the set
- *
- * Implements a functionality similar to the DOM NodeList.item().
- *
- * Returns the xmlNodePtr at the given @index in @ns or NULL if
- *         @index is out of range (0 to length-1)
- *)
-function xmlXPathNodeSetItem(ns: xmlNodeSetPtr; index: cint): xmlNodePtr;
-
-(**
- * xmlXPathNodeSetIsEmpty:
- * @ns: a node-set
- *
- * Checks whether @ns is empty or not.
- *
- * Returns %TRUE if @ns is an empty node-set.
- *)
-function xmlXPathNodeSetIsEmpty(ns: xmlNodeSetPtr): boolean;
-
 
 procedure xmlXPathFreeObject(obj: xmlXPathObjectPtr); EXTDECL; external xml2lib;
 function xmlXPathNodeSetCreate(val: xmlNodePtr): xmlNodeSetPtr; EXTDECL; external xml2lib;
@@ -448,6 +416,8 @@ function xmlXPathContextSetCache(ctxt: xmlXPathContextPtr; active, value, option
  * Evaluation functions.
  *)
 function xmlXPathOrderDocElems(doc: xmlDocPtr): clong; EXTDECL; external xml2lib;
+function xmlXPathSetContextNode(node: xmlNodePtr; ctx: xmlXPathContextPtr): cint; EXTDECL; external xml2lib;
+function xmlXPathNodeEval(node: xmlNodePtr; const str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathEval(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathEvalExpression(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 function xmlXPathEvalPredicate(ctxt: xmlXPathContextPtr; res: xmlXPathObjectPtr): cint; EXTDECL; external xml2lib;
@@ -461,12 +431,127 @@ function xmlXPathCompiledEval(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPt
 function xmlXPathCompiledEvalToBoolean(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): cint; EXTDECL; external xml2lib;
 procedure xmlXPathFreeCompExpr(comp: xmlXPathCompExprPtr); EXTDECL; external xml2lib;
 {$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(************************************************************************
+ *									*
+ *			Public API					*
+ *									*
+ ************************************************************************)
+
+  xmlXPathFreeObject: procedure(obj: xmlXPathObjectPtr); EXTDECL;
+  xmlXPathNodeSetCreate: function(val: xmlNodePtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathFreeNodeSetList: procedure(obj: xmlXPathObjectPtr); EXTDECL;
+  xmlXPathFreeNodeSet: procedure(obj: xmlNodeSetPtr); EXTDECL;
+  xmlXPathObjectCopy: function(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathCmpNodes: function(node1, node2: xmlNodePtr): cint; EXTDECL;
+
+(**
+ * Conversion functions to basic types.
+ *)
+  xmlXPathCastNumberToBoolean: function(val: cdouble): cint; EXTDECL;
+  xmlXPathCastStringToBoolean: function(val: xmlCharPtr): cint; EXTDECL;
+  xmlXPathCastNodeSetToBoolean: function(ns: xmlNodeSetPtr): cint; EXTDECL;
+  xmlXPathCastToBoolean: function(ns: xmlXPathObjectPtr): cint; EXTDECL;
+
+  xmlXPathCastBooleanToNumber: function(val: cint): cdouble; EXTDECL;
+  xmlXPathCastStringToNumber: function(val: xmlCharPtr): cdouble; EXTDECL;
+  xmlXPathCastNodeToNumber: function(val: xmlNodePtr): cdouble; EXTDECL;
+  xmlXPathCastNodeSetToNumber: function(val: xmlNodeSetPtr): cdouble; EXTDECL;
+  xmlXPathCastToNumber: function(val: xmlXPathObjectPtr): cdouble; EXTDECL;
+
+  xmlXPathCastBooleanToString: function(val: cint): xmlCharPtr; EXTDECL;
+  xmlXPathCastNumberToString: function(val: cdouble): xmlCharPtr; EXTDECL;
+  xmlXPathCastNodeToString: function(val: xmlNodePtr): xmlCharPtr; EXTDECL;
+  xmlXPathCastNodeSetToString: function(val: xmlNodeSetPtr): xmlCharPtr; EXTDECL;
+  xmlXPathCastToString: function(val: xmlXPathObjectPtr): xmlCharPtr; EXTDECL;
+
+  xmlXPathConvertBoolean: function(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathConvertNumber: function(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathConvertString: function(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL;
+
+(**
+ * Context handling.
+ *)
+  xmlXPathNewContext: function(doc: xmlDocPtr): xmlXPathContextPtr; EXTDECL;
+  xmlXPathFreeContext: procedure(ctxt: xmlXPathContextPtr); EXTDECL;
+  xmlXPathContextSetCache: function(ctxt: xmlXPathContextPtr; active, value, options: cint): cint; EXTDECL;
+
+(**
+ * Evaluation functions.
+ *)
+  xmlXPathOrderDocElems: function(doc: xmlDocPtr): clong; EXTDECL;
+  xmlXPathSetContextNode: function(node: xmlNodePtr; ctx: xmlXPathContextPtr): cint; EXTDECL;
+  xmlXPathNodeEval: function(node: xmlNodePtr; const str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathEval: function(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathEvalExpression: function(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathEvalPredicate: function(ctxt: xmlXPathContextPtr; res: xmlXPathObjectPtr): cint; EXTDECL;
+
+(**
+ * Separate compilation/evaluation entry points.
+ *)
+  xmlXPathCompile: function(str: xmlCharPtr): xmlXPathCompExprPtr; EXTDECL;
+  xmlXPathCtxtCompile: function(ctxt: xmlXPathContextPtr; str: xmlCharPtr): xmlXPathCompExprPtr; EXTDECL;
+  xmlXPathCompiledEval: function(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathCompiledEvalToBoolean: function(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): cint; EXTDECL;
+  xmlXPathFreeCompExpr: procedure(comp: xmlXPathCompExprPtr); EXTDECL;
+{$ENDIF}
+
+{$IFDEF EXTVAR}
+(**
+ * Objects and Nodesets handling
+ *)
+
+{$IFNDEF NO_EXTERNAL_VARS}
+var
+  xmlXPathNAN: cdouble; cvar; external;
+  xmlXPathPINF: cdouble; cvar; external;
+  xmlXPathNINF: cdouble; cvar; external;
+{$ENDIF}
+
+{$ENDIF}
+
+{$IFDEF MACRO}
+(* These macros may later turn into functions *)
+(**
+ * xmlXPathNodeSetGetLength:
+ * @ns:  a node-set
+ *
+ * Implement a functionality similar to the DOM NodeList.length.
+ *
+ * Returns the number of nodes in the node-set.
+ *)
+function xmlXPathNodeSetGetLength(ns: xmlNodeSetPtr): cint;
+
+(**
+ * xmlXPathNodeSetItem:
+ * @ns:  a node-set
+ * @index:  index of a node in the set
+ *
+ * Implements a functionality similar to the DOM NodeList.item().
+ *
+ * Returns the xmlNodePtr at the given @index in @ns or NULL if
+ *         @index is out of range (0 to length-1)
+ *)
+function xmlXPathNodeSetItem(ns: xmlNodeSetPtr; index: cint): xmlNodePtr;
+
+(**
+ * xmlXPathNodeSetIsEmpty:
+ * @ns: a node-set
+ *
+ * Checks whether @ns is empty or not.
+ *
+ * Returns %TRUE if @ns is an empty node-set.
+ *)
+function xmlXPathNodeSetIsEmpty(ns: xmlNodeSetPtr): boolean;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_XPATH_ENABLED *)
 
 {$if defined(LIBXML_XPATH_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-{$IFDEF FUNCTION}
-procedure xmlXPathInit; EXTDECL; external xml2lib;
-function xmlXPathIsNaN(val: cdouble): cint; EXTDECL; external xml2lib;
-function xmlXPathIsInf(val: cdouble): cint; EXTDECL; external xml2lib;
+{$IFDEF FUNCTIONVAR}
+  xmlXPathInit: procedure; EXTDECL;
+  xmlXPathIsNaN: function(val: cdouble): cint; EXTDECL;
+  xmlXPathIsInf: function(val: cdouble): cint; EXTDECL;
 {$ENDIF}
 {$ENDIF} (* LIBXML_XPATH_ENABLED or LIBXML_SCHEMAS_ENABLED*)

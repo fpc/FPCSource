@@ -53,3 +53,27 @@ function xmlGetGlobalState: xmlGlobalStatePtr; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+  xmlNewMutex: function: xmlMutexPtr; EXTDECL;
+  xmlMutexLock: procedure(tok: xmlMutexPtr); EXTDECL;
+  xmlMutexUnlock: procedure(tok: xmlMutexPtr); EXTDECL;
+  xmlFreeMutex: procedure(tok: xmlMutexPtr); EXTDECL;
+
+  xmlNewRMutex: function: xmlRMutexPtr; EXTDECL;
+  xmlRMutexLock: procedure(tok: xmlRMutexPtr); EXTDECL;
+  xmlRMutexUnlock: procedure(tok: xmlRMutexPtr); EXTDECL;
+  xmlFreeRMutex: procedure(tok: xmlRMutexPtr); EXTDECL;
+
+(*
+ * Library wide APIs.
+ *)
+  xmlInitThreads: procedure; EXTDECL;
+  xmlLockLibrary: procedure; EXTDECL;
+  xmlUnlockLibrary: procedure; EXTDECL;
+
+  xmlGetThreadId: function: cint; EXTDECL;
+  xmlIsMainThread: function: cint; EXTDECL;
+  xmlCleanupThreads: procedure; EXTDECL;
+  xmlGetGlobalState: function: xmlGlobalStatePtr; EXTDECL;
+{$ENDIF}

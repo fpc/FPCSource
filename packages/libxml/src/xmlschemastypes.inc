@@ -57,4 +57,42 @@ function xmlSchemaCopyValue(val: xmlSchemaValPtr): xmlSchemaValPtr; EXTDECL; ext
 function xmlSchemaGetValType(val: xmlSchemaValPtr): xmlSchemaValType; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+  xmlSchemaInitTypes: procedure; EXTDECL;
+  xmlSchemaCleanupTypes: procedure; EXTDECL;
+  xmlSchemaGetPredefinedType: function(name, ns: xmlCharPtr): xmlSchemaTypePtr; EXTDECL;
+  xmlSchemaValidatePredefinedType: function(_type: xmlSchemaTypePtr; value: xmlCharPtr; var val: xmlSchemaValPtr): cint; EXTDECL;
+  xmlSchemaValPredefTypeNode: function(_type: xmlSchemaTypePtr; value: xmlCharPtr; var val: xmlSchemaValPtr; node: xmlNodePtr): cint; EXTDECL;
+  xmlSchemaValidateFacet: function(base: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr): cint; EXTDECL;
+  xmlSchemaValidateFacetWhtsp: function(facet: xmlSchemaFacetPtr; fws: xmlSchemaWhitespaceValueType; valType: xmlSchemaValType;
+    value: xmlCharPtr; val: xmlSchemaValPtr; ws: xmlSchemaWhitespaceValueType): cint; EXTDECL;
+  xmlSchemaFreeValue: procedure(val: xmlSchemaValPtr); EXTDECL;
+  xmlSchemaNewFacet: function: xmlSchemaFacetPtr; EXTDECL;
+  xmlSchemaCheckFacet: function(facet: xmlSchemaFacetPtr; typeDecl: xmlSchemaTypePtr; ctxt: xmlSchemaParserCtxtPtr; name: xmlCharPtr): cint; EXTDECL;
+  xmlSchemaFreeFacet: procedure(facet: xmlSchemaFacetPtr); EXTDECL;
+  xmlSchemaCompareValues: function(x, y: xmlSchemaValPtr): cint; EXTDECL;
+  xmlSchemaGetBuiltInListSimpleTypeItemType: function(_type: xmlSchemaTypePtr): xmlSchemaTypePtr; EXTDECL;
+  xmlSchemaValidateListSimpleTypeFacet: function(facet: xmlSchemaFacetPtr; value: xmlCharPtr; actualLen: culong; expectedLen: pculong): cint; EXTDECL;
+  xmlSchemaGetBuiltInType: function(_type: xmlSchemaValType): xmlSchemaTypePtr; EXTDECL;
+  xmlSchemaIsBuiltInTypeFacet: function(_type: xmlSchemaTypePtr; faceType: cint): xmlSchemaTypePtr; EXTDECL;
+  xmlSchemaCollapseString: function(value: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlSchemaWhiteSpaceReplace: function(value: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlSchemaGetFacetValueAsULong: function(facet: xmlSchemaFacetPtr): culong; EXTDECL;
+  xmlSchemaValidateLengthFacet: function(_type: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong): cint; EXTDECL;
+  xmlSchemaValidateLengthFacetWhtsp: function(facet: xmlSchemaFacetPtr; valType: xmlSchemaValType; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong; ws: xmlSchemaWhitespaceValueType): cint; EXTDECL;
+  xmlSchemaValPredefTypeNodeNoNorm: function(_type: xmlSchemaTypePtr; value: xmlCharPtr; val: xmlSchemaValPtrPtr; node: xmlNodePtr): cint; EXTDECL;
+  xmlSchemaGetCanonValue: function(val: xmlSchemaValPtr; var retValue: xmlCharPtr): cint; EXTDECL;
+  xmlSchemaGetCanonValueWhtsp: function(val: xmlSchemaValPtr; var retValue: xmlCharPtr; ws: xmlSchemaWhitespaceValueType): cint; EXTDECL;
+  xmlSchemaValueAppend: function(prev, cur: xmlSchemaValPtr): cint; EXTDECL;
+  xmlSchemaValueGetNext: function(cur: xmlSchemaValPtr): xmlSchemaValPtr; EXTDECL;
+  xmlSchemaValueGetAsString: function(val: xmlSchemaValPtr): xmlCharPtr; EXTDECL;
+  xmlSchemaValueGetAsBoolean: function(val: xmlSchemaValPtr): cint; EXTDECL;
+  xmlSchemaNewStringValue: function(_type: xmlSchemaValType; value: xmlCharPtr): xmlSchemaValPtr; EXTDECL;
+  xmlSchemaNewNOTATIONValue: function(name, ns: xmlCharPtr): xmlSchemaValPtr; EXTDECL;
+  xmlSchemaNewQNameValue: function(namespaceName, localName: xmlCharPtr): xmlSchemaValPtr; EXTDECL;
+  xmlSchemaCompareValuesWhtsp: function(x: xmlSchemaValPtr; xws: xmlSchemaWhitespaceValueType; y: xmlSchemaValPtr; yws: xmlSchemaWhitespaceValueType): cint; EXTDECL;
+  xmlSchemaCopyValue: function(val: xmlSchemaValPtr): xmlSchemaValPtr; EXTDECL;
+  xmlSchemaGetValType: function(val: xmlSchemaValPtr): xmlSchemaValType; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)

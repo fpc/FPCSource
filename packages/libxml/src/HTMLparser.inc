@@ -111,6 +111,43 @@ function htmlParseChunk(ctxt: htmlParserCtxtPtr; chunk: PAnsiChar; size, termina
 procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(*
+ * There is only few public functions.
+ *)
+  htmlTagLookup: function(tag: xmlCharPtr): htmlElemDescPtr; EXTDECL;
+  htmlEntityLookup: function(tag: xmlCharPtr): htmlEntityDescPtr; EXTDECL;
+  htmlEntityValueLookup: function(value: cuint): htmlEntityDescPtr; EXTDECL;
+
+  htmlIsAutoClosed: function(doc: htmlDocPtr; elem: htmlNodePtr): cint; EXTDECL;
+  htmlAutoCloseTag: function(doc: htmlDocPtr; name: xmlCharPtr; elem: htmlNodePtr): cint; EXTDECL;
+  htmlParseEntityRef: function(ctxt: htmlParserCtxtPtr; str: xmlCharPtrPtr): htmlEntityDescPtr; EXTDECL;
+
+  htmlParseCharRef: function(ctxt: htmlParserCtxtPtr): cint; EXTDECL;
+  htmlParseElement: function(ctxt: htmlParserCtxtPtr): cint; EXTDECL;
+  htmlNewParserCtxt: function: htmlParserCtxtPtr; EXTDECL;
+  htmlCreateMemoryParserCtxt: function(buffer: PAnsiChar; size: cint): htmlParserCtxtPtr; EXTDECL;
+
+  htmlParseDocument: function(doc: htmlDocPtr; elem: htmlNodePtr): cint; EXTDECL;
+  htmlSAXParseDoc: function(cur: xmlCharPtr; encoding: PAnsiChar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL;
+  htmlParseDoc: function(cur: xmlCharPtr; encoding: PAnsiChar): htmlDocPtr; EXTDECL;
+  htmlSAXParseFile: function(filename, encoding: PAnsiChar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL;
+  htmlParseFile: function(filename, encoding: PAnsiChar): htmlDocPtr; EXTDECL;
+  UTF8ToHtml: function(_out: pointer; outlen: cint; _in: pointer; inlen: cint): cint; EXTDECL;
+  htmlEncodeEntities: function(_out: pointer; outlen: cint; _in: pointer; inlen, quoteChar: cint): cint; EXTDECL;
+  htmlIsScriptAttribute: function(name: xmlCharPtr): cint; EXTDECL;
+  htmlHandleOmittedElem: function(val: cint): cint; EXTDECL;
+
+{$IFDEF LIBXML_PUSH_ENABLED}
+(**
+ * Interfaces for the Push mode.
+ *)
+  htmlCreatePushParserCtxt: function(sax: htmlSAXHandlerPtr; userdata: pointer; chunk: PAnsiChar; size: cint; filename: PAnsiChar; enc: xmlCharEncoding): htmlParserCtxtPtr; EXTDECL;
+  htmlParseChunk: function(ctxt: htmlParserCtxtPtr; chunk: PAnsiChar; size, terminate: cint): htmlParserCtxtPtr; EXTDECL;
+{$ENDIF} (* LIBXML_PUSH_ENABLED *)
+  htmlFreeParserCtxt: procedure(ctxt: htmlParserCtxtPtr); EXTDECL;
+{$ENDIF}
+
 {$IFDEF TYPE}
   htmlParserOption = type cint;
 {$ENDIF}
@@ -124,18 +161,21 @@ procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib
  * This is the set of XML parser options that can be passed down
  * to the xmlReadDoc() and similar calls.
  *)
-  HTML_PARSE_RECOVER  = 1 shl 0; (* Relaxed parsing *)
-  HTML_PARSE_NOERROR	= 1 shl 5;	(* suppress error reports *)
-  HTML_PARSE_NOWARNING= 1 shl 6;	(* suppress warning reports *)
-  HTML_PARSE_PEDANTIC	= 1 shl 7;	(* pedantic error reporting *)
-  HTML_PARSE_NOBLANKS	= 1 shl 8;	(* remove blank nodes *)
-  HTML_PARSE_NONET	= 1 shl 11;(* Forbid network access *)
-  HTML_PARSE_COMPACT  = 1 shl 16; (* compact small text nodes *)
+  HTML_PARSE_RECOVER    = (1 shl 0); (* Relaxed parsing *)
+  HTML_PARSE_NODEFDTD   = (1 shl 2); (* do not default a doctype if not found *)
+  HTML_PARSE_NOERROR    = (1 shl 5); (* suppress error reports *)
+  HTML_PARSE_NOWARNING  = (1 shl 6); (* suppress warning reports *)
+  HTML_PARSE_PEDANTIC	= (1 shl 7); (* pedantic error reporting *)
+  HTML_PARSE_NOBLANKS	= (1 shl 8); (* remove blank nodes *)
+  HTML_PARSE_NONET	= (1 shl 11);(* Forbid network access *)
+  HTML_PARSE_NOIMPLIED  = (1 shl 13);(* Do not add implied html/body... elements *)
+  HTML_PARSE_COMPACT    = (1 shl 16);(* compact small text nodes *)
+  HTML_PARSE_IGNORE_ENC = (1 shl 21);(* ignore internal document encoding hint *)
 {$ENDIF}
 
 {$IFDEF FUNCTION}
 procedure htmlCtxtReset(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib;
-function htmlParseChunk(ctxt: htmlParserCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
+function htmlCtxtUseOptions(ctxt: htmlParserCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
 function htmlReadDoc(cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
 function htmlReadFile(URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
 function htmlReadMemory(buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
@@ -146,6 +186,21 @@ function htmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: PAnsiChar;
 function htmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
 function htmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
 function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+  htmlCtxtReset: procedure(ctxt: htmlParserCtxtPtr); EXTDECL;
+  htmlCtxtUseOptions: function(ctxt: htmlParserCtxtPtr; options: cint): cint; EXTDECL;
+  htmlReadDoc: function(cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlReadFile: function(URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlReadMemory: function(buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlReadFd: function(fd: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlReadIO: function(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlCtxtReadDoc: function(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlCtxtReadFile: function(ctxt: xmlParserCtxtPtr; filename, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlCtxtReadMemory: function(ctxt: xmlParserCtxtPtr; buffer: PAnsiChar; size: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlCtxtReadFd: function(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
+  htmlCtxtReadIO: function(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: PAnsiChar; options: cint): htmlDocPtr; EXTDECL;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -167,9 +222,21 @@ function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; io
 *)
 function htmlAttrAllowed(desc: htmlElemDescPtr; str: xmlCharPtr; val: cint): htmlStatus; EXTDECL; external xml2lib;
 function htmlElementAllowedHere(desc: htmlElemDescPtr; str: xmlCharPtr): cint; EXTDECL; external xml2lib;
-function htmlAttrAllowed(desc1, desc2: htmlElemDescPtr): htmlStatus; EXTDECL; external xml2lib;
+function htmlElementStatusHere(desc1, desc2: htmlElemDescPtr): htmlStatus; EXTDECL; external xml2lib;
 function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; EXTDECL; external xml2lib;
+{$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(* Using htmlElemDesc rather than name here, to emphasise the fact
+   that otherwise there's a lookup overhead
+*)
+  htmlAttrAllowed: function(desc: htmlElemDescPtr; str: xmlCharPtr; val: cint): htmlStatus; EXTDECL;
+  htmlElementAllowedHere: function(desc: htmlElemDescPtr; str: xmlCharPtr): cint; EXTDECL;
+  htmlElementStatusHere: function(desc1, desc2: htmlElemDescPtr): htmlStatus; EXTDECL;
+  htmlNodeStatus: function(node: htmlNodePtr; val: cint): htmlStatus; EXTDECL;
+{$ENDIF}
+
+{$IFDEF MACRO}
 (**
  * htmlDefaultSubelement:
  * @elt: HTML element

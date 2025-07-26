@@ -44,6 +44,18 @@
  *)
 
 {$IFDEF TYPE}
+(*
+ * xmlC14NMode:
+ *
+ * Predefined values for C14N modes
+ *
+ *)
+  xmlC14NMode = (
+    XML_C14N_1_0           = 0, { Original C14N 1.0 spec }
+    XML_C14N_EXCLUSIVE_1_0 = 1, { Exclusive C14N 1.0 spec }
+    XML_C14N_1_1           = 2  { C14N 1.1 spec }
+  );
+
 (**
  * This is the core C14N function
  *)
@@ -52,17 +64,31 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlC14NDocSaveTo(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+function xmlC14NDocSaveTo(doc: xmlDocPtr; nodes: xmlNodeSetPtr; mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
   with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
 
-function xmlC14NDocDumpMemory(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+function xmlC14NDocDumpMemory(doc: xmlDocPtr; nodes: xmlNodeSetPtr; mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
   with_comments: cint; doc_txt_ptr: xmlCharPtrPtr): cint; EXTDECL; external xml2lib;
 
-function xmlC14NDocSave(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+function xmlC14NDocSave(doc: xmlDocPtr; nodes: xmlNodeSetPtr; mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
   with_comments: cint; filename: PAnsiChar; compression: cint): cint; EXTDECL; external xml2lib;
 
 function xmlC14NExecute(doc: xmlDocPtr; is_visible_callback: xmlC14NIsVisibleCallback; user_data: pointer;
-  exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
+  mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+  xmlC14NDocSaveTo: function(doc: xmlDocPtr; nodes: xmlNodeSetPtr; mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+    with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL;
+
+  xmlC14NDocDumpMemory: function(doc: xmlDocPtr; nodes: xmlNodeSetPtr; mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+    with_comments: cint; doc_txt_ptr: xmlCharPtrPtr): cint; EXTDECL;
+
+  xmlC14NDocSave: function(doc: xmlDocPtr; nodes: xmlNodeSetPtr; mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+    with_comments: cint; filename: PAnsiChar; compression: cint): cint; EXTDECL;
+
+  xmlC14NExecute: function(doc: xmlDocPtr; is_visible_callback: xmlC14NIsVisibleCallback; user_data: pointer;
+    mode: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)

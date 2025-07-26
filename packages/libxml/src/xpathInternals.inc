@@ -363,7 +363,7 @@ function xmlXPathTrailing(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL
  *)
 function xmlXPathRegisterNs(ctxt: xmlXPathContextPtr; prefix, ns_uri: xmlCharPtr): cint; EXTDECL; external xml2lib;
 function xmlXPathNsLookup(ctxt: xmlXPathContextPtr; prefix: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
-procedure xmlXPathDebugDumpCompExpr(ctxt: xmlXPathContextPtr); EXTDECL; external xml2lib;
+procedure xmlXPathRegisteredNsCleanup(ctxt: xmlXPathContextPtr); EXTDECL; external xml2lib;
 function xmlXPathRegisterFunc(ctxt: xmlXPathContextPtr; name: xmlCharPtr; f: xmlXPathFunction): cint; EXTDECL; external xml2lib;
 function xmlXPathRegisterFuncNS(ctxt: xmlXPathContextPtr; name, ns_uri: xmlCharPtr; f: xmlXPathFunction): cint; EXTDECL; external xml2lib;
 function xmlXPathRegisterVariable(ctxt: xmlXPathContextPtr; name: xmlCharPtr; value: xmlXPathObjectPtr): cint; EXTDECL; external xml2lib;
@@ -492,6 +492,182 @@ procedure xmlXPathBooleanFunction(ctxt: xmlXPathParserContextPtr; nargs: cint); 
  * Really internal functions
  *)
 procedure xmlXPathNodeSetFreeNs(ns: xmlNsPtr); EXTDECL; external xml2lib;
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * Variable Lookup forwarding.
+ *)
+  xmlXPathRegisterVariableLookup: procedure(ctxt: xmlXPathContextPtr; f: xmlXPathVariableLookupFunc; data: pointer); EXTDECL;
+
+(*
+ * Function Lookup forwarding.
+ *)
+  xmlXPathRegisterFuncLookup: procedure(ctxt: xmlXPathContextPtr; f: xmlXPathFuncLookupFunc; funcCtxt: pointer); EXTDECL;
+
+(*
+ * Error reporting.
+ *)
+//procedure __xmlXPatherror(ctxt: xmlXPathParserContextPtr; _file: PAnsiChar; line, no: cint); EXTDECL; external xml2lib name 'xmlXPatherror';
+  xmlXPathErr: procedure(ctxt: xmlXPathParserContextPtr; error: cint); EXTDECL;
+
+{$IFDEF LIBXML_DEBUG_ENABLED}
+  xmlXPathDebugDumpObject: procedure(output: PFILE; cur: xmlXPathObjectPtr; depth: cint); EXTDECL;
+  xmlXPathDebugDumpCompExpr: procedure(output: PFILE; comp: xmlXPathCompExprPtr; depth: cint); EXTDECL;
+{$ENDIF}
+
+(**
+ * NodeSet handling.
+ *)
+  xmlXPathNodeSetContains: function(cur: xmlNodeSetPtr; val: xmlNodePtr): cint; EXTDECL;
+  xmlXPathDifference: function(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathIntersection: function(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathDistinctSorted: function(nodes: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathDistinct: function(nodes: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathHasSameNodes: function(nodes1, nodes2: xmlNodeSetPtr): cint; EXTDECL;
+  xmlXPathNodeLeadingSorted: function(nodes: xmlNodeSetPtr; node: xmlNodePtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathLeadingSorted: function(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathNodeLeading: function(nodes: xmlNodeSetPtr; node: xmlNodePtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathLeading: function(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathNodeTrailingSorted: function(nodes: xmlNodeSetPtr; node: xmlNodePtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathTrailingSorted: function(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathNodeTrailing: function(nodes: xmlNodeSetPtr; node: xmlNodePtr): xmlNodeSetPtr; EXTDECL;
+  xmlXPathTrailing: function(nodes1, nodes2: xmlNodeSetPtr): xmlNodeSetPtr; EXTDECL;
+
+(**
+ * Extending a context.
+ *)
+  xmlXPathRegisterNs: function(ctxt: xmlXPathContextPtr; prefix, ns_uri: xmlCharPtr): cint; EXTDECL;
+  xmlXPathNsLookup: function(ctxt: xmlXPathContextPtr; prefix: xmlCharPtr): xmlCharPtr; EXTDECL;
+  xmlXPathRegisteredNsCleanup: procedure(ctxt: xmlXPathContextPtr); EXTDECL;
+  xmlXPathRegisterFunc: function(ctxt: xmlXPathContextPtr; name: xmlCharPtr; f: xmlXPathFunction): cint; EXTDECL;
+  xmlXPathRegisterFuncNS: function(ctxt: xmlXPathContextPtr; name, ns_uri: xmlCharPtr; f: xmlXPathFunction): cint; EXTDECL;
+  xmlXPathRegisterVariable: function(ctxt: xmlXPathContextPtr; name: xmlCharPtr; value: xmlXPathObjectPtr): cint; EXTDECL;
+  xmlXPathRegisterVariableNS: function(ctxt: xmlXPathContextPtr; name, ns_uri: xmlCharPtr; value: xmlXPathObjectPtr): cint; EXTDECL;
+  xmlXPathFunctionLookup: function(ctxt: xmlXPathContextPtr; name: xmlCharPtr): xmlXPathFunction; EXTDECL;
+  xmlXPathFunctionLookupNS: function(ctxt: xmlXPathContextPtr; name, ns_uri: xmlCharPtr): xmlXPathFunction; EXTDECL;
+  xmlXPathRegisteredFuncsCleanup: procedure(ctxt: xmlXPathContextPtr); EXTDECL;
+  xmlXPathVariableLookup: function(ctxt: xmlXPathContextPtr; name: xmlCharPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathVariableLookupNS: function(ctxt: xmlXPathContextPtr; name, ns_uri: xmlCharPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathRegisteredVariablesCleanup: procedure(ctxt: xmlXPathContextPtr); EXTDECL;
+
+(**
+ * Utilities to extend XPath.
+ *)
+  xmlXPathNewParserContext: function(str: xmlCharPtr; ctxt: xmlXPathContextPtr): xmlXPathParserContextPtr; EXTDECL;
+  xmlXPathFreeParserContext: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+
+(* TODO: remap to xmlXPathValuePop and Push. *)
+  valuePop: function(ctxt: xmlXPathParserContextPtr): xmlXPathObjectPtr; EXTDECL;
+  valuePush: function(ctxt: xmlXPathParserContextPtr): cint; EXTDECL;
+
+  xmlXPathNewString: function(val: xmlCharPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathNewCString: function(val: PAnsiChar): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathWrapString: function(val: xmlCharPtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathWrapCString: function(val: PAnsiChar): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathNewFloat: function(val: cdouble): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathNewBoolean: function(val: cint): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathNewNodeSet: function(val: xmlNodePtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathNewValueTree: function(val: xmlNodePtr): xmlXPathObjectPtr; EXTDECL;
+  xmlXPathNodeSetAddUnique: procedure(cur: xmlNodeSetPtr; val: xmlNodePtr); EXTDECL;
+  xmlXPathNodeSetAdd: procedure(cur: xmlNodeSetPtr; val: xmlNodePtr); EXTDECL;
+  xmlXPathNodeSetAddNs: procedure(cur: xmlNodeSetPtr; node: xmlNodePtr; ns: xmlNsPtr); EXTDECL;
+  xmlXPathNodeSetSort: procedure(_set: xmlNodeSetPtr); EXTDECL;
+  xmlXPathRoot: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathEvalExpr: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathParseName: function(ctxt: xmlXPathParserContextPtr): xmlCharPtr; EXTDECL;
+  xmlXPathParseNCName: function(ctxt: xmlXPathParserContextPtr): xmlCharPtr; EXTDECL;
+
+(*
+ * Existing functions.
+ *)
+{external xml2lib double EXTDECL
+		xmlXPathStringEvalNumber	(xmlChar *str);
+external xml2lib int EXTDECL
+		xmlXPathEvaluatePredicateResult (xmlXPathParserContextPtr ctxt,
+						 xmlXPathObjectPtr res);
+external xml2lib void EXTDECL
+		xmlXPathRegisterAllFunctions	(xmlXPathContextPtr ctxt);
+external xml2lib xmlNodeSetPtr EXTDECL
+		xmlXPathNodeSetMerge		(xmlNodeSetPtr val1,
+						 xmlNodeSetPtr val2);
+external xml2lib void EXTDECL
+		xmlXPathNodeSetDel		(xmlNodeSetPtr cur,
+						 xmlNodePtr val);
+external xml2lib void EXTDECL
+		xmlXPathNodeSetRemove		(xmlNodeSetPtr cur,
+						 int val);
+external xml2lib xmlXPathObjectPtr EXTDECL
+		xmlXPathNewNodeSetList		(xmlNodeSetPtr val);
+external xml2lib xmlXPathObjectPtr EXTDECL
+		xmlXPathWrapNodeSet		(xmlNodeSetPtr val);
+external xml2lib xmlXPathObjectPtr EXTDECL
+		xmlXPathWrapExternal		(void *val);}
+
+  xmlXPathEqualValues: function(ctxt: xmlXPathParserContextPtr): cint; EXTDECL;
+  xmlXPathNotEqualValues: function(ctxt: xmlXPathParserContextPtr): cint; EXTDECL;
+  xmlXPathCompareValues: function(ctxt: xmlXPathParserContextPtr; inf, strict: cint): cint; EXTDECL;
+  xmlXPathValueFlipSign: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathAddValues: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathSubValues: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathMultValues: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathDivValues: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+  xmlXPathModValues: procedure(ctxt: xmlXPathParserContextPtr); EXTDECL;
+
+  xmlXPathIsNodeType: function(name: xmlCharPtr): cint; EXTDECL;
+
+
+(*
+ * Some of the axis navigation routines.
+ *)
+  xmlXPathNextSelf: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextChild: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextDescendant: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextDescendantOrSelf: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextParent: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextAncestorOrSelf: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextFollowingSibling: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextFollowing: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextNamespace: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextAttribute: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextPreceding: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextAncestor: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+  xmlXPathNextPrecedingSibling: function(ctxt: xmlXPathParserContextPtr; cur: xmlNodePtr): xmlNodePtr; EXTDECL;
+
+(*
+ * The official core of XPath functions.
+ *)
+  xmlXPathLastFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathPositionFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathCountFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathIdFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathLocalNameFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathNamespaceURIFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathStringFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathStringLengthFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathConcatFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathContainsFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathStartsWithFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathSubstringFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathSubstringBeforeFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathSubstringAfterFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathNormalizeFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathTranslateFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathNotFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathTrueFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathFalseFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathLangFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathNumberFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathSumFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathFloorFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathCeilingFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathRoundFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+  xmlXPathBooleanFunction: procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
+
+(**
+ * Really internal functions
+ *)
+  xmlXPathNodeSetFreeNs: procedure(ns: xmlNsPtr); EXTDECL;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_XPATH_ENABLED *)

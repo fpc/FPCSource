@@ -90,6 +90,7 @@
 function xmlXIncludeProcess(doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
 function xmlXIncludeProcessFlags(doc: xmlDocPtr; flags: cint): cint; EXTDECL; external xml2lib;
 function xmlXIncludeProcessFlagsData(doc: xmlDocPtr; flags: cint; data: pointer): cint; EXTDECL; external xml2lib;
+function xmlXIncludeProcessTreeFlagsData(tree: xmlNodePtr; flags: cint; data: pointer): cint; EXTDECL; external xml2lib;
 function xmlXIncludeProcessTree(tree: xmlNodePtr): cint; EXTDECL; external xml2lib;
 function xmlXIncludeProcessTreeFlags(tree: xmlNodePtr; flags: cint): cint; EXTDECL; external xml2lib;
 
@@ -97,9 +98,29 @@ function xmlXIncludeProcessTreeFlags(tree: xmlNodePtr; flags: cint): cint; EXTDE
  * contextual processing
  *)
 function xmlXIncludeNewContext(doc: xmlDocPtr): xmlXIncludeCtxtPtr; EXTDECL; external xml2lib;
-function xmlXIncludeProcessFlags(ctxt: xmlXIncludeCtxtPtr; flags: cint): cint; EXTDECL; external xml2lib;
-procedure xmlXIncludeProcess(ctxt: xmlXIncludeCtxtPtr); EXTDECL; external xml2lib;
+function xmlXIncludeSetFlags(ctxt: xmlXIncludeCtxtPtr; flags: cint): cint; EXTDECL; external xml2lib;
+procedure xmlXIncludeFreeContext(ctxt: xmlXIncludeCtxtPtr); EXTDECL; external xml2lib;
 function xmlXIncludeProcessNode(ctxt: xmlXIncludeCtxtPtr; tree: xmlNodePtr): cint; EXTDECL; external xml2lib;
+{$ENDIF}
+
+{$IFDEF FUNCTIONVAR}
+(*
+ * standalone processing
+ *)
+  xmlXIncludeProcess: function(doc: xmlDocPtr): cint; EXTDECL;
+  xmlXIncludeProcessFlags: function(doc: xmlDocPtr; flags: cint): cint; EXTDECL;
+  xmlXIncludeProcessFlagsData: function(doc: xmlDocPtr; flags: cint; data: pointer): cint; EXTDECL;
+  xmlXIncludeProcessTreeFlagsData: function(tree: xmlNodePtr; flags: cint; data: pointer): cint; EXTDECL;
+  xmlXIncludeProcessTree: function(tree: xmlNodePtr): cint; EXTDECL;
+  xmlXIncludeProcessTreeFlags: function(tree: xmlNodePtr; flags: cint): cint; EXTDECL;
+
+(*
+ * contextual processing
+ *)
+  xmlXIncludeNewContext: function(doc: xmlDocPtr): xmlXIncludeCtxtPtr; EXTDECL;
+  xmlXIncludeSetFlags: function(ctxt: xmlXIncludeCtxtPtr; flags: cint): cint; EXTDECL;
+  xmlXIncludeFreeContext: procedure(ctxt: xmlXIncludeCtxtPtr); EXTDECL;
+  xmlXIncludeProcessNode: function(ctxt: xmlXIncludeCtxtPtr; tree: xmlNodePtr): cint; EXTDECL;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_XINCLUDE_ENABLED *)

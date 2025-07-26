@@ -71,4 +71,27 @@ procedure htmlNodeDumpOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNo
 function htmlIsBooleanAttr(name: xmlCharPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+  htmlNewDoc: function(URI, ExternalID: xmlCharPtr): htmlDocPtr; EXTDECL;
+  htmlNewDocNoDtD: function(URI, ExternalID: xmlCharPtr): htmlDocPtr; EXTDECL;
+  htmlGetMetaEncoding: function(doc: htmlDocPtr): xmlCharPtr; EXTDECL;
+  htmlSetMetaEncoding: function(doc: htmlDocPtr; encoding: xmlCharPtr): cint; EXTDECL;
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+  htmlDocDumpMemory: procedure(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint); EXTDECL;
+  htmlDocDumpMemoryFormat: procedure(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint; format: cint); EXTDECL;
+  htmlDocDump: procedure(f: PFILE; cur: xmlDocPtr); EXTDECL;
+  htmlSaveFile: function(filename: PAnsiChar; doc: htmlDocPtr): cint; EXTDECL;
+  htmlNodeDump: function(buf: xmlBufferPtr; doc: htmlDocPtr; cur: xmlNodePtr): cint; EXTDECL;
+  htmlNodeDumpFile: procedure(_out: PFILE; doc: xmlDocPtr; cur: xmlNodePtr); EXTDECL;
+  htmlNodeDumpFileFormat: function(_out: PFILE; doc: htmlDocPtr; cur: xmlNodePtr; encoding: PAnsiChar; format: cint): cint; EXTDECL;
+  htmlSaveFileEnc: function(filename: PAnsiChar; cur: htmlDocPtr; encoding: PAnsiChar): cint; EXTDECL;
+  htmlSaveFileFormat: function(filename: PAnsiChar; cur: htmlDocPtr; encoding: PAnsiChar; format: cint): cint; EXTDECL;
+  htmlNodeDumpFormatOutput: procedure(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: PAnsiChar; format: cint); EXTDECL;
+  htmlDocContentDumpOutput: procedure(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: PAnsiChar); EXTDECL;
+  htmlDocContentDumpFormatOutput: procedure(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: PAnsiChar; format: cint); EXTDECL;
+  htmlNodeDumpOutput: procedure(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: PAnsiChar); EXTDECL;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+  htmlIsBooleanAttr: function(name: xmlCharPtr): cint; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_HTML_ENABLED *)

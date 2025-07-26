@@ -150,5 +150,25 @@ procedure xlinkSetDefaultHandler(handler: xlinkHandlerPtr); EXTDECL; external xm
 function xlinkIsLink(doc: xmlDocPtr; node: xmlNodePtr): xlinkType; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+(*
+ * The default detection routine, can be overridden, they call the default
+ * detection callbacks.
+ *)
+  xlinkGetDefaultDetect: function: xlinkNodeDetectFunc; EXTDECL;
+  xlinkSetDefaultDetect: procedure(func: xlinkNodeDetectFunc); EXTDECL;
+
+(*
+ * Routines to set/get the default handlers.
+ *)
+  xlinkGetDefaultHandler: function: xlinkHandlerPtr; EXTDECL;
+  xlinkSetDefaultHandler: procedure(handler: xlinkHandlerPtr); EXTDECL;
+
+(*
+ * Link detection module itself.
+ *)
+  xlinkIsLink: function(doc: xmlDocPtr; node: xmlNodePtr): xlinkType; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_XPTR_ENABLED *)
 

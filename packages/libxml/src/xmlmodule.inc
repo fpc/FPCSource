@@ -40,5 +40,12 @@ function xmlModuleClose(module: xmlModulePtr): cint; EXTDECL; external xml2lib;
 function xmlModuleFree(module: xmlModulePtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
+{$IFDEF FUNCTIONVAR}
+  xmlModuleOpen: function(filename: AnsiChar; options: cint): xmlModulePtr; EXTDECL;
+  xmlModuleSymbol: function(module: xmlModulePtr; name: PAnsiChar; var result: pointer): cint; EXTDECL;
+  xmlModuleClose: function(module: xmlModulePtr): cint; EXTDECL;
+  xmlModuleFree: function(module: xmlModulePtr): cint; EXTDECL;
+{$ENDIF}
+
 {$ENDIF} (* LIBXML_MODULES_ENABLED *)
 

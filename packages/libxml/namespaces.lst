@@ -2,4 +2,9 @@ src/xmlxsdparser.pas=namespaced/Api.XML.Xsdparser.pas
 {s*:src/}=namespaced/
 {i+:src/}
 src/xml2.pas=namespaced/Api.XML.Xml2.pas
+src/xml2dyn.pas=namespaced/Api.XML.Xml2Dyn.pas
 src/xmlxsd.pas=namespaced/Api.XML.Xsd.pas
+src/xslt.pas=namespaced/Api.XML.Xslt.pas
+src/xsltdyn.pas=namespaced/Api.XML.XsltDyn.pas
+src/exslt.pas=namespaced/Api.XML.Exslt.pas
+src/exsltdyn.pas=namespaced/Api.XML.ExsltDyn.pas
