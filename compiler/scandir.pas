@@ -1008,6 +1008,67 @@ unit scandir;
       current_module.mode_switch_allowed:= false;
     end;
 
+    procedure dir_multilinestringlineending;
+      var
+        s : string;
+      begin
+        if not (m_multiline_strings in current_settings.modeswitches) then
+          Message1(scan_e_illegal_directive,'MULTILINESTRINGLINEENDING');
+        current_scanner.skipspace;
+        s:=current_scanner.readid;
+        if (s='CR') then
+          current_settings.lineendingtype:=le_cr
+        else if (s='CRLF') then
+          current_settings.lineendingtype:=le_crlf
+        else if (s='LF') then
+          current_settings.lineendingtype:=le_lf
+        else if (s='PLATFORM') then
+          current_settings.lineendingtype:=le_platform
+        else if (s='SOURCE') then
+          current_settings.lineendingtype:=le_source
+        else
+          Message(scan_e_unknown_lineending_type);
+      end;
+
+    procedure dir_multilinestringtrimleft;
+      var
+        count : longint;
+        s : string;
+      begin
+        if not (m_multiline_strings in current_settings.modeswitches) then
+          Message1(scan_e_illegal_directive,'MULTILINESTRINGTRIMLEFT');
+        current_scanner.skipspace;
+        if (c in ['0'..'9']) then
+          begin
+            count:=current_scanner.readval;
+            if (count<0) or (count>high(word)) then
+              Message(scan_e_trimcount_out_of_range)
+            else
+              begin
+                current_settings.whitespacetrimcount:=count;
+                current_settings.whitespacetrimauto:=false;
+              end;
+          end
+        else
+          begin
+            s:=current_scanner.readid;
+            if s='ALL' then
+              begin
+                current_settings.whitespacetrimcount:=high(word);
+                current_settings.whitespacetrimauto:=false;
+              end
+            else if s='AUTO' then
+              begin
+                current_settings.whitespacetrimcount:=0;
+                current_settings.whitespacetrimauto:=true;
+              end
+            else
+              begin
+                current_settings.whitespacetrimcount:=0;
+                current_settings.whitespacetrimauto:=false;
+              end;
+          end;
+      end;
 
     procedure dir_modeswitch;
       var
@@ -2171,6 +2232,8 @@ unit scandir;
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);
         AddDirective('MODESWITCH',directive_all, @dir_modeswitch);
+        AddDirective('MULTILINESTRINGLINEENDING',directive_all, @dir_multilinestringlineending);
+        AddDirective('MULTILINESTRINGTRIMLEFT',directive_all, @dir_multilinestringtrimleft);
         AddDirective('NAMESPACE',directive_all, @dir_namespace);
         AddDirective('NAMESPACES',directive_all, @dir_namespaces);
         AddDirective('NODEFINE',directive_all, @dir_nodefine);

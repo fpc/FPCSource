@@ -2178,6 +2178,9 @@ var
              controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
             else
              ControllerType:=ct_none;
+            lineendingtype:=tlineendingtype(tokenreadenum(sizeof(tlineendingtype)));
+            whitespacetrimcount:=gettokenbufword;
+            whitespacetrimauto:=boolean(gettokenbufbyte);
 {$POP}
            endpos:=tbi;
            if endpos-startpos<>expected_size then
@@ -2484,7 +2487,8 @@ const
          'm_underscoreisseparator',{ _ can be used as separator to group digits in numbers }
          'm_implicit_function_specialization', { attempt to specialize generic function by inferring types from parameters }
          'm_function_references', { enable Delphi-style function references }
-         'm_anonymous_functions'  { enable Delphi-style anonymous functions }
+         'm_anonymous_functions',  { enable Delphi-style anonymous functions }
+         'm_multiline_strings'    { multi-line strings denoted with '`' are enabled and valid }
        );
        { optimizer }
        optimizerswitchname : array[toptimizerswitch] of string[50] =

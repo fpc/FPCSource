@@ -481,7 +481,15 @@ scan_e_duplicate_rtti_option=02112_E_A Duplicate RTTI option "$1"
 scan_e_misplaced_rtti_directive=02113_E_A The RTTI directive cannot be used here
 % The \var{\$RTTI} directive can not be used in this location (e.g. before the \var{PROGRAM}
 % or \var{UNIT} headers).
-% \end{description}
+scan_e_unknown_lineending_type=02116_E_Unknown line ending type specified. Valid options are CR, CRLF, LF, PLATFORM, or SOURCE.
+% The line ending type that was specified is not one of CR, CRLF, LF, PLATFORM, or SOURCE.
+scan_e_trimcount_out_of_range=02117_E_The value of MULTILINESTRINGTRIMLEFT cannot be less than 0 or greater than 65535.
+% MULTILINESTRINGTRIMLEFT is stored in a "word" field, and thus is restricted to the range 0..65535.
+scan_e_illegal_directive=02118_E_Illegal compiler directive "$1"
+% You have specified a compiler directive that cannot (for one of several possible reasons) currently be used.
+scan_f_unterminated_multiline_string=02119_F_Unterminated multi-line string beginning at line $1, column $2.
+% The file contains an "unbalanced" number of multi-line string denoting backtick characters.
+%\end{description}
 #
 # Parser
 #

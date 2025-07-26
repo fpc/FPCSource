@@ -201,6 +201,13 @@ Const
 
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
+
+         lineendingtype : tlineendingtype;
+
+         whitespacetrimcount : word;
+         
+         whitespacetrimauto : boolean;
+         
 {$if defined(generic_cpu)}
          case byte of
 {$endif}
@@ -674,6 +681,9 @@ Const
         tlsmodel : tlsm_none;
         controllertype : ct_none;
         pmessage : nil;
+        lineendingtype : le_platform;
+        whitespacetrimcount : 0;
+        whitespacetrimauto : false;
 {$if defined(i8086) or defined(GENERIC_CPU)}
         x86memorymodel : mm_small;
 {$endif defined(i8086) or defined(GENERIC_CPU)}
