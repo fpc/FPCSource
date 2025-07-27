@@ -2306,20 +2306,22 @@ function IsWordPresent(const W, S: string; const WordDelims: TSysCharSet): Boole
 
 var
   P,PE : PChar;
-  Wn,Sn,Wi : SizeInt;
-  Wstartc : Char;
+  Wn,Sn,Wi,Wic : SizeInt;
 
 begin
   Wn:=Length(W);
   Sn:=Length(S);
   if (Sn=0) or (Wn=0) or (Wn>Sn) then
     exit(false);
-  Wstartc:=W[1];
   P:=PChar(pointer(S))-1; { Loop starts with an extra increment. }
   PE:=P+2+Sn-Wn;
+  Wic:=0;
   repeat
+    if Wic=0 then
+      Wic:=Wn;
+    dec(Wic);
     P:=P+1;
-    Wi:=IndexCharType(P,SizeUint(Pointer(PE)-Pointer(P)) div SizeOf(Char),Wstartc);
+    Wi:=IndexCharType(P+Wic,SizeUint(Pointer(PE)-Pointer(P)) div SizeOf(Char),PChar(Pointer(W))[Wic]);
     P:=P+Wi;
   until (Wi<0) or ((P=PChar(Pointer(S))) or (P[-1] in WordDelims)) and ((P+1=PE) or (P[Wn] in WordDelims)) and (CompareByte(P^,Pointer(W)^,Wn*SizeOf(Char))=0);
   result:=Wi>=0;
