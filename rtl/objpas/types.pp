@@ -314,6 +314,7 @@ type
     procedure Inflate(DL, DT, DR, DB: Single);
     procedure Inflate(DX, DY: Single);
     procedure Intersect(R: TRectF);
+    procedure Normalize;
     procedure NormalizeRect;
     procedure Offset (const dx,dy : Single); inline;
     procedure Offset (DP: TPointF); inline;
@@ -1879,6 +1880,24 @@ end;
 function TRectF.IsEmpty: Boolean;
 begin
   Result := (CompareValue(Right,Left)<=0) or (CompareValue(Bottom,Top)<=0);
+end;
+
+procedure TRectF.Normalize;
+var
+  x: Single;
+begin
+  if Top>Bottom then
+  begin
+    x := Top;
+    Top := Bottom;
+    Bottom := x;
+  end;
+  if Left>Right then
+  begin
+    x := Left;
+    Left := Right;
+    Right := x;
+  end
 end;
 
 procedure TRectF.NormalizeRect;
