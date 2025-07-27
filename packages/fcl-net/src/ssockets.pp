@@ -345,8 +345,8 @@ type
     FEndPoint : TEndPoint;
     function GetHost: String;
   Public
-    Constructor Create(const AHost: TNetworkAddress; APort: Word; AHandler : TSocketHandler = Nil; DualStack : Boolean = True); Overload;
-    Constructor Create(const AHost: TNetworkAddress; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil; DualStack : Boolean = True); Overload;
+    Constructor Create(const AHost: TNetworkAddress; APort: Word; AHandler : TSocketHandler = Nil; DualStack : Boolean = False); Overload;
+    Constructor Create(const AHost: TNetworkAddress; APort: Word; aConnectTimeout : Integer; AHandler : TSocketHandler = Nil; DualStack : Boolean = False); Overload;
     Procedure Connect; Virtual;
     Property NetworkAddress : TNetWorkAddress Read FEndPoint.First;
     Property Host : String Read GetHost; deprecated 'use NetworkAddress instead';
