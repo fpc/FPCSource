@@ -1531,6 +1531,7 @@ var rtl = {
       };
     };
     tis.addMethod = function(name,methodkind,params,vis,result,flags,options){
+      // optional: vis, result, flags, options
       var t = this.$addMember(name,rtl.tTypeMemberMethod,vis?vis:2,options);
       t.methodkind = methodkind;
       t.procsig = rtl.newTIProcSig(params,result,flags);

@@ -21161,7 +21161,6 @@ var
   begin
     if ExtVis > -1 then
       Call.AddArg(CreateLiteralNumber(Proc,ExtVis));
-
     ExtVis := -1;
   end;
 
@@ -21268,7 +21267,6 @@ begin
       if ResultTypeInfo<>nil then
         begin
         AddExtRTTIVisibility;
-
         Call.AddArg(ResultTypeInfo);
         end;
       end;
@@ -21276,7 +21274,6 @@ begin
     if (ResultTypeInfo=nil) and ((Flags>0) or (length(Attr)>0)) then
     begin
       AddExtRTTIVisibility;
-
       Call.AddArg(CreateLiteralNull(Proc));
     end;
 
