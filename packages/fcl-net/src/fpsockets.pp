@@ -222,10 +222,10 @@ function ConnectionState(const ASocket: TFPSocket): TConnectionState;
 type
   PAddressUnion = ^TAddressUnion;
   TAddressUnion = record
-   case TFPSocketType of
-  stIPv4: (In4Addr: sockaddr_in);
-  stIPv6: (In6Addr: sockaddr_in6);
-  stUnixSocket: (UnixAddr: sockaddr_un);
+  case TFPSocketType of
+    stIPv4: (In4Addr: sockaddr_in);
+    stIPv6: (In6Addr: sockaddr_in6);
+    stUnixSocket: (UnixAddr: sockaddr_un);
   end;
 
 function SocketInvalid(ASocket: TSocket): Boolean; inline;
@@ -588,6 +588,9 @@ function Connect(const ASocket: TFPSocket; const AAddress: TNetworkAddress;
   APort: Word): TConnectionState;
 var
   addr: TAddressUnion;
+  addrlen : cint;
+  addrptr : socketsunit.psockaddr;
+
 const
   {$IFDEF WINDOWS} 
   EALREADY = WSAEALREADY;
@@ -614,7 +617,25 @@ const
   {$ENDIF}
 begin
   addr := CreateAddr(AAddress, APort, ASocket.SocketType = stIPDualStack);
-  if fpconnect(ASocket.FD, socketsunit.psockaddr(@addr), SizeOf(addr)) <> 0 then
+  case ASocket.SocketType of
+    stIPv4,
+    stIPDualStack:
+      begin
+      addrlen:=sizeof(sockaddr_in);
+      addrptr:=psockaddr(@addr.In4Addr);
+      end;
+    stIPv6 :
+      begin
+      addrlen:=sizeof(sockaddr_in6);
+      addrptr:=psockaddr(@addr.In6Addr);
+      end;
+    stUnixSocket :
+      begin
+      addrlen:=sizeof(sockaddr_un);
+      addrptr:=psockaddr(@addr.UnixAddr);
+      end;
+  end;
+  if fpconnect(ASocket.FD, addrptr, addrlen) <> 0 then
     case socketerror of
     EALREADY,
     EINPROGRESS,
