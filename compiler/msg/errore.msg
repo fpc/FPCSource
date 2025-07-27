@@ -487,8 +487,11 @@ scan_e_trimcount_out_of_range=02117_E_The value of MULTILINESTRINGTRIMLEFT canno
 % MULTILINESTRINGTRIMLEFT is stored in a "word" field, and thus is restricted to the range 0..65535.
 scan_e_illegal_directive=02118_E_Illegal compiler directive "$1"
 % You have specified a compiler directive that cannot (for one of several possible reasons) currently be used.
-scan_f_unterminated_multiline_string=02119_F_Unterminated multi-line string beginning at line $1, column $2.
+scan_f_unterminated_multiline_string=02119_F_Unterminated multi-line string starting at line $1, column $2.
 % The file contains an "unbalanced" number of multi-line string denoting backtick characters.
+scan_e_improperly_indented_multiline_string=02120_E_Incorrectly indented multi-line string (need $1 whitespace chars) starting at line $2, column $3.
+% The multi-line string does not have the proper indentation, every line
+% must have at least tjhen number of spaces as in the last line.
 %\end{description}
 #
 # Parser
