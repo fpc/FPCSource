@@ -5585,7 +5585,7 @@ type
       iswidestring : boolean;
       asciinr : string[33];
       last_c : char;
-      whitespace_only, had_newline, first_multiline,backtick : boolean;
+      whitespace_only, had_newline, first_multiline, backtick : boolean;
       d : cardinal;
       w : word;
 
@@ -5596,7 +5596,9 @@ type
       trimcount:=0;
       quote_col:=0;
       whitespace_count:=0;
+      init_quote_count:=0;
       had_newline:=false;
+      first_multiline:=false;
       had_multiline_string:=in_multiline_string;
       backtick:=(c='`');
       if backtick then
@@ -5733,12 +5735,12 @@ type
               had_multiline_string:=in_multiline_string;
               if style<>qsMultiQuote then
                 begin
-                in_multiline_string:=(c='`');
-                if in_multiline_string then
-                  backtick:=true
-                else
-                  style:=qsNone;
-                first_multiline:=in_multiline_string and (last_c in [#0,#32,#61]);
+                  in_multiline_string:=(c='`');
+                  if in_multiline_string then
+                    backtick:=true
+                  else
+                    style:=qsNone;
+                  first_multiline:=in_multiline_string and (last_c in [#0,#32,#61]);
                 end;
               repeat
                 readchar;
