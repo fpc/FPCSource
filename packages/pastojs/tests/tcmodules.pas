@@ -963,7 +963,8 @@ type
 
     // Async/AWait
     Procedure TestAsync_Proc;
-    Procedure TestAsync_CallResultIsPromise;
+    Procedure TestAsync_CallFuncResultIsPromise;
+    Procedure TestAsync_CallProcResultIsPromise;
     Procedure TestAsync_ConstructorFail;
     Procedure TestAsync_PropertyGetterFail;
     Procedure TestAwait_NonPromiseWithTypeFail;
@@ -35946,7 +35947,7 @@ begin
     '']));
 end;
 
-procedure TTestModule.TestAsync_CallResultIsPromise;
+procedure TTestModule.TestAsync_CallFuncResultIsPromise;
 begin
   StartProgram(false);
   Add([
@@ -35994,7 +35995,7 @@ begin
   '']);
   CheckResolverUnexpectedHints();
   ConvertProgram;
-  CheckSource('TestAsync_CallResultIsPromise',
+  CheckSource('TestAsync_CallFuncResultIsPromise',
     LinesToStr([ // statements
     'rtl.createClass(this, "TObject", null, function () {',
     '  this.$init = function () {',
@@ -36017,6 +36018,84 @@ begin
     '  Result = 11 + Result;',
     '  Result += 1;',
     '  return Result;',
+    '};',
+    'this.p = null;',
+    'this.o = null;',
+    '']),
+    LinesToStr([
+    '$mod.p = $mod.Run();',
+    '$mod.p = $mod.Run();',
+    'if ($mod.Run() === $mod.p) ;',
+    'if ($mod.p === $mod.Run()) ;',
+    'if ($mod.Run() === $mod.p) ;',
+    'if ($mod.p === $mod.Run()) ;',
+    '$mod.p = $mod.o.Fly();',
+    '$mod.p = $mod.o.Fly();',
+    'if ($mod.o.Fly() === $mod.p) ;',
+    'if ($mod.o.Fly() === $mod.p) ;',
+    'var $with = $mod.o;',
+    '$mod.p = $with.Fly();',
+    '$mod.p = $with.Fly();',
+    'if ($with.Fly() === $mod.p) ;',
+    'if ($with.Fly() === $mod.p) ;',
+    '']));
+end;
+
+procedure TTestModule.TestAsync_CallProcResultIsPromise;
+begin
+  StartProgram(false);
+  Add([
+  '{$modeswitch externalclass}',
+  'type',
+  '  TObject = class',
+  '  end;',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  TBird = class',
+  '    procedure Fly; async; ',
+  '  end;',
+  'procedure TBird.Fly; async; ',
+  'begin',
+  'end;',
+  'procedure Run; async;',
+  'begin',
+  'end;',
+  'var',
+  '  p: TJSPromise;',
+  '  o: TBird;',
+  'begin',
+  '  p:=Run;',
+  '  p:=Run();',
+  '  if Run=p then ;',
+  '  if p=Run then ;',
+  '  if Run()=p then ;',
+  '  if p=Run() then ;',
+  '  p:=o.Fly;',
+  '  p:=o.Fly();',
+  '  if o.Fly=p then ;',
+  '  if o.Fly()=p then ;',
+  '  with o do begin',
+  '    p:=Fly;',
+  '    p:=Fly();',
+  '    if Fly=p then ;',
+  '    if Fly()=p then ;',
+  '  end;',
+  '']);
+  CheckResolverUnexpectedHints();
+  ConvertProgram;
+  CheckSource('TestAsync_CallProcResultIsPromise',
+    LinesToStr([ // statements
+    'rtl.createClass(this, "TObject", null, function () {',
+    '  this.$init = function () {',
+    '  };',
+    '  this.$final = function () {',
+    '  };',
+    '});',
+    'rtl.createClass(this, "TBird", this.TObject, function () {',
+    '  this.Fly = async function () {',
+    '  };',
+    '});',
+    'this.Run = async function () {',
     '};',
     'this.p = null;',
     'this.o = null;',
@@ -36174,7 +36253,7 @@ begin
   'begin',
   '  Result:=await(word,p);', // promise needs type
   '  Result:=await(word,Fly(3));', // promise needs type
-  '  Result:=await(Jump(4));', // async non promise must omit the type
+  '  Result:=await(Jump(4));', // async non promise can omit the type
   '  Result:=await(word,Jump(5));', // async call can provide fitting type
   '  Result:=await(word,Eat(6));', // promise needs type
   'end;',

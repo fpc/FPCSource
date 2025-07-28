@@ -7316,13 +7316,14 @@ begin
     Proc:=TPasProcedure(El);
     if Proc.IsAsync then
       begin
-      // an async function call returns a TJSPromise
-      JSPromiseClass:=FindTJSPromise(StartEl);
-
-      SetResolverIdentifier(ResolvedEl, btContext, El, JSPromiseClass,
-        JSPromiseClass, [rrfReadable, rrfWritable]);
-
-      Exit;
+      // an async function call returns a TJSPromise if available
+      JSPromiseClass:=FindTJSPromise(nil);
+      if JSPromiseClass<>nil then
+        begin
+         SetResolverIdentifier(ResolvedEl, btContext, El, JSPromiseClass,
+           JSPromiseClass, [rrfReadable, rrfWritable]);
+         Exit;
+        end;
       end;
     end;
   inherited ComputeElement(El,ResolvedEl,Flags,StartEl);
