@@ -3088,8 +3088,19 @@ end;
   ---------------------------------------------------------------------}
 
 Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+var
+  TypeInfo: PTypeInfo;
+  OrdType: TOrdType;
 begin
   Result:=GetOrdProp(Instance,PropInfo);
+  // GetOrdProp returns a signed value for ULong -> it must be made unsigned (Delphi compatibility)
+  TypeInfo := PropInfo^.PropType;
+  if TypeInfo^.Kind=tkInteger then
+  begin
+    OrdType:=GetTypeData(TypeInfo)^.OrdType;
+    if OrdType=otULong then
+      Result:=UInt32(Result);
+  end;
 end;
 
 
