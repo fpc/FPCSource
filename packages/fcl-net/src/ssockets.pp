@@ -17,6 +17,14 @@
 unit ssockets;
 {$ENDIF FPC_DOTTEDUNITS}
 
+{$macro on}
+
+{$IFDEF FPC_DOTTEDUNITS}
+{$define socketsunit:=System.Net.Sockets}
+{$ELSE FPC_DOTTEDUNITS}
+{$define socketsunit:=sockets}
+{$ENDIF FPC_DOTTEDUNITS}
+
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
@@ -1398,9 +1406,12 @@ end;
 procedure TInetServer.Bind;
 var
   naddr: TAddressUnion;
+  addrPtr : socketsunit.psockaddr;
+  addrSize : cint;
 begin
   naddr:=CreateAddr(FEndPoint.First,FEndPoint.Second,FSocket.SocketType=stIPDualStack);
-  if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpBind(FSocket.FD, @naddr, Sizeof(naddr))<>0 then
+  naddr.GetAddrAndSize(addrPtr,addrSize);
+  if {$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpBind(FSocket.FD, addrPtr, addrSize)<>0 then
     raise ESocketError.Create(seBindFailed, [IntToStr(FEndPoint.Second)]);
   FBound:=True;
 end;
@@ -1437,20 +1448,23 @@ end;
 function TInetServer.AcceptSocket:TFPSocket;
 
 Var
-  L : longint;
+  addrSize : cint;
+  addrPtr : socketsunit.psockaddr;
   R : integer;
   naddr: TAddressUnion;
 begin
   // Is basically the same except that the handle will be overwritten
   Result:=FSocket;
-  L:=SizeOf(naddr);
 {$IFDEF UNIX}
   R:=ESysEINTR;
+  // need to set this so ptr/addrsize are correct.
+  naddr.SocketType:=Result.SocketType;
+  naddr.GetAddrAndSize(AddrPtr,addrSize);
   Result.FD:=-1;
   While SocketInvalid(Result.FD) and (R=ESysEINTR) do
 {$ENDIF UNIX}
    begin
-   Result.FD:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(FSocket.FD,@naddr,@L);
+   Result.FD:={$IFDEF FPC_DOTTEDUNITS}System.Net.{$ENDIF}Sockets.fpAccept(FSocket.FD,addrptr,@addrSize);
    R:=SocketError;
    end;
 {$ifdef Unix}
@@ -1690,6 +1704,8 @@ Const
 
 Var
   addr: TAddressUnion;
+  addrSize : cint;
+  addrPtr : socketsunit.psockaddr;
   IsError : Boolean;
   TimeOutResult : TCheckTimeOutResult;
   Err: Integer;
@@ -1711,11 +1727,13 @@ begin
         addr.In4Addr.sin_family := AF_INET;
         addr.In4Addr.sin_port := ShortHostToNet(FEndPoint.Second);
         addr.In4Addr.sin_addr.s_addr := HostToNet(HostAddress.s_addr);
+        addr.SocketType:=stIPv4;
       finally
         free;
       end
   else
     addr:=CreateAddr(FEndPoint.First,FEndPoint.Second,FSocket.SocketType=stIPDualStack);
+  Addr.GetAddrAndSize(addrPtr,addrSize);
 {$IFDEF HAVENONBLOCKING}
   if ConnectTimeOut>0 then
     SetSocketBlockingMode(Handle, bmNonBlocking, @FDS) ;
@@ -1727,7 +1745,7 @@ begin
   While IsError and ((Err=ESysEINTR) or (Err=ESysEAGAIN)) do
   {$endif}
     begin
-    IsError:=fpConnect(Handle, @addr, sizeof(addr))<>0;
+    IsError:=fpConnect(Handle, addrPtr, addrSize)<>0;
     if IsError then
       Err:=Socketerror;
     end;
