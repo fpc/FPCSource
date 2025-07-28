@@ -5574,6 +5574,7 @@ type
       cstringpattern:=tmp;
     end;
 
+
     function tscannerfile.readstringconstant : boolean;
 
     type
@@ -5823,7 +5824,7 @@ type
                           end;
                       end;
                     '`' :
-                      if in_multiline_string then
+                      if in_multiline_string and (style=qsBacktick) then
                         begin
                           readchar;
                           if c<>'`' then
