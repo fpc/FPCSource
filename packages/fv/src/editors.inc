@@ -2067,8 +2067,9 @@ var idxpos : sw_word;
     Width  : Sw_Integer;
     bStr : RawByteString;
     iB,iU : sw_word;
-
+{$ifdef FV_UNICODE}
     lookUpUnicodeToUtf8Pos : TLineLookup;
+{$endif FV_UNICODE}
 
   function FormatUntil(endpos:Sw_word):boolean;
   var
@@ -2165,7 +2166,9 @@ var idxpos : sw_word;
        inc(iB);
        bStr[iB]:=#13;
        inc(iU);
+{$ifdef FV_UNICODE}
        lookUpUnicodeToUtf8Pos[iU]:=iB;
+{$endif FV_UNICODE}
      end;
      SetLength(bStr,iB);
      SetLength(uStr, iB*2+2); { over estimate length }
