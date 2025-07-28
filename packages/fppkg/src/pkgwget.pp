@@ -65,7 +65,7 @@ end;
 function TWGetDownloader.WGetDownload(Const URL: String; Dest: TStream): Boolean;
 
 Var
-  Buffer : Array[0..4096] of byte;
+  Buffer : Array[0..4095] of byte;
   Count : Integer;
 
 begin
