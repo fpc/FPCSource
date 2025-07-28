@@ -35,13 +35,13 @@ interface
 uses
   {$IfDef WINDOWS}WinApi.WinSock2, {$ENDIF}
   {$ifdef unix} UnixApi.Base, UnixApi.TermIO, {$EndIf}
-  {$IfDef HASAMIGA}system.ctypes, {$EndIf}
+  system.ctypes,
   System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   {$IfDEF WINDOWS}WinSock2, {$ENDIF}
   {$IFDEF unix}BaseUnix, termio, {$EndIf}  
-  {$IfDef HASAMIGA}ctypes, {$EndIf}
+  ctypes,
   sysutils, sockets, nullable, tuples;
 {$ENDIF FPC_DOTTEDUNITS}
 
