@@ -586,7 +586,8 @@ type
     oo_is_funcref,        { interface has a single Invoke method that can be directly called }
     oo_is_invokable,      { interface that is invokable like a function }
     oo_is_capturer,        { the class is the capturer for anonymous functions (or converted proc(var)s) }
-    oo_inherits_not_specialized { the class inherits from a not yet specialized type }
+    oo_inherits_not_specialized, { the class inherits from a not yet specialized type }
+    oo_composites_generic { the record does a composition with a generic type (disables all member checking) }
   );
   tobjectoptions=set of tobjectoption;
 

@@ -2299,6 +2299,12 @@ implementation
                  Message(sym_e_type_must_be_record);
                  continue;
                end;
+             { if we compose an undefineddef, we don't need mark and skip }
+             if fieldvs.vardef.typ=undefineddef then
+               begin
+                 include(tabstractrecorddef(recst.defowner).objectoptions, oo_composites_generic);
+                 continue;
+               end;
              { Composition of generic parameters will be deferred to when the
                type is specialized. Then this same function will be called
                again and the type is resolved }

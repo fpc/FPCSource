@@ -3335,7 +3335,8 @@ const
      (mask:oo_is_funcref;         str:'IsFuncRef'),
      (mask:oo_is_invokable;       str:'IsInvokable'),
      (mask:oo_is_capturer;        str:'IsCapturer'),
-     (mask:oo_inherits_not_specialized; str:'InheritedNotSpecialized')
+     (mask:oo_inherits_not_specialized; str:'InheritedNotSpecialized'),
+     (mask:oo_composites_generic; str:'CompositesGeneric')
   );
 var
   i      : longint;
