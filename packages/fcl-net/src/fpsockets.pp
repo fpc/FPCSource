@@ -35,7 +35,7 @@ interface
 uses
   {$IfDef WINDOWS}WinApi.WinSock2, {$ENDIF}
   {$ifdef unix} UnixApi.Base, UnixApi.TermIO, {$EndIf}
-  system.ctypes,
+  System.CTypes,
   System.SysUtils, System.Net.Sockets, System.Nullable, System.Tuples;
 {$ELSE FPC_DOTTEDUNITS}
 uses
