@@ -4902,7 +4902,7 @@ type
         procedure addchar(char: AnsiChar = #0);
         begin
           Inc(i);
-          if Length(readlongcomment)>=i then
+          if i>Length(readlongcomment) then
             SetLength(readlongcomment, Length(readlongcomment)+256);
           if char<>#0 then
             readlongcomment[i]:=char
@@ -4983,7 +4983,7 @@ type
         procedure addchar;
         begin
           Inc(i);
-          if Length(readlongquotedstring)>=i then
+          if i>Length(readlongquotedstring) then
             SetLength(readlongquotedstring, Length(readlongquotedstring)+256);
           readlongquotedstring[i]:=c;
         end;
