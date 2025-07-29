@@ -13,6 +13,7 @@
 {$PACKRECORDS 2}
 {.$DEFINE SOCKETS_DEBUG}
 {$ModeSwitch out}
+{$modeSwitch result}
 
 {$IFNDEF FPC_DOTTEDUNITS}
 unit Sockets;
@@ -25,6 +26,9 @@ uses
   System.CTypes,Amiga.Core.Exec;
 {$ELSE FPC_DOTTEDUNITS}
 uses
+  {$IFDEF SOCKETS_DEBUG}
+  sysutils,
+  {$ENDIF}
   ctypes,exec;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -287,15 +291,27 @@ end;
 
 function FpIOCtl(d: Cint; request: LongWord; Data: Pointer): cint;
 begin
-  FpIOCtl := bsd_ioctlsocket(d, request, Data);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpIOCtl(' + IntToStr(d) + ', ' + IntToStr(Request) + ', ' + HexStr(Data) + ')...');
+  {$ENDIF}
+  Result := bsd_ioctlsocket(d, request, Data);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpIOCtl results in ' + IntToStr(Result));
+  {$ENDIF}
 end;
 
 function fpSelect(N: LongInt; readfds, writefds, exceptfds: pfdset; TimeOut: PTimeVal):LongInt;
 var
   Lw: LongWord;
 begin
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSelect(' + IntToStr(n) + ', ' + HexStr(readfds) + ', ' + HexStr(Writefds) + ' ' + HexStr(TimeOut) + ')...');
+  {$ENDIF}
   Lw := 0;
-  fpSelect := bsd_waitselect(N, Readfds, WriteFds, ExceptFds, Timeout, @LW);
+  Result := bsd_waitselect(N, Readfds, WriteFds, ExceptFds, Timeout, @LW);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSelect results in ' + IntToStr(Result));
+  {$ENDIF}
 end;
 
 function socketerror: cint;
@@ -313,107 +329,200 @@ end;
 
 function fpClose(d: LongInt): LongInt; inline;
 begin
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpClose(' + IntToStr(d) + ')...');
+  {$ENDIF}
   if Assigned(SocketBase) then
-    fpClose := bsd_CloseSocket(d)
+    Result := bsd_CloseSocket(d)
   else
-    fpClose := -1;
+    Result := -1;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpClose results in ' + IntToStr(Result));
+  {$ENDIF}
 end;
 
 function fpaccept(s: cint; addrx: PSockaddr; Addrlen: PSocklen): cint;
 begin
-  fpaccept := bsd_accept(s,addrx,addrlen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpAccept(' + IntToStr(s) + ', ' + HexStr(Addrx) + ', ' + HexStr(AddrLen) + ')...');
+  {$ENDIF}
+  Result := bsd_accept(s,addrx,addrlen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpAccept results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpbind(s:cint; addrx: psockaddr; addrlen: tsocklen): cint;
 begin
-  fpbind := bsd_bind(s, addrx, addrlen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpBind(' + IntToStr(s) + ', ' + HexStr(Addrx) + ', ' + IntToStr(AddrLen) + ')...');
+  {$ENDIF}
+  Result := bsd_bind(s, addrx, addrlen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpBind results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpconnect(s:cint; name: psockaddr; namelen: tsocklen): cint;
 begin
-  fpconnect := bsd_connect(s, name, namelen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpConnect(' + IntToStr(s) + ', ' + HexStr(Name) + ', ' + IntToStr(NameLen) + ')...');
+  {$ENDIF}
+  Result := bsd_connect(s, name, namelen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpConnect results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
-  fpgetpeername := bsd_getpeername(s,name,namelen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpGetPeername(' + IntToStr(s) + ', ' + HexStr(Name) + ', ' + HexStr(NameLen) + ')...');
+  {$ENDIF}
+  Result := bsd_getpeername(s,name,namelen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpGetPeername results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpgetsockname(s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
-  fpgetsockname := bsd_getsockname(s,name,namelen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpGetSockName(' + IntToStr(s) + ', ' + HexStr(Name) + ', ' + HexStr(NameLen) + ')...');
+  {$ENDIF}
+  Result := bsd_getsockname(s,name,namelen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpGetSockName results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
-function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
+function fpgetsockopt(s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
-  fpgetsockopt := bsd_getsockopt(s,level,optname,optval,optlen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpGetSockOpt(' + IntToStr(s) + ', ' + IntToStr(Level) + ', ' + IntToStr(optname) + ', ' + HexStr(OptVal) + ', ' + HexStr(OptLen) +')...');
+  {$ENDIF}
+  Result := bsd_getsockopt(s,level,optname,optval,optlen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpGetSockOpt results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fplisten(s:cint; backlog : cint):cint;
 begin
-  fplisten := bsd_listen(s, backlog);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpListen(' + IntToStr(s) + ', ' + IntToStr(backlog) + ')...');
+  {$ENDIF}
+  Result := bsd_listen(s, backlog);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpListen results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fprecv(s:cint; buf: pointer; len: size_t; Flags: cint): ssize_t;
 begin
-  fprecv := bsd_recv(s,buf,len,flags);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpRecv(' + IntToStr(s) + ', ' + HexStr(buf) + ', ' + IntToStr(len) + ', ' + IntToStr(Flags) + ')...');
+  {$ENDIF}
+  Result := bsd_recv(s,buf,len,flags);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpRecv results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fprecvfrom(s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 begin
-  fprecvfrom := bsd_recvfrom(s, buf, len, flags, from, fromlen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpRecvFrom(' + IntToStr(s) + ', ' + HexStr(buf) + ', ' + IntToStr(len) + ', ' + IntToStr(Flags) + ', ' + HexStr(From) + ', ' + HexStr(FromLen) + ')...');
+  {$ENDIF}
+  Result := bsd_recvfrom(s, buf, len, flags, from, fromlen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpRecvFrom results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpsend(s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
-  fpsend := bsd_send(s, msg, len, flags);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSend(' + IntToStr(s) + ', ' + HexStr(Msg) + ', ' + IntToStr(len) + ', ' + IntToStr(Flags) + ')...');
+  {$ENDIF}
+  Result := bsd_send(s, msg, len, flags);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSend results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpsendto(s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
-  fpsendto := bsd_sendto(s, msg, len, flags, tox, tolen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSendTo(' + IntToStr(s) + ', ' + HexStr(Msg) + ', ' + IntToStr(len) + ', ' + IntToStr(Flags) + ', ' + HexStr(tox) + ', ' + IntToStr(ToLen) + ')...');
+  {$ENDIF}
+  Result := bsd_sendto(s, msg, len, flags, tox, tolen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSendTo results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpsetsockopt(s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
 begin
-  fpsetsockopt := bsd_setsockopt(s, level, optname, optval, optlen);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSetSockOpt(' + IntToStr(s) + ', ' + IntToStr(Level) + ', ' + IntToStr(optname) + ', ' + HexStr(OptVal) + ', ' + IntToStr(OptLen) +')...');
+  {$ENDIF}
+  Result := bsd_setsockopt(s, level, optname, optval, optlen);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSetSockOpt results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpshutdown(s: cint; how: cint): cint;
 begin
-  fpshutdown := bsd_shutdown(s, how);
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpShutdown(' + IntToStr(s) + ', ' + IntToStr(how) + ')...');
+  {$ENDIF}
+  Result := bsd_shutdown(s, how);
   internal_socketerror := fpgeterrno;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpShutdown results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 function fpsocket(domain: cint; xtype: cint; protocol: cint): cint;
 begin
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSocket(' + IntToStr(Domain) + ', ' + IntToStr(xtype) + ', ' + IntToStr(Protocol) + ')...');
+  {$ENDIF}
   if Assigned(SocketBase) then
   begin
-    fpsocket := bsd_socket(domain, xtype, protocol);
+    Result := bsd_socket(domain, xtype, protocol);
     internal_socketerror := fpgeterrno;
   end
   else
   begin
-    fpsocket := -1;
+    Result := -1;
     internal_socketerror := ESockEPROTONOSUPPORT;
   end;
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSocket results in ' + IntToStr(Result) + ' with error code ' + IntToStr(internal_socketerror));
+  {$ENDIF}
 end;
 
 
 function fpsocketpair(d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 begin
+  {$IFDEF SOCKETS_DEBUG}
+  SysDebugLn('FPC Sockets: fpSocketPair(' + IntToStr(d) + ', ' + IntToStr(xtype) + ', ' + IntToStr(Protocol) + ', ' + HexStr(sv) + ')...');
+  {$ENDIF}
 {
   fpsocketpair:=cfpsocketpair(d,xtype,protocol,sv);
   internal_socketerror:=fpgeterrno;
