@@ -5732,7 +5732,8 @@ type
             end;
           '''','`' :
             begin
-              inc(quote_count);
+              if c='''' then
+                inc(quote_count);
               had_multiline_string:=in_multiline_string;
               if style<>qsMultiQuote then
                 begin
@@ -5791,6 +5792,7 @@ type
                             in_multiline_string:=true;
                             had_multiline_string:=true;
                             trimcount:=0;
+                            quote_count:=0;
                             len:=0;
                             if c=#13 then
                               begin
