@@ -11,6 +11,7 @@
 
  **********************************************************************}
 {$MODE objfpc}{$H+}
+{$COPERATORS ON}
 {$R-}
 
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -1455,12 +1456,12 @@ Var
 begin
   // Is basically the same except that the handle will be overwritten
   Result:=FSocket;
-{$IFDEF UNIX}
-  R:=ESysEINTR;
-  // need to set this so ptr/addrsize are correct.
   naddr.SocketType:=Result.SocketType;
   naddr.GetAddrAndSize(AddrPtr,addrSize);
   Result.FD:=-1;
+{$IFDEF UNIX}
+  R:=ESysEINTR;
+  // need to set this so ptr/addrsize are correct.
   While SocketInvalid(Result.FD) and (R=ESysEINTR) do
 {$ENDIF UNIX}
    begin
