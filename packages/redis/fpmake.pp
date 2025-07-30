@@ -21,6 +21,8 @@ begin
     P.Description := 'Redis interface unit.';
     // Keep this lis the same as fcl-net.
     P.OSes:=AllUnixOSes+AllWindowsOSes+AllAmigaLikeOSes+[OS2,EMX];
+    if Defaults.CPU=jvm then
+      P.OSes := P.OSes - [android];
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
