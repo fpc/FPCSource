@@ -71,7 +71,7 @@ type
 
   cbool                  = longbool;           pcbool                 = ^cbool;
 
-{$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
+{$if defined(cpu64) and not(defined(win64))}
   cint                   = cint32;             pcint                  = ^cint;              { minimum range is : 32-bit    }
   csint                  = cint32;             pcsint                 = ^csint;             { minimum range is : 32-bit    }
   cuint                  = cuint32;            pcuint                 = ^cuint;             { minimum range is : 32-bit    }
