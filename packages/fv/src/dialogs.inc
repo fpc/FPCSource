@@ -1418,11 +1418,15 @@ FUNCTION TInputLine.DataSize: Sw_Word;
 VAR DSize: Sw_Word;
 BEGIN
 {$ifdef FV_UNICODE}
-   DataSize := SizeOf(Sw_String);                     { DataSize return the
+   DSize := 0;                                        { Preset zero datasize }
+   If (Validator <> Nil) Then
+     DSize := Validator^.Transfer(Data, Nil,
+       vtDataSize);                                   { Add validator size }
+   If (DSize <> 0) Then DataSize := DSize             { Use validtor size }
+     Else DataSize := SizeOf(Sw_String);              { DataSize return the
                                                         actual size of the field
                                                         in record. Unlike
-                                                        ShortString field which is
-                                                        allocated on stack and thus
+                                                        ShortString field which
                                                         has variable size,
                                                         UnicodeString field's size
                                                         is determined by it's
@@ -1626,7 +1630,12 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.GetData (Var Rec);
 BEGIN
+{$ifdef FV_UNICODE}
+   { In Unicode version we have to go thru validator even }
+   { if Data = nil (empty string)                         }
+{$else}
    If Data <> Sw_PString_Empty Then Begin             { Data ptr valid }
+{$endif FV_UNICODE}
      If (Validator = Nil) OR (Validator^.Transfer(Data Sw_PString_DeRef,
      @Rec, vtGetData) = 0) Then Begin                 { No validator/data }
 {$ifdef FV_UNICODE}
@@ -1636,11 +1645,9 @@ BEGIN
        Move(Data^, Rec, Length(Data^) + 1);           { Transfer our data }
 {$endif FV_UNICODE}
      End;
+{$ifndef FV_UNICODE}
    End Else
-{$ifdef FV_UNICODE}
-     Sw_String(Rec):='';
-{$else FV_UNICODE}
-     FillChar(Rec, DataSize, #0);              { Clear the data area }
+     FillChar(Rec, DataSize, #0);                     { Clear the data area }
 {$endif FV_UNICODE}
 END;
 
