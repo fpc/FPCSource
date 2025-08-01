@@ -1654,6 +1654,8 @@ begin
     end;
   end;
   P:=T+P;
+  if P > BufLen then
+    P:=BufLen;
 {$else}
   Pos := 0;
   while (Pos < Target) and (P < BufLen) and  not(BufChar (P) in [#10,#13]) do
@@ -2159,6 +2161,7 @@ var idxpos : sw_word;
       EGC: Sw_String;
 {$endif FV_UNICODE}
   begin
+     calPositions:=0;
      if iB = 0 then exit;
      if bStr[iB]<>#13 then  { not end char add one }
      begin
