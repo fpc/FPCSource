@@ -744,10 +744,10 @@ begin
           DSTEndSec := ADSTEndSec;
           DSTStartSpecType := ADSTStartSpecType;
           DSTEndSpecType := ADSTEndSpecType;
-         end;
-       end
-      else
-       DSTOffset := -3600 + TZOffset;
+         end
+       else
+         DSTOffset := -3600 + TZOffset;
+       end;
      end;
    end;
 end;
