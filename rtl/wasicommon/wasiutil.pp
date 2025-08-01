@@ -45,6 +45,12 @@ type
     NamePos    : Word;               {end of path, start of name position}
   End;
 
+var
+  // Provide this so the time can be corrected for TZ info.
+  // Once WASI has some means of setting it, it can be used to initialize this variable.
+  UTCTimeOffset : Integer; // in minutes;
+
+
 function ConvertToFdRelativePath(path: RawByteString; out fd: LongInt; out relfd_path: RawByteString): Word; external name 'FPC_WASI_CONVERTTOFDRELATIVEPATH';
 function fpc_wasi_path_readlink_ansistring(fd: __wasi_fd_t; const path: PAnsiChar; path_len: size_t; out link: rawbytestring): __wasi_errno_t; external name 'FPC_WASI_PATH_READLINK_ANSISTRING';
 function FNMatch(const Pattern,Name:rawbytestring):Boolean;
@@ -480,6 +486,7 @@ begin
   { todo: convert UTC to local time, as soon as we can get the local timezone
     from WASI: https://github.com/WebAssembly/WASI/issues/239 }
   result:=UniversalToEpoch(year,month,day,hour,minute,second);
+  Result:=Result-(UTCTimeOffset*60);
 end;
 
 
@@ -536,6 +543,7 @@ Procedure EpochToLocal(epoch:int64;var year,month,day,hour,minute,second:Word);
 begin
   { todo: convert UTC to local time, as soon as we can get the local timezone
     from WASI: https://github.com/WebAssembly/WASI/issues/239 }
+  epoch:=epoch+(UTCTimeOffset*60);
   EpochToUniversal(epoch,year,month,day,hour,minute,second);
 end;
 
