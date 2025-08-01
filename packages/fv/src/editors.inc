@@ -528,6 +528,7 @@ resourcestring  sClipboard='Clipboard';
                 sWordWrapNotPossible='Wordwrap on:  Wordwrap not possible in current margins with continuous line.';
                 sWordWrapOff='You must turn on wordwrap before you can reformat.';
                 sSaveFileAs='Save file as';
+                sReplace='Replace';
 
                 slCaseSensitive='~C~ase sensitive';
                 slCurrentLine='~C~urrent line';
@@ -535,7 +536,6 @@ resourcestring  sClipboard='Clipboard';
                 slLineNumber='~L~ine number';
                 slNewText='~N~ew text';
                 slPromptOnReplace='~P~rompt on replace';
-                slReplace='~R~eplace';
                 slReplaceAll='~R~eplace all';
                 slTextToFind='~T~ext to find';
                 slWholeWordsOnly='~W~hole words only';
@@ -752,7 +752,7 @@ var
   R: TRect;
 begin
   R.Assign(0, 0, 40, 16);
-  D := New(PDialog, Init(R,slReplace));
+  D := New(PDialog, Init(R,sReplace));
   with D^ do
   begin
     Options := Options or ofCentered;
