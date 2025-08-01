@@ -2442,6 +2442,12 @@ begin
          ClearEvent(Event);                               { Event was handled }
        end;
      end;
+     if (Event.What = evKeyDown) Then Begin         { KeyDown down event }
+       case CtrlToArrow(Event.KeyCode) of
+          kbLeft: Event.KeyCode:=kbUp;              { treat kbLeft as kbUp }
+          kbRight: Event.KeyCode:=kbDown;           { treat kbRight as kbDown }
+       end;
+     end;
    end;
 
    Inherited HandleEvent(Event);                      { Call ancestor }
