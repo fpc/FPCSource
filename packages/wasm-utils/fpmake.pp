@@ -70,6 +70,16 @@ begin
       T.Dependencies.AddUnit('wasm.websocket.api');
       T.Dependencies.AddUnit('wasm.websocket.shared');
     
+    // Locale
+    T:=P.Targets.AddUnit('wasm.locale.shared.pas');
+    
+    T:=P.Targets.AddUnit('wasm.locale.api.pas');
+      T.Dependencies.AddUnit('wasm.locale.shared');
+      
+    T:=P.Targets.AddUnit('wasm.locale.objects.pas');
+      T.Dependencies.AddUnit('wasm.locale.api');
+      T.Dependencies.AddUnit('wasm.locale.shared');
+    
     // Regexp  
     T:=P.Targets.AddUnit('wasm.regexp.shared.pas');
     
