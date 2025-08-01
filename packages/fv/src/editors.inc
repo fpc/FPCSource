@@ -399,7 +399,11 @@ TYPE
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
+{$ifdef FV_UNICODE}
+    Find    : Sw_String;
+{$else}
     Find    : String[80];
+{$endif}
     Options : Word;
   end;
 
@@ -408,8 +412,13 @@ TYPE
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
-       Find : String[80];
+{$ifdef FV_UNICODE}
+    Find    : Sw_String;
+    Replace : Sw_String;
+{$else}
+    Find    : String[80];
     Replace : String[80];
+{$endif}
     Options : Word;
   end;
 
@@ -418,7 +427,11 @@ TYPE
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
+{$ifdef FV_UNICODE}
+    Margin_Position : Sw_String;
+{$else}
     Margin_Position : String[3];
+{$endif}
   end;
 
   TTabStopRec =
@@ -426,7 +439,11 @@ TYPE
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
+{$ifdef FV_UNICODE}
+    Tab_String : Sw_String;
+{$else}
     Tab_String : String [Tab_Stop_Length];
+{$endif}
   end;
 
 CONST
@@ -1052,6 +1069,28 @@ function IsValidUtf8ContinuationByte(ch: AnsiChar): Boolean;
 begin
   IsValidUtf8ContinuationByte:=(Ord(ch) and %11000000)=%10000000;
 end;
+
+
+function UnicodeStringToUtf8 (S : UnicodeString):ShortString;
+var uLen : Sw_Integer;
+    SS : Shortstring;
+begin
+  SS:='';
+  if Length(S)>0 then
+  begin
+    uLen:=UnicodeToUtf8(nil,512,@S[1],Length(S));
+    if uLen>0 then
+    begin
+      if uLen>255 then
+        uLen:=255; {cap to ShortString max length }
+      uLen:=UnicodeToUtf8(@SS[1],uLen,@S[1],Length(S));
+      dec(uLen);  {do not include in string null char at the end}
+      SetLength(SS,uLen);
+    end;
+  end;
+  UnicodeStringToUtf8:=SS;
+end;
+
 
 function CountLines(var Buf; Count: sw_Word): sw_Integer;
 var
@@ -2049,11 +2088,21 @@ VAR
 begin
   with FindRec do
   begin
+{$ifdef FV_UNICODE}
+    { FindStr here is utf8 and Find is UnicodeString }
+    Find := UTF8ToString(FindStr);
+{$else}
     Find := FindStr;
+{$endif}
     Options := Flags;
     if EditorDialog (edFind, @FindRec) <> cmCancel then
     begin
+{$ifdef FV_UNICODE}
+      { FindStr here is utf8 and Find is UnicodeString }
+      FindStr := UnicodeStringToUtf8(Find);
+{$else}
       FindStr := Find;
+{$endif}
       Flags := Options and not efDoReplace;
       DoSearchReplace;
     end;
@@ -3445,13 +3494,23 @@ VAR
 begin
   with ReplaceRec do
   begin
+{$ifdef FV_UNICODE}
+    Find := UTF8ToString(FindStr);
+    Replace := UTF8ToString(ReplaceStr);
+{$else}
     Find := FindStr;
     Replace := ReplaceStr;
+{$endif}
     Options := Flags;
     if EditorDialog (edReplace, @ReplaceRec) <> cmCancel then
     begin
+{$ifdef FV_UNICODE}
+      FindStr := UnicodeStringToUtf8(Find);
+      ReplaceStr := UnicodeStringToUtf8(Replace);
+{$else}
       FindStr := Find;
       ReplaceStr := Replace;
+{$endif}
       Flags := Options or efDoReplace;
       DoSearchReplace;
     end;
@@ -3797,7 +3856,7 @@ begin
           else
             begin
               Index := Length (Tab_String);
-              while Tab_String[Index] <= #32 do
+              while (Index>0) and (Tab_String[Index] <= #32) do
                 Dec (Index);
               Tab_Settings := Copy (Tab_String, 1, Index);
             end;
