@@ -19,6 +19,7 @@ unit fpsockets;
 {$TypedAddress on}
 {$modeswitch advancedrecords}
 {$macro on}
+{$COPERATORS ON}
 
 {$IFDEF FPC_DOTTEDUNITS}
 {$define socketsunit:=System.Net.Sockets}
@@ -680,7 +681,7 @@ end;
 function ReceiveFromNonBlocking(const ASocket:TFPSocket;ABuffer:Pointer;MaxSize:
   SizeInt;AFlags:Integer):specialize TNullable<TReceiveFromResult>;
 begin
-  Result := ReceiveFromNonBlocking(ASocket, ABuffer, MaxSize, AFlags);
+  Result := ReceiveFrom(ASocket, ABuffer, MaxSize, AFlags);
   if Result.Value.DataSize = 0 then
     Result := null;
 end;
