@@ -766,7 +766,7 @@ begin
   SubstrLen:=Length(SubStr);
   if (SubstrLen>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
+     MaxLen:=Length(source)-SubStrLen;
      i:=Offset-1;
      while (i<=MaxLen) do
       begin
@@ -798,7 +798,7 @@ begin
   SubstrLen:=Length(SubStr);
   if (SubstrLen>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
-     MaxLen:=Length(source)-Length(SubStr);
+     MaxLen:=Length(source)-SubStrLen;
      i:=Offset-1;
      while (i<=MaxLen) do
       begin
