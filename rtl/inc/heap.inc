@@ -834,7 +834,7 @@ type
           { Size index of the first chunk in the arena is used to determine if it can be reused. Set a purposely mismatching value for freshly allocated arena. }
           pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h := uint32(not sizeIndex);
         end;
-        if pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h and SizeIndexMask = sizeIndex then
+        if pCommonHeader(pointer(arena) + FixedArenaDataOffset)^.h and SizeIndexMask = uint32(sizeIndex) then
           { Lucky! Just don’t reset the chunk and use its old freelist. }
         else
         begin
@@ -843,44 +843,47 @@ type
           arena^.almostFullThreshold := pVarHeader(arena)[-1].ch.h and VarSizeMask - 2 * IndexToSize(sizeIndex) - (VarHeaderSize + FixedArenaDataOffset); { available space - 2 * chunk size. }
         end;
 
-        { Add arena to partialArenas[sizeIndex]. }
-        nextArena := partialArenas[sizeIndex];
+        { Add arena to partialArenas[sizeIndex], which is nil. Careful: AllocVar above should not call FlushToFree, or this assumption might be violated. }
         arena^.prev := nil;
-        arena^.next := nextArena;
-        if Assigned(nextArena) then
-          nextArena^.prev := arena;
+        arena^.next := nil;
         partialArenas[sizeIndex] := arena;
       end;
     end;
 
     sizeUp := IndexToSize(sizeIndex); { Not reusing the “size” variable saved a register at the time of writing this comment. }
-    statv := used + sizeUp;
-    used := statv;
-    inc(statv, gs.hugeUsed);
-    if statv > maxUsed then
-      maxUsed := statv;
+    inc(used, sizeUp);
 
     { arena from partialArenas has either free chunk or free unformatted space for a new chunk. }
     usedSizeMinus1 := int32(arena^.usedSizeMinus1);
+    arena^.usedSizeMinus1 := uint32(usedSizeMinus1 + int32(sizeUp));
     result := arena^.firstFreeChunk;
-    if not Assigned(result) then
+    if Assigned(result) then
+    begin
+      { This branch is much more likely (when compiling FPC: 9×), so comes first. }
+      arena^.firstFreeChunk := pFreeChunk(result)^.next;
+      if usedSizeMinus1 < int32(arena^.almostFullThreshold) then { Arena is still not full? Uses usedSizeMinus1 value before adding sizeUp, as assumed by almostFullThreshold. }
+        exit;
+    end else
     begin
       { Freelist is empty, so “formattedSize” = usedSizeMinus1 + 1. This “+ 1” is folded into constants. }
       result := pointer(arena) + (FixedArenaDataOffset + CommonHeaderSize + 1) + usedSizeMinus1;
       pCommonHeader(result - CommonHeadersize)^.h := uint32(int32(sizeIndex) + int32(usedSizeMinus1 shl FixedArenaOffsetShift) +
         (FixedFlag + (FixedArenaDataOffset + CommonHeaderSize + 1) shl FixedArenaOffsetShift) { ← const });
-    end else
-      arena^.firstFreeChunk := pFreeChunk(result)^.next;
-    arena^.usedSizeMinus1 := uint32(usedSizeMinus1 + int32(sizeUp));
-    if usedSizeMinus1 >= int32(arena^.almostFullThreshold) then { Uses usedSizeMinus1 value before adding sizeUp, as assumed by almostFullThreshold. }
-    begin
-      inc(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
-      { Remove arena from partialArenas[sizeIndex]. (It was first.) }
-      nextArena := arena^.next;
-      partialArenas[sizeIndex] := nextArena;
-      if Assigned(nextArena) then
-        nextArena^.prev := nil;
+      if usedSizeMinus1 < int32(arena^.almostFullThreshold) then { Arena is still not full? }
+        exit;
     end;
+
+    { Arena became full. This is unlikely, so instead of the “if”, the check is duplicated in both branches above. (Saves a jump from the “then” branch above.) }
+    inc(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
+    { Remove arena from partialArenas[sizeIndex]. (It was first.) }
+    nextArena := arena^.next;
+    partialArenas[sizeIndex] := nextArena;
+    if Assigned(nextArena) then
+      nextArena^.prev := nil;
+    { And since this is unlikely, it won’t hurt to update maxUsed (unlike doing in in the common path). }
+    statv := used + gs.hugeUsed;
+    if statv > maxUsed then
+      maxUsed := statv;
   end;
 
   function HeapInc.ThreadState.FreeFixed(p: pointer): SizeUint;
@@ -931,6 +934,7 @@ type
         dec(allocatedByFullArenas[sizeIndex], pVarHeader(arena)[-1].ch.h and VarSizeMask);
         { Add arena to partialArenas[sizeIndex]. }
         nextArena := partialArenas[sizeIndex];
+        arena^.prev := nil;
         arena^.next := nextArena;
         if Assigned(nextArena) then
           nextArena^.prev := arena;
@@ -1023,11 +1027,6 @@ type
     osChunk, osNext: pVarOSChunk;
     binIndex, vSizeFlags, statv: SizeUint;
   begin
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    if Assigned(toFree) then
-      FlushToFree;
-  {$endif}
-
     { Search varFree for (roughly) smallest chunk ≥ size. }
     binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
     { Round the size up to the bin size.
@@ -1107,16 +1106,15 @@ type
       size := vSizeFlags and VarSizeMask;
     end;
 
+    { Update maxUsed regardless. }
+    statv := used + gs.hugeUsed;
+    if statv > maxUsed then
+      maxUsed := statv;
+
     if isArena then
       inc(pVarHeader(result)[-1].ch.h, FixedArenaFlag) { Arenas aren’t counted in “used” directly. }
     else
-    begin
-      statv := used + size;
-      used := statv;
-      inc(statv, gs.hugeUsed);
-      if statv > maxUsed then
-        maxUsed := statv;
-    end;
+      inc(used, size);
   end;
 
   function HeapInc.ThreadState.FreeVar(p: pointer): SizeUint;
@@ -1448,10 +1446,6 @@ type
     size := (size + (HugeChunkDataOffset + CommonHeaderSize + OSChunkVarSizeQuant - 1)) and SizeUint(-OSChunkVarSizeQuant);
     if size < userSize then { Overflow. }
       exit(AllocFailed);
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    if Assigned(toFree) then
-      FlushToFree;
-  {$endif}
   {$ifdef HAS_SYSOSFREE}
     result := SysOSAlloc(size);
     if not Assigned(result) then
@@ -1695,7 +1689,7 @@ type
         end;
       end
       else if h and FixedArenaFlag <> 0 then
-         AdoptArena(p)
+        AdoptArena(p)
       else
         inc(used, h and VarSizeMask); { maxUsed is updated after the loop. }
       inc(p, h and VarSizeMask);
@@ -1760,8 +1754,12 @@ var
 begin
   ts := @HeapInc.thisTs;
   if size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize then
-    result := ts^.AllocFixed(size)
-  else if (size < GrowHeapSize2 div 2) { Approximate idea on the max size of the variable chunk. Approximate because size does not include headers but GrowHeapSize2 does. }
+    exit(ts^.AllocFixed(size));
+{$ifdef FPC_HAS_FEATURE_THREADING}
+  if Assigned(ts^.toFree) then
+    ts^.FlushToFree;
+{$endif}
+  if (size < GrowHeapSize2 div 2) { Approximate idea on the max size of the variable chunk. Approximate because size does not include headers but GrowHeapSize2 does. }
     and (size <= HeapInc.MaxVarHeaderAndPayload - HeapInc.VarHeaderSize) then
     result := ts^.AllocVar(size, false)
   else
