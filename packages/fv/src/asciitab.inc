@@ -364,7 +364,7 @@ var
   R : Trect;
 begin
   R.Assign(0,0,34,12);
-  Inherited Init(R,'Ascii table',wnNoNumber);
+  Inherited Init(R,'ASCII Table',wnNoNumber);
   Flags:=Flags and not (wfGrow or wfZoom);
   Palette:=wpGrayWindow;
   R.Assign(1,10,33,11);
