@@ -2139,11 +2139,12 @@ begin
   FBoundary := boundary;
   Sep:=DashDash+boundary+CRLF;
   Slen:=length(Sep);
+  P := Pos(Sep, Cnt);// start of the first marker
   CLen:=Pos(DashDash+Boundary+DashDash,Cnt);
   // Cut last marker
   Cnt:=Copy(Cnt,1,Clen-1);
-  // Cut first marker
-  system.Delete(Cnt,1,Slen);
+  // Cut first marker and everything before that
+  system.Delete(Cnt,1,Slen+P-1);
   Clen:=Length(Cnt);
   While Clen>0 do
     begin
