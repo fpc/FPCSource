@@ -243,7 +243,8 @@ type
     MinSearchableVarHeaderAndPayload = (MaxFixedHeaderAndPayload + 1 shl FirstVarStepP2 + VarSizeQuant - 1) and -VarSizeQuant;
     MaxVarHeaderAndPayload = (MaxFixedHeaderAndPayload + (1 shl VarSizeClassesCount - 1) shl FirstVarRangeP2) and -VarSizeQuant; {$if MaxVarHeaderAndPayload <> MaxFixedHeaderAndPayload + 1047552} {$error does not match the explanation above :D} {$endif}
 
-    class function VarSizeToBinIndex(size: SizeUint; roundUp: boolean): SizeUint; static;
+    class function VarSizeToBinIndex(size: SizeUint; roundUp: boolean): SizeUint; static; inline; { roundUp is constant. }
+    class function VarSizeToBinIndexUp(size: SizeUint): SizeUint; static; { ...but VarSizeToBinIndex is nontrivial enough to not inline except for the special case in VarFreeMap.Add. }
     class function BinIndexToVarSize(binIndex: SizeUint): SizeUint; static; inline;
 
   type
@@ -362,7 +363,6 @@ type
     HugeChunk = object(OSChunkBase)
     end;
 
-    NonZeroDWord = 1 .. High(uint32); { MAYBE IT WILL WORK ONE DAY (https://gitlab.com/freepascal.org/fpc/source/-/issues/41179). }
   {$ifdef HEAP_INC_USE_SETS}
     Set32 = set of 0 .. 31;
   {$endif HEAP_INC_USE_SETS}
@@ -374,6 +374,8 @@ type
       L1: uint32;
       L0: array[0 .. (VarSizesCount + L0BinSize - 1) div L0BinSize - 1] of uint32;
       bins: array[0 .. VarSizesCount - 1] of pFreeVarChunk;
+      { As an optimization, Add.binIndex can also be a size (will be rounded down), assuming VarSizesCount <= MinSearchableVarHeaderAndPayload. }
+    {$if VarSizesCount > MinSearchableVarHeaderAndPayload} {$error assumption above does not hold} {$endif}
       procedure Add(c: pFreeVarChunk; binIndex: SizeUint);
       procedure Remove(c: pFreeVarChunk);
       function Find(binIndex: SizeUint): pFreeVarChunk;
@@ -492,23 +494,25 @@ type
   var
     maxv, binClassIndex: SizeUint;
   begin
-    if size >= MaxVarHeaderAndPayload then { Large sizes go to the last bin, assuming searches never search for more than MaxVarHeaderAndPayload. }
-      exit(VarSizeClassesCount * VarSizesPerClass - 1);
     dec(size, MaxFixedHeaderAndPayload);
-    binClassIndex := SizeUint(BsrDWord(NonZeroDWord(size)) - FirstVarRangeP2);
-    if SizeInt(binClassIndex) < 0 then binClassIndex := 0;
-    maxv := (SizeUint(2) shl binClassIndex - 1) shl FirstVarRangeP2;
+    binClassIndex := BsrDWord(uint32(size) or 1 shl FirstVarRangeP2); { Temporarily off by +FirstVarRangeP2. }
+    maxv := SizeUint(2) shl binClassIndex - 1 shl FirstVarRangeP2;
     if size <= maxv then
     begin
       maxv := maxv shr 1; { Turn into “minv” to be subtracted from size. If size > maxv, “minv” is maxv. :) }
       maxv := maxv and SizeUint(-SizeInt(1 shl FirstVarRangeP2));
-      dec(SizeInt(binClassIndex)); { Compensate inc(binClassIndex) below, so in the end, it is increased if size > maxv. All of this prevents having an “else” branch with its extra jump. }
+      dec(SizeInt(binClassIndex)); { Compensate extra +1 to binClassIndex below, so in the end, it is increased if size > maxv. All of this prevents having an “else” branch with its extra jump. }
     end;
     dec(size, maxv);
-    inc(SizeInt(binClassIndex));
-    result := binClassIndex * VarSizesPerClass + SizeUint(size - 1) shr (FirstVarStepP2 + binClassIndex);
-    if not roundUp and (size and SizeUint(SizeUint(1) shl (FirstVarStepP2 + binClassIndex) - 1) <> 0) then
+    inc(SizeInt(binClassIndex), 1 - FirstVarRangeP2); { No longer off by +FirstVarRangeP2. }
+    result := binClassIndex * VarSizesPerClass + SizeUint(size - 1) shr (binClassIndex + FirstVarStepP2);
+    if not roundUp and (size and SizeUint(SizeUint(1) shl (binClassIndex + FirstVarStepP2) - 1) <> 0) then
       dec(result);
+  end;
+
+  class function HeapInc.VarSizeToBinIndexUp(size: SizeUint): SizeUint;
+  begin
+    result := VarSizeToBinIndex(size, true);
   end;
 
   class function HeapInc.BinIndexToVarSize(binIndex: SizeUint): SizeUint;
@@ -547,6 +551,12 @@ type
     iL0: SizeUint;
     vL0 {$ifdef HEAP_INC_USE_SETS}, vL1 {$endif}: uint32;
   begin
+    if binIndex >= VarSizesCount then
+      if binIndex >= MaxVarHeaderAndPayload then { Large sizes go to the last bin, assuming searches never search for more than MaxVarHeaderAndPayload. }
+        binIndex := VarSizesCount - 1
+      else
+        binIndex := VarSizeToBinIndex(binIndex, false);
+
     next := bins[binIndex];
     c^.prev := nil;
     c^.next := next;
@@ -623,12 +633,12 @@ type
       exit;
     mask := L0[binIndex div L0BinSize] shr (binIndex mod L0BinSize); { Logically should be “1 + binIndex mod L0BinSize” but the bit that represents the binIndex-th bin is 0 anyway. }
     if mask <> 0 then
-      exit(bins[binIndex + BsfDWord(NonZeroDWord(mask))]);
+      exit(bins[binIndex + BsfDWord(mask or 1 shl (L0BinSize - 1))]); { In these two BsfDWords, ensuring the highest bit to be set is just an optimization, as long as the supposed alternative from https://gitlab.com/freepascal.org/fpc/source/-/issues/41179 does not work. }
     mask := L1 and (SizeUint(-2) shl (binIndex div L0BinSize));
     if mask <> 0 then
     begin
-      binIndex := BsfDWord(NonZeroDWord(mask)); { Index at L0. }
-      result := bins[binIndex * L0BinSize + BsfDWord(NonZeroDWord(L0[binIndex]))];
+      binIndex := BsfDWord(mask or 1 shl (L0BinSize - 1)); { Index at L0. }
+      result := bins[binIndex * L0BinSize + BsfDWord(L0[binIndex] or 1 shl (L0BinSize - 1))]; { Careful, this time “or 1 shl (L0BinSize - 1)” is NOT an optimization: unsynchronized gs.varFree.Find can read zero from L0[binIndex]. }
     end;
   end;
 
@@ -880,7 +890,7 @@ type
     partialArenas[sizeIndex] := nextArena;
     if Assigned(nextArena) then
       nextArena^.prev := nil;
-    { And since this is unlikely, it won’t hurt to update maxUsed (unlike doing in in the common path). }
+    { And since this is unlikely, it won’t hurt to update maxUsed (unlike doing it in the common path). }
     statv := used + gs.hugeUsed;
     if statv > maxUsed then
       maxUsed := statv;
@@ -1028,7 +1038,7 @@ type
     binIndex, vSizeFlags, statv: SizeUint;
   begin
     { Search varFree for (roughly) smallest chunk ≥ size. }
-    binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
+    binIndex := VarSizeToBinIndexUp(size + VarHeaderSize);
     { Round the size up to the bin size.
       Can do without that, but not doing that will often mean the inability to reuse the hole because varFree rounds up for searches and down for additions. }
     size := BinIndexToVarSize(binIndex);
@@ -1095,7 +1105,7 @@ type
       if vSizeFlags and LastFlag = 0 then
         pFreeVarTail(pointer(fv) + vSizeFlags - (VarHeaderSize + FreeVarTailSize))^.size := vSizeFlags;
       if vSizeFlags >= MinSearchableVarHeaderAndPayload then
-        varFree.Add(fv, VarSizeToBinIndex(vSizeFlags, false)); { Rounding down, so not masking is ok. }
+        varFree.Add(fv, vSizeFlags); { Rounding down, so not masking is ok. }
     end else
     begin
       { Use the entire chunk. }
@@ -1190,7 +1200,7 @@ type
     begin
       dec(fSizeFlags, UsedFlag);
       pVarHeader(p - VarHeaderSize)^.ch.h := fSizeFlags;
-      varFree.Add(p, VarSizeToBinIndex(fSizeFlags, false));
+      varFree.Add(p, fSizeFlags);
       if fSizeFlags and LastFlag = 0 then
       begin
         pVarHeader(p + fSizeFlags - VarHeaderSize)^.ch.h := pVarHeader(p + fSizeFlags - VarHeaderSize)^.ch.h or PrevIsFreeFlag; { Could have it already. }
@@ -1282,10 +1292,10 @@ type
     end;
   {$endif FPC_HAS_FEATURE_THREADING}
 
-    { Round the size up, but only if supported by VarSizeToBinIndex: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
+    { Round the size up, but only if supported by VarSizeToBinIndexUp: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
     if uint32(size) <= MaxVarHeaderAndPayload - VarHeaderSize then
     begin
-      binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
+      binIndex := VarSizeToBinIndexUp(size + VarHeaderSize);
       size := BinIndexToVarSize(binIndex);
     end else
       size := uint32(uint32(size) + (VarHeaderSize + VarSizeQuant - 1)) and uint32(-VarSizeQuant); { Just do the strictly necessary quantization... }
@@ -1406,7 +1416,7 @@ type
         pVarHeader(fp + fSizeFlags)[-1].ch.h := pVarHeader(fp + fSizeFlags)[-1].ch.h or PrevIsFreeFlag; { May have had it already. }
       end;
       if fSizeFlags >= MinSearchableVarHeaderAndPayload then
-        varFree.Add(fp, VarSizeToBinIndex(fSizeFlags, false));
+        varFree.Add(fp, fSizeFlags);
     end
     else if arSizeFlags and LastFlag = 0 then
       pVarHeader(ar + arSizeFlags and VarSizeMask)[-1].ch.h := pVarHeader(ar + arSizeFlags and VarSizeMask)[-1].ch.h and uint32(not PrevIsFreeFlag); { May not have had it already. }
