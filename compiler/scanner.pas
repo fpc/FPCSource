@@ -5600,7 +5600,7 @@ type
       init_quote_count:=0;
       had_newline:=false;
       first_multiline:=false;
-      had_multiline_string:=in_multiline_string;
+      had_multiline_string:=false;
       backtick:=(c='`');
       if backtick then
         style:=qsBacktick
@@ -6082,6 +6082,7 @@ type
           else
             token:=_CSTRING;
         end;
+      had_multiline_string:=False;
       exit(true);
     end;
 
