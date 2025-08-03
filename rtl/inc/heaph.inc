@@ -74,7 +74,6 @@ Function  SysFreemem(p:pointer):ptruint;
 Function  SysFreememSize(p:pointer;Size:ptruint):ptruint;
 Function  SysMemSize(p:pointer):ptruint;
 Function  SysAllocMem(size:ptruint):Pointer;
-function  SysTryResizeMem(var p:pointer;size:ptruint):boolean;
 Function  SysReAllocMem(var p:pointer;size:ptruint):Pointer;
 function  SysGetHeapStatus:THeapStatus;
 function  SysGetFPCHeapStatus:TFPCHeapStatus;

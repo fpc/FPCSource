@@ -71,11 +71,6 @@
         result:=pptruint(p)[0]-sizeof(ptruint);
       end;
 
-    function SysTryResizeMem(var p: pointer; size: ptruint) : boolean;
-      begin
-        result := false;
-      end;
-
     function SysAllocMem(size: ptruint): pointer;
       begin
         result := SysGetMem(size);

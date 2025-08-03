@@ -1794,32 +1794,6 @@ begin
     result := 0;
 end;
 
-function SysTryResizeMem(var p: pointer; size: ptruint): boolean;
-var
-  ts: HeapInc.pThreadState;
-  h: uint32;
-  newp: pointer;
-begin
-  h := HeapInc.pCommonHeader(p - HeapInc.CommonHeaderSize)^.h;
-  if h and HeapInc.FixedFlag <> 0 then
-    result := (size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize) and (h and HeapInc.SizeIndexMask = HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1)))
-  else
-  begin
-    ts := @HeapInc.thisTs;
-  {$ifdef FPC_HAS_FEATURE_THREADING}
-    if Assigned(ts^.toFree) then
-      ts^.FlushToFree;
-  {$endif FPC_HAS_FEATURE_THREADING}
-    if h <> HeapInc.HugeHeader then
-      newp := ts^.TryResizeVar(p, size)
-    else
-      newp := ts^.TryResizeHuge(p, size);
-    result := Assigned(newp);
-    if result then
-      p := newp;
-  end;
-end;
-
 function SysMemSize(p: pointer): ptruint;
 var
   h: uint32;
@@ -1837,40 +1811,63 @@ end;
 
 function SysReAllocMem(var p: pointer; size: ptruint):pointer;
 var
-  oldsize, newsize, tocopy: SizeUint;
+  ts: HeapInc.pThreadState;
+  h: uint32;
+  oldOrCopySize: SizeUint;
+  newp: pointer;
 begin
-  if size = 0 then
+  result := p; { Use as old p value until freed etc. }
+  if (size = 0) or not Assigned(result) then { Special cases; check at once. }
+  begin
+    if size = 0 then
     begin
-      SysFreeMem(p);
+      SysFreeMem(result);
       result := nil;
-      p := nil;
-    end
-  else if not Assigned(p) then
-    begin
+    end else
       result := SysGetMem(size);
-      p := result;
-    end
-  else if SysTryResizeMem(p, size) then
-    result := p
-  else
+    p := result;
+    exit;
+  end;
+  h := HeapInc.pCommonHeader(result - HeapInc.CommonHeaderSize)^.h;
+  if h and HeapInc.FixedFlag <> 0 then
+  begin
+    if (size <= HeapInc.MaxFixedHeaderAndPayload - HeapInc.CommonHeaderSize)
+      and (h and HeapInc.SizeIndexMask = HeapInc.SizeMinus1ToIndex(size + (HeapInc.CommonHeaderSize - 1))) then
+      exit;
+  end else
+  begin
+    ts := @HeapInc.thisTs;
+  {$ifdef FPC_HAS_FEATURE_THREADING}
+    if Assigned(ts^.toFree) then
+      ts^.FlushToFree;
+  {$endif FPC_HAS_FEATURE_THREADING}
+    if h <> HeapInc.HugeHeader then
+      newp := ts^.TryResizeVar(result, size)
+    else
+      newp := ts^.TryResizeHuge(result, size);
+    if Assigned(newp) then
     begin
-      oldsize := SysMemSize(p);
-      newsize := size;
-      result := SysGetMem(newsize);
-      if not Assigned(result) then
-        begin
-          if size <= oldsize then
-            { Don’t fail if shrinking. }
-            result := p;
-          exit; { If growing failed, return nil, but keep the old p. }
-        end;
-      tocopy := oldsize;
-      if tocopy > newsize then
-        tocopy := newsize;
-      Move(p^, result^, tocopy);
-      SysFreeMem(p);
-      p := result;
+      p := newp;
+      exit(newp);
     end;
+  end;
+
+  { Generic fallback: GetMem + Move + FreeMem. }
+  oldOrCopySize := SysMemSize(result);
+  newp := SysGetMem(size);
+  if not Assigned(newp) then
+  begin
+    { Don’t fail if shrinking. If growing failed, return nil, but keep the old p. }
+    if size > oldOrCopySize then
+      result := nil;
+    exit;
+  end;
+  p := newp;
+  if oldOrCopySize > size then
+    oldOrCopySize := size;
+  Move(result^, newp^, oldOrCopySize);
+  SysFreeMem(result);
+  result := newp;
 end;
 
 Function SysFreeMemSize(p: pointer; size: ptruint):ptruint;

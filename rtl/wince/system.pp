@@ -1599,16 +1599,6 @@ begin
   p:=Result;
 end;
 
-function SysTryResizeMem(var p:pointer;size : ptruint):boolean;
-var
-  res: pointer;
-begin
-  res:=realloc(p, Size);
-  Result:=(res <> nil) or (Size = 0);
-  if Result then
-    p:=res;
-end;
-
 function SysMemSize(P : pointer): ptruint;
 begin
   Result:=_msize(P);

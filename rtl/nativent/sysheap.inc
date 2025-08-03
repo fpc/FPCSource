@@ -132,16 +132,6 @@ begin
   p := SysReAllocMem;
 end;
 
-function SysTryResizeMem(var p: Pointer; size: PtrUInt): Boolean;
-var
-  res: pointer;
-begin
-  res := SysGetMem(Size);
-  SysTryResizeMem := (res <> Nil) or (Size = 0);
-  if SysTryResizeMem then
-    p := res;
-end;
-
 function SysMemSize(P : pointer): PtrUInt;
 begin
   SysMemSize := PPtrUInt(P - SizeOf(PtrUInt) - SizeOf(LongWord))^;
