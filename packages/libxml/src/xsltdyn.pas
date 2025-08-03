@@ -125,7 +125,7 @@ function LoadLibXslt(ALibName: String): Boolean;
 begin
   if ALibName = '' then
     ALibName := xsltlib;
-  LibXsltHandle := dynlibs.LoadLibrary(ALibName);
+  LibXsltHandle := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DynLibs.LoadLibrary(ALibName);
   if LibXsltHandle <> NilHandle then
   begin
     { xsltpattern.inc }
@@ -431,7 +431,7 @@ begin
   if LibXsltHandle = NilHandle then
     Exit;
 
-  dynlibs.FreeLibrary(LibXsltHandle);
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DynLibs.FreeLibrary(LibXsltHandle);
   LibXsltHandle := NilHandle;
 
 {$IFDEF NIL_FUNCVARS_ON_FREE}
