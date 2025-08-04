@@ -1831,11 +1831,14 @@ implementation
                        case srsym.typ of
                        fieldvarsym:
                          begin
+                           consume(_ID);
                            { existing fields must be referenced with alias }
-                           Message1(sym_e_duplicate_id,srsym.realname);
+                           if token=_COLON then
+                             Message1(sym_e_duplicate_id,srsym.realname)
+                           else
+                             Message(type_e_type_id_expected);
                            { this is just to allow to find additional errors,
                              otherwise parsing stop could be forced with consume(_SEMICOLON) }
-                           consume(_ID);
                            consume(_COLON);
                            consume(_ID);
                            consume(_SEMICOLON);
