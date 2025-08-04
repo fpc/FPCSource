@@ -273,6 +273,10 @@ type
 {$else}
       Format : Sw_AString;
 {$endif}
+      BeginsWithMultiLineStringSuffixLen,
+      EndsWithMultiLineStringSuffixLen : Sw_Word;
+      BeginsWithString,
+      EndsWithString : boolean;
       BeginsWithAsm,
       EndsWithAsm   : boolean;
       BeginsWithComment,
@@ -373,6 +377,7 @@ type
 
     TSpecSymbolClass =
       (ssCommentPrefix,ssCommentSingleLinePrefix,ssCommentSuffix,ssStringPrefix,ssStringSuffix,
+       ssStringMultiLinePrefix,ssStringMultiLineSuffix,
        ssDirectivePrefix{,ssDirectiveSuffix},ssAsmPrefix,ssAsmSuffix);
 
     TCompleteState = (csInactive,csOffering,csDenied);
@@ -2286,9 +2291,12 @@ var
   NestedComments,LookForNestedComments : boolean;
   CommentStartX,CommentStartY : sw_integer;
   FirstCC,LastCC: TCharClass;
-  InAsm,InComment,InSingleLineComment,InDirective,InString: boolean;
+  InAsm,InComment,InSingleLineComment,InDirective,InString,InStringMultiLine: boolean;
+  WhiteSpaceLine,OnlyStringSuffix,StringSuffixEnded : boolean;
   X,ClassStart: Sw_integer;
   SymbolConcat: string;  {this can be shortstring after all}
+  SymbolWord: string;  { shortstring }
+  MultiLineStringSuffixLen:Sw_Word;
   LineText,Format: sw_astring;
 
   function MatchSymbol(const What, S: sw_astring): boolean;
@@ -2418,6 +2426,16 @@ var
     IsStringSuffix:=MatchesAnySpecSymbol(ssStringSuffix,pmRight);
   end;
 
+  function IsStringMultiLinePrefix: boolean;
+  begin
+    IsStringMultiLinePrefix:=MatchesAnySpecSymbol(ssStringMultiLinePrefix,pmLeft);
+  end;
+
+  function IsStringMultiLineSuffix: boolean;
+  begin
+    IsStringMultiLineSuffix:=MatchesAnySpecSymbol(ssStringMultiLineSuffix,pmRight);
+  end;
+
   function IsDirectivePrefix: boolean;
   begin
     IsDirectivePrefix:=MatchesAnySpecSymbol(ssDirectivePrefix,pmLeft)
@@ -2446,6 +2464,30 @@ var
     {StoredMatchedSymbol:=MatchedSymbol;}
     IsAsmSuffix:=MatchesAsmSpecSymbol(WordS,ssAsmSuffix);
     {MatchedSymbol:=StoredMatchedSymbol;}
+  end;
+
+  function GetMultiLineStringSuffixLen:Sw_Word;
+  var k,i: longword;
+  begin
+    {get rid of white space at the end of string}
+    i:=0;
+    for k:=Length(SymbolWord) downto 1 do
+    begin
+      if not (SymbolWord[k] in [' ',#9,#0,#255]) then
+        break;
+      inc(i);
+    end;
+    if i>0 then
+      SetLength(SymbolWord,Length(SymbolWord)-i);
+    {length of "'" symbols}
+    I:=0;
+    for k:=Length(SymbolWord) downto 1 do
+    begin
+      if SymbolWord[k]<>'''' then
+        break;
+      inc(I);
+    end;
+    GetMultiLineStringSuffixLen:=I;
   end;
 
   function GetCharClass(C: AnsiChar): TCharClass;
@@ -2564,6 +2606,21 @@ var
       begin
         MatchedSymbol:=false;
         EX:=X-1;
+
+        if length(SymbolWord)>=High(SymbolWord) then
+          Delete(SymbolWord,1,1);
+        SymbolWord:=SymbolWord+C; { for variable length multi line string end detection }
+        if OnlyStringSuffix then
+        begin
+          OnlyStringSuffix:=(C='''');
+          if not OnlyStringSuffix then
+          begin
+            SetLength(SymbolWord,Length(SymbolWord)-1);
+            if (GetMultiLineStringSuffixLen>=MultiLineStringSuffixLen) then
+              StringSuffixEnded:=true;
+          end;
+        end;
+
         if (CC=ccSymbol) then
          begin
            if length(SymbolConcat)>=High(SymbolConcat) then
@@ -2571,10 +2628,26 @@ var
            SymbolConcat:=SymbolConcat+C;
            if  InComment and IsCommentSuffix then
               Inc(EX) else
-           if InString and IsStringSuffix  then
+           if InString and IsStringSuffix then
+              Inc(EX) else
+           if InString and (InStringMultiLine=true) and IsStringMultiLineSuffix then
               Inc(EX) {else
            if InDirective and IsDirectiveSuffix then
               Inc(EX)};
+         end;
+        if StringSuffixEnded then
+        begin
+          MultiLineStringSuffixLen:=0;
+          StringSuffixEnded:=false;
+          if (GetMultiLineStringSuffixLen and 1)= 1 then
+            InString:=false;
+          InStringMultiLine:=false;
+        end;
+        if (CC<>ccSymbol) then
+         begin
+           if (CC<>ccWhiteSpace) and (CC<>ccTab) then
+             SymbolWord:='';
+           OnlyStringSuffix:=false;
          end;
         if CC=ccRealNumber then
           Inc(EX);
@@ -2641,6 +2714,7 @@ var
                     CurrentCommentType:=0;
                     InDirective:=false; {not in comment then not in Directive}
                     InString:=false;
+                    InStringMultiLine:=false;
                   end;
                 end
               else if (InComment=false) and (InString=false) and IsStringPrefix then
@@ -2648,14 +2722,36 @@ var
                   InString:=true;
                   Dec(ClassStart,length(MatchingSymbol)-1);
                 end
-              else if (InComment=false) and (InString=true) and IsStringSuffix then
-                InString:=false
+              else if (InComment=false) and (InString=false) and IsStringMultiLinePrefix then
+                begin
+                  InString:=true;
+                  InStringMultiLine:=true;
+                  Dec(ClassStart,length(MatchingSymbol)-1);
+                end
+              else if (InComment=false) and (InString=true) and (InStringMultiLine=false) and IsStringSuffix then
+                begin
+                  InString:=false;
+                end
+              else if (InComment=false) and (InString=true) and (InStringMultiLine=true) then
+                begin
+                  if MultiLineStringSuffixLen>2 then
+                  begin
+                    if WhiteSpaceLine and IsStringSuffix then
+                      OnlyStringSuffix:=true;
+                  end else
+                  if IsStringMultiLineSuffix then
+                  begin
+                    InString:=false;
+                    InStringMultiLine:=false;
+                  end;
+                end
               else if (InAsm) and (C='@') then
                 CC:=ccAlpha;  { local labels in asm block will be normal words }
         end;
         if MatchedSymbol and (InComment=false) then
           SymbolConcat:='';
         LastCC:=CC;
+        WhiteSpaceLine:=WhiteSpaceLine and ((CC=ccWhiteSpace) or (CC=ccTab));
       end;
   end;
 
@@ -2698,6 +2794,8 @@ begin
     InSingleLineComment:=false;
     if PrevLI<>nil then
      begin
+       InString:=PrevLI^.EndsWithString;
+       MultiLineStringSuffixLen:=PrevLI^.EndsWithMultiLineStringSuffixLen;
        InAsm:=PrevLI^.EndsWithAsm;
        InComment:=PrevLI^.EndsWithComment and not PrevLI^.EndsInSingleLineComment;
        CurrentCommentType:=PrevLI^.EndCommentType;
@@ -2708,6 +2806,8 @@ begin
      end
     else
      begin
+       InString:=false;
+       MultiLineStringSuffixLen:=0;
        InAsm:=false;
        InComment:=false;
        CurrentCommentType:=0;
@@ -2719,6 +2819,8 @@ begin
 {    OldLine:=Line;}
     if (not Editor^.IsFlagSet(efKeepLineAttr)) then
       begin
+        LI^.BeginsWithString:=InString;
+        LI^.BeginsWithMultiLineStringSuffixLen:=MultiLineStringSuffixLen;
         LI^.BeginsWithAsm:=InAsm;
         LI^.BeginsWithComment:=InComment;
         LI^.BeginsWithDirective:=InDirective;
@@ -2729,6 +2831,8 @@ begin
       end
     else
       begin
+        InString:=LI^.BeginsWithString;
+        MultiLineStringSuffixLen:=LI^.BeginsWithMultiLineStringSuffixLen;
         InAsm:=LI^.BeginsWithAsm;
         InComment:=LI^.BeginsWithComment;
         InDirective:=LI^.BeginsWithDirective;
@@ -2742,15 +2846,29 @@ begin
     LastCC:=ccWhiteSpace;
     ClassStart:=1;
     SymbolConcat:='';
-    InString:=false;
+    SymbolWord:='';
+    OnlyStringSuffix:=false;
+    StringSuffixEnded:=false;
+    InStringMultiLine:=InString;
+    WhiteSpaceLine:=true;
     if LineText<>'' then
      begin
        for X:=1 to length(LineText) do
          ProcessChar(LineText[X]);
        Inc(X);
        ProcessChar(' ');
+       if (not InString) and (MultiLineStringSuffixLen>0) then
+         MultiLineStringSuffixLen:=0;
+       if InString and not InStringMultiLine  then
+       begin
+         MultiLineStringSuffixLen:=GetMultiLineStringSuffixLen;
+         if MultiLineStringSuffixLen>2 then
+           InStringMultiLine:=true;
+       end;
      end;
     SetLineFormat(Editor,CurLineNr,Format);
+    LI^.EndsWithMultiLineStringSuffixLen:=MultiLineStringSuffixLen;
+    LI^.EndsWithString:=InStringMultiLine;
     LI^.EndsWithAsm:=InAsm;
     LI^.EndsWithComment:=InComment;
     LI^.EndsInSingleLineComment:=InSingleLineComment;
@@ -2776,6 +2894,8 @@ begin
 {$ifdef TEST_PARTIAL_SYNTAX}
          (CurLineNr>FromLine) and
 {$endif TEST_PARTIAL_SYNTAX}
+         (NextLI^.BeginsWithString=LI^.EndsWithString) and
+         (NextLI^.BeginsWithMultiLineStringSuffixLen=LI^.EndsWithMultiLineStringSuffixLen) and
          (NextLI^.BeginsWithAsm=LI^.EndsWithAsm) and
          (NextLI^.BeginsWithComment=LI^.EndsWithComment) and
          (NextLI^.BeginsWithDirective=LI^.EndsWithDirective) and

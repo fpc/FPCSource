@@ -1306,6 +1306,8 @@ Const
     2,{ssCommentSuffix}
     1,{ssStringPrefix}
     1,{ssStringSuffix}
+    1,{ssStringMultiLinePrefix}
+    1,{ssStringMultiLineSuffix}
     2,{ssDirectivePrefix}
     {2,}{ssDirectiveSuffix}
     1,{ssAsmPrefix}
@@ -1321,6 +1323,8 @@ Const
   FreePascalCommentSuffix2 : string[2] = '*)';
   FreePascalStringPrefix : string[1] = '''';
   FreePascalStringSuffix : string[1] = '''';
+  FreePascalStringMultiLinePrefix : string[1] = '`';
+  FreePascalStringMultiLineSuffix : string[1] = '`';
   FreePascalDirectivePrefix1 : string[2] = '{$';
   FreePascalDirectivePrefix2 : string[3] = '(*$';
   //FreePascalDirectiveSuffix1 : string[1] = '}';
@@ -1356,6 +1360,10 @@ begin
       GetSpecSymbol:=@FreePascalStringPrefix;
     ssStringSuffix :
       GetSpecSymbol:=@FreePascalStringSuffix;
+    ssStringMultiLinePrefix :
+      GetSpecSymbol:=@FreePascalStringMultiLinePrefix;
+    ssStringMultiLineSuffix :
+      GetSpecSymbol:=@FreePascalStringMultiLineSuffix;
     { must be uppercased to avoid calling UpCaseStr in MatchesAnyAsmSymbol PM }
     ssAsmPrefix :
       GetSpecSymbol:=@FreePascalAsmPrefix;
