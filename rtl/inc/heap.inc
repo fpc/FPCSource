@@ -1116,15 +1116,15 @@ type
       size := vSizeFlags and VarSizeMask;
     end;
 
-    { Update maxUsed regardless. }
-    statv := used + gs.hugeUsed;
-    if statv > maxUsed then
-      maxUsed := statv;
-
     if isArena then
       inc(pVarHeader(result)[-1].ch.h, FixedArenaFlag) { Arenas aren’t counted in “used” directly. }
     else
       inc(used, size);
+
+    { Update maxUsed regardless. }
+    statv := used + gs.hugeUsed;
+    if statv > maxUsed then
+      maxUsed := statv;
   end;
 
   function HeapInc.ThreadState.FreeVar(p: pointer): SizeUint;
