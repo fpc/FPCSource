@@ -273,7 +273,7 @@ procedure TSQLParser.Expect(aToken: TSQLToken);
 begin
   {$ifdef debugparser}  Writeln('Expecting : ',GetEnumName(TypeInfo(TSQLToken),Ord(AToken)), ' As string: ',TokenInfos[AToken]);{$endif debugparser}
   If (CurrentToken<>aToken) then
-    Error(SerrTokenMismatch,[CurrenttokenString,TokenInfos[aToken]]);
+    Error(SerrTokenMismatch,[CurrentTokenString,TokenInfos[aToken]]);
 end;
 
 procedure TSQLParser.Expect(aTokens: TSQLTokens);
@@ -380,7 +380,7 @@ begin
        GetNextToken;
        end;
      // Table aliases with and without AS keyword
-     if (CurrentToken in [tsqlIdentifier,tsqlAs]) then
+     if (CurrentToken in [tsqlIdentifier,tsqlAs,tsqlText]) then
        begin
        if CurrentToken=tsqlAs then
          begin
@@ -398,13 +398,13 @@ begin
        J.Left:=Result;
        Result:=J;
        Case CurrentToken of
-          tsqlInner : J.JoinType:=jtInner;
-          tsqlJoin  : J.JoinType:=jtNone;
-          tsqlFull  : J.JoinType:=jtFullOuter;
-          tsqlLeft  : J.JoinType:=jtLeft;
-          tsqlRight : J.JoinType:=jtRight;
+         tsqlInner : J.JoinType:=jtInner;
+         tsqlJoin  : J.JoinType:=jtNone;
+         tsqlFull  : J.JoinType:=jtFullOuter;
+         tsqlLeft  : J.JoinType:=jtLeft;
+         tsqlRight : J.JoinType:=jtRight;
        else
-         expect([tsqlInner,tsqlFull,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
+         Expect([tsqlInner,tsqlFull,tsqlJoin,tsqlOuter,tsqlLeft,tsqlRight]);
        end;
        if CurrentToken<>tsqlJoin then
          GetNextToken;
@@ -753,7 +753,7 @@ begin
         tsqlSort  : E.JoinType:=pjtSort;
         tsqlMerge : E.JoinType:=pjtMerge;
       else
-        expect([tsqlJoin,tsqlmerge,tsqlSort,tsqlBraceOpen]);
+        Expect([tsqlJoin,tsqlmerge,tsqlSort,tsqlBraceOpen]);
       end;
       If (CurrentToken<>tsqlBraceOpen) then
         GetNextToken;
@@ -1097,7 +1097,7 @@ begin
       else
          UnexpectedToken([tsqlIdentifier,tsqlCheck, tsqlConstraint,tsqlForeign,tsqlPrimary,tsqlUnique]);
       end;
-      expect([tsqlBraceClose,tsqlComma]);
+      Expect([tsqlBraceClose,tsqlComma]);
     until (CurrentToken=tsqlBraceClose);
     GetNextToken;
     Result:=C;
@@ -1819,7 +1819,7 @@ begin
      begin
      dt:=sdtNChar;
      GetNextToken;
-     expect([tsqlCharacter,tsqlChar]);
+     Expect([tsqlCharacter,tsqlChar]);
      end;
   else
     Expect([tsqlNCHAR,tsqlVarChar,tsqlCharacter,tsqlChar, tsqlCString, tsqlNational]);
@@ -2592,7 +2592,7 @@ begin
         tsqlMinus : B.Operation:=boSubtract;
         tsqlConcatenate : B.Operation:=boConcat;
       else
-        expect([tsqlPlus,tsqlMinus,tsqlConcatenate]);
+        Expect([tsqlPlus,tsqlMinus,tsqlConcatenate]);
       end;
       end;
   Except
@@ -2887,7 +2887,7 @@ begin
           tsqlSome     : C:=TSQLSomeExpression;
           tsqlSingular : C:=TSQLSingularExpression;
         else
-          expect([tsqlExists, tsqlAll,tsqlAny,tsqlSome,tsqlSingular]);
+          Expect([tsqlExists, tsqlAll,tsqlAny,tsqlSome,tsqlSingular]);
         end;
         GetNextToken;
         Consume(tsqlBraceOpen);
@@ -2937,11 +2937,12 @@ begin
         if (([eoCheckConstraint,eoTableConstraint,eoComputedBy] * EO)<>[]) then
           Error(SErrUnexpectedToken,[CurrentTokenString]);
         GetNextToken;
-        expect(tsqlIdentifier);
         N:=CurrentTokenString;
+        If (N='') or not (N[1] in ['a'..'z','A'..'Z']) then
+          Error(SerrTokenMismatch,[N,TokenInfos[tsqlIdentifier]]);
         Result:=TSQLParameterExpression(CreateElement(TSQLParameterExpression,AParent));
         TSQLParameterExpression(Result).Identifier:=CreateIdentifier(Result,N);
-        Consume(tsqlIdentifier);
+        GetNextToken;
         end;
       tsqlMUL:
         begin
@@ -3261,7 +3262,7 @@ begin
       tsqlSymbolString,
       tsqlIdentifier : Result.NewValue:=CurrentTokenString;
     else
-      expect([tsqlSemiColon,tsqlTerminator,tsqlunknown, tsqlSymbolString]);
+      Expect([tsqlSemiColon,tsqlTerminator,tsqlunknown, tsqlSymbolString]);
     end;
     GetNextToken;
     // Next token depends on whether an alternative token is in effect...
