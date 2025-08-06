@@ -18,8 +18,8 @@
       <CharSet Value=""/>
     </VersionInfo>
     <BuildModes Count="2">
-      <Item1 Name="Debug" Default="True"/>
-      <Item2 Name="Release">
+      <Item1 Name="Standard" Default="True"/>
+      <Item2 Name="UnicodeRTL">
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
@@ -32,18 +32,24 @@
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
+              <IncludeAssertionCode Value="True"/>
               <UseAnsiStrings Value="False"/>
             </SyntaxOptions>
           </Parsing>
           <CodeGeneration>
-            <SmartLinkUnit Value="True"/>
+            <Checks>
+              <IOChecks Value="True"/>
+              <RangeChecks Value="True"/>
+              <OverflowChecks Value="True"/>
+              <StackChecks Value="True"/>
+            </Checks>
+            <Optimizations>
+              <OptimizationLevel Value="0"/>
+            </Optimizations>
           </CodeGeneration>
-          <Linking>
-            <Debugging>
-              <GenerateDebugInfo Value="False"/>
-            </Debugging>
-            <LinkSmart Value="True"/>
-          </Linking>
+          <Other>
+            <CustomOptions Value="-tunicodertl"/>
+          </Other>
         </CompilerOptions>
       </Item2>
     </BuildModes>
@@ -123,9 +129,6 @@
         <OptimizationLevel Value="0"/>
       </Optimizations>
     </CodeGeneration>
-    <Other>
-      <CustomOptions Value="-tunicodertl"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

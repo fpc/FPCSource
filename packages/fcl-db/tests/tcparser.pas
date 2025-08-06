@@ -472,6 +472,7 @@ type
     procedure TestOrderByCollate;
     procedure TestOrderByCollateDesc;
     procedure TestOrderByCollateDescTwoFields;
+    procedure TestOrderByUpper;
     procedure TestGroupByOne;
     procedure TestGroupByTwo;
     procedure TestHavingOne;
@@ -4811,6 +4812,20 @@ begin
   AssertIdentifierName('Correct collation','E',O.Collation);
   O:=AssertOrderBy(Select.OrderBy[1],'F',0,obAscending);
   AssertIdentifierName('Correct collation','E',O.Collation);
+end;
+
+procedure TTestSelectParser.TestOrderByUpper;
+var
+  O: TSQLOrderByElement;
+begin
+  TestSelect('SELECT B FROM A ORDER BY UPPER(C)');
+  AssertEquals('One field',1,Select.Fields.Count);
+  AssertEquals('One table',1,Select.Tables.Count);
+  AssertField(Select.Fields[0],'B');
+  AssertTable(Select.Tables[0],'A');
+  AssertEquals('One order by field',1,Select.Orderby.Count);
+  O:=AssertOrderBy(Select.OrderBy[0],'C',0,obAscending);
+  AssertEquals('Order by upper',O.Upper,true);
 end;
 
 procedure TTestSelectParser.TestGroupByOne;
