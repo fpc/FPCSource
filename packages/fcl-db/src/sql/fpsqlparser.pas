@@ -582,6 +582,7 @@ Var
   O : TSQLOrderByElement;
   F : TSQLElement;
   BuildToken : string;
+  HasBracket, HasUpper: Boolean;
 
 begin
   // On entry we're on the ORDER token.
@@ -592,6 +593,17 @@ begin
   Expect(tsqlBy);
   Repeat
     GetNextToken;
+    HasUpper:=false;
+    HasBracket:=false;
+    if CurrentToken=tsqlUPPER then
+      begin
+      HasUpper:=true;
+      GetNextToken;
+      Expect(tsqlBraceOpen);
+      GetNextToken;
+      HasBracket:=true;
+      end;
+
     // Deal with table.column notation:
     Case CurrentToken of
       tsqlIdentifier :
@@ -614,10 +626,18 @@ begin
     else
       UnexpectedToken([tsqlIdentifier,tsqlIntegerNumber]);
     end;
+
+    if HasBracket then
+      begin
+      GetNextToken;
+      Expect(tsqlBraceClose);
+      end;
+
     try
       O:=TSQLOrderByElement(CreateElement(TSQLOrderByElement,APArent));
       AList.Add(O);
       O.Field:=F;
+      O.Upper:=HasUpper;
       F:=Nil;
     except
       FreeAndNil(F);

@@ -766,12 +766,14 @@ Type
     FCollation: TSQLIdentifierName;
     FField: TSQLElement;
     FOrderBy: TSQLOrderDirection;
+    FUpper: boolean;
   Public
     Destructor Destroy; override;
     Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Field : TSQLElement Read FField Write FField;
     Property Collation : TSQLIdentifierName Read FCollation Write FCollation;
     Property OrderBy : TSQLOrderDirection Read FOrderBy write FOrderBy;
+    Property Upper: boolean Read FUpper Write FUpper;
   end;
 
   { TSQLSelectLimit }
@@ -3598,6 +3600,8 @@ Const
 begin
   If Assigned(FField) then
     Result:=FField.GetAsSQL(Options, AIndent);
+  if Upper then
+    Result:='UPPER('+Result+')';
   If (OrderBy=obDescending) or (sfoForceAscending in Options) then
     Result:=Result+' '+SQLKeyWord(Opcodes[OrderBy],Options);
   If (Collation<>Nil) then
