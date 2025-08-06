@@ -497,6 +497,7 @@ type
     procedure TestWhereAny;
     procedure TestWhereSome;
     procedure TestParam;
+    procedure TestParam_Underscore;
     procedure TestParamExpr;
     procedure TestNoTable;
     procedure TestSourcePosition;
@@ -5341,6 +5342,22 @@ begin
   AssertNotNull('Have field expresssion,',F.Expression);
   P:=TSQLParameterExpression(CheckClass(F.Expression,TSQLParameterExpression));
   AssertIdentifierName('Correct parameter name','A',P.Identifier);
+end;
+
+procedure TTestSelectParser.TestParam_Underscore;
+var
+  F: TSQLSelectField;
+  P: TSQLParameterExpression;
+begin
+  TestSelect('SELECT :_A FROM B');
+  AssertEquals('1 table in select',1,Select.Tables.Count);
+  AssertTable(Select.Tables[0],'B','');
+  AssertEquals('1 fields in select',1,Select.Fields.Count);
+  AssertNotNull('Have field',Select.Fields[0]);
+  F:=TSQLSelectField(CheckClass(Select.Fields[0],TSQLSelectField));
+  AssertNotNull('Have field expresssion,',F.Expression);
+  P:=TSQLParameterExpression(CheckClass(F.Expression,TSQLParameterExpression));
+  AssertIdentifierName('Correct parameter name','_A',P.Identifier);
 end;
 
 procedure TTestSelectParser.TestParamExpr;

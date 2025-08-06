@@ -2938,7 +2938,7 @@ begin
           Error(SErrUnexpectedToken,[CurrentTokenString]);
         GetNextToken;
         N:=CurrentTokenString;
-        If (N='') or not (N[1] in ['a'..'z','A'..'Z']) then
+        If (N='') or not (N[1] in ['a'..'z','A'..'Z','_']) then
           Error(SerrTokenMismatch,[N,TokenInfos[tsqlIdentifier]]);
         Result:=TSQLParameterExpression(CreateElement(TSQLParameterExpression,AParent));
         TSQLParameterExpression(Result).Identifier:=CreateIdentifier(Result,N);
