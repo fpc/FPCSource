@@ -500,6 +500,10 @@ type
     procedure TestParamExpr;
     procedure TestNoTable;
     procedure TestSourcePosition;
+    procedure TestForUpdate;
+    procedure TestForUpdateNowait;
+    procedure TestForUpdateOf;
+    procedure TestWithLock;
   end;
 
   { TTestRollBackParser }
@@ -4203,6 +4207,36 @@ begin
   AssertEquals('ORDER BY source position = 1', 1, Select.Orderby.SourcePos);
   AssertEquals('Table source line = 2', 2, Select.Tables[0].SourceLine);
   AssertEquals('Table source position = 6', 6, Select.Tables[0].SourcePos);
+end;
+
+procedure TTestSelectParser.TestForUpdate;
+begin
+  TestSelect('SELECT B FROM A FOR UPDATE');
+  AssertEquals('FOR UPDATE',Select.ForUpdate<>nil,true);
+  AssertEquals('FOR UPDATE list count',Select.ForUpdate.Count,0);
+end;
+
+procedure TTestSelectParser.TestForUpdateNowait;
+begin
+  TestSelect('SELECT B FROM A FOR UPDATE NOWAIT');
+  AssertEquals('FOR UPDATE',Select.ForUpdate<>nil,true);
+  AssertEquals('FOR UPDATE list count',Select.ForUpdate.Count,0);
+  AssertEquals('FOR UPDATE',Select.ForUpdateNoWait,true);
+end;
+
+procedure TTestSelectParser.TestForUpdateOf;
+begin
+  TestSelect('SELECT * FROM A FOR UPDATE OF B,C');
+  AssertEquals('FOR UPDATE',Select.ForUpdate<>nil,true);
+  AssertEquals('FOR UPDATE list count',Select.ForUpdate.Count,2);
+  AssertIdentifierName('FOR UPDATE[0]','B',Select.ForUpdate[0]);
+  AssertIdentifierName('FOR UPDATE[1]','C',Select.ForUpdate[1]);
+end;
+
+procedure TTestSelectParser.TestWithLock;
+begin
+  TestSelect('SELECT * FROM DOCUMENT WITH LOCK');
+  AssertEquals('WITH LOCK',Select.WithLock,true);
 end;
 
 procedure TTestSelectParser.TestSelectTwoFieldsTwoInnerTablesJoin;

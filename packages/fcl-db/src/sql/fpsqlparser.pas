@@ -141,6 +141,7 @@ Type
     procedure ParseLimit(AParent: TSQLSelectStatement; ALimit: TSQLSelectLimit);
     procedure ParseSelectFieldList(AParent: TSQLSelectStatement; AList: TSQLElementList; Singleton : Boolean);
     function ParseForUpdate(AParent: TSQLSelectStatement): TSQLElementList;
+    procedure ParseWithLock(AParent: TSQLSelectStatement);
     function ParseSelectPlan(AParent: TSQLElement): TSQLSelectPlan;
     function ParseTableRef(AParent: TSQLSelectStatement): TSQLTableReference;
     procedure ParseIntoList(AParent: TSQLElement; List: TSQLElementList);
@@ -560,19 +561,45 @@ function TSQLParser.ParseForUpdate(AParent: TSQLSelectStatement
 
 begin
   // On entry we're on the FOR token.
+  // FOR UPDATE
+  // FOR UPDATE NOWAIT
+  // FOR UPDATE OF column1, ...  (Firebird)
   Consume(tsqlFor);
   Expect(tsqlUpdate);
   Result:=TSQLElementList.Create(True);
   try
-    Repeat
-      GetNextToken;
-      Expect(tsqlIdentifier);
-      Result.Add(CreateIdentifier(AParent,CurrentTokenString));
-    until (CurrentToken<>tsqlComma);
+    GetNextToken;
+    if CurrentToken=tsqlIdentifier then
+      begin
+      if SameText(CurrentTokenString,'NOWAIT') then
+        begin
+          AParent.ForUpdateNoWait:=true;
+          GetNextToken;
+        end;
+      if SameText(CurrentTokenString,'OF') then
+        begin
+          Repeat
+            GetNextToken;
+            Expect(tsqlIdentifier);
+            Result.Add(CreateIdentifier(AParent,CurrentTokenString));
+            GetNextToken;
+          until (CurrentToken<>tsqlComma);
+        end;
+      end;
   except
     FreeAndNil(Result);
     Raise;
   end;
+end;
+
+procedure TSQLParser.ParseWithLock(AParent: TSQLSelectStatement);
+begin
+  // On entry we're on the WITH token.
+  AParent.WithLock:=true;
+  GetNextToken;
+  If (CurrentToken<>tsqlIdentifier) or not SameText(CurrentTokenString,'LOCK') then
+    Error(SerrTokenMismatch,[CurrentTokenString,'LOCK']);
+  GetNextToken;
 end;
 
 procedure TSQLParser.ParseOrderBy(AParent: TSQLSelectStatement;
@@ -805,6 +832,8 @@ begin
         ParseLimit(Result,Result.Limit);
       if (CurrentToken=tsqlFOR) then
         Result.ForUpdate:=ParseForUpdate(Result);
+      if (CurrentToken=tsqlWITH) and not Result.HasAncestor(TSQLCreateViewStatement) then
+        ParseWithLock(Result);
       end;
     if (sfInto in Flags) then
        begin
@@ -1444,6 +1473,7 @@ procedure TSQLParser.ParseLimit(AParent: TSQLSelectStatement; ALimit: TSQLSelect
       end;
   end;
 begin
+  if AParent=nil then ;
   ALimit.Style:=lsPostgres;
   if CurrentToken=tsqlLIMIT then
     begin
@@ -3309,6 +3339,7 @@ function TSQLParser.ParseCreateDatabaseStatement(AParent: TSQLElement; IsAlter: 
 
 begin
   // On entry, we're on the DATABASE or SCHEMA token
+  if IsAlter then ;
   Result:=TSQLCreateDatabaseStatement(CreateElement(TSQLCreateDatabaseStatement,AParent));
   try
     Result.UseSchema:=(CurrentToken=tsqlSchema);
@@ -3417,6 +3448,7 @@ function TSQLParser.ParseAlterDatabaseStatement(AParent: TSQLElement;
   IsAlter: Boolean): TSQLAlterDatabaseStatement;
 begin
   // On entry, we're on the DATABASE or SCHEMA token.
+  if IsAlter then ;
   Result:=TSQLAlterDatabaseStatement(CreateElement(TSQLAlterDatabaseStatement,APArent));
   try
     Result.UseSchema:=CurrentToken=tsqlSchema;
@@ -3435,7 +3467,6 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
-
 end;
 
 function TSQLParser.ParseCreateStatement(AParent: TSQLElement; IsAlter: Boolean): TSQLCreateOrAlterStatement;
@@ -4222,7 +4253,7 @@ begin
     Result:=ParseScript([])
 end;
 
-Function TSQLParser.ParseScript(aOptions : TParserOptions = []) : TSQLElementList;
+function TSQLParser.ParseScript(aOptions: TParserOptions): TSQLElementList;
 
 var
   E : TSQLElement;
