@@ -222,7 +222,25 @@ begin
   ReleaseSemaphore(@AThreadListSemaphore);
 end;
 
-{ Get current thread's ThreadInfo structure }
+{ Function to check if a threadInfo is a threadInfo from our list }
+function IsValidThreadInfo(var l: PThreadInfo; threadInfo: PThreadInfo): Boolean;
+var
+  p: PThreadInfo;
+begin
+  IsValidThreadInfo:=false;
+  if l = nil then
+    exit;
+
+  ObtainSemaphoreShared(@AThreadListSemaphore);
+  p:=l;
+  while (p <> nil) and (p <> threadinfo) do
+    p:=p^.nextThread;
+  IsValidThreadInfo:=p<>nil;
+  ReleaseSemaphore(@AThreadListSemaphore);
+end;
+
+
+{ Get current thread ThreadInfo structure }
 function GetCurrentThreadInfo: PThreadInfo;
 begin
   result:=PThreadInfo(PProcess(FindTask(nil))^.pr_Task.tc_UserData);
@@ -755,8 +773,33 @@ end;
 
 
 procedure ASetThreadDebugNameA(threadHandle: TThreadID; const ThreadName: AnsiString);
+var
+  p: PThreadInfo;
+  MyProcess: PProcess;
 begin
-  {$Warning SetThreadDebugName needs to be implemented}
+{$ifdef DEBUG_MT}
+  SysDebugLn('FPC AThreads: Set threadname to ' + ThreadName + ' for Thread ' + IToStr(threadHandle));
+{$endif}
+  Forbid();
+  if threadHandle = -1 then
+  begin
+    MyProcess := PProcess(FindTask(nil));
+    P := PThreadInfo(MyProcess^.pr_Task.tc_userData);
+    if not IsValidThreadInfo(AThreadList,p) then
+      P := nil;
+  end
+  else
+  begin
+    p:=GetThreadInfo(AThreadList, threadHandle);
+    if p <> nil then
+      MyProcess := p^.threadPtr;
+  end;
+  if (p <> nil) and (MyProcess <> nil) and (ThreadName <> '') then
+  begin
+    p^.name := ThreadName;
+    MyProcess^.pr_Task.tc_Node.ln_Name := PAnsiChar(@p^.name[1]);
+  end;
+  Permit();
 end;
 
 
