@@ -616,7 +616,7 @@ Const
 
 Var
   CurrentToken : RawByteString;
-  CharPos : Integer;
+  CharPos, i : Integer;
   lOpenCount : Integer;
   aByte,aByte2 : Byte;
   aChar : Char absolute aByte;
@@ -668,16 +668,26 @@ begin
         '\' : AddToToken(ord('\'));
         '0'..'9':
             begin
-            if FSource.IsEOF then
-              DoError(senEOFWhileScanningString,SErrEOFWhileScanningString);
-            aChar3:=Char(FSource.GetByte());
-            if FSource.IsEOF then
-              DoError(senEOFWhileScanningString,SErrEOFWhileScanningString);
-            aChar4:=Char(FSource.GetByte());
-            aOctal:=StrToIntDef('&'+aChar2+aChar3+aChar4,-1);
-            if (aOctal=-1) or (aOctal>=256) then
-              DoError(senInvalidOctalCharacter,SErrInvalidOctalCharacter,[aChar2+aChar3+aChar4]);
-            AddToToken(aOctal and $FF)
+            aOctal := 0;
+
+            for i := 1 to 3 do begin 
+              aOctal := aOctal * 8 + Ord(aChar2) - Ord('0');
+
+              if aOctal >= 256 then 
+                // It is more like invalid octal string rather than invalid octal character
+                DoError(senInvalidOctalCharacter, SErrInvalidOctalCharacter, [ aChar2 ]);
+
+              if FSource.IsEOF then 
+                DoError(senEOFWhileScanningString,SErrEOFWhileScanningString);
+              
+              aChar2 := Char(FSource.GetByte());
+
+              if not (aChar2 in ['0'..'7']) then
+                Break;
+            end;
+
+            FSource.Previous;
+            AddToToken(aOctal);
             end
       else
         // Ignore
