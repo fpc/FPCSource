@@ -667,29 +667,6 @@ implementation
         end;
 
       var
-        olddef : tdef;
-
-      procedure set_typesym;
-        begin
-          if not assigned(recsym) then
-            exit;
-          if ttypesym(recsym).typedef=current_structdef then
-            exit;
-          ttypesym(recsym).typedef:=current_structdef;
-          current_structdef.typesym:=recsym;
-        end;
-
-      procedure reset_typesym;
-        begin
-          if not assigned(recsym) then
-            exit;
-          if ttypesym(recsym).typedef<>current_structdef then
-            exit;
-          ttypesym(recsym).typedef:=olddef;
-          current_structdef.typesym:=nil;
-        end;
-
-      var
         pd : tprocdef;
         oldparse_only: boolean;
         member_blocktype : tblock_type;
@@ -713,14 +690,6 @@ implementation
         if (token=_SEMICOLON) then
           Exit;
 
-        { the correct typesym<->def relationship is needed for example when
-          parsing parameters that are specializations of the record or when
-          using nested constants and such }
-        if assigned(recsym) then
-          olddef:=ttypesym(recsym).typedef
-        else
-          olddef:=nil;
-        set_typesym;
         current_structdef.symtable.currentvisibility:=vis_public;
         fields_allowed:=true;
         is_classdef:=false;
@@ -1042,11 +1011,33 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
-        reset_typesym;
       end;
 
     { reads a record declaration }
     function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
+      var
+         olddef : tdef;
+
+      procedure set_typesym;
+        begin
+          if not assigned(recsym) then
+            exit;
+          if ttypesym(recsym).typedef=current_structdef then
+            exit;
+          ttypesym(recsym).typedef:=current_structdef;
+          current_structdef.typesym:=recsym;
+        end;
+
+      procedure reset_typesym;
+        begin
+          if not assigned(recsym) then
+            exit;
+          if ttypesym(recsym).typedef<>current_structdef then
+            exit;
+          ttypesym(recsym).typedef:=olddef;
+          current_structdef.typesym:=nil;
+        end;
+
       var
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
@@ -1113,7 +1104,17 @@ implementation
          maybe_insert_generic_rename_symbol(n,genericlist);
          { apply $RTTI directive to current object }
          current_structdef.apply_rtti_directive(current_module.rtti_directive);
-         
+
+         { the correct typesym<->def relationship is needed for example when
+           parsing parameters that are specializations of the record, when
+           using nested constants and such or when specializing the type
+           itself as a pointer type }
+         if assigned(recsym) then
+           olddef:=ttypesym(recsym).typedef
+         else
+           olddef:=nil;
+         set_typesym;
+
          if m_advanced_records in current_settings.modeswitches then
            begin
              parse_record_members(recsym);
@@ -1129,6 +1130,9 @@ implementation
                add_typedconst_init_routine(current_structdef);
              consume(_END);
             end;
+
+         reset_typesym;
+
          if (token=_ID) and (pattern='ALIGN') then
            begin
              consume(_ID);
