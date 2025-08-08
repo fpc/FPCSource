@@ -4969,7 +4969,7 @@ implementation
                   split_generic_name(objrealname^,nongeneric,paramcount);
                   rttistring:=rttistring+nongeneric+'<';
                   { we don't want any ',' if there is only one parameter }
-                  for i:=0 to paramcount-0 do
+                  for i:=0 to paramcount-1 do
                     rttistring:=rttistring+',';
                   rttistring:=rttistring+'>';
                 end
