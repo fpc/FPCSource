@@ -1922,19 +1922,14 @@ function UTF8Encode(const s : RawByteString) : RawByteString; inline;
 {$define FPC_HAS_UTF8ENCODE_UNICODESTRING}
 function UTF8Encode(const s : UnicodeString) : RawByteString;
   var
-    i : SizeInt;
-    hs : UTF8String;
+    ns : SizeInt;
   begin
     result:='';
     if Length(s)=0 then
       exit;
-    SetLength(hs,length(s)*3);
-    i:=UnicodeToUtf8(pansichar(hs),length(hs)+1,PUnicodeChar(s),length(s));
-    if i>0 then
-      begin
-        SetLength(hs,i-1);
-        result:=hs;
-      end;
+    ns:=Length(s);
+    SetLength(utf8string(result),ns*3);
+    SetLength(utf8string(result),UnicodeToUtf8(pointer(result),ns*3+1,pointer(s),ns)-1); { SetLength(-1) is equivalent to SetLength(0). }
   end;
 {$endif FPC_HAS_UTF8ENCODE_UNICODESTRING}
 
@@ -1943,19 +1938,14 @@ function UTF8Encode(const s : UnicodeString) : RawByteString;
 {$define FPC_HAS_UTF8DECODE_UNICODESTRING}
 function UTF8Decode(const s : RawByteString): UnicodeString;
   var
-    i : SizeInt;
-    hs : UnicodeString;
+    ns : SizeInt;
   begin
     result:='';
     if Length(s)=0 then
       exit;
-    SetLength(hs,length(s));
-    i:=Utf8ToUnicode(PUnicodeChar(hs),length(hs)+1,pansichar(s),length(s));
-    if i>0 then
-      begin
-        SetLength(hs,i-1);
-        result:=hs;
-      end;
+    ns:=Length(s);
+    SetLength(result,ns);
+    SetLength(result,Utf8ToUnicode(pointer(result),ns+1,pointer(s),ns)-1);
   end;
 {$endif FPC_HAS_UTF8DECODE_UNICODESTRING}
 
