@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of git commit 57fd8f13 + 1, 17 November, 2024
+#   Based on errore.msg of git commit 548a07c0, 27 July, 2025
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2025 by the Free Pascal Development team
@@ -34,7 +34,7 @@
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
 #   package_  package handling
-#   sym_      symbol handling 
+#   sym_      symbol handling
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -176,7 +176,7 @@ general_t_objectpath_local=01033_T_$1: Nutze den lokalen Objekt-Pfad: $2
 #
 # Scanner
 #
-# 02112 is the last used one
+# 02120 is the last used one
 #
 # BeginOfTeX
 %
@@ -487,6 +487,21 @@ scan_e_duplicate_rtti_option=02112_E_RTTI-Option "$1" ist ein Duplikat
 scan_e_misplaced_rtti_directive=02113_E_RTTI-Direktive kann hier nicht benutzt werden
 % The \var{\$RTTI} directive can not be used in this location (e.g. before the \var{PROGRAM}
 % or \var{UNIT} headers).
+scanner_w_alignment_large_than_max=02114_N_Variable "$1" hat eine Align-Direktive, die grî·er als das maximale Systemalignment fÅr Variablen ist
+% The type of the variable has an 'align' directive which is larger than  current maximum
+scanner_w_local_alignment_large_than_max=02115_N_Die lokale Variable "$1" hat eine Align-Direktive, die grî·er als das maximale Systemalignment fÅr lokale Variablen ist
+% The type of the variable has an 'align' directive which is larger than current  maximum.
+scan_e_unknown_lineending_type=02116_E_Unbekannter Typ fÅr Zeilenenden angegeben. GÅltige Optionen sind CR, CRLF, LF, PLATFORM, oder SOURCE
+% The line ending type that was specified is not one of CR, CRLF, LF, PLATFORM, or SOURCE.
+scan_e_trimcount_out_of_range=02117_E_Der Wert von MULTILINESTRINGTRIMLEFT kann nicht kleiner als 0 oder grî·er als 65535 sein
+% MULTILINESTRINGTRIMLEFT is stored in a "word" field, and thus is restricted to the range 0..65535.
+scan_e_illegal_directive=02118_E_UngÅltige Compiler Direktive "$1"
+% You have specified a compiler directive that cannot (for one of several possible reasons) currently be used.
+scan_f_unterminated_multiline_string=02119_F_Unbestimmte Mehrfachzeilen-Zeichenkette beginnend in Zeile $1, Spalte $2
+% The file contains an "unbalanced" number of multi-line string denoting backtick characters.
+scan_e_improperly_indented_multiline_string=02120_E_Falsch eingerÅckte Mehrfachzeilen-Zeichenkette ($1 Leerzeichen sind verlangt) beginnend in Zeile $2, Spalte $3.
+% The multi-line string does not have the proper indentation, every line
+% must have at least tjhen number of spaces as in the last line.
 %
 % \end{description}
 # EndOfTeX
@@ -494,7 +509,7 @@ scan_e_misplaced_rtti_directive=02113_E_RTTI-Direktive kann hier nicht benutzt w
 #
 # Parser
 #
-# 03370 is the last used one
+# 03374 is the last used one
 #
 # BeginOfTeX
 %
@@ -1715,6 +1730,12 @@ parser_e_coperators_off=03371_E_Zuweisungsoperatoren im C-Stil sind ausgeschalte
 parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Ausdruck kann zur Zeit der öbersetzung nicht berechnet werden
 % Certain operations like the size of an object cannot be determined at compile time,
 % so it cannot be e.g. part of a constant expression.
+parser_e_type_alread_forward=03373_E_Doppelte VorwÑrtsdeklaration: $1
+% Types might be defined only once as forward:
+% \var{type myclass = class; myclass = class;} is not allowed
+parser_e_no_suitable_newinstance_method_found=03374_E_Keine geeignete NewInstance - Methode fÅr die Erzeugung der Klasseninstanz gefunden
+% To create a new instance of a class, a suitable NewInstance (like \var{TObject.NewInstance}) method must be found. The symbol name NewInstance
+% might not be used for other purposes than to create a new instance of a class.
 %
 % \end{description}
 # EndOfTeX
@@ -1722,7 +1743,7 @@ parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Ausdruck kann zur Ze
 #
 # Type Checking
 #
-# 04133 is the last used one
+# 04134 is the last used one
 #
 # BeginOfTeX
 %
@@ -2184,6 +2205,8 @@ type_e_cannot_take_address_of_wasm_externref=04132_E_Kann die Adresse einer exte
 % WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
 type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly-Referenz-Typen haben keine beobachtbare Grî·e
 % WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
+type_e_ordinal_or_pointer_expr_expected=04134_E_Ordinaler oder Pointer-Ausdruck erwartet
+% The expression must be of an ordinal or pointer type.
 %
 % \end{description}
 # EndOfTeX
@@ -3057,7 +3080,7 @@ asmr_e_a64_regset_too_large=07147_E_Zu viele Register im Registerset.
 #
 # Assembler/binary writers
 #
-# 08037 is the last used one
+# 08039 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -3111,11 +3134,13 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32-Bit-Referenzen werden nicht unterstÅt
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu gro·
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu gro·
 asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewÑhlten Befehlssatz nicht unterstÅtzt
-asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist au·erhalb des Bereichs
+asmw_e_destination_out_of_range=08033_E_Asm: Das Ziel $1 ist au·erhalb des Bereichs
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP kann nicht als Indexregister oder mit einem anderen Register in einer Referenz verwendet werden
 asmw_e_seh_invalid_data_size=08035_F_UngÅltige Funktionsgrî·e einer SEH-Funktion
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP kann nicht als Indexregister verwendet werden
 asmw_e_illegal_unset_index=08037_E_Wasm32 Symbol $1 ohne Indexwert Fehler
+asmw_e_destination_and_source_registers_must_be_distinct=08038_E_Asm: $1 Ziel- und Quellregister mÅssen unterschiedlich sein
+asmw_e_registers_should_be_distinct=08039_E_Asm: $1 Register sollten unterschiedlich sein
 %
 % \end{description}
 # EndOfTeX
@@ -3370,10 +3395,10 @@ unit_u_ppu_invalid_header=10007_U_PPU UngÅltiger Header (kein PPU am Anfang)
 unit_u_ppu_invalid_version=10008_U_PPU UngÅltige Version $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_PPU ist fÅr einen anderen Prozessor Åbersetzt
+unit_u_ppu_invalid_processor=10009_U_PPU ist fÅr den anderen Prozessor $1 Åbersetzt
 % This unit file was compiled for a different processor type, and
 % cannot be read.
-unit_u_ppu_invalid_target=10010_U_PPU ist fÅr ein anderes Zielsystem Åbersetzt
+unit_u_ppu_invalid_target=10010_U_PPU ist fÅr das andere Zielsystem $1 Åbersetzt
 % This unit file was compiled for a different processor type, and
 % cannot be read.
 unit_u_ppu_source=10011_U_PPU Quelle: $1
@@ -3584,7 +3609,7 @@ unit_w_unsupported_esp_idf_version=10071_W_esp-idf Version nicht unterstÅtzt
 #
 # Options
 #
-# 11068 is the last used one
+# 11070 is the last used one
 #
 # BeginOfTeX
 %
@@ -3754,6 +3779,10 @@ option_x_ignored=11067_N_Ignoriere den Compiler-Programm-Suffix $1.
 option_switch_bin_to_src_assembler_cross_endian=11068_N_Schalte in der cross-endian Konfiguration um auf den voreingestellten, Quellcode-schreibenden Assembler
 % This notifies you that the assembler has been changed because
 % the binary assembler writer is not yet ready for cross-endian configuration.
+option_e_win16_unsupported_memory_model=11069_W_Nicht unterstÅtztes Speichermodell $1 fÅr das System Win16
+% i8086-win16 system only supports large and huge memory models.
+option_n_win16_set_default_large_memory_model=11070_N_Setze das Speichermodell fÅr das System Win16 auf "large"
+% i8086-win16 requires at least large memory model.
 %
 % \end{description}
 # EndOfTeX
@@ -4089,7 +4118,7 @@ A*2Aas-darwin_Assembliere mit Hilfe von GNU AS fÅr Darwin Zielsysteme
 A*2Aclang_Assembliere mit Hilfe von clang
 A*2Aelf_Assembliere mit Hilfe des internen ELF-Schreibers
 a*2Aas_Assembliere mit Hilfe von GNU AS
-a*2Aas-clang_AAssembliere mit Hilfe von clang fÅr andere Zielsysteme 
+a*2Aas-clang_AAssembliere mit Hilfe von clang fÅr andere Zielsysteme
 a*2Aclang_Assembliere mit Hilfe von clang fÅr Darwin/iOS Zielsysteme
 P*2Aas_Assembliere mit Hilfe von GNU AS
 S*2Aas_Assembliere mit Hilfe von GNU AS
@@ -4177,6 +4206,7 @@ W*3CTbfexceptions_        Schalte die UnterstÅtzung von verzweigten WebAssembly 
 W*3CTjsexceptions_        Schalte die UnterstÅtzung von JavaScript-basierten Exceptions fÅr WebAssembly ein (experimentell)
 W*3CTwasmexceptions_      Schalte die UnterstÅtzung von nativen WebAssembly-Exceptions ein
 W*3CTwasmthreads_         Schalte die UnterstÅtzung von WebAssembly-Threads ein (experimentell)
+W*3CTsaturatingfloattoint_ Verwende sÑttigende (ohne Trapauslîsung) Flie·komma-nach-Integer Konversions-Instruktionen
 J*2Cv_Var/out Parameter copy-out öberprÅfung
 A*2CV<x>_Setze das Section-Threadvar-Modell auf <x>
 **2CX_Benutze Smartlinking
@@ -4456,9 +4486,12 @@ Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
 W*2Twasi_Das WebAssembly System Interface (WASI)
+W*2Twasip1_Das WebAssembly System Interface Vorschau 1 (WASI 0.1)
+W*2Twasip1threads_Das WebAssembly System Interface Vorschau 1 mit Multithreading (WASI 0.1 + wasi-threads)
+W*2Twasip2_Das WebAssembly System Interface Vorschau 2 (WASI 0.2) (experimentell)
 # end of targets section
 **1t<x>_Zielsystem-Architektur
-**2*_ * Definiert FPC_SUBTARGET_<x> 
+**2*_ * Definiert FPC_SUBTARGET_<x>
 **2*_ * Definiert FPC_SUBTARGET als <arg>
 **2*_ * Liest zusÑtzlich die Konfigurationsdatei fpc-<subtarget>.cfg
 **1u<x>_Entferne die Definition fÅr das Symbol <x>
@@ -4481,7 +4514,7 @@ W*2Twasi_Das WebAssembly System Interface (WASI)
 **2*_k : (ungenutzt)
 **2*_l : Zeilennummern
 **2*_m<x>,<y> : Keine Meldungen mit den Nummern <x> und <y>
-**2*_n : Anmerkungen                   
+**2*_n : Anmerkungen
 **2*_o : (ungenutzt)
 **2*_p : Schreibe tree.log mit Analysenbaum (parse tree)
 **2*_q : Nummer der Meldung
@@ -4490,7 +4523,7 @@ W*2Twasi_Das WebAssembly System Interface (WASI)
 **2*_t : Angesprochene/benutzte Dateien
 **2*_u : Unit-Informationen
 **2*_v : Schreibe fpcdebug.txt mit ganz viel Informationen
-**2*_w : Warnungen 
+**2*_w : Warnungen
 **2*_x : Informationen Åber aufgerufene Werkzeuge
 **2*_y : (ungenutzt)
 **2*_z : Schreibe die Ausgabe nach stderr

@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of git commit 57fd8f13 + 1, 17 November, 2024
+#   Based on errore.msg of git commit 548a07c0, 27 July, 2025
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2024 by the Free Pascal Development team
+#   Copyright (c) 1998-2025 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -176,7 +176,7 @@ general_t_objectpath_local=01033_T_$1: Nutze den lokalen Objekt-Pfad: $2
 #
 # Scanner
 #
-# 02112 is the last used one
+# 02120 is the last used one
 #
 # BeginOfTeX
 %
@@ -487,6 +487,21 @@ scan_e_duplicate_rtti_option=02112_E_RTTI-Option "$1" ist ein Duplikat
 scan_e_misplaced_rtti_directive=02113_E_RTTI-Direktive kann hier nicht benutzt werden
 % The \var{\$RTTI} directive can not be used in this location (e.g. before the \var{PROGRAM}
 % or \var{UNIT} headers).
+scanner_w_alignment_large_than_max=02114_N_Variable "$1" hat eine Align-Direktive, die größer als das maximale Systemalignment für Variablen ist
+% The type of the variable has an 'align' directive which is larger than  current maximum
+scanner_w_local_alignment_large_than_max=02115_N_Die lokale Variable "$1" hat eine Align-Direktive, die größer als das maximale Systemalignment für lokale Variablen ist
+% The type of the variable has an 'align' directive which is larger than current  maximum.
+scan_e_unknown_lineending_type=02116_E_Unbekannter Typ für Zeilenenden angegeben. Gültige Optionen sind CR, CRLF, LF, PLATFORM, oder SOURCE
+% The line ending type that was specified is not one of CR, CRLF, LF, PLATFORM, or SOURCE.
+scan_e_trimcount_out_of_range=02117_E_Der Wert von MULTILINESTRINGTRIMLEFT kann nicht kleiner als 0 oder größer als 65535 sein
+% MULTILINESTRINGTRIMLEFT is stored in a "word" field, and thus is restricted to the range 0..65535.
+scan_e_illegal_directive=02118_E_Ungültige Compiler Direktive "$1"
+% You have specified a compiler directive that cannot (for one of several possible reasons) currently be used.
+scan_f_unterminated_multiline_string=02119_F_Unbestimmte Mehrfachzeilen-Zeichenkette beginnend in Zeile $1, Spalte $2
+% The file contains an "unbalanced" number of multi-line string denoting backtick characters.
+scan_e_improperly_indented_multiline_string=02120_E_Falsch eingerückte Mehrfachzeilen-Zeichenkette ($1 Leerzeichen sind verlangt) beginnend in Zeile $2, Spalte $3.
+% The multi-line string does not have the proper indentation, every line
+% must have at least tjhen number of spaces as in the last line.
 %
 % \end{description}
 # EndOfTeX
@@ -494,7 +509,7 @@ scan_e_misplaced_rtti_directive=02113_E_RTTI-Direktive kann hier nicht benutzt w
 #
 # Parser
 #
-# 03370 is the last used one
+# 03374 is the last used one
 #
 # BeginOfTeX
 %
@@ -1714,6 +1729,12 @@ parser_e_coperators_off=03371_E_Zuweisungsoperatoren im C-Stil sind ausgeschalte
 parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Ausdruck kann zur Zeit der Übersetzung nicht berechnet werden
 % Certain operations like the size of an object cannot be determined at compile time,
 % so it cannot be e.g. part of a constant expression.
+parser_e_type_alread_forward=03373_E_Doppelte Vorwärtsdeklaration: $1
+% Types might be defined only once as forward:
+% \var{type myclass = class; myclass = class;} is not allowed
+parser_e_no_suitable_newinstance_method_found=03374_E_Keine geeignete NewInstance - Methode für die Erzeugung der Klasseninstanz gefunden
+% To create a new instance of a class, a suitable NewInstance (like \var{TObject.NewInstance}) method must be found. The symbol name NewInstance
+% might not be used for other purposes than to create a new instance of a class.
 %
 % \end{description}
 # EndOfTeX
@@ -1721,7 +1742,7 @@ parser_e_cannot_evaluate_expression_at_compile_time=03372_E_Ausdruck kann zur Ze
 #
 # Type Checking
 #
-# 04133 is the last used one
+# 04134 is the last used one
 #
 # BeginOfTeX
 %
@@ -2183,6 +2204,8 @@ type_e_cannot_take_address_of_wasm_externref=04132_E_Kann die Adresse einer exte
 % WebAssembly externref types don't have an in-memory representation and therefore, their address cannot be taken.
 type_e_cannot_determine_size_of_wasm_reference_type=04133_E_WebAssembly-Referenz-Typen haben keine beobachtbare Größe
 % WebAssembly reference types are opaque, meaning neither their size, nor their bit pattern can be observed.
+type_e_ordinal_or_pointer_expr_expected=04134_E_Ordinaler oder Pointer-Ausdruck erwartet
+% The expression must be of an ordinal or pointer type.
 %
 % \end{description}
 # EndOfTeX
@@ -3056,7 +3079,7 @@ asmr_e_a64_regset_too_large=07147_E_Zu viele Register im Registerset.
 #
 # Assembler/binary writers
 #
-# 08037 is the last used one
+# 08039 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -3110,11 +3133,13 @@ asmw_e_32bit_not_supported=08029_E_Asm: 32-Bit-Referenzen werden nicht unterstü
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu groß
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu groß
 asmw_e_instruction_not_supported_by_cpu=08032_E_Befehl wird vom ausgewählten Befehlssatz nicht unterstützt
-asmw_e_brxx_out_of_range=08033_E_Asm: Das Ziel des bedingten Zweigs ist außerhalb des Bereichs
+asmw_e_destination_out_of_range=08033_E_Asm: Das Ziel $1 ist außerhalb des Bereichs
 asmw_e_illegal_use_of_rip=08034_E_Asm: RIP kann nicht als Indexregister oder mit einem anderen Register in einer Referenz verwendet werden
 asmw_e_seh_invalid_data_size=08035_F_Ungültige Funktionsgröße einer SEH-Funktion
 asmw_e_illegal_use_of_sp=08036_E_Asm: ESP/RSP kann nicht als Indexregister verwendet werden
 asmw_e_illegal_unset_index=08037_E_Wasm32 Symbol $1 ohne Indexwert Fehler
+asmw_e_destination_and_source_registers_must_be_distinct=08038_E_Asm: $1 Ziel- und Quellregister müssen unterschiedlich sein
+asmw_e_registers_should_be_distinct=08039_E_Asm: $1 Register sollten unterschiedlich sein
 %
 % \end{description}
 # EndOfTeX
@@ -3369,10 +3394,10 @@ unit_u_ppu_invalid_header=10007_U_PPU Ungültiger Header (kein PPU am Anfang)
 unit_u_ppu_invalid_version=10008_U_PPU Ungültige Version $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_PPU ist für einen anderen Prozessor übersetzt
+unit_u_ppu_invalid_processor=10009_U_PPU ist für den anderen Prozessor $1 übersetzt
 % This unit file was compiled for a different processor type, and
 % cannot be read.
-unit_u_ppu_invalid_target=10010_U_PPU ist für ein anderes Zielsystem übersetzt
+unit_u_ppu_invalid_target=10010_U_PPU ist für das andere Zielsystem $1 übersetzt
 % This unit file was compiled for a different processor type, and
 % cannot be read.
 unit_u_ppu_source=10011_U_PPU Quelle: $1
@@ -3583,7 +3608,7 @@ unit_w_unsupported_esp_idf_version=10071_W_esp-idf Version nicht unterstützt
 #
 # Options
 #
-# 11068 is the last used one
+# 11070 is the last used one
 #
 # BeginOfTeX
 %
@@ -3753,6 +3778,10 @@ option_x_ignored=11067_N_Ignoriere den Compiler-Programm-Suffix $1.
 option_switch_bin_to_src_assembler_cross_endian=11068_N_Schalte in der cross-endian Konfiguration um auf den voreingestellten, Quellcode-schreibenden Assembler
 % This notifies you that the assembler has been changed because
 % the binary assembler writer is not yet ready for cross-endian configuration.
+option_e_win16_unsupported_memory_model=11069_W_Nicht unterstütztes Speichermodell $1 für das System Win16
+% i8086-win16 system only supports large and huge memory models.
+option_n_win16_set_default_large_memory_model=11070_N_Setze das Speichermodell für das System Win16 auf "large"
+% i8086-win16 requires at least large memory model.
 %
 % \end{description}
 # EndOfTeX
@@ -4176,6 +4205,7 @@ W*3CTbfexceptions_        Schalte die Unterstützung von verzweigten WebAssembly
 W*3CTjsexceptions_        Schalte die Unterstützung von JavaScript-basierten Exceptions für WebAssembly ein (experimentell)
 W*3CTwasmexceptions_      Schalte die Unterstützung von nativen WebAssembly-Exceptions ein
 W*3CTwasmthreads_         Schalte die Unterstützung von WebAssembly-Threads ein (experimentell)
+W*3CTsaturatingfloattoint_ Verwende sättigende (ohne Trapauslösung) Fließkomma-nach-Integer Konversions-Instruktionen
 J*2Cv_Var/out Parameter copy-out Überprüfung
 A*2CV<x>_Setze das Section-Threadvar-Modell auf <x>
 **2CX_Benutze Smartlinking
@@ -4455,6 +4485,9 @@ Z*2Tzxspectrum_ZX Spectrum
 # wasm32 targets
 W*2Tembedded_Embedded
 W*2Twasi_Das WebAssembly System Interface (WASI)
+W*2Twasip1_Das WebAssembly System Interface Vorschau 1 (WASI 0.1)
+W*2Twasip1threads_Das WebAssembly System Interface Vorschau 1 mit Multithreading (WASI 0.1 + wasi-threads)
+W*2Twasip2_Das WebAssembly System Interface Vorschau 2 (WASI 0.2) (experimentell)
 # end of targets section
 **1t<x>_Zielsystem-Architektur
 **2*_ * Definiert FPC_SUBTARGET_<x>
