@@ -228,7 +228,7 @@ var
   p: PThreadInfo;
 begin
   IsValidThreadInfo:=false;
-  if l = nil then
+  if (l = nil) or (threadInfo = nil) then
     exit;
 
   ObtainSemaphoreShared(@AThreadListSemaphore);
