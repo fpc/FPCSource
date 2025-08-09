@@ -2389,6 +2389,8 @@ Var
   S : TSQLSelectExpression;
   L : TSQLListExpression;
   Done : Boolean;
+  Expr: TSQLExpression;
+  Bin: TSQLBinaryExpression;
 
 begin
   // On entry, we're on the first token after IN token, which is the ( token.
@@ -2396,6 +2398,7 @@ begin
   try
     If (CurrentToken=tsqlSelect) then
       begin
+      // IN (SELECT...
       S:=TSQLSelectExpression(CreateElement(TSQLSelectExpression,APArent));
       Result:=S;
       S.Select:=ParseSelectStatement(AParent,[sfSingleton]);
@@ -2403,13 +2406,25 @@ begin
       end
     else
       begin
+      // IN (A,B..C,D,...)
       L:=TSQLListExpression(CreateElement(TSQLListExpression,AParent));
       Result:=L;
       Repeat
-         L.List.Add(ParseExprLevel1(L,[eoListValue]));
-         Expect([tsqlBraceClose,tsqlComma]);
-         Done:=(CurrentToken=tsqlBraceClose);
-         GetNextToken;
+        Expr:=ParseExprLevel1(L,[eoListValue]);
+        if CurrentToken=tsqlDotDot then
+          begin
+          Bin:=TSQLBinaryExpression(CreateElement(TSQLBinaryExpression,AParent));
+          Bin.Operation:=boDotDot;
+          Bin.Left:=Expr;
+          L.List.Add(Bin);
+          GetNextToken;
+          Bin.Right:=ParseExprLevel1(Bin,[eoListValue]);
+          end
+        else
+          L.List.Add(Expr);
+        Expect([tsqlBraceClose,tsqlComma]);
+        Done:=(CurrentToken=tsqlBraceClose);
+        GetNextToken;
       until Done;
 
       end;

@@ -495,6 +495,7 @@ type
     procedure TestWhereAll;
     procedure TestWhereAny;
     procedure TestWhereSome;
+    procedure TestWhereInRange;
     procedure TestParam;
     procedure TestParam_Underscore;
     procedure TestParamExpr;
@@ -5310,6 +5311,10 @@ begin
   AssertTable(S.Tables[0],'D','');
 end;
 
+procedure TTestSelectParser.TestWhereInRange;
+begin
+  TestSelect('SELECT A FROM B WHERE A IN (4..6)');
+end;
 
 procedure TTestSelectParser.TestParam;
 
