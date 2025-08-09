@@ -336,7 +336,7 @@ Type
   end;
 
   TSQLBinaryOperation = (boAnd, boOr, boEQ, boLT, boGT, boLE, boGE, boNE,
-                         boConcat,boAdd, boSubtract, boMultiply, boDivide, boIn,
+                         boConcat,boAdd, boSubtract, boMultiply, boDivide, boIn, boDotDot,
                          boIs, boIsNot, boLike, boContaining, boStarting);
 
   { TSQLBinaryExpression }
@@ -2676,7 +2676,7 @@ function TSQLBinaryExpression.GetAsSQL(Options: TSQLFormatOptions;
 Const
   OpCodes : Array[TSQLBinaryOperation] of string =
           ('AND', 'OR', '=', '<', '>', '<=', '>=', '<>',
-           '||','+', '-', '*', '/', 'IN',
+           '||','+', '-', '*', '/', 'IN', '..',
            'IS', 'IS NOT', 'LIKE', 'CONTAINING','STARTING WITH');
 
 Var

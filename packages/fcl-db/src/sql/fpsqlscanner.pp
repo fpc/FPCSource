@@ -50,7 +50,7 @@ type
    tsqlIntegerNumber,tsqlFloatNumber,tsqlComment,
    tsqlBraceOpen,tsqlBraceClose,tsqlSquareBraceOpen,tsqlSquareBraceClose,
    tsqlPlaceHolder {question mark},
-   tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlSEMICOLON,tsqlTerminator,
+   tsqlCOMMA,tsqlCOLON,tsqlDOT,tsqlDotDot,tsqlSEMICOLON,tsqlTerminator,
    tsqlGT,tsqlLT,tsqlPLUS,tsqlMINUS,tsqlMUL,tsqlDIV,tsqlConcatenate,
    tsqlEQ,tsqlGE,tsqlLE,tsqlNE,
    { Reserved words/keywords start here. They must be last }
@@ -96,7 +96,7 @@ const
        'symbol string',
        'integer number','float number', 'comment',
        '(',')', '[',']',
-       '?',',',':','.',';','',
+       '?',',',':','.','..',';','',
        '>','<',
        '+','-','*','/','||',
        '=','>=','<=','<>',
@@ -733,68 +733,68 @@ begin
     FCurTokenColumn:=CurColumn;
     FCurTokenString := '';
     case TokenStr[0] of
-      #0:         // Empty line
-        begin
-        FetchLine;
-        Result := tsqlWhitespace;
-        end;
-      '/' :
-         Result:=CommentDiv;
-      #9, ' ',#10,#13:
-         Result := DoWhiteSpace;
-      '''':
-        begin
-        Result:=DoStringLiteral;
-        if (soSingleQuoteIdentifier in Options) then
-          result:=tsqlIdentifier;
-        end;
-      '"':
-        begin
-        Result:=DoStringLiteral;
-        If (soDoubleQuoteStringLiteral in options) then
-          Result:=tsqlString
-        else
-          Result:=tsqlIdentifier;
-        end;
-      '`':
-        begin
-        Result:=DoStringLiteral;
-        If (soBackQuoteIdentifier in options) then
-          Result:=tsqlIdentifier
-        else
-          Error(SErrUnknownToken,['`']);
-        end;
-      '0'..'9':
-         Result:=DoNumericLiteral;
-      '?':
-         begin
-         Inc(TokenStr);
-         Result:=tsqlPlaceHolder;
-         end;
-      '!':
+    #0:         // Empty line
+      begin
+      FetchLine;
+      Result := tsqlWhitespace;
+      end;
+    '/' :
+      Result:=CommentDiv;
+    #9, ' ',#10,#13:
+      Result := DoWhiteSpace;
+    '''':
+      begin
+      Result:=DoStringLiteral;
+      if (soSingleQuoteIdentifier in Options) then
+        Result:=tsqlIdentifier;
+      end;
+    '"':
+      begin
+      Result:=DoStringLiteral;
+      If (soDoubleQuoteStringLiteral in options) then
+        Result:=tsqlString
+      else
+        Result:=tsqlIdentifier;
+      end;
+    '`':
+      begin
+      Result:=DoStringLiteral;
+      If (soBackQuoteIdentifier in options) then
+        Result:=tsqlIdentifier
+      else
+        Error(SErrUnknownToken,['`']);
+      end;
+    '0'..'9':
+       Result:=DoNumericLiteral;
+    '?':
+       begin
+       Inc(TokenStr);
+       Result:=tsqlPlaceHolder;
+       end;
+    '!':
+      begin
+      Inc(TokenStr);
+      If TokenStr[0]='>' then
+        Result:=tsqlLE
+      else if (TokenStr[0]='<') then
+        Result:=tsqlGE
+      else if (TokenStr[0]='=') then
+        Result:=tsqlNE
+      else
+        Result:=tsqlUnknown;
+      Inc(TokenStr);
+      end;
+    '|':
+      begin
+      Inc(TokenStr);
+      If Tokenstr[0]='|' then
         begin
         Inc(TokenStr);
-        If TokenStr[0]='>' then
-          Result:=tsqlLE
-        else if (TokenStr[0]='<') then
-          Result:=tsqlGE
-        else if (TokenStr[0]='=') then
-          Result:=tsqlNE
-        else
-          Result:=tsqlUnknown;
-        Inc(TokenStr);
-        end;
-     '|':
-         begin
-         Inc(TokenStr);
-         If Tokenstr[0]='|' then
-           begin
-           Inc(TokenStr);
-           Result := tsqlConcatenate
-           end
-         else
-           Error(SBarExpected);
-         end;
+        Result := tsqlConcatenate
+        end
+      else
+        Error(SBarExpected);
+      end;
     '(':
       begin
       Inc(TokenStr);
@@ -858,7 +858,13 @@ begin
     '.':
       begin
       Inc(TokenStr);
-      Result := tsqlDot;
+      if TokenStr^='.' then
+        begin
+        Inc(TokenStr);
+        Result := tsqlDotDot;
+        end
+      else
+        Result := tsqlDot;
       end;
     ':':
       begin
