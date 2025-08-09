@@ -1032,9 +1032,11 @@ ifeq ($(SUBARCH),avrxmega3)
 CPU_UNITS=atmega808 atmega809 atmega1608 atmega1609 atmega3208 atmega3209 \
 	  atmega4808 atmega4809 attiny202 attiny204 attiny212 attiny214 \
 	  attiny402 attiny404 attiny406 attiny412 attiny414 attiny416 \
-	  attiny416auto attiny417 attiny804 attiny806 attiny807 attiny814 \
-	  attiny816 attiny817 attiny1604 attiny1606 attiny1607 attiny1614 \
-	  attiny1616 attiny1617 attiny1624 attiny1626 attiny1627 attiny3214 attiny3216 attiny3217
+	  attiny416auto attiny417 attiny424 attiny426 attiny427 attiny804 \
+	  attiny806 attiny807 attiny814 attiny816 attiny817 attiny824 attiny826 \
+	  attiny827 attiny1604 attiny1606 attiny1607 attiny1614 attiny1616 \
+	  attiny1617 attiny1624 attiny1626 attiny1627 attiny3214 attiny3216 \
+	  attiny3217 attiny3224 attiny3226 attiny3227
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)

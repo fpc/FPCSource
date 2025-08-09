@@ -238,6 +238,9 @@ Type
       ct_attiny416,
       ct_attiny416auto,
       ct_attiny417,
+      ct_attiny424,
+      ct_attiny426,
+      ct_attiny427,
       ct_attiny441,
       ct_attiny461,
       ct_attiny461a,
@@ -247,6 +250,9 @@ Type
       ct_attiny814,
       ct_attiny816,
       ct_attiny817,
+      ct_attiny824,
+      ct_attiny826,
+      ct_attiny827,
       ct_attiny828,
       ct_attiny841,
       ct_attiny861,
@@ -266,6 +272,9 @@ Type
       ct_attiny3214,
       ct_attiny3216,
       ct_attiny3217,
+      ct_attiny3224,
+      ct_attiny3226,
+      ct_attiny3227,
       ct_attiny4313,
       // Controller board aliases
       ct_arduinoleonardo,
@@ -550,6 +559,9 @@ Const
         ,(controllertypestr:'ATTINY416';controllerunitstr:'ATTINY416';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:16128;sramsize:256;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY416AUTO';controllerunitstr:'ATTINY416AUTO';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:16128;sramsize:256;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY417';controllerunitstr:'ATTINY417';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:16128;sramsize:256;eeprombase:5120;eepromsize:128)
+        ,(controllertypestr:'ATTINY424';controllerunitstr:'ATTINY424';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:15872;sramsize:512;eeprombase:5120;eepromsize:128)
+        ,(controllertypestr:'ATTINY426';controllerunitstr:'ATTINY426';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:15872;sramsize:512;eeprombase:5120;eepromsize:128)
+        ,(controllertypestr:'ATTINY427';controllerunitstr:'ATTINY427';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:15872;sramsize:512;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY441';controllerunitstr:'ATTINY441';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:256;sramsize:256;eeprombase:0;eepromsize:256)
         ,(controllertypestr:'ATTINY461';controllerunitstr:'ATTINY461';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:96;sramsize:256;eeprombase:0;eepromsize:256)
         ,(controllertypestr:'ATTINY461A';controllerunitstr:'ATTINY461A';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:96;sramsize:256;eeprombase:0;eepromsize:256)
@@ -559,6 +571,9 @@ Const
         ,(controllertypestr:'ATTINY814';controllerunitstr:'ATTINY814';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15872;sramsize:512;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY816';controllerunitstr:'ATTINY816';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15872;sramsize:512;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY817';controllerunitstr:'ATTINY817';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15872;sramsize:512;eeprombase:5120;eepromsize:128)
+        ,(controllertypestr:'ATTINY824';controllerunitstr:'ATTINY824';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15360;sramsize:1024;eeprombase:5120;eepromsize:128)
+        ,(controllertypestr:'ATTINY826';controllerunitstr:'ATTINY826';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15360;sramsize:1024;eeprombase:5120;eepromsize:128)
+        ,(controllertypestr:'ATTINY827';controllerunitstr:'ATTINY827';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15360;sramsize:1024;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY828';controllerunitstr:'ATTINY828';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:256)
         ,(controllertypestr:'ATTINY841';controllerunitstr:'ATTINY841';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512)
         ,(controllertypestr:'ATTINY861';controllerunitstr:'ATTINY861';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:96;sramsize:512;eeprombase:0;eepromsize:512)
@@ -578,6 +593,9 @@ Const
         ,(controllertypestr:'ATTINY3214';controllerunitstr:'ATTINY3214';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:14336;sramsize:2048;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY3216';controllerunitstr:'ATTINY3216';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:14336;sramsize:2048;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY3217';controllerunitstr:'ATTINY3217';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:14336;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'ATTINY3224';controllerunitstr:'ATTINY3224';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:13312;sramsize:3072;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'ATTINY3226';controllerunitstr:'ATTINY3226';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:13312;sramsize:3072;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'ATTINY3227';controllerunitstr:'ATTINY3227';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:13312;sramsize:3072;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY4313';controllerunitstr:'ATTINY4313';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:96;sramsize:256;eeprombase:0;eepromsize:256)
         // Controller board aliases
         ,(controllertypestr:'ARDUINOLEONARDO'; controllerunitstr:'ATMEGA32U4'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2560; eeprombase:0; eepromsize:1024;bootbase:28672;bootsize:4096)
