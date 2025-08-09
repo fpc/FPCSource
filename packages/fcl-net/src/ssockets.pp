@@ -495,7 +495,7 @@ begin
 end;
 
 function TSocketHandler.Select(aCheck: TSocketStates; TimeOut: Integer): TSocketStates;
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
 var
   FDSR,FDSW,FDSE : TFDSet;
   PFDSR,PFDSW,PFDSE : PFDSet;
@@ -520,6 +520,10 @@ var
       FD_Zero(FDS);
       FD_Set(FSocket.Handle, FDS);
       {$ENDIF}
+      {$ifdef HASAMIGA}
+      fpFD_Zero(FDS);
+      fpFD_Set(FSocket.Handle, FDS);
+      {$endif}
       PFDS:=@FDS;
       end
   end;
@@ -537,13 +541,17 @@ var
       if FD_IsSet(FSocket.Handle, FDS) then
         Include(Result,aState);
       {$endif}
+      {$ifdef HASAMIGA}
+      if fpFD_IsSet(FSocket.Handle, FDS)>0 then
+        Include(Result,aState);
+      {$endif}
       end;
   end;
 
 {$endif}
 begin
   Result:=[];
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
   Res:=-1;
   if Timeout<0 then
     PTV:=Nil
@@ -563,7 +571,11 @@ begin
 {$ifdef windows}
   Res:={$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, @TimeV);
 {$endif}
-{$if defined(unix) or defined(windows)}
+{$ifdef HASAMIGA}
+  Res:=fpSelect(Socket.Handle + 1, PFDSR, PFDSW, PFDSE, PTV);
+{$endif}
+
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
   if Res>0 then
     begin
     CheckSet(FDSR,sosCanRead);
@@ -692,7 +704,7 @@ end;
 class function TSocketStream.Select(var aRead, aWrite,
   aExceptions: TSocketStreamArray; aTimeOut: Integer): Boolean;
 
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
 var
   FDR,FDW,FDE: TFDSet;
   TimeV: TTimeVal;
@@ -723,6 +735,15 @@ var
         MaxHandle:=S.Handle;
       end;
     {$ENDIF}
+    {$ifdef HASAMIGA}
+    fpFD_Zero(FD);
+    For S in AnArray do
+      begin
+      fpFD_Set(S.Handle, FD);
+      if S.Handle>MaxHandle then
+        MaxHandle:=S.Handle;
+      end;
+    {$ENDIF}
   end;
 
   function FillArr(FD : TFDSet; Src : TSocketStreamArray) : TSocketStreamArray;
@@ -743,6 +764,10 @@ var
 {$IFDEF Windows}
       if FD_isSet(S.Handle, FD) then
 {$ENDIF}
+{$IFDEF HASAMIGA}
+      if fpFD_IsSet(S.Handle, FD)>0 then
+{$ENDIF}
+
         begin
         Result[aLen]:=S;
         Inc(aLen);
@@ -755,7 +780,7 @@ var
 
 begin
   Result:=False;
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
   MaxHandle:=0;
   TimeV.tv_usec := (aTimeOut mod 1000) * 1000;
   TimeV.tv_sec := aTimeOut div 1000;
@@ -769,6 +794,9 @@ begin
 {$endif}
 {$ifdef windows}
   Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
+{$endif}
+{$ifdef HASAMIGA}
+  Result := fpSelect(MaxHandle+1, @FDR, @FDW, @FDE, @TimeV) > 0;
 {$endif}
   aRead:=FillArr(FDR,aRead);
   aWrite:=FillArr(FDR,aRead);
@@ -802,6 +830,11 @@ var
   time: ttimeval;
   olen: tsocklen;
 {$endif unix}
+{$ifdef HASAMIGA}
+var
+  time: ttimeval;
+  olen: tsocklen;
+{$endif HASAMIGA}
 begin
   {$ifdef windows}
   olen:=4;
@@ -809,6 +842,11 @@ begin
     FIOTimeout:=opt;
   {$endif windows}
   {$ifdef unix}
+  olen:=sizeof(time);
+  if fpgetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @time, @olen) = 0 then
+    FIOTimeout:=(time.tv_sec*1000)+(time.tv_usec div 1000);
+  {$endif}
+  {$ifdef HASAMIGA}
   olen:=sizeof(time);
   if fpgetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @time, @olen) = 0 then
     FIOTimeout:=(time.tv_sec*1000)+(time.tv_usec div 1000);
@@ -900,6 +938,9 @@ Var
 {$ifdef unix}
   time: ttimeval;
 {$endif unix}
+{$ifdef HASAMIGA}
+  time: ttimeval;
+{$endif HASAMIGA}
 
 begin
   E:=False;
@@ -913,6 +954,13 @@ begin
     E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_SNDTIMEO, @opt, 4)<>0;
   {$endif windows}
   {$ifdef unix}
+  time.tv_sec:=avalue div 1000;
+  time.tv_usec:=(avalue mod 1000) * 1000;
+  E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @time, sizeof(time))<>0;
+  if not E then
+    E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_SNDTIMEO, @time, sizeof(time))<>0;
+  {$endif}
+  {$ifdef HASAMIGA}
   time.tv_sec:=avalue div 1000;
   time.tv_usec:=(avalue mod 1000) * 1000;
   E:=fpsetsockopt(FSocket.FD, SOL_SOCKET, SO_RCVTIMEO, @time, sizeof(time))<>0;
@@ -998,7 +1046,7 @@ end;
 function TSocketServer.RunIdleLoop: Boolean;
 
 // Run Accept idle loop. Return True if there is a new connection waiting
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
 var
   FDS: TFDSet;
   TimeV: TTimeVal;
@@ -1006,7 +1054,7 @@ var
 begin
   Repeat
     Result:=False;
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(HASAMIGA)}
     TimeV.tv_usec := (AcceptIdleTimeout mod 1000) * 1000;
     TimeV.tv_sec := AcceptIdleTimeout div 1000;
 {$endif}
@@ -1021,6 +1069,12 @@ begin
     FD_Zero(FDS);
     FD_Set(FSocket.FD, FDS);
     Result := {$IFDEF FPC_DOTTEDUNITS}WinApi.{$ENDIF}Winsock2.Select(FSocket.FD + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+{$endif}
+{$ifdef HASAMIGA}
+    FDS := Default(TFDSet);
+    fpFD_Zero(FDS);
+    fpFD_Set(FSocket.FD, FDS);
+    Result := fpSelect(FSocket.FD + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
 {$endif}
 {$endif}
     If Result then

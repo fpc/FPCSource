@@ -122,6 +122,16 @@ const
   SO_LINGER      = $0080;   //* linger on close if data present */
   SO_OOBINLINE   = $0100;   //* leave received OOB data in line */
   SO_REUSEPORT   = $0200;   //* allow local address & port reuse */
+  
+// Additional options, not kept in so_options.
+  SO_SNDBUF     = $1001; //* send buffer size */
+  SO_RCVBUF     = $1002; //* receive buffer size */
+  SO_SNDLOWAT   = $1003; //* send low-water mark */
+  SO_RCVLOWAT   = $1004; //* receive low-water mark */
+  SO_SNDTIMEO   = $1005; //* send timeout */
+  SO_RCVTIMEO   = $1006; //* receive timeout */
+  SO_ERROR      = $1007; //* get error status and clear */
+  SO_TYPE       = $1008; //* get socket type */
 
   SOL_SOCKET    = $FFFF;
 
