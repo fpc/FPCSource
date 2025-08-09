@@ -4328,7 +4328,8 @@ implementation
     function tinlinenode.pass_typecheck_cpu : tnode;
       begin
         Result:=nil;
-        internalerror(2017110102);
+
+        Message1(cg_f_unknown_internal_procedure_number,tostr(ord(inlinenumber)));
       end;
 
 

@@ -2691,6 +2691,9 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 % Certain processors have no memory (e.~g. avr1 family), so they do not support storing/restoring the used registers
 % in an interrupt routine. The programmer has to ensure that while there is a chance for the interrupt routine being
 % called that no other code depending on registers being preserved is executed.
+cg_f_unknown_internal_procedure_number=06063_F_Unknown internal procedure number "$1"
+% The directive \var{internproc} is used with a number not known by the compiler. \var{internproc} should be used only by the
+% supplied RTL or by users really knowing what they are doing.
 %
 % \end{description}
 # EndOfTeX
