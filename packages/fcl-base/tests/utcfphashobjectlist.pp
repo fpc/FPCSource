@@ -189,6 +189,30 @@ begin
   end;
 end;
 
+Function TFPHashObjectList_TestFindLong : TTestString;
+var
+  L: TFPHashObjectList;
+  O1, O2: TObject;
+  S : String;
+begin
+  Result:='';
+  L := TFPHashObjectList.Create(False);
+  try
+    O1 := TObject.Create;
+    O2 := TObject.Create;
+    S:=StringOfChar('A',333);
+    L.Add(S, O1);
+    L.Add('O2', O2);
+    AssertSame('Find should return O1', O1, L.Find(S));
+    AssertSame('Find should return O2', O2, L.Find('O2'));
+    AssertEquals('Find for a non-existent object should return nil', nil, L.Find('O3'));
+  finally
+    L.Free;
+    O1.Free;
+    O2.Free;
+  end;
+end;
+
 Function TFPHashObjectList_TestFindIndexOf : TTestString;
 var
   L: TFPHashObjectList;
@@ -222,6 +246,7 @@ begin
   AddTest('TestRemove', @TFPHashObjectList_TestRemove, 'TFPHashObjectListTests');
   AddTest('TestOwnsObjects', @TFPHashObjectList_TestOwnsObjects, 'TFPHashObjectListTests');
   AddTest('TestFind', @TFPHashObjectList_TestFind, 'TFPHashObjectListTests');
+  AddTest('TestFindLong', @TFPHashObjectList_TestFindLong, 'TFPHashObjectListTests');
   AddTest('TestFindIndexOf', @TFPHashObjectList_TestFindIndexOf, 'TFPHashObjectListTests');
 end;
 
