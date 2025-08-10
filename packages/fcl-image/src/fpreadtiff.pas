@@ -120,6 +120,7 @@ type
     function ReadEntryString: AnsiString;
     procedure InternalRead(Str: TStream; AnImage: TFPCustomImage); override;
     function InternalCheck(Str: TStream): boolean; override;
+    class function InternalSize(Stream: TStream): TPoint; override;
     procedure DoCreateImage(ImgFileDir: TTiffIFD); virtual;
   public
     constructor Create; override;
@@ -2291,6 +2292,180 @@ begin
   except
     Result:=false;
   end;
+end;
+
+class function TFPReaderTIFF.InternalSize(Stream: TStream): TPoint;
+var
+  lFirstIFDStart: SizeUInt;
+  lStartPos: SizeUInt;
+  lReverseEndian: Boolean;
+  lBigTiff: Boolean = false;
+
+  function Read_Byte: Byte;
+  begin
+    Result := Stream.ReadByte;
+  end;
+
+  function Read_Word: Word;
+  begin
+    if lReverseEndian then
+      Result := SwapEndian(Stream.ReadWord)
+    else
+      Result := Stream.ReadWord;
+  end;
+
+  function Read_DWord: DWord;
+  begin
+    if lReverseEndian then
+      Result := SwapEndian(Stream.ReadDWord)
+    else
+      Result := Stream.ReadDWord;
+  end;
+
+  function Read_QWord: SizeUInt;
+  begin
+    {$ifdef CPU64}
+     if lReverseEndian then
+       Result := SwapEndian(Stream.ReadQWord)
+     else
+       Result := Stream.ReadQWord;
+    {$else}
+     if lReverseEndian then
+       Result := SwapEndian(Stream.ReadDWord)
+     else
+       Result := Stream.ReadDWord;
+    {$endif}
+  end;
+
+  function Read_EntryOffset: SizeUInt;
+  begin
+    if lBigTiff then
+      Result := Read_QWord
+    else
+      Result := Read_DWord;
+  end;
+
+  function Read_EntryUnsigned(out Value: DWord): Boolean;
+  var
+    EntryCount: SizeUInt;
+    EntryType: Word;
+  begin
+    Result := False;
+    Value := 0;
+    EntryType := Read_Word;
+    EntryCount := Read_EntryOffset;
+    if EntryCount<>1 then
+      exit;  // EntryCount = 1 expected
+
+    case EntryType of
+      1: begin
+          // byte: 8bit unsigned
+          Value := Read_Byte;
+        end;
+      3: begin
+          // short: 16bit unsigned
+          Value := Read_Word;
+        end;
+      4: begin
+          // long: 32bit unsigned long
+          Value := Read_DWord;
+        end;
+      else
+        exit;
+    end;
+
+    Result := true;
+  end;
+
+  function Read_TiffHeader(out IFDStart: SizeUInt): boolean;
+  var
+    BigEndian: Boolean;
+    TIFHeader: TTiffHeader;
+  begin
+    Result := false;
+
+    TifHeader := Default(TTiffHeader);
+    Stream.Read(TIFHeader, SizeOf(TTiffHeader));
+
+    if TIFHeader.ByteOrder = TIFF_ByteOrderBIG then
+      BigEndian := true
+    else
+    if TIFHeader.ByteOrder=TIFF_ByteOrderNOBIG then
+      BigEndian := false
+    else
+      exit;
+
+    lReverseEndian := {$ifdef FPC_BIG_ENDIAN}not{$endif} BigEndian;
+    lBigTiff := false;
+
+    if lReverseEndian then
+    begin
+      TifHeader.Version := SwapEndian(TifHeader.Version);
+      TifHeader.IFDStart := SwapEndian(TifHeader.IFDStart);
+    end;
+
+    // Offset to first IFD
+    case TIFHeader.Version of
+      42 : IFDStart := TIFHeader.IFDStart;
+      43 : {$ifdef CPU64}
+           begin
+             IFDStart:=Read_QWord;
+             lBigTiff:=true;
+           end;
+           {$else}
+             exit;  // Big Tiff supported only on 64 bit architecture
+           {$endif}
+      else exit;
+    end;
+    Result := true;
+  end;
+
+  function Load_HeaderFromStream: Boolean;
+  begin
+    lFirstIFDStart := 0;
+    lStartPos := Stream.Position;
+    Result := Read_TiffHeader(lFirstIFDStart);
+  end;
+
+  function Read_SizeFromIFD(IFDStart: SizeUInt): TPoint;
+  var
+    Count: SizeUInt;
+    i: Integer;
+    entryTag: Word = 0;
+    p: Int64;
+    value: DWord;
+  begin
+    Result := Point(-1, -1);
+
+    Stream.Position := Int64(IFDStart) + lStartPos;
+
+    if lBigTiff then
+      Count := Read_QWord
+    else
+      Count := Read_Word;
+
+    p := Stream.Position;
+    for i:=1 to Count do begin
+      entryTag := Read_Word;
+      case entryTag of
+        256: if Read_EntryUnsigned(value) then Result.X := value else exit;
+        257: if Read_EntryUnsigned(value) then Result.Y := value else exit;
+      end;
+      if (Result.X > -1) and (Result.Y > -1) then
+        exit;
+      if lBigTiff then
+        inc(p, 20)
+      else
+        inc(p, 12);
+      Stream.Position := p;
+    end;
+  end;
+
+begin
+  if Load_HeaderFromStream then
+    Result := Read_SizeFromIFD(lFirstIFDStart)
+  else
+    Result := Point(-1, -1);
 end;
 
 procedure TFPReaderTiff.DoCreateImage(ImgFileDir: TTiffIFD);
