@@ -1,20 +1,13 @@
-unit utclzw;
+unit utcLZW;
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, lzwstream;
+  Classes, SysUtils, punit, lzwstream;
 
-Type
-
-  { TTestLZW }
-
-  TTestLZW = CLass(TTestCase)
-  Published
-    Procedure TestFileC;
-  end;
+Procedure RegisterTests;
 
 implementation
 
@@ -24,7 +17,7 @@ implementation
 {$i filed.inc}
 
 
-procedure TTestLZW.TestFileC;
+function TestFileC : TTestString;
 
 Var
   Z : TLZWDecompressionStream;
@@ -33,6 +26,7 @@ Var
   I,R : Integer;
 
 begin
+  result:='';
   D:=Nil;
   Z:=Nil;
   C:=TBytesStream.Create([]);
@@ -57,7 +51,12 @@ begin
 
 end;
 
-initialization
-  RegisterTest(TTestLZW);
+procedure RegisterTests;
+
+begin
+  AddSuite('TTestLZW');
+  AddTest('TestFileC', @TestFileC, 'TTestLZW');
+end;
+
 end.
 

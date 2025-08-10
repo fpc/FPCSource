@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="12"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <Title Value="testfclbase"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <BuildModes>
+      <Item Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+    <RunParams>
+      <FormatVersion Value="2"/>
+    </RunParams>
+    <Units>
+      <Unit>
+        <Filename Value="testfclbase.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcfphashobjectlist.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcFPHashObjectList"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utccsvreadwrite.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcCSVReadWrite"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcinifile.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcIniFile"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcexprparsscanner.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcExprParsScanner"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcexprparsparser.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcExprParsParser"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcbasenenc.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utclzw.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcLZW"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcexprparsops.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcfptemplate.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcFPTemplate"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcexprparsaggr.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcExprParsAggr"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcobjectlist.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcObjectList"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcexprbuiltin.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utcExprBuiltin"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcfpobjecthashtable.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcfpobjectlist.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcfpstringhashtable.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcmaskutils.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcobjectqueue.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcobjectstack.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcorderedlist.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcqueue.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcstack.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcbufferedfilestream.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcclasslist.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utccomponentlist.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utccsvdocument.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcinterlocked.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utcdirwatch.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <Target>
+      <Filename Value="testfclbase"/>
+    </Target>
+    <SearchPaths>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions>
+      <Item>
+        <Name Value="EAbort"/>
+      </Item>
+      <Item>
+        <Name Value="ECodetoolError"/>
+      </Item>
+      <Item>
+        <Name Value="EFOpenError"/>
+      </Item>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
