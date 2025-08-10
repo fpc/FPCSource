@@ -352,22 +352,35 @@ end;
     {*  frexp() extracts the exponent from x.  It returns an integer     *}
     {*  power of two to expnt and the significand between 0.5 and 1      *}
     {*  to y.  Thus  x = y * 2**expn.                                    *}
+  var
+    M: uint64;
+    E, ExtraE: int32;
+  begin
+    Mantissa := X;
+    E := TDoubleRec(X).Exp;
+    if (E > 0) and (E < 2 * TDoubleRec.Bias + 1) then
     begin
-      exponent:=0;
-      if (abs(x)<0.5) then
-       While (abs(x)<0.5) do
-       begin
-         x := x*2;
-         Dec(exponent);
-       end
-      else
-       While (abs(x)>1) do
-       begin
-         x := x/2;
-         Inc(exponent);
-       end;
-      Mantissa := x;
+      // Normal.
+      TDoubleRec(Mantissa).Exp := TDoubleRec.Bias - 1;
+      Exponent := E - (TDoubleRec.Bias - 1);
+      exit;
     end;
+    if E = 0 then
+    begin
+      M := TDoubleRec(X).Frac;
+      if M <> 0 then
+      begin
+        // Subnormal.
+        ExtraE := 52 - BsrQWord(M);
+        TDoubleRec(Mantissa).Frac := M shl ExtraE; // "and (1 shl 52 - 1)" required to remove starting 1, but .SetFrac already does it.
+        TDoubleRec(Mantissa).Exp  := TDoubleRec.Bias - 1;
+        Exponent := -TDoubleRec.Bias + 2 - ExtraE;
+        exit;
+      end;
+    end;
+    // ±0, ±Inf, NaN.
+    Exponent := 0;
+  end;
 {$endif not SYSTEM_HAS_FREXP}
 
 
