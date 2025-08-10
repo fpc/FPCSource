@@ -1,3 +1,4 @@
+{ %fail }
 program ie2017110102;
 
 procedure f; [internproc: 0];
