@@ -80,6 +80,7 @@ const
   oldmousey : longint = -1;
   mouselock : boolean = false;
 
+{$ASMMODE ATT}
 { if the cursor is drawn by this the unit, we must be careful }
 { when drawing while the interrupt handler is called          }
 procedure lockmouse;assembler;
@@ -99,12 +100,22 @@ procedure unlockmouse;
   end;
 
 
-{$ASMMODE ATT}
 procedure MouseInt;assembler;
 asm
         pushl   %edi
         pushl   %ebx
-        movb    %bl,mousebuttons
+        movl    %bh,%al
+        xorb    %bh,%bh
+        cmpb    $0,%al
+        je  .LNoWheel
+        { mouse wheel }
+        jg  .LWheelUp
+        orw     MouseButton4,%bx
+        jmp .LNoWheel
+.LWheelUp:
+        orw     MouseButton5,%bx
+.LNoWheel:
+        movw    %bx,mousebuttons
         movw    %cx,mousewherex
         movw    %dx,mousewherey
         shrw    $3,%cx
@@ -183,7 +194,6 @@ asm
         popl   %ebx
         popl   %edi
 end;
-
 
 
 PROCEDURE Mouse_Trap; ASSEMBLER;
@@ -698,7 +708,15 @@ asm
         pushl   %ebp
         int     $0x33
         popl    %ebp
-        movw    %bx,%ax
+        movb    %bl,%al
+        cmpb    $0,%bh
+        je      .Lexit
+        { mouse wheel }
+        jg      .LWheelUp
+        orw     MouseButton5,%ax
+        jmp     .Lexit
+.LWheelUp:
+        orw     MouseButton4,%ax
         jmp     .Lexit
 .LGetMouseButtonsError:
         xorl    %eax,%eax
@@ -811,7 +829,10 @@ begin
      else
        MouseEvent.Action:=MouseActionDown;
    end;
+  if ((MouseEvent.Buttons and (MouseButton4 or MouseButton5)) <> 0) then
+    MouseEvent.Action:=MouseActionDown;
   LastMouseEvent:=MouseEvent;
+  LastMouseEvent.Buttons:=LastMouseEvent.Buttons and (not (MouseButton4 or MouseButton5));
 end;
 
 
