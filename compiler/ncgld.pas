@@ -1190,6 +1190,7 @@ implementation
                               cg.g_flags2reg(current_asmdata.CurrAsmList,left.location.size,right.location.resflags,left.location.register);
                               cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                             end;
+                        LOC_CREFERENCE,
                         LOC_REFERENCE:
                         { i8086 and i386 have hacks in their code generators so that they can
                           deal with 64 bit locations in this parcticular case }
