@@ -763,7 +763,7 @@ const
   function SHRegGetValueW(hKey:HKEY; pszSubKey:LPCWSTR; pszValue:LPCWSTR; srrfFlags:SRRF; pdwType:PDWORD;
              pvData:pointer; pcbData:PDWORD):LSTATUS;stdcall;external SHLWAPIDLL name 'SHRegGetValueW';
   function SHRegSetValue(hkey:HKEY; pszSubKey:LPCWSTR; pszValue:LPCWSTR; srrfFlags:SRRF; dwType:DWORD;
-             pvData:LPCVOID; cbData:DWORD):LSTATUS;stdcall;external SHLWAPIDLL name 'SHRegSetValue';
+             pvData:LPCVOID; cbData:DWORD):LSTATUS;deprecated 'Since at least W7, use RegSetValue' ; stdcall; external SHLWAPIDLL name 'SHRegSetValue';
 
   function SHRegGetValueFromHKCUHKLM(pwszKey:PCWSTR; pwszValue:PCWSTR; srrfFlags:SRRF; pdwType:PDWORD; pvData:pointer;
              pcbData:PDWORD):LSTATUS;stdcall;external SHLWAPIDLL name 'SHRegGetValueFromHKCUHKLM';
