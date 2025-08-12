@@ -42,7 +42,7 @@ const
 
 var
   MouseIntFlag : Byte;                                { Mouse in int flag }
-  MouseButtons : Byte;                                { Mouse button state }
+  MouseButtons : Word;                                { Mouse button state }
   MouseWhereX,
   MouseWhereY  : Word;                                { Mouse position }
 
