@@ -94,7 +94,20 @@ asm
         mov     di, SEG @DATA
         mov     ds, di
 {$endif}
-        mov     mousebuttons,bl
+        push    ax
+        push    bx
+        mov     ax,bx
+        xor     bh,bh
+        cmp     ah,0
+        je      @@NoWheel
+        { mouse wheel }
+        jg      @@WheelUp
+        or      bx,MouseButton4
+        jmp     @@NoWheel
+@@WheelUp:
+        or      bx,MouseButton5
+@@NoWheel:
+        mov     mousebuttons,bx
         mov     mousewherex,cx
         mov     mousewherey,dx
         shr     cx,1
@@ -118,7 +131,6 @@ asm
         je      @@mouse_nocursor
         cmp     CustomMouse_MouseIsVisible, 0
         je      @@mouse_nocursor
-        push    ax
         push    bx
 {$ifdef FPC_MM_HUGE}
         push    si
@@ -178,7 +190,6 @@ asm
         pop     si
 {$endif}
         pop     bx
-        pop     ax
 @@mouse_nocursor:
         cmp     PendingMouseEvents, MouseEventBufSize
         je      @@mouse_exit
@@ -205,6 +216,8 @@ asm
         mov     word ptr PendingMouseTail, di
         inc     PendingMouseEvents
 @@mouse_exit:
+        pop     bx
+        pop     ax
         pop     dx
         pop     cx
         pop     di
@@ -447,7 +460,15 @@ asm
         push    bp
         int     33h
         pop     bp
-        xchg    ax, bx
+        mov     al,bl
+        cmp     bh,0
+        je      @@exit
+        { mouse wheel }
+        jg      @@WheelUp
+        or      ax,MouseButton5
+        jmp     @@exit
+@@WheelUp:
+        or      ax,MouseButton4
         jmp     @@exit
 @@GetMouseButtonsError:
         xor     ax, ax
@@ -549,7 +570,10 @@ begin
      else
        MouseEvent.Action:=MouseActionDown;
    end;
+  if ((MouseEvent.Buttons and (MouseButton4 or MouseButton5)) <> 0) then
+    MouseEvent.Action:=MouseActionDown;
   LastMouseEvent:=MouseEvent;
+  LastMouseEvent.Buttons:=LastMouseEvent.Buttons and (not (MouseButton4 or MouseButton5));
 end;
 
 
