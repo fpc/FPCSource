@@ -497,6 +497,7 @@ type
     procedure TestWhereAny;
     procedure TestWhereSome;
     procedure TestWhereInRange;
+    procedure TestWhereDotFloat;
     procedure TestParam;
     procedure TestParam_Underscore;
     procedure TestParamExpr;
@@ -5329,6 +5330,11 @@ end;
 procedure TTestSelectParser.TestWhereInRange;
 begin
   TestSelect('SELECT A FROM B WHERE A IN (4..6)');
+end;
+
+procedure TTestSelectParser.TestWhereDotFloat;
+begin
+  TestSelect('SELECT A FROM B WHERE (A + .3 > -.5)');
 end;
 
 procedure TTestSelectParser.TestParam;

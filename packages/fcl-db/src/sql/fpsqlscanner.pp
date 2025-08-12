@@ -590,10 +590,9 @@ Var
 
 begin
   TokenStart := TokenStr;
-  IsFloat:=False;
+  IsFloat := false;
   while true do
     begin
-    Inc(TokenStr);
     case TokenStr[0] of
       'x':
         If (TokenStart[0]='0') and ((TokenStr-TokenStart)=1) then
@@ -630,6 +629,7 @@ begin
       else
         break;
     end;
+    Inc(TokenStr);
   end;
   Len:=TokenStr-TokenStart;
   Setlength(FCurTokenString, Len);
@@ -765,12 +765,12 @@ begin
         Error(SErrUnknownToken,['`']);
       end;
     '0'..'9':
-       Result:=DoNumericLiteral;
+      Result:=DoNumericLiteral;
     '?':
-       begin
-       Inc(TokenStr);
-       Result:=tsqlPlaceHolder;
-       end;
+      begin
+      Inc(TokenStr);
+      Result:=tsqlPlaceHolder;
+      end;
     '!':
       begin
       Inc(TokenStr);
@@ -841,12 +841,13 @@ begin
     '-':
       begin
       Inc(TokenStr);
-      If (TokenStr[0]='-') then
+      If (TokenStr^='-') then
         begin
         Inc(TokenStr);
         Result:=DoSingleLineComment
         end
-      else if (TokenStr[0] in ['0'..'9']) then
+      else if (TokenStr^ in ['0'..'9'])
+          or ((TokenStr^='.') and (TokenStr[1] in ['0'..'9'])) then
         begin
         Result:=DoNumericLiteral;
         If (Result in [tsqlIntegerNumber,tsqlFloatNumber]) then
@@ -856,14 +857,16 @@ begin
         Result := tsqlMinus;
       end;
     '.':
-      begin
-      Inc(TokenStr);
-      if TokenStr^='.' then
+      case TokenStr[1] of
+      '.':
         begin
-        Inc(TokenStr);
+        Inc(TokenStr,2);
         Result := tsqlDotDot;
-        end
+        end;
+      '0'..'9':
+        Result := DoNumericLiteral;
       else
+        inc(TokenStr);
         Result := tsqlDot;
       end;
     ':':
@@ -911,11 +914,11 @@ begin
    'a'..'z',
    'A'..'Z', '_':
      Result:=DoIdentifier;
-   else
-     // Symbol of some sort
-     Result:=DoSymbolString;
-     //Error(SErrUnknownToken,[TokenStr[0]]);
-   end; // Case
+  else
+    // Symbol of some sort
+    Result:=DoSymbolString;
+    //Error(SErrUnknownToken,[TokenStr[0]]);
+  end; // Case
   Until (Not (Result in [tsqlComment,tsqlWhitespace])) or
         ((Result=tsqlComment) and (soReturnComments in options)) or
         ((Result=tsqlWhiteSpace) and (soReturnWhiteSpace in Options));
