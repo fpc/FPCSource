@@ -357,23 +357,32 @@ end;
     E, ExtraE: int32;
   begin
     Mantissa := X;
-    E := TDoubleRec(X).Exp;
+    E := {$ifndef jvm} TDoubleRec(X).Exp {$else} float64high(X) shr 20 and (1 shl 11 - 1) {$endif};
     if (E > 0) and (E < 2 * TDoubleRec.Bias + 1) then
     begin
       // Normal.
+    {$ifndef jvm}
       TDoubleRec(Mantissa).Exp := TDoubleRec.Bias - 1;
+    {$else}
+      float64sethigh(Mantissa, float64high(Mantissa) and not ((1 shl 11 - 1) shl 20) + (TDoubleRec.Bias - 1) shl 20);
+    {$endif}
       Exponent := E - (TDoubleRec.Bias - 1);
       exit;
     end;
     if E = 0 then
     begin
-      M := TDoubleRec(X).Frac;
+      M := {$ifndef jvm} TDoubleRec(X).Frac {$else} uint64(uint32(float64high(X)) and (1 shl 20 - 1)) shl 32 or uint32(float64low(X)) {$endif};
       if M <> 0 then
       begin
         // Subnormal.
         ExtraE := 52 - BsrQWord(M);
+      {$ifndef jvm}
         TDoubleRec(Mantissa).Frac := M shl ExtraE; // "and (1 shl 52 - 1)" required to remove starting 1, but .SetFrac already does it.
         TDoubleRec(Mantissa).Exp  := TDoubleRec.Bias - 1;
+      {$else}
+        float64sethigh(Mantissa, uint32(float64high(Mantissa)) and (1 shl 31) + (TDoubleRec.Bias - 1 - 1 {extra -1 removes starting 1 from M}) shl 20 + uint32(uint64(M shl ExtraE) shr 32));
+        float64setlow(Mantissa, uint32(M shl ExtraE));
+      {$endif}
         Exponent := -TDoubleRec.Bias + 2 - ExtraE;
         exit;
       end;
