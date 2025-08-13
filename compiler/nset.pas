@@ -458,7 +458,8 @@ implementation
          if codegenerror then
            exit;
          { both types must be compatible }
-         if compare_defs(left.resultdef,right.resultdef,left.nodetype)=te_incompatible then
+         if not (nf_generic_para in left.flags) and not (nf_generic_para in right.flags) and
+           (compare_defs(left.resultdef,right.resultdef,left.nodetype)=te_incompatible) then
            IncompatibleTypes(left.resultdef,right.resultdef);
          { check if only when its a constant set and
            ignore range nodes which are generic parameter derived }

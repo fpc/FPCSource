@@ -233,7 +233,7 @@ implementation
       defcmp,defutil,procinfo,
       aasmdata,aasmtai,
       cgbase,
-      nld;
+      nld,nbas;
 
     function genintconstnode(const v : TConstExprInt) : tordconstnode;
       var
@@ -394,6 +394,8 @@ implementation
               else
                 p1:=cguidconstnode.create(pguid(p.value.valueptr)^);
             end;
+          constnone :
+            p1:=cnothingnode.create
           else
             internalerror(200205103);
         end;
