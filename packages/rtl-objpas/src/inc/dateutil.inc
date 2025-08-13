@@ -541,6 +541,7 @@ type
     property UnixTime: Int64 read GetUnixTime;
     property TotalSeconds: Int64 read GetTotalSecounds;
     function ToString(const aFormatStr: string = ''): string; inline;
+    function Format(const aFormatStr: string) : string;
     function StartOfYear: TDateTime; inline;
     function EndOfYear: TDateTime; inline;
     function StartOfMonth: TDateTime; inline;
@@ -3488,6 +3489,12 @@ end;
 function TDateTimeHelper.StartOfYear: TDateTime;
 begin
   Result := StartOfTheYear(Self);
+end;
+
+function TDateTimeHelper.Format(const aFormatStr: string) : string;
+
+begin
+  Result:=FormatDateTime(aFormatStr, Self);
 end;
 
 function TDateTimeHelper.ToString(const aFormatStr: string): string;
