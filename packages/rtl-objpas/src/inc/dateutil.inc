@@ -486,10 +486,11 @@ type
   // Original code by Colin Johnsun, used with permission under FPC license.
   // See https://gitlab.com/freepascal.org/fpc/source/-/issues/40097
   
+  { TDateTimeHelper }
+
   TDateTimeHelper = type helper for TDateTime
   private
     function GetDay: Word; inline;
-    function GetDate: TDateTime; inline;
     function GetDayOfWeek: Word; inline;
     function GetDayOfYear: Word; inline;
     function GetHour: Word; inline;
@@ -497,7 +498,6 @@ type
     function GetMinute: Word; inline;
     function GetMonth: Word; inline;
     function GetSecond: Word; inline;
-    function GetTime: TDateTime; inline;
     function GetYear: Word; inline;
     class function GetNow: TDateTime; static; inline;
     class function GetToday: TDateTime; static; inline;
@@ -513,33 +513,18 @@ type
     class function ParseLocal(Date: string; local: string = ''): TDateTime;
       static; inline;
   public
-    class function Create(const aYear, aMonth, aDay: Word): TDateTime; overload;
-      static; inline;
-    class function Create(const aYear, aMonth, aDay, aHour, aMinute, aSecond,
-      aMillisecond: Word): TDateTime; overload; static; inline;
-    class function Create(Date: string; aFormat: string = ''; aDateSeparator:
-      Char = #0; aTimeSeparator: Char = #0): TDateTime; overload; static; inline;
-    class function CreateLocal(Date: string; local: string = ''): TDateTime;
-      static; inline;
+    class function Create(const aYear, aMonth, aDay: Word): TDateTime; overload; static; inline;
+    class function Create(const aYear, aMonth, aDay, aHour, aMinute, aSecond, aMillisecond: Word): TDateTime; overload; static; inline;
+    class function Create(Date: string; aFormat: string = ''; aDateSeparator: Char = #0; aTimeSeparator: Char = #0): TDateTime; overload; static; inline;
+    class function CreateLocal(Date: string; local: string = ''): TDateTime; static; inline;
     class function CreateUnixTime(const Value: Int64): TDateTime; static; inline;
     class function CreateTotalSeconds(const Value: Int64): TDateTime; static; inline;
     class property Now: TDateTime read GetNow;
     class property Today: TDateTime read GetToday;
     class property Yesterday: TDateTime read GetYesterDay;
     class property Tomorrow: TDateTime read GetTomorrow;
-    property Date: TDateTime read GetDate;
-    property Time: TDateTime read GetTime;
-    property DayOfWeek: Word read GetDayOfWeek;
-    property DayOfYear: Word read GetDayOfYear;
-    property Year: Word read GetYear;
-    property Month: Word read GetMonth;
-    property Day: Word read GetDay;
-    property Hour: Word read GetHour;
-    property Minute: Word read GetMinute;
-    property Second: Word read GetSecond;
-    property Millisecond: Word read GetMillisecond;
-    property UnixTime: Int64 read GetUnixTime;
-    property TotalSeconds: Int64 read GetTotalSecounds;
+    function GetDate: TDateTime; inline;
+    function GetTime: TDateTime; inline;
     function ToString(const aFormatStr: string = ''): string; inline;
     function Format(const aFormatStr: string) : string;
     function StartOfYear: TDateTime; inline;
@@ -574,22 +559,37 @@ type
     function MinutesBetween(const aDateTime: TDateTime): Int64; inline;
     function SecondsBetween(const aDateTime: TDateTime): Int64; inline;
     function MilliSecondsBetween(const aDateTime: TDateTime): Int64; inline;
-    function WithinYears(const aDateTime: TDateTime; const aYears: Integer):
-      Boolean; inline;
-    function WithinMonths(const aDateTime: TDateTime; const aMonths: Integer):
-      Boolean; inline;
-    function WithinWeeks(const aDateTime: TDateTime; const aWeeks: Integer):
-      Boolean; inline;
-    function WithinDays(const aDateTime: TDateTime; const aDays: Integer):
-      Boolean; inline;
-    function WithinHours(const aDateTime: TDateTime; const aHours: Int64):
-      Boolean; inline;
-    function WithinMinutes(const aDateTime: TDateTime; const aMinutes: Int64):
-      Boolean; inline;
-    function WithinSeconds(const aDateTime: TDateTime; const aSeconds: Int64):
-      Boolean; inline;
-    function WithinMilliseconds(const aDateTime: TDateTime; const AMilliseconds:
-      Int64): Boolean; inline;
+    // Delphi compatible
+    Function WithinPastYears(const AThen: TDateTime; const AYears: Integer): Boolean; inline;
+    Function WithinPastMonths(const AThen: TDateTime; const AMonths: Integer): Boolean; inline;
+    Function WithinPastWeeks(const AThen: TDateTime; const AWeeks: Integer): Boolean; inline;
+    Function WithinPastDays(const AThen: TDateTime; const ADays: Integer): Boolean; inline;
+    Function WithinPastHours(const AThen: TDateTime; const AHours: Int64): Boolean; inline;
+    Function WithinPastMinutes(const AThen: TDateTime; const AMinutes: Int64): Boolean; inline;
+    Function WithinPastSeconds(const AThen: TDateTime; const ASeconds: Int64): Boolean; inline;
+    Function WithinPastMilliSeconds(const AThen: TDateTime; const AMilliSeconds: Int64): Boolean; inline;
+
+    function WithinYears(const aDateTime: TDateTime; const aYears: Integer): Boolean; inline;
+    function WithinMonths(const aDateTime: TDateTime; const aMonths: Integer): Boolean; inline;
+    function WithinWeeks(const aDateTime: TDateTime; const aWeeks: Integer): Boolean; inline;
+    function WithinDays(const aDateTime: TDateTime; const aDays: Integer): Boolean; inline;
+    function WithinHours(const aDateTime: TDateTime; const aHours: Int64): Boolean; inline;
+    function WithinMinutes(const aDateTime: TDateTime; const aMinutes: Int64): Boolean; inline;
+    function WithinSeconds(const aDateTime: TDateTime; const aSeconds: Int64): Boolean; inline;
+    function WithinMilliseconds(const aDateTime: TDateTime; const AMilliseconds: Int64): Boolean; inline;
+    property Date: TDateTime read GetDate;
+    property Time: TDateTime read GetTime;
+    property DayOfWeek: Word read GetDayOfWeek;
+    property DayOfYear: Word read GetDayOfYear;
+    property Year: Word read GetYear;
+    property Month: Word read GetMonth;
+    property Day: Word read GetDay;
+    property Hour: Word read GetHour;
+    property Minute: Word read GetMinute;
+    property Second: Word read GetSecond;
+    property Millisecond: Word read GetMillisecond;
+    property UnixTime: Int64 read GetUnixTime;
+    property TotalSeconds: Int64 read GetTotalSecounds;
   end;
 
 type
@@ -3456,6 +3456,46 @@ begin
   Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.MilliSecondsBetween(Self, aDateTime);
 end;
 
+function TDateTimeHelper.WithinPastYears(const AThen: TDateTime; const AYears: Integer): Boolean;
+begin
+  Result:=WithinYears(aThen,aYears);
+end;
+
+function TDateTimeHelper.WithinPastMonths(const AThen: TDateTime; const AMonths: Integer): Boolean;
+begin
+  Result:=WithinMonths(aThen,aMonths);
+end;
+
+function TDateTimeHelper.WithinPastWeeks(const AThen: TDateTime; const AWeeks: Integer): Boolean;
+begin
+  Result:=WithinWeeks(aThen,aWeeks);
+end;
+
+function TDateTimeHelper.WithinPastDays(const AThen: TDateTime; const ADays: Integer): Boolean;
+begin
+  Result:=WithinDays(aThen,aDays);
+end;
+
+function TDateTimeHelper.WithinPastHours(const AThen: TDateTime; const AHours: Int64): Boolean;
+begin
+  Result:=WithinHours(aThen,aHours);
+end;
+
+function TDateTimeHelper.WithinPastMinutes(const AThen: TDateTime; const AMinutes: Int64): Boolean;
+begin
+  Result:=WithinMinutes(aThen,aMinutes);
+end;
+
+function TDateTimeHelper.WithinPastSeconds(const AThen: TDateTime; const ASeconds: Int64): Boolean;
+begin
+  Result:=WithinSeconds(aThen,aSeconds);
+end;
+
+function TDateTimeHelper.WithinPastMilliSeconds(const AThen: TDateTime; const AMilliSeconds: Int64): Boolean;
+begin
+  Result:=WithinMilliSeconds(aThen,aMilliSeconds);
+end;
+
 function TDateTimeHelper.MinutesBetween(const aDateTime: TDateTime): Int64;
 begin
   Result := {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}DateUtils.MinutesBetween(Self, aDateTime);
@@ -3613,13 +3653,12 @@ begin
   Result := StrToDateTime(Date, fs);
 end;
 
-class function TDateTimeHelper.Create(Date, aFormat: string; aDateSeparator,
-  aTimeSeparator: Char): TDateTime;
+class function TDateTimeHelper.Create(Date: string; aFormat: string; aDateSeparator: Char; aTimeSeparator: Char): TDateTime;
 begin
   Result := Parse(Date, aFormat, aDateSeparator, aTimeSeparator);
 end;
 
-class function TDateTimeHelper.CreateLocal(Date, local: string): TDateTime;
+class function TDateTimeHelper.CreateLocal(Date: string; local: string): TDateTime;
 begin
   Result:= ParseLocal(Date,local);
 end;
