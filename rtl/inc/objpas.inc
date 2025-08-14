@@ -1091,7 +1091,7 @@ end;
 
       class function TObject.GetInterfaceEntryByStr(const iidstr : shortstring) : pinterfaceentry;
         var
-          i: longint;
+          i: sizeuint;
           intftable: pinterfacetable;
           ovmt: PVmt;
         begin
@@ -1099,11 +1099,14 @@ end;
           while Assigned(ovmt) and Assigned(ovmt^.vIntfTable) do
           begin
             intftable:=ovmt^.vIntfTable;
-            for i:=0 to intftable^.EntryCount-1 do
+            i:=intftable^.EntryCount;
+            result:=@intftable^.Entries[0];
+            while i>0 do
             begin
-              result:=@intftable^.Entries[i];
               if assigned(result^.iidstr) and (result^.iidstr^ = iidstr) then
                 Exit;
+              inc(Result);
+              dec(i);
             end;
             ovmt := ovmt^.vParent;
           end;
