@@ -3824,7 +3824,8 @@ var
   lDst : Boolean;
 begin
   GetLocalTimeOffset(aDateTime,False,lOffset,lDst);
-  aOffSet:=lOffset;
+  aOffSet:=-lOffset* 60;
+  aDSTSave:=0;
   if lDST then
     aType:=lttDaylight
   else
