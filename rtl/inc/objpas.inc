@@ -458,7 +458,7 @@ end;
 
         var
           ovmt: PVmt;
-          i: longint;
+          i: sizeuint;
           intftable: pinterfacetable;
           Res: pinterfaceentry;
         begin
