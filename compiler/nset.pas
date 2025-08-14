@@ -433,10 +433,9 @@ implementation
     constructor trangenode.create(l,r : tnode);
       var
         value: string;
-
       begin
-         { if right is char and left is string then }
-         { right should be treated as one-symbol string }
+         { if right is char and left is string then
+           right should be treated as one-symbol string }
          if is_conststringnode(l) and is_constcharnode(r) then
            begin
              value := char(tordconstnode(r).value.uvalue) + ''#0;
