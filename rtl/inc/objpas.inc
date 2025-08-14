@@ -484,10 +484,11 @@ end;
         var
            vmt  : PVmt;
            inittable : pointer;
+           Res : ^TRTTIRecordOpOffsetEntry;
 {$ifdef FPC_HAS_FEATURE_RTTI}
            mopinittable : PRTTIRecordOpOffsetTable;
 {$endif def FPC_HAS_FEATURE_RTTI}
-           i : longint;
+           i : longword;
         begin
            { the size is saved at offset 0 }
            fillchar(instance^, InstanceSize, 0);
@@ -522,8 +523,14 @@ end;
                        {$push}
                        { ensure that no range check errors pop up with the [0..0] array }
                        {$R-}
-                       for i:=0 to mopinittable^.Count-1 do
-                         TRTTIRecVarOp(mopinittable^.Entries[i].ManagmentOperator)(PByte(Instance)+mopinittable^.Entries[i].FieldOffset);
+                       i:=mopinittable^.Count;
+                       Res:=@mopinittable^.Entries[0];
+                       while i>0 do
+                         begin
+                           TRTTIRecVarOp(Res^.ManagmentOperator)(PByte(Instance)+Res^.FieldOffset);
+                           inc(Res);
+                           dec(i);
+                         end;
                        {$pop}
                      end;
                  end;
