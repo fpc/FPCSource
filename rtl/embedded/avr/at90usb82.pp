@@ -415,7 +415,7 @@ const
   // PINC
 
 implementation
-
+{$define RELBRANCHES}
 {$i avrcommon.inc}
 
 procedure INT0_ISR; external name 'INT0_ISR'; // Interrupt 2 External Interrupt Request 0
@@ -449,35 +449,35 @@ procedure SPM_READY_ISR; external name 'SPM_READY_ISR'; // Interrupt 56 Store Pr
 
 procedure _FPC_start; assembler; nostackframe; noreturn; public name '_START'; section '.init';
  asm
-   jmp __dtors_end
-   jmp INT0_ISR
-   jmp INT1_ISR
-   jmp INT2_ISR
-   jmp INT3_ISR
-   jmp INT4_ISR
-   jmp INT5_ISR
-   jmp INT6_ISR
-   jmp INT7_ISR
-   jmp PCINT0_ISR
-   jmp PCINT1_ISR
-   jmp USB_GEN_ISR
-   jmp USB_COM_ISR
-   jmp WDT_ISR
-   jmp TIMER1_CAPT_ISR
-   jmp TIMER1_COMPA_ISR
-   jmp TIMER1_COMPB_ISR
-   jmp TIMER1_COMPC_ISR
-   jmp TIMER1_OVF_ISR
-   jmp TIMER0_COMPA_ISR
-   jmp TIMER0_COMPB_ISR
-   jmp TIMER0_OVF_ISR
-   jmp SPI__STC_ISR
-   jmp USART1__RX_ISR
-   jmp USART1__UDRE_ISR
-   jmp USART1__TX_ISR
-   jmp ANALOG_COMP_ISR
-   jmp EE_READY_ISR
-   jmp SPM_READY_ISR
+   rjmp __dtors_end
+   rjmp INT0_ISR
+   rjmp INT1_ISR
+   rjmp INT2_ISR
+   rjmp INT3_ISR
+   rjmp INT4_ISR
+   rjmp INT5_ISR
+   rjmp INT6_ISR
+   rjmp INT7_ISR
+   rjmp PCINT0_ISR
+   rjmp PCINT1_ISR
+   rjmp USB_GEN_ISR
+   rjmp USB_COM_ISR
+   rjmp WDT_ISR
+   rjmp TIMER1_CAPT_ISR
+   rjmp TIMER1_COMPA_ISR
+   rjmp TIMER1_COMPB_ISR
+   rjmp TIMER1_COMPC_ISR
+   rjmp TIMER1_OVF_ISR
+   rjmp TIMER0_COMPA_ISR
+   rjmp TIMER0_COMPB_ISR
+   rjmp TIMER0_OVF_ISR
+   rjmp SPI__STC_ISR
+   rjmp USART1__RX_ISR
+   rjmp USART1__UDRE_ISR
+   rjmp USART1__TX_ISR
+   rjmp ANALOG_COMP_ISR
+   rjmp EE_READY_ISR
+   rjmp SPM_READY_ISR
 
    .weak INT0_ISR
    .weak INT1_ISR

@@ -122,14 +122,14 @@ CPU_UNITS=attiny26
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr25)
-CPU_UNITS=attiny13 attiny13a attiny24 attiny24a attiny25 attiny43u \
+CPU_UNITS=at90usb82 atmega8u2 attiny13 attiny13a attiny24 attiny24a attiny25 attiny43u \
           attiny44 attiny44a attiny45 attiny48 attiny84a attiny84 attiny85 \
           attiny87 attiny88 attiny261 attiny261a attiny441 attiny461 attiny461a attiny828 \
           attiny841 attiny861 attiny861a attiny2313 attiny2313a attiny4313
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr35)
-CPU_UNITS=at90usb82 at90usb162 atmega8u2 atmega16u2 atmega32u2 attiny167 attiny1634
+CPU_UNITS=at90usb162 atmega16u2 atmega32u2 attiny167 attiny1634
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr4)
