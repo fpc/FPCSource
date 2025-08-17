@@ -4349,13 +4349,21 @@ begin
   if Index>=0 then
     begin
     // insert LIFO - last in, first out
+    {$IFDEF VER3_2}
+    OldItem:=TPasIdentifier(FItems.List^[Index].Data);
+    {$ELSE}
     OldItem:=TPasIdentifier(FItems.List[Index].Data);
+    {$ENDIF}
     {$IFDEF VerbosePasResolver}
     if lowercase(OldItem.Identifier)<>LoName then
       raise Exception.Create('20160925183438');
     {$ENDIF}
     Item.NextSameIdentifier:=OldItem;
+    {$IFDEF VER3_2}
+    FItems.List^[Index].Data:=Item;
+    {$ELSE}
     FItems.List[Index].Data:=Item;
+    {$ENDIF}
     end
   else
     begin

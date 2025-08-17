@@ -2751,13 +2751,21 @@ begin
   if Index>=0 then
     begin
     // insert LIFO - last in, first out
+    {$IFDEF VER3_2}
+    OldItem:=TPasIdentifier(FElevatedLocals.List^[Index].Data);
+    {$ELSE}
     OldItem:=TPasIdentifier(FElevatedLocals.List[Index].Data);
+    {$ENDIF}
     {$IFDEF VerbosePasResolver}
     if lowercase(OldItem.Identifier)<>LoName then
       raise Exception.Create('20160925183438');
     {$ENDIF}
     Item.NextSameIdentifier:=OldItem;
+    {$IFDEF VER3_2}
+    FElevatedLocals.List^[Index].Data:=Item;
+    {$ELSE}
     FElevatedLocals.List[Index].Data:=Item;
+    {$ENDIF}
     end
   else
     begin
@@ -3325,13 +3333,21 @@ begin
   if Index>=0 then
     begin
     // insert LIFO - last in, first out
+    {$IFDEF VER3_2}
+    OldItem:=TPasIdentifier(FExternalNames.List^[Index].Data);
+    {$ELSE}
     OldItem:=TPasIdentifier(FExternalNames.List[Index].Data);
+    {$ENDIF}
     {$IFDEF VerbosePasResolver}
     if OldItem.Identifier<>aName then
       raise Exception.Create('20170322235429');
     {$ENDIF}
     Item.NextSameIdentifier:=OldItem;
+    {$IFDEF VER3_2}
+    FExternalNames.List^[Index].Data:=Item;
+    {$ELSE}
     FExternalNames.List[Index].Data:=Item;
+    {$ENDIF}
     end
   else
     FExternalNames.Add(aName, Item);
