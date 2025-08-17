@@ -88,6 +88,9 @@ interface
 {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
 {$endif}
+          function simplify(forinline: boolean): tnode;override;
+
+          function internalsimplify(forinline: boolean): tnode;
        end;
        twhilerepeatnodeclass = class of twhilerepeatnode;
 
@@ -1295,12 +1298,13 @@ implementation
 
     constructor Twhilerepeatnode.create(l,r:Tnode;tab,cn:boolean);
       begin
-          inherited create(whilerepeatn,l,r,nil,nil);
-          if tab then
-              include(loopflags, lnf_testatbegin);
-          if cn then
-              include(loopflags,lnf_checknegate);
+        inherited create(whilerepeatn,l,r,nil,nil);
+        if tab then
+          include(loopflags, lnf_testatbegin);
+        if cn then
+          include(loopflags,lnf_checknegate);
       end;
+
 
     function twhilerepeatnode.pass_typecheck:tnode;
       var
@@ -1343,6 +1347,38 @@ implementation
             not(nf_internal in left.flags) and
             assigned(right) then
            CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+      end;
+
+
+    function twhilerepeatnode.internalsimplify(forinline : boolean) : tnode;
+      var
+        p: tnode;
+      begin
+        result:=nil;
+        { convert while i>0 do ... dec(i); to if i>0 then repeat ... dec(i) until i=0; ? }
+        if (cs_opt_level2 in current_settings.optimizerswitches) and
+          { while loop?}
+          (lnf_testatbegin in loopflags) and not(lnf_checknegate in loopflags) and
+          ((left.nodetype=gtn) and (taddnode(left).left.nodetype=loadn) and is_constintnode(taddnode(left).right) and
+           (tordconstnode(taddnode(left).right).value=0)) then
+          begin
+            p:=GetLastStatement(right);
+            if assigned(p) and (tstatementnode(p).left.nodetype=inlinen) and (tinlinenode(tstatementnode(p).left).inlinenumber=in_dec_x) and
+              taddnode(left).left.isequal(tcallparanode(tinlinenode(tstatementnode(p).left).left).left) and
+              not(assigned(tcallparanode(tinlinenode(tstatementnode(p).left).left).right)) then
+              begin
+                result:=cifnode.create_internal(left.getcopy,getcopy,nil);
+                include(twhilerepeatnode(tifnode(result).right).loopflags,lnf_checknegate);
+                exclude(twhilerepeatnode(tifnode(result).right).loopflags,lnf_testatbegin);
+                twhilerepeatnode(tifnode(result).right).left.nodetype:=equaln;
+              end;
+          end;
+      end;
+
+
+    function twhilerepeatnode.simplify(forinline : boolean) : tnode;
+      begin
+        result:=internalsimplify(false);
       end;
 
 

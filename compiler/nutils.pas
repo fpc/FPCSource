@@ -188,6 +188,9 @@ interface
     { checks if p is a single statement, if yes, it is returned in s }
     function IsSingleStatement(p : tnode;var s : tnode) : Boolean;
 
+    { gets the last statement in a sequence of statements/blocks }
+    function GetLastStatement(p : tnode) : tnode;
+
     type
       TMatchProc2 = function(n1,n2 : tnode) : Boolean is nested;
       TTransformProc2 = function(n1,n2 : tnode) : tnode is nested;
@@ -1659,6 +1662,26 @@ implementation
               end
             else
               ;
+          end;
+      end;
+
+
+    { gets the last statement in a sequence of statements/blocks }
+    function GetLastStatement(p : tnode) : tnode;
+      var
+        i: Integer;
+      begin
+        Result:=p;
+        while assigned(Result) do
+          begin
+            if (tstatementnode(Result).nodetype=statementn) and assigned(tstatementnode(Result).next) then
+              Result:=tstatementnode(Result).next
+            else if tstatementnode(Result).nodetype=blockn then
+              Result:=tblocknode(Result).statements
+            else if tstatementnode(Result).statement.nodetype=blockn then
+              Result:=tblocknode(tstatementnode(Result).left).statements
+            else
+              exit;
           end;
       end;
 
