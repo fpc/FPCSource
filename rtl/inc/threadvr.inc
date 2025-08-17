@@ -29,7 +29,7 @@ type
   end;
 
   TltvInitTablesTable = {$ifndef FPC_ALIGNED_THREADVARTABLES}packed{$endif} record
-    count  : dword;
+    count  : SizeInt;
     tables : {$ifndef FPC_ALIGNED_THREADVARTABLES}packed{$endif} array [1..{$ifdef cpu16}16{$else}32767{$endif}] of ppltvInitEntry;
   end;
   PltvInitTablesTable = ^TltvInitTablesTable;

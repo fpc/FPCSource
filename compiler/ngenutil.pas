@@ -1289,7 +1289,7 @@ implementation
       count:=0;
       tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       tcb.begin_anonymous_record('',default_settings.packrecords,voidpointertype.alignment,targetinfos[target_info.system]^.alignment.recordalignmin);
-      placeholder:=tcb.emit_placeholder(u32inttype);
+      placeholder:=tcb.emit_placeholder(sizesinttype);
 
       hp:=tused_unit(usedunits.first);
       while assigned(hp) do
@@ -1315,7 +1315,7 @@ implementation
           inc(count);
         end;
       { set the count at the start }
-      placeholder.replace(tai_const.Create_32bit(count),u32inttype);
+      placeholder.replace(tai_const.Create_sizeint(count),sizesinttype);
       placeholder.free;
       { insert in data segment }
       tabledef:=tcb.end_anonymous_record;
