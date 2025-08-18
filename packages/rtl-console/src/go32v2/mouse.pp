@@ -104,7 +104,7 @@ procedure MouseInt;assembler;
 asm
         pushl   %edi
         pushl   %ebx
-        movl    %bh,%al
+        movb    %bh,%al
         xorb    %bh,%bh
         cmpb    $0,%al
         je  .LNoWheel
