@@ -22,6 +22,7 @@ unit DateUtils;
 interface
 
 {$ifndef FPUNONE}
+
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.SysUtils, System.Math, System.TimeSpan;
@@ -3893,5 +3894,5 @@ begin
     aType:=lttStandard;
 end;
 
-{$endif}
+{$endif fpunone}
 end.

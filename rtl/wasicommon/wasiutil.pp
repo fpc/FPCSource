@@ -48,6 +48,7 @@ type
 var
   // Provide this so the time can be corrected for TZ info.
   // Once WASI has some means of setting it, it can be used to initialize this variable.
+  // This offset is added to UTC to get local time.
   UTCTimeOffset : Integer; // in minutes;
 
 
