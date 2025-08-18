@@ -3832,5 +3832,5 @@ begin
     aType:=lttStandard;
 end;
 
-{$endif}
+{$endif fpunone}
 end.
