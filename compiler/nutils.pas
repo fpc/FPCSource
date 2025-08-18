@@ -1674,12 +1674,20 @@ implementation
         Result:=p;
         while assigned(Result) do
           begin
-            if (Result.nodetype=statementn) and assigned(tstatementnode(Result).next) then
-              Result:=tstatementnode(Result).next
+            if Result.nodetype=statementn then
+              begin
+                if assigned(tstatementnode(Result).next) then
+                  Result:=tstatementnode(Result).next
+                else if tstatementnode(Result).statement.nodetype=blockn then
+                  Result:=tblocknode(tstatementnode(Result).left).statements
+                else
+                  begin
+                    Result:=tstatementnode(Result).statement;
+                    exit;
+                  end;
+              end
             else if Result.nodetype=blockn then
               Result:=tblocknode(Result).statements
-            else if (Result.nodetype=statementn) and (tstatementnode(Result).statement.nodetype=blockn) then
-              Result:=tblocknode(tstatementnode(Result).left).statements
             else
               exit;
           end;

@@ -1363,9 +1363,9 @@ implementation
            (tordconstnode(taddnode(left).right).value=0)) then
           begin
             p:=GetLastStatement(right);
-            if assigned(p) and (tstatementnode(p).left.nodetype=inlinen) and (tinlinenode(tstatementnode(p).left).inlinenumber=in_dec_x) and
-              taddnode(left).left.isequal(tcallparanode(tinlinenode(tstatementnode(p).left).left).left) and
-              not(assigned(tcallparanode(tinlinenode(tstatementnode(p).left).left).right)) then
+            if assigned(p) and (p.nodetype=inlinen) and (tinlinenode(p).inlinenumber=in_dec_x) and
+              taddnode(left).left.isequal(tcallparanode(tinlinenode(p).left).left) and
+              not(assigned(tcallparanode(tinlinenode(p).left).right)) then
               begin
                 result:=cifnode.create_internal(left.getcopy,getcopy,nil);
                 include(twhilerepeatnode(tifnode(result).right).loopflags,lnf_checknegate);
