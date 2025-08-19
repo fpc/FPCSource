@@ -793,27 +793,33 @@ end;
 Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt): RawByteString;compilerproc;
 var
   Lim : SizeInt;
-  ResultAddress : Pointer;
+  ResultAddress,PhysResultAddress : Pointer;
 begin
-  ResultAddress:=Nil;
   if Index < 1 then
     Index := 1;
   dec(index);
   Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
   if Size>Lim then
     Size:=Lim;
-  If Size>0 then
+  if (Size>0) and Assigned(Pointer(Result)) and (PAnsiRec(Pointer(Result)-AnsiFirstOff)^.Ref=1) then
    begin
+     PhysResultAddress:=Pointer(Result)-AnsiFirstOff;
+     ResultAddress:=ReallocMem(PhysResultAddress,Size+(AnsiFirstOff+1))+AnsiFirstOff;
+   end
+  else
+   begin
+     fpc_ansistr_decr_ref(Pointer(Result));
+     if Size<=0 then
+       exit;
      ResultAddress:=GetMem(Size+(AnsiFirstOff+1))+AnsiFirstOff;
-     PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
-     PAnsiRec(ResultAddress-AnsiFirstOff)^.ElementSize:=1;
-     PAnsiRec(ResultAddress-AnsiFirstOff)^.Ref:=1;
-     PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
-     Move(Pointer(Pointer(S)+index)^,ResultAddress^,Size);
-     PByte(ResultAddress)[Size]:=0;
    end;
-  fpc_ansistr_decr_ref(Pointer(fpc_ansistr_copy));
-  Pointer(fpc_ansistr_Copy):=ResultAddress;
+  Pointer(Result):=ResultAddress;
+  PAnsiRec(ResultAddress-AnsiFirstOff)^.CodePage:=PAnsiRec(Pointer(S)-AnsiFirstOff)^.CodePage;
+  PAnsiRec(ResultAddress-AnsiFirstOff)^.ElementSize:=1;
+  PAnsiRec(ResultAddress-AnsiFirstOff)^.Ref:=1;
+  PAnsiRec(ResultAddress-AnsiFirstOff)^.Len:=Size;
+  Move(Pointer(Pointer(S)+index)^,ResultAddress^,Size);
+  PByte(ResultAddress)[Size]:=0;
 end;
 {$endif FPC_HAS_ANSISTR_COPY}
 

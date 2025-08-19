@@ -1124,27 +1124,33 @@ end;
 Function Fpc_UnicodeStr_Copy (Const S : UnicodeString; Index,Size : SizeInt) : UnicodeString;compilerproc;
 var
   Lim : SizeInt;
-  ResultAddress : Pointer;
+  ResultAddress,PhysResultAddress : Pointer;
 begin
-  ResultAddress:=Nil;
   if Index < 1 then
     Index := 1;
   dec(index);
   Lim:=Length(S)-Index; { Cannot overflow as both Length(S) and Index are non-negative. }
   if Size>Lim then
    Size:=Lim;
-  If Size>0 then
+  if (Size>0) and Assigned(Pointer(Result)) and (PUnicodeRec(Pointer(Result)-UnicodeFirstOff)^.Ref=1) then
    begin
+     PhysResultAddress:=Pointer(Result)-UnicodeFirstOff;
+     ResultAddress:=ReallocMem(PhysResultAddress,Size*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
+   end
+  else
+   begin
+     fpc_unicodestr_decr_ref(Pointer(Result));
+     if Size<=0 then
+       exit;
      ResultAddress:=GetMem(Size*sizeof(UnicodeChar)+(UnicodeFirstOff+sizeof(UnicodeChar)))+UnicodeFirstOff;
-     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
-     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.ElementSize:=sizeof(UnicodeChar);
-     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Ref:=1;
-     PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
-     Move (PUnicodeChar(Pointer(S))[Index],ResultAddress^,Size*sizeof(UnicodeChar));
-     PUnicodeChar(ResultAddress)[Size]:=#0;
    end;
-  fpc_unicodestr_decr_ref(Pointer(fpc_unicodestr_copy));
-  Pointer(fpc_unicodestr_Copy):=ResultAddress;
+  Pointer(Result):=ResultAddress;
+  PUnicodeRec(ResultAddress-UnicodeFirstOff)^.CodePage:=DefaultUnicodeCodePage;
+  PUnicodeRec(ResultAddress-UnicodeFirstOff)^.ElementSize:=sizeof(UnicodeChar);
+  PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Ref:=1;
+  PUnicodeRec(ResultAddress-UnicodeFirstOff)^.Len:=Size;
+  Move(PUnicodeChar(Pointer(S))[Index],ResultAddress^,Size*sizeof(UnicodeChar));
+  PUnicodeChar(ResultAddress)[Size]:=#0;
 end;
 {$endif FPC_HAS_UNICODESTR_COPY}
 
