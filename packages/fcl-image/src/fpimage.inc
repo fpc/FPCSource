@@ -595,29 +595,30 @@ begin
 end;
 
 procedure TFPMemoryImage.SetSize (AWidth, AHeight : integer);
-var w, h, r, old : integer;
+var w, h, r: integer;
+    rr , old  : ptruint;
     NewData : PFPIntegerArray;
 begin
   if (AWidth <> Width) or (AHeight <> Height) then
     begin
     old := Height * Width;
-    r:=AWidth*AHeight;
+    rr:=AWidth*AHeight;
     if Assigned(FPalette)
     then
-      r:=SizeOf(integer)*r
+      rr:=SizeOf(integer)*rr
     else
-      r:=SizeOf(TFPColor)*r;
-    if r = 0 then
+      rr:=SizeOf(TFPColor)*rr;
+    if rr = 0 then
       NewData := nil
     else
       begin
-      GetMem (NewData, r);
-      FillWord (Newdata^[0], r div sizeof(word), 0);
+      GetMem (NewData, rr);
+      FillWord (Newdata^[0], rr div sizeof(word), 0);
       end;
     // MG: missing "and (NewData<>nil)"
     if (old <> 0) and assigned(FData) and (NewData<>nil) then
       begin
-      if r <> 0 then
+      if rr <> 0 then
         begin
         w := Lowest(Width, AWidth);
         h := Lowest(Height, AHeight);
