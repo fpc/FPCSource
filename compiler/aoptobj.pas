@@ -2845,12 +2845,14 @@ Unit AoptObj;
 {$ifdef x86}
                 taicpu(p).SetOperandOrder(op_att);
 {$endif x86}
-                commentstr:='Instruction reads';
+                commentstr:='Instruction reads from';
                 registers_found:=false;
                 for ri in tregisterindex do
                   begin
                     reg:=regnumber_table[ri];
-                    if (reg<>NR_NO) and InstructionLoadsFromReg(reg,p) then
+                    if (reg<>NR_NO) and InstructionLoadsFromReg(reg,p) and
+                      { Modified registers are handled below }
+                      not RegModifiedByInstruction(reg,p) then
                       begin
                         commentstr:=commentstr+' '+std_regname(reg);
                         registers_found:=true;
@@ -2858,7 +2860,22 @@ Unit AoptObj;
                   end;
                 if not registers_found then
                   commentstr:=commentstr+' no registers';
-                commentstr:=commentstr+' and writes new values in';
+                commentstr:=commentstr+', modifies';
+                registers_found:=false;
+                for ri in tregisterindex do
+                  begin
+                    reg:=regnumber_table[ri];
+                    if (reg<>NR_NO) and RegModifiedByInstruction(reg,p) and
+                      { Pure writes are handled below }
+                      not RegLoadedWithNewValue(reg,p) then
+                      begin
+                        commentstr:=commentstr+' '+std_regname(reg);
+                        registers_found:=true;
+                      end;
+                  end;
+                if not registers_found then
+                  commentstr:=commentstr+' no registers';
+                commentstr:=commentstr+' and writes new values to';
                 registers_found:=false;
                 for ri in tregisterindex do
                   begin
