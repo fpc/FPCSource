@@ -1358,19 +1358,28 @@ implementation
         { convert while i>0 do ... dec(i); to if i>0 then repeat ... dec(i) until i=0; ? }
         if (cs_opt_level2 in current_settings.optimizerswitches) and
           { while loop?}
-          (lnf_testatbegin in loopflags) and not(lnf_checknegate in loopflags) and
-          ((left.nodetype=gtn) and (taddnode(left).left.nodetype=loadn) and is_constintnode(taddnode(left).right) and
-           (tordconstnode(taddnode(left).right).value=0)) then
+          (lnf_testatbegin in loopflags) and not(lnf_checknegate in loopflags) then
           begin
-            p:=GetLastStatement(right);
-            if assigned(p) and (p.nodetype=inlinen) and (tinlinenode(p).inlinenumber=in_dec_x) and
-              taddnode(left).left.isequal(tcallparanode(tinlinenode(p).left).left) and
-              not(assigned(tcallparanode(tinlinenode(p).left).right)) then
+            if ((left.nodetype=gtn) and (taddnode(left).left.nodetype=loadn) and is_constintnode(taddnode(left).right) and
+              (tordconstnode(taddnode(left).right).value=0)) then
+              begin
+                p:=GetLastStatement(right);
+                if assigned(p) and (p.nodetype=inlinen) and (tinlinenode(p).inlinenumber=in_dec_x) and
+                  taddnode(left).left.isequal(tcallparanode(tinlinenode(p).left).left) and
+                  not(assigned(tcallparanode(tinlinenode(p).left).right)) then
+                  begin
+                    result:=cifnode.create_internal(left.getcopy,getcopy,nil);
+                    include(twhilerepeatnode(tifnode(result).right).loopflags,lnf_checknegate);
+                    exclude(twhilerepeatnode(tifnode(result).right).loopflags,lnf_testatbegin);
+                    twhilerepeatnode(tifnode(result).right).left.nodetype:=equaln;
+                  end;
+              end
+            else if not(cs_opt_size in current_settings.optimizerswitches) and
+              (node_complexity(left)<=3) then
               begin
                 result:=cifnode.create_internal(left.getcopy,getcopy,nil);
-                include(twhilerepeatnode(tifnode(result).right).loopflags,lnf_checknegate);
+//                include(twhilerepeatnode(tifnode(result).right).loopflags,lnf_checknegate);
                 exclude(twhilerepeatnode(tifnode(result).right).loopflags,lnf_testatbegin);
-                twhilerepeatnode(tifnode(result).right).left.nodetype:=equaln;
               end;
           end;
       end;
