@@ -1357,7 +1357,7 @@ implementation
         result:=nil;
         { convert while i>0 do ... dec(i); to if i>0 then repeat ... dec(i) until i=0; ? }
         if (cs_opt_level2 in current_settings.optimizerswitches) and
-          { while loop?}
+          { while loop? }
           (lnf_testatbegin in loopflags) and not(lnf_checknegate in loopflags) then
           begin
             if ((left.nodetype=gtn) and (taddnode(left).left.nodetype=loadn) and is_constintnode(taddnode(left).right) and
@@ -1378,7 +1378,6 @@ implementation
               (node_complexity(left)<=3) then
               begin
                 result:=cifnode.create_internal(left.getcopy,getcopy,nil);
-//                include(twhilerepeatnode(tifnode(result).right).loopflags,lnf_checknegate);
                 exclude(twhilerepeatnode(tifnode(result).right).loopflags,lnf_testatbegin);
               end;
           end;
