@@ -213,6 +213,7 @@ function tx64tryfinallynode.dogetcopy: tnode;
           begin
             n.finalizepi.code:=finalizepi.code.getcopy;
             n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+            firstpass(n.right);
           end;
       end;
     result:=n;
