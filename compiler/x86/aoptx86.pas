@@ -11374,7 +11374,7 @@ unit aoptx86;
 
             DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
 
-            if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp1, TmpUsedRegs) then
+            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
               begin
                 DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
                 RemoveCurrentP(p);
