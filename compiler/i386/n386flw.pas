@@ -46,7 +46,7 @@ interface
       constructor create(l,r:TNode);override;
       constructor create_implicit(l,r:TNode);override;
       function pass_1: tnode;override;
-	  function dogetcopy : tnode;override;
+      function dogetcopy : tnode;override;
       function simplify(forinline: boolean): tnode;override;
       procedure pass_generate_code;override;
     end;
@@ -220,25 +220,26 @@ function ti386tryfinallynode.dogetcopy: tnode;
   var
     n: ti386tryfinallynode;
   begin
-	n:=ti386tryfinallynode(inherited dogetcopy);
-	if target_info.system=system_i386_win32 then
-	  begin
-	    n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
-		n.finalizepi.force_nested;
-		n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
-		n.finalizepi.entrypos:=finalizepi.entrypos;
-		n.finalizepi.entryswitches:=finalizepi.entryswitches;
-		n.finalizepi.exitpos:=finalizepi.exitpos;
-		n.finalizepi.exitswitches:=finalizepi.exitswitches;
-		n.finalizepi.flags:=finalizepi.flags;
-		{ node already transformed? }
-		if assigned(finalizepi.code) then
-		  begin
-			n.finalizepi.code:=finalizepi.code.getcopy;
-			n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
-		  end;
-	  end;
-	result:=n;
+    n:=ti386tryfinallynode(inherited dogetcopy);
+    if target_info.system=system_i386_win32 then
+      begin
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+        n.finalizepi.force_nested;
+        n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.entrypos:=finalizepi.entrypos;
+        n.finalizepi.entryswitches:=finalizepi.entryswitches;
+        n.finalizepi.exitpos:=finalizepi.exitpos;
+        n.finalizepi.exitswitches:=finalizepi.exitswitches;
+        n.finalizepi.flags:=finalizepi.flags;
+        { node already transformed? }
+        if assigned(finalizepi.code) then
+          begin
+            n.finalizepi.code:=finalizepi.code.getcopy;
+            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+            firstpass(n.right);
+          end;
+      end;
+    result:=n;
   end;
 
 function ti386tryfinallynode.simplify(forinline: boolean): tnode;
