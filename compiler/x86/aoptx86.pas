@@ -11352,40 +11352,61 @@ unit aoptx86;
             movl %reg1l,%reg3l  (Upper 32 bits of %reg3q will be zero)
         }
         if MatchOpType(taicpu(p), top_reg, top_reg) and
-          (taicpu(p).opsize = S_L) and
-          (
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
-            { Look further ahead for this one }
-            GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[1]^.reg)
-          ) and
-          MatchInstruction(hp1,A_MOV,[S_Q]) and
-          not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1) and
-          MatchOpType(taicpu(hp1), top_reg, top_reg) and
-          SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^.reg) then
+          (taicpu(p).opsize = S_L) then
           begin
             TransferUsedRegs(TmpUsedRegs);
-            UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+             { Mark the start point for sequential calls to
+               GetNextInstructionUsingReg, RegModifiedBetween and
+               UpdateUsedRegsBetween in case this optimisation is run multiple
+               times }
+            hp2 := p;
+            repeat
+              if (
+                  not(cs_opt_level3 in current_settings.optimizerswitches) or
+                  { Look further ahead for this one }
+                  GetNextInstructionUsingReg(hp2, hp1, taicpu(p).oper[1]^.reg)
+                ) and
+                MatchInstruction(hp1,A_MOV,[S_Q]) and
+                not RegModifiedBetween(taicpu(p).oper[0]^.reg, hp2, hp1) and
+                MatchOpType(taicpu(hp1), top_reg, top_reg) and
+                SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^.reg) then
+                begin
+                  UpdateUsedRegsBetween(TmpUsedRegs, tai(hp2.Next), hp1);
 
-            taicpu(hp1).opsize := S_L;
-            taicpu(hp1).loadreg(0, taicpu(p).oper[0]^.reg);
-            setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+                  taicpu(hp1).opsize := S_L;
+                  taicpu(hp1).loadreg(0, taicpu(p).oper[0]^.reg);
+                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
 
-            AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
+                  AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
 
-            DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
+                  DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
 
-            if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
-              begin
-                DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
-                RemoveCurrentP(p);
-                Result := True;
-                Exit;
-              end
-            else
-              begin
-                { Initial instruction wasn't actually changed }
-                Include(OptsToCheck, aoc_ForceNewIteration);
-              end;
+                  if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+                    begin
+                      DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
+                      RemoveCurrentP(p);
+                      Result := True;
+                      Exit;
+                    end;
+
+                  { Initial instruction wasn't actually changed }
+                  Include(OptsToCheck, aoc_ForceNewIteration);
+
+                  if (cs_opt_level3 in current_settings.optimizerswitches) then
+                    begin
+                      { GetNextInstructionUsingReg will return a different
+                        instruction, so check this optimisation again }
+
+                      { Update the start point for the next calls to
+                        GetNextInstructionUsingReg, RegModifiedBetween and
+                        UpdateUsedRegsBetween to grant a speed boost }
+                      hp2 := hp1;
+                      Continue; { Jump back to "repeat" }
+                    end;
+                end;
+
+              Break;
+            until False;
           end;
 {$endif x86_64}
 
