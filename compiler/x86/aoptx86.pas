@@ -10612,55 +10612,71 @@ unit aoptx86;
 
       var
         NewRef: TReference;
-        hp1, hp2, hp3, hp4: Tai;
+        hp1, hp2, hp3: Tai;
 {$ifndef x86_64}
+        hp4: tai;
         OperIdx: Integer;
 {$endif x86_64}
         NewInstr : Taicpu;
-        NewAligh : Tai_align;
         DestLabel: TAsmLabel;
         TempTracking: TAllUsedRegs;
 
         function TryMovArith2Lea(InputInstr: tai): Boolean;
           var
             NextInstr: tai;
+            NextPresent: Boolean;
           begin
             Result := False;
-            UpdateUsedRegs(TmpUsedRegs, tai(InputInstr.Next));
 
-            if not GetNextInstruction(InputInstr, NextInstr) or
-              (
-                { The FLAGS register isn't always tracked properly, so do not
-                  perform this optimisation if a conditional statement follows }
-                not RegReadByInstruction(NR_DEFAULTFLAGS, NextInstr) and
-                not RegUsedAfterInstruction(NR_DEFAULTFLAGS, NextInstr, TmpUsedRegs)
-              ) then
+            { be lazy, checking separately for sub would be slightly better }
+            if (taicpu(InputInstr).oper[0]^.typ = top_const) and
+              (abs(taicpu(InputInstr).oper[0]^.val)<=$7fffffff) then
               begin
-                reference_reset(NewRef, 1, []);
-                NewRef.base := taicpu(p).oper[0]^.reg;
-                NewRef.scalefactor := 1;
-
-                if taicpu(InputInstr).opcode = A_ADD then
+                NextPresent := GetNextInstruction(InputInstr, NextInstr);
+                if NextPresent then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
-                    NewRef.offset := taicpu(InputInstr).oper[0]^.val;
-                  end
-                else
-                  begin
-                    DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
-                    NewRef.offset := -taicpu(InputInstr).oper[0]^.val;
+                    { Try to avoid using TmpUsedRegs if possible (it's slow!) }
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(InputInstr.Next));
                   end;
 
-                taicpu(p).opcode := A_LEA;
-                taicpu(p).loadref(0, NewRef);
+                if (
+                    not NextPresent or
+                    (
+                      { The FLAGS register isn't always tracked properly, so do not
+                        perform this optimisation if a conditional statement follows }
+                      not RegReadByInstruction(NR_DEFAULTFLAGS, NextInstr) and
+                      not RegUsedAfterInstruction(NR_DEFAULTFLAGS, NextInstr, TmpUsedRegs)
+                    )
+                  ) then
+                  begin
+                    reference_reset(NewRef, 1, []);
+                    NewRef.base := taicpu(p).oper[0]^.reg;
+                    NewRef.scalefactor := 1;
 
-                { For the sake of debugging, have the line info match the
-                  arithmetic instruction rather than the MOV instruction }
-                taicpu(p).fileinfo := taicpu(InputInstr).fileinfo;
+                    if taicpu(InputInstr).opcode = A_ADD then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
+                        NewRef.offset := taicpu(InputInstr).oper[0]^.val;
+                      end
+                    else
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
+                        NewRef.offset := -taicpu(InputInstr).oper[0]^.val;
+                      end;
 
-                RemoveInstruction(InputInstr);
+                    taicpu(p).opcode := A_LEA;
+                    taicpu(p).loadref(0, NewRef);
 
-                Result := True;
+                    { For the sake of debugging, have the line info match the
+                      arithmetic instruction rather than the MOV instruction }
+                    taicpu(p).fileinfo := taicpu(InputInstr).fileinfo;
+
+                    RemoveInstruction(InputInstr);
+
+                    Result := True;
+                  end;
               end;
           end;
 
@@ -10916,36 +10932,32 @@ unit aoptx86;
               To:
                 leal/q x(%reg1),%reg2   leal/q -x(%reg1),%reg2
             }
-            if (taicpu(hp1).oper[0]^.typ = top_const) and
-              { be lazy, checking separately for sub would be slightly better }
-              (abs(taicpu(hp1).oper[0]^.val)<=$7fffffff) then
+            if TryMovArith2Lea(hp1) then
               begin
-                TransferUsedRegs(TmpUsedRegs);
-                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                if TryMovArith2Lea(hp1) then
-                  begin
-                    Result := True;
-                    Exit;
-                  end
+                Result := True;
+                Exit;
               end
-            else if not RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^) and
-              GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
+            else if
               { Same as above, but also adds or subtracts to %reg2 in between.
                 It's still valid as long as the flags aren't in use }
+              (
+                (
+                  MatchInstruction(hp1,A_ADD,A_SUB,A_LEA,[]) and
+                  not RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^)
+                ) or
+                (
+                  not RegModifiedByInstruction(taicpu(p).oper[1]^.reg, taicpu(hp1)) and
+                  { If it's not modified, make sure it isn't read as is }
+                  not RegReadByInstruction(taicpu(p).oper[1]^.reg, taicpu(hp1))
+                )
+              ) and
+              GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
               MatchInstruction(hp2,A_ADD,A_SUB,[taicpu(p).opsize]) and
-              MatchOpType(taicpu(hp2), top_const, top_reg) and
-              (taicpu(hp2).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
-              { be lazy, checking separately for sub would be slightly better }
-              (abs(taicpu(hp2).oper[0]^.val)<=$7fffffff) then
+              MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^.reg) and
+              TryMovArith2Lea(hp2) then
               begin
-                TransferUsedRegs(TmpUsedRegs);
-                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                if TryMovArith2Lea(hp2) then
-                  begin
-                    Result := True;
-                    Exit;
-                  end;
+                Result := True;
+                Exit;
               end;
           end;
 
