@@ -717,28 +717,59 @@ implementation
     { at will, probably best mainly in terms of required memory      }
     { accesses                                                       }
     function node_complexity(p: tnode): cardinal;
+
+    {$ifdef x86}
+      function in_const_set_complexity(cs: tsetconstnode): cardinal;
+        var
+          i,maxranges,lastv: cardinal;
+        begin
+          { maxranges value should match the logic in nx86set.pas:tx86innode.pass_generate_code.analizeset. }
+          if is_smallset(cs.resultdef) then
+            maxranges:=3
+          else if cs_opt_size in current_settings.optimizerswitches then
+            maxranges:=8
+          else
+            maxranges:=5;
+
+          result:=0;
+          lastv:=High(lastv)-1;
+          for i:=tsetdef(cs.resultdef).setbase to tsetdef(cs.resultdef).setmax do
+            if i in cs.value_set^ then
+              begin
+                if i<>lastv+1 then
+                  begin
+                    inc(result);
+                    if result>maxranges then
+                      exit(3);
+                  end;
+                lastv:=i;
+              end;
+        end;
+    {$endif}
+
       var
-        correction: byte;
+        cv : cardinal;
 {$ifdef ARM}
         dummy : byte;
 {$endif ARM}
       begin
-        result := 0;
-        while assigned(p) do
+        cv := 0;
+        result := NODE_COMPLEXITY_INF; { For early exits by default. }
+        while assigned(p) and (cv<NODE_COMPLEXITY_INF) do { break = return cv, exit = return NODE_COMPLEXITY_INF. }
           begin
             case p.nodetype of
               { floating point constants usually need loading from memory }
               realconstn:
                 begin
-                  result:=2;
-                  exit;
+                  cv:=2;
+                  break;
                 end;
               temprefn:
                 begin
                   if (ttemprefnode(p).tempinfo^.typedef.needs_inittable) or
                     not(ti_may_be_in_reg in ttemprefnode(p).tempflags) then
-                    result := 1;
-                  exit;
+                    cv := 1;
+                  break;
                 end;
               rttin,
               setconstn,
@@ -751,39 +782,35 @@ implementation
               { still works with nodeinlining (JM)                         }
               loadparentfpn:
                 begin
-                  result := 1;
-                  exit;
+                  cv := 1;
+                  break;
                 end;
               loadn:
                 begin
                   if assigned(tloadnode(p).left) then
-                    inc(result,node_complexity(tloadnode(p).left));
+                    inc(cv,node_complexity(tloadnode(p).left));
                   { threadvars need a helper call }
                   if (tloadnode(p).symtableentry.typ=staticvarsym) and
                      (vo_is_thread_var in tstaticvarsym(tloadnode(p).symtableentry).varoptions) then
-                    inc(result,5)
+                    inc(cv,5)
                   else if not((tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
                     (tabstractvarsym(tloadnode(p).symtableentry).varregable in [vr_intreg,vr_mmreg,vr_fpureg])) then
-                    inc(result);
+                    inc(cv);
                   if (tloadnode(p).symtableentry.typ=paravarsym) and
                      not(tabstractvarsym(tloadnode(p).symtableentry).varregable=vr_addr) and
                      tloadnode(p).is_addr_param_load then
-                    inc(result);
-                  if (result >= NODE_COMPLEXITY_INF) then
-                    result := NODE_COMPLEXITY_INF;
-                  exit;
+                    inc(cv);
+                  p := nil; { Check for NODE_COMPLEXITY_INF and return cv. }
                 end;
               subscriptn:
                 begin
                   if is_implicit_pointer_object_type(tunarynode(p).left.resultdef) or
                     is_bitpacked_access(p) then
-                    inc(result,2)
+                    inc(cv,2)
                   { non-packed, int. regable records cause no extra
                     overhead no overhead if the fields are aligned to register boundaries }
                   else if tstoreddef(p.resultdef).is_intregable and (tsubscriptnode(p).vs.fieldoffset mod sizeof(aint)<>0) then
-                    inc(result,1);
-                  if (result = NODE_COMPLEXITY_INF) then
-                    exit;
+                    inc(cv,1);
                   p := tunarynode(p).left;
                 end;
               blockn:
@@ -793,31 +820,15 @@ implementation
                   { call to decr? }
                   if is_managed_type(tunarynode(p).left.resultdef) and
                      assigned(tcallparanode(p).parasym) and (tcallparanode(p).parasym.varspez=vs_out) then
-                    begin
-                      result:=NODE_COMPLEXITY_INF;
-                      exit;
-                    end
-                  else
-                    begin
-                      inc(result);
-                      if (result = NODE_COMPLEXITY_INF) then
-                        exit;
-                      p := tunarynode(p).left;
-                    end;
-                end;
-              notn,
-              derefn :
-                begin
-                  inc(result);
-                  if (result = NODE_COMPLEXITY_INF) then
                     exit;
+                  inc(cv);
                   p := tunarynode(p).left;
                 end;
-              addrn:
+              notn,
+              derefn,
+              addrn :
                 begin
-                  inc(result);
-                  if (result = NODE_COMPLEXITY_INF) then
-                    exit;
+                  inc(cv);
                   p := tunarynode(p).left;
                 end;
               typeconvn:
@@ -825,75 +836,60 @@ implementation
                   { may be more complex in some cases }
                   if not(ttypeconvnode(p).retains_value_location) and
                     not((ttypeconvnode(p).convtype=tc_pointer_2_array) and (ttypeconvnode(p).left.expectloc in [LOC_CREGISTER,LOC_REGISTER,LOC_CONSTANT])) then
-                    inc(result);
-                  if result = NODE_COMPLEXITY_INF then
-                    exit;
+                    inc(cv);
                   p := tunarynode(p).left;
-                end;
-              vecn:
-                begin
-                  inc(result,node_complexity(tbinarynode(p).left));
-                  inc(result);
-                  if (result >= NODE_COMPLEXITY_INF) then
-                    begin
-                      result := NODE_COMPLEXITY_INF;
-                      exit;
-                    end;
-                  p := tbinarynode(p).right;
                 end;
               statementn:
                 begin
-                  inc(result,node_complexity(tbinarynode(p).left));
-                  if (result >= NODE_COMPLEXITY_INF) then
-                    begin
-                      result := NODE_COMPLEXITY_INF;
-                      exit;
-                    end;
+                  inc(cv,node_complexity(tbinarynode(p).left));
                   p := tbinarynode(p).right;
                 end;
-              addn,subn,orn,andn,xorn,muln,divn,modn,symdifn,
+              addn,subn,orn,andn,xorn,symdifn,
               shln,shrn,
               equaln,unequaln,gtn,gten,ltn,lten,
-              assignn,
-              slashn:
+              assignn,vecn:
                 begin
-{$ifdef CPU64BITALU}
-                  correction:=1;
-{$else CPU64BITALU}
-                  correction:=2;
-{$endif CPU64BITALU}
-                  inc(result,node_complexity(tbinarynode(p).left)+1*correction);
-                  if (p.nodetype in [divn,modn,slashn]) then
-                    inc(result,10*correction*correction)
-                  else if p.nodetype=muln then
-                    inc(result,4*correction*correction);
-                  if (result >= NODE_COMPLEXITY_INF) then
+                  inc(cv,node_complexity(tbinarynode(p).left)+1);
+                  p := tbinarynode(p).right;
+                end;
+              muln:
+                begin
+                  inc(cv,node_complexity(tbinarynode(p).left)+{$ifdef CPU64BITALU}4{$else}8{$endif});
+                  p := tbinarynode(p).right;
+                end;
+              divn,modn,slashn:
+                begin
+                  inc(cv,node_complexity(tbinarynode(p).left)+{$ifdef CPU64BITALU}10{$else}20{$endif});
+                  p := tbinarynode(p).right;
+                end;
+              inn:
+                begin
+                  inc(cv,node_complexity(tinnode(p).left));
+{$if declared(in_const_set_complexity)}
+                  if tinnode(p).right.nodetype=setconstn then
                     begin
-                      result := NODE_COMPLEXITY_INF;
-                      exit;
+                      inc(cv,in_const_set_complexity(tsetconstnode(tinnode(p).right)));
+                      break;
                     end;
+{$endif in_const_set_complexity}
+                  inc(cv,3);
                   p := tbinarynode(p).right;
                 end;
               ordconstn:
                 begin
 {$ifdef ARM}
                   if not(is_shifter_const(aint(tordconstnode(p).value.svalue),dummy)) then
-                    result:=2;
+                    cv:=2;
 {$endif ARM}
 {$ifdef RISCV}
                   if not(is_imm12(aint(tordconstnode(p).value.svalue))) then
-                    result:=2;
+                    cv:=2;
 {$endif RISCV}
-                  exit;
+                  break;
                 end;
               exitn:
                 begin
-                  inc(result,2);
-                  if (result >= NODE_COMPLEXITY_INF) then
-                    begin
-                      result := NODE_COMPLEXITY_INF;
-                      exit;
-                    end;
+                  inc(cv,2);
                   p:=texitnode(p).left;
                 end;
               tempcreaten,
@@ -901,7 +897,7 @@ implementation
               pointerconstn,
               nothingn,
               niln:
-                exit;
+                break;
               inlinen:
                 begin
                   { this code assumes that the inline node has   }
@@ -930,7 +926,7 @@ implementation
                     in_volatile_x,
                     in_prefetch_var:
                       begin
-                        inc(result);
+                        inc(cv);
                         p:=tunarynode(p).left;
                       end;
                     in_cos_real,
@@ -939,45 +935,30 @@ implementation
                     in_sqrt_real,
                     in_ln_real:
                       begin
-                        inc(result,15);
-                        if (result >= NODE_COMPLEXITY_INF) then
-                          begin
-                            result:=NODE_COMPLEXITY_INF;
-                            exit;
-                          end;
+                        inc(cv,15);
                         p:=tunarynode(p).left;
                       end;
                     in_sqr_real:
                       begin
-                        inc(result,2);
-                        if (result >= NODE_COMPLEXITY_INF) then
-                          begin
-                            result:=NODE_COMPLEXITY_INF;
-                            exit;
-                          end;
+                        inc(cv,2);
                         p:=tunarynode(p).left;
                       end;
                     in_abs_long:
                       begin
-                        inc(result,3);
-                        if (result >= NODE_COMPLEXITY_INF) then
-                          begin
-                            result:=NODE_COMPLEXITY_INF;
-                            exit;
-                          end;
+                        inc(cv,3);
                         p:=tunarynode(p).left;
                       end;
                     in_sizeof_x,
                     in_typeof_x:
                       begin
-                        inc(result);
+                        inc(cv);
                         if (tinlinenode(p).left.nodetype<>typen) then
                           { get instance vmt }
                           p:=tunarynode(p).left
                         else
                           { type vmt = global symbol, result is }
                           { already increased above             }
-                          exit;
+                          break;
                       end;
           {$ifdef SUPPORT_MMX}
                     in_mmx_pcmpeqb..in_mmx_pcmpgtw,
@@ -989,8 +970,8 @@ implementation
                     in_get_caller_frame,
                     in_get_caller_addr:
                       begin
-                        inc(result);
-                        exit;
+                        inc(cv);
+                        break;
                       end;
 
                     in_inc_x,
@@ -1000,33 +981,24 @@ implementation
                     in_assert_x_y :
                       begin
                         { operation (add, sub, or, and }
-                        inc(result);
+                        inc(cv);
                         { left expression }
-                        inc(result,node_complexity(tcallparanode(tunarynode(p).left).left));
-                        if (result >= NODE_COMPLEXITY_INF) then
-                          begin
-                            result := NODE_COMPLEXITY_INF;
-                            exit;
-                          end;
+                        inc(cv,node_complexity(tcallparanode(tunarynode(p).left).left));
                         p:=tcallparanode(tunarynode(p).left).right;
                         if assigned(p) then
                           p:=tcallparanode(p).left;
                       end;
                     else
-                      begin
-                        result := NODE_COMPLEXITY_INF;
-                        exit;
-                      end;
+                      exit;
                   end;
-
                 end;
               else
-                begin
-                  result := NODE_COMPLEXITY_INF;
-                  exit;
-                end;
+                exit;
             end;
         end;
+        if cv>NODE_COMPLEXITY_INF then
+          cv:=NODE_COMPLEXITY_INF;
+        result:=cv;
       end;
 
 
