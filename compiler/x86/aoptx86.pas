@@ -12001,13 +12001,11 @@ unit aoptx86;
             )
           ) and
           MatchInstruction(hp1, [A_SHL, A_SHR, A_SAR, A_ROR, A_ROL, A_RCR, A_RCL], []) and
-          (taicpu(hp1).oper[0]^.typ = top_reg) { This is enough to determine that it's %cl } then
+          (taicpu(hp1).oper[0]^.typ = top_reg) { This is enough to determine that it's %cl } and
+          not RegInOp(NR_ECX, taicpu(hp1).oper[1]^) then
           begin
             TransferUsedRegs(TmpUsedRegs);
-            hp2 := p;
-            repeat
-              UpdateUsedRegs(TmpUsedRegs, tai(hp2.Next));
-            until not GetNextInstruction(hp2, hp2) or (hp2 = hp1);
+            UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
 
             if not RegUsedAfterInstruction(NR_CL, hp1, TmpUsedRegs) then
               begin
