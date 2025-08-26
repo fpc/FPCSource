@@ -145,7 +145,7 @@ begin
     end;
 end;
 
-procedure AfterCompile_gdbint(Sender: TObject);
+procedure AfterClean_gdbint(Sender: TObject);
 var
   L : TStrings;
   P : TPackage;
@@ -192,7 +192,7 @@ begin
     P.IncludePath.Add('src');
 
     P.BeforeCompileProc:=@BeforeCompile_gdbint;
-    P.AfterCompileProc:=@AfterCompile_gdbint;
+    P.AfterCleanProc:=@AfterClean_gdbint;
 
     T := p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
     T.Install := false;
