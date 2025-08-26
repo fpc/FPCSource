@@ -8740,7 +8740,7 @@ Var
             try
               aPath:=AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CompileTarget));
               APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(aPath),'',Defaults.CompileTarget);
-              L.Add(AddPathPrefix(APackage,APackage.FBUTarget.SourceFileName));
+              L.Add(AddPathPrefix(APackage,APackage.FBUTarget.FTargetSourceFileName));
               CmdDeleteFiles(L);
             finally
               L.Free;
