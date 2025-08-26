@@ -439,6 +439,8 @@ BEGIN
   writeln(stderr,'If program stops, try again using -novesa option');
   flush(stderr);
   InitVESAScreenModes;
+  if RegisteredVesaVideoModeCount > 0 then
+    SetVESAVideoDriver;
 {$endif}
   InitRedir;
 {$ifndef NODEBUG}

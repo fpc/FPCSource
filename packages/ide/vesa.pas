@@ -118,6 +118,7 @@ type
        Modes        : array[1..256] of word;
      end;
 
+function SetVESAVideoDriver : boolean;
 function VESAInit: boolean;
 function VESAGetInfo(var B: TVESAInfoBlock): boolean;
 function VESAGetModeInfo(Mode: word; var B: TVESAModeInfoBlock): boolean;
@@ -129,6 +130,7 @@ function VESAGetMode(var Mode: word): boolean;
 function VESASelectMemoryWindow(Window: byte; Position: word): boolean;
 function VESAReturnMemoryWindow(Window: byte; var Position: word): boolean;
 function RegisterVesaVideoMode(Mode : word) : boolean;
+function RegisteredVesaVideoModeCount: word;
 Procedure FreeVesaModes;
 
 const
@@ -161,6 +163,7 @@ type
         colors : array[0..8*8-1] of word;
        end;
 const
+  VesaVideoDriverSet : boolean =  false;
   VesaVideoModeHead : PVesaVideoMode = nil;
   VesaRegisteredModes : word = 0;
 {$ifdef TESTGRAPHIC}
@@ -663,11 +666,9 @@ begin
   SysDoneVideo();
 end;
 
-function SetVESAVideoDriver : boolean; forward;
-
 procedure VesaInitVideo;
 begin
-  if not SetVESAVideoDriver then
+  if not VesaVideoDriverSet then
     exit;
 {$ifdef TESTGRAPHIC}
   if IsGraphicMode then
@@ -680,8 +681,12 @@ begin
     SysInitVideo();
 end;
 
-Function VesaGetVideoModeCount : Word;
+function RegisteredVesaVideoModeCount: word;
+begin
+  RegisteredVesaVideoModeCount:=VesaRegisteredModes;
+end;
 
+Function VesaGetVideoModeCount : Word;
 begin
   VesaGetVideoModeCount:=SysGetVideoModeCount()+VesaRegisteredModes;
 end;
@@ -697,6 +702,7 @@ begin
       FreeMem(VH,Sizeof(TVesaVideoMode));
       VH:=VesaVideoModeHead;
     end;
+  VesaRegisteredModes:=0;
 end;
 
 Var
@@ -741,6 +747,7 @@ BEGIN
 {$endif TESTGRAPHIC}
 
   SetVideoDriver (Driver);
+  VesaVideoDriverSet:=true;
   SetVESAVideoDriver:=true;
 END;
 
