@@ -316,6 +316,9 @@ const
      cmSymTabKeyPress    = 2705;
      {cmSymPrevious       = 249;}
 
+     cmDropDownDeleteListBox = 2800;
+     cmMouseDownInEmptySpace = 2801;
+
      { Help constants }
      hcSourceWindow      = 8000;
      hcHelpWindow        = 8001;

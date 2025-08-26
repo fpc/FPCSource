@@ -150,6 +150,13 @@ type
       procedure   Draw; virtual;
     end;
 
+    { Dialog that broadcasts empty space mouse clicks }
+    { Needed for dialogs that contines TDropDownListBox }
+    PDialogEmpytClik = ^TDialogEmpytClik;
+    TDialogEmpytClik = object(TCenterDialog)
+      procedure HandleEvent(var Event: TEvent); virtual;
+    end;
+
     PDropDownListBox = ^TDropDownListBox;
 
     PDDHelperLB = ^TDDHelperLB;
@@ -161,6 +168,8 @@ type
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       function    GetLocalMenu: PMenu; virtual;
       function    GetCommandTarget: PView; virtual;
+    private
+      procedure   CloseItSelf;
     private
       Link : PDropDownListBox;
       LastTT: longint;
@@ -190,6 +199,7 @@ type
       ListDropped : boolean;
       ListBox     : PDDHelperLB;
       SB          : PScrollBar;
+      KeepSelect  : boolean;
     end;
 
     PGroupView = ^TGroupView;
@@ -1933,6 +1943,14 @@ begin
     end;
 end;
 
+procedure TDialogEmpytClik.HandleEvent(var Event: TEvent);
+begin
+  inherited HandleEvent (Event);
+  case Event.What of
+    evMouseDown :
+      Message(@Self,evBroadcast,cmMouseDownInEmptySpace,@Self);
+  end;
+end;
 
 constructor TDDHelperLB.Init(ALink: PDropDownListBox; var Bounds: TRect; ANumCols: Word; AScrollBar: PScrollBar);
 begin
@@ -1948,7 +1966,7 @@ begin
 {  OState:=State;}
   inherited SetState(AState,Enable);
 {  if (((State xor OState) and sfFocused)<>0) and (GetState(sfFocused)=false) then
-    Link^.DropList(false);}
+    CloseItSelf;}
 end;
 
 function TDDHelperLB.GetText(Item,MaxLen: Sw_Integer): String;
@@ -1985,6 +2003,8 @@ begin
   GoSelectItem:=-1;
   TView.HandleEvent(Event);
   case Event.What of
+    evMouseWheel :
+      Inherited HandleEvent(Event);
     evMouseDown :
       if MouseInView(Event.Where)=false then
         GoSelectItem:=-2
@@ -2041,27 +2061,21 @@ begin
         if Event.Double and (Range > Focused) then SelectItem(Focused);
         ClearEvent(Event);
         GoSelectItem:=Focused;
+        Link^.KeepSelect:=true;
       end;
-    evMouseMove,evMouseAuto:
-     if GetState(sfFocused) then
-      if MouseInView(Event.Where) then
-        begin
-          MakeLocal(Event.Where,Mouse);
-          FocusItemNum(TopItem+Mouse.Y);
-          ClearEvent(Event);
-        end;
     evKeyDown :
       begin
         if (Event.KeyCode=kbEsc) then
           begin
             GoSelectItem:=-2;
-            ClearEvent(Event);
+            Link^.KeepSelect:=true;
           end else
         if ((Event.KeyCode=kbEnter) or (Event.CharCode = ' ')) and
            (Focused < Range) then
           begin
             GoSelectItem:=Focused;
             NewItem := Focused;
+            Link^.KeepSelect:=true;
           end
         else
           case CtrlToArrow(Event.KeyCode) of
@@ -2084,6 +2098,12 @@ begin
       end;
     evBroadcast :
       case Event.Command of
+        cmMouseDownInEmptySpace:
+          if InClose=false then
+            begin
+              GoSelectItem:=-2;
+              Link^.KeepSelect:=true;
+            end;
         cmReceivedFocus :
           if (Event.InfoPtr<>@Self) and (InClose=false) then
             begin
@@ -2099,7 +2119,8 @@ begin
               begin
                 if (VScrollBar = Event.InfoPtr) then
                   begin
-                    FocusItemNum(VScrollBar^.Value);
+                    if VScrollBar^.Value <> TopItem then
+                      SetTopItem(VScrollBar^.Value);
                     DrawView;
                   end
                 else
@@ -2107,29 +2128,12 @@ begin
                     DrawView;
               end;
       end;
-    evIdle :
-      begin
-        MouseWhere.X:=MouseWhereX shr 3; MouseWhere.Y:=MouseWhereY shr 3;
-        if MouseInView(MouseWhere)=false then
-         if abs(GetDosTicks-LastTT)>=1 then
-          begin
-            LastTT:=GetDosTicks;
-            MakeLocal(MouseWhere,Mouse);
-            if ((Mouse.Y<-1) or (Mouse.Y>=Size.Y)) and
-               ((0<=Mouse.X) and (Mouse.X<Size.X)) then
-            if Range>0 then
-              if Mouse.Y<0 then
-                FocusItemNum(Focused-(0-Mouse.Y))
-              else
-                FocusItemNum(Focused+(Mouse.Y-(Size.Y-1)));
-          end;
-      end;
   end;
   if (Range>0) and (GoSelectItem<>-1) then
    begin
      InClose:=true;
      if GoSelectItem=-2 then
-       Link^.DropList(false)
+       CloseItSelf
      else
        SelectItem(GoSelectItem);
    end;
@@ -2139,7 +2143,18 @@ procedure TDDHelperLB.SelectItem(Item: Sw_Integer);
 begin
   inherited SelectItem(Item);
   Link^.FocusItem(Focused);
-  Link^.DropList(false);
+  CloseItSelf;
+end;
+
+procedure TDDHelperLB.CloseItSelf;
+var E : TEvent;
+begin
+  { Can not close from within itself }
+  { Send a message for owner to do it }
+  E.What:=evBroadcast;
+  E.Command:=cmDropDownDeleteListBox;
+  E.InfoPtr:=@self;
+  Application^.PutEvent(E);
 end;
 
 constructor TDropDownListBox.Init(var Bounds: TRect; ADropLineCount: Sw_integer; AList: PCollection);
@@ -2182,6 +2197,12 @@ begin
        end;
     evBroadcast :
       case Event.Command of
+        cmDropDownDeleteListBox :
+          if ListBox = Event.InfoPtr then
+            begin
+              DropList(false);
+              ClearEvent(Event);
+            end;
         cmReleasedFocus :
           if (ListBox<>nil) and (Event.InfoPtr=ListBox) then
             DropList(false);
@@ -2229,6 +2250,7 @@ end;
 procedure TDropDownListBox.DropList(Drop: boolean);
 var R: TRect;
     LB: PListBox;
+    InDel : boolean;
 begin
   if (ListDropped=Drop) then Exit;
 
@@ -2244,24 +2266,30 @@ begin
           ListBox^.NewList(List);
           ListBox^.FocusItem(Focused);
           Owner^.Insert(ListBox);
+          KeepSelect:=false; {assume we don't want to keep focus after DropBox will be closed}
         end;
       if Owner<>nil then Owner^.UnLock;
     end
   else
     begin
       if Owner<>nil then Owner^.Lock;
+      InDel:=false;
       if ListBox<>nil then
         begin
 {          ListBox^.List:=nil;}
+          InDel:=true;
           LB:=ListBox; ListBox:=nil; { this prevents GPFs while deleting }
+          Owner^.Delete(LB);  { GPFs have been resoved by not calling this rotine from ListBox itself  M }
           Dispose(LB, Done);
         end;
       if SB<>nil then
         begin
+          Owner^.Delete(SB);
           Dispose(SB, Done);
           SB:=nil;
         end;
-      Select;
+      if InDel and KeepSelect then
+        Select;
       if Owner<>nil then Owner^.UnLock;
     end;
 

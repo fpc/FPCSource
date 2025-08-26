@@ -1064,7 +1064,7 @@ end;
 
 procedure TIDEApp.Preferences;
 var R,R2: TRect;
-    D: PCenterDialog;
+    D: PDialogEmpytClik;
     C: PVideoModeCollection;
     VMLB: PVideoModeListBox;
     OldScreenMode,VM: TVideoMode;
@@ -1097,7 +1097,7 @@ begin
 
     R.B.Y:=R.A.Y+3;
     R2.Copy(R); R2.Grow(-1,-1);
-    New(VMLB, Init(R2, Min(4,C^.Count), C));
+    New(VMLB, Init(R2, Min(5,C^.Count), C));
     if CurVP=nil then CurIdx:=-1 else
       CurIdx:=C^.IndexOf(CurVP);
     if CurIdx<>-1 then
