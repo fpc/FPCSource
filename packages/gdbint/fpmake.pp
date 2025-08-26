@@ -154,10 +154,8 @@ begin
   L := TStringList.Create;
   P := Sender as TPackage;
   try
-    if P.Directory<>'' then
-      L.add(IncludeTrailingPathDelimiter(P.Directory)+'src'+DirectorySeparator+'gdbver.inc')
-    else
-      L.add(IncludeTrailingPathDelimiter(Installer.BuildEngine.StartDir)+'src'+DirectorySeparator+'gdbver.inc');
+    // This procedure is called at gdbint directory level
+    L.add('src'+DirectorySeparator+'gdbver.inc');
     Installer.BuildEngine.CmdDeleteFiles(L);
   finally
     L.Free;
