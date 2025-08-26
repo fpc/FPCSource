@@ -9325,7 +9325,7 @@ procedure TBuildEngine.DoAfterClean(APackage: TPackage);
 begin
   If Assigned(APackage.AfterClean) then
     APackage.AfterClean(APackage);
-  If Assigned(APackage.AfterInstallProc) then
+  If Assigned(APackage.AfterCleanProc) then
     APackage.AfterCleanProc(APackage);
   ExecuteCommands(APackage.Commands,caAfterClean);
 end;
