@@ -369,10 +369,19 @@ const bullet='*';
 const bullet=#254;
 {$endif}
 
+{ For DOS in program active current directory is actual system current }
+{ directory. Have to save and restore on exit.                         }
+{$ifdef go32v2}
+var DirectoryInvokeFpFrom : String;
+{$endif}
+
 var
   _GDBVersion: String;
 
 BEGIN
+{$ifdef go32v2}
+  GetDir(0,DirectoryInvokeFpFrom);  {save for restore on exit}
+{$endif}
 {$IFDEF HasSignal}
   EnableCatchSignals;
 {$ENDIF}
@@ -615,6 +624,9 @@ BEGIN
 {$if defined(windows)}
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
 {$endif defined(windows)}
+{$ifdef go32v2}
+  ChDir(DirectoryInvokeFpFrom); {restore active directory we invoke fp from }
+{$endif}
   StreamError:=nil;
 {$ifdef DEBUG}
   if CloseImmediately then
