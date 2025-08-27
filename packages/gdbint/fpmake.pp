@@ -14,9 +14,9 @@ procedure BeforeCompile_gdbint(Sender: TObject);
 var
   L : TStrings;
   P : TPackage;
-  Cmd,GdbLibDir, GdbLibFile: string;
+  Cmd,GdbLibDir, GdbLibFile,GdbVerIncFile: string;
   GdbLibFound: boolean;
-  GdbintTarget, GdbVerTarget: TTarget;
+  GdbintTarget, GdbconTarget, GdbVerTarget: TTarget;
   Opts : TStrings;
   Prefix : String;
   
@@ -66,6 +66,8 @@ begin
 
   GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
   GdbintTarget:=TTarget(p.Targets.ItemByName(Prefix+'gdbint'));
+  GdbconTarget:=TTarget(p.Targets.ItemByName(Prefix+'gdbcon'));
+  GdbVerIncFile:=IncludeTrailingPathDelimiter(P.GetUnitsOutputDir(Defaults.CompileTarget))+'gdbver.inc';
 
   if GdbLibFound then
     Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
@@ -102,7 +104,7 @@ begin
       Opts:=TStringList.Create;
       try
         Opts.Add('-o');
-        Opts.Add(Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
+        Opts.Add(Installer.BuildEngine.AddPathPrefix(p,GdbVerIncFile));
         Installer.BuildEngine.ExecuteCommand(Cmd,Opts);
       finally
         opts.Free;
@@ -111,6 +113,10 @@ begin
 
       with GdbintTarget.Dependencies do
         AddInclude('gdbver.inc');
+      GdbintTarget.IncludePath.Add(P.GetUnitsOutputDir(Defaults.CompileTarget));
+      with GdbconTarget.Dependencies do
+        AddInclude('gdbver.inc');
+      GdbconTarget.IncludePath.Add(P.GetUnitsOutputDir(Defaults.CompileTarget));
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
       if FileExists(GdbLibDir+PathDelim+MinGWGdbLibName) then
         begin
@@ -132,12 +138,16 @@ begin
       L := TStringList.Create;
       try
         if P.Directory<>'' then
-          L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := IncludeTrailingPathDelimiter(P.Directory) +'src'+DirectorySeparator+'gdbver.inc'
+          L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := IncludeTrailingPathDelimiter(P.Directory) +GdbVerIncFile
         else
-          L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := 'src'+DirectorySeparator+'gdbver.inc';
+          L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := GdbVerIncFile;
         Installer.BuildEngine.cmdcopyfiles(L, Installer.BuildEngine.StartDir, nil);
         with GdbintTarget.Dependencies do
           AddInclude('gdbver.inc');
+        GdbintTarget.IncludePath.Add(P.GetUnitsOutputDir(Defaults.CompileTarget));
+        with GdbconTarget.Dependencies do
+          AddInclude('gdbver.inc');
+        GdbconTarget.IncludePath.Add(P.GetUnitsOutputDir(Defaults.CompileTarget));
       finally
         L.Free;
       end;
@@ -149,13 +159,15 @@ procedure AfterClean_gdbint(Sender: TObject);
 var
   L : TStrings;
   P : TPackage;
+  GdbVerIncFile: string;
 begin
   // Remove the generated gdbver.inc
   L := TStringList.Create;
   P := Sender as TPackage;
   try
     // This procedure is called at gdbint directory level
-    L.add('src'+DirectorySeparator+'gdbver.inc');
+    GdbVerIncFile:=IncludeTrailingPathDelimiter(P.GetUnitsOutputDir(Defaults.CompileTarget))+'gdbver.inc';
+    L.add(GdbVerIncFile);
     Installer.BuildEngine.CmdDeleteFiles(L);
   finally
     L.Free;
