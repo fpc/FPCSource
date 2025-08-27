@@ -319,35 +319,35 @@ function sndAlias(ch0:AnsiChar; ch1:AnsiChar):DWORD;
 const
       SND_ALIAS_SYSTEMASTERISK        = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('*')));
+                                         (DWORD(AnsiChar('*')) shl 8));
 
       SND_ALIAS_SYSTEMQUESTION        = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('?')));
+                                         (DWORD(AnsiChar('?')) shl 8));
 
       SND_ALIAS_SYSTEMHAND            = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('H')));
+                                         (DWORD(AnsiChar('H')) shl 8));
 
       SND_ALIAS_SYSTEMEXIT            = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('E')));
+                                         (DWORD(AnsiChar('E')) shl 8));
 
       SND_ALIAS_SYSTEMSTART           = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('S')));
+                                         (DWORD(AnsiChar('S')) shl 8));
 
       SND_ALIAS_SYSTEMWELCOME         = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('W')));
+                                         (DWORD(AnsiChar('W')) shl 8));
 
       SND_ALIAS_SYSTEMEXCLAMATION     = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('!')));
+                                         (DWORD(AnsiChar('!')) shl 8));
 
       SND_ALIAS_SYSTEMDEFAULT         = SND_ALIAS_START+
                                         (DWORD(AnsiChar('S')) or
-                                         DWORD(AnsiChar('D')));
+                                         (DWORD(AnsiChar('D')) shl 8));
 
       SND_ALIAS      = $00010000;   // name is a WIN.INI [sounds] entry
       SND_FILENAME   = $00020000;   // name is a file name
