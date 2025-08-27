@@ -59,7 +59,8 @@ implementation
     cgbase,cgobj,cgutils,tgobj,
     cpubase,htypechk,
     pass_1,pass_2,
-    aasmbase,aasmtai,aasmdata,aasmcpu,procinfo,cpupi;
+    aasmbase,aasmtai,aasmdata,aasmcpu,
+    procinfo,cpupi,procdefutil;
 
   var
     endexceptlabel: tasmlabel;
@@ -349,23 +350,30 @@ procedure taarch64tryfinallynode.pass_generate_code;
 
 function taarch64tryfinallynode.dogetcopy: tnode;
   var
-    p : taarch64tryfinallynode absolute result;
+    n : taarch64tryfinallynode;
   begin
-    result:=inherited dogetcopy;
+    n:=taarch64tryfinallynode(inherited dogetcopy);
     if (target_info.system=system_aarch64_win64) then
       begin
-        if df_generic in current_procinfo.procdef.defoptions then
-          InternalError(2020033104);
-
-        p.finalizepi:=tcgprocinfo(current_procinfo.create_for_outlining('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype,p.right));
-        if pi_do_call in finalizepi.flags then
-          include(p.finalizepi.flags,pi_do_call);
-        { the init/final code is messing with asm nodes, so inform the compiler about this }
-        include(p.finalizepi.flags,pi_has_assembler_block);
-        if implicitframe then
-          p.finalizepi.allocate_push_parasize(32);
+        n.finalizepi:=tcgprocinfo(cprocinfo.create(finalizepi.parent));
+        n.finalizepi.force_nested;
+        n.finalizepi.procdef:=create_outline_procdef('$fin$',current_procinfo.procdef.struct,potype_exceptfilter,voidtype);
+        n.finalizepi.entrypos:=finalizepi.entrypos;
+        n.finalizepi.entryswitches:=finalizepi.entryswitches;
+        n.finalizepi.exitpos:=finalizepi.exitpos;
+        n.finalizepi.exitswitches:=finalizepi.exitswitches;
+        n.finalizepi.flags:=finalizepi.flags;
+        { node already transformed? }
+        if assigned(finalizepi.code) then
+          begin
+            n.finalizepi.code:=finalizepi.code.getcopy;
+            n.right:=ccallnode.create(nil,tprocsym(n.finalizepi.procdef.procsym),nil,nil,[],nil);
+            firstpass(n.right);
+          end;
       end;
+    result:=n;
   end;
+
 
 { taarch64tryexceptnode }
 
