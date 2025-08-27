@@ -986,57 +986,92 @@ CPU_UNITS=attiny26
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr25)
-CPU_UNITS=at90usb82 atmega8u2 attiny13 attiny13a attiny24 attiny24a attiny25 attiny43u \
-	  attiny44 attiny44a attiny45 attiny48 attiny84a attiny84 attiny85 \
-	  attiny87 attiny88 attiny261 attiny261a attiny441 attiny461 attiny461a attiny828 \
-	  attiny841 attiny861 attiny861a attiny2313 attiny2313a attiny4313
+CPU_UNITS=at90usb82 attiny13 attiny13a attiny24 attiny24a attiny25 attiny43u attiny44 \
+          attiny44a attiny45 attiny48 attiny84 attiny84a attiny85 attiny87 attiny88 \
+          attiny261 attiny261a attiny441 attiny461 attiny461a attiny828 attiny841 \
+          attiny861 attiny861a attiny2313 attiny2313a attiny4313
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr35)
-CPU_UNITS=at90usb162 atmega16u2 atmega32u2 attiny167 attiny1634
+CPU_UNITS=at90usb162 atmega8u2 atmega16u2 atmega32u2 attiny167 attiny1634
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr4)
-CPU_UNITS=at90pwm1 at90pwm2b at90pwm3b at90pwm81 ata6285 ata6286 atmega8 \
-	  atmega8a atmega8hva atmega48 atmega48a atmega48p atmega48pa \
-	  atmega48pb atmega88 atmega88a atmega88p atmega88pa atmega88pb \
-	  atmega8515 atmega8535
+CPU_UNITS=at90pwm1 at90pwm2b at90pwm3 at90pwm3b at90pwm81 ata6285 ata6286 atmega8 \
+          atmega8a atmega8hva atmega48 atmega48a atmega48p atmega48pa atmega48pb \
+          atmega88 atmega88a atmega88p atmega88pa atmega88pb atmega8515 atmega8535
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr5)
-CPU_UNITS=avrsim at90can32 at90can64 at90pwm161 at90pwm216 at90pwm316 \
-	  at90usb646 at90usb647 atmega16 atmega16a atmega16hva atmega16hvb atmega16hvbrevb atmega16m1 \
-	  atmega16u4 atmega32 atmega32a atmega32c1 atmega32hvb atmega32hvbrevb atmega32m1 \
-	  atmega32u4 atmega64 atmega64a atmega64c1 atmega64hve2 atmega64m1 atmega64rfr2 atmega162 \
-	  atmega164a atmega164p atmega164pa atmega165a atmega165p atmega165pa \
-	  atmega168 atmega168a atmega168p atmega168pa atmega168pb atmega169a atmega169p \
-	  atmega169pa atmega324a atmega324p atmega324pa atmega324pb atmega325 atmega325a \
-	  atmega325p atmega325pa atmega328 atmega328p atmega328pb atmega329 atmega329a \
-	  atmega329p atmega329pa atmega406 atmega640 atmega644 atmega644a atmega644p \
-	  atmega644pa atmega644rfr2 atmega645 atmega645a atmega645p atmega649 atmega649a \
-	  atmega649p atmega3250 atmega3250a atmega3250p atmega3250pa atmega3290 \
-	  atmega3290a atmega3290p atmega3290pa atmega6450 atmega6450a \
-	  atmega6450p atmega6490 atmega6490a atmega6490p
+CPU_UNITS=at90can32 at90can64 at90pwm161 at90pwm216 at90pwm316 at90usb646 at90usb647 \
+          atmega16 atmega16a atmega16hva atmega16hvb atmega16hvbrevb atmega16m1 \
+          atmega16u4 atmega32 atmega32a atmega32c1 atmega32hvb atmega32hvbrevb atmega32m1 \
+          atmega32u4 atmega64 atmega64a atmega64c1 atmega64hve2 atmega64m1 atmega64rfr2 \
+          atmega162 atmega164a atmega164p atmega164pa atmega165a atmega165p atmega165pa \
+          atmega168 atmega168a atmega168p atmega168pa atmega168pb atmega169a atmega169p \
+          atmega169pa atmega324a atmega324p atmega324pa atmega324pb atmega325 atmega325a \
+          atmega325p atmega325pa atmega328 atmega328p atmega328pb atmega329 atmega329a \
+          atmega329p atmega329pa atmega406 atmega640 atmega644 atmega644a atmega644p \
+          atmega644pa atmega644rfr2 atmega645 atmega645a atmega645p atmega649 atmega649a \
+          atmega649p atmega3250 atmega3250a atmega3250p atmega3250pa atmega3290 \
+          atmega3290a atmega3290p atmega3290pa atmega6450 atmega6450a atmega6450p \
+          atmega6490 atmega6490a atmega6490p
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr51)
-CPU_UNITS=at90can128 at90usb1286 at90usb1287 atmega128 atmega128a atmega128rfa1 atmega128rfr2 \
-	  atmega1280 atmega1281 atmega1284 atmega1284p atmega1284rfr2
+CPU_UNITS=at90can128 at90usb1286 at90usb1287 atmega128 atmega128a atmega128rfa1 \
+          atmega128rfr2 atmega1280 atmega1281 atmega1284 atmega1284p atmega1284rfr2
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr6)
-CPU_UNITS=avrsim atmega256rfr2 atmega2560 atmega2561 atmega2564rfr2
+CPU_UNITS=atmega256rfr2 atmega2560 atmega2561 atmega2564rfr2
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),avrxmega2)
+CPU_UNITS=atxmega8e5 atxmega16a4 atxmega16a4u atxmega16c4 atxmega16d4 atxmega16e5 \
+          atxmega32a4 atxmega32a4u atxmega32c3 atxmega32c4 atxmega32d3 atxmega32d4 \
+          atxmega32e5 avr64da28 avr64da28s avr64da32 avr64da32s avr64da48 avr64da48s \
+          avr64da64 avr64da64s avr64db28 avr64db32 avr64db48 avr64db64 avr64dd14 \
+          avr64dd20 avr64dd28 avr64dd32 avr64du28 avr64du32 avr64ea28 avr64ea32 \
+          avr64ea48
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avrxmega3)
-CPU_UNITS=atmega808 atmega809 atmega1608 atmega1609 atmega3208 atmega3209 \
-	  atmega4808 atmega4809 attiny202 attiny204 attiny212 attiny214 \
-	  attiny402 attiny404 attiny406 attiny412 attiny414 attiny416 \
-	  attiny416auto attiny417 attiny424 attiny426 attiny427 attiny804 \
-	  attiny806 attiny807 attiny814 attiny816 attiny817 attiny824 attiny826 \
-	  attiny827 attiny1604 attiny1606 attiny1607 attiny1614 attiny1616 \
-	  attiny1617 attiny1624 attiny1626 attiny1627 attiny3214 attiny3216 \
-	  attiny3217 attiny3224 attiny3226 attiny3227
+CPU_UNITS=atmega808 atmega809 atmega1608 atmega1609 atmega3208 atmega3209 atmega4808 \
+          atmega4809 attiny202 attiny204 attiny212 attiny214 attiny402 attiny404 \
+          attiny406 attiny412 attiny414 attiny416  attiny416auto attiny417 attiny424 \
+          attiny426 attiny427 attiny804 attiny806 attiny807 attiny814 attiny816 \
+          attiny817 attiny824 attiny826 attiny827 attiny1604 attiny1606 attiny1607 \
+          attiny1614 attiny1616 attiny1617 attiny1624 attiny1626 attiny1627 attiny3214 \
+          attiny3216 attiny3217 attiny3224 attiny3226 attiny3227 avr16dd14 avr16dd20 \
+          avr16dd28 avr16dd32 avr16du14 avr16du20 avr16du28 avr16du32 avr16ea28 \
+          avr16ea32 avr16ea48 avr16eb14 avr16eb20 avr16eb28 avr16eb32 avr32da28 \
+          avr32da28s avr32da32 avr32da32s avr32da48 avr32da48s avr32db28 avr32db32 \
+          avr32db48 avr32dd14 avr32dd20 avr32dd28 avr32dd32 avr32du14 avr32du20 \
+          avr32du28 avr32du32 avr32ea28 avr32ea32 avr32ea48 avr32eb14 avr32eb20 \
+          avr32eb28 avr32eb32
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),avrxmega4)
+CPU_UNITS=atxmega64a3 atxmega64a3u atxmega64a4u atxmega64b1 atxmega64b3 atxmega64c3 \
+          atxmega64d3 atxmega64d4 avr128da28 avr128da28s avr128da32 avr128da32s \
+          avr128da48 avr128da48s avr128da64 avr128da64s avr128db28 avr128db32 avr128db48 \
+          avr128db64
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),avrxmega5)
+CPU_UNITS=atxmega64a1 atxmega64a1u
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),avrxmega6)
+CPU_UNITS=atxmega128a3 atxmega128a3u atxmega128b1 atxmega128b3 atxmega128c3 atxmega128d3 \
+          atxmega128d4 atxmega192a3 atxmega192a3u atxmega192c3 atxmega192d3 atxmega256a3 \
+          atxmega256a3b atxmega256a3bu atxmega256a3u atxmega256c3 atxmega256d3 atxmega384c3 \
+          atxmega384d3
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),avrxmega7)
+CPU_UNITS=atxmega128a1 atxmega128a1u atxmega128a4u
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(CPU_UNITS_DEFINED),)

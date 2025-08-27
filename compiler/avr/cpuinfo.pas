@@ -46,7 +46,12 @@ Type
        cpu_avr5,
        cpu_avr51,
        cpu_avr6,
-       cpu_avrxmega3
+       cpu_avrxmega2,
+       cpu_avrxmega3,
+       cpu_avrxmega4,
+       cpu_avrxmega5,
+       cpu_avrxmega6,
+       cpu_avrxmega7
       );
 
    tfputype =
@@ -66,6 +71,7 @@ Type
       ct_at90can128,
       ct_at90pwm1,
       ct_at90pwm2b,
+      ct_at90pwm3,
       ct_at90pwm3b,
       ct_at90pwm81,
       ct_at90pwm161,
@@ -276,6 +282,124 @@ Type
       ct_attiny3226,
       ct_attiny3227,
       ct_attiny4313,
+      ct_atxmega8e5,
+      ct_atxmega16a4,
+      ct_atxmega16a4u,
+      ct_atxmega16c4,
+      ct_atxmega16d4,
+      ct_atxmega16e5,
+      ct_atxmega32a4,
+      ct_atxmega32a4u,
+      ct_atxmega32c3,
+      ct_atxmega32c4,
+      ct_atxmega32d3,
+      ct_atxmega32d4,
+      ct_atxmega32e5,
+      ct_atxmega64a1,
+      ct_atxmega64a1u,
+      ct_atxmega64a3,
+      ct_atxmega64a3u,
+      ct_atxmega64a4u,
+      ct_atxmega64b1,
+      ct_atxmega64b3,
+      ct_atxmega64c3,
+      ct_atxmega64d3,
+      ct_atxmega64d4,
+      ct_atxmega128a1,
+      ct_atxmega128a1u,
+      ct_atxmega128a3,
+      ct_atxmega128a3u,
+      ct_atxmega128a4u,
+      ct_atxmega128b1,
+      ct_atxmega128b3,
+      ct_atxmega128c3,
+      ct_atxmega128d3,
+      ct_atxmega128d4,
+      ct_atxmega192a3,
+      ct_atxmega192a3u,
+      ct_atxmega192c3,
+      ct_atxmega192d3,
+      ct_atxmega256a3,
+      ct_atxmega256a3b,
+      ct_atxmega256a3bu,
+      ct_atxmega256a3u,
+      ct_atxmega256c3,
+      ct_atxmega256d3,
+      ct_atxmega384c3,
+      ct_atxmega384d3,
+      ct_avr16dd14,
+      ct_avr16dd20,
+      ct_avr16dd28,
+      ct_avr16dd32,
+      ct_avr16du14,
+      ct_avr16du20,
+      ct_avr16du28,
+      ct_avr16du32,
+      ct_avr16ea28,
+      ct_avr16ea32,
+      ct_avr16ea48,
+      ct_avr16eb14,
+      ct_avr16eb20,
+      ct_avr16eb28,
+      ct_avr16eb32,
+      ct_avr32da28,
+      ct_avr32da28s,
+      ct_avr32da32,
+      ct_avr32da32s,
+      ct_avr32da48,
+      ct_avr32da48s,
+      ct_avr32db28,
+      ct_avr32db32,
+      ct_avr32db48,
+      ct_avr32dd14,
+      ct_avr32dd20,
+      ct_avr32dd28,
+      ct_avr32dd32,
+      ct_avr32du14,
+      ct_avr32du20,
+      ct_avr32du28,
+      ct_avr32du32,
+      ct_avr32ea28,
+      ct_avr32ea32,
+      ct_avr32ea48,
+      ct_avr32eb14,
+      ct_avr32eb20,
+      ct_avr32eb28,
+      ct_avr32eb32,
+      ct_avr64da28,
+      ct_avr64da28s,
+      ct_avr64da32,
+      ct_avr64da32s,
+      ct_avr64da48,
+      ct_avr64da48s,
+      ct_avr64da64,
+      ct_avr64da64s,
+      ct_avr64db28,
+      ct_avr64db32,
+      ct_avr64db48,
+      ct_avr64db64,
+      ct_avr64dd14,
+      ct_avr64dd20,
+      ct_avr64dd28,
+      ct_avr64dd32,
+      ct_avr64du28,
+      ct_avr64du32,
+      ct_avr64ea28,
+      ct_avr64ea32,
+      ct_avr64ea48,
+      ct_avr128da28,
+      ct_avr128da28s,
+      ct_avr128da32,
+      ct_avr128da32s,
+      ct_avr128da48,
+      ct_avr128da48s,
+      ct_avr128da64,
+      ct_avr128da64s,
+      ct_avr128db28,
+      ct_avr128db32,
+      ct_avr128db48,
+      ct_avr128db64,
+
       // Controller board aliases
       ct_arduinoleonardo,
       ct_arduinomega,
@@ -331,7 +455,12 @@ Const
      'AVR5',
      'AVR51',
      'AVR6',
-     'AVRXMEGA3'
+     'AVRXMEGA2',
+     'AVRXMEGA3',
+     'AVRXMEGA4',
+     'AVRXMEGA5',
+     'AVRXMEGA6',
+     'AVRXMEGA7'
    );
 
    fputypestr : array[tfputype] of string[6] = (
@@ -382,17 +511,19 @@ Const
         eeprombase:0;
         eepromsize:4096;
         )
+
         ,(controllertypestr:'AT90CAN32';controllerunitstr:'AT90CAN32';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:256;sramsize:2048;eeprombase:0;eepromsize:1024;bootbase:24576;bootsize:8192)
         ,(controllertypestr:'AT90CAN64';controllerunitstr:'AT90CAN64';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:256;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:57344;bootsize:8192)
         ,(controllertypestr:'AT90CAN128';controllerunitstr:'AT90CAN128';cputype:cpu_avr51;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:256;sramsize:4096;eeprombase:0;eepromsize:4096;bootbase:122880;bootsize:8192)
         ,(controllertypestr:'AT90PWM1';controllerunitstr:'AT90PWM1';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'AT90PWM2B';controllerunitstr:'AT90PWM2B';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
+        ,(controllertypestr:'AT90PWM3';controllerunitstr:'AT90PWM3';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'AT90PWM3B';controllerunitstr:'AT90PWM3B';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'AT90PWM81';controllerunitstr:'AT90PWM81';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:256;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'AT90PWM161';controllerunitstr:'AT90PWM161';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:256;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:14336;bootsize:2048)
         ,(controllertypestr:'AT90PWM216';controllerunitstr:'AT90PWM216';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:256;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:12288;bootsize:4096)
         ,(controllertypestr:'AT90PWM316';controllerunitstr:'AT90PWM316';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:256;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:12288;bootsize:4096)
-        ,(controllertypestr:'AT90USB82';controllerunitstr:'AT90USB82';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:4096;bootsize:4096)
+        ,(controllertypestr:'AT90USB82';controllerunitstr:'AT90USB82';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:4096;bootsize:4096)// Subarch modified to better match memory map
         ,(controllertypestr:'AT90USB162';controllerunitstr:'AT90USB162';cputype:cpu_avr35;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:12288;bootsize:4096)
         ,(controllertypestr:'AT90USB646';controllerunitstr:'AT90USB646';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:256;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:57344;bootsize:8192)
         ,(controllertypestr:'AT90USB647';controllerunitstr:'AT90USB647';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:256;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:57344;bootsize:8192)
@@ -403,7 +534,7 @@ Const
         ,(controllertypestr:'ATMEGA8';controllerunitstr:'ATMEGA8';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:96;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'ATMEGA8A';controllerunitstr:'ATMEGA8A';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:96;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'ATMEGA8HVA';controllerunitstr:'ATMEGA8HVA';cputype:cpu_avr4;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:256)
-        ,(controllertypestr:'ATMEGA8U2';controllerunitstr:'ATMEGA8U2';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:4096;bootsize:4096)
+        ,(controllertypestr:'ATMEGA8U2';controllerunitstr:'ATMEGA8U2';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512;bootbase:4096;bootsize:4096)// Subarch modified to better match memory map
         ,(controllertypestr:'ATMEGA16';controllerunitstr:'ATMEGA16';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:96;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:14336;bootsize:2048)
         ,(controllertypestr:'ATMEGA16A';controllerunitstr:'ATMEGA16A';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:96;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:14336;bootsize:2048)
         ,(controllertypestr:'ATMEGA16HVA';controllerunitstr:'ATMEGA16HVA';cputype:cpu_avr5;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:256;sramsize:512;eeprombase:0;eepromsize:256)
@@ -574,7 +705,7 @@ Const
         ,(controllertypestr:'ATTINY824';controllerunitstr:'ATTINY824';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15360;sramsize:1024;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY826';controllerunitstr:'ATTINY826';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15360;sramsize:1024;eeprombase:5120;eepromsize:128)
         ,(controllertypestr:'ATTINY827';controllerunitstr:'ATTINY827';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:15360;sramsize:1024;eeprombase:5120;eepromsize:128)
-        ,(controllertypestr:'ATTINY828';controllerunitstr:'ATTINY828';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:256)
+        ,(controllertypestr:'ATTINY828';controllerunitstr:'ATTINY828';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:256;bootbase:6144;bootsize:2048)
         ,(controllertypestr:'ATTINY841';controllerunitstr:'ATTINY841';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:256;sramsize:512;eeprombase:0;eepromsize:512)
         ,(controllertypestr:'ATTINY861';controllerunitstr:'ATTINY861';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:96;sramsize:512;eeprombase:0;eepromsize:512)
         ,(controllertypestr:'ATTINY861A';controllerunitstr:'ATTINY861A';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:96;sramsize:512;eeprombase:0;eepromsize:512)
@@ -597,6 +728,123 @@ Const
         ,(controllertypestr:'ATTINY3226';controllerunitstr:'ATTINY3226';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:13312;sramsize:3072;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY3227';controllerunitstr:'ATTINY3227';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:13312;sramsize:3072;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY4313';controllerunitstr:'ATTINY4313';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:4096;srambase:96;sramsize:256;eeprombase:0;eepromsize:256)
+        ,(controllertypestr:'ATXMEGA8E5';controllerunitstr:'ATXMEGA8E5';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:8192;srambase:8192;sramsize:1024;eeprombase:0;eepromsize:512;bootbase:8192;bootsize:2048)
+        ,(controllertypestr:'ATXMEGA16A4';controllerunitstr:'ATXMEGA16A4';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:8192;sramsize:2048;eeprombase:0;eepromsize:1024;bootbase:16384;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA16A4U';controllerunitstr:'ATXMEGA16A4U';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:8192;sramsize:2048;eeprombase:0;eepromsize:1024;bootbase:16384;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA16C4';controllerunitstr:'ATXMEGA16C4';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:8192;sramsize:2048;eeprombase:0;eepromsize:1024;bootbase:16384;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA16D4';controllerunitstr:'ATXMEGA16D4';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:8192;sramsize:2048;eeprombase:0;eepromsize:1024;bootbase:16384;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA16E5';controllerunitstr:'ATXMEGA16E5';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:8192;sramsize:2048;eeprombase:0;eepromsize:512;bootbase:16384;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32A4';controllerunitstr:'ATXMEGA32A4';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32A4U';controllerunitstr:'ATXMEGA32A4U';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32C3';controllerunitstr:'ATXMEGA32C3';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32C4';controllerunitstr:'ATXMEGA32C4';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32D3';controllerunitstr:'ATXMEGA32D3';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32D4';controllerunitstr:'ATXMEGA32D4';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA32E5';controllerunitstr:'ATXMEGA32E5';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:1024;bootbase:32768;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64A1';controllerunitstr:'ATXMEGA64A1';cputype:cpu_avrxmega5;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64A1U';controllerunitstr:'ATXMEGA64A1U';cputype:cpu_avrxmega5;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64A3';controllerunitstr:'ATXMEGA64A3';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64A3U';controllerunitstr:'ATXMEGA64A3U';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64A4U';controllerunitstr:'ATXMEGA64A4U';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64B1';controllerunitstr:'ATXMEGA64B1';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64B3';controllerunitstr:'ATXMEGA64B3';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64C3';controllerunitstr:'ATXMEGA64C3';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64D3';controllerunitstr:'ATXMEGA64D3';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA64D4';controllerunitstr:'ATXMEGA64D4';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:8192;sramsize:4096;eeprombase:0;eepromsize:2048;bootbase:65536;bootsize:4096)
+        ,(controllertypestr:'ATXMEGA128A1';controllerunitstr:'ATXMEGA128A1';cputype:cpu_avrxmega7;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128A1U';controllerunitstr:'ATXMEGA128A1U';cputype:cpu_avrxmega7;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128A3';controllerunitstr:'ATXMEGA128A3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128A3U';controllerunitstr:'ATXMEGA128A3U';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128A4U';controllerunitstr:'ATXMEGA128A4U';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)// Subarch modified to better match memory map
+        ,(controllertypestr:'ATXMEGA128B1';controllerunitstr:'ATXMEGA128B1';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128B3';controllerunitstr:'ATXMEGA128B3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128C3';controllerunitstr:'ATXMEGA128C3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128D3';controllerunitstr:'ATXMEGA128D3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA128D4';controllerunitstr:'ATXMEGA128D4';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:8192;sramsize:8192;eeprombase:0;eepromsize:2048;bootbase:131072;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA192A3';controllerunitstr:'ATXMEGA192A3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:196608;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:2048;bootbase:196608;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA192A3U';controllerunitstr:'ATXMEGA192A3U';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:196608;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:2048;bootbase:196608;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA192C3';controllerunitstr:'ATXMEGA192C3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:196608;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:2048;bootbase:196608;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA192D3';controllerunitstr:'ATXMEGA192D3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:196608;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:2048;bootbase:196608;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA256A3';controllerunitstr:'ATXMEGA256A3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:262144;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:4096;bootbase:262144;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA256A3B';controllerunitstr:'ATXMEGA256A3B';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:262144;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:4096;bootbase:262144;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA256A3BU';controllerunitstr:'ATXMEGA256A3BU';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:262144;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:4096;bootbase:262144;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA256A3U';controllerunitstr:'ATXMEGA256A3U';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:262144;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:4096;bootbase:262144;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA256C3';controllerunitstr:'ATXMEGA256C3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:262144;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:4096;bootbase:262144;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA256D3';controllerunitstr:'ATXMEGA256D3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:262144;srambase:8192;sramsize:16384;eeprombase:0;eepromsize:4096;bootbase:262144;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA384C3';controllerunitstr:'ATXMEGA384C3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:393216;srambase:8192;sramsize:32768;eeprombase:0;eepromsize:4096;bootbase:393216;bootsize:8192)
+        ,(controllertypestr:'ATXMEGA384D3';controllerunitstr:'ATXMEGA384D3';cputype:cpu_avrxmega6;fputype:fpu_soft;flashbase:0;flashsize:393216;srambase:8192;sramsize:32768;eeprombase:0;eepromsize:4096;bootbase:393216;bootsize:8192)
+        ,(controllertypestr:'AVR16DD14';controllerunitstr:'AVR16DD14';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DD20';controllerunitstr:'AVR16DD20';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DD28';controllerunitstr:'AVR16DD28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DD32';controllerunitstr:'AVR16DD32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DU14';controllerunitstr:'AVR16DU14';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DU20';controllerunitstr:'AVR16DU20';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DU28';controllerunitstr:'AVR16DU28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16DU32';controllerunitstr:'AVR16DU32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR16EA28';controllerunitstr:'AVR16EA28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR16EA32';controllerunitstr:'AVR16EA32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR16EA48';controllerunitstr:'AVR16EA48';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR16EB14';controllerunitstr:'AVR16EB14';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR16EB20';controllerunitstr:'AVR16EB20';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR16EB28';controllerunitstr:'AVR16EB28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR16EB32';controllerunitstr:'AVR16EB32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:30720;sramsize:2048;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DA28';controllerunitstr:'AVR32DA28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DA28S';controllerunitstr:'AVR32DA28S';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DA32';controllerunitstr:'AVR32DA32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DA32S';controllerunitstr:'AVR32DA32S';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DA48';controllerunitstr:'AVR32DA48';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DA48S';controllerunitstr:'AVR32DA48S';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DB28';controllerunitstr:'AVR32DB28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DB32';controllerunitstr:'AVR32DB32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DB48';controllerunitstr:'AVR32DB48';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32DD14';controllerunitstr:'AVR32DD14';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DD20';controllerunitstr:'AVR32DD20';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DD28';controllerunitstr:'AVR32DD28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DD32';controllerunitstr:'AVR32DD32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DU14';controllerunitstr:'AVR32DU14';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DU20';controllerunitstr:'AVR32DU20';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DU28';controllerunitstr:'AVR32DU28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32DU32';controllerunitstr:'AVR32DU32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR32EA28';controllerunitstr:'AVR32EA28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32EA32';controllerunitstr:'AVR32EA32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32EA48';controllerunitstr:'AVR32EA48';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:28672;sramsize:4096;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32EB14';controllerunitstr:'AVR32EB14';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:29696;sramsize:3072;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32EB20';controllerunitstr:'AVR32EB20';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:29696;sramsize:3072;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32EB28';controllerunitstr:'AVR32EB28';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:29696;sramsize:3072;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR32EB32';controllerunitstr:'AVR32EB32';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:29696;sramsize:3072;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA28';controllerunitstr:'AVR64DA28';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA28S';controllerunitstr:'AVR64DA28S';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA32';controllerunitstr:'AVR64DA32';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA32S';controllerunitstr:'AVR64DA32S';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA48';controllerunitstr:'AVR64DA48';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA48S';controllerunitstr:'AVR64DA48S';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA64';controllerunitstr:'AVR64DA64';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DA64S';controllerunitstr:'AVR64DA64S';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DB28';controllerunitstr:'AVR64DB28';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DB32';controllerunitstr:'AVR64DB32';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DB48';controllerunitstr:'AVR64DB48';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DB64';controllerunitstr:'AVR64DB64';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64DD14';controllerunitstr:'AVR64DD14';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR64DD20';controllerunitstr:'AVR64DD20';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR64DD28';controllerunitstr:'AVR64DD28';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR64DD32';controllerunitstr:'AVR64DD32';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR64DU28';controllerunitstr:'AVR64DU28';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR64DU32';controllerunitstr:'AVR64DU32';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:24576;sramsize:8192;eeprombase:5120;eepromsize:256)
+        ,(controllertypestr:'AVR64EA28';controllerunitstr:'AVR64EA28';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:26624;sramsize:6144;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64EA32';controllerunitstr:'AVR64EA32';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:26624;sramsize:6144;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR64EA48';controllerunitstr:'AVR64EA48';cputype:cpu_avrxmega2;fputype:fpu_soft;flashbase:0;flashsize:65536;srambase:26624;sramsize:6144;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA28';controllerunitstr:'AVR128DA28';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA28S';controllerunitstr:'AVR128DA28S';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA32';controllerunitstr:'AVR128DA32';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA32S';controllerunitstr:'AVR128DA32S';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA48';controllerunitstr:'AVR128DA48';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA48S';controllerunitstr:'AVR128DA48S';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA64';controllerunitstr:'AVR128DA64';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DA64S';controllerunitstr:'AVR128DA64S';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DB28';controllerunitstr:'AVR128DB28';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DB32';controllerunitstr:'AVR128DB32';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DB48';controllerunitstr:'AVR128DB48';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
+        ,(controllertypestr:'AVR128DB64';controllerunitstr:'AVR128DB64';cputype:cpu_avrxmega4;fputype:fpu_soft;flashbase:0;flashsize:131072;srambase:16384;sramsize:16384;eeprombase:5120;eepromsize:512)
         // Controller board aliases
         ,(controllertypestr:'ARDUINOLEONARDO'; controllerunitstr:'ATMEGA32U4'; cputype: cpu_avr5; fputype:fpu_soft; flashbase:0; flashsize:32768; srambase:256; sramsize:2560; eeprombase:0; eepromsize:1024;bootbase:28672;bootsize:4096)
         ,(controllertypestr:'ARDUINOMEGA'; controllerunitstr:'ATMEGA2560'; cputype: cpu_avr6; fputype:fpu_soft; flashbase:0; flashsize:262144; srambase:512; sramsize:8192; eeprombase:0; eepromsize:4096;bootbase:253952;bootsize:8192)
@@ -629,18 +877,18 @@ Const
 
  type
    tcpuflags =
-      (CPUAVR_HAS_JMP_CALL,
-       CPUAVR_HAS_ADIW,
-       CPUAVR_HAS_MOVW,
-       CPUAVR_HAS_LPMX,
-       CPUAVR_HAS_MUL,
-       CPUAVR_HAS_RAMPZ,
-       CPUAVR_HAS_ELPM,
-       CPUAVR_HAS_ELPMX,
-       CPUAVR_2_BYTE_PC,
-       CPUAVR_3_BYTE_PC,
-       CPUAVR_16_REGS,
-       CPUAVR_NOMEMMAPPED_REGS
+      (CPUAVR_HAS_JMP_CALL,     // Jump and call instructions are available
+       CPUAVR_HAS_ADIW,         // Add immediate word instruction is available
+       CPUAVR_HAS_MOVW,         // Move word instruction is available
+       CPUAVR_HAS_LPMX,         // lpm Rn, Z+ instruction is available
+       CPUAVR_HAS_MUL,          // Multiply instruction is available
+       CPUAVR_HAS_RAMPZ,        // Special registers RAMPD/X/Y/Z are available
+       CPUAVR_HAS_ELPM,         // elpm Rn, Z instruction is available
+       CPUAVR_HAS_ELPMX,        // elpm Rn, Z+ instruction is available
+       CPUAVR_2_BYTE_PC,        // 2 byte PC is used (for devices with <= 128 kB flash)
+       CPUAVR_3_BYTE_PC,        // 3 byte PC is used (for devices with > 128 kB flash), implies EIND register
+       CPUAVR_16_REGS,          // avrtiny device with only 16 core registers
+       CPUAVR_NOMEMMAPPED_REGS  // Core registers not accesible in data space
       );
 
  const
@@ -657,7 +905,12 @@ Const
        { cpu_avr5      } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_2_BYTE_PC],
        { cpu_avr51     } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_HAS_ELPMX,CPUAVR_2_BYTE_PC],
        { cpu_avr6      } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_HAS_ELPMX,CPUAVR_3_BYTE_PC],
-       { cpu_avrxmega3 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS]
+       { cpu_avrxmega2 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS],
+       { cpu_avrxmega3 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS],
+       { cpu_avrxmega4 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_HAS_ELPMX],
+       { cpu_avrxmega5 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_2_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_HAS_ELPMX],
+       { cpu_avrxmega6 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_3_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_HAS_ELPMX],
+       { cpu_avrxmega7 } [CPUAVR_HAS_ADIW,CPUAVR_HAS_JMP_CALL,CPUAVR_HAS_MOVW,CPUAVR_HAS_LPMX,CPUAVR_HAS_MUL,CPUAVR_3_BYTE_PC,CPUAVR_NOMEMMAPPED_REGS,CPUAVR_HAS_RAMPZ,CPUAVR_HAS_ELPM,CPUAVR_HAS_ELPMX]
      );
 
 Implementation
