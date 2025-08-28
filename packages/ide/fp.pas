@@ -372,7 +372,9 @@ const bullet=#254;
 { For DOS in program active current directory is actual system current }
 { directory. Have to save and restore on exit.                         }
 {$ifdef go32v2}
-var DirectoryInvokeFpFrom : String;
+var
+  DirectoryInvokeFpFrom : String;
+  ChDirRes : Word;
 {$endif}
 
 var
@@ -625,7 +627,13 @@ BEGIN
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
 {$endif defined(windows)}
 {$ifdef go32v2}
+  {$push}
+  {$i-}
   ChDir(DirectoryInvokeFpFrom); {restore active directory we invoke fp from }
+  ChDirRes:=IOResult;
+  if (ChDirRes<>0) then
+    writeln('Failed to restore start up directory ',DirectoryInvokeFpFrom,' error=',ChDirRes);
+  {$pop}
 {$endif}
   StreamError:=nil;
 {$ifdef DEBUG}
