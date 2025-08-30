@@ -22,10 +22,10 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, System.SysUtils;
+  System.Classes, System.SysUtils, System.DateUtils;
 {$ELSE FPC_DOTTEDUNITS}
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, DateUtils;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Type
@@ -161,6 +161,7 @@ Function HTTPEncode(const AStr: String): String;
 Function IncludeHTTPPathDelimiter(const AStr: String): String;
 Function ExcludeHTTPPathDelimiter(const AStr: String): String;
 Function GetHTTPStatusText (ACode: Cardinal; aUppercase : Boolean = False) : String;
+Function ParseHTTPDateTime (const aTimestamp: String) : TDateTime;
 
 implementation
 
@@ -386,6 +387,82 @@ begin
   end;
   If aUpperCase then
     Result:=Uppercase(Result);
+end;
+
+function ParseHTTPDateTime(const aTimestamp: String): TDateTime;
+
+var
+  S : String;
+  Y,Mon,D,H,Min,Sec : Word;
+  P : integer;
+
+  Procedure Skip(var aPos: integer);
+  var
+    Len : integer;
+  begin
+    Len:=Length(S);
+    While (aPos<=Len) and (S[aPos] in [' ',',','-',':']) do
+      Inc(aPos);
+  end;
+
+  Function GetNum(var aPos: integer) : integer;
+  var
+    Len : Integer;
+  begin
+    Result:=0;
+    Len:=Length(S);
+    While (aPos<=Len) and (S[aPos] in ['0'..'9']) do
+      begin
+      Result:=(Result*10)+ Ord(S[aPos])-Ord('0');
+      Inc(aPos);
+      end;
+    Skip(aPos);
+  end;
+
+  Function GetMonth(var aPos: integer) : integer;
+  var
+    len,i : integer;
+    month : String[3];
+  begin
+    Result:=0;
+    Month:='';
+    SetLength(Month,3);
+    Len:=Length(s);
+    For I:=1 to 3 do
+      begin
+      if aPos<=Len then
+        Month[i]:=S[aPos];
+      Inc(aPos);
+      end;
+    Skip(aPos);
+    Result:=0;
+    I:=1;
+    While (Result=0) and (I<=12) do
+      begin
+      if SameText(Month,HTTPMonths[i]) then
+        Result:=I;
+      inc(I);
+      end;
+  end;
+
+begin
+  S:=aTimeStamp;
+  P:=Pos(',',S);
+  if P>0 then
+    Delete(S,1,P);
+  P:=Pos('GMT',S);
+  if P>0 then
+    SetLength(S,P-1);
+  S:=Trim(S);
+  P:=1;
+  D:=GetNum(P);
+  Mon:=GetMonth(P);
+  Y:=GetNum(P);
+  H:=GetNum(P);
+  Min:=GetNum(P);
+  Sec:=GetNum(P);
+  if not TryEncodeDateTime(Y,Mon,D,H,Min,Sec,0,Result) then
+    Result:=0;
 end;
 
 end.
