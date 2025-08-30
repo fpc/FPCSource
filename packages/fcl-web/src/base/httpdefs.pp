@@ -166,7 +166,9 @@ type
   TCookie = class(TCollectionItem)
   private
     FHttpOnly: Boolean;
+    FMaxAge: Integer;
     FName: string;
+    FPartitioned: boolean;
     FSameSite: TSameSite;
     FValue: string;
     FPath: string;
@@ -184,9 +186,11 @@ type
     property Domain: string read FDomain write FDomain;
     property Path: string read FPath write FPath;
     property Expires: TDateTime read FExpires write FExpires;
+    property MaxAge : Integer Read FMaxAge Write FMaxAge;
     property Secure: Boolean read FSecure write FSecure;
     property HttpOnly: Boolean read FHttpOnly write FHttpOnly;
     property SameSite: TSameSite Read FSameSite Write FSameSite;
+    property Partitioned : boolean Read FPartitioned Write FPartitioned;
     Property AsString : String Read GetAsString;
   end;
 
@@ -1169,6 +1173,8 @@ Var
   B : TBytes;
 
 begin
+  D:='';
+  B:=[];
   {$ifdef CGIDEBUG}SendMethodEnter('THTTPMimeItem.Process');{$ENDIF}
   SetLength(D,Stream.Size);
   Stream.ReadBuffer(D[1],Stream.Size);
@@ -1849,6 +1855,8 @@ begin
     hvSetCookie : Result:=HeaderSetCookie;
     hvCookie : Result:=HeaderCookie;
     hvXRequestedWith : Result:=HeaderXRequestedWith;
+  else
+    Result:='';
   end;
 end;
 
@@ -2135,6 +2143,7 @@ var
 
 
 begin
+  B:=[];
   {$ifdef CGIDEBUG}SendMethodEnter('TMimeItems.FormSplit');{$ENDIF}
   FBoundary := boundary;
   Sep:=DashDash+boundary+CRLF;
@@ -2545,12 +2554,6 @@ begin
   InitContentRequestVars;
 end;
 
-Type
-  TCapacityStream = Class(TMemoryStream)
-  Public
-    Property Capacity;
-  end;
-
 procedure TRequest.InitPostVars;
 
 Var
@@ -2616,6 +2619,7 @@ Var
   ST: TStringList;
 
 begin
+  S:='';
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessMultiPart');{$endif CGIDEBUG}
   ST := TStringList.Create;
   try
@@ -3178,6 +3182,9 @@ begin
       Self.FExpires:=Expires;
       Self.FHttpOnly:=HttpOnly;
       Self.FSecure:=Secure;
+      Self.FPartitioned:=Partitioned;
+      Self.FMaxAge:=MaxAge;
+      Self.FSameSite:=SameSite;
       end
   else
     inherited Assign(Source);
@@ -3213,7 +3220,6 @@ function TCookies.AddFromString(S: String): TCookie;
 var
   P, Q: Integer;
   CookieLine, AttributeLine, AttributeName, AttributeValue: String;
-  C: TCookie;
 begin
   Result := Add;
 
@@ -3258,10 +3264,11 @@ begin
     case AttributeName of
       'domain'  : Result.Domain   := AttributeValue;
       'path'    : Result.Path     := AttributeValue;
-      // I'm not sure with these 3 below
-      'expires' : Result.Expires  := StrToDateTime(AttributeValue);
-      'secure'  : Result.Secure   := StrToBoolDef(AttributeValue, true);
-      'httponly': Result.HttpOnly := StrToBoolDef(AttributeValue, true);
+      'expires' : Result.Expires  := ParseHTTPDateTime(AttributeValue);
+      // These have no value, their presence is enough
+      'partitioned' : Result.Partitioned := True;
+      'secure'  : Result.Secure   := True;
+      'httponly': Result.HttpOnly := True; // no value
       'samesite': case LowerCase(AttributeValue) of
         ''      : Result.SameSite := ssEmpty;
         'none'  : Result.SameSite := ssNone;
