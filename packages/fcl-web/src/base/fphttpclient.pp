@@ -1075,6 +1075,8 @@ function TFPCustomHTTPClient.ReadResponseHeaders: integer;
       If (P=0) then
         P:=Length(S)+1;
       C:=Trim(Copy(S,1,P-1));
+      if not assigned(FCookies) then
+        FCookies:=TStringList.Create;
       FCookies.Add(C);
       System.Delete(S,1,P);
     Until (S='') or Terminated;
@@ -1506,7 +1508,7 @@ begin
 
   // check for changed host/port
   if IsConnected and (Socket is TInetSocket)
-  and ((TInetSocket(Socket).Host<>CHost) or (TInetSocket(Socket).Port<>CPort)) then
+  and ((TInetSocket(Socket).NetworkAddress.Address<>CHost) or (TInetSocket(Socket).Port<>CPort)) then
     DisconnectFromServer;
 
   Repeat
@@ -1624,11 +1626,9 @@ class function TFPCustomHTTPClient.IndexOfHeader(HTTPHeaders: TStrings;
   const AHeader: String): Integer;
 
 Var
-  L : Integer;
   H : String;
 begin
   H:=LowerCase(Aheader)+':';
-  l:=Length(H);
   Result:=HTTPHeaders.Count-1;
   While (Result>=0) and not StartsText(H,HTTPHeaders[Result]) do
     Dec(Result);
