@@ -664,6 +664,59 @@ const
         end;
 
 
+      function TryVariableShiftPair(lin, rin: tnode; bitsize: asizeint): boolean;
+        begin
+          Result:=(rin.nodetype=subn) and
+            is_constintnode(taddnode(rin).left) and
+            (tordconstnode(taddnode(rin).left).value=bitsize) and
+            not might_have_sideeffects(lin) and
+            taddnode(rin).right.isequal(lin);
+        end;
+
+
+      function CheckRotateOptimization(standard_op, reverse_op: TInlineNumber): tnode;
+        var
+          bitsize: asizeint;
+        begin
+          Result:=nil;
+          if is_integer(tshlshrnode(left).left.resultdef) and
+            { Avoid using custom integers due to the risk of unusual sizes and
+              undesired effects in, say, bitpacked records. [Kit] }
+            (torddef(tshlshrnode(left).left.resultdef).ordtype<>customint) and
+            not might_have_sideeffects(tshlshrnode(left).left) and
+            tshlshrnode(left).left.isequal(tshlshrnode(right).left) then
+            begin
+              bitsize:=tshlshrnode(left).left.resultdef.size*8;
+
+              { Check for constants first }
+              if (
+                  is_constintnode(tshlshrnode(left).right) and
+                  (tordconstnode(tshlshrnode(left).right).value>0) and
+                  is_constintnode(tshlshrnode(right).right) and
+                  (tordconstnode(tshlshrnode(right).right).value>0) and
+                  (tordconstnode(tshlshrnode(right).right).value=bitsize-tordconstnode(tshlshrnode(left).right).value)
+                ) or
+                  { Try (X op1 Y) or (X op2 (S-Y)) for variable rotation}
+                  TryVariableShiftPair(tshlshrnode(left).right, tshlshrnode(right).right, bitsize) then
+                begin
+                  result:=cinlinenode.create(standard_op,false,
+                    ccallparanode.create(tshlshrnode(left).PruneKeepRight(),
+                    ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
+                  Exit;
+                end;
+
+              { Try (X op1 (S-Y)) or (X op2 Y) for variable rotation }
+              if TryVariableShiftPair(tshlshrnode(right).right, tshlshrnode(left).right, bitsize) then
+                begin
+                  result:=cinlinenode.create(reverse_op,false,
+                    ccallparanode.create(tshlshrnode(right).PruneKeepRight(),
+                    ccallparanode.create(tshlshrnode(right).PruneKeepLeft(),nil)));
+                  Exit;
+                end;
+            end;
+        end;
+
+
       var
         hp: taddnode;
         t,vl,lefttarget,righttarget: tnode;
@@ -1849,7 +1902,7 @@ const
               end;
 {$ifdef cpurox}
             { optimize (i shl x) or (i shr (bitsizeof(i)-x)) into rol(x,i) (and different flavours with shl/shr swapped etc.) }
-            if (nodetype=orn)
+            if (nodetype in [addn,orn]) { add also works here }
 {$ifdef m68k}
                and (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype])
 {$endif m68k}
@@ -1862,58 +1915,18 @@ const
 {$endif cpu64bitalu}
               then
               begin
-                if (left.nodetype=shrn) and (right.nodetype=shln) and
-                   is_constintnode(tshlshrnode(left).right) and
-                   is_constintnode(tshlshrnode(right).right) and
-                   (tordconstnode(tshlshrnode(right).right).value>0) and
-                   (tordconstnode(tshlshrnode(left).right).value>0) and
-                   tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
-                   not(might_have_sideeffects(tshlshrnode(left).left)) then
-                   begin
-                     if (tordconstnode(tshlshrnode(left).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value) then
-                       begin
-                         result:=cinlinenode.create(in_ror_x_y,false,
-                           ccallparanode.create(tshlshrnode(left).PruneKeepRight(),
-                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
-                         exit;
-                       end
-                     else if (tordconstnode(tshlshrnode(right).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value) then
-                       begin
-                         result:=cinlinenode.create(in_rol_x_y,false,
-                           ccallparanode.create(tshlshrnode(right).PruneKeepRight(),
-                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
-                         exit;
-                       end;
-                   end;
-                if (left.nodetype=shln) and (right.nodetype=shrn) and
-                   is_constintnode(tshlshrnode(left).right) and
-                   is_constintnode(tshlshrnode(right).right) and
-                   (tordconstnode(tshlshrnode(right).right).value>0) and
-                   (tordconstnode(tshlshrnode(left).right).value>0) and
-                   tshlshrnode(left).left.isequal(tshlshrnode(right).left) and
-                   not(might_have_sideeffects(tshlshrnode(left).left)) then
-                   begin
-                     if (tordconstnode(tshlshrnode(left).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(right).right).value)
-                        then
-                       begin
-                         result:=cinlinenode.create(in_rol_x_y,false,
-                           ccallparanode.create(tshlshrnode(left).PruneKeepRight(),
-                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
-                         exit;
-                       end
-                     else if (tordconstnode(tshlshrnode(right).right).value=
-                       tshlshrnode(left).left.resultdef.size*8-tordconstnode(tshlshrnode(left).right).value)
-                        then
-                       begin
-                         result:=cinlinenode.create(in_ror_x_y,false,
-                           ccallparanode.create(tshlshrnode(right).PruneKeepRight(),
-                           ccallparanode.create(tshlshrnode(left).PruneKeepLeft(),nil)));
-                         exit;
-                       end;
-                   end;
+                if (left.nodetype=shln) and (right.nodetype=shrn) then
+                  begin
+                    result:=CheckRotateOptimization(in_rol_x_y,in_ror_x_y);
+                    if Assigned(result) then
+                      Exit;
+                  end
+                else if (left.nodetype=shrn) and (right.nodetype=shln) then
+                  begin
+                    result:=CheckRotateOptimization(in_ror_x_y,in_rol_x_y);
+                    if Assigned(result) then
+                      Exit;
+                  end
               end;
 {$endif cpurox}
             { optimize
