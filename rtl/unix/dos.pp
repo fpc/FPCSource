@@ -533,7 +533,10 @@ begin
      f.Name:=Copy(s,f.NamePos+1,255);
      f.Attr:=Info.FMode;
      f.Size:=Info.FSize;
-     f.mode:=st.st_mode;
+     { At least on AIX OS, st_mode has high bits (outside 16-bit word range)
+       which are used for specific extensions.
+       Add explicit typecast to avoid Range check error. }
+     f.mode:=Word(st.st_mode);
      UnixDateToDT(Info.FMTime, DT);
      PackTime(DT,f.Time);
      FindGetFileInfo:=true;
@@ -724,7 +727,7 @@ End;
 Procedure GetFAttr(var f; var attr : word);
 Var
   info    : BU.stat;
-  LinAttr : longint;
+  LinAttr : TMode;
   p       : PAnsiChar;
 {$ifndef FPC_ANSI_TEXTFILEREC}
   r       : RawByteString;
@@ -749,7 +752,7 @@ Begin
      exit;
    end
   else
-   LinAttr:=Info.st_Mode;
+   LinAttr:=TMode(Info.st_Mode);
   if fpS_ISDIR(LinAttr) then
    Attr:=$10
   else
