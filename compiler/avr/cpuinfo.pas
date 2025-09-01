@@ -275,7 +275,6 @@ Type
       ct_attiny1634,
       ct_attiny2313,
       ct_attiny2313a,
-      ct_attiny3214,
       ct_attiny3216,
       ct_attiny3217,
       ct_attiny3224,
@@ -721,7 +720,6 @@ Const
         ,(controllertypestr:'ATTINY1634';controllerunitstr:'ATTINY1634';cputype:cpu_avr35;fputype:fpu_soft;flashbase:0;flashsize:16384;srambase:256;sramsize:1024;eeprombase:0;eepromsize:256)
         ,(controllertypestr:'ATTINY2313';controllerunitstr:'ATTINY2313';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:96;sramsize:128;eeprombase:0;eepromsize:128)
         ,(controllertypestr:'ATTINY2313A';controllerunitstr:'ATTINY2313A';cputype:cpu_avr25;fputype:fpu_soft;flashbase:0;flashsize:2048;srambase:96;sramsize:128;eeprombase:0;eepromsize:128)
-        ,(controllertypestr:'ATTINY3214';controllerunitstr:'ATTINY3214';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:14336;sramsize:2048;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY3216';controllerunitstr:'ATTINY3216';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:14336;sramsize:2048;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY3217';controllerunitstr:'ATTINY3217';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:14336;sramsize:2048;eeprombase:5120;eepromsize:256)
         ,(controllertypestr:'ATTINY3224';controllerunitstr:'ATTINY3224';cputype:cpu_avrxmega3;fputype:fpu_soft;flashbase:0;flashsize:32768;srambase:13312;sramsize:3072;eeprombase:5120;eepromsize:256)

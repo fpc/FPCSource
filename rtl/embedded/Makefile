@@ -1042,7 +1042,7 @@ CPU_UNITS=atmega808 atmega809 atmega1608 atmega1609 atmega3208 atmega3209 atmega
           attiny406 attiny412 attiny414 attiny416  attiny416auto attiny417 attiny424 \
           attiny426 attiny427 attiny804 attiny806 attiny807 attiny814 attiny816 \
           attiny817 attiny824 attiny826 attiny827 attiny1604 attiny1606 attiny1607 \
-          attiny1614 attiny1616 attiny1617 attiny1624 attiny1626 attiny1627 attiny3214 \
+          attiny1614 attiny1616 attiny1617 attiny1624 attiny1626 attiny1627 \
           attiny3216 attiny3217 attiny3224 attiny3226 attiny3227 avr16dd14 avr16dd20 \
           avr16dd28 avr16dd32 avr16du14 avr16du20 avr16du28 avr16du32 avr16ea28 \
           avr16ea32 avr16ea48 avr16eb14 avr16eb20 avr16eb28 avr16eb32 avr32da28 \
