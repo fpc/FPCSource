@@ -221,7 +221,6 @@ begin
     ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiled : cancontinue:=true;
     ms_processed : cancontinue:=true;
-    ms_moduleerror : cancontinue:=true;
   else
     InternalError(2024011802);
   end;

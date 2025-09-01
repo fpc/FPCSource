@@ -286,7 +286,7 @@ uses
           exit;
 
         if (hmodule.state = ms_load) and hmodule.interface_compiled then
-           Exit;
+          Exit;
 
         if not (hmodule.state in [ms_compiled,ms_processed]) then
           begin

@@ -115,16 +115,15 @@ interface
 
      type
         tmodulestate = (ms_unknown,
-          ms_registered,
-          ms_load,
-          ms_compile,
-          ms_compiling_waitintf,
-          ms_compiling_waitimpl,
-          ms_compiling_waitfinish,
-          ms_compiling_wait,
-          ms_compiled,
-          ms_processed,
-          ms_moduleerror
+          ms_registered, // tmodule created
+          ms_load,       // loading ppu
+          ms_compile,    // parsing and compiling
+          ms_compiling_waitintf,  // waiting for used units of interface section
+          ms_compiling_waitimpl,  // waiting for used units of implementation section
+          ms_compiling_waitfinish,// after impl section parsed, waiting for other impl sections needed by specializations
+          ms_compiling_wait,      // waiting for used units of program section
+          ms_compiled,   // compiling complete, ppu written
+          ms_processed   // task complete
         );
         tmodulestates = set of tmodulestate;
 
@@ -139,8 +138,7 @@ interface
           'Compiling_Waiting_finish',
           'Compiling_Waiting',
           'Compiled',
-          'Processed',
-          'Error'
+          'Processed'
         );
 
      type

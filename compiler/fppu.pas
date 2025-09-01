@@ -1847,7 +1847,6 @@ var
 
     procedure tppumodule.getppucrc;
       begin
-
          { create new ppufile }
          ppufile:=tcompilerppufile.create(ppufilename);
          ppufile.crc_only:=true;
@@ -1975,7 +1974,7 @@ var
               tppumodule(pu.u).loadppu(self);
               { if this unit is scheduled for compilation or compiled we can stop }
               if state in [ms_compile,ms_compiled,ms_processed] then
-               exit;
+                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self,true);
               { need to recompile the current unit, check the interface
@@ -2208,7 +2207,6 @@ var
                            ms_compiling_waitfinish, ms_compiling_wait, ms_compiled,
                            ms_processed];
 
-
         begin
           { try to load the unit a second time first }
           Message1(unit_u_second_load_unit,modulename^);
@@ -2247,7 +2245,7 @@ var
          end;
         { PPU is not needed anymore }
         if assigned(ppufile) then
-            discardppu;
+          discardppu;
       end;
 
     procedure tppumodule.recompile_from_sources(from_module : tmodule);
@@ -2291,8 +2289,7 @@ var
         { Reset the module }
         reset(true);
         { mark this module for recompilation }
-        if not (state in [ms_compile]) then
-          state:=ms_compile;
+        state:=ms_compile;
         setdefgeneration;
       end;
 
