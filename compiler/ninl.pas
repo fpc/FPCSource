@@ -527,12 +527,14 @@ implementation
                   if varspez=vs_const then
                     include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
                   include(tabstractvarsym(srsym).varoptions,vo_is_default_var);
+                  { There is no reliable way to be sure that this symbol will not be used
+                    later on inside some inlined code, so mark it as global }
+                  include(tabstractvarsym(srsym).varoptions,vo_is_public);
                   { The variable has a value assigned }
                   tabstractvarsym(srsym).varstate:=vs_initialised;
 
                   srsymtable.insertsym(srsym);
                   cnodeutils.insertbssdata(tstaticvarsym(srsym));
-
                 end;
               result:=cloadnode.create(srsym,srsymtable);
             end
