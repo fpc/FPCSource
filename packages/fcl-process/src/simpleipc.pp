@@ -119,10 +119,13 @@ type
   Private
     procedure SetActive(const AValue: Boolean);
     procedure SetServerID(const AValue: String);
+    procedure SetSystemGlobal(const AValue: Boolean);
   Protected
     FBusy: Boolean;
     FActive : Boolean;
+    FSystemGlobal : Boolean;
     FServerID : String;
+    procedure CheckServerID(aValue : string);
     procedure PrepareServerID;
     Procedure DoError(const Msg: String; const Args: array of const);
     Procedure CheckInactive;
@@ -133,6 +136,7 @@ type
     Property Busy : Boolean Read FBusy;
   Published
     Property Active : Boolean Read FActive Write SetActive;
+    Property SystemGlobal : Boolean Read FSystemGlobal Write SetSystemGlobal;
     Property ServerID : String Read FServerID Write SetServerID;
   end;
 
@@ -147,6 +151,7 @@ type
     DefaultMaxAction = ipcmoaNone;
     DefaultMaxQueue = 0;
   private
+    FGlobal: Boolean;
     FOnMessageError: TMessageQueueEvent;
     FOnMessageQueued: TNotifyEvent;
     FOnMessage: TNotifyEvent;
@@ -154,7 +159,6 @@ type
     FQueue: TIPCServerMsgQueue;
     FQueueLock: TCriticalSection;
     FQueueAddEvent: TSimpleEvent;
-    FGlobal: Boolean;
     // Access to the message is not locked by design!
     // In the threaded mode, it must be accessed only during event callbacks.
     FMessage: TIPCServerMsg;
@@ -178,10 +182,10 @@ type
     function GetMaxAction: TIPCMessageOverflowAction;
     function GetMaxQueue: Integer;
     function GetStringMessage: String;
-    procedure SetGlobal(const AValue: Boolean);
     procedure SetMaxAction(AValue: TIPCMessageOverflowAction);
     procedure SetMaxQueue(AValue: Integer);
     procedure SetThreaded(AValue: Boolean);
+    procedure SetGlobal(AValue: Boolean);
     procedure SetThreadTimeout(AValue: Integer);
     procedure SetSynchronizeEvents(AValue: Boolean);
     function WaitForReady(Timeout: Integer = -1): Boolean;
@@ -218,7 +222,7 @@ type
     property  ThreadExecuting: Boolean read FThreadExecuting;
     property  ThreadError: String read FThreadError;
   Published
-    Property Global : Boolean Read FGlobal Write SetGlobal;
+    Property Global : Boolean Read FGlobal write SetGlobal default false;
     // Called during ReadMessage
     Property OnMessage : TNotifyEvent Read FOnMessage Write FOnMessage;
     // Called when a message is pushed on the queue.
@@ -276,6 +280,7 @@ type
     Procedure SendStringMessage(MsgType : TMessageType; const Msg : String);
     Procedure SendStringMessageFmt(const Msg : String; Args : Array of const);
     Procedure SendStringMessageFmt(MsgType : TMessageType; const Msg : String; Args : Array of const);
+  published
     Property  ServerInstance : String Read FServerInstance Write SetServerInstance;
   end;
 
@@ -539,7 +544,7 @@ end;
 
 {$REGION 'TSimpleIPC'}
 
-Procedure TSimpleIPC.DoError(const Msg: String; const Args: array of const);
+procedure TSimpleIPC.DoError(const Msg: String; const Args: array of const);
 var
   FullMsg: String;
 begin
@@ -583,6 +588,7 @@ begin
   if (FServerID<>AValue) then
   begin
     CheckInactive;
+    CheckServerID(aValue);
     FServerID:=AValue;
   end;
 end;
@@ -606,6 +612,21 @@ begin
     FActive:=False;
     Activate;
   end;
+end;
+
+procedure TSimpleIPC.SetSystemGlobal(const AValue: Boolean);
+begin
+  CheckInactive;
+  FSystemGlobal:=AValue;
+end;
+
+procedure TSimpleIPC.CheckServerID(aValue: string);
+var
+  OK : Boolean;
+begin
+  OK:=(Pos('\',aValue)=0) and (Pos('/',aValue)=0) and (Pos(':',aValue)=0);
+  if not OK then
+    Raise EIPCError.Create('Characters / \ and : not allowed in server ID');
 end;
 
 {$ENDREGION}
@@ -681,16 +702,17 @@ begin
   inherited Destroy;
 end;
 
-procedure TSimpleIPCServer.SetGlobal(const AValue: Boolean);
-begin
-  CheckInactive;
-  FGlobal:=AValue;
-end;
 
 procedure TSimpleIPCServer.SetThreaded(AValue: Boolean);
 begin
   CheckInactive;
   FThreaded:=AValue;
+end;
+
+procedure TSimpleIPCServer.SetGlobal(AValue: Boolean);
+begin
+  CheckInactive;
+  FGlobal:=AValue;
 end;
 
 procedure TSimpleIPCServer.SetThreadTimeout(AValue: Integer);

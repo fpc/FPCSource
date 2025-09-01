@@ -151,6 +151,8 @@ end;
 procedure TWinMsgServerComm.StartServer;
 begin
   StopServer;
+  // There should be a way to limit permissions to the same user if SystemGlobal is false.
+  // Apparently the only way is to check the origin of a message when receiving a message...
   FHWND := AllocateHWND(WideString(FWindowName));
 end;
 
