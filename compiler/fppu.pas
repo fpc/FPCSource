@@ -431,9 +431,10 @@ var
             exit;
           end;
 
-      { Load values to be access easier }
+      { Load values for easier access }
         headerflags:=ppufile.header.common.flags;
         crc:=ppufile.header.checksum;
+        crc_final:=true;
         interface_crc:=ppufile.header.interface_checksum;
         indirect_crc:=ppufile.header.indirect_checksum;
         change_endian:=ppufile.change_endian;
@@ -871,7 +872,7 @@ var
         hp  : tinputfile;
         ifile : sizeint;
       begin
-      { second write the used source files }
+      { write the used source files }
         ppufile.do_crc:=false;
       { write source files directly in good order }
         for ifile:=0 to sourcefiles.nfiles-1 do
@@ -889,24 +890,35 @@ var
       var
         hp : tused_unit;
         oldcrc : boolean;
+        u: tmodule;
       begin
         { write a reference for each used unit }
+        {$IFDEF Debug_Mattias}
+        writeln('tppumodule.writeusedunit START ',realmodulename^,' intf=',intf);
+        {$ENDIF}
         hp:=tused_unit(used_units.first);
         while assigned(hp) do
          begin
            if hp.in_interface=intf then
              begin
-               ppufile.putstring(hp.u.realmodulename^);
+               u:=hp.u;
+               ppufile.putstring(u.realmodulename^);
                { the checksum should not affect the crc of this unit ! (PFV) }
                oldcrc:=ppufile.do_crc;
                ppufile.do_crc:=false;
+               {$IFDEF Debug_Mattias}
+               writeln('tppumodule.writeusedunit ',u.realmodulename^,' crc=',hexstr(u.crc,8),' interface_crc=',hexstr(u.interface_crc,8),' indirect_crc=',hexstr(u.indirect_crc,8));
+               {$ENDIF}
+               hp.checksum:=u.crc;
+               hp.interface_checksum:=u.interface_crc;
+               hp.indirect_checksum:=u.indirect_crc;
                ppufile.putlongint(longint(hp.checksum));
                ppufile.putlongint(longint(hp.interface_checksum));
                ppufile.putlongint(longint(hp.indirect_checksum));
                ppufile.do_crc:=oldcrc;
                { combine all indirect checksums from units used by this unit }
                if intf then
-                 ppufile.indirect_crc:=ppufile.indirect_crc xor hp.indirect_checksum;
+                 ppufile.indirect_crc:=ppufile.indirect_crc xor u.indirect_crc;
              end;
            hp:=tused_unit(hp.next);
          end;
@@ -1628,6 +1640,9 @@ var
 
     procedure tppumodule.writeppu;
       begin
+        {$IFDEF Debug_Mattias}
+        writeln('tppumodule.writeppu ',realmodulename^);
+        {$ENDIF}
          Message1(unit_u_ppu_write,realmodulename^);
 
          { create unit flags }
@@ -1825,9 +1840,13 @@ var
          ppufile.writeheader;
 
          { save crc in current module also }
+         crc_final:=true;
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
          indirect_crc:=ppufile.indirect_crc;
+         {$IFDEF Debug_Mattias}
+         writeln('tppumodule.writeppu ',realmodulename^,' crc=',hexstr(crc,8));
+         {$ENDIF}
 
 {$ifdef Test_Double_checksum_write}
          Writeln(ppufile.CRCFile,'End of implementation CRC in writeppu method of ',ppufilename,
@@ -1915,6 +1934,9 @@ var
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
          indirect_crc:=ppufile.indirect_crc;
+         {$IFDEF Debug_Mattias}
+         writeln('tppumodule.getppucrc ',realmodulename^,' crc=',hexstr(crc,8));
+         {$ENDIF}
 
          { end of implementation, to generate a correct ppufile
            for ppudump when using DEBUG_GENERATE_INTERFACE_PPU define }
@@ -2170,7 +2192,7 @@ var
              is nothing to resolve }
            if interface_compiled and
              { it makes no sense to re-resolve the unit if it is already finally compiled }
-             not(state=ms_compiled) then
+               not (state in [ms_compiled_waitcrc,ms_compiled,ms_processed]) then
              begin
                re_resolve(from_module);
              end
@@ -2203,9 +2225,9 @@ var
       procedure tppumodule.prepare_second_load(from_module: tmodule);
 
       const
-         CompileStates  = [ms_compile, ms_compiling_waitintf, ms_compiling_waitimpl,
-                           ms_compiling_waitfinish, ms_compiling_wait, ms_compiled,
-                           ms_processed];
+         CompileStates  = [ms_compile, ms_compiling_wait,
+                           ms_compiling_waitintf, ms_compiling_waitimpl, ms_compiling_waitfinish,
+                           ms_compiled_waitcrc, ms_compiled, ms_processed];
 
         begin
           { try to load the unit a second time first }

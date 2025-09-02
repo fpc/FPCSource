@@ -1271,7 +1271,7 @@ implementation
           putlongint(d.dataidx)
         else
 {$endif}
-        if d.dataidx=-1 then
+        if (d.dataidx=-1) and not crc_only then
           internalerror(2019022201)
         else
           putlongint(d.dataidx);

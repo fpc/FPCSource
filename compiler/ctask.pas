@@ -34,14 +34,14 @@ type
   { ttask_list }
 
   ttask_list = class(tlinkedlistitem)
-     module : tmodule;
-     state : tglobalstate;
-     constructor create(_m : tmodule);
-     destructor destroy; override;
-     procedure SaveState;
-     Procedure RestoreState;
-     procedure DiscardState;
-     function nexttask : ttask_list; inline;
+    module : tmodule;
+    state : tglobalstate;
+    constructor create(_m : tmodule);
+    destructor destroy; override;
+    procedure SaveState;
+    procedure RestoreState;
+    procedure DiscardState;
+    function nexttask : ttask_list; inline;
   end;
 
   ttasklinkedlist = class(tlinkedlist)
@@ -220,6 +220,7 @@ begin
     ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
     ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits(firstwaiting);
+    ms_compiled_waitcrc : cancontinue:=m.usedunitsfinalcrc(firstwaiting);
     ms_compiled : cancontinue:=true;
     ms_processed : cancontinue:=true;
     ms_moduleerror : cancontinue:=true;
@@ -273,11 +274,13 @@ begin
     ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
-    ms_compiling_waitfinish : pmodules.finish_unit(m);
+    ms_compiling_waitfinish : pmodules.finish_compile_unit(m);
+    ms_compiled_waitcrc : pmodules.finish_unit(m);
     ms_processed : ;
   else
     InternalError(2024011801);
   end;
+
   if m.state=ms_compiled then
     begin
     parsing_done(m);
@@ -322,14 +325,39 @@ procedure ttask_handler.processqueue;
 
 var
   t,t2 : ttask_list;
-  process : boolean;
+  process: boolean;
   dummy,firstwaiting : tmodule;
 
 begin
   t:=list.firsttask;
+  process:=true;
   While t<>nil do
     begin
+
+    if process then
+      begin
+      // first search for any module that is ready to be written as ppu
+      t2:=list.firsttask;
+      while (t2<>nil)
+          and ((t2.module.state<>ms_compiled_waitcrc)
+            or not t2.module.usedunitsfinalcrc(firstwaiting)) do
+        t2:=t2.nexttask;
+      if t2<>nil then
+        begin
+        t:=t2;
+        {$IFDEF Debug_Mattias}
+        writeln('ttask_handler.processqueue FOUND CRC READY ',t.module.realmodulename^,' state=',t.module.state);
+        {$ENDIF}
+        end;
+      end;
+
     process:=cancontinue(t,firstwaiting);
+    {$IFDEF Debug_Mattias}
+    if firstwaiting<>nil then
+      writeln('ttask_handler.processqueue "',t.module.realmodulename^,'" state=',t.module.state,' waitingfor="',firstwaiting.realmodulename^,'",',firstwaiting.state)
+    else
+      writeln('ttask_handler.processqueue "',t.module.realmodulename^,'" state=',t.module.state,' waitingfor=nil');
+    {$ENDIF}
     if process then
       begin
       if continue(t) then
