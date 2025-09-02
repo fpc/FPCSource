@@ -190,18 +190,19 @@ function ttask_handler.cancontinue(m: tmodule; checksub : boolean; out firstwait
   begin
     acandidate:=nil;
     itm:=m.used_units.First;
-    while (acandidate=Nil) and assigned(itm) do
+    while assigned(itm) do
       begin
       iscandidate:=Not (tused_unit(itm).u.state in [ms_processed,ms_compiled]);
       if iscandidate then
         begin
         acandidate:=tused_unit(itm).u;
-        if not cancontinue(acandidate,false,m2) then
-          acandidate:=nil;
+        if cancontinue(acandidate,false,m2) then
+          break;
         end;
       itm:=itm.Next;
       end;
-   end;
+    acandidate:=nil;
+  end;
 
 var
   m2 : tmodule;
@@ -215,12 +216,13 @@ begin
     ms_unknown : cancontinue:=true;
     ms_registered : cancontinue:=true;
     ms_compile : cancontinue:=true;
+    ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
+    ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiling_waitimpl : cancontinue:=m.usedunitsloaded(false,firstwaiting);
     ms_compiling_waitfinish : cancontinue:=m.nowaitingforunits(firstwaiting);
-    ms_compiling_waitintf : cancontinue:=m.usedunitsloaded(true,firstwaiting);
-    ms_compiling_wait : cancontinue:=m.usedunitsloaded(true,firstwaiting);
     ms_compiled : cancontinue:=true;
     ms_processed : cancontinue:=true;
+    ms_moduleerror : cancontinue:=true;
   else
     InternalError(2024011802);
   end;
@@ -268,10 +270,10 @@ begin
     ms_compile : parser.compile_module(m);
     ms_compiled : if (not m.is_initial) or m.is_unit  then
                    (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
+    ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
     ms_compiling_waitintf : pmodules.parse_unit_interface_declarations(m);
     ms_compiling_waitimpl : pmodules.proc_unit_implementation(m);
     ms_compiling_waitfinish : pmodules.finish_unit(m);
-    ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
     ms_processed : ;
   else
     InternalError(2024011801);

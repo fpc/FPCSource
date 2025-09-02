@@ -1071,8 +1071,9 @@ implementation
     function tmodule.usedunitsloaded(interface_units : boolean; out firstwaiting : tmodule): boolean;
 
       const
-        statesneeded : array[boolean] of tmodulestates = ([ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
-                                                          [ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish]);
+        statesneeded : array[boolean] of tmodulestates = (
+          [ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish],
+          [ms_processed, ms_compiled,ms_compiling_waitimpl, ms_compiling_waitfinish]);
 
       var
         itm : TLinkedListItem;
@@ -1088,10 +1089,15 @@ implementation
           result:=tused_unit(itm).u.state in states;
           {$IFDEF DEBUG_CTASK}writeln('  ',ToString,' checking state of ', tused_unit(itm).u.ToString,' : ',tused_unit(itm).u.state,' : ',Result);{$ENDIF}
           if not result then
-             begin
-             if firstwaiting=Nil then
-                firstwaiting:=tused_unit(itm).u;
-             end;
+            begin
+            if firstwaiting=Nil then
+              begin
+              firstwaiting:=tused_unit(itm).u;
+              {$IFNDEF DEBUG_CTASK}
+              break;
+              {$ENDIF}
+              end;
+            end;
           itm:=itm.Next;
           end;
       end;
