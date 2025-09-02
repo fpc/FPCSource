@@ -1064,7 +1064,7 @@ end;
 
 procedure TIDEApp.Preferences;
 var R,R2: TRect;
-    D: PDialogEmptyClik;
+    D: PDialogEmptyClick;
     C: PVideoModeCollection;
     VMLB: PVideoModeListBox;
     OldScreenMode,VM: TVideoMode;

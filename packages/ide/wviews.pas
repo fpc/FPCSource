@@ -152,8 +152,8 @@ type
 
     { Dialog that broadcasts empty space mouse clicks }
     { Needed for dialogs that contines TDropDownListBox }
-    PDialogEmptyClik = ^TDialogEmptyClik;
-    TDialogEmptyClik = object(TCenterDialog)
+    PDialogEmptyClick = ^TDialogEmptyClick;
+    TDialogEmptyClick = object(TCenterDialog)
       procedure HandleEvent(var Event: TEvent); virtual;
     end;
 
@@ -1943,7 +1943,7 @@ begin
     end;
 end;
 
-procedure TDialogEmptyClik.HandleEvent(var Event: TEvent);
+procedure TDialogEmptyClick.HandleEvent(var Event: TEvent);
 begin
   inherited HandleEvent (Event);
   case Event.What of
