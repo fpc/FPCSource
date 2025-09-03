@@ -420,13 +420,13 @@ type
 			tag : dword;
 			code : array [0..0] of dword;
 		   end;
-	PDR_TPAGE = DR_TPAGE;
+	PDR_TPAGE = ^DR_TPAGE;
 
 	DR_STP = packed record                          // Drawing STP
         		tag : dword;
        			code : array [0..1] of dword;
         	 end;
-        PDR_STP = DR_STP;
+    PDR_STP = ^DR_STP;
 
 
 //	Font Stream Parameters
