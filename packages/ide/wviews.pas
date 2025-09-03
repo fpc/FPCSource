@@ -304,8 +304,8 @@ uses Mouse,
 {     Resource,}
 {$ifdef WinClipSupported}
      WinClip,
-     FpConst,
 {$endif WinClipSupported}
+     FpConst,
      FVConsts,
      App,MsgBox,StdDlg,
      WConsts,WUtils;
