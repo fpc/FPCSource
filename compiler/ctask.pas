@@ -334,25 +334,8 @@ begin
   While t<>nil do
     begin
 
-    if process then
-      begin
-      // first search for any module that is ready to be written as ppu
-      t2:=list.firsttask;
-      while (t2<>nil)
-          and ((t2.module.state<>ms_compiled_waitcrc)
-            or not t2.module.usedunitsfinalcrc(firstwaiting)) do
-        t2:=t2.nexttask;
-      if t2<>nil then
-        begin
-        t:=t2;
-        {$IFDEF Debug_Mattias}
-        writeln('ttask_handler.processqueue FOUND CRC READY ',t.module.realmodulename^,' state=',t.module.state);
-        {$ENDIF}
-        end;
-      end;
-
     process:=cancontinue(t,firstwaiting);
-    {$IFDEF Debug_Mattias}
+    {$IFDEF Debug_WaitCRC}
     if firstwaiting<>nil then
       writeln('ttask_handler.processqueue "',t.module.realmodulename^,'" state=',t.module.state,' waitingfor="',firstwaiting.realmodulename^,'",',firstwaiting.state)
     else
@@ -366,8 +349,25 @@ begin
         hash.Remove(t.module);
         list.Remove(t);
         end;
-      // maybe the strategy can be improved.
-      t:=list.firsttask;
+
+      // first search for any module that is ready to be written as ppu
+      t2:=list.firsttask;
+      while (t2<>nil)
+          and ((t2.module.state<>ms_compiled_waitcrc)
+            or not t2.module.usedunitsfinalcrc(firstwaiting)) do
+        t2:=t2.nexttask;
+      if t2<>nil then
+        begin
+        t:=t2;
+        {$IFDEF Debug_WaitCRC}
+        writeln('ttask_handler.processqueue FOUND CRC READY ',t.module.realmodulename^,' state=',t.module.state);
+        {$ENDIF}
+        end
+      else
+        begin
+        // maybe the strategy can be improved.
+        t:=list.firsttask;
+        end;
       end
     else if assigned(firstwaiting) and cancontinue(firstwaiting,true, dummy) then
       begin
@@ -381,7 +381,12 @@ begin
       t:=t.nexttask;
       end;
     if t=nil then
+      begin
       t:=list.firsttask;
+      if t<>nil then
+        // no progress possible
+        InternalError(2025090301);
+      end;
     end;
 end;
 

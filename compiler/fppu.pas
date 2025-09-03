@@ -893,7 +893,7 @@ var
         u: tmodule;
       begin
         { write a reference for each used unit }
-        {$IFDEF Debug_Mattias}
+        {$IFDEF Debug_WaitCRC}
         writeln('tppumodule.writeusedunit START ',realmodulename^,' intf=',intf);
         {$ENDIF}
         hp:=tused_unit(used_units.first);
@@ -906,7 +906,7 @@ var
                { the checksum should not affect the crc of this unit ! (PFV) }
                oldcrc:=ppufile.do_crc;
                ppufile.do_crc:=false;
-               {$IFDEF Debug_Mattias}
+               {$IFDEF Debug_WaitCRC}
                writeln('tppumodule.writeusedunit ',u.realmodulename^,' crc=',hexstr(u.crc,8),' interface_crc=',hexstr(u.interface_crc,8),' indirect_crc=',hexstr(u.indirect_crc,8));
                {$ENDIF}
                hp.checksum:=u.crc;
@@ -1640,7 +1640,7 @@ var
 
     procedure tppumodule.writeppu;
       begin
-        {$IFDEF Debug_Mattias}
+        {$IFDEF Debug_WaitCRC}
         writeln('tppumodule.writeppu ',realmodulename^);
         {$ENDIF}
          Message1(unit_u_ppu_write,realmodulename^);
@@ -1844,7 +1844,7 @@ var
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
          indirect_crc:=ppufile.indirect_crc;
-         {$IFDEF Debug_Mattias}
+         {$IFDEF Debug_WaitCRC}
          writeln('tppumodule.writeppu ',realmodulename^,' crc=',hexstr(crc,8));
          {$ENDIF}
 
@@ -1934,7 +1934,7 @@ var
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
          indirect_crc:=ppufile.indirect_crc;
-         {$IFDEF Debug_Mattias}
+         {$IFDEF Debug_WaitCRC}
          writeln('tppumodule.getppucrc ',realmodulename^,' crc=',hexstr(crc,8));
          {$ENDIF}
 

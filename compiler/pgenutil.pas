@@ -288,7 +288,7 @@ uses
         if (hmodule.state = ms_load) and hmodule.interface_compiled then
           Exit;
 
-        if not (hmodule.state in [ms_compiled_waitcrc,ms_compiled,ms_processed]) then
+        if not (hmodule.state in [ms_compiling_waitfinish,ms_compiled_waitcrc,ms_compiled,ms_processed]) then
           begin
 {$ifdef DEBUG_UNITWAITING}
             Writeln('Unit ', current_module.modulename^,

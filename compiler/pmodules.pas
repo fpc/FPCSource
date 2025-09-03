@@ -1205,11 +1205,12 @@ type
         for i:=0 to curr.waitingunits.count-1 do
           for j:=curr.waitingforunit.count-1 downto 0 do
             if curr.waitingunits[i]=curr.waitingforunit[j] then
-              curr.waitingforunit.delete(j);
+              curr.waitingforunit.Delete(j);
 
     {$ifdef DEBUG_UNITWAITING}
-        Writeln('Units waiting for ', curr.modulename^, ': ',
-          curr.waitingforunit.Count);
+        Writeln('Unit ', curr.modulename^, ' is waiting for units: ');
+        for i:=curr.waitingforunit.count-1 downto 0 do
+          writeln('  ',i,'/',curr.waitingforunit.count,' ',tmodule(curr.waitingforunit[i]).realmodulename^);
     {$endif}
         result:=curr.waitingforunit.count=0;
 
@@ -1291,7 +1292,7 @@ type
           add_synthetic_interface_classes_for_st(curr.globalsymtable,true,false);
 
         { Our interface is compiled, generate interface CRC and switch to implementation }
-        {$IFDEF Debug_Mattias}
+        {$IFDEF Debug_WaitCRC}
         writeln('parse_unit_interface_declarations ',curr.realmodulename^);
         {$ENDIF}
         if not(cs_compilesystem in current_settings.moduleswitches) and
@@ -1750,6 +1751,13 @@ type
              create_objectfile(module);
            end;
 
+        // remove all waits for this unit
+        for i:=0 to module.waitingunits.count-1 do
+          begin
+            waitingmodule:=tmodule(module.waitingunits[i]);
+            waitingmodule.remove_from_waitingforunits(module);
+          end;
+
         // compute CRC
         if ErrorCount=0 then
           begin
@@ -1759,7 +1767,7 @@ type
               Compute the final CRC of this module, for the case of a
               circular dependency, and wait.
             }
-            {$IFDEF Debug_Mattias}
+            {$IFDEF Debug_WaitCRC}
             writeln('finish_compile_unit ',module.realmodulename^,' waiting for used unit CRCs...');
             {$ENDIF}
             tppumodule(module).getppucrc;
@@ -1865,12 +1873,6 @@ type
 
         module_is_done(module);
         module.end_of_parsing;
-
-        for i:=0 to module.waitingunits.count-1 do
-          begin
-            waitingmodule:=tmodule(module.waitingunits[i]);
-            waitingmodule.remove_from_waitingforunits(module);
-          end;
 
 {$ifdef DEBUG_NODE_XML}
         XMLFinalizeNodeFile('unit');
