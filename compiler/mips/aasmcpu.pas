@@ -678,12 +678,222 @@ procedure fixup_jmps(list: TAsmList);
   end;
 
 
+function Register2String(r: TRegister):string;
+begin
+
+  case r of
+    NR_NO : result:= 'invalid';
+    NR_R0 : result:= 'zero';
+    NR_R1 : result:= 'at';
+    NR_R2 : result:= 'v0';
+    NR_R3 : result:= 'v1';
+    NR_R4 : result:= 'a0';
+    NR_R5 : result:= 'a1';
+    NR_R6 : result:= 'a2';
+    NR_R7 : result:= 'a3';
+    NR_R8 : result:= 't0';
+    NR_R9 : result:= 't1';
+    NR_R10 : result:= 't2';
+    NR_R11 : result:= 't3';
+    NR_R12 : result:= 't4';
+    NR_R13 : result:= 't5';
+    NR_R14 : result:= 't6';
+    NR_R15 : result:= 't7';
+    NR_R16 : result:= 's0';
+    NR_R17 : result:= 's1';
+    NR_R18 : result:= 's2';
+    NR_R19 : result:= 's3';
+    NR_R20 : result:= 's4';
+    NR_R21 : result:= 's5';
+    NR_R22 : result:= 's6';
+    NR_R23 : result:= 's7';
+    NR_R24 : result:= 't8';
+    NR_R25 : result:= 't9';
+    NR_R26 : result:= 'k0';
+    NR_R27 : result:= 'k1';
+    NR_R28 : result:= 'gp';
+    NR_R29 : result:= 'sp';
+    NR_R30 : result:= 'fp';
+    NR_R31 : result:= 'ra';
+    else result:= 'not listed jet';
+  end;
+
+end;
+
+
 procedure resolveReadAfterWrite(list: TAsmList);
 label skip;
-var
-    p, pp : tai;
+var 
     l, x : TLinkedListItem;
-    firstReg : tregister;
+    pp : tai;
+    R1, R2, R3 : TRegister;
+    firstReg : TRegister;
+
+
+function checkRegister(instr: tai; reg: tregister): boolean;
+begin
+
+  result:= false;
+
+  R1:= NR_NO;
+  R2:= NR_NO;
+  R3:= NR_NO;
+
+    if taicpu(instr).ops > 0 then begin
+
+          case taicpu(instr).ops of
+
+            1 : begin
+
+                  if (taicpu(instr).oper[0]^.typ = top_reg) and (reg = taicpu(instr).oper[0]^.reg) then begin result:= true; exit; end;
+
+                  if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
+
+                end;
+
+            2 : begin
+
+                  if (taicpu(instr).oper[0]^.typ = top_reg) and (reg = taicpu(instr).oper[0]^.reg) then begin result:= true; exit; end;
+                  if (taicpu(instr).oper[1]^.typ = top_reg) and (reg = taicpu(instr).oper[1]^.reg) then begin result:= true; exit; end;
+                  if (taicpu(instr).oper[1]^.typ = top_ref) and (reg = taicpu(instr).oper[1]^.ref^.base) then begin result:= true; exit; end;
+
+                  if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
+                  if taicpu(instr).oper[1]^.typ = top_reg then R2:= taicpu(instr).oper[1]^.reg;
+                  if taicpu(instr).oper[1]^.typ = top_ref then R2:= taicpu(instr).oper[1]^.ref^.base;
+
+                end;
+
+            3 : begin
+
+                  if (taicpu(instr).oper[0]^.typ = top_reg) and (reg = taicpu(instr).oper[0]^.reg) then begin result:= true; exit; end;
+                  if (taicpu(instr).oper[1]^.typ = top_reg) and (reg = taicpu(instr).oper[1]^.reg) then begin result:= true; exit; end;
+                  if (taicpu(instr).oper[2]^.typ = top_reg) and (reg = taicpu(instr).oper[2]^.reg) then begin result:= true; exit; end;
+                  
+                  if taicpu(instr).oper[0]^.typ = top_reg then R1:= taicpu(instr).oper[0]^.reg;
+                  if taicpu(instr).oper[1]^.typ = top_reg then R2:= taicpu(instr).oper[1]^.reg;
+                  if taicpu(instr).oper[2]^.typ = top_reg then R3:= taicpu(instr).oper[2]^.reg;
+
+                end;
+            
+            else
+
+                internalerror(2025090301);
+
+          end;
+
+    end;
+
+end;
+
+
+function nextInstructionNoMatch(head: TLinkedListItem; reg2check: TRegister; var listPoint: TLinkedListItem; var instructionItSelf: Tai): boolean;
+var
+    ppp : tai;
+    xx : TLinkedListItem;
+
+begin
+  
+  result:= true;
+
+  ppp:= tai(head);
+  
+  if is_calljmp(taicpu(ppp).opcode) then begin
+    result:= false;
+    exit;
+  end;
+{
+  if taicpu(ppp).opcode in [A_P_SET_MACRO, A_MFHI, A_MFLO] then exit;
+  if taicpu(ppp).opcode in [A_NOP] then exit;
+}
+  xx:= head.next;
+
+  while assigned(xx) do begin
+      
+    ppp:= tai(xx);
+
+    if ppp.typ = ait_instruction then begin
+
+        if is_calljmp(taicpu(ppp).opcode) then begin result:= false; exit; end;
+    
+        if not checkRegister(ppp, reg2check) then begin
+            result:= true;
+            instructionItSelf:= ppp;
+            listPoint:= xx;
+            exit;
+        end;
+
+    end;
+
+    xx:= xx.next;
+  end;
+
+  writeln('last instruction');
+  result:= false;
+
+end;
+
+
+procedure calcInstruction;
+var
+    firstR1, firstR2, firstR3 : TRegister;
+    secondR1, secondR2, secondR3 : TRegister;
+
+    firstInstruction : Tai;
+    firstInstructionListPointer : TLinkedListItem;
+
+    secondInstruction : Tai;
+    secondInstructionListPointer : TLinkedListItem;
+
+    doit : boolean;
+
+begin
+    
+    doit:= false;
+
+    writeln('curInstruction ', taicpu(pp).opcode);
+
+    if nextInstructionNoMatch(x, firstreg, firstInstructionListPointer, firstInstruction) then begin
+        
+          writeln('first after ', taicpu(firstInstruction).opcode, ' ', 'reg =', longint(R1), ' reg2=', longint(R2), ' reg3=', longint(R3));
+          firstR1:= R1;
+          firstR2:= R2;
+          firstR3:= R3;
+{
+          if nextInstructionNoMatch(firstInstructionListPointer, firstR1, secondInstructionListPointer, secondInstruction) then begin
+
+            if nextInstructionNoMatch(firstInstructionListPointer, firstR2, secondInstructionListPointer, secondInstruction) then begin
+
+              if nextInstructionNoMatch(firstInstructionListPointer, firstR3, secondInstructionListPointer, secondInstruction) then begin
+
+                writeln('second after ', taicpu(secondInstruction).opcode);
+                doit:= true;
+              end;
+
+            end;
+
+          end;
+
+}
+
+
+          doit:= true;
+
+    end;
+
+    if doit then begin
+      writeln('-> insert first ', taicpu(firstInstruction).opcode);
+      list.remove(firstInstructionListPointer);
+      list.insertAfter(firstInstruction, l);
+    end;
+
+    if not doit then list.insertAfter(taicpu.op_none(A_NOP), l);
+
+end;
+
+
+var
+  p : Tai;
+  
 
 begin
 
@@ -721,13 +931,13 @@ begin
 
                 0 : {nothing to do};
 
-                1 :
+                1 : 
                     if (taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg) then
                           list.insertAfter(taicpu.op_none(A_NOP), l);
 
                 2 :
-                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or
-                       ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or
+                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
+                       ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or 
                        ((taicpu(pp).oper[1]^.typ = top_ref) and (firstReg = taicpu(pp).oper[1]^.ref^.base)) then
                           list.insertAfter(taicpu.op_none(A_NOP), l);
 
@@ -736,7 +946,7 @@ begin
                        ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or
                        ((taicpu(pp).oper[2]^.typ = top_reg) and (firstReg = taicpu(pp).oper[2]^.reg)) then
                           list.insertAfter(taicpu.op_none(A_NOP), l);
-
+                
                 else
 
                     internalerror(2024092501);
@@ -763,3 +973,4 @@ begin
   cai_cpu   := taicpu;
   cai_align := tai_align;
 end.
+
