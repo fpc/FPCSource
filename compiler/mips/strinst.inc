@@ -206,4 +206,10 @@
 'movn.d',
 'movz.d',
 'lwc2',
-'end_def'
+'end_def',
+'cop2',
+'ctc2',
+'cfc2',
+'mtc2',
+'mfc2',
+'swc2'
