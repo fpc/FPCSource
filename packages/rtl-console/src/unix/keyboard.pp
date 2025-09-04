@@ -1658,10 +1658,11 @@ const           {lookup tables: nKey, modifier -> ScanCode, KeyChar }
        $19, $10, $13, $1f, $14, $16, $2f, $11, $2d, $15, $2c, $1a, $2b, $1b, $29, $0e);
 
 
-procedure buildKeyEvent(modifier:dword; nKey:dword);
+procedure BuildKeyEvent(modifier:dword; nKey, nShortCutKey :dword);
 var k : TEnhancedKeyEvent;
     SState: TEnhancedShiftState;
     ScanValue : byte;
+    Key  : dword;
 begin
   k:=NilEnhancedKeyEvent;
   AltPrefix := 0;
@@ -1678,30 +1679,40 @@ begin
   if (modifier and 4)>0 then SState:=SState+[essCtrl];
   k.ShiftState:=SState;
 
-  if nKey < 128 then
+  Key:=nShortCutKey;
+  if Key < 128 then
   begin
     if essAlt in SState then
-       k.AsciiChar:=cAltAscii[nKey]
+       k.AsciiChar:=cAltAscii[Key]
     else if essCtrl in SState then
-       k.AsciiChar:=cCtrlAscii[nKey]
+       k.AsciiChar:=cCtrlAscii[Key]
     else if essShift in SState then
-      k.AsciiChar:=cShiftAscii[nKey]
+      k.AsciiChar:=cShiftAscii[Key]
     else
-      k.AsciiChar:=cAscii[nKey];
+      k.AsciiChar:=cAscii[Key];
 
     if essAlt in SState then
-       ScanValue :=cAltScanValue[nKey]
+       ScanValue :=cAltScanValue[Key]
     else if essCtrl in SState then
-       ScanValue :=cCtrlScanValue[nKey]
+       ScanValue :=cCtrlScanValue[Key]
     else if essShift in SState then
-      ScanValue :=cShiftScanValue[nKey]
+      ScanValue :=cShiftScanValue[Key]
     else
-      ScanValue :=cScanValue[nKey];
+      ScanValue :=cScanValue[Key];
 
-    k.UnicodeChar := WideChar(k.AsciiChar);
+    if essCtrl in SState then
+      nKey:=Ord(k.AsciiChar); { if Ctrl+key then no normal UnicodeChar. Mimic Windows keyboard driver. }
+
     k.VirtualScanCode := (ScanValue shl 8) or Ord(k.AsciiChar);
 
-    PushKey(k);
+    if nKey <= $FFFF then
+      begin
+        k.UnicodeChar := WideChar(nKey);
+        PushKey(k);
+      end
+    else
+      PushUnicodeKey (k,nKey,char(k.AsciiChar));
+
     if byte(k.AsciiChar) = 27 then PushKey(k);
   end else
     PushUnicodeKey (k,nKey,'?');
@@ -1745,7 +1756,7 @@ begin
   if ch<>'~' then exit;
   if nr<> 2  then exit;
 
-  buildKeyEvent(modifier,nKey);
+  BuildKeyEvent(modifier,nKey,nKey);
 end;
 
 
@@ -2054,7 +2065,7 @@ const cKP_AltScanVal : array [kDecimal..kMiddle] of byte = (
       { kDel = 82;       } $93,
       { kMiddle = 83;    } $8f);
 
-procedure buildKeyPadEvent(modifier:dword; nKey:dword; ch : AnsiChar);
+procedure BuildKeyPadEvent(modifier:dword; nKey:dword; ch : AnsiChar);
 var k : TEnhancedKeyEvent;
     SState: TEnhancedShiftState;
     ScanValue : byte;
@@ -2334,7 +2345,7 @@ var
                if nKey = 60 then nKey:= kMiddle; {KP_5 -> KP_BEGIN}
                if nKey in [kDecimal..kMiddle] then
                begin
-                 buildKeyPadEvent(modifier,nKey,#0);
+                 BuildKeyPadEvent(modifier,nKey,#0);
                  exit;
                end else exit;
              end else
@@ -2344,10 +2355,20 @@ var
 
            if kbDown =3 then exit; {key up... ignored}
 
-           nKey:=unicodeCodePoint;
-
-           if nKey>-1 then
-              buildKeyEvent(modifier,nKey);
+           if (modifier > 2) and (enh[2]>=0) and (unicodeCodePoint>=0) then
+           begin
+             { ctrl, alt, shift + key combinations generate shortcut keys not tide to localized keyboard layout }
+             if (enh[1]>=0) then
+               nKey:=enh[1];
+             BuildKeyEvent(modifier,nKey,enh[2]);
+           end else
+           if unicodeCodePoint>-1 then
+           begin
+              nKey:=unicodeCodePoint;
+              if (enh[1]>=0) then
+                nKey:=enh[1];
+              BuildKeyEvent(modifier,nKey,nKey);
+           end;
            arrayind:=0;
         end;
     end;
