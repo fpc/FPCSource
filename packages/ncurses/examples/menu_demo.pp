@@ -52,7 +52,8 @@ begin
 
         { Create items }
         n_choices := high(choices);
-        getmem(my_items,n_choices*sizeof(pitem));
+        getmem(my_items,(n_choices+1)*sizeof(pitem));
+        my_items[n_choices]:=nil;
         for i:=0 to n_choices-1 do
           my_items[i] := new_item(choices[i], choices[i]);
 
