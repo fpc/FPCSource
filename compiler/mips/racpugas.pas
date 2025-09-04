@@ -46,7 +46,7 @@ Interface
 
     uses
       { helpers }
-      cutils,
+      cutils, sysutils,
       { global }
       globtype,verbose,
       systems,
@@ -78,6 +78,87 @@ Interface
             c:=current_scanner.asmgetchar;
           end;
         actasmpattern[0]:=chr(len);
+
+        case uppercase(actasmpattern) of
+        { GTE Control Register }        
+          '$RT11RT12' : actasmpattern:= '$0';
+          '$RT13RT21' : actasmpattern:= '$1';
+          '$RT22RT23' : actasmpattern:= '$2';
+          '$RT31RT32' : actasmpattern:= '$3';
+          '$RT33' : actasmpattern:= '$4';
+          '$TRX' : actasmpattern:= '$5';
+          '$TRY' : actasmpattern:= '$6';
+          '$TRZ' : actasmpattern:= '$7';
+          '$L11L12' : actasmpattern:= '$8';
+          '$L13L21' : actasmpattern:= '$9';
+          '$L22L23' : actasmpattern:= '$10';
+          '$L31L32' : actasmpattern:= '$11';
+          '$L33' : actasmpattern:= '$12';
+          '$RBK' : actasmpattern:= '$13';
+          '$GBK' : actasmpattern:= '$14';
+          '$BBK' : actasmpattern:= '$15';
+          '$LC11LC12' : actasmpattern:= '$16';
+          '$LC13LC21' : actasmpattern:= '$17';
+          '$LC22LC23' : actasmpattern:= '$18';
+          '$LC31LC32' : actasmpattern:= '$19';
+          '$LC33' : actasmpattern:= '$20';
+          '$RFC' : actasmpattern:= '$21';
+          '$GFC' : actasmpattern:= '$22';
+          '$BFC' : actasmpattern:= '$23';
+          '$OFX' : actasmpattern:= '$24';
+          '$OFY' : actasmpattern:= '$25';
+          '$H' : actasmpattern:= '$26';
+          '$DQA' : actasmpattern:= '$27';
+          '$DQB' : actasmpattern:= '$28';
+          '$ZSF3' : actasmpattern:= '$29';
+          '$ZSF4' : actasmpattern:= '$30';
+          '$FLAG' : actasmpattern:= '$31';
+        { GTE Data Register }
+          '$VXY0' : actasmpattern:= '$0';
+          '$VZ0' : actasmpattern:= '$1';
+          '$VXY1' : actasmpattern:= '$2';
+          '$VZ1' : actasmpattern:= '$3';
+          '$VXY2' : actasmpattern:= '$4';
+          '$VZ2' : actasmpattern:= '$5';
+          '$RGBC' : actasmpattern:= '$6';
+          '$OTZ' : actasmpattern:= '$7';
+          '$IR0' : actasmpattern:= '$8';
+          '$IR1' : actasmpattern:= '$9';
+          '$IR2' : actasmpattern:= '$10';
+          '$IR3' : actasmpattern:= '$11';
+          '$SXY0' : actasmpattern:= '$12';
+          '$SXY1' : actasmpattern:= '$13';
+          '$SXY2' : actasmpattern:= '$14';
+          '$SXYP' : actasmpattern:= '$15';
+          '$SZ0' : actasmpattern:= '$16';
+          '$SZ1' : actasmpattern:= '$17';
+          '$SZ2' : actasmpattern:= '$18';
+          '$SZ3' : actasmpattern:= '$19';
+          '$RGB0' : actasmpattern:= '$20';
+          '$RGB1' : actasmpattern:= '$21';
+          '$RGB2' : actasmpattern:= '$22';
+          '$MAC0' : actasmpattern:= '$24';
+          '$MAC1' : actasmpattern:= '$25';
+          '$MAC2' : actasmpattern:= '$26';
+          '$MAC3' : actasmpattern:= '$27';
+          '$IRGB' : actasmpattern:= '$28';
+          '$ORGB' : actasmpattern:= '$29';
+          '$LZCS' : actasmpattern:= '$30';
+          '$LZCR' : actasmpattern:= '$31';
+        { COP0 Register}
+          '$BPC' : actasmpattern:= '$3';
+          '$BDA' : actasmpattern:= '$5';
+          '$DCIC' : actasmpattern:= '$7';
+          '$BADVADDR' : actasmpattern:= '$8';
+          '$BDAM' : actasmpattern:= '$9';
+          '$BPCM' : actasmpattern:= '$11';
+          '$STATUS' : actasmpattern:= '$12';
+          '$CAUSE' : actasmpattern:= '$13';
+          '$EPC' : actasmpattern:= '$14';
+          '$PRID' : actasmpattern:= '$15';
+        end;
+
+
         actasmpattern:=lower(actasmpattern);
         actasmregister:=gas_regnum_search(actasmpattern);
         if actasmregister=NR_NO then
