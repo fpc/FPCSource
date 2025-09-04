@@ -560,7 +560,8 @@ begin
       doupdate();
     until (ch = chtype('q')) OR (ch = KEY_F(10));
   finally
-    ncpad.destroy;
+    if ncpad <> nil then  {if parameters are wrong "ncpad" is not even created}
+      ncpad.destroy;
     curs_set(1);
     endwin();
   end;
