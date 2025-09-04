@@ -200,6 +200,15 @@ type
     MaxFixedArenaSize = 64 * 1024;
     MaxKeptFixedArenas = 4;
 
+    { Bin index that corresponds to the minimum size ChooseFixedArenaSize can return.
+      = VarSizeToBinIndexUp(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2)) or so.
+      Pure functions could be useful to calculate these with less hardcoding... }
+    MinArenaBinIndex = 96;
+    { Maximum size that can be added by AllocVar(isArena := true) to the original request.
+      BinIndexToVarSize(MinArenaBinIndex) - 1 is possibly the (minimal) ideal value because it guarantees that
+      there will be no tail left unusable for futher arenas, but can be arbitrary. }
+    MaxArenaOverallocation = 7968 - 1;
+
   { Adjustable part ends here~ }
 
   const
@@ -379,6 +388,7 @@ type
       procedure Add(c: pFreeVarChunk; binIndex: SizeUint);
       procedure Remove(c: pFreeVarChunk);
       function Find(binIndex: SizeUint): pFreeVarChunk;
+      function FindSmaller(binIndex: SizeUint): pFreeVarChunk;
     end;
 
     ThreadState = object
@@ -642,6 +652,22 @@ type
     end;
   end;
 
+  function HeapInc.VarFreeMap.FindSmaller(binIndex: SizeUint): pFreeVarChunk;
+  var
+    mask: uint32;
+  begin
+    mask := L0[binIndex div L0BinSize] and (uint32(1) shl (binIndex mod L0BinSize) - 1);
+    if mask <> 0 then
+      exit(bins[binIndex and SizeUint(-L0BinSize) + BsrDWord(mask or 1)]);
+    result := nil;
+    mask := L1 and (uint32(1) shl (binIndex div L0BinSize) - 1);
+    if mask <> 0 then
+    begin
+      binIndex := BsrDWord(mask or 1);
+      result := bins[binIndex * L0BinSize + BsrDWord(L0[binIndex] or 1)];
+    end;
+  end;
+
 {$ifdef DEBUG_HEAP_INC}
   procedure HeapInc.ThreadState.Dump(var f: text);
   var
@@ -663,7 +689,7 @@ type
       needLE := false;
     end;
 
-    procedure DumpVarFree(const varFree: VarFreeMap; const name: string);
+    procedure DumpVarFree(const varFree: VarFreeMap; const name: shortstring);
     var
       i: SizeInt;
     begin
@@ -1046,26 +1072,38 @@ type
     if not Assigned(fv) then
     begin
       { Find either other fv or other osChunk that can fit the requested size. }
-      osChunk := pVarOSChunk(GetOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
-      if not Assigned(osChunk) then
+      if isArena and (binIndex > MinArenaBinIndex) then
       begin
-      {$ifdef FPC_HAS_FEATURE_THREADING}
-        { Preliminary search without blocking, assuming varFree.Find doesn’t do anything that can go wrong. }
-        fv := gs.varFree.Find(binIndex);
-        if Assigned(fv) then
+        { If allocating arena, try to allocate less than requested, within arena size limitations. }
+        fv := varFree.FindSmaller(binIndex);
+        if Assigned(fv) and (fv^.binIndex >= MinArenaBinIndex) then
+          size := pVarHeader(fv)[-1].ch.h and VarSizeMask { Use the entire chunk. }
+        else
+          fv := nil;
+      end;
+      if not Assigned(fv) then
+      begin
+        osChunk := pVarOSChunk(GetOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
+        if not Assigned(osChunk) then
         begin
-          EnterCriticalSection(gs.lock);
-          fv := gs.varFree.Find(binIndex); { True search. }
+        {$ifdef FPC_HAS_FEATURE_THREADING}
+          { Preliminary search without blocking, assuming varFree.Find doesn’t do anything that can go wrong. }
+          fv := gs.varFree.Find(binIndex);
           if Assigned(fv) then
-            AdoptVarOwner(fv); { Moves fv to own varFree. }
-          LeaveCriticalSection(gs.lock);
-        end;
-        if not Assigned(fv) then
-      {$endif FPC_HAS_FEATURE_THREADING}
-        begin
-          osChunk := pVarOSChunk(AllocateOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
-          if not Assigned(osChunk) then
-            exit(nil);
+          begin
+            EnterCriticalSection(gs.lock);
+            fv := gs.varFree.Find(binIndex); { True search. }
+            if Assigned(fv) then
+              AdoptVarOwner(fv); { Moves fv to own varFree. }
+            LeaveCriticalSection(gs.lock);
+          end;
+          if not Assigned(fv) then
+        {$endif FPC_HAS_FEATURE_THREADING}
+          begin
+            osChunk := pVarOSChunk(AllocateOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
+            if not Assigned(osChunk) then
+              exit(nil);
+          end;
         end;
       end;
     end;
@@ -1093,9 +1131,13 @@ type
     { Result will be allocated at the beginning of fv; maybe format the remainder and add it back to varFree. }
     result := fv;
     vSizeFlags := pVarHeader(fv)[-1].ch.h - size; { Inherits LastFlag. }
-    { Allow leaving a non-searchable tail if non-last.
-      “vSizeFlags >= MinAnyVarHeaderAndPayload” if non-last, “vSizeFlags >= MinSearchableVarHeaderAndPayload” if last. }
-    if vSizeFlags >= MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (vSizeFlags and LastFlag) then
+    if
+      { Allow over-allocating arenas by up to MaxArenaOverallocation.
+        Harmless check if not an arena, assuming (MaxArenaOverallocation and -VarSizeQuant + VarSizeQuant) >= MinSearchableVarHeaderAndPayload. }
+      (vSizeFlags >= MaxArenaOverallocation and -VarSizeQuant + VarSizeQuant) or
+      { Allow leaving a non-searchable tail if non-last.
+        “vSizeFlags >= MinAnyVarHeaderAndPayload” if non-last, “vSizeFlags >= MinSearchableVarHeaderAndPayload” if last. }
+      not isArena and (vSizeFlags >= MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (vSizeFlags and LastFlag)) then
     begin
       pVarHeader(result - VarHeaderSize)^.ch.h := uint32(size) + UsedFlag;
       inc(pointer(fv), size); { result = allocated block, fv = remainder. }
