@@ -455,6 +455,12 @@ unit aoptcpu;
                   Result:=PostPeepholeOptRET(p);
                 A_VPXOR:
                   Result:=PostPeepholeOptVPXOR(p);
+                A_SARX,
+                A_SHLX,
+                A_SHRX:
+                  Result:=PostPeepholeOptSARXSHLXSHRX(p);
+                A_RORX:
+                  Result:=PostPeepholeOptRORX(p);
                 else
                   ;
               end;

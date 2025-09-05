@@ -235,6 +235,8 @@ unit aoptx86;
         function PostPeepholeOptADDSUB(var p : tai) : Boolean;
         function PostPeepholeOptVPXOR(var p: tai): Boolean;
         function PostPeepholeOptRET(var p: tai): Boolean;
+        function PostPeepholeOptRORX(var p: tai): Boolean;
+        function PostPeepholeOptSARXSHLXSHRX(var p: tai): Boolean;
 
         procedure ConvertJumpToRET(const p: tai; const ret_p: tai);
 
@@ -18136,6 +18138,51 @@ unit aoptx86;
             RemoveCurrentP(p, p_new);
             Result := True;
             Exit;
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptRORX(var p: tai): Boolean;
+      begin
+        Result := False;
+        { Change:                 To:
+            rorx #x,%reg,%reg       ror #x,%reg
+
+          (Smaller instruction size)
+        }
+        if MatchOperand(taicpu(p).oper[1]^,taicpu(p).oper[2]^.reg) and
+          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
+          begin
+            taicpu(p).opcode:=A_ROR;
+            taicpu(p).ops:=2;
+            taicpu(p).clearop(2);
+          end;
+      end;
+
+
+    function TX86AsmOptimizer.PostPeepholeOptSARXSHLXSHRX(var p: tai): Boolean;
+      begin
+        Result := False;
+        { Change:                bTo:
+            shlx %ecx,%reg,%reg     shl %cl,%reg
+
+          (Smaller instruction size)
+          Same with SARX and SHRX (and when using %rcx for 64-bit)
+        }
+        if (getsupreg(taicpu(p).oper[0]^.reg)=RS_ECX) and
+          MatchOperand(taicpu(p).oper[1]^,taicpu(p).oper[2]^.reg) and
+          not RegInUsedRegs(NR_DEFAULTFLAGS, UsedRegs) then
+          begin
+            case taicpu(p).opcode of
+              A_SARX: taicpu(p).opcode:=A_SAR;
+              A_SHLX: taicpu(p).opcode:=A_SHL;
+              A_SHRX: taicpu(p).opcode:=A_SHR;
+              else
+                InternalError(2025090501);
+            end;
+            setsubreg(taicpu(p).oper[0]^.reg, R_SUBL);
+            taicpu(p).ops:=2;
+            taicpu(p).clearop(2);
           end;
       end;
 
