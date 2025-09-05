@@ -33,10 +33,12 @@ type
     function first_abs_real: tnode; override;
     function first_sqr_real: tnode; override;
     function first_sqrt_real: tnode; override;
+    function first_gteCommand: tnode; override;
     procedure second_abs_real; override;
     procedure second_sqr_real; override;
     procedure second_sqrt_real; override;
     procedure second_get_frame; override;
+    procedure second_gtecommand; override;
   private
     procedure load_fpu_location;
   end;
@@ -108,6 +110,7 @@ begin
 end;
 
 
+
 procedure tMIPSELinlinenode.second_abs_real;
 begin
   load_fpu_location;
@@ -154,6 +157,30 @@ procedure tMIPSELinlinenode.second_get_frame;
 begin
   location_reset(location,LOC_CREGISTER,OS_ADDR);
   location.register:=NR_FRAME_POINTER_REG;
+end;
+
+
+
+function tMIPSELinlinenode.first_gteCommand: tnode;
+begin
+  result:= nil;
+end;
+
+
+procedure tMIPSELinlinenode.second_gtecommand;
+begin
+  
+  secondpass(left);
+{
+  writeln(left.nodetype);     // ordconstn
+  writeln(left.expectloc);    // LOC_CONSTANT
+  writeln(left.location.loc); //  LOC_CONSTANT
+  writeln(left.location.value);
+}
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+  current_asmdata.CurrAsmList.concat(taicpu.op_const(A_COP2, left.location.value));
+
 end;
 
 

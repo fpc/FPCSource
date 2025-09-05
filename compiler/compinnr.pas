@@ -235,6 +235,10 @@ type
      ,
      {$i ppcgen/ccpuinnr.inc}
 {$endif}
+
+{$if defined(MIPSEL)}    ,
+     in_gtecommand_x       = 12345
+{$endif}
    );
 
 implementation

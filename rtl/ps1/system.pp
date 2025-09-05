@@ -5,6 +5,8 @@ interface
 
 {$DEFINE FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 
+
+
 {$I systemh.inc}
 
 {$ifndef FPUNONE}
@@ -41,6 +43,8 @@ var
   argc:longint=0;
   argv:PPAnsiChar;
   envp:PPAnsiChar;
+
+procedure GTECommand(Const AValue : DWord);[internproc:fpc_in_gtecommand_x];
 
 implementation
 

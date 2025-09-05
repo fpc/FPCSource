@@ -155,4 +155,7 @@ const
 
    fpc_in_cpu_first        = 10000;
    fpc_in_x86_mm_first     = 11000;
-
+   
+   {$if defined(MIPSEL)}
+   fpc_in_gtecommand_x       = 12345;
+   {$endif}

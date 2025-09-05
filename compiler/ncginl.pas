@@ -68,6 +68,9 @@ interface
           procedure second_frac_real; virtual;
           procedure second_high; virtual;
           procedure second_minmax; virtual;
+          {$if defined(MIPSEL)}
+          procedure second_gtecommand; virtual;
+          {$endif}
        protected
           function  second_incdec_tempregdef: tdef;virtual;
        end;
@@ -244,6 +247,10 @@ implementation
                second_NegNot_assign;
             in_high_x:
               second_high;
+            {$if defined(MIPSEL)}
+            in_gtecommand_x:
+              second_gtecommand;  
+            {$endif}
             else
                pass_generate_code_cpu;
          end;
@@ -1019,6 +1026,12 @@ implementation
       begin
         internalerror(2012082602);
       end;
+{$if defined(MIPSEL)}
+    procedure tcginlinenode.second_gtecommand;
+      begin
+        internalerror(2025090502);
+      end;
+{$endif}
 
 
     procedure tcginlinenode.second_fma;
