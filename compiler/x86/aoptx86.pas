@@ -185,6 +185,9 @@ unit aoptx86;
         function OptPass1MOVD(var p : tai) : boolean;
         function OptPass1Movx(var p : tai) : boolean;
         function OptPass1MOVXX(var p : tai) : boolean;
+{$ifndef i8086}
+        function OptPass1NOT(var p : tai) : boolean;
+{$endif not i8086}
         function OptPass1OP(var p : tai) : boolean;
         function OptPass1LEA(var p : tai) : boolean;
         function OptPass1Sub(var p : tai) : boolean;
@@ -5818,6 +5821,88 @@ unit aoptx86;
           end;
       end;
 
+{$ifndef i8086}
+       function TX86AsmOptimizer.OptPass1NOT(var p: tai): Boolean;
+         var
+           hp1, p_next: tai;
+           flags_used: Boolean;
+
+           procedure Do_NotAnd2Andn1;
+             var
+               tempoper: poper;
+             begin
+               { Change "and %reg1,%reg2" to "andn %reg2,%reg1,%reg2" }
+               taicpu(hp1).allocate_oper(3);
+               taicpu(hp1).ops:=3;
+               { Swap the 1st and 2nd operands by swapping their pointers }
+               tempoper:=taicpu(hp1).oper[1];
+               taicpu(hp1).oper[1]:=taicpu(hp1).oper[0];
+               taicpu(hp1).oper[0]:=tempoper;
+               taicpu(hp1).loadreg(2, tempoper^.reg);
+               taicpu(hp1).opcode:=A_ANDN;
+             end;
+
+         begin
+           Result:=False;
+           { Don't optimise this for size as ANDN is bigger than NOT and AND combined }
+           if not (cs_opt_size in current_settings.optimizerswitches) and
+             (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.optimizecputype]) then
+             begin
+               { Convert:           To:
+                   not %reg1          andn %reg2,%reg1,%reg2
+                   and %reg1,%reg2    not %reg1
+
+                 Or remove "not %reg1" completely if %reg1 is deallocated.
+
+                 This breaks the dependency chain.
+               }
+               if (taicpu(p).oper[0]^.typ=top_reg) and
+                 { ANDN only supports 32-bit and 64-bit }
+                 (taicpu(p).opsize in [S_L{$ifdef x86_64},S_Q{$endif x86_64}]) and
+                 GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                 MatchInstruction(hp1, A_AND, [taicpu(p).opsize]) and
+                 MatchOperand(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^.reg) and
+                 (taicpu(hp1).oper[1]^.typ=top_reg) and
+                 (taicpu(hp1).oper[1]^.reg<>taicpu(p).oper[0]^.reg) and
+                 (
+                   { p and hp1 are adjacent on -O2 and below }
+                   not(cs_opt_level3 in current_settings.optimizerswitches) or
+                   not RegModifiedBetween(taicpu(hp1).oper[1]^.reg,p,hp1)
+                 ) then
+                 begin
+                   p_next:=tai(p.Next);
+                   TransferUsedRegs(TmpUsedRegs);
+                   UpdateUsedRegsBetween(TmpUsedRegs, p_next, hp1);
+                   { Make a note as to whether the flags are in use because
+                     RegUsedAfterInstruction might change the state }
+                   flags_used:=RegInUsedRegs(NR_DEFAULTFLAGS, TmpUsedRegs);
+
+                   if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp1, TmpUsedRegs) then
+                     begin
+                       DebugMsg(SPeepholeOptimization + 'NotAnd2Andn 1 done', p);
+                       Do_NotAnd2Andn1;
+                       RemoveCurrentP(p, p_next);
+                       Result:=True;
+                       Exit;
+                     end
+                   else if not flags_used then
+                     begin
+                       DebugMsg(SPeepholeOptimization + 'NotAnd2AndnNot 1 done', p);
+                       Do_NotAnd2Andn1;
+                       asml.Remove(p);
+                       asml.InsertAfter(p, hp1);
+                       AllocRegBetween(taicpu(p).oper[0]^.reg, hp1, p, TmpUsedRegs);
+                       { Make sure the pass 2 iteration continues from the
+                         correct place, right after p }
+                       p:=p_next;
+
+                       Result:=True;
+                       Exit;
+                     end;
+                 end;
+             end;
+         end;
+{$endif not i8086}
 
     function TX86AsmOptimizer.OptPass1OP(var p : tai) : boolean;
       var

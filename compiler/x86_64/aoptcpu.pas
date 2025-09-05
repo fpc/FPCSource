@@ -109,6 +109,8 @@ uses
                 A_MOVSXD,
                 A_MOVZX:
                   Result:=OptPass1Movx(p);
+                A_NOT:
+                  Result:=OptPass1NOT(p);
                 A_MOVDQA,
                 A_MOVAPD,
                 A_MOVAPS,
