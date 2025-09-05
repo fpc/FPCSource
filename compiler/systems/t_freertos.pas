@@ -1631,33 +1631,41 @@ begin
           end;
   {$endif XTENSA}
   {$ifdef RISCV32}
+      if idf_version>=50300 then
+        begin
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -L $IDF_PATH/components/riscv/ld';
+          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+'rom.api.ld';
+       end;
+
       if current_settings.controllertype=ct_esp32c2 then
         if idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
         else if idf_version>=50000 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.newlib-time.ld -T '+cntrlr+'.rom.newlib-nano.ld -T '+cntrlr+'.rom.heap.ld'
         else 
-          begin
-            //Currently not supported
-          end;
+          Comment(V_Error,'Unsupported esp-idf version specified');
+
       if current_settings.controllertype=ct_esp32c3 then
-        if idf_version>=50200 then
-          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld'
-        else if idf_version>=50000 then
-          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld'
-        else if idf_version>=40400 then
-          Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld  -T '+cntrlr+'.rom.newlib-time.ld -T '+cntrlr+'.rom.eco3.ld'
+        begin
+         Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libgcc.ld -T '+cntrlr+'.rom.newlib.ld  -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.eco3.ld';
+         if idf_version<50000 then
+           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.newlib-time.ld';
+         if idf_version>=50000 then
+           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.eco3_bt_funcs.ld';
+         if idf_version>=50300 then
+           Info.ExeCmd[1]:=Info.ExeCmd[1]+' --allow-multiple -T'+cntrlr+'.rom.bt_funcs.ld -T '+cntrlr+'.rom.ble_master.ld -T '+cntrlr+'.rom.ble_50.ld -T '+cntrlr+'.rom.ble_smp.ld -T '+
+             cntrlr+'.rom.ble_dtm.ld -T '+cntrlr+'.rom.ble_test.ld -T '+cntrlr+'.rom.ble_scan.ld';
+         if idf_version>=50500 then
+           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.libc.ld';
+        end
         else
-          begin
-            //Currently not supported
-          end;
+          Comment(V_Error,'Unsupported esp-idf version specified');
+
       if current_settings.controllertype=ct_esp32c6 then
         if idf_version>=50200 then
           Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.rom.rvfp.ld -T '+cntrlr+'.rom.newlib.ld -T '+cntrlr+'.rom.version.ld -T '+cntrlr+'.rom.phy.ld -T '+cntrlr+'.rom.coexist.ld -T '+cntrlr+'.rom.net80211.ld -T '+cntrlr+'.rom.pp.ld -T '+cntrlr+'.rom.wdt.ld -T '+cntrlr+'.rom.systimer.ld -T '+cntrlr+'.rom.newlib-normal.ld -T '+cntrlr+'.rom.heap.ld'
         else
-          begin
-          //Currently not supported
-          end;
+         Comment(V_Error,'Unsupported esp-idf version specified');
   {$endif RISCV32}
       Info.ExeCmd[1]:=Info.ExeCmd[1]+' -T '+cntrlr+'.peripherals.ld'
     end;

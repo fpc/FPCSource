@@ -28,7 +28,8 @@ unit esp32c3;
     procedure PASCALMAIN; external name 'PASCALMAIN';
 
     procedure esp_deep_sleep_start;external;
-    procedure putchar(c : char);external;
+    // deprecated since v5.3, consider moving this to SDK version dependent unit
+    procedure putchar(c : char);external name 'esp_rom_uart_tx_one_char';
     function getchar : char;external;
     function __getreent : pointer;external;
     procedure fflush(f : pointer);external;

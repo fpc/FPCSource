@@ -14,11 +14,12 @@
 
  **********************************************************************}
 {$IFNDEF FPC_DOTTEDUNITS}
-unit esp32c3idf_50200;
+unit esp32c3idf_50300;
 {$ENDIF FPC_DOTTEDUNITS}
 
 interface
 
+{$linklib esp_driver_gpio, static}
 {$linklib app_update,static}
 {$linklib bootloader_support,static}
 {$linklib core,static}

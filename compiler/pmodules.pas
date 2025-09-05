@@ -556,7 +556,9 @@ implementation
             end;
           if (current_settings.controllertype=ct_esp32c3) then
             begin
-              if idf_version>=50200 then
+              if idf_version>=50300 then
+                CheckAddUnit('esp32c3idf_50300')
+              else if idf_version>=50200 then
                 CheckAddUnit('esp32c3idf_50200')
               else if idf_version>=50000 then
                 CheckAddUnit('esp32c3idf_50000')
