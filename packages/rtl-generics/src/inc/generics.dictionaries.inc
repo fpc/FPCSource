@@ -800,7 +800,6 @@ end;
 function TOpenAddressingLP<OPEN_ADDRESSING_CONSTRAINTS>.FindBucketIndex(const AItems: TArray<TItem>;
   const AKey: TKey; out AHash: UInt32): SizeInt;
 var
-  LItem: {TOpenAddressing<OPEN_ADDRESSING_CONSTRAINTS>.}_TItem; // for workaround Lazarus bug #25613
   LLengthMask: SizeInt;
   i, m: SizeInt;
   LHash: UInt32;
@@ -820,16 +819,17 @@ begin
   Result := LHash and LLengthMask;
 
   repeat
-    LItem := _TItem(AItems[Result]);
+    with AItems[Result] do
+    begin
+      // Empty position
+      if (Hash and UInt32.GetSignMask) = 0 then
+        Exit(not Result); // insert!
 
-    // Empty position
-    if (LItem.Hash and UInt32.GetSignMask) = 0 then
-      Exit(not Result); // insert!
-
-    // Same position?
-    if LItem.Hash = LHash then
-      if FEqualityComparer.Equals(AKey, LItem.Pair.Key) then
-        Exit;
+      // Same position?
+      if Hash = LHash then
+        if FEqualityComparer.Equals(AKey, Pair.Key) then
+          Exit;
+    end;
 
     Inc(i);
 
