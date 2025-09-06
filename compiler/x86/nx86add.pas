@@ -1903,7 +1903,37 @@ unit nx86add;
          ovloc : tlocation;
          tmpreg : TRegister;
          indexnode : TNode;
+
+         procedure MakeBZHI(use_tmpreg: Boolean);
+           begin
+             { allocate registers }
+             hlcg.location_force_reg(
+               current_asmdata.CurrAsmList,
+               indexnode.location,
+               indexnode.resultdef,
+               resultdef,
+               false
+             );
+
+             set_result_location_reg;
+             if use_tmpreg then
+               emit_reg_reg_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, tmpreg, location.register)
+             else
+               case left.location.loc of
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE:
+                   emit_reg_ref_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, left.location.reference, location.register);
+                 LOC_REGISTER,
+                 LOC_CREGISTER:
+                   emit_reg_reg_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, left.location.register, location.register);
+                 else
+                   InternalError(2022102111);
+               end;
+           end;
+
       begin
+        indexnode := nil; { Needed to prevent a compiler warning }
+
         { determine if the comparison will be unsigned }
         unsigned:=not(is_signed(left.resultdef)) or
                     not(is_signed(right.resultdef));
@@ -2029,86 +2059,109 @@ unit nx86add;
              end;
 
            { BMI2 optimisations }
-           if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) then
+           if (CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and
+             (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) then
              begin
-               { Can we turn "x and ((1 shl y) - 1)" into a BZHI instruction instead? }
-               if (nodetype = andn) and
-                 (opsize in [OS_32, OS_S32{$ifdef x86_64}, OS_64, OS_S64{$endif x86_64}]) and
-                 (
-                   (
-                     (right.nodetype = subn) and
-                     (taddnode(right).right.nodetype = ordconstn) and
-                     (tordconstnode(taddnode(right).right).value = 1) and
-                     (taddnode(right).left.nodetype = shln) and
-                     (tshlshrnode(taddnode(right).left).left.nodetype = ordconstn) and
-                     (tordconstnode(tshlshrnode(taddnode(right).left).left).value = 1)
-                   ) or
-                   (
-                     (left.nodetype = subn) and
-                     (taddnode(left).right.nodetype = ordconstn) and
-                     (tordconstnode(taddnode(left).right).value = 1) and
-                     (taddnode(left).left.nodetype = shln) and
-                     (tshlshrnode(taddnode(left).left).left.nodetype = ordconstn) and
-                     (tordconstnode(tshlshrnode(taddnode(left).left).left).value = 1)
-                   )
-                 ) then
-                 begin
-
-                   { Put the subtract node on the right }
-                   if (right.nodetype <> subn) then
-                     swapleftright;
-
-                   secondpass(left);
-
-                   { Skip the subtract and shift nodes completely }
-                   Include(right.transientflags, tnf_do_not_execute);
-                   Include(taddnode(right).left.transientflags, tnf_do_not_execute);
-
-                   { Helps avoid all the awkward typecasts }
-                   indexnode := tshlshrnode(taddnode(right).left).right;
-{$ifdef x86_64}
-                   { The code generator sometimes extends the shift result to 64-bit unnecessarily }
-                   if (indexnode.nodetype = typeconvn) and (opsize in [OS_32, OS_S32]) and
-                     (def_cgsize(TTypeConvNode(indexnode).resultdef) in [OS_64, OS_S64]) then
+               case nodetype of
+                 andn:
+                   { Can we turn "x and ((1 shl y) - 1)" into a BZHI instruction instead? }
+                   if (
+                     (
+                       (right.nodetype = subn) and
+                       (taddnode(right).right.nodetype = ordconstn) and
+                       (tordconstnode(taddnode(right).right).value = 1) and
+                       (taddnode(right).left.nodetype = shln) and
+                       (tshlshrnode(taddnode(right).left).left.nodetype = ordconstn) and
+                       (tordconstnode(tshlshrnode(taddnode(right).left).left).value = 1)
+                     ) or
+                     (
+                       (left.nodetype = subn) and
+                       (taddnode(left).right.nodetype = ordconstn) and
+                       (tordconstnode(taddnode(left).right).value = 1) and
+                       (taddnode(left).left.nodetype = shln) and
+                       (tshlshrnode(taddnode(left).left).left.nodetype = ordconstn) and
+                       (tordconstnode(tshlshrnode(taddnode(left).left).left).value = 1)
+                     )
+                   ) then
                      begin
-                       { Convert to the 32-bit type }
-                       indexnode.resultdef := resultdef;
-                       node_reset_flags(indexnode,[],[tnf_pass1_done]);
 
-                       { We should't be getting any new errors }
-                       if do_firstpass(indexnode) then
-                         InternalError(2022110201);
+                       { Put the subtract node on the right }
+                       if (right.nodetype <> subn) then
+                         swapleftright;
 
-                       { Keep things internally consistent in case indexnode changed }
-                       tshlshrnode(taddnode(right).left).right := indexnode;
-                     end;
+                       secondpass(left);
+
+                       { Skip the subtract and shift nodes completely }
+                       Include(right.transientflags, tnf_do_not_execute);
+                       Include(taddnode(right).left.transientflags, tnf_do_not_execute);
+
+                       { Helps avoid all the awkward typecasts }
+                       indexnode := tshlshrnode(taddnode(right).left).right;
+{$ifdef x86_64}
+                       { The code generator sometimes extends the shift result to 64-bit unnecessarily }
+                       if (indexnode.nodetype = typeconvn) and (opsize in [OS_32, OS_S32]) and
+                         (def_cgsize(TTypeConvNode(indexnode).resultdef) in [OS_64, OS_S64]) then
+                         begin
+                           { Convert to the 32-bit type }
+                           indexnode.resultdef := resultdef;
+                           node_reset_flags(indexnode,[],[tnf_pass1_done]);
+
+                           { We should't be getting any new errors }
+                           if do_firstpass(indexnode) then
+                             InternalError(2022110201);
+
+                           { Keep things internally consistent in case indexnode changed }
+                           tshlshrnode(taddnode(right).left).right := indexnode;
+                         end;
 {$endif x86_64}
-                   secondpass(indexnode);
+                       secondpass(indexnode);
 
-                   { allocate registers }
-                   hlcg.location_force_reg(
-                     current_asmdata.CurrAsmList,
-                     indexnode.location,
-                     indexnode.resultdef,
-                     resultdef,
-                     false
-                   );
+                       MakeBZHI(False);
+                       Exit;
+                     end;
 
-                   set_result_location_reg;
+                 subn:
+                   { Turns an isolated "(1 shl y) - 1" into "mov $-1,%reg1; bzhi %idxreg,%reg1,%reg2" pair}
+                   if (right.nodetype = ordconstn) and
+                     (tordconstnode(right).value = 1) and
+                     (left.nodetype = shln) and
+                     (tshlshrnode(left).left.nodetype = ordconstn) and
+                     (tordconstnode(tshlshrnode(left).left).value = 1) then
+                     begin
+                       { Skip the shift node completely }
+                       Include(left.transientflags, tnf_do_not_execute);
 
-                   case left.location.loc of
-                     LOC_REFERENCE,
-                     LOC_CREFERENCE:
-                       emit_reg_ref_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, left.location.reference, location.register);
-                     LOC_REGISTER,
-                     LOC_CREGISTER:
-                       emit_reg_reg_reg(A_BZHI, TCGSize2OpSize[opsize], indexnode.location.register, left.location.register, location.register);
-                     else
-                       InternalError(2022102111);
-                   end;
+                       { Helps avoid all the awkward typecasts }
+                       indexnode := tshlshrnode(left).right;
 
-                   Exit;
-                 end;
+{$ifdef x86_64}
+                       { The code generator sometimes extends the shift result to 64-bit unnecessarily }
+                       if (indexnode.nodetype = typeconvn) and (opsize in [OS_32, OS_S32]) and
+                         (def_cgsize(ttypeconvnode(indexnode).resultdef) in [OS_64, OS_S64]) then
+                         begin
+                           { Convert to the 32-bit type }
+                           indexnode.resultdef := resultdef;
+                           node_reset_flags(indexnode,[],[tnf_pass1_done]);
+
+                           { We should't be getting any new errors }
+                           if do_firstpass(indexnode) then
+                             InternalError(2022110202);
+
+                           { Keep things internally consistent in case indexnode changed }
+                           tshlshrnode(left).right := indexnode;
+                         end;
+{$endif x86_64}
+                       secondpass(indexnode);
+
+                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+                       cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, -1, tmpreg);
+
+                       MakeBZHI(True);
+                       Exit;
+                     end;
+                 else
+                   ;
+               end;
              end;
          end;
 {$endif not i8086}
