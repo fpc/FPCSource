@@ -1171,8 +1171,7 @@ type
 
   function HeapInc.ThreadState.FreeVar(p: pointer): SizeUint;
   var
-    p2: pointer;
-    fSizeFlags, hPrev, hNext: SizeUint;
+    fSizeFlags, hNext, prevSize: SizeUint;
     osChunk, osPrev, osNext: pVarOSChunk;
   {$ifdef FPC_HAS_FEATURE_THREADING}
     pts: ^pThreadState;
@@ -1211,29 +1210,23 @@ type
     { If next/prev are free, remove them from varFree and merge with f — (f)uture (f)ree chunk that starts at p and has fSizeFlags. }
     if fSizeFlags and LastFlag = 0 then
     begin
-      p2 := p + result;
-      hNext := pVarHeader(p2 - VarHeaderSize)^.ch.h;
+      hNext := pVarHeader(p + result - VarHeaderSize)^.ch.h;
       if uint32(hNext) and UsedFlag = 0 then
       begin
         inc(fSizeFlags, hNext); { Inherit LastFlag, other p2 flags must be 0. }
         if hNext >= MinSearchableVarHeaderAndPayload then { Logically “hNext and VarSizeMask”. }
-          varFree.Remove(p2);
+          varFree.Remove(p + result);
         { Chunk to the right retains its PrevFreeFlag. }
       end;
     end;
 
     if fSizeFlags and PrevIsFreeFlag <> 0 then
     begin
-      dec(fSizeFlags, PrevIsFreeFlag);
-      p2 := p - pFreeVarTail(p - (VarHeaderSize + FreeVarTailSize))^.size;
-      hPrev := pVarHeader(p2 - VarHeaderSize)^.ch.h;
-      if uint32(hPrev) and UsedFlag = 0 then
-      begin
-        p := p2;
-        inc(fSizeFlags, hPrev); { All p2 flags must be 0. }
-        if hPrev >= MinSearchableVarHeaderAndPayload then { Logically “hPrev and VarSizeMask”. }
-          varFree.Remove(p2);
-      end;
+      prevSize := pFreeVarTail(p - (VarHeaderSize + FreeVarTailSize))^.size;
+      dec(p, prevSize);
+      fSizeFlags := fSizeFlags - PrevIsFreeFlag + prevSize;
+      if uint32(prevSize) >= MinSearchableVarHeaderAndPayload then
+        varFree.Remove(p);
     end;
 
     { Turn p into a free chunk and add it back to varFree...
