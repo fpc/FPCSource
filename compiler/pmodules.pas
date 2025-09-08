@@ -1783,6 +1783,9 @@ type
     function finish_unit(module: tmodule): boolean;
 
       var
+{$ifdef EXTDEBUG}
+        store_crc,
+{$endif EXTDEBUG}
         store_interface_crc,
         store_indirect_crc : cardinal;
         i : longint;
