@@ -2144,17 +2144,10 @@ begin
 end;
 
 function TRttiInstanceMethod.GetReturnType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  if not Assigned(FHandle^.ResultType) then
-    Exit(Nil);
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FHandle^.ResultType^);
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(FHandle^.ResultType) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FHandle^.ResultType^);
 end;
 
 function TRttiInstanceMethod.GetVirtualIndex: SmallInt;
@@ -2177,32 +2170,28 @@ begin
   SetLength(FParams[False],FHandle^.ParamCount);
   SetLength(FParams[True],FHandle^.ParamCount);
   context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    param := FHandle^.Param[0];
-    while total < FHandle^.ParamCount do
+  param := FHandle^.Param[0];
+  while total < FHandle^.ParamCount do
+    begin
+    obj := context.GetByHandle(param);
+    if Assigned(obj) then
+      prtti := obj as TRttiVmtMethodParameter
+    else
       begin
-      obj := context.GetByHandle(param);
-      if Assigned(obj) then
-        prtti := obj as TRttiVmtMethodParameter
-      else
-        begin
-        prtti := TRttiVmtMethodParameter.Create(param);
-        context.AddObject(prtti);
-        end;
-      FParams[True][total]:=prtti;
-      if not (pfHidden in param^.Flags) then
-        begin
-        FParams[False][visible] := prtti;
-        Inc(visible);
+      prtti := TRttiVmtMethodParameter.Create(param);
+      context.AddObject(prtti);
       end;
-      param := param^.Next;
-      Inc(total);
+    FParams[True][total]:=prtti;
+    if not (pfHidden in param^.Flags) then
+      begin
+      FParams[False][visible] := prtti;
+      Inc(visible);
     end;
-    if visible <> total then
-      SetLength(FParams[False], visible);
-  finally
-    context.Free;
+    param := param^.Next;
+    Inc(total);
   end;
+  if visible <> total then
+    SetLength(FParams[False], visible);
 end;
 
 procedure TRttiInstanceMethod.ResolveAttributes;
@@ -5097,18 +5086,10 @@ begin
 end;
 
 function TRttiRefCountedInterfaceType.GetIntfBaseType: TRttiInterfaceType;
-var
-  context: TRttiContext;
 begin
-  if not Assigned(IntfData^.Parent) then
-    Exit(Nil);
-
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(IntfData^.Parent^) as TRttiInterfaceType;
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(IntfData^.Parent) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(IntfData^.Parent^) as TRttiInterfaceType;
 end;
 
 function TRttiRefCountedInterfaceType.GetDeclaringUnitName: String;
@@ -5148,15 +5129,9 @@ function TRttiRawInterfaceType.GetIntfBaseType: TRttiInterfaceType;
 var
   context: TRttiContext;
 begin
-  if not Assigned(IntfData^.Parent) then
-    Exit(Nil);
-
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(IntfData^.Parent^) as TRttiInterfaceType;
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(IntfData^.Parent) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(IntfData^.Parent^) as TRttiInterfaceType;
 end;
 
 function TRttiRawInterfaceType.GetDeclaringUnitName: String;
@@ -5202,18 +5177,10 @@ begin
 end;
 
 function TRttiVmtMethodParameter.GetParamType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  if not Assigned(FVmtMethodParam^.ParamType) then
-    Exit(Nil);
-
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FVmtMethodParam^.ParamType^);
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(FVmtMethodParam^.ParamType) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FVmtMethodParam^.ParamType^);
 end;
 
 constructor TRttiVmtMethodParameter.Create(AVmtMethodParam: PVmtMethodParam);
@@ -5245,15 +5212,8 @@ begin
 end;
 
 function TRttiMethodTypeParameter.GetParamType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FType);
-  finally
-    context.Free;
-  end;
+  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FType);
 end;
 
 constructor TRttiMethodTypeParameter.Create(aHandle: Pointer; const aName: String; aFlags: TParamFlags; aType: PTypeInfo);
@@ -5327,18 +5287,10 @@ begin
 end;
 
 function TRttiIntfMethod.GetReturnType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  if not Assigned(FIntfMethodEntry^.ResultType) then
-    Exit(Nil);
-
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FIntfMethodEntry^.ResultType^);
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(FIntfMethodEntry^.ResultType) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FIntfMethodEntry^.ResultType^);
 end;
 
 function TRttiIntfMethod.GetVirtualIndex: SmallInt;
@@ -5396,33 +5348,29 @@ begin
   SetLength(FParamsAll, FIntfMethodEntry^.ParamCount);
 
   context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    total := 0;
-    visible := 0;
-    param := FIntfMethodEntry^.Param[0];
-    while total < FIntfMethodEntry^.ParamCount do begin
-      obj := context.GetByHandle(param);
-      if Assigned(obj) then
-        FParamsAll[total] := obj as TRttiVmtMethodParameter
-      else begin
-        FParamsAll[total] := TRttiVmtMethodParameter.Create(param);
-        context.AddObject(FParamsAll[total]);
-      end;
-
-      if not (pfHidden in param^.Flags) then begin
-        FParams[visible] := FParamsAll[total];
-        Inc(visible);
-      end;
-
-      param := param^.Next;
-      Inc(total);
+  total := 0;
+  visible := 0;
+  param := FIntfMethodEntry^.Param[0];
+  while total < FIntfMethodEntry^.ParamCount do begin
+    obj := context.GetByHandle(param);
+    if Assigned(obj) then
+      FParamsAll[total] := obj as TRttiVmtMethodParameter
+    else begin
+      FParamsAll[total] := TRttiVmtMethodParameter.Create(param);
+      context.AddObject(FParamsAll[total]);
     end;
 
-    if visible <> total then
-      SetLength(FParams, visible);
-  finally
-    context.Free;
+    if not (pfHidden in param^.Flags) then begin
+      FParams[visible] := FParamsAll[total];
+      Inc(visible);
+    end;
+
+    param := param^.Next;
+    Inc(total);
   end;
+
+  if visible <> total then
+    SetLength(FParams, visible);
 
   if aWithHidden then
     Result := FParamsAll
@@ -5924,15 +5872,8 @@ begin
 end;
 
 function TRttiIndexedProperty.GetPropertyType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FPropInfo^.PropType);
-  finally
-    context.Free;
-  end;
+  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FPropInfo^.PropType);
 end;
 
 procedure TRttiIndexedProperty.ResolveIndexParams;
@@ -5947,32 +5888,28 @@ begin
   visible := 0;
   SetLength(FParams,FPropInfo^.PropParams^.Count);
   context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    param := @FPropInfo^.PropParams^.Params[0];
-    while total < FPropInfo^.PropParams^.Count do
-    begin
-      obj := context.GetByHandle(param);
-      if Assigned(obj) then
-        prtti := obj as TRttiVmtMethodParameter
-      else
-        begin
-        prtti := TRttiVmtMethodParameter.Create(param);
-        context.AddObject(prtti);
-        end;
-      FParams[total]:=prtti;
-      if not (pfHidden in param^.Flags) then
+  param := @FPropInfo^.PropParams^.Params[0];
+  while total < FPropInfo^.PropParams^.Count do
+  begin
+    obj := context.GetByHandle(param);
+    if Assigned(obj) then
+      prtti := obj as TRttiVmtMethodParameter
+    else
       begin
-        FParams[visible] := prtti;
-        Inc(visible);
+      prtti := TRttiVmtMethodParameter.Create(param);
+      context.AddObject(prtti);
       end;
-      param := param^.Next;
-      Inc(total);
+    FParams[total]:=prtti;
+    if not (pfHidden in param^.Flags) then
+    begin
+      FParams[visible] := prtti;
+      Inc(visible);
     end;
-    if visible <> total then
-      SetLength(FParams, visible);
-  finally
-    context.Free;
+    param := param^.Next;
+    Inc(total);
   end;
+  if visible <> total then
+    SetLength(FParams, visible);
 end;
 
 function TRttiIndexedProperty.GetIndexParameters: TRttiParameterArray;
@@ -6354,29 +6291,25 @@ begin
 
   if FTypeData^.ParamCount > 0 then begin
     context := TRttiContext.Create(FUsePublishedOnly);
-    try
-      paramtypes := PPPTypeInfo(AlignTypeData(ptr));
-      visible := 0;
-      for i := 0 to FTypeData^.ParamCount - 1 do begin
-        obj := context.GetByHandle(infos[i].Handle);
-        if Assigned(obj) then
-          FParamsAll[i] := obj as TRttiMethodTypeParameter
-        else begin
-          if Assigned(paramtypes[i]) then
-            paramtype := paramtypes[i]^
-          else
-            paramtype := Nil;
-          FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
-          context.AddObject(FParamsAll[i]);
-        end;
-
-        if not (pfHidden in infos[i].Flags) then begin
-          FParams[visible] := FParamsAll[i];
-          Inc(visible);
-        end;
+    paramtypes := PPPTypeInfo(AlignTypeData(ptr));
+    visible := 0;
+    for i := 0 to FTypeData^.ParamCount - 1 do begin
+      obj := context.GetByHandle(infos[i].Handle);
+      if Assigned(obj) then
+        FParamsAll[i] := obj as TRttiMethodTypeParameter
+      else begin
+        if Assigned(paramtypes[i]) then
+          paramtype := paramtypes[i]^
+        else
+          paramtype := Nil;
+        FParamsAll[i] := TRttiMethodTypeParameter.Create(infos[i].Handle, infos[i].Name, infos[i].Flags, paramtype);
+        context.AddObject(FParamsAll[i]);
       end;
-    finally
-      context.Free;
+
+      if not (pfHidden in infos[i].Flags) then begin
+        FParams[visible] := FParamsAll[i];
+        Inc(visible);
+      end;
     end;
   end;
 
@@ -6454,30 +6387,25 @@ begin
   SetLength(FParams, FTypeData^.ProcSig.ParamCount);
 
   context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
-    visible := 0;
-    for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
-      obj := context.GetByHandle(param);
-      if Assigned(obj) then
-        FParamsAll[i] := obj as TRttiMethodTypeParameter
-      else begin
-        FParamsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
-        context.AddObject(FParamsAll[i]);
-      end;
-
-      if not (pfHidden in param^.ParamFlags) then begin
-        FParams[visible] := FParamsAll[i];
-        Inc(visible);
-      end;
-
-      param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
+  param := AlignToPtr(PProcedureParam(@FTypeData^.ProcSig.ParamCount + SizeOf(FTypeData^.ProcSig.ParamCount)));
+  visible := 0;
+  for i := 0 to FTypeData^.ProcSig.ParamCount - 1 do begin
+    obj := context.GetByHandle(param);
+    if Assigned(obj) then
+      FParamsAll[i] := obj as TRttiMethodTypeParameter
+    else begin
+      FParamsAll[i] := TRttiMethodTypeParameter.Create(param, param^.Name, param^.ParamFlags, param^.ParamType);
+      context.AddObject(FParamsAll[i]);
     end;
 
-    SetLength(FParams, visible);
-  finally
-    context.Free;
+    if not (pfHidden in param^.ParamFlags) then begin
+      FParams[visible] := FParamsAll[i];
+      Inc(visible);
+    end;
+
+    param := PProcedureParam(AlignToPtr(PByte(@param^.Name) + Length(param^.Name) + SizeOf(param^.Name[0])));
   end;
+  SetLength(FParams, visible);
 
   if aWithHidden then
     Result := FParamsAll
@@ -6491,18 +6419,10 @@ begin
 end;
 
 function TRttiProcedureType.GetReturnType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  if not Assigned(FTypeData^.ProcSig.ResultTypeRef) then
-    Exit(Nil);
-
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FTypeData^.ProcSig.ResultTypeRef^);
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(FTypeData^.ProcSig.ResultTypeRef) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FTypeData^.ProcSig.ResultTypeRef^);
 end;
 
 function TRttiProcedureType.GetFlags: TFunctionCallFlags;
@@ -6596,24 +6516,20 @@ begin
   SetLength(fDeclaredMethods, methtable^.Count);
 
   context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    method := methtable^.Method[0];
-    count := methtable^.Count;
-    while count > 0 do begin
-      index := methtable^.Count - count;
-      obj := context.GetByHandle(method);
-      if Assigned(obj) then
-        fDeclaredMethods[index] := obj as TRttiMethod
-      else begin
-        fDeclaredMethods[index] := TRttiIntfMethod.Create(Self, method, parentmethodcount + index);
-        context.AddObject(fDeclaredMethods[index]);
-      end;
-
-      method := method^.Next;
-      Dec(count);
+  method := methtable^.Method[0];
+  count := methtable^.Count;
+  while count > 0 do begin
+    index := methtable^.Count - count;
+    obj := context.GetByHandle(method);
+    if Assigned(obj) then
+      fDeclaredMethods[index] := obj as TRttiMethod
+    else begin
+      fDeclaredMethods[index] := TRttiIntfMethod.Create(Self, method, parentmethodcount + index);
+      context.AddObject(fDeclaredMethods[index]);
     end;
-  finally
-    context.Free;
+
+    method := method^.Next;
+    Dec(count);
   end;
 
   Result := fDeclaredMethods;
@@ -6632,15 +6548,8 @@ begin
 end;
 
 function TRttiInstanceType.GetBaseType: TRttiType;
-var
-  AContext: TRttiContext;
 begin
-  AContext := TRttiContext.Create(FUsePublishedOnly);
-  try
-    result := AContext.GetType(FTypeData^.ParentInfo);
-  finally
-    AContext.Free;
-  end;
+  result := TRttiContext.Create(FUsePublishedOnly).GetType(FTypeData^.ParentInfo);
 end;
 
 function TRttiInstanceType.GetIsInstance: boolean;
@@ -6802,17 +6711,13 @@ Var
 
 begin
   Tbl:=Nil;
-  Len:=GetFieldList(FTypeInfo,Tbl,[],False);
-  SetLength(FDeclaredFields,Len);
-  FFieldsResolved:=True;
-  if Len=0 then
-    begin
-    if Assigned(Tbl) then
-      FreeMem(Tbl);
-    exit;
-    end;
-  Ctx:=TRttiContext.Create(FUsePublishedOnly);
   try
+    Len:=GetFieldList(FTypeInfo,Tbl,[],False);
+    SetLength(FDeclaredFields,Len);
+    FFieldsResolved:=True;
+    if Len=0 then
+      exit;
+    Ctx:=TRttiContext.Create(FUsePublishedOnly);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6831,9 +6736,7 @@ begin
       FDeclaredFields[I]:=Fld;
       end;
   finally
-    if Assigned(Tbl) then
-      FreeMem(Tbl);
-    Ctx.Free;
+    FreeMem(Tbl);
   end;
 end;
 
@@ -6882,9 +6785,7 @@ begin
         end;
       end;
   finally
-    if assigned(Tbl) then
-      FreeMem(Tbl);
-    Ctx.Free;
+    FreeMem(Tbl);
   end;
 end;
 
@@ -6926,15 +6827,11 @@ begin
   Tbl:=Nil;
   Len:=GetFieldList(FTypeInfo,Tbl);
   FFieldsResolved:=True;
-  if Len=0 then
-  begin
-    if assigned(Tbl) then
-      FreeMem(Tbl);
-    exit;
-  end;
-  SetLength(FDeclaredFields,Len);
-  Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
   try
+    if Len=0 then
+      exit;
+    SetLength(FDeclaredFields,Len);
+    Ctx:=TRttiContext.Create(Self.FUsePublishedOnly);
     For I:=0 to Len-1 do
       begin
       aData:=Tbl^[i];
@@ -6954,9 +6851,7 @@ begin
       end;
     FFields:=FDeclaredFields;
   finally
-    if assigned(Tbl) then
-      FreeMem(Tbl);
-    Ctx.Free;
+    FreeMem(Tbl);
   end;
 end;
 
@@ -6974,15 +6869,11 @@ begin
   if FUsePublishedOnly then
     exit;
   aCount:=GetMethodList(FTypeInfo,Tbl,[]);
-  if aCount=0 then
-  begin
-    if assigned(Tbl) then
-      FreeMem(Tbl);
-    exit;
-  end;
-  SetLength(FDeclaredMethods,aCount);
-  Ctx:=TRttiContext.Create(FUsePublishedOnly);
   try
+    if aCount=0 then
+      exit;
+    SetLength(FDeclaredMethods,aCount);
+    Ctx:=TRttiContext.Create(FUsePublishedOnly);
     Idx:=0;
     For I:=0 to aCount-1 do
     begin
@@ -7000,9 +6891,7 @@ begin
        Inc(Idx);
     end;
   finally
-    if assigned(Tbl) then
-      FreeMem(Tbl);
-    Ctx.Free;
+    FreeMem(Tbl);
   end;
 end;
 
@@ -7202,15 +7091,8 @@ begin
 end;
 
 function TRttiProperty.GetPropertyType: TRttiType;
-var
-  context: TRttiContext;
 begin
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FPropInfo^.PropType);
-  finally
-    context.Free;
-  end;
+  Result := TRttiContext.Create(FUsePublishedOnly).GetType(FPropInfo^.PropType);
 end;
 
 function TRttiProperty.GetIsReadable: boolean;
@@ -8441,8 +8323,6 @@ begin
   {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing VMT');{$ENDIF}
   if Assigned(fVmt) then
     FreeMem(fVmt);
-  {$IFDEF DEBUG_VIRTINTF}Writeln('Freeing Context');{$ENDIF}
-  fContext.Free;
   {$IFDEF DEBUG_VIRTINTF}Writeln('Done');{$ENDIF}
   inherited Destroy;
 end;
@@ -8521,18 +8401,10 @@ begin
 end;
 
 function TRttiRecordMethod.GetReturnType: TRttiType;
-
-var
-  context: TRttiContext;
 begin
-  if not Assigned(FHandle^.ResultType) then
-    Exit(Nil);
-  context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    Result := context.GetType(FHandle^.ResultType^);
-  finally
-    context.Free;
-  end;
+  Result := nil;
+  if Assigned(FHandle^.ResultType) then
+    Result := TRttiContext.Create(FUsePublishedOnly).GetType(FHandle^.ResultType^);
 end;
 
 function TRttiRecordMethod.GetDispatchKind: TDispatchKind;
@@ -8591,32 +8463,28 @@ begin
   SetLength(FParams[True],FHandle^.ParamCount);
 
   context := TRttiContext.Create(FUsePublishedOnly);
-  try
-    param := FHandle^.Param[0];
-    while total < FHandle^.ParamCount do
+  param := FHandle^.Param[0];
+  while total < FHandle^.ParamCount do
+    begin
+    obj := context.GetByHandle(param);
+    if Assigned(obj) then
+      prtti := obj as TRttiVmtMethodParameter
+    else
       begin
-      obj := context.GetByHandle(param);
-      if Assigned(obj) then
-        prtti := obj as TRttiVmtMethodParameter
-      else
-        begin
-        prtti := TRttiVmtMethodParameter.Create(param);
-        context.AddObject(prtti);
-        end;
-      FParams[True][total]:=prtti;
-      if not (pfHidden in param^.Flags) then
-        begin
-        FParams[False][visible]:=prtti;
-        Inc(visible);
-        end;
-      param := param^.Next;
-      Inc(total);
-    end;
-    if visible <> total then
-      SetLength(FParams[False], visible);
-  finally
-    context.Free;
+      prtti := TRttiVmtMethodParameter.Create(param);
+      context.AddObject(prtti);
+      end;
+    FParams[True][total]:=prtti;
+    if not (pfHidden in param^.Flags) then
+      begin
+      FParams[False][visible]:=prtti;
+      Inc(visible);
+      end;
+    param := param^.Next;
+    Inc(total);
   end;
+  if visible <> total then
+    SetLength(FParams[False], visible);
 end;
 
 function TRttiRecordMethod.GetParameters(aWithHidden : Boolean): TRttiParameterArray;
