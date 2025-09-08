@@ -260,18 +260,6 @@ unit optloop;
           end;
       end;
 
-    var
-      initcode,
-      calccode,
-      deletecode : tblocknode;
-      initcodestatements,
-      calccodestatements,
-      deletecodestatements: tstatementnode;
-      templist : tfplist;
-      inductionexprs : tfplist;
-      changedforloop,
-      containsnestedforloop,
-      docalcatend: boolean;
 
     function checkcontinue(var n:tnode; arg: pointer): foreachnoderesult;
       begin
@@ -312,57 +300,77 @@ unit optloop;
       end;
 
 
-    { checks if the strength of n can be recuded, arg is the tforloop being considered }
-    function dostrengthreductiontest(var n: tnode; arg: pointer): foreachnoderesult;
+    type
+      toptimizeinductionvariablescontext = object
+        currforloop : tfornode;
+        initcode,
+        calccode,
+        deletecode : tblocknode;
+        initcodestatements,
+        calccodestatements,
+        deletecodestatements: tstatementnode;
+        ninductions : sizeint;
+        inductions : array of record
+          temp : ttempcreatenode;
+          expr : tnode;
+        end;
+        changedforloop,
+        containsnestedforloop,
+        docalcatend : boolean;
+        function findpreviousstrengthreduction(var n: tnode): boolean;
+        procedure addinduction(temp : ttempcreatenode; expr : tnode);
+        function dostrengthreductiontest(var n: tnode): foreachnoderesult;
+        procedure optimizeinductionvariablessingleforloop(var n: tnode);
+      end;
 
-      function findpreviousstrengthreduction : boolean;
-        var
-          i : longint;
-          hp : tnode;
-        begin
-          result:=false;
-          for i:=0 to inductionexprs.count-1 do
-            begin
-              { do we already maintain one expression? }
-              if tnode(inductionexprs[i]).isequal(n) then
-                begin
-                  case n.nodetype of
-                    muln:
-                      hp:=ctemprefnode.create(ttempcreatenode(templist[i]));
-                    vecn:
-                      hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(
-                        ttempcreatenode(templist[i]))),n.resultdef);
-                    else
-                      internalerror(200809211);
-                  end;
-                  n.free;
-                  n:=hp;
-                  result:=true;
-                  exit;
+
+    function toptimizeinductionvariablescontext.findpreviousstrengthreduction(var n: tnode): boolean;
+      var
+        i : longint;
+        hp : tnode;
+      begin
+        result:=false;
+        for i:=0 to ninductions-1 do
+          begin
+            { do we already maintain one expression? }
+            if inductions[i].expr.isequal(n) then
+              begin
+                case n.nodetype of
+                  muln:
+                    hp:=ctemprefnode.create(inductions[i].temp);
+                  vecn:
+                    hp:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(inductions[i].temp)),n.resultdef);
+                  else
+                    internalerror(200809211);
                 end;
-            end;
-        end;
+                n.free;
+                n:=hp;
+                exit(true);
+              end;
+          end;
+      end;
 
 
-      procedure CreateNodes;
-        begin
-          if not assigned(initcode) then
-            begin
-              initcode:=internalstatements(initcodestatements);
-              calccode:=internalstatements(calccodestatements);
-              deletecode:=internalstatements(deletecodestatements);
-            end;
-        end;
+    procedure toptimizeinductionvariablescontext.addinduction(temp : ttempcreatenode; expr : tnode);
+      begin
+        if not assigned(initcode) then
+          begin
+            initcode:=internalstatements(initcodestatements);
+            calccode:=internalstatements(calccodestatements);
+            deletecode:=internalstatements(deletecodestatements);
+            docalcatend:=not(assigned(currforloop.entrylabel)) and
+              not(foreachnodestatic(currforloop.t2,@checkcontinue,nil));
+          end;
+        if ninductions>=length(inductions) then
+          SetLength(inductions,4+ninductions+ninductions shr 1);
+        inductions[ninductions].temp:=temp;
+        inductions[ninductions].expr:=expr;
+        inc(ninductions);
+      end;
 
 
-      procedure CheckCalcAtEnd;
-        begin
-          if not assigned(initcode) then
-            docalcatend:=not(assigned(tfornode(arg).entrylabel)) and
-              not(foreachnodestatic(tfornode(arg).t2,@checkcontinue,nil));
-        end;
-
-
+    { checks if the strength of n can be reduced, currforloop is the tforloop being considered }
+    function toptimizeinductionvariablescontext.dostrengthreductiontest(var n: tnode): foreachnoderesult;
       var
         tempnode,startvaltemp : ttempcreatenode;
         dummy : longint;
@@ -379,23 +387,23 @@ unit optloop;
           muln:
             begin
               if (taddnode(n).right.nodetype=loadn) and
-                taddnode(n).right.isequal(tfornode(arg).left) and
+                taddnode(n).right.isequal(currforloop.left) and
                 { plain read of the loop variable? }
                 not(nf_write in taddnode(n).right.flags) and
                 not(nf_modify in taddnode(n).right.flags) and
-                is_loop_invariant(tfornode(arg),taddnode(n).left) then
+                is_loop_invariant(currforloop,taddnode(n).left) then
                 taddnode(n).swapleftright;
 
               if (taddnode(n).left.nodetype=loadn) and
-                taddnode(n).left.isequal(tfornode(arg).left) and
+                taddnode(n).left.isequal(currforloop.left) and
                 { plain read of the loop variable? }
                 not(nf_write in taddnode(n).left.flags) and
                 not(nf_modify in taddnode(n).left.flags) and
-                is_loop_invariant(tfornode(arg),taddnode(n).right) then
+                is_loop_invariant(currforloop,taddnode(n).right) then
                 begin
                   changedforloop:=true;
                   { did we use the same expression before already? }
-                  if not(findpreviousstrengthreduction) then
+                  if not(findpreviousstrengthreduction(n)) then
                     begin
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
@@ -403,15 +411,11 @@ unit optloop;
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
-                      CheckCalcAtEnd;
                       tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,
                         tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable);
+                      addinduction(tempnode,n);
 
-                      templist.Add(tempnode);
-                      inductionexprs.Add(n);
-                      CreateNodes;
-
-                      if lnf_backward in tfornode(arg).loopflags then
+                      if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           geninlinenode(in_dec_x,false,
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))))
@@ -421,12 +425,12 @@ unit optloop;
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))));
 
                       addstatement(initcodestatements,tempnode);
-                      nn:=tfornode(arg).right.getcopy;
+                      nn:=currforloop.right.getcopy;
                       { If the calculation is not performed at the end
                         it is needed to adjust the starting value }
                       if not docalcatend then
                         begin
-                          if lnf_backward in tfornode(arg).loopflags then
+                          if lnf_backward in currforloop.loopflags then
                             nt:=addn
                           else
                             nt:=subn;
@@ -455,10 +459,10 @@ unit optloop;
               { is the index the counter variable? }
               if not(is_special_array(tvecnode(n).left.resultdef)) and
                 not(is_packed_array(tvecnode(n).left.resultdef)) and
-                (tvecnode(n).right.isequal(tfornode(arg).left) or
+                (tvecnode(n).right.isequal(currforloop.left) or
                  { fpc usually creates a type cast to access an array }
                  ((tvecnode(n).right.nodetype=typeconvn) and
-                  ttypeconvnode(tvecnode(n).right).left.isequal(tfornode(arg).left)
+                  ttypeconvnode(tvecnode(n).right).left.isequal(currforloop.left)
                  )
                 ) and
                 { plain read of the loop variable? }
@@ -467,7 +471,7 @@ unit optloop;
                 { direct array access? }
                 ((tvecnode(n).left.nodetype=loadn) or
                 { ... or loop invariant expression? }
-                is_loop_invariant(tfornode(arg),tvecnode(n).right))
+                is_loop_invariant(currforloop,tvecnode(n).right))
 {$if not (defined(cpu16bitalu) or defined(cpu8bitalu))}
                 { removing the multiplication is only worth the
                   effort if it's not a simple shift }
@@ -477,7 +481,7 @@ unit optloop;
                 begin
                   changedforloop:=true;
                   { did we use the same expression before already? }
-                  if not(findpreviousstrengthreduction) then
+                  if not(findpreviousstrengthreduction(n)) then
                     begin
 {$ifdef DEBUG_OPTSTRENGTH}
                       writeln('**********************************************************************************');
@@ -485,14 +489,10 @@ unit optloop;
                       printnode(n);
                       writeln('**********************************************************************************');
 {$endif DEBUG_OPTSTRENGTH}
-                      CheckCalcAtEnd;
                       tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                      addinduction(tempnode,n);
 
-                      templist.Add(tempnode);
-                      inductionexprs.Add(n);
-                      CreateNodes;
-
-                      if lnf_backward in tfornode(arg).loopflags then
+                      if lnf_backward in currforloop.loopflags then
                         addstatement(calccodestatements,
                           cinlinenode.createintern(in_dec_x,false,
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
@@ -505,15 +505,15 @@ unit optloop;
 
                       addstatement(initcodestatements,tempnode);
 
-                      startvaltemp:=maybereplacewithtemp(tfornode(arg).right,initcode,initcodestatements,tfornode(arg).right.resultdef.size,true);
+                      startvaltemp:=maybereplacewithtemp(currforloop.right,initcode,initcodestatements,currforloop.right.resultdef.size,true);
                       nn:=caddrnode.create(
-                          cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(tfornode(arg).right.getcopy,tvecnode(n).right.resultdef))
+                          cvecnode.create(tvecnode(n).left.getcopy,ctypeconvnode.create_internal(currforloop.right.getcopy,tvecnode(n).right.resultdef))
                         );
                       { If the calculation is not performed at the end
                         it is needed to adjust the starting value }
                       if not docalcatend then
                         begin
-                          if lnf_backward in tfornode(arg).loopflags then
+                          if lnf_backward in currforloop.loopflags then
                             nt:=addn
                           else
                             nt:=subn;
@@ -550,28 +550,36 @@ unit optloop;
       end;
 
 
-    function OptimizeInductionVariablesSingleForLoop(node : tnode) : tnode;
+    function dostrengthreductiontest_callback(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=toptimizeinductionvariablescontext(arg^).dostrengthreductiontest(n);
+      end;
+
+
+    procedure toptimizeinductionvariablescontext.optimizeinductionvariablessingleforloop(var n: tnode);
       var
         loopcode : tblocknode;
         loopcodestatements,
         newcodestatements : tstatementnode;
-        fornode : tfornode;
+        newfor,oldn : tnode;
       begin
-        result:=nil;
-        if node.nodetype<>forn then
-          exit;
-        templist:=TFPList.Create;
-        inductionexprs:=TFPList.Create;
+        { do we have DFA available? }
+        if pi_dfaavailable in current_procinfo.flags then
+          begin
+            CalcDefSum(tfornode(n).t2);
+          end;
+        currforloop:=tfornode(n);
         initcode:=nil;
         calccode:=nil;
         deletecode:=nil;
         initcodestatements:=nil;
         calccodestatements:=nil;
         deletecodestatements:=nil;
+        ninductions:=0;
         docalcatend:=false;
         { find all expressions being candidates for strength reduction
           and replace them }
-        foreachnodestatic(pm_postprocess,node,@dostrengthreductiontest,node);
+        foreachnodestatic(pm_postprocess,n,@dostrengthreductiontest_callback,@self);
 
         { clue everything together }
         if assigned(initcode) then
@@ -580,73 +588,63 @@ unit optloop;
             do_firstpass(tnode(calccode));
             do_firstpass(tnode(deletecode));
             { create a new for node, the old one will be released by the compiler }
-            with tfornode(node) do
-              begin
-                fornode:=cfornode.create(left,right,t1,t2,lnf_backward in loopflags);
-                left:=nil;
-                right:=nil;
-                t1:=nil;
-                t2:=nil;
-              end;
-            node:=fornode;
+            oldn:=n;
+            newfor:=cfornode.create(tfornode(oldn).left,tfornode(oldn).right,tfornode(oldn).t1,tfornode(oldn).t2,lnf_backward in tfornode(oldn).loopflags);
+            tfornode(oldn).left:=nil;
+            tfornode(oldn).right:=nil;
+            tfornode(oldn).t1:=nil;
+            tfornode(oldn).t2:=nil;
 
             loopcode:=internalstatements(loopcodestatements);
             if not docalcatend then
               addstatement(loopcodestatements,calccode);
-            addstatement(loopcodestatements,tfornode(node).t2);
+            addstatement(loopcodestatements,tfornode(newfor).t2);
             if docalcatend then
               addstatement(loopcodestatements,calccode);
-            tfornode(node).t2:=loopcode;
-            do_firstpass(node);
+            tfornode(newfor).t2:=loopcode;
+            do_firstpass(newfor);
 
-            result:=internalstatements(newcodestatements);
+            n:=internalstatements(newcodestatements);
+            oldn.Free;
             addstatement(newcodestatements,initcode);
-            initcode:=nil;
-            addstatement(newcodestatements,node);
+            addstatement(newcodestatements,newfor);
             addstatement(newcodestatements,deletecode);
           end;
-        templist.Free;
-        inductionexprs.Free;
       end;
 
 
-    function OptimizeInductionVariables_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
+    function optimizeinductionvariablessingleforloop_static(var n: tnode; arg: pointer): foreachnoderesult;
       var
-        hp : tnode;
+        ctx : ^toptimizeinductionvariablescontext absolute arg;
       begin
         Result:=fen_false;
-        if n.nodetype=forn then
-          begin
-            { do we have DFA available? }
-            if pi_dfaavailable in current_procinfo.flags then
-              begin
-                CalcDefSum(tfornode(n).t2);
-              end;
-
-            containsnestedforloop:=false;
-            hp:=OptimizeInductionVariablesSingleForLoop(n);
-            if assigned(hp) then
-              begin
-                n.Free;
-                n:=hp;
-              end;
-            { can we avoid further searching? }
-            if not(containsnestedforloop) then
-              Result:=fen_norecurse_false;
-          end;
+        if n.nodetype<>forn then
+          exit;
+        ctx^.containsnestedforloop:=false;
+        ctx^.optimizeinductionvariablessingleforloop(n);
+        { can we avoid further searching? }
+        if not(ctx^.containsnestedforloop) then
+          Result:=fen_norecurse_false;
       end;
 
 
     function OptimizeInductionVariables(node : tnode) : boolean;
+      var
+        ctx : toptimizeinductionvariablescontext;
       begin
         Result:=false;
         if not(pi_dfaavailable in current_procinfo.flags) then
           exit;
-        changedforloop:=false;
-        foreachnodestatic(pm_postprocess,node,@OptimizeInductionVariables_iterforloops,nil);
-        Result:=changedforloop;
+        ctx.changedforloop:=false;
+        foreachnodestatic(pm_postprocess,node,@optimizeinductionvariablessingleforloop_static,@ctx);
+        Result:=ctx.changedforloop;
       end;
 
+
+    type
+      toptimizeforloopcontext = object
+        changedforloop : boolean;
+      end;
 
     function OptimizeForLoop_iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
       begin
@@ -697,20 +695,20 @@ unit optloop;
                 printnode(n);
                 writeln('**********************************************************************************');
 {$endif DEBUG_OPTFORLOOP}
-                changedforloop:=true;
+                toptimizeforloopcontext(arg^).changedforloop:=true;
               end;
           end;
       end;
 
 
     function OptimizeForLoop(var node : tnode) : boolean;
+      var
+        ctx : toptimizeforloopcontext;
       begin
-        Result:=false;
-        if not(pi_dfaavailable in current_procinfo.flags) then
-          exit;
-        changedforloop:=false;
-        foreachnodestatic(pm_postprocess,node,@OptimizeForLoop_iterforloops,nil);
-        Result:=changedforloop;
+        ctx.changedforloop:=false;
+        if pi_dfaavailable in current_procinfo.flags then
+          foreachnodestatic(pm_postprocess,node,@OptimizeForLoop_iterforloops,@ctx);
+        Result:=ctx.changedforloop;
       end;
 
 end.
