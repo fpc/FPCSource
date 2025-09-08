@@ -295,22 +295,26 @@ type
   { TRttiContext }
 
   TRttiContext = record
-  strict private
-    class var FKeptContexts: array[Boolean] of IUnknown;
-  Public
-    UsePublishedOnly : Boolean;
   private
-    FContextToken: IInterface;
+    FPoolIndex: int32; { < 0: empty. >= 0: uses boolean(FPoolIndex)-th pool. }
+    FUsePublishedOnly : Boolean;
+    class var FKeepContextCounter: integer;
+    class operator Initialize(var self: TRttiContext);
+    class operator Finalize(var self: TRttiContext);
+    class operator Copy(constref b: TRttiContext; var self: TRttiContext);
+    class operator AddRef(var self: TRttiContext);
     function GetByHandle(AHandle: Pointer): TRttiObject;
     procedure AddObject(AObject: TRttiObject);
+    procedure SetUsePublishedOnly(Value: Boolean);
   public
     class function Create: TRttiContext; static;
     class function Create(aUsePublishedOnly : Boolean): TRttiContext; static;
     class procedure DropContext; static;
     class procedure KeepContext; static;
-    procedure  Free;
+    procedure Free;
     function GetType(ATypeInfo: PTypeInfo): TRttiType;
     function GetType(AClass: TClass): TRttiType;
+    property UsePublishedOnly: Boolean read FUsePublishedOnly write SetUsePublishedOnly;
     //function GetTypes: specialize TArray<TRttiType>;
   end;
 
@@ -1184,21 +1188,6 @@ type
     destructor Destroy; override;
   end;
 
-  IPooltoken = interface
-  ['{3CDB3CE9-AB55-CBAA-7B9D-2F3BB1CF5AF8}']
-    function RttiPool: TRttiPool;
-  end;
-
-  { TPoolToken }
-
-  TPoolToken = class(TInterfacedObject, IPooltoken)
-    FUsePublishedOnly : Boolean;
-  public
-    constructor Create(aUsePublishedOnly : Boolean);
-    destructor Destroy; override;
-    function RttiPool: TRttiPool;
-  end;
-
   { TValueDataIntImpl }
 
   TValueDataIntImpl = class(TInterfacedObject, IValueData)
@@ -1418,6 +1407,7 @@ resourcestring
   // SErrInvalidIndPropValue     = 'Invalid indexed property value type for: %s';
 
 var
+  PoolLock : TRTLCriticalSection;
   // Boolean = UsePublishedOnly
   PoolRefCount : Array [Boolean] of integer;
   GRttiPool : Array [Boolean] of TRttiPool;
@@ -2469,28 +2459,6 @@ begin
   DoneCriticalsection(FLock);
 {$endif}
   inherited Destroy;
-end;
-
-{ TPoolToken }
-
-constructor TPoolToken.Create(aUsePublishedOnly : Boolean);
-begin
-  inherited Create;
-  FUsePublishedOnly:=aUsePublishedOnly;
-  if InterlockedIncrement(PoolRefCount[FUsePublishedOnly])=1 then
-    GRttiPool[FUsePublishedOnly] := TRttiPool.Create
-end;
-
-destructor TPoolToken.Destroy;
-begin
-  if InterlockedDecrement(PoolRefCount[FUsePublishedOnly])=0 then
-    GRttiPool[FUsePublishedOnly].Free;
-  inherited;
-end;
-
-function TPoolToken.RttiPool: TRttiPool;
-begin
-  result := GRttiPool[FUsePublishedOnly];
 end;
 
 { TValueDataIntImpl }
@@ -8192,57 +8160,148 @@ end;
 
 { TRttiContext }
 
+procedure NewPoolRef(PoolIndex: boolean);
+var
+  pool: TRttiPool;
+begin
+  pool := nil;
+  if not Assigned(GRttiPool[PoolIndex]) then
+    pool := TRttiPool.Create; { Heuristically pre-create. }
+  repeat
+    EnterCriticalSection(PoolLock);
+    if PoolRefCount[PoolIndex] = 0 then
+      if Assigned(pool) then
+        GRttiPool[PoolIndex] := specialize Exchange<TRttiPool>(pool, nil)
+      else
+      begin
+        LeaveCriticalSection(PoolLock);
+        pool := TRttiPool.Create; { Create outside of the lock and retry. }
+        continue;
+      end;
+    inc(PoolRefCount[PoolIndex]);
+    LeaveCriticalSection(PoolLock);
+    break;
+  until false;
+  pool.Free;
+end;
+
+function EnsurePool(var ctx: TRttiContext): TRttiPool;
+begin
+  if ctx.FPoolIndex < 0 then
+  begin
+    NewPoolRef(ctx.UsePublishedOnly);
+    ctx.FPoolIndex := ord(ctx.UsePublishedOnly);
+  end;
+  result := GRttiPool[boolean(ctx.FPoolIndex)];
+end;
+
+procedure FreePools;
+var
+  iPool: boolean;
+begin
+  EnterCriticalSection(PoolLock);
+  for iPool in boolean do
+    if PoolRefCount[iPool] = 0 then
+      specialize Exchange<TRttiPool>(GRttiPool[iPool], nil).Free;
+  LeaveCriticalSection(PoolLock);
+end;
+
 class function TRttiContext.Create: TRttiContext;
 begin
-  result.FContextToken := nil;
-  result.UsePublishedOnly:=DefaultUsePublishedOnly;
+  result.Free;
+  result.FUsePublishedOnly:=DefaultUsePublishedOnly;
 end;
 
 class function TRttiContext.Create(aUsePublishedOnly: Boolean): TRttiContext;
 begin
-  Result:=Create();
-  Result.UsePublishedOnly:=aUsePublishedOnly;
+  result.Free;
+  Result.FUsePublishedOnly:=aUsePublishedOnly;
 end;
 
 class procedure TRttiContext.DropContext;
+var
+  counterFetch: integer;
 begin
-  FKeptContexts[False] := nil;
-  FKeptContexts[True] := nil;
+  repeat
+    counterFetch := FKeepContextCounter;
+    if counterFetch <= 0 then
+      raise ERtti.Create('Unpaired DropContext.');
+  until AtomicCmpExchange(FKeepContextCounter, counterFetch - 1, counterFetch) = counterFetch;
+  if counterFetch = 1 then
+    FreePools;
 end;
 
 class procedure TRttiContext.KeepContext;
 begin
-  FKeptContexts[False] := TPoolToken.Create(False);
-  FKeptContexts[True] := TPoolToken.Create(True);
+  AtomicIncrement(FKeepContextCounter);
 end;
 
 procedure TRttiContext.Free;
+var
+  toFree: TRttiPool;
 begin
-  FContextToken := nil;
+  if FPoolIndex < 0 then
+    exit;
+  toFree := nil;
+  EnterCriticalSection(PoolLock);
+  dec(PoolRefCount[boolean(FPoolIndex)]);
+  if (PoolRefCount[boolean(FPoolIndex)] = 0) and (FKeepContextCounter <= 0) then
+    toFree := specialize Exchange<TRttiPool>(GRttiPool[boolean(FPoolIndex)], nil);
+  LeaveCriticalSection(PoolLock);
+  FPoolIndex := -1;
+  toFree.Free; { Free outside of the lock. }
+end;
+
+class operator TRttiContext.Initialize(var self: TRttiContext);
+begin
+  self.FPoolIndex := -1;
+end;
+
+class operator TRttiContext.Finalize(var self: TRttiContext);
+begin
+  self.Free;
+end;
+
+class operator TRttiContext.Copy(constref b: TRttiContext; var self: TRttiContext);
+begin
+  if b.FPoolIndex <> self.FPoolIndex then
+  begin
+    self.Free;
+    if b.FPoolIndex >= 0 then
+      NewPoolRef(boolean(b.FPoolIndex));
+    self.FPoolIndex := b.FPoolIndex;
+  end;
+  self.FUsePublishedOnly := b.FUsePublishedOnly;
+end;
+
+class operator TRttiContext.AddRef(var self: TRttiContext);
+begin
+  if self.FPoolIndex >= 0 then
+    NewPoolRef(boolean(self.FPoolIndex));
 end;
 
 function TRttiContext.GetByHandle(AHandle: Pointer): TRttiObject;
 begin
-  if not Assigned(FContextToken) then
-    FContextToken := TPoolToken.Create(UsePublishedOnly);
-  Result := (FContextToken as IPooltoken).RttiPool.GetByHandle(AHandle);
+  Result := EnsurePool(Self).GetByHandle(AHandle);
 end;
 
 procedure TRttiContext.AddObject(AObject: TRttiObject);
 begin
-  if not Assigned(FContextToken) then
-    FContextToken := TPoolToken.Create(UsePublishedOnly);
-  (FContextToken as IPooltoken).RttiPool.AddObject(AObject);
+  EnsurePool(Self).AddObject(AObject);
   AObject.FUsePublishedOnly := UsePublishedOnly;
+end;
+
+procedure TRttiContext.SetUsePublishedOnly(Value: Boolean);
+begin
+  if (FPoolIndex >= 0) and (FPoolIndex <> ord(Value)) then
+    Free;
+  FUsePublishedOnly := Value;
 end;
 
 function TRttiContext.GetType(ATypeInfo: PTypeInfo): TRttiType;
 begin
-  if not assigned(FContextToken) then
-    FContextToken := TPoolToken.Create(UsePublishedOnly);
-  result := (FContextToken as IPooltoken).RttiPool.GetType(ATypeInfo,UsePublishedOnly);
+  result := EnsurePool(Self).GetType(ATypeInfo,UsePublishedOnly);
 end;
-
 
 function TRttiContext.GetType(AClass: TClass): TRttiType;
 begin
@@ -8255,9 +8314,7 @@ end;
 {function TRttiContext.GetTypes: specialize TArray<TRttiType>;
 
 begin
-  if not assigned(FContextToken) then
-    FContextToken := TPoolToken.Create;
-  result := (FContextToken as IPooltoken).RttiPool.GetTypes;
+  result := EnsurePool(Self).GetTypes;
 end;}
 
 { TVirtualInterface }
@@ -8652,10 +8709,12 @@ end;
 {$endif}
 
 initialization
-  PoolRefCount[False] := 0;
-  PoolRefCount[True] := 0;
+  InitCriticalSection(PoolLock);
   InitDefaultFunctionCallManager;
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;
 {$endif}
+finalization
+  FreePools;
+  DoneCriticalSection(PoolLock);
 end.
