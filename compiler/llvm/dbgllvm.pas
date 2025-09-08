@@ -386,6 +386,7 @@ implementation
       begin
         types:=tai_llvmunnamedmetadatanode.create;
         list.concat(types);
+        result:=types;
         { we still need a DISubProgramType in this case, but not the list of types }
         if not(cs_debuginfo in current_settings.moduleswitches) then
           exit;
@@ -397,7 +398,6 @@ implementation
           begin
             types.addvalue(def_meta_ref(tparavarsym(def.paras[i]).vardef));
           end;
-        result:=types;
       end;
 
     function TDebugInfoLLVM.def_meta_impl(def: tdef): tai_llvmspecialisedmetadatanode;
