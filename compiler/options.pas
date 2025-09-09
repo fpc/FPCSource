@@ -4843,7 +4843,7 @@ procedure read_arguments(cmd:TCmdStr);
         def_system_macro('FPC_HAS_CEXTENDED');
         def_system_macro('FPC_HAS_RESSTRINITS');
 
-      { these cpus have an inline rol/ror implementaion }
+      { these cpus have an inline rol/ror implementation }
       {$ifdef cpurox}
       {$if defined(m68k)}
         if CPUM68K_HAS_ROLROR in cpu_capabilities[init_settings.cputype] then

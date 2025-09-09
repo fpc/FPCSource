@@ -1907,7 +1907,7 @@ const
                and (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype])
 {$endif m68k}
 {$ifdef riscv}
-               and ([CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[init_settings.cputype]<>[])
+               and ([CPURV_HAS_ZBB,CPURV_HAS_ZBKB]*cpu_capabilities[current_settings.cputype]<>[])
 {$endif riscv}
 {$ifndef cpu64bitalu}
                and (ld.typ=orddef) and
