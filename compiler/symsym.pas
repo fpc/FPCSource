@@ -363,6 +363,9 @@ interface
          { do not override this routine in platform-specific subclasses,
            override ppuwrite_platform instead }
          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+         { returns the symbol type of the local variable or local parameter
+           referenced by the absolute symbol }
+         function reftyp : tsymtyp;
       end;
       tabsolutevarsymclass = class of tabsolutevarsym;
 
@@ -2620,6 +2623,21 @@ implementation
          end;
       end;
 
+         { returns the symbol type of the local variable or local parameter
+           referenced by the absolute symbol }
+    function tabsolutevarsym.reftyp : tsymtyp;
+      var
+        plist : ppropaccesslistitem;
+      begin
+        reftyp:=typ;
+        if abstyp=tovar then
+          begin
+            plist:=ref.firstsym;
+            if assigned(plist) and (plist^.sltype=sl_load) and
+               assigned(plist^.sym) and not(assigned(plist^.next)) then
+              reftyp:=plist^.sym.typ;
+          end;
+      end;
 
 {****************************************************************************
                                   TCONSTSYM

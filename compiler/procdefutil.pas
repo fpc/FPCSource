@@ -358,6 +358,14 @@ implementation
 
   {.$define DEBUG_CAPTURER}
 
+  function acceptable_typ(sym:tabstractvarsym;typ :tsymtyp) : boolean;
+    begin
+      acceptable_typ:=false;
+      if (sym.typ=typ) then
+        acceptable_typ:=true
+      else if (sym.typ=absolutevarsym) and (tabsolutevarsym(sym).reftyp=typ) then
+        acceptable_typ:=true;
+    end;
 
   function get_capturer(pd:tprocdef):tabstractvarsym;
 
@@ -366,7 +374,7 @@ implementation
         result:=tabstractvarsym(st.find(capturer_var_name));
         if not assigned(result) then
           internalerror(2022010703);
-        if result.typ<>typ then
+       if not acceptable_typ(result,typ) then
           internalerror(2022010704);
         if not is_class(result.vardef) then
           internalerror(2022010705);
@@ -401,7 +409,7 @@ implementation
         result:=tabstractvarsym(st.find(capturer_var_name+keepalive_suffix));
         if not assigned(result) then
           internalerror(2022051703);
-        if result.typ<>typ then
+        if not acceptable_typ(result,typ) then
           internalerror(2022051704);
         if not is_interfacecom(result.vardef) then
           internalerror(2022051705);
