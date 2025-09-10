@@ -257,7 +257,7 @@ implementation
                   cg.a_reg_alloc(current_asmdata.CurrAsmList, NR_DEFAULTFLAGS);
                   if first then
                     begin
-                       { have we to ajust the first value ? }
+                       { have we to adjust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opcgsize, aint(t^._low.svalue), hregister);
                     end

@@ -720,7 +720,7 @@ implementation
                 { ELSE-label                                }
                 if first then
                   begin
-                     { have we to ajust the first value ? }
+                     { have we to adjust the first value ? }
                      if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                        gensub(tcgint(t^._low.svalue));
                   end

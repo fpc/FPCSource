@@ -110,7 +110,7 @@ implementation
                  { ELSE-label                                }
                  if first then
                    begin
-                      { have we to ajust the first value ? }
+                      { have we to adjust the first value ? }
                       if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                         begin
                           { use unsigned_opcgsize here to avoid uncessary sign extensions, at this place hregister will never be negative, because
