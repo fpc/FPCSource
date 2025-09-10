@@ -8050,18 +8050,24 @@ begin
   if not Assigned(GRttiPool[PoolIndex]) then
     pool := TRttiPool.Create; { Heuristically pre-create. }
   repeat
+{$ifdef FPC_HAS_FEATURE_THREADING}
     EnterCriticalSection(PoolLock);
+{$endif}
     if PoolRefCount[PoolIndex] = 0 then
       if Assigned(pool) then
         GRttiPool[PoolIndex] := specialize Exchange<TRttiPool>(pool, nil)
       else
       begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
         LeaveCriticalSection(PoolLock);
+{$endif}
         pool := TRttiPool.Create; { Create outside of the lock and retry. }
         continue;
       end;
     inc(PoolRefCount[PoolIndex]);
+{$ifdef FPC_HAS_FEATURE_THREADING}
     LeaveCriticalSection(PoolLock);
+{$endif}
     break;
   until false;
   pool.Free;
@@ -8081,11 +8087,15 @@ procedure FreePools;
 var
   iPool: boolean;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(PoolLock);
+{$endif}
   for iPool in boolean do
     if PoolRefCount[iPool] = 0 then
       specialize Exchange<TRttiPool>(GRttiPool[iPool], nil).Free;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   LeaveCriticalSection(PoolLock);
+{$endif}
 end;
 
 class function TRttiContext.Create: TRttiContext;
@@ -8125,11 +8135,15 @@ begin
   if FPoolIndex < 0 then
     exit;
   toFree := nil;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   EnterCriticalSection(PoolLock);
+{$endif}
   dec(PoolRefCount[boolean(FPoolIndex)]);
   if (PoolRefCount[boolean(FPoolIndex)] = 0) and (FKeepContextCounter <= 0) then
     toFree := specialize Exchange<TRttiPool>(GRttiPool[boolean(FPoolIndex)], nil);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   LeaveCriticalSection(PoolLock);
+{$endif}
   FPoolIndex := -1;
   toFree.Free; { Free outside of the lock. }
 end;
@@ -8577,12 +8591,16 @@ end;
 {$endif}
 
 initialization
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitCriticalSection(PoolLock);
+{$endif}
   InitDefaultFunctionCallManager;
 {$ifdef SYSTEM_HAS_INVOKE}
   InitSystemFunctionCallManager;
 {$endif}
 finalization
   FreePools;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   DoneCriticalSection(PoolLock);
+{$endif}
 end.
