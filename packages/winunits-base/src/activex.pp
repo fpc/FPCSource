@@ -2541,7 +2541,7 @@ TYPE
 //    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
      Function Reset():HResult; stdcall;
-     Function Close(Out ppenum: IEnumUnknown):HResult; stdcall;
+     Function Clone(Out ppenum: IEnumUnknown):HResult; stdcall;
      END;
 
 
