@@ -745,6 +745,20 @@ implementation
 
               result:=true;
             end
+          else if MatchInstruction(hp1,A_SB) and
+            (taicpu(hp1).ops=2) and
+            MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
+            (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
+            RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
+            begin
+              taicpu(hp1).loadreg(0,taicpu(p).oper[1]^.reg);
+
+              DebugMsg('Peephole AndiSb2Sb performed', hp1);
+
+              RemoveInstr(p);
+
+              result:=true;
+            end
 {$ifndef RISCV32}
           else if MatchInstruction(hp1,A_ADDIW) and
             (taicpu(hp1).ops=3) and
