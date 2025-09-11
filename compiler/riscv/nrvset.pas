@@ -34,6 +34,7 @@ interface
            procedure optimizevalues(var max_linear_list : int64; var max_dist : qword);override;
            function  has_jumptable : boolean;override;
            procedure genjumptable(hp : pcaselabel;min_,max_ : int64);override;
+           procedure genlinearlist(hp : pcaselabel);override;
        end;
 
 
@@ -146,6 +147,13 @@ implementation
         current_asmdata.CurrAsmList.concat(cai_align.Create(4));
         current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
         genitem(current_asmdata.CurrAsmList,hp);
+      end;
+
+
+    procedure trvcasenode.genlinearlist(hp: pcaselabel);
+      begin
+        { a sub-based list makes no sense for RiscV having no flags }
+        genlinearcmplist(hp);
       end;
 
 
