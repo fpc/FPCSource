@@ -1433,14 +1433,14 @@ unit cgcpu;
               end;
           OP_SAR,
           OP_SHL,
-          OP_SHR:
+          OP_SHR,
           OP_ROR,
           OP_ROL:
               begin
                 { the compiler has code on the higher levels to try to prevent generating
                   ROR/ROL instructions on m68k CPUs that don't support it (ColdFire family) }
-                if op in [OP_ROR,OP_ROL] and
-                    not CPUM68K_HAS_ROLROR in cpu_capabilites[current_settings.cputype]) then
+                if (op in [OP_ROR,OP_ROL]) and
+                    not (CPUM68K_HAS_ROLROR in cpu_capabilities[current_settings.cputype]) then
                   internalerror(2025091101);
 
                 { load to data registers }
