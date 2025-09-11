@@ -1506,8 +1506,8 @@ unit cgcpu;
                 move_if_needed(list, size, hreg2, dst);
               end;
         else
-            internalerror(2002072902);
-         end;
+          internalerror(2002072902);
+        end;
       end;
 
 
