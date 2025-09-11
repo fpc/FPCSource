@@ -1431,9 +1431,35 @@ unit cgcpu;
                   end;
                 list.concat(taicpu.op_reg_reg(opcode, opsize, src, dst));
               end;
-          OP_AND,OP_OR,
-          OP_SAR,OP_SHL,
-          OP_SHR,OP_XOR:
+          OP_SAR,
+          OP_SHL,
+          OP_SHR:
+          OP_ROR,
+          OP_ROL:
+              begin
+                { the compiler has code on the higher levels to try to prevent generating
+                  ROR/ROL instructions on m68k CPUs that don't support it (ColdFire family) }
+                if op in [OP_ROR,OP_ROL] and
+                    not CPUM68K_HAS_ROLROR in cpu_capabilites[current_settings.cputype]) then
+                  internalerror(2025091101);
+
+                { load to data registers }
+                hreg1 := force_to_dataregister(list, size, src);
+                hreg2 := force_to_dataregister(list, size, dst);
+
+                if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
+                  { source for these ops are always modulo 64 on m68k,
+                    so we don't need to extend the src register }
+                  sign_extend(list, size, dst);
+
+                list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
+
+                { move back result into destination register }
+                move_if_needed(list, size, hreg2, dst);
+              end;
+          OP_AND,
+          OP_OR,
+          OP_XOR:
               begin
                 { load to data registers }
                 hreg1 := force_to_dataregister(list, size, src);
@@ -1441,15 +1467,7 @@ unit cgcpu;
 
                 if current_settings.cputype in cpu_coldfire then
                   begin
-                    { operation only allowed only a longword }
-                    {!***************************************
-                      in the case of shifts, the value to
-                      shift by, should already be valid, so
-                      no need to sign extend the value
-                     !
-                    }
-                    if op in [OP_AND,OP_OR,OP_XOR] then
-                      sign_extend(list, size, hreg1);
+                    sign_extend(list, size, hreg1);
                     sign_extend(list, size, hreg2);
                   end;
                 list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
