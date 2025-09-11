@@ -16157,6 +16157,7 @@ unit aoptx86;
 
       begin
         Result := False;
+        DoAddMov2Lea:=false;
 
         if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif}]) and
           (taicpu(p).oper[1]^.typ = top_reg) then
@@ -16501,6 +16502,7 @@ unit aoptx86;
 
       begin
         Result := False;
+        DoSubMov2Lea:=false;
 
         if (taicpu(p).opsize in [S_L{$ifdef x86_64}, S_Q{$endif}]) and
           MatchOpType(taicpu(p),top_const,top_reg) then
