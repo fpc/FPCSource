@@ -3309,9 +3309,6 @@ type
 
     procedure tscannerfile.tokenwritebyte(val : byte);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(byte));
       end;
 
