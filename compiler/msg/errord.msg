@@ -501,7 +501,7 @@ scan_f_unterminated_multiline_string=02119_F_Unbestimmte Mehrfachzeilen-Zeichenk
 % The file contains an "unbalanced" number of multi-line string denoting backtick characters.
 scan_e_improperly_indented_multiline_string=02120_E_Falsch eingerckte Mehrfachzeilen-Zeichenkette ($1 Leerzeichen sind verlangt) beginnend in Zeile $2, Spalte $3.
 % The multi-line string does not have the proper indentation, every line
-% must have at least tjhen number of spaces as in the last line.
+% must have at least the number of spaces as in the last line.
 %
 % \end{description}
 # EndOfTeX
