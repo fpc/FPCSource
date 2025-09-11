@@ -231,11 +231,13 @@ unit aoptcpu;
 
       if ((taicpu(p).oper[0]^.typ=top_const) and (taicpu(p).oper[1]^.typ=top_reg)) and
         GetNextInstruction(p,next) and
-        MatchInstruction(next,A_AND,[taicpu(p).opsize]) and
+        MatchInstruction(next,A_AND,[]) and
         (taicpu(next).oper[0]^.typ=top_const) and
         MatchOperand(taicpu(p).oper[1]^,taicpu(next).oper[1]^) then
        begin
          DebugMsg('Optimizer: folding double AND',p);
+         if taicpu(p).opsize<taicpu(next).opsize then
+           taicpu(p).opsize:=taicpu(next).opsize;
          taicpu(p).oper[0]^.val:=taicpu(p).oper[0]^.val and taicpu(next).oper[0]^.val;
          RemoveInstruction(next);
          result:=true;
