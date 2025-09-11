@@ -1450,7 +1450,7 @@ unit cgcpu;
                 if not (CPUM68K_HAS_BYTEWORDMATH in cpu_capabilities[current_settings.cputype]) then
                   { source for these ops are always modulo 64 on m68k,
                     so we don't need to extend the src register }
-                  sign_extend(list, size, dst);
+                  sign_extend(list, size, hreg2);
 
                 list.concat(taicpu.op_reg_reg(opcode, opsize, hreg1, hreg2));
 
