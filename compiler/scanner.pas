@@ -6689,7 +6689,7 @@ exit_label:
            '''','`' :
              if not ((c='`') and (not (m_multiline_strings in current_settings.modeswitches))) then
                begin
-                 readquotedstring;
+                 cstringpattern:=readquotedstring;
                  current_scanner.preproc_pattern:=cstringpattern;
                  readpreproc:=_CSTRING;
                end;
