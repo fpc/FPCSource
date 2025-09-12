@@ -29,6 +29,10 @@ Unit AoptObj;
 
 {$i fpcdefs.inc}
 
+{$if not defined(JVM) and not defined(WASM) and not defined(POWERPC) and not defined (POWERPC64)}
+{$define CPU_SUPPORTS_OPT_COND_JUMP}
+{$endif}
+
   { general, processor independent objects for use by the assembler optimizer }
 
   Interface
@@ -415,10 +419,9 @@ Unit AoptObj;
 
         { If a group of labels are clustered, change the jump to point to the last one that is still referenced }
         function CollapseLabelCluster(jump: tai; var lbltai: tai): TAsmLabel;
-{$if not defined(JVM) and not defined(WASM)}
+{$ifdef CPU_SUPPORTS_OPT_COND_JUMP}
         function OptimizeConditionalJump(CJLabel: TAsmLabel; var p: tai; hp1: tai; var stoploop: Boolean): Boolean;
-{$endif not JVM and not WASM}
-
+{$endif}
         { Function to determine if the jump optimisations can be performed }
         function CanDoJumpOpts: Boolean; virtual;
 
@@ -2090,7 +2093,7 @@ Unit AoptObj;
           end;
       end;
 
-{$if not defined(JVM) and not defined(WASM)}
+{$ifdef CPU_SUPPORTS_OPT_COND_JUMP}
     function TAOptObj.OptimizeConditionalJump(CJLabel: TAsmLabel; var p: tai; hp1: tai; var stoploop: Boolean): Boolean;
       var
         hp2: tai;
@@ -2305,7 +2308,7 @@ Unit AoptObj;
           end;
 
       end;
-{$endif not JVM and not WASM}
+{$endif CPU_SUPPORTS_OPT_COND_JUMP}
 
     function TAOptObj.CollapseZeroDistJump(var p: tai; ThisLabel: TAsmLabel): Boolean;
       var
@@ -2392,10 +2395,10 @@ Unit AoptObj;
                         { Might have caused some earlier labels to become dead }
                         stoploop := False;
                     end
-{$if not defined(JVM) and not defined(WASM)}
+{$ifdef CPU_SUPPORTS_OPT_COND_JUMP}
                   else if (taicpu(p).opcode {$ifdef z80}in{$else}={$endif} aopt_condjmp) then
                     ThisPassResult := OptimizeConditionalJump(ThisLabel, p, hp1, stoploop)
-{$endif not JVM and not WASM}
+{$endif CPU_SUPPORTS_OPT_COND_JUMP}
                     ;
                 end;
 
