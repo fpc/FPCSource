@@ -171,10 +171,10 @@ Var
 begin
   Result:='ss.zzz';
   M:=MinutesBetween(ATiming,0);
-  if M>60 then
+  if M>=60 then
     Result:='hh:mm:'+Result
-  else if M>1 then
-   Result:='mm:'+Result;
+  else if M>=1 then
+   Result:='nn:'+Result;
 end;
 
 procedure TPlainResultsWriter.SetSkipAddressInfo(AValue: Boolean);
