@@ -423,6 +423,7 @@ type
       function ChooseFixedArenaSize(sizeIndex: SizeUint): SizeUint;
       function AllocFixed(size: SizeUint): pointer; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
       function FreeFixed(p: pointer): SizeUint; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
+      procedure FreeEmptyArenas;
 
       function GetOSChunk(minSize, maxSize: SizeUint): pOSChunk; {$if defined(HAS_SYSOSFREE) or not defined(FPC_HAS_FEATURE_THREADING)} inline; {$endif}
       function AllocateOSChunk(minSize, maxSize: SizeUint): pOSChunk;
@@ -983,6 +984,19 @@ type
       end;
   end;
 
+  procedure HeapInc.ThreadState.FreeEmptyArenas;
+  var
+    arena: pFixedArena;
+  begin
+    while nEmptyArenas > 0 do
+    begin
+      arena := emptyArenas;
+      emptyArenas := arena^.next;
+      dec(nEmptyArenas);
+      FreeVar(arena);
+    end;
+  end;
+
   function HeapInc.ThreadState.GetOSChunk(minSize, maxSize: SizeUint): pOSChunk;
 {$if defined(FPC_HAS_FEATURE_THREADING) and not defined(HAS_SYSOSFREE)}
   var
@@ -1045,54 +1059,65 @@ type
 
   function HeapInc.ThreadState.AllocVar(size: SizeUint; isArena: boolean): pointer;
   var
-    fv: pFreeVarChunk;
+    fv: pFreeVarChunk absolute result;
+    tailFv: pFreeVarChunk;
     osChunk, osNext: pVarOSChunk;
     binIndex, vSizeFlags, statv: SizeUint;
   begin
     { Search varFree for (roughly) smallest chunk ≥ size. }
     binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
     { Round the size up to the bin size.
-      Can do without that, but not doing that will often mean the inability to reuse the hole because varFree rounds up for searches and down for additions. }
+      Can do without that, but not doing that will often mean the inability to reuse the hole for the same size because varFree rounds up for searches and down for additions. }
     size := BinIndexToVarSize(binIndex);
-    fv := varFree.Find(binIndex);
-    if not Assigned(fv) then
-    begin
-      { Find either other fv or other osChunk that can fit the requested size. }
+    repeat { break = found fv or osChunk. }
+      fv := varFree.Find(binIndex);
+      if Assigned(fv) then
+        break;
+
+      { If allocating arena, try to allocate less than requested, within arena size limitations. }
       if isArena and (binIndex > MinArenaBinIndex) then
       begin
-        { If allocating arena, try to allocate less than requested, within arena size limitations. }
         fv := varFree.FindSmaller(binIndex);
         if Assigned(fv) and (fv^.binIndex >= MinArenaBinIndex) then
-          size := pVarHeader(fv)[-1].ch.h and VarSizeMask { Use the entire chunk. }
-        else
-          fv := nil;
-      end;
-      if not Assigned(fv) then
-      begin
-        osChunk := pVarOSChunk(GetOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
-        if not Assigned(osChunk) then
         begin
-        {$ifdef FPC_HAS_FEATURE_THREADING}
-          { Preliminary search without blocking, assuming varFree.Find doesn’t do anything that can go wrong. }
-          fv := gs.varFree.Find(binIndex);
-          if Assigned(fv) then
-          begin
-            EnterCriticalSection(gs.lock);
-            fv := gs.varFree.Find(binIndex); { True search. }
-            if Assigned(fv) then
-              AdoptVarOwner(fv); { Moves fv to own varFree. }
-            LeaveCriticalSection(gs.lock);
-          end;
-          if not Assigned(fv) then
-        {$endif FPC_HAS_FEATURE_THREADING}
-          begin
-            osChunk := pVarOSChunk(AllocateOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
-            if not Assigned(osChunk) then
-              exit(nil);
-          end;
+          size := pVarHeader(fv)[-1].ch.h and VarSizeMask; { Use the entire chunk. }
+          break;
         end;
+        fv := nil;
       end;
-    end;
+
+      { Try reusing empty OS chunk. }
+      osChunk := pVarOSChunk(GetOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
+      if Assigned(osChunk) then
+        break;
+
+      { If there are empty arenas, free them and retry. }
+      if nEmptyArenas > 0 then
+      begin
+        FreeEmptyArenas;
+        continue;
+      end;
+
+    {$ifdef FPC_HAS_FEATURE_THREADING}
+      { Try reusing an orphaned chunk. }
+      fv := gs.varFree.Find(binIndex); { Preliminary search without blocking, assuming varFree.Find doesn’t do anything that can go wrong. }
+      if Assigned(fv) then
+      begin
+        EnterCriticalSection(gs.lock);
+        fv := gs.varFree.Find(binIndex); { True search. }
+        if Assigned(fv) then
+          AdoptVarOwner(fv); { Moves fv to own varFree. }
+        LeaveCriticalSection(gs.lock);
+        if Assigned(fv) then
+          break;
+      end;
+    {$endif FPC_HAS_FEATURE_THREADING}
+
+      osChunk := pVarOSChunk(AllocateOSChunk(VarOSChunkDataOffset + size, GrowHeapSize2));
+      if Assigned(osChunk) then
+        break;
+      exit; { (nil) as fv is nil and mapped to result. }
+    until false;
     if not Assigned(fv) then
     begin
     {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -1109,13 +1134,12 @@ type
 
       { Format new free var chunk spanning the entire osChunk. FreeVarTail is not required. }
       fv := pointer(osChunk) + (VarOSChunkDataOffset + VarHeaderSize);
-      pVarHeader(pointer(fv) - VarHeaderSize)^.ofsToOs := -(VarOSChunkDataOffset + VarHeaderSize);
-      pVarHeader(pointer(fv) - VarHeaderSize)^.ch.h := (uint32(osChunk^.size) - VarOSChunkDataOffset) and VarSizeMask + LastFlag;
+      pVarHeader(result - VarHeaderSize)^.ofsToOs := -(VarOSChunkDataOffset + VarHeaderSize);
+      pVarHeader(result - VarHeaderSize)^.ch.h := (uint32(osChunk^.size) - VarOSChunkDataOffset) and VarSizeMask + LastFlag;
     end else
       varFree.Remove(fv);
 
     { Result will be allocated at the beginning of fv; maybe format the remainder and add it back to varFree. }
-    result := fv;
     vSizeFlags := pVarHeader(fv)[-1].ch.h - size; { Inherits LastFlag. }
     if
       { Allow over-allocating arenas by up to MaxArenaOverallocation.
@@ -1126,21 +1150,21 @@ type
       not isArena and (vSizeFlags >= MinAnyVarHeaderAndPayload + (MinSearchableVarHeaderAndPayload - MinAnyVarHeaderAndPayload) div LastFlag * (vSizeFlags and LastFlag)) then
     begin
       pVarHeader(result - VarHeaderSize)^.ch.h := uint32(size) + UsedFlag;
-      inc(pointer(fv), size); { result = allocated block, fv = remainder. }
-      pVarHeader(pointer(fv) - VarHeaderSize)^.ofsToOs := pVarHeader(result - VarHeaderSize)^.ofsToOs - int32(size);
-      pVarHeader(pointer(fv) - VarHeaderSize)^.ch.h := vSizeFlags;
+      tailFv := result + size; { fv (result) = allocated block, tailFv = remainder. }
+      pVarHeader(pointer(tailFv) - VarHeaderSize)^.ofsToOs := pVarHeader(result - VarHeaderSize)^.ofsToOs - int32(size);
+      pVarHeader(pointer(tailFv) - VarHeaderSize)^.ch.h := vSizeFlags;
       { Chunk to the right retains its PrevFreeFlag. }
       if vSizeFlags and LastFlag = 0 then
-        pFreeVarTail(pointer(fv) + vSizeFlags - (VarHeaderSize + FreeVarTailSize))^.size := vSizeFlags;
+        pFreeVarTail(pointer(tailFv) + vSizeFlags - (VarHeaderSize + FreeVarTailSize))^.size := vSizeFlags;
       if vSizeFlags >= MinSearchableVarHeaderAndPayload then
-        varFree.Add(fv, vSizeFlags); { Rounding down, so not masking is ok. }
+        varFree.Add(tailFv, vSizeFlags); { Rounding down, so not masking is ok. }
     end else
     begin
       { Use the entire chunk. }
       inc(vSizeFlags, size);
       pVarHeader(result - VarHeaderSize)^.ch.h := uint32(vSizeFlags) + UsedFlag;
       if vSizeFlags and LastFlag = 0 then
-        dec(pVarHeader(pointer(fv) + vSizeFlags - VarHeaderSize)^.ch.h, PrevIsFreeFlag);
+        dec(pVarHeader(result + vSizeFlags - VarHeaderSize)^.ch.h, PrevIsFreeFlag);
       size := vSizeFlags and VarSizeMask;
     end;
 
@@ -1598,7 +1622,6 @@ type
 
   procedure HeapInc.ThreadState.Orphan;
   var
-    arena: pFixedArena;
     vOs: pVarOSChunk;
     p: pointer;
     h: uint32;
@@ -1609,15 +1632,7 @@ type
     if gs.lockUse > 0 then
       EnterCriticalSection(HeapInc.gs.lock);
     FlushToFree; { Performing it under gs.lock guarantees there will be no new toFree requests. }
-
-    { Has to free all empty arenas, otherwise the chunk that contains only empty arenas will leak (no one will ever adopt it, as it has nothing to free). }
-    while nEmptyArenas > 0 do
-    begin
-      arena := emptyArenas;
-      emptyArenas := arena^.next;
-      dec(nEmptyArenas);
-      FreeVar(arena);
-    end;
+    FreeEmptyArenas; { Has to free all empty arenas, otherwise the chunk that contains only empty arenas can leak. }
 
 {$ifndef HAS_SYSOSFREE}
     { Prepend freeOS to gs.freeOS. }
