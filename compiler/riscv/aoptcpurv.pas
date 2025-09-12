@@ -748,6 +748,7 @@ implementation
           else if MatchInstruction(hp1,A_SB) and
             (taicpu(hp1).ops=2) and
             MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
+            (taicpu(p).oper[2]^.val and $ff=$ff) and
             (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p,hp1)) and
             RegEndOfLife(taicpu(p).oper[0]^.reg, taicpu(hp1)) then
             begin
