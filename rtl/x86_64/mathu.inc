@@ -61,13 +61,13 @@ procedure sincos(theta : extended;out sinus,cosinus : extended);assembler;
 asm
     fldt theta
     fsincos
-{$ifdef WIN64}
+{$ifdef FPC_ABI_WIN64}
     fstpl (%r8)
     fstpl (%rdx)
-{$else WIN64}
+{$else FPC_ABI_WIN64}
     fstpt (%rsi)
     fstpt (%rdi)
-{$endif WIN64}
+{$endif FPC_ABI_WIN64}
     fwait
   end;
 {$endif FPC_HAS_TYPE_EXTENDED}
@@ -104,14 +104,14 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
 {$asmmode intel}
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);assembler;nostackframe;
 asm
-{$ifdef WIN64}
+{$ifdef FPC_ABI_WIN64}
   mov eax, ecx
   movzx ecx, dx
   cdq
   idiv ecx
   mov [r8], ax
   mov [r9], dx
-{$else WIN64}
+{$else FPC_ABI_WIN64}
   mov eax, edi
   movzx esi, si
   mov rdi, rdx
@@ -119,20 +119,20 @@ asm
   idiv esi
   mov [rdi], ax
   mov [rcx], dx
-{$endif WIN64}
+{$endif FPC_ABI_WIN64}
 end;
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);assembler;nostackframe;
 asm
-{$ifdef WIN64}
+{$ifdef FPC_ABI_WIN64}
   mov eax, ecx
   movzx ecx, dx
   cdq
   idiv ecx
   mov [r8], ax
   mov [r9], dx
-{$else WIN64}
+{$else FPC_ABI_WIN64}
   mov eax, edi
   movzx esi, si
   mov rdi, rdx
@@ -140,47 +140,47 @@ asm
   idiv esi
   mov [rdi], ax
   mov [rcx], dx
-{$endif WIN64}
+{$endif FPC_ABI_WIN64}
 end;
 
 
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);assembler;nostackframe;
 asm
-{$ifdef WIN64}
+{$ifdef FPC_ABI_WIN64}
   mov eax, ecx
   mov ecx, edx
   xor edx, edx
   div ecx
   mov [r8], eax
   mov [r9], edx
-{$else WIN64}
+{$else FPC_ABI_WIN64}
   mov eax, edi
   mov rdi, rdx
   xor edx, edx
   div esi
   mov [rdi], eax
   mov [rcx], edx
-{$endif WIN64}
+{$endif FPC_ABI_WIN64}
 end;
 
 
 procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);assembler;nostackframe;
 asm
-{$ifdef WIN64}
+{$ifdef FPC_ABI_WIN64}
   mov eax, ecx
   mov ecx, edx
   cdq
   idiv ecx
   mov [r8], eax
   mov [r9], edx
-{$else WIN64}
+{$else FPC_ABI_WIN64}
   mov eax, edi
   mov rdi, rdx
   cdq
   idiv esi
   mov [rdi], eax
   mov [rcx], edx
-{$endif WIN64}
+{$endif FPC_ABI_WIN64}
 end;
 
 
@@ -189,9 +189,9 @@ function GetRoundMode: TFPURoundingMode;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
   Result:=TFPURoundingMode((GetMXCSR shr 13) and $3);
-{$else win64}
+{$else FPC_HAS_TYPE_EXTENDED}
   Result:=TFPURoundingMode((Get8087CW shr 10) and $3);
-{$endif win64}
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
@@ -229,9 +229,9 @@ function GetExceptionMask: TFPUExceptionMask;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
   Result:=TFPUExceptionMask(dword((GetMXCSR shr 7) and $3f));
-{$else win64}
+{$else FPC_HAS_TYPE_EXTENDED}
   Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
-{$endif win64}
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;

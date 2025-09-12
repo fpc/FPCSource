@@ -16,7 +16,7 @@
 
 function fpc_setjmp(var S:jmp_buf):longint;assembler;[public,alias:'FPC_SETJMP'];nostackframe;compilerproc;
   asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     // xmm6..xmm15, xmm control word and FPU control word are nonvolatile in win64.
     // Using movdqu because 16-byte aligning of local records with XMM members
     // was broken the last time I checked it (Sergei)
@@ -44,7 +44,7 @@ function fpc_setjmp(var S:jmp_buf):longint;assembler;[public,alias:'FPC_SETJMP']
     movdqu   %xmm15,jmp_buf.xmm15(%rcx)
     stmxcsr  jmp_buf.mxcsr(%rcx)
     fnstcw   jmp_buf.fpucw(%rcx)
-{$else win64}
+{$else FPC_ABI_WIN64}
     movq     %rbx,jmp_buf.rbx(%rdi)
     movq     %rbp,jmp_buf.rbp(%rdi)
     movq     %r12,jmp_buf.r12(%rdi)
@@ -55,14 +55,14 @@ function fpc_setjmp(var S:jmp_buf):longint;assembler;[public,alias:'FPC_SETJMP']
     movq     %rax,jmp_buf.rsp(%rdi)
     movq     (%rsp),%rax
     movq     %rax,jmp_buf.rip(%rdi)
-{$endif win64}
+{$endif FPC_ABI_WIN64}
     xorl     %eax,%eax
   end;
 
 
 procedure fpc_longjmp(var S:jmp_buf;value:longint);assembler;[public,alias:'FPC_LONGJMP'];nostackframe;compilerproc;
   asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     cmpl     $1,%edx
     adcl     $0,%edx
     movl     %edx,%eax
@@ -89,7 +89,7 @@ procedure fpc_longjmp(var S:jmp_buf;value:longint);assembler;[public,alias:'FPC_
     fnclex
     fldcw    jmp_buf.fpucw(%rcx)
     jmpq     jmp_buf.rip(%rcx)
-{$else win64}
+{$else FPC_ABI_WIN64}
     cmpl     $1,%esi
     adcl     $0,%esi
     movl     %esi,%eax
@@ -101,6 +101,6 @@ procedure fpc_longjmp(var S:jmp_buf;value:longint);assembler;[public,alias:'FPC_
     movq     jmp_buf.r15(%rdi),%r15
     movq     jmp_buf.rsp(%rdi),%rsp
     jmpq     jmp_buf.rip(%rdi)
-{$endif win64}
+{$endif FPC_ABI_WIN64}
   end;
 

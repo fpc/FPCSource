@@ -22,7 +22,7 @@
 ****************************************************************************}
 
 {$define move_use_fast_repmovstos}
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
   {$define fillxxxx_use_fast_repmovstos} { REP STOS uses nonvolatile RDI and would require a stack frame on Win64 to be SEH-compliant. }
 {$endif}
 
@@ -96,7 +96,7 @@ const
   ErmsThreshold = 1536;
 {$endif}
 asm
-{$if not defined(win64)}
+{$if not defined(FPC_ABI_WIN64)}
     mov    %rdx, %r8
     mov    %rsi, %rdx
     mov    %rdi, %rcx
@@ -123,7 +123,7 @@ asm
     jg     .L33OrMore
     movups %xmm4, (%rdx)         { 17–32 bytes }
     movups %xmm5, -16(%rdx,%r8)
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     pop    %rdi
     pop    %rsi
 {$endif}
@@ -140,7 +140,7 @@ asm
 .LOne:
     mov    %al, (%rdx)
 .LZero:
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     pop    %rdi
     pop    %rsi
 {$endif}
@@ -151,7 +151,7 @@ asm
     mov    -4(%rcx,%r8), %r9d
     mov    %eax, (%rdx)
     mov    %r9d, -4(%rdx,%r8)
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     pop    %rdi
     pop    %rsi
 {$endif}
@@ -163,12 +163,12 @@ asm
     mov    %rax, (%rdx)
     mov    %r9, -8(%rdx,%r8)
 .Lquit:
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     pop    %rdi
     pop    %rsi
 {$endif}
     ret
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     .byte  102,102,102,102,102,144
 {$else}
     .byte  102,102,102,102,102,102,102,102,102,102,102,144
@@ -219,7 +219,7 @@ asm
     movups %xmm3, (%rdx, %r8)
     movups %xmm5, 16(%rdx,%r8)   { Write first and last 16 bytes after everything else. }
     movups %xmm4, (%r9)          { Important for <16-byte step between src and dest. }
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     pop    %rdi
     pop    %rsi
 {$endif}
@@ -242,7 +242,7 @@ asm
     lea    32(%r8), %rcx
     rep movsb
     movdqu %xmm4, (%r9) { last 16 aren't required }
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     pop    %rdi
     pop    %rsi
 {$endif}
@@ -312,7 +312,7 @@ asm
     movups %xmm3, -16(%rdx)
     movups %xmm4, -32(%rdx)
     movups %xmm5, -16(%r9)
-{$if defined(win64) and defined(move_use_fast_repmovstos)}
+{$if defined(FPC_ABI_WIN64) and defined(move_use_fast_repmovstos)}
     pop    %rdi
     pop    %rsi
 {$endif}
@@ -485,7 +485,7 @@ asm
     cmpb   $1, fast_large_repmovstosb(%rip)
 {$endif FPC_PIC}
     jne    .LRepStosIsNotBetter
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     push   %rdi { For tests on Windows; however this is SEH incompliant so the entire fillxxxx_use_fast_repmovstos branch is disabled by default! }
 {$endif}
     mov    %rcx, %rdi { rdi = REP STOS destination. }
@@ -493,7 +493,7 @@ asm
     shr    $3, %rcx { rcx = count of REP STOSQ blocks up to T1 (might be 1 more than strictly required if T1 and UT overlap is 8 or more, don’t care). }
     movq   %xmm0, %rax { recover pattern for aligned writes back to GPR :) }
     rep stosq
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     pop    %rdi
 {$endif}
     ret
@@ -523,12 +523,12 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
   asm
 { win64: rcx dest, rdx count, r8b value
   linux: rdi dest, rsi count, rdx value }
-    movzbl {$ifdef win64} %r8b {$else} %dl {$endif}, %eax
+    movzbl {$ifdef FPC_ABI_WIN64} %r8b {$else} %dl {$endif}, %eax
     imul   $0x01010101, %eax
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
     mov    %rsi, %rdx
     mov    %rdi, %rcx
-{$endif win64}
+{$endif FPC_ABI_WIN64}
 
     cmp    $3, %rdx
     jle    .L3OrLess
@@ -568,7 +568,7 @@ Procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
 {$define FPC_SYSTEM_HAS_FILLWORD}
 procedure FillWord(var x;count:SizeInt;value:word);assembler;nostackframe;
   asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     movzwl %r8w, %eax
     shl    $16, %r8d
     or     %r8d, %eax
@@ -626,13 +626,13 @@ procedure FillWord(var x;count:SizeInt;value:word);assembler;nostackframe;
 {$define FPC_SYSTEM_HAS_FILLDWORD}
 procedure FillDWord(var x;count:SizeInt;value:DWord);assembler;nostackframe;
   asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     mov    %r8d, %eax
 {$else}
     mov    %edx, %eax
     mov    %rsi, %rdx
     mov    %rdi, %rcx
-{$endif win64}
+{$endif FPC_ABI_WIN64}
 
     cmp    $3, %rdx
     jle    .L3OrLess
@@ -654,7 +654,7 @@ procedure FillDWord(var x;count:SizeInt;value:DWord);assembler;nostackframe;
     jmp    FillXxxx_MoreThanTwoXmms
 
 .L4to8:
-{$ifndef win64} { on win64, eax = r8d already. }
+{$ifndef FPC_ABI_WIN64} { on win64, eax = r8d already. }
     mov    %eax, %r8d
 {$endif}
     shl    $32, %r8
@@ -680,13 +680,13 @@ procedure FillDWord(var x;count:SizeInt;value:DWord);assembler;nostackframe;
 {$define FPC_SYSTEM_HAS_FILLQWORD}
 procedure FillQWord(var x;count:SizeInt;value:QWord);assembler;nostackframe;
   asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     mov    %r8, %rax
 {$else}
     mov    %rdx, %rax
     mov    %rsi, %rdx
     mov    %rdi, %rcx
-{$endif win64}
+{$endif FPC_ABI_WIN64}
 
     cmp    $2, %rdx
     jle    .L2OrLess
@@ -734,8 +734,8 @@ asm
     test   len, len
     jz     .Lnotfound                  { exit if len=0 }
 
-    movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
-    mov    {$ifdef win64} %ecx {$else} %edi {$endif}, %eax
+    movd   {$ifdef FPC_ABI_WIN64} %r8d {$else} %edx {$endif}, %xmm1
+    mov    {$ifdef FPC_ABI_WIN64} %ecx {$else} %edi {$endif}, %eax
     punpcklbw  %xmm1, %xmm1
     punpcklbw  %xmm1, %xmm1
     and    $4095, %eax
@@ -744,7 +744,7 @@ asm
     cmp    $4080, %eax
     ja     .LCrossPage
 
-    movdqu    ({$ifdef win64} %rcx {$else} %rdi {$endif}), %xmm0 { Analyze first 16 bytes, unaligned. }
+    movdqu    ({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif}), %xmm0 { Analyze first 16 bytes, unaligned. }
     pcmpeqb   %xmm1, %xmm0
     pmovmskb  %xmm0, %eax
     test      %eax, %eax
@@ -755,23 +755,23 @@ asm
     jae    .Lnotfound
     ret
 
-    .byte  {$ifndef win64}102,102,102,102,{$endif}102,102,102,102,102,102,102,102,102,144 { Make .balign 16 before .Lloop a no-op. }
+    .byte  {$ifndef FPC_ABI_WIN64}102,102,102,102,{$endif}102,102,102,102,102,102,102,102,102,144 { Make .balign 16 before .Lloop a no-op. }
 .LContinueAligned:
     cmp    $16, len                    { Length might be explicitly set to 16 or less; if so, skip a bit of work. }
     jbe    .Lnotfound                  { (Or rather, this check is *required* unless jumping to .Lcontinue instead of going directly to .Lloop) }
 
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
     add    $16, %rcx
 {$else}
     lea    16(%rdi), %rcx              { rdi = original ptr, rcx = buf + 16 for aligning & shifts. }
 {$endif}
     and    $-0x10, %rcx                { first aligned address after buf }
-    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
+    sub    {$ifdef FPC_ABI_WIN64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
 
     .balign 16
 .Lloop:
-    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0 { r8/rdi and rcx may have any values, }
+    movdqa ({$ifdef FPC_ABI_WIN64} %r8 {$else} %rdi {$endif},%rcx), %xmm0 { r8/rdi and rcx may have any values, }
     add    $16, %rcx                   { but their sum is evenly divisible by 16. }
     pcmpeqb %xmm1, %xmm0
     pmovmskb %xmm0, %eax
@@ -785,7 +785,7 @@ asm
     ret
 
 .LCrossPage:
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
     add    $16, %rcx
 {$else}
@@ -793,7 +793,7 @@ asm
 {$endif}
     and    $-0x10, %rcx                { first aligned address after buf }
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 15 bytes before target) }
-    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
+    sub    {$ifdef FPC_ABI_WIN64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes, r8/rdi=original ptr }
 
     pcmpeqb %xmm1, %xmm0               { compare with pattern and get bitmask }
     pmovmskb %xmm0, %eax
@@ -818,8 +818,8 @@ function IndexWord(Const buf;len:SizeInt;b:word):SizeInt; assembler; nostackfram
 asm
     test   len, len
     jz     .Lnotfound                  { exit if len=0 }
-    movd   {$ifdef win64} %r8d {$else} %edx {$endif}, %xmm1
-{$ifdef win64}
+    movd   {$ifdef FPC_ABI_WIN64} %r8d {$else} %edx {$endif}, %xmm1
+{$ifdef FPC_ABI_WIN64}
     mov    %rcx, %r8                   { r8 = original ptr, rcx = buf + 16 for aligning & shifts. }
     add    $16, %rcx
 {$else}
@@ -829,9 +829,9 @@ asm
     and    $-0x10, %rcx
     pshufd $0, %xmm1, %xmm1
     movdqa -16(%rcx), %xmm0            { Fetch first 16 bytes (up to 14 bytes before target) }
-    sub    {$ifdef win64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes }
+    sub    {$ifdef FPC_ABI_WIN64} %r8 {$else} %rdi {$endif}, %rcx { rcx=number of valid bytes }
 
-    test   $1, {$ifdef win64} %r8b {$else} %dil {$endif} { if buffer isn't aligned to word boundary, }
+    test   $1, {$ifdef FPC_ABI_WIN64} %r8b {$else} %dil {$endif} { if buffer isn't aligned to word boundary, }
     jnz    .Lunaligned                 { use a different algorithm }
 
     pcmpeqw  %xmm1, %xmm0
@@ -853,7 +853,7 @@ asm
 
     .balign 16
 .Lloop:
-    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx,2), %xmm0
+    movdqa ({$ifdef FPC_ABI_WIN64} %r8 {$else} %rdi {$endif},%rcx,2), %xmm0
     add    $8, %rcx
     pcmpeqw  %xmm1, %xmm0
     pmovmskb %xmm0, %eax
@@ -886,7 +886,7 @@ asm
 
     .balign 16
 .Lloop_u:
-    movdqa ({$ifdef win64} %r8 {$else} %rdi {$endif},%rcx), %xmm0
+    movdqa ({$ifdef FPC_ABI_WIN64} %r8 {$else} %rdi {$endif},%rcx), %xmm0
     add    $16, %rcx
     pcmpeqb %xmm1, %xmm0               { compare by bytes }
     shr    $16, %r10d                  { bit 16 shifts into 0 }
@@ -918,7 +918,7 @@ end;
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:SizeInt;b:dword):SizeInt; assembler; nostackframe;
 asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
     mov      %rcx, %rax
 {$else}
     mov      %rdx, %r8
@@ -965,7 +965,7 @@ asm
     bsf      %r8d, %r8d
     add      %r8, %rax
 .LFoundAtRax:
-    sub      {$ifdef win64} %rcx {$else} %rdi {$endif}, %rax
+    sub      {$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif}, %rax
     shr      $2, %rax
 end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
@@ -1000,7 +1000,7 @@ asm
     cmp      $6, len
     jle      IndexQWord_Plain
     mov      buf, %rax
-    movq     {$ifdef win64} %r8 {$else} %rdx {$endif}, %xmm0
+    movq     {$ifdef FPC_ABI_WIN64} %r8 {$else} %rdx {$endif}, %xmm0
     punpcklqdq %xmm0, %xmm0 { xmm0 = pattern of 'b's. }
     sub      $6, len
 .balign 16
@@ -1018,7 +1018,7 @@ asm
     add      $48, %rax
     sub      $6, len
     jge      .L6x_Loop
-    lea      (%rax,{$ifdef win64} %rdx {$else} %rsi {$endif},8), %rax { Point to last 3 vectors. }
+    lea      (%rax,{$ifdef FPC_ABI_WIN64} %rdx {$else} %rsi {$endif},8), %rax { Point to last 3 vectors. }
     cmp      $-5, len
     jge      .L6x_Loop { Reuse .L6x_Loop to compare last 3 vectors, if not compared already. }
     mov      $-1, %rax
@@ -1074,11 +1074,11 @@ function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackfra
 { win64: rcx buf, rdx buf, r8 len
   linux: rdi buf, rsi buf, rdx len }
 asm
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
     mov      %rdx, %r8
     mov      %rsi, %rdx
     mov      %rdi, %rcx
-{$endif win64}
+{$endif FPC_ABI_WIN64}
     { rcx = buf1, rdx = buf2, r8 = len }
     cmp      $1, %r8
     jle      .L1OrLess
@@ -1280,11 +1280,11 @@ end;
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
     mov      %rdx, %r8
     mov      %rsi, %rdx
     mov      %rdi, %rcx
-{$endif win64}
+{$endif FPC_ABI_WIN64}
     sub      %rcx, %rdx { rdx = buf2 - buf1 }
     cmp      $1, %r8
     jle      .LWordwise_Prepare
@@ -1397,11 +1397,11 @@ end;
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(Const buf1,buf2;len:SizeInt):SizeInt; assembler; nostackframe;
 asm
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
     mov      %rdx, %r8
     mov      %rsi, %rdx
     mov      %rdi, %rcx
-{$endif win64}
+{$endif FPC_ABI_WIN64}
     sub      %rcx, %rdx { rdx = buf2 - buf1 }
     cmp      $4, %r8
     jle      .LDwordwise_Prepare
@@ -1500,7 +1500,7 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
      jz         .Ldeclockedskiplock
      .byte      0xF0 // LOCK prefix.
 .Ldeclockedskiplock:
-     decl       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+     decl       {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
      setzb      %al
   end;
 
@@ -1519,7 +1519,7 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
      jz         .Ldeclockedskiplock
      .byte      0xF0 // LOCK prefix.
 .Ldeclockedskiplock:
-     decq       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+     decq       {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
      setzb      %al
   end;
 
@@ -1539,7 +1539,7 @@ procedure inclocked(var l : longint);assembler; nostackframe;
      jz         .Linclockedskiplock
      .byte      0xF0 // LOCK prefix.
 .Linclockedskiplock:
-     incl       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+     incl       {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
   end;
 
 
@@ -1558,7 +1558,7 @@ procedure inclocked(var l : int64);assembler; nostackframe;
      jz         .Linclockedskiplock
      .byte      0xF0 // LOCK prefix.
 .Linclockedskiplock:
-     incq       {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+     incq       {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
   end;
 
 
@@ -1566,17 +1566,17 @@ procedure inclocked(var l : int64);assembler; nostackframe;
 {$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_8}
 function fpc_atomic_cmp_xchg_8(var Target: shortint; NewValue: shortint; Comparand: shortint): shortint; assembler; nostackframe;
 asm
-        movl            {$ifdef win64} %r8d {$else} %edx {$endif},%eax
+        movl            {$ifdef FPC_ABI_WIN64} %r8d {$else} %edx {$endif},%eax
         lock
-        cmpxchgb        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        cmpxchgb        NewValue,({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
 end;
 
 {$define FPC_SYSTEM_HAS_ATOMIC_CMP_XCHG_16}
 function fpc_atomic_cmp_xchg_16(var Target: smallint; NewValue: smallint; Comparand: smallint): smallint; assembler; nostackframe;
 asm
-        movl            {$ifdef win64} %r8d {$else} %edx {$endif},%eax
+        movl            {$ifdef FPC_ABI_WIN64} %r8d {$else} %edx {$endif},%eax
         lock
-        cmpxchgw        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        cmpxchgw        NewValue,({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
 end;
 
 {$define FPC_SYSTEM_HAS_ATOMIC_SUB_32}
@@ -1584,7 +1584,7 @@ function fpc_atomic_sub_32(var Target: longint; Value: longint): longint; assemb
 asm
         negl    Value
         lock
-        xaddl   Value,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        xaddl   Value,({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
         movl    Value,%eax
 end;
 
@@ -1593,7 +1593,7 @@ function fpc_atomic_sub_64(var Target: int64; Value: int64): int64; assembler; n
 asm
         negq    Value
         lock
-        xaddq   Value,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        xaddq   Value,({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
         movq    Value,%rax
 end;
 {$endif VER3_2}
@@ -1608,7 +1608,7 @@ function fpc_atomic_dec_32 (var Target: longint) : longint; assembler; nostackfr
 asm
         movl    $-1,%eax
         lock
-        xaddl   %eax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+        xaddl   %eax, {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
         decl    %eax
 end;
 
@@ -1622,7 +1622,7 @@ function fpc_atomic_inc_32 (var Target: longint) : longint; assembler; nostackfr
 asm
         movl    $1,%eax
         lock
-        xaddl   %eax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+        xaddl   %eax, {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
         incl    %eax
 end;
 
@@ -1634,7 +1634,7 @@ function InterLockedExchange (var Target: longint;Source : longint) : longint; a
 function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 {$endif VER3_2}
 asm
-        xchgl   ({$ifdef win64} %rcx {$else} %rdi {$endif}),Source
+        xchgl   ({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif}),Source
         movl    Source,%eax
 end;
 
@@ -1647,7 +1647,7 @@ function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint; asse
 {$endif VER3_2}
 asm
         lock
-        xaddl   {$ifdef VER3_2} Source {$else} Value {$endif},({$ifdef win64} %rcx {$else} %rdi {$endif})
+        xaddl   {$ifdef VER3_2} Source {$else} Value {$endif},({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
         movl    {$ifdef VER3_2} Source {$else} Value {$endif},%eax
 end;
 
@@ -1661,7 +1661,7 @@ function fpc_atomic_cmp_xchg_32 (var Target: longint; NewValue, Comparand : long
 asm
         movl            {$ifdef VER3_2} Comperand {$else} Comparand {$endif},%eax
         lock
-        cmpxchgl        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        cmpxchgl        NewValue,({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
 end;
 
 
@@ -1674,7 +1674,7 @@ function fpc_atomic_dec_64 (var Target: int64) : int64; assembler; nostackframe;
 asm
         movq    $-1,%rax
         lock
-        xaddq   %rax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+        xaddq   %rax, {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
         decq    %rax
 end;
 
@@ -1688,7 +1688,7 @@ function fpc_atomic_inc_64 (var Target: int64) : int64; assembler; nostackframe;
 asm
         movq    $1,%rax
         lock
-        xaddq   %rax, {$ifdef win64} (%rcx) {$else} (%rdi) {$endif}
+        xaddq   %rax, {$ifdef FPC_ABI_WIN64} (%rcx) {$else} (%rdi) {$endif}
         incq    %rax
 end;
 
@@ -1700,7 +1700,7 @@ function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assem
 function fpc_atomic_xchg_64 (var Target: int64;Source: int64) : int64; assembler; nostackframe;
 {$endif VER3_2}
 asm
-        xchgq   ({$ifdef win64} %rcx {$else} %rdi {$endif}),Source
+        xchgq   ({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif}),Source
         movq    Source,%rax
 end;
 
@@ -1713,7 +1713,7 @@ function fpc_atomic_add_64 (var Target: int64;Value: int64) : int64; assembler; 
 {$endif VER3_2}
 asm
         lock
-        xaddq   {$ifdef VER3_2} Source {$else} Value {$endif},({$ifdef win64} %rcx {$else} %rdi {$endif})
+        xaddq   {$ifdef VER3_2} Source {$else} Value {$endif},({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
         movq    {$ifdef VER3_2} Source {$else} Value {$endif},%rax
 end;
 
@@ -1727,7 +1727,7 @@ function fpc_atomic_cmp_xchg_64 (var Target: int64; NewValue, Comparand : int64)
 asm
         movq            {$ifdef VER3_2} Comperand {$else} Comparand {$endif},%rax
         lock
-        cmpxchgq        NewValue,({$ifdef win64} %rcx {$else} %rdi {$endif})
+        cmpxchgq        NewValue,({$ifdef FPC_ABI_WIN64} %rcx {$else} %rdi {$endif})
 end;
 
 
@@ -1885,49 +1885,49 @@ function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endi
 
 function SwapEndian(const AValue: LongInt): LongInt; assembler; nostackframe;
 asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
   movl %ecx, %eax
-{$else win64}
+{$else FPC_ABI_WIN64}
   movl %edi, %eax
-{$endif win64}
+{$endif FPC_ABI_WIN64}
   bswap %eax
 end;
 
 
 function SwapEndian(const AValue: DWord): DWord; assembler; nostackframe;
 asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
   movl %ecx, %eax
-{$else win64}
+{$else FPC_ABI_WIN64}
   movl %edi, %eax
-{$endif win64}
+{$endif FPC_ABI_WIN64}
   bswap %eax
 end;
 
 
 function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
 asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
   movq %rcx, %rax
-{$else win64}
+{$else FPC_ABI_WIN64}
   movq %rdi, %rax
-{$endif win64}
+{$endif FPC_ABI_WIN64}
   bswap %rax
 end;
 
 
 function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
 asm
-{$ifdef win64}
+{$ifdef FPC_ABI_WIN64}
   movq %rcx, %rax
-{$else win64}
+{$else FPC_ABI_WIN64}
   movq %rdi, %rax
-{$endif win64}
+{$endif FPC_ABI_WIN64}
   bswap %rax
 end;
 
 
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
 {$define FPC_SYSTEM_HAS_U128_DIV_U64_TO_U64}
 function u128_div_u64_to_u64( const xh, xl: qword; const y: qword; out quotient, remainder: qword ): boolean;nostackframe;assembler;
 {
@@ -1954,7 +1954,7 @@ dodiv:
   movq %rdx,(%r8)
   movl $1,%eax
 end;
-{$endif win64}
+{$endif FPC_ABI_WIN64}
 
 {$ifndef FPC_SYSTEM_HAS_UMUL64X64_128}
 {$define FPC_SYSTEM_HAS_UMUL64X64_128}
@@ -1962,11 +1962,11 @@ function UMul64x64_128(a,b: uint64; out rHi: uint64): uint64; assembler; nostack
 { Win64: rcx = a, rdx = b, r8 = rHi.
   SysV:  rdi = a, rsi = b, rdx = rHi. }
 asm
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
   mov %rdx, %rcx { rcx = rHi, as rdx is used for mul. }
 {$endif}
   mov a, %rax
   mul b
-  mov %rdx, {$ifdef win64} (%r8) {$else} (%rcx) {$endif}
+  mov %rdx, {$ifdef FPC_ABI_WIN64} (%r8) {$else} (%rcx) {$endif}
 end;
 {$endif FPC_SYSTEM_HAS_UMUL64X64_128}

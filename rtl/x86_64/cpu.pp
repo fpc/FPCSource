@@ -116,7 +116,7 @@ type
       // SysV:  edi = in_eax, esi = in_ecx, rdx = res.
       asm
         push  %rbx
-{$ifndef win64}
+{$ifndef FPC_ABI_WIN64}
         mov   %rdx, %r8 // r8 = res
 {$endif}
         mov   in_eax, %eax
@@ -156,7 +156,7 @@ type
           r8  ... NewValue
           r9  ... Comperand
       }
-    {$ifdef win64}
+    {$ifdef FPC_ABI_WIN64}
       asm
         pushq %rbx
 
@@ -188,7 +188,7 @@ type
 
         popq %rbx
       end;
-    {$else win64}
+    {$else FPC_ABI_WIN64}
     {
       linux:
         rdi       ... target
@@ -211,7 +211,7 @@ type
 
         popq %rbx
       end;
-    {$endif win64}
+    {$endif FPC_ABI_WIN64}
 
 
     function XGETBV(i : dword) : int64;assembler;
