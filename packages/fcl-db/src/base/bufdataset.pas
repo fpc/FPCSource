@@ -2970,6 +2970,7 @@ Const
 begin
   Result.Async:=False;
   Result.Response:=rrApply;
+  Result.HadError:=False;
   // If the record is first inserted and afterwards deleted, do nothing
   if ((aUpdate.UpdateKind=ukDelete) and not (assigned(aUpdate.OldValuesBuffer))) then
     exit;
