@@ -472,6 +472,9 @@ interface
 
        systems_support_uf2 = [system_arm_embedded,system_avr_embedded,system_mipsel_embedded,system_xtensa_embedded];
 
+       { x86_64 systems that use the Win64 ABI instead of the SysV one }
+       systems_win64_abi = [system_x86_64_win64];
+
        { all internal COFF writers }
        asms_int_coff = [as_arm_pecoffwince,as_x86_64_pecoff,as_i386_pecoffwince,
                         as_i386_pecoffwdosx,as_i386_pecoff,as_i386_coff];

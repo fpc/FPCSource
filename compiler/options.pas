@@ -4563,6 +4563,10 @@ procedure read_arguments(cmd:TCmdStr);
         undef_system_macro('FPC_ABI_'+abiinfo[abi].name);
       def_system_macro('FPC_ABI_'+abiinfo[target_info.abi].name);
 
+      { this is not a switchable ABI in the sense of tabi, but it's an ABI
+        nevertheless }
+      if target_info.system in systems_win64_abi then
+        def_system_macro('FPC_ABI_WIN64');
 
       { Define FPC_ABI_EABI in addition to FPC_ABI_EABIHF on EABI VFP hardfloat
         systems since most code needs to behave the same on both}
