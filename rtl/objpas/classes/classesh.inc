@@ -252,6 +252,7 @@ Type
     function Extract(Item: Pointer): Pointer;
     function First: Pointer;
     function GetEnumerator: TFPListEnumerator;
+    function Contains(Item: Pointer): boolean;
     function IndexOf(Item: Pointer): Integer;
     function IndexOfItem(Item: Pointer; Direction: TDirection): Integer;
     procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
@@ -337,7 +338,8 @@ Type
     function Extract(item: Pointer): Pointer;
     function First: Pointer;
     function GetEnumerator: TListEnumerator;
-    function IndexOf(Item: Pointer): Integer;
+    function Contains(Item: Pointer): boolean;
+    function IndexOf(Item: Pointer): Integer; 
     procedure Insert(Index: Integer; Item: Pointer);
     function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
@@ -734,8 +736,10 @@ type
     function GetEnumerator: TStringsEnumerator;
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function GetText: PChar; virtual;
+    function Contains(const S: string): Boolean; 
     function IndexOf(const S: string): Integer; virtual;
     function IndexOf(const S: string; aStart : Integer): Integer; virtual;
+    function ContainsName(const Name: string): Boolean; virtual;
     function IndexOfName(const Name: string): Integer; virtual;
     function IndexOfObject(AObject: TObject): Integer; virtual;
     procedure Insert(Index: Integer; const S: string); virtual; abstract;
