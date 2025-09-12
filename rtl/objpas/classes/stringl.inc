@@ -1299,6 +1299,12 @@ Function TStrings.DoCompareText(const s1,s2 : string) : PtrInt;
   end;
 
 
+Function TStrings.Contains(const S: string): Boolean;
+
+begin
+  Result:=Indexof(S)<>-1;
+end;
+
 Function TStrings.IndexOf(const S: string): Integer;
 begin
   Result:=0;
@@ -1317,6 +1323,12 @@ begin
   Result:=aStart;
   While (Result<Count) and (DoCompareText(Strings[Result],S)<>0) do Result:=Result+1;
   if Result=Count then Result:=-1;
+end;
+
+Function TStrings.ContainsName(const Name: string): Boolean;
+
+begin
+  Result:=IndexOfName(Name)<>-1;
 end;
 
 

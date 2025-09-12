@@ -209,6 +209,11 @@ begin
   Result := TFPListEnumerator.Create(Self);
 end;
 
+function TFPList.Contains(Item: Pointer): Boolean;
+begin
+  Result:=IndexOf(Item)<>-1;
+end;
+
 function TFPList.IndexOf(Item: Pointer): Integer;
 
 begin
@@ -744,6 +749,13 @@ function TList.GetEnumerator: TListEnumerator;
 begin
   Result := TListEnumerator.Create(Self);
 end;
+
+function TList.Contains(Item: Pointer): Boolean;
+begin
+  Result:=Flist.Contains(Item);
+end;
+
+
 
 function TList.IndexOf(Item: Pointer): Integer;
 begin
