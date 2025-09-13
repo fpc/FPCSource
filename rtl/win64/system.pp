@@ -44,6 +44,10 @@ interface
   {$define FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 {$endif SYSTEM_USE_WIN_SEH}
 
+{$ifdef VER3_2}
+  {$define FPC_ABI_WIN64}
+{$endif VER3_2}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 { include common windows headers }
