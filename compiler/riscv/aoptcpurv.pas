@@ -716,18 +716,18 @@ implementation
       hp1: tai;
     begin
       result:=false;
-      {
-        Changes
-          andi x, y, #
-          andi z, x, #
-          dealloc x
-        To
-          andi z, y, # and #
-      }
       if (taicpu(p).ops=3) and
          (taicpu(p).oper[2]^.typ=top_const) and
          GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) then
         begin
+          {
+            Changes
+              andi x, y, #
+              andi z, x, #
+              dealloc x
+            To
+              andi z, y, # and #
+          }
           if MatchInstruction(hp1,A_ANDI) and
             (taicpu(hp1).ops=3) and
             MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) and
@@ -745,6 +745,14 @@ implementation
 
               result:=true;
             end
+          {
+            Changes
+              andi x, y, #ff or ...
+              sb x, ...
+              dealloc x
+            To
+              sb x, ...
+          }
           else if MatchInstruction(hp1,A_SB) and
             (taicpu(hp1).ops=2) and
             MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[0]^) and
