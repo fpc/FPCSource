@@ -282,7 +282,7 @@ type
     function IndexOf(const aName: string): integer;
     procedure Delete(Index: integer);
     function FindMacro(const aName: string): TPas2jsMacro;
-    procedure Substitute(var s: string; Sender: TObject = nil; Lvl: integer = 0);
+    procedure Substitute(var s: string; Sender: TObject = nil; Lvl: integer = 0; SkipUnknown : boolean = false);
     property Macros[Index: integer]: TPas2jsMacro read GetMacros; default;
     property MaxLevel: integer read FMaxLevel write FMaxLevel;
   end;
@@ -928,8 +928,7 @@ begin
     Result:=nil;
 end;
 
-procedure TPas2jsMacroEngine.Substitute(var s: string; Sender: TObject;
-  Lvl: integer);
+procedure TPas2jsMacroEngine.Substitute(var s: string; Sender: TObject; Lvl: integer; SkipUnknown: boolean);
 // Rules:
 //   $macro or $macro$
 // if Macro.OnSubstitute is set then optional brackets are allowed: $macro(params)
@@ -951,37 +950,44 @@ begin
       MacroName:=copy(s,StartP+1,p-StartP-1);
       Macro:=FindMacro(MacroName);
       if Macro=nil then
-        raise EPas2jsMacro.Create('macro not found "'+MacroName+'" in "'+s+'"');
-      NewValue:='';
-      if Macro.CanHaveParams and (p<=length(s)) and (s[p]='(') then
       begin
-        // read NewValue
-        inc(p);
-        ParamStartP:=p;
-        BracketLvl:=1;
-        repeat
-          if p>length(s) then
-            raise EPas2jsMacro.Create('missing closing bracket ) in "'+s+'"');
-          case s[p] of
-          '(': inc(BracketLvl);
-          ')':
-            if BracketLvl=1 then
-            begin
-              NewValue:=copy(s,ParamStartP,p-ParamStartP);
-              break;
-            end else begin
-              dec(BracketLvl);
+        if not SkipUnknown then
+          raise EPas2jsMacro.Create('macro not found "'+MacroName+'" in "'+s+'"')
+        else
+          NewValue:=MacroName;
+      end
+      else
+      begin
+        if Macro.CanHaveParams and (p<=length(s)) and (s[p]='(') then
+        begin
+          // read NewValue
+          inc(p);
+          ParamStartP:=p;
+          BracketLvl:=1;
+          repeat
+            if p>length(s) then
+              raise EPas2jsMacro.Create('missing closing bracket ) in "'+s+'"');
+            case s[p] of
+            '(': inc(BracketLvl);
+            ')':
+              if BracketLvl=1 then
+              begin
+                NewValue:=copy(s,ParamStartP,p-ParamStartP);
+                break;
+              end else begin
+                dec(BracketLvl);
+              end;
             end;
-          end;
-        until false;
-      end else if (p<=length(s)) and (s[p]='$') then
-        inc(p);
-      if Assigned(Macro.OnSubstitute) then
-      begin
-        if not Macro.OnSubstitute(Sender,NewValue,Lvl+1) then
-          raise EPas2jsMacro.Create('macro "'+MacroName+'" failed in "'+s+'"');
-      end else
-        NewValue:=Macro.Value;
+          until false;
+        end else if (p<=length(s)) and (s[p]='$') then
+          inc(p);
+        if Assigned(Macro) and Assigned(Macro.OnSubstitute) then
+        begin
+          if not Macro.OnSubstitute(Sender,NewValue,Lvl+1) then
+            raise EPas2jsMacro.Create('macro "'+MacroName+'" failed in "'+s+'"');
+        end else
+          NewValue:=Macro.Value;
+      end;
       s:=LeftStr(s,StartP-1)+NewValue+copy(s,p,length(s));
       p:=StartP;
     end;
@@ -3904,7 +3910,7 @@ begin
       Log.LogMsgIgnoreFilter(nHandlingOption,[QuoteStr(Param)]);
   if Param='' then exit;
   FCurParam:=Param;
-  ParamMacros.Substitute(Param,Self);
+  ParamMacros.Substitute(Param,Self,0,True);
   if Param='' then exit;
 
   if Quick and ((Param='-h') or (Param='-?') or (Param='--help')) then
