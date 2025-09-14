@@ -753,22 +753,22 @@ implementation
         dummy : byte;
 {$endif ARM}
       begin
-        cv := 0;
-        result := NODE_COMPLEXITY_INF; { For early exits by default. }
+        cv:=0;
+        result:=NODE_COMPLEXITY_INF; { For early exits by default. }
         while assigned(p) and (cv<NODE_COMPLEXITY_INF) do { break = return cv, exit = return NODE_COMPLEXITY_INF. }
           begin
             case p.nodetype of
               { floating point constants usually need loading from memory }
               realconstn:
                 begin
-                  cv:=2;
+                  inc(cv,2);
                   break;
                 end;
               temprefn:
                 begin
                   if (ttemprefnode(p).tempinfo^.typedef.needs_inittable) or
                     not(ti_may_be_in_reg in ttemprefnode(p).tempflags) then
-                    cv := 1;
+                    inc(cv);
                   break;
                 end;
               rttin,
@@ -782,7 +782,7 @@ implementation
               { still works with nodeinlining (JM)                         }
               loadparentfpn:
                 begin
-                  cv := 1;
+                  inc(cv);
                   break;
                 end;
               loadn:
@@ -800,7 +800,7 @@ implementation
                      not(tabstractvarsym(tloadnode(p).symtableentry).varregable=vr_addr) and
                      tloadnode(p).is_addr_param_load then
                     inc(cv);
-                  p := nil; { Check for NODE_COMPLEXITY_INF and return cv. }
+                  p:=nil; { Check for NODE_COMPLEXITY_INF and return cv. }
                 end;
               subscriptn:
                 begin
@@ -811,10 +811,10 @@ implementation
                     overhead no overhead if the fields are aligned to register boundaries }
                   else if tstoreddef(p.resultdef).is_intregable and (tsubscriptnode(p).vs.fieldoffset mod sizeof(aint)<>0) then
                     inc(cv,1);
-                  p := tunarynode(p).left;
+                  p:=tunarynode(p).left;
                 end;
               blockn:
-                p := tunarynode(p).left;
+                p:=tunarynode(p).left;
               callparan:
                 begin
                   { call to decr? }
@@ -822,14 +822,14 @@ implementation
                      assigned(tcallparanode(p).parasym) and (tcallparanode(p).parasym.varspez=vs_out) then
                     exit;
                   inc(cv);
-                  p := tunarynode(p).left;
+                  p:=tunarynode(p).left;
                 end;
               notn,
               derefn,
               addrn :
                 begin
                   inc(cv);
-                  p := tunarynode(p).left;
+                  p:=tunarynode(p).left;
                 end;
               typeconvn:
                 begin
@@ -837,12 +837,12 @@ implementation
                   if not(ttypeconvnode(p).retains_value_location) and
                     not((ttypeconvnode(p).convtype=tc_pointer_2_array) and (ttypeconvnode(p).left.expectloc in [LOC_CREGISTER,LOC_REGISTER,LOC_CONSTANT])) then
                     inc(cv);
-                  p := tunarynode(p).left;
+                  p:=tunarynode(p).left;
                 end;
               statementn:
                 begin
                   inc(cv,node_complexity(tbinarynode(p).left));
-                  p := tbinarynode(p).right;
+                  p:=tbinarynode(p).right;
                 end;
               addn,subn,orn,andn,xorn,symdifn,
               shln,shrn,
@@ -850,17 +850,17 @@ implementation
               assignn,vecn:
                 begin
                   inc(cv,node_complexity(tbinarynode(p).left)+1);
-                  p := tbinarynode(p).right;
+                  p:=tbinarynode(p).right;
                 end;
               muln:
                 begin
                   inc(cv,node_complexity(tbinarynode(p).left)+{$ifdef CPU64BITALU}4{$else}8{$endif});
-                  p := tbinarynode(p).right;
+                  p:=tbinarynode(p).right;
                 end;
               divn,modn,slashn:
                 begin
                   inc(cv,node_complexity(tbinarynode(p).left)+{$ifdef CPU64BITALU}10{$else}20{$endif});
-                  p := tbinarynode(p).right;
+                  p:=tbinarynode(p).right;
                 end;
               inn:
                 begin
@@ -873,17 +873,17 @@ implementation
                     end;
 {$endif in_const_set_complexity}
                   inc(cv,3);
-                  p := tbinarynode(p).right;
+                  p:=tbinarynode(p).right;
                 end;
               ordconstn:
                 begin
 {$ifdef ARM}
                   if not(is_shifter_const(aint(tordconstnode(p).value.svalue),dummy)) then
-                    cv:=2;
+                    inc(cv,2);
 {$endif ARM}
 {$ifdef RISCV}
                   if not(is_imm12(aint(tordconstnode(p).value.svalue))) then
-                    cv:=2;
+                    inc(cv,2);
 {$endif RISCV}
                   break;
                 end;
