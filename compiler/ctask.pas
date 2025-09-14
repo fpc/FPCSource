@@ -72,6 +72,8 @@ type
     procedure processqueue;
     // add a module to the queue. If a module is already in the queue, we do not add it again.
     procedure addmodule(m : tmodule);
+    // write current queue and what is waiting for what
+    procedure write_queue;
   end;
 
 
@@ -384,8 +386,11 @@ begin
       begin
       t:=list.firsttask;
       if t<>nil then
+        begin
         // no progress possible
+        write_queue;
         InternalError(2025090301);
+        end;
       end;
     end;
 end;
@@ -429,6 +434,26 @@ begin
     end;
 end;
 
+procedure ttask_handler.write_queue;
+var
+  t: ttask_list;
+  firstwaiting: tmodule;
+  cc: Boolean;
+  s: String;
+begin
+  writeln('ttask_handler.write_queue:');
+  t:=list.firsttask;
+  while t<>nil do
+    begin
+    cc:=cancontinue(t,firstwaiting);
+    if firstwaiting<>nil then
+      s:=firstwaiting.realmodulename^
+    else
+      s:='';
+    writeln('queue: ',t.module.realmodulename^,' ',t.module.state,' cancontinue=',cc,' firstwaiting=',s);
+    t:=t.nexttask;
+    end;
+end;
 
 
 end.
