@@ -954,7 +954,7 @@ begin
         if not SkipUnknown then
           raise EPas2jsMacro.Create('macro not found "'+MacroName+'" in "'+s+'"')
         else
-          NewValue:=MacroName;
+          NewValue:='$'+MacroName;
       end
       else
       begin
