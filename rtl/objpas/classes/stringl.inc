@@ -1305,6 +1305,12 @@ begin
   Result:=Indexof(S)<>-1;
 end;
 
+Function TStrings.ContainsObject(const AObject: TObject): Boolean;
+
+begin
+  Result:=IndexOfObject(AObject)<>-1;
+end;
+
 Function TStrings.IndexOf(const S: string): Integer;
 begin
   Result:=0;

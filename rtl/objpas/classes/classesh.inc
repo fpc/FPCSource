@@ -1022,7 +1022,8 @@ type
     function GetEnumerator: TStringsEnumerator;
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function GetText: PChar; virtual;
-    function Contains(const S: string): Boolean; 
+    function Contains(const S: string): Boolean;
+    function ContainsObject(const AObject: TObject): Boolean; inline;
     function IndexOf(const S: string): Integer; virtual;
     function IndexOf(const S: string; aStart : Integer): Integer; virtual;
     function ContainsName(const Name: string): Boolean; virtual;
