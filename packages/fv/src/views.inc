@@ -210,7 +210,7 @@ CONST
    CFrame      = #1#1#2#2#3;                          { Frame palette }
    CScrollBar  = #4#5#5;                              { Scrollbar palette }
    CScroller   = #6#7;                                { Scroller palette }
-   CListViewer = #26#26#27#28#29;                     { Listviewer palette }
+   CListViewer = #26#26#27#28#29#31;                  { Listviewer palette }
 
    CBlueWindow = #8#9#10#11#12#13#14#15;              { Blue window palette }
    CCyanWindow = #16#17#18#19#20#21#22#23;            { Cyan window palette }
@@ -647,6 +647,7 @@ TYPE
       FUNCTION GetPalette: PPalette; Virtual;
       FUNCTION IsSelected (Item: Sw_Integer): Boolean; Virtual;
       FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): Sw_String; Virtual;
+      FUNCTION GetItemColor(Item: Sw_Integer; IsFocused, IsSelectedInner: Boolean): Word; virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE FocusItem (Item: Sw_Integer); Virtual;
       PROCEDURE SetTopItem (Item: Sw_Integer);
@@ -3621,6 +3622,16 @@ BEGIN
    S.Read(w, SizeOf(w)); Range:=w;                    { Read listview range }
 END;
 
+FUNCTION TListViewer.GetItemColor(Item: Sw_Integer; IsFocused, IsSelectedInner: Boolean): Word;
+begin
+  if (State AND (sfSelected + sfActive) = (sfSelected + sfActive)) AND IsFocused AND (Range > 0) then
+    Result := GetColor(3)
+  else if (Item < Range) AND IsSelectedInner then
+    Result := GetColor(4)
+  else
+    Result := GetColor(2); // Normal
+end;
+
 {--TListViewer--------------------------------------------------------------}
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB        }
 {---------------------------------------------------------------------------}
@@ -3663,20 +3674,18 @@ BEGIN
      For J := 0 To NumCols-1 Do Begin                 { For each column }
        Item := J*Size.Y + I + TopItem;                { Process this item }
        CurCol := J*ColWidth;                          { Current column }
-       If (State AND (sfSelected + sfActive) =
-       (sfSelected + sfActive)) AND (Focused = Item)  { Focused item }
-       AND (Range > 0) Then Begin
-         Color := GetColor(3);                        { Focused colour }
-         SetCursor(CurCol+1,I);                       { Set the cursor }
-         SCOff := 0;                                  { Zero colour offset }
-       End Else If (Item < Range) AND IsSelected(Item){ Selected item }
-       Then Begin
-         Color := GetColor(4);                        { Selected color }
-         SCOff := 2;                                  { Colour offset=2 }
-       End Else Begin
-         Color := GetColor(2);                        { Normal Color }
-         SCOff := 4;                                  { Colour offset=4 }
-       End;
+
+       Color := GetItemColor(Item, (Focused = Item), IsSelected(Item));
+       If (State AND (sfSelected + sfActive) = (sfSelected + sfActive)) AND (Focused = Item) AND (Range > 0) Then
+       begin
+         SetCursor(CurCol+1,I);
+         SCOff := 0;
+       end
+       else if (Item < Range) AND IsSelected(Item) then
+         SCOff := 2
+       else
+         SCOff := 4;
+
       MoveChar(B[CurCol], ' ', Color, ColWidth);      { Clear buffer }
        If (Item < Range) Then Begin                   { Within text range }
          Text := GetText(Item, ColWidth + Indent);    { Fetch text }
@@ -3867,10 +3876,10 @@ BEGIN
            Ni := Focused - Size.Y Else Exit;          { One column left }
          kbPgDn: Ni := Focused + Size.Y * NumCols;    { One page down }
          kbPgUp: Ni := Focused - Size.Y * NumCols;    { One page up }
-         kbHome: Ni := TopItem;                       { Move to top }
-         kbEnd: Ni := TopItem + (Size.Y*NumCols)-1;   { Move to bottom }
-         kbCtrlPgDn: Ni := Range - 1;                 { Move to last item }
-         kbCtrlPgUp: Ni := 0;                         { Move to first item }
+         kbHome: Ni := 0;                             { Move to first item }
+         kbEnd: Ni := Range - 1;                      { Move to last item }
+         kbCtrlPgDn: Ni := TopItem + (Size.Y*NumCols)-1;{ Move to bottom }
+         kbCtrlPgUp: Ni := TopItem;                   { Move to top }
          Else Exit;
        End;
        MoveFocus(Ni);                                 { Move the focus }

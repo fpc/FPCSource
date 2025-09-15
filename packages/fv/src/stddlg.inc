@@ -186,6 +186,7 @@ type
     procedure GetData(var Rec); virtual;
     function GetText(Item,MaxLen: Sw_Integer): Sw_String; virtual;
     function GetKey(var S: Sw_String): Pointer; virtual;
+    function GetItemColor(Item: Sw_Integer; IsFocused, IsSelectedInner: Boolean): Word; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
     procedure ReadDirectory(AWildCard: PathStr);
     procedure SetData(var Rec); virtual;
@@ -860,12 +861,12 @@ end;
 function TFileCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 begin
   if PSearchRec(Key1)^.Name = PSearchRec(Key2)^.Name then Compare := 0
-  else if PSearchRec(Key1)^.Name = '..' then Compare := 1
-  else if PSearchRec(Key2)^.Name = '..' then Compare := -1
+  else if PSearchRec(Key1)^.Name = '..' then Compare := -1
+  else if PSearchRec(Key2)^.Name = '..' then Compare := 1
   else if (PSearchRec(Key1)^.Attr and Directory <> 0) and
-     (PSearchRec(Key2)^.Attr and Directory = 0) then Compare := 1
+     (PSearchRec(Key2)^.Attr and Directory = 0) then Compare := -1
   else if (PSearchRec(Key2)^.Attr and Directory <> 0) and
-     (PSearchRec(Key1)^.Attr and Directory = 0) then Compare := -1
+     (PSearchRec(Key1)^.Attr and Directory = 0) then Compare := 1
   else if UpperName(PSearchRec(Key1)^.Name) > UpperName(PSearchRec(Key2)^.Name) then
     Compare := 1
 {$ifdef unix}
@@ -1070,8 +1071,8 @@ begin
   S := SR^.Name;
   if SR^.Attr and Directory <> 0 then
   begin
-    S[Length(S)+1] := DirSeparator;
-    Inc(S[0]);
+    //S[Length(S)+1] := DirSeparator;
+    //Inc(S[0]);
   end;
   GetText := S;
 end;
@@ -1224,6 +1225,25 @@ procedure TFileList.SetData(var Rec);
 begin
   with PFileDialog(Owner)^ do
     Self.ReadDirectory(Directory Sw_PString_DeRef + WildCard);
+end;
+
+function TFileList.GetItemColor(Item: Sw_Integer; IsFocused, IsSelectedInner: Boolean): Word;
+var
+  SR: PSearchRec;
+begin
+  if (List <> nil) and (Item < List^.Count) then
+  begin
+    SR := PSearchRec(List^.At(Item));
+    if (SR^.Attr and Directory <> 0) then
+    begin
+      if IsSelectedInner then
+        Result := GetColor(3)
+      else 
+        Result := GetColor(6);
+      Exit;
+    end;
+  end;
+  Result := inherited GetItemColor(Item, IsFocused, IsSelectedInner);
 end;
 
 {****************************************************************************}
@@ -1594,29 +1614,30 @@ begin
   Options := Options or ofCentered;
   WildCard := AWildCard;
 
-  R.Assign(3,3,31,4);
+  R.Assign(4,11,34,12);
+  Control := New(PScrollBar, Init(R));
+  Insert(Control);
+  R.Assign(4,3,34,11);
+  FileList := New(PFileList, Init(R, PScrollBar(Control)));
+  FileList^.GrowMode:=gfGrowHiX or gfGrowHiY;
+  Insert(FileList);
+  R.Assign(3,2,8,3);
+  Control := New(PLabel, Init(R, slFiles, FileList));
+  Insert(Control);
+
+  R.Assign(3,23,31,24);
   FileName := New(PFileInputLine, Init(R, 79));
   FileName^.GrowMode:=gfGrowHiX;
   FileName^.Data Sw_PString_DeRef := WildCard;
   Insert(FileName);
-  R.Assign(2,2,3+CStrLen(InputName),3);
+
+  R.Assign(2,22,3+CStrLen(InputName),23);
   Control := New(PLabel, Init(R, InputName, FileName));
   Insert(Control);
-  R.Assign(31,3,34,4);
+  R.Assign(31,23,34,24);
   FileHistory := New(PFileHistory, Init(R, FileName, HistoryId));
   FileHistory^.GrowMode:=gfGrowHiX or gfGrowLoX;
   Insert(FileHistory);
-
-  R.Assign(3,14,34,15);
-  Control := New(PScrollBar, Init(R));
-  Insert(Control);
-  R.Assign(3,6,34,14);
-  FileList := New(PFileList, Init(R, PScrollBar(Control)));
-  FileList^.GrowMode:=gfGrowHiX or gfGrowHiY;
-  Insert(FileList);
-  R.Assign(2,5,8,6);
-  Control := New(PLabel, Init(R, slFiles, FileList));
-  Insert(Control);
 
   R.Assign(35,3,46,5);
   Opt := bfDefault;
@@ -1802,7 +1823,7 @@ begin
   if (Sw_String(Rec) <> '') and (IsWild(TWildStr(Sw_String(Rec)))) then
   begin
     Valid(cmFileInit);
-    FileName^.Select;
+    FileList^.Select;
   end;
 end;
 
@@ -1834,6 +1855,10 @@ var
   Dir: DirStr;
   Name: NameStr;
   Ext: ExtStr;
+  OldDirName: NameStr;
+  OldDir, OldName, OldExt: DirStr;
+  i: Integer;
+  P: PSearchRec;
 
   function CheckDirectory(var S: PathStr): Boolean;
   begin
@@ -1899,6 +1924,14 @@ begin
         if CheckDirectory(Dir) then
         begin
           FileHistory^.AdaptHistoryToDir(Dir);
+
+          OldDirName := '';
+          if (Directory <> Sw_PString_Empty) then
+          begin
+            FSplit(Copy(Directory Sw_PString_DeRef, 1, Length(Directory Sw_PString_DeRef) - 1), OldDir, OldName, OldExt);
+            OldDirName := OldName + OldExt;
+          end;
+
 {$ifdef FV_UNICODE}
           Directory:=Sw_PString_Empty;
           Directory:=Dir;
@@ -1913,6 +1946,19 @@ begin
           if Command <> cmFileInit then
             FileList^.Select;
           FileList^.ReadDirectory(Directory Sw_PString_DeRef+WildCard);
+
+          if OldDirName <> '' then
+          begin
+            for i := 0 to FileList^.List^.Count - 1 do
+            begin
+              P := PSearchRec(FileList^.List^.At(i));
+              if P^.Name = OldDirName then
+              begin
+                FileList^.FocusItem(i);
+                break;
+              end;
+            end;
+          end;
         end;
       end
     else
@@ -1921,6 +1967,14 @@ begin
         it's just there, 'coz I don't want to rearrange the following "if"s... }
       if IsDir(FName) then
         begin
+
+          OldDirName := '';
+          if (Directory <> Sw_PString_Empty) then
+          begin
+            FSplit(Copy(Directory Sw_PString_DeRef, 1, Length(Directory Sw_PString_DeRef) - 1), OldDir, OldName, OldExt);
+            OldDirName := OldName + OldExt;
+          end;
+
           if CheckDirectory(FName) then
           begin
             FileHistory^.AdaptHistoryToDir(CompleteDir(FName));
@@ -1932,8 +1986,23 @@ begin
             DisposeStr(Directory);
             Directory := NewSTr(CompleteDir(FName));
 {$endif}
+
             if Command <> cmFileInit then FileList^.Select;
             FileList^.ReadDirectory(Directory Sw_PString_DeRef+WildCard);
+
+            if OldDirName <> '' then
+            begin
+              for i := 0 to FileList^.List^.Count - 1 do
+              begin
+                P := PSearchRec(FileList^.List^.At(i));
+                if P^.Name = OldDirName then
+                begin
+                  FileList^.FocusItem(i);
+                  break;
+                end;
+              end;
+            end;
+
           end
         end
       else
