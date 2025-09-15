@@ -439,7 +439,6 @@ var
   t: ttask_list;
   firstwaiting: tmodule;
   cc: Boolean;
-  s: String;
 begin
   writeln('ttask_handler.write_queue:');
   t:=list.firsttask;
@@ -447,14 +446,12 @@ begin
     begin
     cc:=cancontinue(t,firstwaiting);
     if firstwaiting<>nil then
-      s:=firstwaiting.realmodulename^
+      writeln('queue: ',t.module.realmodulename^,' ',t.module.state,' cancontinue=',cc,' firstwaiting=',firstwaiting.realmodulename^,' ',firstwaiting.state)
     else
-      s:='';
-    writeln('queue: ',t.module.realmodulename^,' ',t.module.state,' cancontinue=',cc,' firstwaiting=',s);
+      writeln('queue: ',t.module.realmodulename^,' ',t.module.state,' cancontinue=',cc,' firstwaiting=nil');
     t:=t.nexttask;
     end;
 end;
-
 
 end.
 
