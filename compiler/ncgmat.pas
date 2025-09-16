@@ -438,8 +438,13 @@ implementation
                   { hdenom is always free, it's }
                   { only used for temporary }
                   { purposes                }
-                  hdenom := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hdenom);
+                  if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+                    begin
+                      hdenom := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                      hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hdenom);
+                    end
+                  else
+                    hdenom:=right.location.register;
                   { verify if the divisor is zero, if so return an error immediately,
                     except if we have a const node, where we don't need this, because
                     then zero check was done earlier.
