@@ -201,7 +201,7 @@ type
     MaxKeptFixedArenas = 4;
 
     { Bin index that corresponds to the minimum size ChooseFixedArenaSize can return.
-      = VarSizeToBinIndexUp(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2)) or so.
+      = VarSizeToBinIndex(MinFixedArenaSize - MinFixedArenaSize shr (FirstVarRangeP2 - FirstVarStepP2), roundUp := true) or so.
       Pure functions could be useful to calculate these with less hardcoding... }
     MinArenaBinIndex = 96;
     { Maximum size that can be added by AllocVar(isArena := true) to the original request.
@@ -253,7 +253,6 @@ type
     MaxVarHeaderAndPayload = (MaxFixedHeaderAndPayload + (1 shl VarSizeClassesCount - 1) shl FirstVarRangeP2) and -VarSizeQuant; {$if MaxVarHeaderAndPayload <> MaxFixedHeaderAndPayload + 1047552} {$error does not match the explanation above :D} {$endif}
 
     class function VarSizeToBinIndex(size: SizeUint; roundUp: boolean): SizeUint; static; inline; { roundUp is constant. }
-    class function VarSizeToBinIndexUp(size: SizeUint): SizeUint; static; { ...but VarSizeToBinIndex is nontrivial enough to not inline except for the special case in VarFreeMap.Add. }
     class function BinIndexToVarSize(binIndex: SizeUint): SizeUint; static; inline;
 
   type
@@ -502,27 +501,14 @@ type
 
   class function HeapInc.VarSizeToBinIndex(size: SizeUint; roundUp: boolean): SizeUint;
   var
-    maxv, binClassIndex: SizeUint;
+    binClassIndex: SizeUint;
   begin
-    dec(size, MaxFixedHeaderAndPayload);
-    binClassIndex := BsrDWord(uint32(size) or 1 shl FirstVarRangeP2); { Temporarily off by +FirstVarRangeP2. }
-    maxv := SizeUint(2) shl binClassIndex - 1 shl FirstVarRangeP2;
-    if size <= maxv then
-    begin
-      maxv := maxv shr 1; { Turn into “minv” to be subtracted from size. If size > maxv, “minv” is maxv. :) }
-      maxv := maxv and SizeUint(-SizeInt(1 shl FirstVarRangeP2));
-      dec(SizeInt(binClassIndex)); { Compensate extra +1 to binClassIndex below, so in the end, it is increased if size > maxv. All of this prevents having an “else” branch with its extra jump. }
-    end;
-    dec(size, maxv);
-    inc(SizeInt(binClassIndex), 1 - FirstVarRangeP2); { No longer off by +FirstVarRangeP2. }
-    result := binClassIndex * VarSizesPerClass + SizeUint(size - 1) shr (binClassIndex + FirstVarStepP2);
-    if not roundUp and (size and SizeUint(SizeUint(1) shl (binClassIndex + FirstVarStepP2) - 1) <> 0) then
-      dec(result);
-  end;
-
-  class function HeapInc.VarSizeToBinIndexUp(size: SizeUint): SizeUint;
-  begin
-    result := VarSizeToBinIndex(size, true);
+    { Honestly can’t explain the code, it’s made from and equivalent to https://gitlab.com/freepascal.org/fpc/source/-/blob/6ed0a74f54327e07f33e66ddcc4fb5eb8d808dd8/rtl/inc/heap.inc#L503.
+      Basic idea is that size class breakpoints of the form %11..1100_0000_0000 are converted to %11..11 for simple BSR by adding %11_1111_1111 = 1 shl FirstVarRangeP2 - 1,
+      but the rest, in particular applying roundUp, is magic that is somehow equivalent to the original but uses 1/3 of its instructions. }
+    inc(size, 1 shl FirstVarRangeP2 - MaxFixedHeaderAndPayload - ord(roundUp));
+    binClassIndex := BsrDWord(uint32(size) or 1); { Off by +FirstVarRangeP2. “or 1” is not required logically, just triggers node_not_zero optimization. }
+    result := binClassIndex * VarSizesPerClass + size shr (binClassIndex - (FirstVarRangeP2 - FirstVarStepP2)) - (FirstVarRangeP2 * VarSizesPerClass + 1 shl (FirstVarRangeP2 - FirstVarStepP2) + ord(not roundUp));
   end;
 
   class function HeapInc.BinIndexToVarSize(binIndex: SizeUint): SizeUint;
@@ -1064,7 +1050,7 @@ type
     binIndex, vSizeFlags, statv: SizeUint;
   begin
     { Search varFree for (roughly) smallest chunk ≥ size. }
-    binIndex := VarSizeToBinIndexUp(size + VarHeaderSize);
+    binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
     { Round the size up to the bin size.
       Can do without that, but not doing that will often mean the inability to reuse the hole because varFree rounds up for searches and down for additions. }
     size := BinIndexToVarSize(binIndex);
@@ -1327,10 +1313,10 @@ type
     end;
   {$endif FPC_HAS_FEATURE_THREADING}
 
-    { Round the size up, but only if supported by VarSizeToBinIndexUp: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
+    { Round the size up, but only if supported by VarSizeToBinIndex: chunks can be reallocated to the sizes larger than MaxVarHeaderAndPayload. }
     if uint32(size) <= MaxVarHeaderAndPayload - VarHeaderSize then
     begin
-      binIndex := VarSizeToBinIndexUp(size + VarHeaderSize);
+      binIndex := VarSizeToBinIndex(size + VarHeaderSize, true);
       size := BinIndexToVarSize(binIndex);
     end else
       size := uint32(uint32(size) + (VarHeaderSize + VarSizeQuant - 1)) and uint32(-VarSizeQuant); { Just do the strictly necessary quantization... }
