@@ -83,8 +83,14 @@ Type
     FEcho : Boolean;
     FMaxAge : Integer;
     FCrossOriginIsolation : Boolean;
+    FUploadURL : String;
+    FUploadDir : String;
+    FUploadResponse : String;
+    FUploadID : Integer;
     procedure DoProxyLog(Sender: TObject; const aMethod, aLocation, aFromURL, aToURL: String);
   Protected
+    // Handle upload request
+    procedure HandleUpload(ARequest: TRequest; AResponse: TResponse); virtual;
     // Log
     procedure DoLog(EventType: TEventType; const Msg: String); override;
     // Override doRun to run server
@@ -192,7 +198,9 @@ Const
   KeyAPI = 'API';
   KeyCOI = 'CrossOriginIsolation';
   KeyCapture = 'DebugCapture';
-
+  KeyUploadDir = 'UploadDir';
+  KeyUploadURL = 'UploadUrl';
+  KeyUploadResponse = 'UploadResponse';
 
 {$IFDEF VER3_2}
 Type
@@ -243,6 +251,75 @@ procedure TFPSimpleServerApplication.ApplyCoi(Sender : TObject; aResponse : TRes
 begin
   AResponse.SetCustomHeader('Cross-Origin-Embedder-Policy','require-corp');
   AResponse.SetCustomHeader('Cross-Origin-Opener-Policy','same-origin');
+end;
+
+procedure TFPSimpleServerApplication.HandleUpload(ARequest: TRequest; AResponse: TResponse);
+
+var
+  I : integer;
+  lContent,lTmpFileName,lFileName : String;
+  lFile : TFileStream;
+
+begin
+  Writeln('TFPSimpleServerApplication.HandleUpload enter');
+  if aRequest.Files.Count>1 then
+    begin
+    aResponse.Code:=400;
+    aResponse.CodeText:='BAD PARAM';
+    aResponse.Content:='Only one file allowed';
+    aResponse.ContentType:='text/plain';
+    end;
+  lFileName:=GetTempFileName(TRequest.DefaultRequestUploadDir,'upl');
+  if aRequest.Files.Count=0 then
+    begin
+    lContent:=aRequest.Content;
+    lFile:=TFileStream.Create(lFileName,fmCreate);
+    try
+      if lContent<>'' then
+        lFile.WriteBuffer(lContent[1],Length(lContent)*SizeOf(Char));
+      Log(etInfo,'Uploaded file saved to %s',[lFileName]);
+    finally
+      lFile.Free;
+    end;
+    end
+  else
+    begin
+    lTmpFileName:=aRequest.Files[i].LocalFileName;
+    if lTmpFileName<>'' then
+      begin
+      if not RenameFile(lTmpFileName,lFileName) then
+        Log(etError,'Failed to rename uploaded file %s to %s',[lTmpFileName,lFileName])
+      else
+        Log(etInfo,'Uploaded file %s saved to %s',[aRequest.Files[I].FileName,lFileName]);
+      end
+    else
+      begin
+      lFile:=TFileStream.Create(lFileName,fmCreate);
+      try
+        lFile.CopyFrom(aRequest.Files[i].Stream,0);
+        Log(etInfo,'Uploaded file %s saved to %s',[aRequest.Files[I].FileName,lFileName]);
+      finally
+        lFile.Free;
+      end;
+      end;
+    end;
+  aResponse.Code:=201;
+  aResponse.CodeText:='Created';
+  if FUploadResponse='' then
+    begin
+    aResponse.Content:=lFileName;
+    aResponse.ContentType:='text/plain';
+    end
+  else
+    begin
+    lContent:=StringReplace(FUploadResponse,'%filename%',lFileName,[rfReplaceAll]);
+    lContent:=StringReplace(lContent,'%GUID%',TGUID.NewGuid.ToString(true),[rfReplaceAll]);
+    lContent:=StringReplace(lContent,'%ID%',IntToStr(InterlockedIncrement(FUploadID)),[rfReplaceAll]);
+    aResponse.Content:=lContent;
+    aResponse.ContentLength:=Length(lContent);
+    aResponse.ContentType:='application/json';
+    end;
+  aResponse.SendResponse;
 end;
 
 procedure TFPSimpleServerApplication.DoEcho(ARequest: TRequest; AResponse: TResponse);
@@ -349,6 +426,7 @@ begin
   If MimeTypesFile<>'' then
     MimeTypes.LoadFromFile(MimeTypesFile);
 end;
+
 
 procedure TFPSimpleServerApplication.AddProxy(const aProxyDef: String);
 
@@ -476,6 +554,18 @@ begin
   UseSSL:=HasOption('s','ssl');
   if HasOption('H','hostname') then
     HostName:=GetOptionValue('H','hostname');
+  S:=GetOptionValue('l','upload');
+  if S<>'' then
+    begin
+    if S[1]<>'' then
+      S:='/'+S;
+    FUploadURL:=S;
+    FUploadDir:=GetOptionValue('L','upload-dir');
+    S:=GetOptionValue('r','upload-response');
+    if (S<>'') and (S[1]='@') then
+      S:=GetFileAsString(Copy(S,2,Length(S)-1));
+    FUploadResponse:=S;
+    end;
   if HasOption('n','noindexpage') then
     NoIndexPage:=True
   else
@@ -515,14 +605,21 @@ begin
   Writeln('-e --echo             Activate /echo URL.');
   Writeln('-h --help             This help text.');
   Writeln('-H --hostname=NAME    Set hostname for self-signed SSL certificate.');
-  Writeln('-i --indexpage=name   Directory index page to use (default: index.html)/');
+  Writeln('-i --indexpage=name   Directory index page to use (default: index.html).');
   Writeln('-I --interface=IP     Listen on this interface address only.');
+  Writeln('-l --upload=URL       Allow file uploads on given (relative) URL.');
+  Writeln('-L --upload-dir=DIR   Directory where to place uploaded files.');
   Writeln('-m --mimetypes=file   Path of mime.types. Loaded in addition to OS known types.');
   Writeln('-n --noindexpage      Do not allow index page.');
   Writeln('-o --coi              Enable Cross-Origin Isolation headers.');
   Writeln('-p --port=NNNN        TCP/IP port to listen on (default is 3000).');
   Writeln('-q --quiet            Do not write diagnostic messages.');
   Writeln('-Q --quit=PWD         Register /quit URL. Send request with password variable equal to PWD to stop.');
+  Writeln('-r --upload-response=JSON Upload response template. @File can also be used to read the template from file.');
+  Writeln('                          Template vars:');
+  Writeln('                              %filename% - upload file name location.');
+  Writeln('                              %GUID% - upload file name location.');
+  Writeln('                              %GUID% - upload file name location.');
   Writeln('-s --ssl              Use SSL.');
   {$IFNDEF VER3_2}
   Writeln('-u --capture[=FILE]   Set up /debugcapture route to capture output sent by browser.');
@@ -534,6 +631,9 @@ begin
 end;
 
 procedure TFPSimpleServerApplication.DoReadConfigFile(const aIni: TCustomIniFile);
+
+var
+  S : string;
 
 begin
   With aIni do
@@ -551,6 +651,12 @@ begin
     FPassword:=ReadString(SConfig,KeyQuit,FPassword);
     FEcho:=ReadBool(SConfig,KeyEcho,FEcho);
     FMaxAge:=ReadInteger(SConfig,KeyMaxAge,FMaxAge);
+    FUploadDir:=ReadString(SConfig,KeyUploadDir,FUploadDir);
+    FUploadURL:=ReadString(SConfig,KeyUploadURL,FUploadURL);
+    S:=ReadString(SConfig,KeyUploadResponse,FUploadResponse);
+    if (S<>'') and (S[1]='@') then
+      S:=GetFileAsString(Copy(S,2,Length(S)-1));
+    FUploadResponse:=S;
     FAPISecret:=ReadString(SConfig,KeyAPI,'');
     FCrossOriginIsolation:=ReadBool(SConfig,KeyCOI,FCrossOriginIsolation);
     {$IFNDEF VER3_2}
@@ -596,6 +702,14 @@ begin
   Log(etInfo,'Enabled /quit route: %s',[BtoS(Self.FPassword<>'')]);
   Log(etInfo,'Enabled /echo route: %s',[BtoS(FEcho)]);
   Log(etInfo,'Enabled location REST API: %s',[BtoS(FAPISecret<>'')]);
+  log(etInfo,'Enabled file upload: %s',[BtoS(FUploadURL<>'')]);
+  if (FUploadURL<>'') then
+    begin
+    log(etInfo,'File upload URL: %s',[FUploadURL]);
+    log(etInfo,'File upload directory: %s',[FUploadDir]);
+    if FUploadResponse<>'' then
+      log(etInfo,'File upload response template: %s',[FUploadResponse]);
+    end;
   Base:='http'+IfThen(UseSSL,'s','')+'://localhost:'+IntToStr(Port)+'/';
   Log(etInfo,'Navigate to: %s',[Base]);
   For I:=0 to FLocations.Count-1 do
@@ -609,10 +723,10 @@ procedure TFPSimpleServerApplication.GetValidOptions(out aShort: String; out aLo
 
 Const
   LongOpts : TStringDynArray =
-     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version','interface');
+     ('help','quiet','noindexpage','directory:','port:','indexpage:','ssl','hostname:','mimetypes:','proxy:','config:','background','echo','quit:','max-age:','api:','coi','capture','version','interface','upload-dir','upload','upload-response');
 
 begin
-  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VI';
+  aShort:='hqd:ni:p:sH:m:x:c:beQ:a:A:ou::VIl:L:r:';
   aLong:=LongOpts;
 end;
 
@@ -701,6 +815,13 @@ begin
   if FAPISecret<>'' then
     TFPWebFileLocationAPIModule.RegisterFileLocationAPI(ExtractWord(1,FAPISecret,[',']),ExtractWord(2,FAPISecret,[',']));
   {$ENDIF}
+  if FUploadURL<>'' then
+    begin
+    HTTPRouter.RegisterRoute(FUploadURL,rmPost,@HandleUpload,False);
+    if FUploadDir='' then
+      FUploadDir:=GetTempDir(True);
+    TRequest.DefaultRequestUploadDir:=IncludeTrailingPathDelimiter(FUploadDir);
+    end;
   if FCrossOriginIsolation then
     begin
     {$IFDEF VER3_2_2}
