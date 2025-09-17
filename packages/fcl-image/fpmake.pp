@@ -329,7 +329,17 @@ begin
           AddInclude('fpspectraldata.inc');
           AddUnit('fpimage');
         end;
-
+    T:=P.Targets.AddUnit('fpunitofmeasure.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fppapers.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpunitofmeasure');
+          AddUnit('fpimage');
+        end;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('drawing.pp');
