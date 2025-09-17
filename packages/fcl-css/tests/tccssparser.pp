@@ -35,7 +35,7 @@ type
     FToFree: TCSSElement;
     procedure Clear;
     function GetRule: TCSSRuleElement;
-    procedure OnScannerWarn(Sender: TObject; Msg: string);
+    function OnScannerWarn(Sender: TObject; Msg: string; aRow, aCol: integer): boolean;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -840,12 +840,14 @@ begin
     Result:=TCSSRuleElement(CheckClass('First element is rule',TCSSRuleElement,L.Children[0]));
 end;
 
-procedure TTestBaseCSSParser.OnScannerWarn(Sender: TObject; Msg: string);
+function TTestBaseCSSParser.OnScannerWarn(Sender: TObject; Msg: string; aRow, aCol: integer
+  ): boolean;
 var
   aScanner: TCSSScanner;
 begin
+  Result:=false;
   aScanner:=FParser.Scanner;
-  writeln('TTestBaseCSSParser.OnScannerWarn ',aScanner.CurFilename+'('+IntToStr(aScanner.CurRow)+','+IntToStr(aScanner.CurColumn)+') ',Msg);
+  writeln('TTestBaseCSSParser.OnScannerWarn ',aScanner.CurFilename+'('+IntToStr(aRow)+','+IntToStr(aCol)+') ',Msg);
 end;
 
 procedure TTestBaseCSSParser.SetUp;

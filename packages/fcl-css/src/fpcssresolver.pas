@@ -222,6 +222,7 @@ type
   { TCSSSharedRuleList - elements with same CSS rules share the base attributes }
 
   TCSSSharedRuleList = class
+  public
     AllDecl: TCSSDeclarationElement;
     AllSpecificity: TCSSSpecificity;
     Rules: TCSSSharedRuleArray; // sorted ascending for Specificity, secondary for source position
@@ -257,7 +258,6 @@ type
     AllValue: TCSSNumericalID;
     Values: TCSSAttributeValueArray; // the resolver sorts them ascending for AttrID, shorthands are already replaced with longhands
     procedure SortValues; virtual; // ascending AttrID
-    procedure SwapValues(Index1, Index2: integer);
     function IndexOf(AttrID: TCSSNumericalID): integer;
     procedure SetComputedValue(AttrID: TCSSNumericalID; const aValue: TCSSString);
     destructor Destroy; override;
@@ -686,6 +686,7 @@ procedure TCSSAttributeValues.SortValues;
 var
   l: SizeInt;
   i, j: Integer;
+  aValue: TCSSAttributeValue;
 begin
   l:=length(Values);
   if l<6 then
@@ -693,7 +694,11 @@ begin
     for i:=0 to l-2 do
       for j:=i+1 to l-1 do
         if Values[i].AttrID>Values[j].AttrID then
-          SwapValues(i,j);
+        begin
+          aValue:=Values[i];
+          Values[i]:=Values[j];
+          Values[j]:=aValue;
+        end;
   end else begin
     //for i:=0 to l-1 do
     //  writeln('TCSSAttributeValues.SortValues ',i,' ',Values[i]<>nil);
@@ -702,29 +707,6 @@ begin
       if Values[i].AttrID>=Values[i+1].AttrID then
         raise Exception.Create('20240816160749');
   end;
-end;
-
-procedure TCSSAttributeValues.SwapValues(Index1, Index2: integer);
-var
-  A, B: TCSSAttributeValue;
-  AttrId: TCSSNumericalID;
-  Value: TCSSString;
-  aState: TCSSAttributeValue.TState;
-begin
-  A:=Values[Index1];
-  B:=Values[Index2];
-
-  AttrId:=A.AttrID;
-  A.AttrID:=B.AttrID;
-  B.AttrID:=AttrID;
-
-  Value:=A.Value;
-  A.Value:=B.Value;
-  B.Value:=Value;
-
-  aState:=A.State;
-  A.State:=B.State;
-  B.State:=aState;
 end;
 
 function TCSSAttributeValues.IndexOf(AttrID: TCSSNumericalID): integer;

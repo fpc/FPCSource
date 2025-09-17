@@ -291,9 +291,11 @@ end;
 procedure TCSSParser.DoWarn(const Msg: TCSSString);
 begin
   if Assigned(Scanner.OnWarn) then
-    Scanner.OnWarn(Self,Msg)
-  else
-    DoError(Msg);
+    begin
+    if Scanner.OnWarn(Self,Msg,Scanner.CurRow,Scanner.CurColumn) then
+      exit;
+    end;
+  DoError(Msg);
 end;
 
 procedure TCSSParser.DoWarn(const Fmt: TCSSString; const Args: array of const);

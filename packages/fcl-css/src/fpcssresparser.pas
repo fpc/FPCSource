@@ -1807,6 +1807,7 @@ begin
   aComp.Kind:=rvkNone;
 
   p:=aComp.EndP;
+  if p=nil then exit(false);
 
   // skip whitespace
   while (p^ in Whitespace) do inc(p);
@@ -2464,7 +2465,7 @@ begin
       if Pos('var(',AttrData.Value)>0 then
       begin
         // cannot be parsed yet
-      end else if AttrID<Resolver.CSSRegistry.AttributeCount then
+      end else if AttrId<Resolver.CSSRegistry.AttributeCount then
       begin
         if Resolver.InitParseAttr(Desc,AttrData,AttrData.Value) then
         begin

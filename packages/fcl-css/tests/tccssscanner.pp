@@ -20,9 +20,12 @@ unit tcCSSScanner;
 interface
 
 uses
-  TypInfo, Classes, SysUtils, fpcunit, testregistry, fpcssscanner;
+  TypInfo, Classes, SysUtils, fpcunit, testregistry, fpcssscanner, fpCSSTree;
 
 type
+
+  { TTestLineReader }
+
   TTestLineReader = Class(TTestCase)
   Private
     FData: TStringStream;
@@ -42,28 +45,39 @@ type
     procedure TestReadEmptyLines101010;
   end;
 
+  TTestCSSWarning = record
+    Msg: string;
+    Row, Col: integer;
+  end;
+
   { TTestCSSScanner }
 
   TTestCSSScanner = class(TTestCase)
   Private
+    FCollectWarnings: boolean;
     FPSeudoDisabled,
     FNeedWhiteSpace : Boolean;
     FStream : TStream;
     FLineReader : TLineReader;
     FScanner : TCSSScanner;
     FErrorSource : String;
+    FWarnings: array of TTestCSSWarning;
     procedure AssertEquals(AMessage: String; AExpected, AActual : TCSSToken); overload;
     procedure CheckToken(AToken: TCSSToken; ASource: String);
     procedure CheckTokens(ASource: String; ATokens: array of TCSSToken);
+    procedure CheckWarning(Msg: string; Row, Col: integer);
     procedure DoTestFloat(F: Double);
     procedure DoTestFloat(F: Double; S: String);
     procedure DoTestString(S: String);
+    function OnScannerWarn(Sender: TObject; Msg: TCSSString; aRow, aCol: integer): boolean;
+    procedure SetCollectWarnings(const AValue: boolean);
   protected
     Function CreateScanner(AInput : String) : TCSSScanner;
     procedure FreeScanner;
     procedure SetUp; override;
     procedure TearDown; override;
-    Property Scanner : TCSSScanner Read FScanner;
+    property Scanner : TCSSScanner Read FScanner;
+    property CollectWarnings: boolean read FCollectWarnings write SetCollectWarnings;
   published
     procedure TestEmpty;
     Procedure TestEOF;
@@ -95,6 +109,7 @@ type
     Procedure TestLBRACKET;
     Procedure TestRBRACKET;
     Procedure TestSTR;
+    Procedure TestSTRExceedsLine;
     Procedure TestStrEscapeUnicode;
     procedure TestStrEscapeUnicode2;
     Procedure TestCOMMA;
@@ -143,6 +158,7 @@ begin
   Result:=FScanner;
   if FNeedWhiteSpace then
     FScanner.ReturnWhiteSpace:=True;
+  FScanner.OnWarn:=@OnScannerWarn;
 end;
 
 procedure TTestCSSScanner.FreeScanner;
@@ -155,12 +171,14 @@ end;
 procedure TTestCSSScanner.SetUp;
 begin
   inherited SetUp;
+  CollectWarnings:=false;
   FNeedWhiteSpace:=False;
   FPSeudoDisabled:=False;
 end;
 
 procedure TTestCSSScanner.TearDown;
 begin
+  FWarnings:=[];
   FreeScanner;
   Inherited;
 end;
@@ -222,6 +240,27 @@ begin
   finally
     FreeScanner;
   end;
+end;
+
+function TTestCSSScanner.OnScannerWarn(Sender: TObject; Msg: TCSSString; aRow, aCol: integer
+  ): boolean;
+var
+  Item: TTestCSSWarning;
+begin
+  if not CollectWarnings then
+    exit(false); // raise exception
+  Result:=true;
+  Item.Msg:=Msg;
+  Item.Row:=aRow;
+  Item.Col:=aCol;
+  Insert(Item,FWarnings,length(FWarnings));
+end;
+
+procedure TTestCSSScanner.SetCollectWarnings(const AValue: boolean);
+begin
+  if FCollectWarnings=AValue then Exit;
+  FCollectWarnings:=AValue;
+  FWarnings:=[];
 end;
 
 procedure TTestCSSScanner.TestEmpty;
@@ -354,17 +393,23 @@ begin
   CheckToken(ctkSTRING,'"abc"');
 end;
 
+procedure TTestCSSScanner.TestSTRExceedsLine;
+begin
+  CollectWarnings:=true;
+  CheckToken(ctkINVALID,'"bla');
+  CheckWarning('String exceeds end of line',1,4);
+end;
+
 procedure TTestCSSScanner.TestStrEscapeUnicode;
 begin
- CheckToken(ctkSTRING,'"\00a0\00a0\00a0\00a0"');
- CheckToken(ctkSTRING,'"\2a"');
+  CheckToken(ctkSTRING,'"\00a0\00a0\00a0\00a0"');
+  CheckToken(ctkSTRING,'"\2a"');
 end;
 
 procedure TTestCSSScanner.TestStrEscapeUnicode2;
 begin
- CheckToken(ctkSTRING,'"\2a"');
+  CheckToken(ctkSTRING,'"\2a"');
 end;
-
 
 procedure TTestCSSScanner.TestCOMMA;
 begin
@@ -631,6 +676,16 @@ begin
     S:=Format('Source "%s", token %d (%s): expected %s',[ASource,I,FScanner.CurTokenString,S]);
     AssertEquals(S,ATokens[i],J);
     end;
+end;
+
+procedure TTestCSSScanner.CheckWarning(Msg: string; Row, Col: integer);
+var
+  Actual, Expected: String;
+begin
+  AssertEquals('Expected one warning',1,length(FWarnings));
+  Actual:='('+IntToStr(FWarnings[0].Row)+','+IntToStr(FWarnings[0].Col)+'): '+FWarnings[0].Msg;
+  Expected:='('+IntToStr(Row)+','+IntToStr(Col)+'): '+Msg;
+  AssertEquals('Expected Warning',Expected,Actual);
 end;
 
 
