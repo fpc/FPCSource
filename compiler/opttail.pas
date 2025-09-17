@@ -72,8 +72,9 @@ unit opttail;
             result:=
               (n.nodetype=calln) and
               (tcallnode(n).procdefinition=p) and
-              not(assigned(tcallnode(n).methodpointer)) and
-              not has_copyback_paras(tcallnode(n));
+              (not assigned(tcallnode(n).methodpointer)) and
+              (not has_copyback_paras(tcallnode(n))) and
+              (cnf_return_value_used in tcallnode(n).callnodeflags);
             if result then
               usedcallnode:=tcallnode(n)
             else
