@@ -14,8 +14,9 @@
  **********************************************************************}
 { 2025 Massimo Magnano
        part of code ported from bgrabitmap with some modifications and additions}
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FpUnitOfMeasure;
+{$ENDIF}
 
 {$mode objfpc}{$H+}
 

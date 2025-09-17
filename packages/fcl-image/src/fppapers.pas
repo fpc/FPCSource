@@ -13,8 +13,9 @@
 
  **********************************************************************}
 { 2025 Massimo Magnano }
-
+{$IFNDEF FPC_DOTTEDUNITS}
 unit FpPapers;
+{$ENDIF}
 
 {$mode objfpc}{$H+}
 
@@ -22,7 +23,7 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Types, FpImage, FpUnitOfMeasure;
+  System.Types, FpImage, FpImage.FpUnitOfMeasure;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Types, FpImage, FpUnitOfMeasure;
