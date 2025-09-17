@@ -31,8 +31,8 @@ interface
     type
       tcpumoddivnode = class(tcgmoddivnode)
         function first_moddivint: tnode; override;
-        procedure emit_div_reg_reg(signed: boolean; denum, num: tregister); override;
-        procedure emit_mod_reg_reg(signed: boolean; denum, num: tregister); override;
+        procedure emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
+        procedure emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
       end;
 
       tcpunotnode = class(tcgnotnode)
@@ -69,7 +69,7 @@ implementation
                              TCPUMODDIVNODE
 *****************************************************************************}
 
-    procedure tcpumoddivnode.emit_div_reg_reg(signed: boolean; denum, num: tregister);
+    procedure tcpumoddivnode.emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister);
       var
         op: TAsmOp;
       begin
@@ -78,11 +78,11 @@ implementation
         else
           op:=A_QUOU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
 
-    procedure tcpumoddivnode.emit_mod_reg_reg(signed: boolean; denum, num: tregister);
+    procedure tcpumoddivnode.emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister);
       var
         op: TAsmOp;
       begin
@@ -91,7 +91,7 @@ implementation
         else
           op:=A_REMU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
 

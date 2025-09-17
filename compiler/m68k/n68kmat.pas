@@ -38,8 +38,8 @@ interface
       tm68kmoddivnode = class(tcgmoddivnode)
       public
         function first_moddivint: tnode;override;
-        procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
-        procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
+        procedure emit_div_reg_reg_reg(signed: boolean;denum,num,res : tregister);override;
+        procedure emit_mod_reg_reg_reg(signed: boolean;denum,num,res : tregister);override;
       end;
 
       tm68kunaryminusnode = class(tcgunaryminusnode)
@@ -153,20 +153,21 @@ implementation
     end;
 
 
-  procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
+  procedure tm68kmoddivnode.emit_div_reg_reg_reg(signed: boolean;denum,num,res : tregister);
    const
      divudivs: array[boolean] of tasmop = (A_DIVU,A_DIVS);
    begin
      if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
        begin
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(divudivs[signed],S_L,denum,num));
+         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,res);
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(divudivs[signed],S_L,denum,res));
        end
      else
        InternalError(2014062801);
    end;
 
 
-  procedure tm68kmoddivnode.emit_mod_reg_reg(signed: boolean;denum,num : tregister);
+  procedure tm68kmoddivnode.emit_mod_reg_reg_reg(signed: boolean;denum,num,res : tregister);
     const
       remop: array[boolean,boolean] of tasmop = ((A_DIVUL,A_DIVSL),(A_REMU,A_REMS));
     var
@@ -174,12 +175,8 @@ implementation
     begin
       if CPUM68K_HAS_32BITDIV in cpu_capabilities[current_settings.cputype] then
         begin
-          tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-          { copy the numerator to the tmpreg, so we can use it as quotient, which
-            means we'll get the remainder immediately in the numerator }
-          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,num,tmpreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(
-            remop[CPUM68K_HAS_REMSREMU in cpu_capabilities[current_settings.cputype],signed],S_L,denum,num,tmpreg));
+            remop[CPUM68K_HAS_REMSREMU in cpu_capabilities[current_settings.cputype],signed],S_L,denum,res,num));
         end
       else
         InternalError(2014062802);
