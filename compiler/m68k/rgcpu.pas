@@ -33,6 +33,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
+         procedure add_cpu_interferences(p : tai); override;
          procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
          procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
          function do_spill_replace(list : TAsmList;instr : tai_cpu_abstract_sym; orgreg : tsuperregister;const spilltemp : treference) : boolean; override;
@@ -183,6 +184,27 @@ unit rgcpu;
             ;
         end;
         result:=true;
+      end;
+
+    procedure trgcpu.add_cpu_interferences(p : tai);
+      begin
+        if p.typ=ait_instruction then
+          begin
+            case taicpu(p).opcode of
+              A_DIVUL,A_DIVSL,A_REMU,A_REMS:
+                begin
+                  { for three operand opcodes, don't let the two 'destination' operands be the same register }
+                  if (regtype = R_INTREGISTER) and (taicpu(p).ops = 3) and
+                    (taicpu(p).oper[1]^.typ = top_reg) and
+                    (taicpu(p).oper[2]^.typ = top_reg) then
+                    begin
+                      add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(taicpu(p).oper[2]^.reg));
+                    end;
+                end
+              else
+                ;
+            end;
+          end;
       end;
 
 end.
