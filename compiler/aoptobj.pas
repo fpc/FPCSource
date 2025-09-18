@@ -29,7 +29,7 @@ Unit AoptObj;
 
 {$i fpcdefs.inc}
 
-{$if not defined(JVM) and not defined(WASM) and not defined(POWERPC) and not defined (POWERPC64)}
+{$if not defined(JVM) and not defined(WASM)}
 {$define CPU_SUPPORTS_OPT_COND_JUMP}
 {$endif}
 
