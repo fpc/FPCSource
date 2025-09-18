@@ -33,8 +33,8 @@ unit nrv64mat;
     type
       trv64moddivnode = class(tcgmoddivnode)
         function use_moddiv64bitint_helper: boolean; override;
-        procedure emit_div_reg_reg(signed: boolean; denum, num: tregister); override;
-        procedure emit_mod_reg_reg(signed: boolean; denum, num: tregister); override;
+        procedure emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
+        procedure emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister); override;
         function first_moddiv64bitint: tnode; override;
       end;
 
@@ -103,7 +103,7 @@ implementation
       end;
 
 
-    procedure trv64moddivnode.emit_div_reg_reg(signed: boolean; denum, num: tregister);
+    procedure trv64moddivnode.emit_div_reg_reg_reg(signed: boolean; denum, num, res: tregister);
       var
         op: TAsmOp;
       begin
@@ -112,11 +112,11 @@ implementation
         else
           op:=A_DIVU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
 
-    procedure trv64moddivnode.emit_mod_reg_reg(signed: boolean; denum, num: tregister);
+    procedure trv64moddivnode.emit_mod_reg_reg_reg(signed: boolean; denum, num, res: tregister);
       var
         op: TAsmOp;
       begin
@@ -125,7 +125,7 @@ implementation
         else
           op:=A_REMU;
 
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,num,num,denum));
+        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(op,res,num,denum));
       end;
 
 
