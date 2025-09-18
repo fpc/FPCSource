@@ -431,6 +431,9 @@ implementation
                     End
                   Else { not signed }
                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,hreg1);
+
+                  location_reset(location,LOC_REGISTER,opsize);
+                  location.register:=hreg1;
                 End
               else
                 begin
