@@ -73,8 +73,7 @@ unit opttail;
               (n.nodetype=calln) and
               (tcallnode(n).procdefinition=p) and
               (not assigned(tcallnode(n).methodpointer)) and
-              (not has_copyback_paras(tcallnode(n))) and
-              (cnf_return_value_used in tcallnode(n).callnodeflags);
+              (not has_copyback_paras(tcallnode(n)));
             if result then
               usedcallnode:=tcallnode(n)
             else
@@ -124,7 +123,7 @@ unit opttail;
             calln,
             assignn:
               begin
-                if ((n.nodetype=calln) and is_optimizable_recursivecall(n)) or
+                if ((n.nodetype=calln) and is_optimizable_recursivecall(n) and is_void(n.resultdef)) or
                    ((n.nodetype=assignn) and is_resultassignment(tbinarynode(n).left) and
                    is_optimizable_recursivecall(tbinarynode(n).right)) then
                   begin
