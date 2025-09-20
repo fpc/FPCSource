@@ -231,10 +231,10 @@ unit agrvgas;
 
     function TRVGNUAssembler.MakeCmdLine: TCmdStr;
       const
-        arch_str: array[boolean,tcputype] of string[18] = (
+        arch_str: array[boolean,tcputype] of string[26] = (
 {$ifdef RISCV32}
-          ('','rv32imac','rv32ima','rv32im','rv32i','rv32e','rv32imc','rv32imafdc','rv32imaf','rv32imafc','rv32imafd','rv32ec','rv32gc','rv32gc_zba_zbb_zbs'),
-          ('','rv32imafdc','rv32imafd','rv32imfd','rv32ifd','rv32efd','rv32imcfd','rv32imafdc','rv32imaf','rv32imafc','rv32imafd','rv32ecfd','rv32gc','rv32gc_zba_zbb_zbs')
+          ('','rv32imac','rv32imac_zicsr_zifencei','rv32ima','rv32im','rv32i','rv32e','rv32imc','rv32imc_zicsr_zifencei','rv32imafc','rv32imafd','rv32ec','rv32gc','rv32gc_zba_zbb_zbs'),
+          ('','rv32imafdc','rv32imafdc_zicsr_zifencei','rv32imafd','rv32imfd','rv32ifd','rv32efd','rv32imcfd','rv32imcfd_zicsr_zifencei','rv32imafc','rv32imafd','rv32ecfd','rv32gc','rv32gc_zba_zbb_zbs')
 {$endif RISCV32}
 {$ifdef RISCV64}
           ('','rv64imac','rv64ima','rv64im','rv64i','rv64imafdc','rv64imafd','rv64gc','rv64gc_zba_zbb_zbs'),
