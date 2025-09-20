@@ -21,7 +21,6 @@
  ****************************************************************************
 }
 
-
 Unit aoptcpu;
 
 Interface
@@ -29,61 +28,13 @@ Interface
 {$i fpcdefs.inc}
 
 uses
-  cpubase,
-  aoptobj, aoptcpub, aopt, aoptcpurv,
-  aasmtai,aasmdata, aasmcpu;
+  aopt, aoptcpurv;
 
 Type
   TCpuAsmOptimizer = class(TRVCpuAsmOptimizer)
-    { uses the same constructor as TAopObj }
-    function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
-
-    function PostPeepHoleOptsCpu(var p: tai): boolean; override;
   End;
 
 Implementation
-
-  uses
-    cutils, verbose, cgbase, cgcpu, cgobj;
-
-
-  function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
-    var
-      next1, next2: tai;
-      l1, l2, shlcount: longint;
-    begin
-      result := inherited PeepHoleOptPass1Cpu(p);
-      if result then
-        exit;
-
-      case p.typ of
-        ait_instruction:
-          begin
-            {case taicpu(p).opcode of
-            end;}
-          end;
-        else
-          ;
-      end;
-    end;
-
-
-  function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
-    var
-      next1: tai;
-    begin
-      result := inherited PostPeepHoleOptsCpu(p);
-      if result then
-        exit;
-
-      case p.typ of
-        ait_instruction:
-          begin
-          end;
-        else
-          ;
-      end;
-    end;
 
 begin
   casmoptimizer:=TCpuAsmOptimizer;

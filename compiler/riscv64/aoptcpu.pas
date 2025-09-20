@@ -32,11 +32,7 @@ interface
 {$endif EXTDEBUG}
 
 uses
-  cpubase,
-  globals, globtype,
-  cgbase,
-  aoptobj, aoptcpub, aopt, aoptcpurv,
-  aasmtai, aasmcpu;
+  aopt,aoptcpurv;
 
 type
 
