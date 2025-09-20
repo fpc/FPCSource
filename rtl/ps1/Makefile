@@ -925,14 +925,17 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd si_prc
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU si_prc
+endif
+ifeq ($(CPU_OS_TARGET),mipsel-ps1)
+override TARGET_LOADERS+=sysintern
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON) ./psy-q-sdk
+override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON) ./psy-q-sdk ./bare-metal
 endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1799,6 +1802,33 @@ else
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_loaders
+ifneq ($(TARGET_LOADERS),)
+override ALLTARGET+=fpc_loaders
+override CLEANTARGET+=fpc_loaders_clean
+override INSTALLTARGET+=fpc_loaders_install
+override LOADEROFILES:=$(addsuffix $(OEXT),$(TARGET_LOADERS))
+endif
+%$(OEXT): %$(LOADEREXT)
+ifdef COMPILER_UNITTARGETDIR
+	$(AS) -o $(COMPILER_UNITTARGETDIR)/$*$(OEXT) $<
+else
+	$(AS) -o $*$(OEXT) $<
+endif
+fpc_loaders: $(COMPILER_UNITTARGETDIR) $(LOADEROFILES)
+fpc_loaders_clean:
+ifdef COMPILER_UNITTARGETDIR
+	-$(DEL) $(addprefix $(COMPILER_UNITTARGETDIR)/,$(LOADEROFILES))
+else
+	-$(DEL) $(LOADEROFILES)
+endif
+fpc_loaders_install:
+	$(MKDIR) $(INSTALL_UNITDIR)
+ifdef COMPILER_UNITTARGETDIR
+	$(INSTALL) $(addprefix $(COMPILER_UNITTARGETDIR)/,$(LOADEROFILES)) $(INSTALL_UNITDIR)
+else
+	$(INSTALL) $(LOADEROFILES) $(INSTALL_UNITDIR)
+endif
 .PHONY: fpc_units
 ifneq ($(TARGET_UNITS)$(TARGET_IMPLICITUNITS),)
 override ALLTARGET+=fpc_units
@@ -2041,7 +2071,7 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package*.fpc *.fpm
+	-$(DEL) fpcmade.* Package.fpc *.fpm
 	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res symbol_order*.fpc
 	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
@@ -3010,5 +3040,19 @@ libmcgui$(PPUEXT) : psy-q-sdk/libmcgui.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$
 	$(COMPILER) $<
 libhmd$(PPUEXT) : psy-q-sdk/libhmd.pas libgte$(PPUEXT) libgs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
+ps1System$(PPUEXT) : bare-metal/ps1System.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<      
+sysintern$(OEXT) : bare-metal/sysintern.s
+	$(AS) -EL -mabi=32 -msoft-float bare-metal/sysintern.s -o $(UNITTARGETDIRPREFIX)sysintern$(OEXT) 
 si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_prc.pp

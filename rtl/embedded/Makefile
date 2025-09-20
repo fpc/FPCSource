@@ -1005,7 +1005,7 @@ CPU_UNITS=at90pwm1 at90pwm2b at90pwm3 at90pwm3b at90pwm81 ata6285 ata6286 atmega
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr5)
-CPU_UNITS=avrsim at90can32 at90can64 at90pwm161 at90pwm216 at90pwm316 at90usb646 at90usb647 \
+CPU_UNITS=at90can32 at90can64 at90pwm161 at90pwm216 at90pwm316 at90usb646 at90usb647 \
 	  atmega16 atmega16a atmega16hva atmega16hvb atmega16hvbrevb atmega16m1 \
 	  atmega16u4 atmega32 atmega32a atmega32c1 atmega32hvb atmega32hvbrevb atmega32m1 \
 	  atmega32u4 atmega64 atmega64a atmega64c1 atmega64hve2 atmega64m1 atmega64rfr2 \
@@ -2499,7 +2499,7 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package*.fpc *.fpm
+	-$(DEL) fpcmade.* Package.fpc *.fpm
 	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res symbol_order*.fpc
 	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT

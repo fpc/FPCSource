@@ -4,10 +4,11 @@
 [package]
 main=rtl
 [target]
-loaders=
+loaders=sysintern
 units=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) \
   $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) \
   libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd \
+  ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU \
   si_prc
 
 [require]
@@ -19,7 +20,7 @@ target=ps1
 cpu=mipsel
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC) $(COMMON) ./psy-q-sdk
+sourcedir=$(INC) $(PROCINC) $(COMMON) ./psy-q-sdk ./bare-metal
 [prerules]
 RTL=..
 INC=../inc
@@ -111,6 +112,31 @@ libmcgui$(PPUEXT) : psy-q-sdk/libmcgui.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$
 
 libhmd$(PPUEXT) : psy-q-sdk/libhmd.pas libgte$(PPUEXT) libgs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
+
+
+# BARE-METAL units
+ps1System$(PPUEXT) : bare-metal/ps1System.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+ps1COP0$(PPUEXT) : bare-metal/ps1COP0.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+ps1GPU$(PPUEXT) : bare-metal/ps1GPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<
+
+ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $<      
+
+
+sysintern$(OEXT) : bare-metal/sysintern.s
+        $(AS) -EL -mabi=32 -msoft-float bare-metal/sysintern.s -o $(UNITTARGETDIRPREFIX)sysintern$(OEXT) 
+
 
 #
 # Loaders
