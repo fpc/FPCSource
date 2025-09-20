@@ -925,7 +925,7 @@ ifdef NO_EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) libstd libetc libgte libgpu libapi libcd libcomb libgs libsnd libspu libds libgun libmcrd libtap libpad libmcx libpress libsn libmcgui libhmd ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU si_prc
+override TARGET_UNITS+=$(SYSTEMUNIT) $(OBJPASUNIT) $(FPINTRESUNIT) $(ISO7185UNIT) $(CTYPESUNIT) $(SYSCONSTUNIT) $(UUCHARUNIT) $(STRINGSUNIT) ps1System ps1CDRom ps1COP0 ps1GPU ps1GTE ps1SPU si_prc
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
 override TARGET_LOADERS+=sysintern
@@ -935,7 +935,7 @@ ifeq ($(CPU_OS_TARGET),mipsel-ps1)
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON) ./psy-q-sdk ./bare-metal
+override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON) ./bare-metal
 endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -3000,46 +3000,6 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-libstd$(PPUEXT) : psy-q-sdk/libstd.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libetc$(PPUEXT) : psy-q-sdk/libetc.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libgte$(PPUEXT) : psy-q-sdk/libgte.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libgpu$(PPUEXT) : psy-q-sdk/libgpu.pas libgte$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libapi$(PPUEXT) : psy-q-sdk/libapi.pas libstd$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libcd$(PPUEXT) : psy-q-sdk/libcd.pas libstd$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libcomb$(PPUEXT) : psy-q-sdk/libcomb.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libgs$(PPUEXT) : psy-q-sdk/libgs.pas libgpu$(PPUEXT) libgte$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libsnd$(PPUEXT) : psy-q-sdk/libsnd.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libspu$(PPUEXT) : psy-q-sdk/libspu.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libds$(PPUEXT) : psy-q-sdk/libds.pas libstd$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libgun$(PPUEXT) : psy-q-sdk/libgun.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libmcrd$(PPUEXT) : psy-q-sdk/libmcrd.pas libstd$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libtap$(PPUEXT) : psy-q-sdk/libtap.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libpad$(PPUEXT) : psy-q-sdk/libpad.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libmcx$(PPUEXT) : psy-q-sdk/libmcx.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libpress$(PPUEXT) : psy-q-sdk/libpress.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libsn$(PPUEXT) : psy-q-sdk/libsn.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libmcgui$(PPUEXT) : psy-q-sdk/libmcgui.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
-libhmd$(PPUEXT) : psy-q-sdk/libhmd.pas libgte$(PPUEXT) libgs$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 ps1System$(PPUEXT) : bare-metal/ps1System.pas $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 ps1CDRom$(PPUEXT) : bare-metal/ps1CDRom.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -103,13 +103,7 @@ begin
     while not ObjectFiles.Empty do begin
         LinkRes.Add('INPUT(' + ExtractFileName(ObjectFiles.GetFirst) + ')');
     end;
-
-
-    LinkRes.Add('INPUT(libcard.a libpress.a libgpu.a libgs.a libgte.a)');
-    LinkRes.Add('INPUT(libcd.a libetc.a libsn.a libsnd.a libspu.a)');
-    LinkRes.Add('INPUT(libmath.a libcomb.a libtap.a libsio.a)');
-    LinkRes.Add('INPUT(libpad.a libc2.a libapi.a)');
-
+    
     LinkRes.Add('SECTIONS');
     LinkRes.Add('{');
     LinkRes.Add('   .text : ALIGN(8) {');

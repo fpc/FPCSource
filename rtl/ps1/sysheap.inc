@@ -19,10 +19,10 @@
 
 function SysOSAlloc (size: ptruint): pointer;
 begin
-  SysOSAlloc:=_malloc(size);
+//  SysOSAlloc:=_malloc(size);
 end;
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-  _free(p);
+//  _free(p);
 end;
