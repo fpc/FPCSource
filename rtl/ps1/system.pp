@@ -158,7 +158,7 @@ begin
   IsLibrary := FALSE;
 
   { Setup heap }
-//  _InitHeap(pdword(@bss_end),alignvalue(PtrUInt(StackBottom)-PtrUInt(@bss_end), 4));
+  _InitHeap(PtrUInt(@bss_end));
   InitHeap;
 
   { Init exceptions }
