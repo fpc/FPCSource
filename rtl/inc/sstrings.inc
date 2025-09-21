@@ -1197,6 +1197,7 @@ begin
 
   digitsLeft:=ValData.MaxDigits[ord((vc.base=10) or vc.negative)+ord(vc.negative), vc.baseIndex, BsrDWord(ValNonZeroDestSize(DestSize))];
   Temp:=0;
+  prev:=0;
   repeat
     u:=SizeUint(ord(s[sp])-ord('0'));
     if u>=length(ValData.ValueArray) then
@@ -1275,6 +1276,7 @@ begin
     end;
 
   digitsLeft:=ValData.MaxDigits[0, vc.baseIndex, BsrDWord(ValNonZeroDestSize({$ifndef VER3_2}DestSize{$else}sizeof(fpc_Val_UInt_Shortstr){$endif}))];
+  prev:=0;
   repeat
     u:=SizeUint(ord(s[sp])-ord('0'));
     if u>=length(ValData.ValueArray) then
@@ -1332,6 +1334,7 @@ end;
 
     digitsLeft:=ValData.MaxDigits[ord((vc.base=10) or vc.negative)+ord(vc.negative), vc.baseIndex, 3];
     Temp:=0;
+    prev:=0;
     repeat
       u:=SizeUint(ord(s[sp])-ord('0'));
       if u>=length(ValData.ValueArray) then
@@ -1393,6 +1396,7 @@ end;
         Exit;
       end;
 
+    prev:=0;
     digitsLeft:=ValData.MaxDigits[0, vc.baseIndex, 3];
     repeat
       u:=SizeUint(ord(s[sp])-ord('0'));
