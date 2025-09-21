@@ -2310,7 +2310,11 @@ var
                      begin
                        str(modifier,st);
                        escStr:=escStr+'1;'+st;
-                     end;
+                     end else
+                     begin
+                       if ch in ['P','Q','S'] then { F1, F2, F4 }
+                         escStr:='_O';
+                      end;
                      escStr:=escStr+ch;
                      for i:=2 to length(escStr) do
                      begin
