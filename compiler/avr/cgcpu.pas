@@ -1039,6 +1039,24 @@ unit cgcpu;
                { Optimized, replaced with a simple load }
                a_load_const_reg(list,size,a,reg);
              end;
+           OP_XOR:
+             begin
+               for i:=1 to tcgsize2size[size] do
+                 begin
+                   if ((qword(a) and mask) shr shift)<>0 then
+                     begin
+                       getcpuregister(list,NR_R26);
+                       list.concat(taicpu.op_reg_const(A_LDI,NR_R26,(qword(a) and mask) shr shift));
+                       list.concat(taicpu.op_reg_reg(A_EOR,reg,NR_R26));
+                       ungetcpuregister(list,NR_R26);
+                     end;
+                   { check if we are not in the last iteration to avoid an internalerror in GetNextReg }
+                   if i<tcgsize2size[size] then
+                     NextRegPostInc;
+                   mask:=mask shl 8;
+                   inc(shift,8);
+                 end;
+             end;
            OP_OR:
              begin
                for i:=1 to tcgsize2size[size] do
