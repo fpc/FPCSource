@@ -1212,7 +1212,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100302);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_legacy_catch_all,a_delegate]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_legacy_catch_all,a_legacy_delegate]) then
             begin
               srclist.Remove(p);
               case taicpu(p).opcode of
@@ -1559,7 +1559,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100308);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_legacy_catch,a_legacy_catch_all,a_delegate]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_legacy_catch,a_legacy_catch_all,a_legacy_delegate]) then
             begin
               srclist.Remove(p);
               Done:=True;
@@ -1570,7 +1570,7 @@ uses
         case taicpu(p).opcode of
           a_end_try,a_legacy_catch,a_legacy_catch_all:
             result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
-          a_delegate:
+          a_legacy_delegate:
             result:=tai_wasmstruc_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
           else
             internalerror(2023100502);
@@ -2574,7 +2574,7 @@ uses
           a_br,
           a_br_if,
           a_rethrow,
-          a_delegate:
+          a_legacy_delegate:
             begin
               if ops<>1 then
                 internalerror(2021092610);
@@ -3556,7 +3556,7 @@ uses
           a_br,
           a_br_if,
           a_rethrow,
-          a_delegate:
+          a_legacy_delegate:
             begin
               case opcode of
                 a_br:
@@ -3565,7 +3565,7 @@ uses
                   WriteByte($0D);
                 a_rethrow:
                   WriteByte($09);
-                a_delegate:
+                a_legacy_delegate:
                   WriteByte($18);
                 else
                   internalerror(2021092622);
@@ -3732,7 +3732,7 @@ uses
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
                 a_legacy_try:
                   result:=tai_wasmstruc_try.create_from(srclist);
-                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_legacy_catch_all,a_delegate:
+                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_legacy_catch_all,a_legacy_delegate:
                   internalerror(2023100503);
                 else
                   ;
