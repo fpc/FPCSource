@@ -1449,6 +1449,7 @@ begin
              e.Buttons:=e.Buttons and( not word( MouseButton4 or MouseButton5)); {remove wheel buttons for Buttons}
              { do not temper with AutoTicks because other buttons can be held down while scrolling
              AutoTicks:=0;}  {there is no "holding down" mouse wheel }
+             LastDouble:=false; { consecutive mouse wheel events all will be double events }
            end;
          end;
        MouseActionUp :
