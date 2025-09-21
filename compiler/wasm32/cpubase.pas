@@ -100,7 +100,7 @@ uses
       a_i64_trunc_sat_f64_s,
       a_i64_trunc_sat_f64_u,
       // exceptions (legacy)
-      a_legacy_try,a_legacy_catch,a_legacy_catch_all,a_legacy_delegate,a_legacy_throw,a_rethrow,a_end_try,
+      a_legacy_try,a_legacy_catch,a_legacy_catch_all,a_legacy_delegate,a_legacy_throw,a_legacy_rethrow,a_end_try,
       // atomic memory accesses - load/store
       a_i32_atomic_load8_u, a_i32_atomic_load16_u, a_i32_atomic_load,
       a_i64_atomic_load8_u, a_i64_atomic_load16_u, a_i64_atomic_load32_u,

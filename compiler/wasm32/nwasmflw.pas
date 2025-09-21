@@ -598,7 +598,7 @@ implementation
           end
         else
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_const(a_rethrow,0));
+            current_asmdata.CurrAsmList.concat(taicpu.op_const(a_legacy_rethrow,0));
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 

@@ -1139,7 +1139,7 @@ uses
             end;
           a_legacy_throw:
             Unreachable;
-          a_rethrow:
+          a_legacy_rethrow:
             Unreachable;
           a_return:
             begin
@@ -2573,7 +2573,7 @@ uses
             end;
           a_br,
           a_br_if,
-          a_rethrow,
+          a_legacy_rethrow,
           a_legacy_delegate:
             begin
               if ops<>1 then
@@ -3555,7 +3555,7 @@ uses
             end;
           a_br,
           a_br_if,
-          a_rethrow,
+          a_legacy_rethrow,
           a_legacy_delegate:
             begin
               case opcode of
@@ -3563,7 +3563,7 @@ uses
                   WriteByte($0C);
                 a_br_if:
                   WriteByte($0D);
-                a_rethrow:
+                a_legacy_rethrow:
                   WriteByte($09);
                 a_legacy_delegate:
                   WriteByte($18);
