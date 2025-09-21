@@ -464,7 +464,7 @@ implementation
 
         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
 
         { try block }
         secondpass(left);
@@ -512,7 +512,7 @@ implementation
                   flowcontrol+
                   afteronflowcontrol;
 
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
 
                 { the 'exit' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
@@ -1110,7 +1110,7 @@ implementation
           end;
 
         { the inner 'try..end_try' block }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
 
         { try code }
         if assigned(left) then
@@ -1489,7 +1489,7 @@ implementation
         { in the case that another exception is risen
           we've to destroy the old one, so create a new
           exception frame for the catch-handler }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
 
         { the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));

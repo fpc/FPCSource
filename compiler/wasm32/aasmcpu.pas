@@ -1054,7 +1054,7 @@ uses
           a_if,
           a_block,
           a_loop,
-          a_try:
+          a_legacy_try:
             begin
               if a.opcode=a_if then
                 PopVal(wbt_i32);
@@ -1080,7 +1080,7 @@ uses
           a_catch:
             begin
               frame:=PopCtrl;
-              if (frame.opcode<>a_try) and (frame.opcode<>a_catch) then
+              if (frame.opcode<>a_legacy_try) and (frame.opcode<>a_catch) then
                 internalerror(2024022701);
               PushCtrl(a_catch,frame.start_types,frame.end_types);
             end;
@@ -1108,7 +1108,7 @@ uses
           a_end_try:
             begin
               frame:=PopCtrl;
-              if (frame.opcode<>a_try) and (frame.opcode<>a_catch) then
+              if (frame.opcode<>a_legacy_try) and (frame.opcode<>a_catch) then
                 internalerror(2024022702);
               PushVals(frame.end_types);
             end;
@@ -1604,7 +1604,7 @@ uses
 
     procedure tai_wasmstruc_try.ConvertToFlatList(l: TAsmList);
       begin
-        l.Concat(taicpu.op_none(A_TRY));
+        l.Concat(taicpu.op_none(a_legacy_try));
         l.concatList(try_asmlist);
       end;
 
@@ -2363,7 +2363,7 @@ uses
           a_block,
           a_loop,
           a_if,
-          a_try:
+          a_legacy_try:
             begin
               if ops=0 then
                 result:=2
@@ -3144,7 +3144,7 @@ uses
           a_block,
           a_loop,
           a_if,
-          a_try:
+          a_legacy_try:
             begin
               case opcode of
                 a_block:
@@ -3153,7 +3153,7 @@ uses
                   WriteByte($03);
                 a_if:
                   WriteByte($04);
-                a_try:
+                a_legacy_try:
                   WriteByte($06);
                 else
                   internalerror(2021092626);
@@ -3730,7 +3730,7 @@ uses
                   result:=tai_wasmstruc_block.create_from(taicpu(result),srclist);
                 a_loop:
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
-                a_try:
+                a_legacy_try:
                   result:=tai_wasmstruc_try.create_from(srclist);
                 a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all,a_delegate:
                   internalerror(2023100503);
