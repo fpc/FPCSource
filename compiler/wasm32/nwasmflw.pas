@@ -1051,7 +1051,7 @@ implementation
           thlcgwasm(hlcg).a_cmp_const_reg_stack(current_asmdata.CurrAsmList,exceptionreasontype,OC_EQ,reason,reasonreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_if));
           thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
-          current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+          current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_legacy_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
           current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
         end;
 

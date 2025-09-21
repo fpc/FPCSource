@@ -1137,7 +1137,7 @@ uses
               PopVals(label_types(FCtrlStack[n]));
               PushVals(label_types(FCtrlStack[n]));
             end;
-          a_throw:
+          a_legacy_throw:
             Unreachable;
           a_rethrow:
             Unreachable;
@@ -2588,7 +2588,7 @@ uses
                 end;
             end;
           a_legacy_catch,
-          a_throw:
+          a_legacy_throw:
             begin
               if ops<>1 then
                 internalerror(2021092709);
@@ -3581,12 +3581,12 @@ uses
                 end;
             end;
           a_legacy_catch,
-          a_throw:
+          a_legacy_throw:
             begin
               case opcode of
                 a_legacy_catch:
                   WriteByte($07);
-                a_throw:
+                a_legacy_throw:
                   WriteByte($08);
                 else
                   internalerror(2021092708);
