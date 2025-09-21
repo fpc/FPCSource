@@ -83,7 +83,7 @@
         'i64.trunc_sat_f32_u',
         'i64.trunc_sat_f64_s',
         'i64.trunc_sat_f64_u',
-        // exceptions
+        // exceptions (legacy)
         'try','catch','catch_all','delegate','throw','rethrow','end' {try},
         // atomic memory accesses - load/store
         'i32.atomic.load8_u', 'i32.atomic.load16_u', 'i32.atomic.load',
