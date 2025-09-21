@@ -588,7 +588,7 @@ implementation
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
               end
             else
               begin
@@ -602,7 +602,7 @@ implementation
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
 
       errorexit:
         { return all used control flow statements }
@@ -1135,7 +1135,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the inner 'try..end_try' block }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
@@ -1566,7 +1566,7 @@ implementation
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
 
         { clear some stuff }
         if assigned(exceptvarsym) then
