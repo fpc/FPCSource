@@ -1077,12 +1077,12 @@ uses
                 internalerror(2024022512);
               PushCtrl(a_else,frame.start_types,frame.end_types);
             end;
-          a_catch:
+          a_legacy_catch:
             begin
               frame:=PopCtrl;
-              if (frame.opcode<>a_legacy_try) and (frame.opcode<>a_catch) then
+              if (frame.opcode<>a_legacy_try) and (frame.opcode<>a_legacy_catch) then
                 internalerror(2024022701);
-              PushCtrl(a_catch,frame.start_types,frame.end_types);
+              PushCtrl(a_legacy_catch,frame.start_types,frame.end_types);
             end;
           a_end_if:
             begin
@@ -1108,7 +1108,7 @@ uses
           a_end_try:
             begin
               frame:=PopCtrl;
-              if (frame.opcode<>a_legacy_try) and (frame.opcode<>a_catch) then
+              if (frame.opcode<>a_legacy_try) and (frame.opcode<>a_legacy_catch) then
                 internalerror(2024022702);
               PushVals(frame.end_types);
             end;
@@ -1212,7 +1212,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100302);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all,a_delegate]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_catch_all,a_delegate]) then
             begin
               srclist.Remove(p);
               case taicpu(p).opcode of
@@ -1559,7 +1559,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100308);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_catch,a_catch_all,a_delegate]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_legacy_catch,a_catch_all,a_delegate]) then
             begin
               srclist.Remove(p);
               Done:=True;
@@ -1568,7 +1568,7 @@ uses
             tmp_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
         until Done;
         case taicpu(p).opcode of
-          a_end_try,a_catch,a_catch_all:
+          a_end_try,a_legacy_catch,a_catch_all:
             result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
           a_delegate:
             result:=tai_wasmstruc_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
@@ -1629,7 +1629,7 @@ uses
             Done:=False;
             repeat
               pp:=tai(srclist.First);
-              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_catch,a_catch_all,a_end_try]) then
+              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_legacy_catch,a_catch_all,a_end_try]) then
                 Done:=True
               else
                 al.Concat(wasm_convert_first_item_to_structured(srclist));
@@ -1667,7 +1667,7 @@ uses
         repeat
           if p.typ=ait_instruction then
             case taicpu(p).opcode of
-              a_catch:
+              a_legacy_catch:
                 begin
                   parse_next_catch_block;
                   p:=tai(srclist.First);
@@ -2587,7 +2587,7 @@ uses
                     internalerror(2021092625);
                 end;
             end;
-          a_catch,
+          a_legacy_catch,
           a_throw:
             begin
               if ops<>1 then
@@ -3580,11 +3580,11 @@ uses
                     internalerror(2021092625);
                 end;
             end;
-          a_catch,
+          a_legacy_catch,
           a_throw:
             begin
               case opcode of
-                a_catch:
+                a_legacy_catch:
                   WriteByte($07);
                 a_throw:
                   WriteByte($08);
@@ -3732,7 +3732,7 @@ uses
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
                 a_legacy_try:
                   result:=tai_wasmstruc_try.create_from(srclist);
-                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_catch,a_catch_all,a_delegate:
+                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_catch_all,a_delegate:
                   internalerror(2023100503);
                 else
                   ;
