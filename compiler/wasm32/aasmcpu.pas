@@ -1212,7 +1212,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100302);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_catch_all,a_delegate]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_legacy_catch_all,a_delegate]) then
             begin
               srclist.Remove(p);
               case taicpu(p).opcode of
@@ -1559,7 +1559,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100308);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_legacy_catch,a_catch_all,a_delegate]) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode in [a_end_try,a_legacy_catch,a_legacy_catch_all,a_delegate]) then
             begin
               srclist.Remove(p);
               Done:=True;
@@ -1568,7 +1568,7 @@ uses
             tmp_asmlist.Concat(wasm_convert_first_item_to_structured(srclist));
         until Done;
         case taicpu(p).opcode of
-          a_end_try,a_legacy_catch,a_catch_all:
+          a_end_try,a_legacy_catch,a_legacy_catch_all:
             result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
           a_delegate:
             result:=tai_wasmstruc_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
@@ -1629,7 +1629,7 @@ uses
             Done:=False;
             repeat
               pp:=tai(srclist.First);
-              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_legacy_catch,a_catch_all,a_end_try]) then
+              if (pp.typ=ait_instruction) and (taicpu(pp).opcode in [a_legacy_catch,a_legacy_catch_all,a_end_try]) then
                 Done:=True
               else
                 al.Concat(wasm_convert_first_item_to_structured(srclist));
@@ -1673,7 +1673,7 @@ uses
                   p:=tai(srclist.First);
                   srclist.Remove(p);
                 end;
-              a_catch_all:
+              a_legacy_catch_all:
                 begin
                   parse_catch_all;
                   Done:=True;
@@ -1751,7 +1751,7 @@ uses
           end;
         if assigned(catch_all_asmlist) then
           begin
-            l.Concat(taicpu.op_none(a_catch_all));
+            l.Concat(taicpu.op_none(a_legacy_catch_all));
             l.concatList(catch_all_asmlist);
           end;
         l.Concat(taicpu.op_none(a_end_try));
@@ -2246,7 +2246,7 @@ uses
           a_end_loop,
           a_end_try,
           a_end_function,
-          a_catch_all,
+          a_legacy_catch_all,
           a_ref_is_null:
             result:=1;
           a_i32_trunc_sat_f32_s,
@@ -3004,7 +3004,7 @@ uses
           a_end_try,
           a_end_function:
             WriteByte($0B);
-          a_catch_all:
+          a_legacy_catch_all:
             WriteByte($19);
           a_i32_const:
             begin
@@ -3732,7 +3732,7 @@ uses
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
                 a_legacy_try:
                   result:=tai_wasmstruc_try.create_from(srclist);
-                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_catch_all,a_delegate:
+                a_else,a_end_if,a_end_block,a_end_loop,a_end_try,a_legacy_catch,a_legacy_catch_all,a_delegate:
                   internalerror(2023100503);
                 else
                   ;
