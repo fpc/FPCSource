@@ -168,16 +168,13 @@ begin
     LinkRes.Add('');
     LinkRes.Add('   .sbss : ALIGN(64) {');
     LinkRes.Add('');
-    LinkRes.Add('         __sbss_start__ = .;');
+    LinkRes.Add('         __bss_start__ = .;');
     LinkRes.Add('           *(.sbss .sbss.*)');
-    LinkRes.Add('         __sbss_end__ = .;');
     LinkRes.Add('');
-    LinkRes.Add('         __sbss_size__ = __sbss_end__ - __sbss_start__;');
     LinkRes.Add('   } > ram');
     LinkRes.Add('');
     LinkRes.Add('   .bss : ALIGN(64) {');
     LinkRes.Add('');
-    LinkRes.Add('         __bss_start__ = .;');
     LinkRes.Add('           *(.bss .bss.*)');
     LinkRes.Add('           *(COMMON)');
     LinkRes.Add('           . = ALIGN(64);');
