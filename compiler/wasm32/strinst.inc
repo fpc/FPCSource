@@ -85,6 +85,8 @@
         'i64.trunc_sat_f64_u',
         // exceptions (legacy)
         'try','catch','catch_all','delegate','throw','rethrow','end' {try},
+        // exceptions (with exnref)
+        'try_table','catch','catch_ref','catch_all','catch_all_ref','throw','throw_ref','end' {try_table},
         // atomic memory accesses - load/store
         'i32.atomic.load8_u', 'i32.atomic.load16_u', 'i32.atomic.load',
         'i64.atomic.load8_u', 'i64.atomic.load16_u', 'i64.atomic.load32_u',
