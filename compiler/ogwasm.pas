@@ -592,7 +592,7 @@ implementation
 {$define rangeon}
 {$R-}
 {$endif}
-        if (b and 64)<>0 then
+        if ((b and 64)<>0) and (Shift < 64) then
           result:=result or (high(uint64) shl shift);
       end;
 {$ifdef overflowon}
