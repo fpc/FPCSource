@@ -2240,7 +2240,7 @@ begin
 {$ifdef wasm}
   if (Ord(ts_wasm_no_exceptions in init_settings.targetswitches)+
       Ord(ts_wasm_js_exceptions in init_settings.targetswitches)+
-      Ord(ts_wasm_native_exceptions in init_settings.targetswitches)+
+      Ord(ts_wasm_native_legacy_exceptions in init_settings.targetswitches)+
       Ord(ts_wasm_bf_exceptions in init_settings.targetswitches))>1 then
     begin
       Message(option_too_many_exception_modes);
@@ -5664,7 +5664,7 @@ begin
 {$endif m68k}
 {$ifdef wasm}
   { if no explicit exception handling mode is set for WebAssembly, assume no exceptions }
-  if init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_js_exceptions,ts_wasm_native_exceptions,ts_wasm_bf_exceptions]=[] then
+  if init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_js_exceptions,ts_wasm_native_legacy_exceptions,ts_wasm_bf_exceptions]=[] then
     begin
       def_system_macro(TargetSwitchStr[ts_wasm_no_exceptions].define);
       include(init_settings.targetswitches,ts_wasm_no_exceptions);

@@ -461,7 +461,7 @@ implementation
 
     procedure tcpuprocinfo.setup_eh;
       begin
-        if ts_wasm_native_exceptions in current_settings.targetswitches then
+        if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           cexceptionstatehandler:=twasmexceptionstatehandler_nativeexceptions
         else if ts_wasm_js_exceptions in current_settings.targetswitches then
           cexceptionstatehandler:=twasmexceptionstatehandler_jsexceptions

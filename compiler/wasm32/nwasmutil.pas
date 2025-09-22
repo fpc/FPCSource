@@ -152,7 +152,7 @@ implementation
           list.Concat(tai_globaltype.create(TLS_BASE_SYM,wbt_i32,false));
         end;
 
-      if ts_wasm_native_exceptions in current_settings.targetswitches then
+      if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
         begin
           list.Concat(tai_tagtype.create(FPC_EXCEPTION_TAG_SYM, []));
           list.Concat(tai_symbol.Create_Weak(current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));

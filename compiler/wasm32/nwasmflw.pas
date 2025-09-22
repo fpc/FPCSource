@@ -409,7 +409,7 @@ implementation
       begin
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           result:=pass_1_no_exceptions
-        else if ts_wasm_native_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           result:=pass_1_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           result:=pass_1_bf_exceptions
@@ -818,7 +818,7 @@ implementation
           pass_generate_code_no_exceptions
         else if ts_wasm_js_exceptions in current_settings.targetswitches then
           pass_generate_code_js_exceptions
-        else if ts_wasm_native_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           pass_generate_code_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           pass_generate_code_bf_exceptions
@@ -1417,7 +1417,7 @@ implementation
           pass_generate_code_no_exceptions
         else if ts_wasm_js_exceptions in current_settings.targetswitches then
           pass_generate_code_js_exceptions
-        else if ts_wasm_native_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           pass_generate_code_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           pass_generate_code_bf_exceptions
@@ -1745,7 +1745,7 @@ implementation
           pass_generate_code_no_exceptions
         else if ts_wasm_js_exceptions in current_settings.targetswitches then
           pass_generate_code_js_exceptions
-        else if ts_wasm_native_exceptions in current_settings.targetswitches then
+        else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           pass_generate_code_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           pass_generate_code_bf_exceptions
