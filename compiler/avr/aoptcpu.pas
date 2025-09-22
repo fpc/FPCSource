@@ -55,6 +55,7 @@ Type
     function OptPass1IN(var p : tai) : boolean;
     function OptPass1LDI(var p : tai) : boolean;
     function OptPass1LDS(var p : tai) : boolean;
+    function OptPass1LDD(var p: tai): boolean;
     function OptPass1MOV(var p : tai) : boolean;
     function OptPass1PUSH(var p : tai) : boolean;
     function OptPass1RCALL(var p : tai) : boolean;
@@ -507,6 +508,44 @@ Implementation
         if assigned(alloc) and assigned(dealloc) then
           begin
             DebugMsg('Peephole LdsMov2Lds performed', p);
+            asml.Remove(alloc);
+            alloc.Free;
+            asml.Remove(dealloc);
+            dealloc.Free;
+            taicpu(p).oper[0]^.reg:=taicpu(hp1).oper[0]^.reg;
+            RemoveInstruction(hp1);
+            result:=true;
+          end;
+      end;
+    end;
+
+
+  function TCpuAsmOptimizer.OptPass1LDD(var p : tai) : boolean;
+    var
+      hp1, alloc, dealloc: tai;
+    begin
+      Result:=false;
+      { turn
+          alloc reg0
+          ldd reg0, <mem>
+          ...
+          mov reg1, reg0
+          dealloc reg0
+
+        into
+          lds reg1, <mem>
+      }
+      if (GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg)) and
+      MatchInstruction(hp1,A_MOV) and
+      (taicpu(hp1).oper[1]^.reg=taicpu(p).oper[0]^.reg) and
+      (not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
+      (not RegUsedBetween(taicpu(hp1).oper[0]^.reg, p, hp1)) then
+      begin
+        alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg,tai(p.Previous));
+        dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(hp1.Next));
+        if assigned(alloc) and assigned(dealloc) then
+          begin
+            DebugMsg('Peephole LddMov2Ldd performed', p);
             asml.Remove(alloc);
             alloc.Free;
             asml.Remove(dealloc);
@@ -1449,6 +1488,8 @@ Implementation
                   Result:=OptPass1STS(p);
                 A_LDS:
                   Result:=OptPass1LDS(p);
+                A_LDD:
+                  Result:=OptPass1LDD(p);
                 A_IN:
                   Result:=OptPass1IN(p);
                 A_SBRS,
