@@ -992,6 +992,21 @@ type
   TPDFImageStreamOption = (isoCompressed,isoTransparent);
   TPDFImageStreamOptions = set of TPDFImageStreamOption;
 
+  TPDFColorSpace = (
+    csDeviceCMYK, //Device-dependent names
+    csDeviceGray,
+    csDeviceN,
+    csDeviceRGB,
+    csCalGray,     //Device-independent names
+    csCalRGB,
+    csLab,
+    csICCBased,
+    csIndexed,     //Special names
+    csPattern,
+    csSeparation);
+
+  { TPDFImageItem }
+
   TPDFImageItem = Class(TCollectionItem)
   private
     FImage: TFPCustomImage;
@@ -1001,6 +1016,9 @@ type
     FStreamedMask: TBytes;
     FCompressionMask: TPDFImageCompression;
     FWidth,FHeight : Integer;
+    FBitsPerComponent: Integer;
+    FColorSpace: TPDFColorSpace;
+
     function GetHasMask: Boolean;
     function GetHeight: Integer;
     function GetStreamed: TBytes;
@@ -1011,6 +1029,7 @@ type
   Protected
     Function WriteStream(const AStreamedData: TBytes; AStream: TStream): int64; virtual;
   Public
+    constructor Create(ACollection: TCollection); override;
     Destructor Destroy; override;
     Procedure CreateStreamedData(AUseCompression: Boolean); overload;
     Procedure CreateStreamedData(aOptions : TPDFImageStreamOptions); overload;
@@ -1019,6 +1038,7 @@ type
     Function WriteImageStream(AStream: TStream): int64;
     Function WriteMaskStream(AStream: TStream): int64;
     function Equals(AImage: TFPCustomImage): boolean; reintroduce;
+
     Property Image : TFPCustomImage Read FImage Write SetImage;
     Property StreamedData : TBytes Read GetStreamed Write SetStreamed;
     Property StreamedMask : TBytes Read GetStreamedMask;
@@ -1026,6 +1046,8 @@ type
     Property Width : Integer Read GetWidth;
     Property Height : Integer Read GetHeight;
     Property HasMask : Boolean read GetHasMask;
+    property ColorSpace: TPDFColorSpace read FColorSpace write FColorSpace;
+    property BitsPerComponent: Integer read FBitsPerComponent write FBitsPerComponent;
   end;
 
 
@@ -1361,6 +1383,19 @@ const
 
   // see http://paste.lisp.org/display/1105
   BEZIER: single = 0.5522847498; // = 4/3 * (sqrt(2) - 1);
+
+  PDFColorSpace : array[TPDFColorSpace] of String = (
+      'DeviceCMYK', //Device-dependent names
+      'DeviceGray',
+      'DeviceN',
+      'DeviceRGB',
+      'CalGray',     //Device-independent names
+      'CalRGB',
+      'Lab',
+      'ICCBased',
+      'Indexed',     //Special names
+      'Pattern',
+      'Separation');
 
 Var
   PDFFormatSettings : TFormatSettings;
@@ -3330,6 +3365,14 @@ begin
   AStream.WriteBuffer(Img[0],Result);
   TPDFObject.WriteString(CRLF, AStream);
   TPDFObject.WriteString('endstream', AStream);
+end;
+
+constructor TPDFImageItem.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+
+  FColorSpace:= csDeviceRGB;
+  FBitsPerComponent:= 8;
 end;
 
 function TPDFImageItem.Equals(AImage: TFPCustomImage): boolean;
@@ -5915,6 +5958,8 @@ var
   ADict: TPDFDictionary;
   i: integer;
   lXRef: integer;
+  curImg: TPDFImageItem;
+
 begin
   lXRef := GlobalXRefCount; // reference to be used later
 
@@ -5923,8 +5968,20 @@ begin
   ImageDict.AddName('Subtype','Image');
   ImageDict.AddInteger('Width',ImgWidth);
   ImageDict.AddInteger('Height',ImgHeight);
-  ImageDict.AddName('ColorSpace','DeviceRGB');
-  ImageDict.AddInteger('BitsPerComponent',8);
+
+  // add ColorSpace and BitsPerComponent default is DeviceRGB 8 bit
+  curImg:= Images[NumImg];
+  if (curImg <> nil) then
+  begin
+    ImageDict.AddName('ColorSpace', PDFColorSpace[curImg.FColorSpace]);
+    ImageDict.AddInteger('BitsPerComponent', curImg.FBitsPerComponent);
+  end
+  else
+  begin
+    ImageDict.AddName('ColorSpace','DeviceRGB');
+    ImageDict.AddInteger('BitsPerComponent',8);
+  end;
+
   N:=CreateName('I'+IntToStr(NumImg)); // Needed later
   ImageDict.AddElement('Name',N);
 
