@@ -2288,7 +2288,6 @@ const
         'Use odd BP for far procs', {ts_x86_far_procs_push_odd_bp}
         'No exception support', {ts_wasm_no_exceptions}
         'Branchful exceptions support', {ts_wasm_bf_exceptions}
-        'JavaScript-based exception support', {ts_wasm_js_exceptions}
         'Native WebAssembly exceptions support', {ts_wasm_native_exceptions}
         'WebAssembly threads support', {ts_wasm_threads}
         'Use WebAssembly saturating (nontrapping) float to int conversion instructions' {ts_wasm_saturating_float_to_int}
