@@ -1578,12 +1578,11 @@ procedure InitHeapThread;
 var
   loc_freelists: pfreelists;
 begin
-  if heap_lock_use > 0 then
-  begin
-    EnterCriticalSection(heap_lock);
-    inc(heap_lock_use);
-    LeaveCriticalSection(heap_lock);
-  end;
+  if heap_lock_use = 0 then
+    InitCriticalSection(heap_lock);
+  EnterCriticalSection(heap_lock);
+  inc(heap_lock_use);
+  LeaveCriticalSection(heap_lock);
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
   { initialise the local blocksize for allocating oschunks for fixed
@@ -1600,17 +1599,12 @@ procedure InitHeap; public name '_FPC_InitHeap';
 var
   loc_freelists: pfreelists;
 begin
-{$ifdef FPC_HAS_FEATURE_THREADING}
   { we cannot initialize the locks here yet, thread support is
     not loaded yet }
-  heap_lock_use := 0;
-{$endif}
   loc_freelists := @freelists;
-  fillchar(loc_freelists^,sizeof(tfreelists),0);
   { initialise the local blocksize for allocating oschunks for fixed
     freelists with the default starting value }
   loc_freelists^.locgrowheapsizesmall:=growheapsizesmall;
-  fillchar(orphaned_freelists,sizeof(orphaned_freelists),0);
 end;
 
 procedure RelocateHeap;

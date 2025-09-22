@@ -99,5 +99,9 @@ function ReAllocMem(var p:pointer;Size:ptruint):pointer; inline;
 function ReAllocMemory(p:pointer;Size:ptruint):pointer; cdecl;
 function GetHeapStatus:THeapStatus;
 function GetFPCHeapStatus:TFPCHeapStatus;
-{$endif FPC_HAS_FEATURE_HEAP}
 
+{$if defined(FPC_HAS_FEATURE_THREADING) and not defined(FPC_NO_DEFAULT_HEAP) and not defined(LEGACYHEAP)}
+procedure DeferInitHeapProcessWide; inline; { for Windows sysinit.pp... }
+procedure DoneHeapProcessWide; inline;
+{$endif FPC_HAS_FEATURE_THREADING and not FPC_NO_DEFAULT_HEAP and not LEGACYHEAP}
+{$endif FPC_HAS_FEATURE_HEAP}
