@@ -65,7 +65,6 @@ interface
       twasmtryexceptnode = class(tcgtryexceptnode)
       private
         procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_js_exceptions;
         procedure pass_generate_code_native_exceptions;
         procedure pass_generate_code_bf_exceptions;
       public
@@ -77,7 +76,6 @@ interface
       twasmtryfinallynode = class(tcgtryfinallynode)
       private
         procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_js_exceptions;
         procedure pass_generate_code_native_exceptions;
         procedure pass_generate_code_bf_exceptions;
       public
@@ -89,7 +87,6 @@ interface
       twasmonnode = class(tcgonnode)
       private
         procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_js_exceptions;
         procedure pass_generate_code_native_exceptions;
         procedure pass_generate_code_bf_exceptions;
       public
@@ -425,11 +422,6 @@ implementation
       begin
         location_reset(location,LOC_VOID,OS_NO);
         secondpass(left);
-      end;
-
-    procedure twasmtryexceptnode.pass_generate_code_js_exceptions;
-      begin
-        internalerror(2021091706);
       end;
 
     procedure twasmtryexceptnode.pass_generate_code_native_exceptions;
@@ -816,8 +808,6 @@ implementation
       begin
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           pass_generate_code_no_exceptions
-        else if ts_wasm_js_exceptions in current_settings.targetswitches then
-          pass_generate_code_js_exceptions
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           pass_generate_code_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
@@ -1000,11 +990,6 @@ implementation
            current_procinfo.CurrBreakLabel:=oldBreakLabel;
          end;
         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
-      end;
-
-    procedure twasmtryfinallynode.pass_generate_code_js_exceptions;
-      begin
-        internalerror(2021091702);
       end;
 
     procedure twasmtryfinallynode.pass_generate_code_native_exceptions;
@@ -1415,8 +1400,6 @@ implementation
       begin
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           pass_generate_code_no_exceptions
-        else if ts_wasm_js_exceptions in current_settings.targetswitches then
-          pass_generate_code_js_exceptions
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           pass_generate_code_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
@@ -1433,12 +1416,6 @@ implementation
       begin
         { should not be called }
         internalerror(2021092803);
-      end;
-
-    procedure twasmonnode.pass_generate_code_js_exceptions;
-      begin
-        { not yet implemented }
-        internalerror(2021092804);
       end;
 
     procedure twasmonnode.pass_generate_code_native_exceptions;
@@ -1743,8 +1720,6 @@ implementation
       begin
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           pass_generate_code_no_exceptions
-        else if ts_wasm_js_exceptions in current_settings.targetswitches then
-          pass_generate_code_js_exceptions
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           pass_generate_code_native_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then

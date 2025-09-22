@@ -3728,7 +3728,7 @@ option_valgrind_heaptrc_mismatch=11062_E_You can not use both options ($1) ($2) 
 option_unsupported_fpu=11063_F_The selected FPU type "$1" is not supported by the selected instruction set "$2"
 % Not all instruction sets support all FPU types. For example on ARM, Thumb(-1) supports no FPU/VFP instruction set
 option_too_many_exception_modes=11064_E_Only one WebAssembly exception support mode can be specified.
-% Only one WebAssembly exception support mode (NOEXCEPTIONS, JSEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
+% Only one WebAssembly exception support mode (NOEXCEPTIONS, BFEXCEPTIONS or NATIVEEXCEPTIONS) can be specified.
 option_subtarget_is_already_set=11065_W_Subtarget is already set to: $1
 % Displayed if more than one \var{-t} option is specified.
 option_subtarget_config_not_found=11066_E_Subtarget $1 specified but no corresponding config file $2 found.
@@ -4161,7 +4161,6 @@ J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/me
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
 W*3CTnoexceptions_        Disable the exception support. Raising an exception will abort the program.
 W*3CTbfexceptions_        Enable the branchful exception support for WebAssembly
-W*3CTjsexceptions_        Enable the JavaScript-based exception support for WebAssembly (experimental)
 W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
 W*3CTwasmthreads_         Enable WebAssembly threads support (experimental)
 W*3CTsaturatingfloattoint_ Use saturating (non-trapping) float-to-int conversion instructions

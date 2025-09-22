@@ -122,51 +122,6 @@ implementation
       end;
 
 {*****************************************************************************
-                     twasmexceptionstatehandler_jsexceptions
-*****************************************************************************}
-
-    type
-      twasmexceptionstatehandler_jsexceptions = class(tcgexceptionstatehandler)
-        class procedure get_exception_temps(list:TAsmList;var t:texceptiontemps); override;
-        class procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps); override;
-        class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
-        class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
-        class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
-      end;
-
-    class procedure twasmexceptionstatehandler_jsexceptions.get_exception_temps(list:TAsmList;var t:texceptiontemps);
-      begin
-        if not assigned(exceptionreasontype) then
-          exceptionreasontype:=search_system_proc('fpc_setjmp').returndef;
-        reference_reset(t.envbuf,0,[]);
-        reference_reset(t.jmpbuf,0,[]);
-        tg.gethltemp(list,exceptionreasontype,exceptionreasontype.size,tt_persistent,t.reasonbuf);
-      end;
-
-    class procedure twasmexceptionstatehandler_jsexceptions.unget_exception_temps(list:TAsmList;const t:texceptiontemps);
-      begin
-        tg.ungettemp(list,t.reasonbuf);
-      end;
-
-    class procedure twasmexceptionstatehandler_jsexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
-      begin
-        exceptstate.exceptionlabel:=nil;
-        exceptstate.oldflowcontrol:=flowcontrol;
-        exceptstate.finallycodelabel:=nil;
-
-        flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
-      end;
-
-    class procedure twasmexceptionstatehandler_jsexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
-      begin
-      end;
-
-    class procedure twasmexceptionstatehandler_jsexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
-      begin
-        list.Concat(tai_comment.Create(strpnew('TODO: handle_nested_exception')));
-      end;
-
-{*****************************************************************************
                      twasmexceptionstatehandler_nativeexceptions
 *****************************************************************************}
 
@@ -463,8 +418,6 @@ implementation
       begin
         if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           cexceptionstatehandler:=twasmexceptionstatehandler_nativeexceptions
-        else if ts_wasm_js_exceptions in current_settings.targetswitches then
-          cexceptionstatehandler:=twasmexceptionstatehandler_jsexceptions
         else if ts_wasm_no_exceptions in current_settings.targetswitches then
           cexceptionstatehandler:=twasmexceptionstatehandler_noexceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
