@@ -18,6 +18,9 @@ Type
     procedure TestIsManaged;
     procedure TestCasts; 
     procedure TestAssignPointer;
+    procedure TestAssignDateTime;
+    procedure TestAssignDate;
+    procedure TestAssignTime;
   end;
 
   TTestValueSimple = Class(TTestCase)
@@ -1967,6 +1970,39 @@ var
 begin
   V:=Pointer(Nil);
   AssertSame('Correct type info', TypeInfo(Pointer),V.TypeInfo);
+end;
+
+procedure TTestValueGeneral.TestAssignDateTime;
+var
+  dt: TDateTime;
+  v: TValue;
+begin
+  dt := Now;
+  v := dt;
+  AssertSame('Incorrect type info', TypeInfo(TDateTime), V.TypeInfo);
+  CheckEquals(dt, V.AsDateTime, 'Incorrect value');
+end;
+
+procedure TTestValueGeneral.TestAssignDate;
+var
+  d: TDate;
+  v: TValue;
+begin
+  d := Date;
+  v := d;
+  AssertSame('Incorrect type info', TypeInfo(TDate), V.TypeInfo);
+  CheckEquals(d, V.AsDateTime, 'Incorrect value');
+end;
+
+procedure TTestValueGeneral.TestAssignTime;
+var
+  t: TTime;
+  v: TValue;
+begin
+  t := Time;
+  v := t;
+  AssertSame('Incorrect type info', TypeInfo(TTime), V.TypeInfo);
+  CheckEquals(t, V.AsDateTime, 'Incorrect value');
 end;
 
 procedure TTestValueGeneral.TestReferenceRawData;

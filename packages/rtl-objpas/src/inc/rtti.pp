@@ -283,6 +283,9 @@ type
     class operator := (AValue: Boolean): TValue; inline;
     class operator := (AValue: IUnknown): TValue; inline;
     class operator := (AValue: TVarRec): TValue; inline;
+    class operator := (AValue: TDateTime): TValue; inline;
+    class operator := (AValue: TDate): TValue; inline;
+    class operator := (AValue: TTime): TValue; inline;
     property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
@@ -2777,6 +2780,21 @@ class operator TValue.:= (AValue: TVarRec): TValue;
 
 begin
   Result:=TValue.FromVarRec(aValue);
+end;
+
+class operator TValue.:=(AValue: TDateTime): TValue;
+begin
+  Make(@AValue, System.TypeInfo(TDateTime), Result);
+end;
+
+class operator TValue.:=(AValue: TDate): TValue;
+begin
+  Make(@AValue, System.TypeInfo(TDate), Result);
+end;
+
+class operator TValue.:=(AValue: TTime): TValue;
+begin
+  Make(@AValue, System.TypeInfo(TTime), Result);
 end;
 
 function TValue.AsString: string;
