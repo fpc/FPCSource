@@ -329,8 +329,8 @@ interface
          ts_wasm_bf_exceptions,
          { JavaScript-based exception support }
          ts_wasm_js_exceptions,
-         { native WebAssembly exceptions support:
-           https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/Exceptions.md }
+         { WebAssembly legacy exceptions support:
+           https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/legacy/Exceptions.md }
          ts_wasm_native_legacy_exceptions,
          { support multithreading via the WebAssembly threading proposal:
            https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md }
