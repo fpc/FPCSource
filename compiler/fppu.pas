@@ -394,6 +394,8 @@ var
               (ts_wasm_no_exceptions in current_settings.targetswitches)) or
              ((mf_wasm_bf_exceptions in moduleflags) <>
               (ts_wasm_bf_exceptions in current_settings.targetswitches)) or
+             ((mf_wasm_exnref_exceptions in moduleflags) <>
+              (ts_wasm_native_exnref_exceptions in current_settings.targetswitches)) or
              ((mf_wasm_native_exceptions in moduleflags) <>
               (ts_wasm_native_legacy_exceptions in current_settings.targetswitches)) then
             begin
@@ -1119,6 +1121,8 @@ var
 {$ifdef wasm}
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           include(moduleflags,mf_wasm_no_exceptions);
+        if ts_wasm_native_exnref_exceptions in current_settings.targetswitches then
+          include(moduleflags,mf_wasm_exnref_exceptions);
         if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
           include(moduleflags,mf_wasm_native_exceptions);
         if ts_wasm_bf_exceptions in current_settings.targetswitches then

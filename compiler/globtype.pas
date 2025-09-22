@@ -327,6 +327,9 @@ interface
          ts_wasm_no_exceptions,
          { Branchful exceptions support. A global threadvar is checked after each function call. }
          ts_wasm_bf_exceptions,
+         { WebAssembly exnref exceptions support:
+           https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/Exceptions.md }
+         ts_wasm_native_exnref_exceptions,
          { WebAssembly legacy exceptions support:
            https://github.com/WebAssembly/exception-handling/blob/master/proposals/exception-handling/legacy/Exceptions.md }
          ts_wasm_native_legacy_exceptions,
@@ -424,8 +427,8 @@ interface
          mf_symansistr,               { symbols are ansistrings (for ppudump) }
          mf_wasm_no_exceptions,       { unit was compiled in WebAssembly 'no exceptions' mode }
          mf_wasm_bf_exceptions,       { unit was compiled in WebAssembly 'branchful' exceptions mode }
-         mf_wasm_js_exceptions,       { unit was compiled in WebAssembly JavaScript-based exceptions mode }
-         mf_wasm_native_exceptions,   { unit was compiled in WebAssembly native exceptions mode }
+         mf_wasm_exnref_exceptions,   { unit was compiled in WebAssembly exceptions with exnref mode }
+         mf_wasm_native_exceptions,   { unit was compiled in WebAssembly native legacy exceptions mode }
          mf_wasm_threads,             { unit was compiled with WebAssembly multithreading support turned on }
          mf_system_unit               { unit was compiled as a System unit }
        );
@@ -473,6 +476,7 @@ interface
          (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP'),
          (name: 'NOEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_NO_EXCEPTIONS'),
          (name: 'BFEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_BRANCHFUL_EXCEPTIONS'),
+         (name: 'EXNREFEXCEPTIONS';    hasvalue: false; isglobal: true ; define: 'FPC_WASM_EXNREF_EXCEPTIONS'),
          (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_NATIVE_EXCEPTIONS'),
          (name: 'WASMTHREADS';         hasvalue: false; isglobal: true ; define: 'FPC_WASM_THREADS'),
          (name: 'SATURATINGFLOATTOINT';hasvalue: false; isglobal: false; define: 'FPC_WASM_SATURATING_FLOAT_TO_INT')
