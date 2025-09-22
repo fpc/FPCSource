@@ -286,6 +286,8 @@ type
     class operator := (AValue: TDateTime): TValue; inline;
     class operator := (AValue: TDate): TValue; inline;
     class operator := (AValue: TTime): TValue; inline;
+    class operator = (const ALeft, ARight: TValue): Boolean; inline;
+    class operator <> (const ALeft, ARight: TValue): Boolean; inline;
     property DataSize: SizeInt read GetDataSize;
     property Kind: TTypeKind read GetTypeKind;
     property TypeData: PTypeData read GetTypeDataProp;
@@ -2795,6 +2797,16 @@ end;
 class operator TValue.:=(AValue: TTime): TValue;
 begin
   Make(@AValue, System.TypeInfo(TTime), Result);
+end;
+
+class operator TValue.= (const ALeft, ARight: TValue): Boolean;
+begin
+  Result := SameValue(ALeft, ARight);
+end;
+
+class operator TValue.<> (const ALeft, ARight: TValue): Boolean;
+begin
+  Result := not SameValue(ALeft, ARight);
 end;
 
 function TValue.AsString: string;
