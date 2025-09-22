@@ -1603,14 +1603,14 @@ type
       next := toFree;
       p^.next := next;
       WriteBarrier; { Write p after p^.next. }
-    until InterlockedCompareExchange(toFree, p, next) = next;
+    until {$ifdef VER3_2} InterlockedCompareExchange {$else} AtomicCmpExchange {$endif} (toFree, p, next) = next;
   end;
 
   procedure HeapInc.ThreadState.FlushToFree;
   var
     tf, nx: pFreeChunk;
   begin
-    tf := InterlockedExchange(toFree, nil);
+    tf := {$ifdef VER3_2} InterlockedExchange {$else} AtomicExchange {$endif} (toFree, nil);
     while Assigned(tf) do
     begin
       ReadDependencyBarrier; { Read toFree^.next after toFree. }
@@ -1966,7 +1966,7 @@ begin
     exit;
 {$if defined(FPC_HAS_FEATURE_THREADING)}
   HeapInc.thisTs.Orphan;
-  if (HeapInc.gs.lockUse > 0) and (InterlockedDecrement(HeapInc.gs.lockUse) = 0) then
+  if (HeapInc.gs.lockUse > 0) and ({$ifdef VER3_2} InterlockedDecrement {$else} AtomicDecrement {$endif} (HeapInc.gs.lockUse) = 0) then
     DoneCriticalSection(HeapInc.gs.lock);
 {$elseif defined(HAS_SYSOSFREE)}
   if Assigned(HeapInc.thisTs.freeOS1) then
