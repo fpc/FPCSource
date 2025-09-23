@@ -65,7 +65,7 @@ interface
       twasmtryexceptnode = class(tcgtryexceptnode)
       private
         procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_native_exceptions;
+        procedure pass_generate_code_native_legacy_exceptions;
         procedure pass_generate_code_bf_exceptions;
       public
         procedure pass_generate_code;override;
@@ -424,7 +424,7 @@ implementation
         secondpass(left);
       end;
 
-    procedure twasmtryexceptnode.pass_generate_code_native_exceptions;
+    procedure twasmtryexceptnode.pass_generate_code_native_legacy_exceptions;
       var
         trystate,doobjectdestroyandreraisestate: tcgexceptionstatehandler.texceptionstate;
         destroytemps,
@@ -809,7 +809,7 @@ implementation
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           pass_generate_code_no_exceptions
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
-          pass_generate_code_native_exceptions
+          pass_generate_code_native_legacy_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           pass_generate_code_bf_exceptions
         else
