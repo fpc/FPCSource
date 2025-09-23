@@ -54,7 +54,7 @@ interface
       twasmraisenode = class(tcgraisenode)
       private
         function pass_1_no_exceptions : tnode;
-        function pass_1_native_exceptions : tnode;
+        function pass_1_native_legacy_exceptions : tnode;
         function pass_1_bf_exceptions : tnode;
       public
         function pass_1 : tnode;override;
@@ -288,7 +288,7 @@ implementation
       end;
 
 
-    function twasmraisenode.pass_1_native_exceptions : tnode;
+    function twasmraisenode.pass_1_native_legacy_exceptions : tnode;
       var
         statements : tstatementnode;
         //current_addr : tlabelnode;
@@ -407,7 +407,7 @@ implementation
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           result:=pass_1_no_exceptions
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
-          result:=pass_1_native_exceptions
+          result:=pass_1_native_legacy_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           result:=pass_1_bf_exceptions
         else
