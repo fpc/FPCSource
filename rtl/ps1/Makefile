@@ -3012,7 +3012,7 @@ ps1GTE$(PPUEXT) : bare-metal/ps1GTE.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT
 	$(COMPILER) $<
 ps1SPU$(PPUEXT) : bare-metal/ps1SPU.pas ps1System$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<      
-sysintern$(OEXT) : bare-metal/sysintern.s
-	$(AS) -EL -mabi=32 -msoft-float bare-metal/sysintern.s -o $(UNITTARGETDIRPREFIX)sysintern$(OEXT) 
+sysintern$(OEXT) : bare-metal/sysintern.sa
+	$(AS) -EL -mabi=32 -msoft-float bare-metal/sysintern.sa -o $(UNITTARGETDIRPREFIX)sysintern$(OEXT) 
 si_prc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_prc.pp
