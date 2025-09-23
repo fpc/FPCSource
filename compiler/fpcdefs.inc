@@ -57,6 +57,8 @@
   { for optloop unit }
   {$define DEBUG_OPTFORLOOP}
   {$define DEBUG_OPTSTRENGTH}
+  { for opttail unit }
+  {$define DEBUG_OPTTAIL}
   { for optvirt unit }
   {$define DEBUG_DEVIRT}
 {$endif}
