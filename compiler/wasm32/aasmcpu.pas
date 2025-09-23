@@ -2240,6 +2240,7 @@ uses
           a_i64_extend8_s,
           a_i64_extend16_s,
           a_i64_extend32_s,
+          a_throw_ref,
           a_else,
           a_end_block,
           a_end_if,
@@ -3009,6 +3010,8 @@ uses
             WriteByte($0B);
           a_legacy_catch_all:
             WriteByte($19);
+          a_throw_ref:
+            WriteByte($0A);
           a_i32_const:
             begin
               WriteByte($41);
