@@ -4826,8 +4826,12 @@ begin
      tkDynArray:
        begin
          dynarr:=Nil;
-         DynArrayFromVariant(dynarr, Value, PropInfo^.PropType);
-         SetDynArrayProp(Instance, PropInfo, dynarr);
+         try
+           DynArrayFromVariant(dynarr, Value, PropInfo^.PropType);
+           SetDynArrayProp(Instance, PropInfo, dynarr);
+         finally
+           DynArrayClear(dynarr, PropInfo);
+         end;
        end;
    else
      raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
