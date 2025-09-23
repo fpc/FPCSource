@@ -1383,6 +1383,8 @@ begin
       result:=S_OK;
   if (Result<>S_OK) then
     Result:=Inherited QueryInterface(iid,obj);
+  if (Result<>S_OK) and Assigned(OnQueryInterface) then
+    OnQueryInterface(iid,Result,obj);
 end;
 
 function TInterfaceThunk.InterfaceVMTOffset : word;

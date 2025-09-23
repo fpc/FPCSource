@@ -405,7 +405,9 @@
            end;
            PArgData = ^TargData;
          TThunkCallBack = Procedure(aInstance: Pointer; aMethod,aCount : Longint; aData : PArgData) of object;
-       Private  
+         TQueryInterfaceCallback = procedure(iid : tguid;out Result : longint;out aIntf) of object;
+       Private
+         FOnQueryInterface : TQueryInterfaceCallback;
          FCallback : TThunkCallback;
        Protected  
          function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
@@ -413,6 +415,7 @@
        Public  
          constructor create(aCallBack : TThunkCallback);
          function InterfaceVMTOffset : word; virtual;
+         property OnQueryInterface : TQueryInterfaceCallback read FOnQueryInterface Write FOnQueryInterface;
        end;  
        TInterfaceThunkClass = class of TInterfaceThunk;
 
