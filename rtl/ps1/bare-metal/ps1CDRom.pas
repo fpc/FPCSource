@@ -759,9 +759,8 @@ var
 begin
 
   getmem(theFile.data, theFile.size);
-  fillchar(theFile.data^, sizeof(theFile.size), random(255));
 
-  numSelectors:= (theFile.size + 2047) div 2048;
+  numSelectors:= theFile.size div 2048;
   startCDROMRead(theFile.lba, theFile.data, numSelectors, 2048, true, true);
 
 end;

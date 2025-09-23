@@ -3,10 +3,14 @@
 #
 default: help
 <<<<<<< HEAD
+<<<<<<< HEAD
 MAKEFILETARGETS=i386-linux i386-go32v2 i386-win32 i386-os2 i386-freebsd i386-beos i386-haiku i386-netbsd i386-solaris i386-netware i386-openbsd i386-wdosx i386-darwin i386-emx i386-watcom i386-netwlibc i386-wince i386-embedded i386-symbian i386-nativent i386-iphonesim i386-android i386-aros m68k-linux m68k-netbsd m68k-amiga m68k-atari m68k-palmos m68k-macosclassic m68k-embedded m68k-sinclairql m68k-human68k powerpc-linux powerpc-netbsd powerpc-amiga powerpc-macosclassic powerpc-darwin powerpc-morphos powerpc-embedded powerpc-wii powerpc-aix sparc-linux sparc-netbsd sparc-solaris sparc-embedded x86_64-linux x86_64-freebsd x86_64-haiku x86_64-netbsd x86_64-solaris x86_64-openbsd x86_64-darwin x86_64-win64 x86_64-embedded x86_64-iphonesim x86_64-android x86_64-aros x86_64-dragonfly arm-linux arm-netbsd arm-palmos arm-wince arm-gba arm-nds arm-embedded arm-symbian arm-android arm-aros arm-freertos arm-ios powerpc64-linux powerpc64-darwin powerpc64-embedded powerpc64-aix powerpc64-freebsd avr-embedded armeb-linux armeb-embedded mips-linux mipsel-linux mipsel-embedded mipsel-android mipsel-ps1 mips64-linux mips64el-linux jvm-java jvm-android i8086-embedded i8086-msdos i8086-win16 aarch64-linux aarch64-freebsd aarch64-darwin aarch64-win64 aarch64-embedded aarch64-iphonesim aarch64-android aarch64-ios wasm32-embedded wasm32-wasip1 wasm32-wasip1threads wasm32-wasip2 sparc64-linux riscv32-linux riscv32-embedded riscv32-freertos riscv64-linux riscv64-embedded xtensa-linux xtensa-embedded xtensa-freertos z80-embedded z80-zxspectrum z80-msxdos z80-amstradcpc loongarch64-linux
 =======
 MAKEFILETARGETS=i386-linux i386-go32v2 i386-win32 i386-os2 i386-freebsd i386-beos i386-haiku i386-netbsd i386-solaris i386-netware i386-openbsd i386-wdosx i386-darwin i386-emx i386-watcom i386-netwlibc i386-wince i386-embedded i386-symbian i386-nativent i386-iphonesim i386-android i386-aros m68k-linux m68k-netbsd m68k-amiga m68k-atari m68k-palmos m68k-macosclassic m68k-embedded m68k-sinclairql m68k-human68k powerpc-linux powerpc-netbsd powerpc-amiga powerpc-macosclassic powerpc-darwin powerpc-morphos powerpc-embedded powerpc-wii powerpc-aix sparc-linux sparc-netbsd sparc-solaris sparc-embedded x86_64-linux x86_64-freebsd x86_64-haiku x86_64-netbsd x86_64-solaris x86_64-openbsd x86_64-darwin x86_64-win64 x86_64-embedded x86_64-iphonesim x86_64-android x86_64-aros x86_64-dragonfly arm-linux arm-netbsd arm-palmos arm-wince arm-gba arm-nds arm-embedded arm-symbian arm-android arm-aros arm-freertos arm-ios powerpc64-linux powerpc64-darwin powerpc64-embedded powerpc64-aix avr-embedded armeb-linux armeb-embedded mips-linux mipsel-linux mipsel-embedded mipsel-android mipsel-ps1 mips64-linux mips64el-linux jvm-java jvm-android i8086-embedded i8086-msdos i8086-win16 aarch64-linux aarch64-freebsd aarch64-darwin aarch64-win64 aarch64-embedded aarch64-iphonesim aarch64-android aarch64-ios wasm32-embedded wasm32-wasi sparc64-linux riscv32-linux riscv32-embedded riscv32-freertos riscv64-linux riscv64-embedded xtensa-linux xtensa-embedded xtensa-freertos z80-embedded z80-zxspectrum z80-msxdos z80-amstradcpc loongarch64-linux
 >>>>>>> 329518ed906 (add bare-metal to makefile.fpc)
+=======
+MAKEFILETARGETS=i386-linux i386-go32v2 i386-win32 i386-os2 i386-freebsd i386-beos i386-haiku i386-netbsd i386-solaris i386-netware i386-openbsd i386-wdosx i386-darwin i386-emx i386-watcom i386-netwlibc i386-wince i386-embedded i386-symbian i386-nativent i386-iphonesim i386-android i386-aros m68k-linux m68k-netbsd m68k-amiga m68k-atari m68k-palmos m68k-macosclassic m68k-embedded m68k-sinclairql m68k-human68k powerpc-linux powerpc-netbsd powerpc-amiga powerpc-macosclassic powerpc-darwin powerpc-morphos powerpc-embedded powerpc-wii powerpc-aix sparc-linux sparc-netbsd sparc-solaris sparc-embedded x86_64-linux x86_64-freebsd x86_64-haiku x86_64-netbsd x86_64-solaris x86_64-openbsd x86_64-darwin x86_64-win64 x86_64-embedded x86_64-iphonesim x86_64-android x86_64-aros x86_64-dragonfly arm-linux arm-netbsd arm-palmos arm-wince arm-gba arm-nds arm-embedded arm-symbian arm-android arm-aros arm-freertos arm-ios powerpc64-linux powerpc64-darwin powerpc64-embedded powerpc64-aix avr-embedded armeb-linux armeb-embedded mips-linux mipsel-linux mipsel-embedded mipsel-android mipsel-ps1 mips64-linux mips64el-linux jvm-java jvm-android i8086-embedded i8086-msdos i8086-win16 aarch64-linux aarch64-freebsd aarch64-darwin aarch64-win64 aarch64-embedded aarch64-iphonesim aarch64-android aarch64-ios wasm32-embedded wasm32-wasip1 wasm32-wasip1threads wasm32-wasip2 sparc64-linux riscv32-linux riscv32-embedded riscv32-freertos riscv64-linux riscv64-embedded xtensa-linux xtensa-embedded xtensa-freertos z80-embedded z80-zxspectrum z80-msxdos z80-amstradcpc loongarch64-linux
+>>>>>>> c31959e1a1 (ps1CDROM fix)
 BSDs = freebsd netbsd openbsd darwin dragonfly
 UNIXs = linux $(BSDs) solaris qnx haiku aix
 LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari human68k
@@ -849,7 +853,13 @@ endif
 ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 override TARGET_DIRS+=compiler rtl utils packages installer
 endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
+override TARGET_DIRS+=compiler rtl utils packages installer
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
+override TARGET_DIRS+=compiler rtl utils packages installer
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
 override TARGET_DIRS+=compiler rtl utils packages installer
 endif
 ifeq ($(CPU_OS_TARGET),sparc64-linux)
@@ -1212,7 +1222,7 @@ SHAREDLIBEXT=.so
 SHAREDLIBPREFIX=libfp
 STATICLIBPREFIX=libp
 IMPORTLIBPREFIX=libimp
-RSTEXT=.rst
+RSTEXT=.rsj
 EXEDBGEXT=.dbg
 ALL_EXEEXT=.exe
 ifeq ($(OS_TARGET),go32v1)
@@ -1431,7 +1441,14 @@ endif
 ifeq ($(OS_TARGET),zxspectrum)
 OEXT=.rel
 endif
-ifeq ($(OS_TARGET),wasi)
+ifeq ($(OS_TARGET),wasip1)
+EXEEXT=.wasm
+endif
+ALL_EXEEXT+=.wasm
+ifeq ($(OS_TARGET),wasip1threads)
+EXEEXT=.wasm
+endif
+ifeq ($(OS_TARGET),wasip2)
 EXEEXT=.wasm
 endif
 ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
@@ -2115,7 +2132,11 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
+<<<<<<< main
 	-$(DEL) fpcmade.* Package*.fpc *.fpm
+=======
+	-$(DEL) fpcmade.* Package.fpc *.fpm
+>>>>>>> ps1CDROM fix
 	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res symbol_order*.fpc
 	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
@@ -2929,7 +2950,21 @@ TARGET_DIRS_UTILS=1
 TARGET_DIRS_PACKAGES=1
 TARGET_DIRS_INSTALLER=1
 endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasi)
+ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
+TARGET_DIRS_COMPILER=1
+TARGET_DIRS_RTL=1
+TARGET_DIRS_UTILS=1
+TARGET_DIRS_PACKAGES=1
+TARGET_DIRS_INSTALLER=1
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
+TARGET_DIRS_COMPILER=1
+TARGET_DIRS_RTL=1
+TARGET_DIRS_UTILS=1
+TARGET_DIRS_PACKAGES=1
+TARGET_DIRS_INSTALLER=1
+endif
+ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
 TARGET_DIRS_COMPILER=1
 TARGET_DIRS_RTL=1
 TARGET_DIRS_UTILS=1

@@ -5,7 +5,7 @@ uses ps1System;
 
 const
   DMA_MAX_CHUNK_SIZE  =  16;
-  CHAIN_BUFFER_SIZE    = 1024 * 6;
+  CHAIN_BUFFER_SIZE    = 1024 * 7;
   ORDERING_TABLE_SIZE  = 1024;
 
 
@@ -150,9 +150,9 @@ function gp1_vramSize(size: LongInt): LongWord; inline;
 
 type
   DMAChain = record
-    data: array [0..CHAIN_BUFFER_SIZE - 1] of LongWord;
+    data: array [0..CHAIN_BUFFER_SIZE] of LongWord;
     nextPacket: pdword;
-    orderingTable: array [0..ORDERING_TABLE_SIZE - 1] of LongWord;
+    orderingTable: array [0..ORDERING_TABLE_SIZE] of LongWord;
   end;
   PDMAChain = ^DMAChain;
 
