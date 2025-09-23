@@ -285,7 +285,7 @@ type
     class operator := (AValue: TVarRec): TValue; inline;
     class operator := (AValue: TDateTime): TValue; inline;
     class operator := (AValue: TDate): TValue; inline;
-    class operator := (AValue: TTime): TValue; inline;
+    class operator := (AValue: system.TTime): TValue; inline;
     class operator = (const ALeft, ARight: TValue): Boolean; inline;
     class operator <> (const ALeft, ARight: TValue): Boolean; inline;
     property DataSize: SizeInt read GetDataSize;
@@ -2794,9 +2794,9 @@ begin
   Make(@AValue, System.TypeInfo(TDate), Result);
 end;
 
-class operator TValue.:=(AValue: TTime): TValue;
+class operator TValue.:=(AValue: system.TTime): TValue;
 begin
-  Make(@AValue, System.TypeInfo(TTime), Result);
+  Make(@AValue, System.TypeInfo(system.TTime), Result);
 end;
 
 class operator TValue.= (const ALeft, ARight: TValue): Boolean;
