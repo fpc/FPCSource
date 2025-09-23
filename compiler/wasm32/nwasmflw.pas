@@ -76,7 +76,7 @@ interface
       twasmtryfinallynode = class(tcgtryfinallynode)
       private
         procedure pass_generate_code_no_exceptions;
-        procedure pass_generate_code_native_exceptions;
+        procedure pass_generate_code_native_legacy_exceptions;
         procedure pass_generate_code_bf_exceptions;
       public
         procedure pass_generate_code;override;
@@ -992,7 +992,7 @@ implementation
         flowcontrol:=finallyexceptionstate.oldflowcontrol+(finallyexceptionstate.newflowcontrol-[fc_inflowcontrol,fc_catching_exceptions]);
       end;
 
-    procedure twasmtryfinallynode.pass_generate_code_native_exceptions;
+    procedure twasmtryfinallynode.pass_generate_code_native_legacy_exceptions;
       var
         exitfinallylabel,
         continuefinallylabel,
@@ -1401,7 +1401,7 @@ implementation
         if ts_wasm_no_exceptions in current_settings.targetswitches then
           pass_generate_code_no_exceptions
         else if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
-          pass_generate_code_native_exceptions
+          pass_generate_code_native_legacy_exceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
           pass_generate_code_bf_exceptions
         else
