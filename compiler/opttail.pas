@@ -244,16 +244,57 @@ unit opttail;
                  makes no sense
                }
                is_managed_type(vardef) then
-               exit;
+              begin
+{$ifdef debug_opttail}
+        writeln('====================================================================================');
+        write('callnode: ',p.gettypename,' tail call opt disabled because parameter ',i,' ',realname,' ');
+        if is_managed_type(vardef) then
+          write('is managed ')
+        else if (varspez=vs_out) then
+          write('is out parameter');
+        writeln;
+        writeln('====================================================================================');
+{$endif debug_opttail}
+                exit;
+              end;
+
+{$ifdef fix_opttail}
+        { check if the local parameters should prevent tail recursion elimination }
+        for i:=0 to p.localst.count-1 do
+          with tabstractvarsym(p.localst[i]) do
+            if is_managed_type(vardef) then
+              begin
+{$ifdef debug_opttail}
+        writeln('====================================================================================');
+        writeln('callnode: ',p.gettypename,' tail call opt disabled because local ',i,' ',realname,' is managed');
+        writeln('====================================================================================');
+{$endif debug_opttail}
+                exit;
+              end;
+{$endif fix_opttail}
 
         labelsym:=clabelsym.create('$opttail');
         labelnode:=clabelnode.create(cnothingnode.create,labelsym);
         if find_and_replace_tailcalls(n) then
           begin
+{$ifdef debug_opttail}
+        writeln('====================================================================================');
+        writeln('Tail call optimization found:');
+        writeln('====================================================================================');
+        write('callnode: ',p.gettypename);
+        writeln('====================================================================================');
+{$endif debug_opttail}
             oldnodes:=n;
             n:=internalstatements(s);
             addstatement(s,labelnode);
             addstatement(s,oldnodes);
+{$ifdef debug_opttail}
+        writeln('====================================================================================');
+        write('Tail call replaced by: ');
+        printnode(n);
+        writeln('====================================================================================');
+        writeln;
+{$endif debug_opttail}
           end
         else
           labelnode.free;
