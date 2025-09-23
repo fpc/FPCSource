@@ -4,9 +4,9 @@ interface
 uses ps1System;
 
 const
-  DMA_MAX_CHUNK_SIZE  =  16;
-  CHAIN_BUFFER_SIZE    = 1024 * 7;
-  ORDERING_TABLE_SIZE  = 1024;
+  DMA_MAX_CHUNK_SIZE    =  16;
+  CHAIN_BUFFER_SIZE : dword = 1024 * 7;
+  ORDERING_TABLE_SIZE : dword = 1024;
 
 
 // --- GP0 drawing attributes ---
@@ -150,9 +150,9 @@ function gp1_vramSize(size: LongInt): LongWord; inline;
 
 type
   DMAChain = record
-    data: array [0..CHAIN_BUFFER_SIZE] of LongWord;
+    data: array of LongWord;
     nextPacket: pdword;
-    orderingTable: array [0..ORDERING_TABLE_SIZE] of LongWord;
+    orderingTable: array of LongWord;
   end;
   PDMAChain = ^DMAChain;
 
@@ -162,9 +162,13 @@ type
     page, clut : word;
   end;
 
+var
+  dmaChains: array[0..1] of DMAChain;
+
 function RGB(r, g, b: byte): Word;
 
 procedure setupGPU(mode: LongWord; width, height: Integer);
+procedure setupChainOT(chainSize, OTsize: dword);
 
 procedure waitForGP0Ready;
 procedure waitForDMADone;
@@ -436,6 +440,7 @@ var
   R5, G5, B5: Word;
   T: Word;
 begin
+
   { Convert 0–255 channel to 0–31 and mask to 5 bits }
   R5 := (r * 31 div 255) and $1F;
   G5 := (g * 31 div 255) and $1F;
@@ -446,6 +451,7 @@ begin
 
   { Pack into 16-bit PlayStation pixel: TBBBBBGGGGGRRRRR }
   result := (T shl 15) or (B5 shl 10) or (G5 shl 5) or R5;
+
 end;
 
 
@@ -454,7 +460,9 @@ var
   x, y, offsetX, offsetY: Integer;
   horizontalRes: LongWord;
   verticalRes: LongWord;
+
 begin
+
   x := $760;
   if mode = GP1_MODE_PAL then
     y := $A3
@@ -475,24 +483,44 @@ begin
 end;
 
 
+procedure setupChainOT(chainSize, OTsize: dword);
+begin
+
+  CHAIN_BUFFER_SIZE:= chainSize;
+  ORDERING_TABLE_SIZE:= OTsize;
+
+  setlength(dmaChains[0].data, chainSize);
+  setlength(dmaChains[0].orderingTable, OTsize);
+  setlength(dmaChains[1].data, chainSize);
+  setlength(dmaChains[1].orderingTable, OTsize);
+
+  DMA_DPCR:= DMA_DPCR or DMA_DPCR_CH_ENABLE(DMA_GPU) or DMA_DPCR_CH_ENABLE(DMA_OTC);
+
+  GPU_GP1:= gp1_dmaRequestMode(GP1_DREQ_GP0_WRITE);
+  GPU_GP1:= gp1_dispBlank(False);
+
+end;
+
+
 procedure waitForGP0Ready;
 begin
-  while (GPU_GP1 and GP1_STAT_CMD_READY) = 0 do
-    ; // spin
+
+  while (GPU_GP1 and GP1_STAT_CMD_READY) = 0 do ; // spin
+
 end;
 
 
 procedure waitForDMADone;
 begin
-  while (DMA_CHCR(DMA_GPU) and DMA_CHCR_ENABLE) <> 0 do
-  begin
-    asm nop end;
-  end;
+
+  while (DMA_CHCR(DMA_GPU) and DMA_CHCR_ENABLE) <> 0 do asm nop end;
+
 end;
 
 
 procedure WaitForVSync;
 begin
+
   // Wait until IRQ vertical blank flag is set.
   while (IRQ_STAT and (1 shl IRQ_VSYNC)) = 0 do
     asm
@@ -500,18 +528,21 @@ begin
     end;
 
   IRQ_STAT := not (1 shl IRQ_VSYNC);
+
 end;
 
 
 procedure sendLinkedList(data: Pointer);
 begin
+
+  // pointer must be 4-byte aligned
   // DMA must be idle
   waitForDMADone;
-  // pointer must be 4-byte aligned
-  Assert((LongWord(NativeUInt(data)) and 3) = 0);
+
 
   DMA_MADR_Set(DMA_GPU, LongWord(NativeUInt(data)));
   DMA_CHCR_Set(DMA_GPU, DMA_CHCR_WRITE or DMA_CHCR_MODE_LIST or DMA_CHCR_ENABLE);
+
 end;
 
 
@@ -519,9 +550,10 @@ procedure sendVRAMData(data: Pointer; x, y, width, height: Integer);
 var
   lengthWords: NativeUInt;
   chunkSize, numChunks: NativeUInt;
+
 begin
+
   waitForDMADone;
-  Assert((LongWord(NativeUInt(data)) and 3) = 0);
 
   // number of 32-bit words to send: width*height pixels -> half as many words for 16bpp
   lengthWords := (NativeUInt(width) * NativeUInt(height)) div 2;
@@ -535,7 +567,6 @@ begin
   begin
     chunkSize := DMA_MAX_CHUNK_SIZE;
     numChunks := lengthWords div DMA_MAX_CHUNK_SIZE;
-    Assert((lengthWords mod DMA_MAX_CHUNK_SIZE) = 0);
   end;
 
   waitForGP0Ready;
@@ -546,11 +577,13 @@ begin
   DMA_MADR_Set(DMA_GPU, LongWord(NativeUInt(data)));
   DMA_BCR_Set(DMA_GPU, LongWord(chunkSize) or (LongWord(numChunks) shl 16));
   DMA_CHCR_Set(DMA_GPU, DMA_CHCR_WRITE or DMA_CHCR_MODE_SLICE or DMA_CHCR_ENABLE);
+
 end;
 
 
 procedure clearOrderingTable(var table: array of LongWord; numEntries: Integer);
 begin
+
   // Give DMA a pointer to the end of the ordering table (reversed)
   DMA_MADR_Set(DMA_OTC, LongWord(NativeUInt(@table[numEntries - 1])));
   DMA_BCR_Set(DMA_OTC, LongWord(numEntries));
@@ -559,6 +592,7 @@ begin
   // wait until OTC DMA finishes
   while (DMA_CHCR(DMA_OTC) and DMA_CHCR_ENABLE) <> 0 do
     asm nop end;
+
 end;
 
 
@@ -566,11 +600,11 @@ function allocatePacket(var chain: DMAChain; zIndex, numCommands: Integer): pdwo
 var
   ptr: pdword;
   tmp: LongWord;
+
 begin
+
   ptr := chain.nextPacket;
   Inc(chain.nextPacket, numCommands + 1);
-
-//  Assert((zIndex >= 0) and (zIndex < ORDERING_TABLE_SIZE));
 
   // create tag word linking to the current head of orderingTable[zIndex]
   tmp := gp0_tag(numCommands, Pointer(chain.orderingTable[zIndex]));
@@ -579,29 +613,28 @@ begin
   // update ordering table entry to point to this packet (tag pointing to ptr)
   chain.orderingTable[zIndex] := gp0_tag(0, Pointer(ptr));
 
-//  Assert(NativeUInt(chain.nextPacket) < NativeUInt(@chain.data[CHAIN_BUFFER_SIZE]));
-
   // return pointer to the first command word (after tag)
   Result := @ptr[1];
+
 end;
 
 
 function allocatePacket(var chain: DMAChain; numCommands: Integer): PDWord;
 var
   ptr: PDWord;
+
 begin
+
   ptr := chain.nextPacket;
   Inc(chain.nextPacket, numCommands + 1);
   ptr^ := gp0_tag(numCommands, chain.nextPacket);
-//  Assert(chain.nextPacket < @chain.data[High(chain.data)]);
   Result := ptr + 1;
+
 end;
 
 
-procedure uploadTexture(var info: TextureInfo; const data: Pointer;
-  x, y, width, height: Integer);
+procedure uploadTexture(var info: TextureInfo; const data: Pointer; x, y, width, height: Integer);
 begin
-  Assert((width <= 256) and (height <= 256));
 
   sendVRAMData(data, x, y, width, height);
   waitForDMADone;
@@ -612,28 +645,23 @@ begin
   info.v      := Byte(y mod 256);
   info.width  := Word(width);
   info.height := Word(height);
+
 end;
 
 
-procedure uploadIndexedTexture(var info: TextureInfo; const image, palette: Pointer;
-  imageX, imageY, paletteX, paletteY, width, height: Integer; colorDepth: longint);
+procedure uploadIndexedTexture(var info: TextureInfo; const image, palette: Pointer; imageX, imageY, paletteX, paletteY, width, height: Integer; colorDepth: longint);
 var
   numColors, widthDivider: Integer;
-begin
-  Assert((width <= 256) and (height <= 256));
 
-  if colorDepth = GP0_COLOR_8BPP then
-  begin
+begin
+
+  if colorDepth = GP0_COLOR_8BPP then begin
     numColors := 256;
     widthDivider := 2;
-  end
-  else
-  begin
+  end else begin
     numColors := 16;
     widthDivider := 4;
   end;
-
-  Assert((paletteX mod 16 = 0) and ((paletteX + numColors) <= 1024));
 
   sendVRAMData(image, imageX, imageY, width div widthDivider, height);
   waitForDMADone;
@@ -646,6 +674,7 @@ begin
   info.v      := Byte(imageY mod 256);
   info.width  := Word(width);
   info.height := Word(height);
+
 end;
 
 
