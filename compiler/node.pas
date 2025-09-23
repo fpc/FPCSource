@@ -477,6 +477,8 @@ interface
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
 
+    procedure printfileinfo(var t:text;pos:tfileposinfo);
+    procedure printfileinfo(pos:tfileposinfo);
     procedure printnode(var t:text;n:tnode);
     procedure printnode(n:tnode);
 {$ifdef DEBUG_NODE_XML}
@@ -502,7 +504,7 @@ implementation
 {$ifdef DEBUG_NODE_XML}
        cutils,
 {$endif DEBUG_NODE_XML}
-       ppu,
+       ppu,fmodule,
        symconst,
        nutils,nflw,
        defutil;
@@ -651,6 +653,23 @@ implementation
     procedure printnode(n:tnode);
       begin
         printnode(output,n);
+      end;
+
+    procedure printfileinfo(var t:text; pos:tfileposinfo);
+      var
+	infile : string;
+      begin
+        try
+          infile:=get_module(pos.moduleindex).sourcefiles.get_file(pos.fileindex).name;
+	except
+          infile:='inconsistent';
+	end;
+        write(t,'(',infile,':',pos.line,',',pos.column,')');
+      end;
+
+    procedure printfileinfo(pos:tfileposinfo);
+      begin
+        printfileinfo(output,pos);
       end;
 
 {$ifdef DEBUG_NODE_XML}
@@ -860,11 +879,11 @@ implementation
       begin
         write(t,nodetype2str[nodetype]);
         if assigned(resultdef) then
-          write(t,', resultdef = ',resultdef.typesymbolprettyname,' = "',resultdef.GetTypeName,'"')
+          write(t,', resultdef = ',resultdef.typesymbolprettyname,' = "',resultdef.GetTypeName,'" ')
         else
-          write(t,', resultdef = <nil>');
-        write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
-                  ', loc = ',tcgloc2str[location.loc],
+          write(t,', resultdef = <nil> ');
+        printfileinfo(t,fileinfo);
+	writeln(t,', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
                   ', flags = [');
         first:=true;
