@@ -2589,7 +2589,8 @@ uses
                 end;
             end;
           a_legacy_catch,
-          a_legacy_throw:
+          a_legacy_throw,
+          a_throw:
             begin
               if ops<>1 then
                 internalerror(2021092709);
@@ -3583,12 +3584,14 @@ uses
                 end;
             end;
           a_legacy_catch,
-          a_legacy_throw:
+          a_legacy_throw,
+          a_throw:
             begin
               case opcode of
                 a_legacy_catch:
                   WriteByte($07);
-                a_legacy_throw:
+                a_legacy_throw,
+                a_throw:
                   WriteByte($08);
                 else
                   internalerror(2021092708);
