@@ -2244,6 +2244,7 @@ uses
           a_end_block,
           a_end_if,
           a_end_loop,
+          a_end_try_table,
           a_end_legacy_try,
           a_end_function,
           a_legacy_catch_all,
@@ -3001,6 +3002,7 @@ uses
           a_end_block,
           a_end_if,
           a_end_loop,
+          a_end_try_table,
           a_end_legacy_try,
           a_end_function:
             WriteByte($0B);
