@@ -21,6 +21,9 @@ uses
   {$ifdef unix}
   cwstring,
   {$endif}
+  {$ifdef wasi}
+  unicodeducet, fpwidestring,
+  {$endif}
   Classes, testjsondata, testjsonparser, testjsonrtti, consoletestrunner, testjsonreader;
 
 type
