@@ -708,13 +708,17 @@ implementation
          begin
            if (hp^.pos=ref.temppos.val) then
             begin
+              if hp^.temptype=tt_free then
+                begin
+                  result:=false;
+                  exit;
+                end;
               temp_to_ref(hp, tmpref);
               result:=references_equal(ref, tmpref);
               exit;
             end;
            hp:=hp^.next;
          end;
-        internalerror(2018042601);
       end;
 
 
