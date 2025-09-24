@@ -719,6 +719,7 @@ implementation
             end;
            hp:=hp^.next;
          end;
+        result:=false
       end;
 
 
