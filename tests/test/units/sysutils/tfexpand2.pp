@@ -22,7 +22,7 @@ program TFExpand;
 {$DEFINE DEBUG}
 (* Defining DEBUG causes all the source and target strings *)
 (* to be written to the console to make debugging easier.  *)
-{$ifdef go32v2}
+{$if defined(go32v2) or defined(wasi)}
   {$define USE_INTERNAL_UNICODE}
 {$endif}
 

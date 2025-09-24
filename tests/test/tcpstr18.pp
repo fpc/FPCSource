@@ -6,7 +6,7 @@ program tcpstr18;
   {$codepage cp866}
 {$endif}
 
-{$ifdef go32v2}
+{$if defined(go32v2) or defined(wasi)}
   {$define USE_INTERNAL_UNICODE}
 {$endif}
 
