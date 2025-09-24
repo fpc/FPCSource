@@ -29,10 +29,10 @@ interface
 {$ifndef FPUNONE}
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.SysUtils, System.Math;
+  System.SysUtils, System.Math, System.SysConst;
 {$ELSE FPC_DOTTEDUNITS}  
 uses
-  sysutils, math;
+  sysutils, math, SysConst;
 {$ENDIF FPC_DOTTEDUNITS}
 
 
@@ -569,6 +569,15 @@ end;
 function RegisterConversionType(Fam: TConvFamily; const S: String;
   const AToCommonFunc, AFromCommonFunc: TConversionProc): TConvType;
 begin
+  // Many platforms automatically raise an exception when calling a nil pointer
+  // function, but some don't. WebAssembly, for example, traps and terminates
+  // the program, without the ability to handle the exception. Others, like
+  // real mode DOS, crash. Since we have tests that pass a nil parameter and
+  // expect an exception, we also add an explicit check, so it works
+  // consistently on all platforms.
+  if not Assigned(AToCommonFunc) then
+    raise EAccessViolation.Create(SAccessViolation);
+
   result:=InternalRegisterConversionType(Fam,S,(AToCommonFunc(1)-AToCommonFunc(0)),AToCommonFunc,AFromCommonFunc);
 end;
 
