@@ -861,10 +861,9 @@ begin
   SetUnicodeStringManager(locWideStringManager);
 
   DefaultUnicodeCodePage:=CP_UTF16;
-{$ifdef MSWINDOWS}
+{$if defined(MSWINDOWS)}
   DefaultSystemCodePage:=GetACP();
-{$ELSE MSWINDOWS}
- {$ifdef UNIX}
+{$elseif defined(UNIX)}
   DefaultSystemCodePage:=GetSystemCodepage;
   if (DefaultSystemCodePage = CP_NONE) then
     DefaultSystemCodePage:=CP_UTF8;
@@ -874,15 +873,14 @@ begin
   DefaultFileSystemCodePage:=DefaultSystemCodepage;
   {$endif}
   DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
- {$ELSE UNIX}
+{$else}
   if Assigned (WideStringManager.GetStandardCodePageProc) then
    DefaultSystemCodePage := WideStringManager.GetStandardCodePageProc (scpAnsi)
   else
    DefaultSystemCodePage := CP_NONE;
   DefaultFileSystemCodePage := DefaultSystemCodePage;
   DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
- {$endif UNIX}
-{$endif MSWINDOWS}
+{$endif}
 end;
 
 
