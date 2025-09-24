@@ -32,6 +32,9 @@ uses
   cthreads,
   cwstring,
 {$endif}
+{$ifdef wasi}
+  unicodeducet, fpwidestring,
+{$endif}
 {$ifdef useffi}
   ffi.manager,
 {$endif}
