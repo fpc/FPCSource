@@ -1,7 +1,7 @@
 program tarray15;
 
 {$define target_supports_rodata}
-{$if defined(msdos) or defined(hasamiga) or defined(atari) or defined(palmos)}
+{$if defined(msdos) or defined(hasamiga) or defined(atari) or defined(palmos) or defined(cpuwasm32)}
 {$undef target_supports_rodata}
 {$endif}
 
