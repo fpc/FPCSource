@@ -2,7 +2,7 @@
 
 program treadonlydata2;
 
-{$if defined(msdos) or defined(hasamiga) or defined(atari) or defined(palmos)}
+{$if defined(msdos) or defined(hasamiga) or defined(atari) or defined(palmos) or defined(cpuwasm32)}
   {$define target_does_not_support_rodata}
 {$ekse}
   {$define target_supports_rodata}
