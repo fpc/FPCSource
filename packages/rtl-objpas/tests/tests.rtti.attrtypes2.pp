@@ -10,7 +10,7 @@ uses
   SysUtils,
   TypInfo,
   Rtti
-  {$ifndef Windows},
+  {$if not defined(Windows) and not defined(WASI)},
   ffi.manager
   {$endif};
 
