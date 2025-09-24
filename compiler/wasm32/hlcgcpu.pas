@@ -1892,13 +1892,13 @@ implementation
       if docheck then
         begin
           { * signed overflow for addition iff
-             - src1 and src2 are negative and result is positive (excep in case of
+             - src2 and src1 are negative and result is positive (excep in case of
                subtraction, then sign of src1 has to be inverted)
-             - src1 and src2 are positive and result is negative
+             - src2 and src1 are positive and result is negative
               -> Simplified boolean equivalent (in terms of sign bits):
-                 not(src1 xor src2) and (src1 xor dst)
+                 not(src2 xor src1) and (src2 xor dst)
 
-             for subtraction, multiplication: invert src1 sign bit
+             for subtraction, multiplication: invert src2 sign bit
              for division: handle separately (div by zero, low(inttype) div -1),
                not supported by this code
 
@@ -1913,12 +1913,12 @@ implementation
                   (torddef(size).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
                                              pasbool1,pasbool8,pasbool16,pasbool32,pasbool64]))) then
             begin
-              a_load_reg_stack(list,size,orgsrc1);
+              a_load_reg_stack(list,size,orgsrc2);
               if op in [OP_SUB,OP_IMUL] then
                 a_op_stack(list,OP_NOT,size);
-              a_op_reg_stack(list,OP_XOR,size,orgsrc2);
+              a_op_reg_stack(list,OP_XOR,size,orgsrc1);
               a_op_stack(list,OP_NOT,size);
-              a_load_reg_stack(list,size,orgsrc1);
+              a_load_reg_stack(list,size,orgsrc2);
               a_op_reg_stack(list,OP_XOR,size,dst);
               a_op_stack(list,OP_AND,size);
               a_op_const_stack(list,OP_SHR,size,(size.size*8)-1);
