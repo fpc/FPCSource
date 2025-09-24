@@ -4703,6 +4703,17 @@ const
                  else
                    expectloc:=LOC_JUMP;
               end
+{$elseif defined(wasm)}
+            { WebAssembly does not support overflow checking for 64-bit multiplication }
+            else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) and
+                    (cs_check_overflow in current_settings.localswitches) and
+                    (nodetype = muln) then
+              begin
+                result := first_add64bitint;
+                if assigned(result) then
+                  exit;
+                expectloc:=LOC_REGISTER
+              end
 {$endif not(cpu64bitalu) and not(cpuhighleveltarget)}
              { generic 32bit conversion }
              else
