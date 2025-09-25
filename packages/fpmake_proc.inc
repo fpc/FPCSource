@@ -144,6 +144,12 @@ begin
 {$include fcl-json/fpmake.pp}
 end;
 
+procedure add_fcl_md(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-md/fpmake.pp}
+end;
+
 procedure add_fcl_net(const ADirectory: string);
 begin
   with Installer do
@@ -858,7 +864,7 @@ begin
 {$include qlunits/fpmake.pp}
 end;
 
-procedure add_mustache(const ADirectory: string);
+procedure add_fcl_mustache(const ADirectory: string);
 begin
   with Installer do
 {$include fcl-mustache/fpmake.pp}
