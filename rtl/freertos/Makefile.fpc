@@ -90,6 +90,11 @@ override FPCOPT+=-Cprv32imac
 CPU_UNITS=esp32c6 esp32c6idf_50200
 CPU_UNITS_DEFINED=1
 endif
+ifeq ($(SUBARCH),rv32imafc)
+override FPCOPT+=-Cprv32imafc
+CPU_UNITS=
+CPU_UNITS_DEFINED=1
+endif
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
