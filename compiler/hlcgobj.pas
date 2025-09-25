@@ -2112,37 +2112,37 @@ implementation
           if is_signed(subsetsize) then
             begin
               { sign extend }
-              a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-loadbitsize+sref.startbit,valuereg);
-              a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg);
+              a_op_const_reg(list,OP_SHL,aluuinttype,AIntBits-loadbitsize+sref.startbit,valuereg);
+              a_op_const_reg(list,OP_SAR,aluuinttype,AIntBits-sref.bitlen,valuereg);
             end
           else
             begin
-              a_op_const_reg(list,OP_SHL,osuinttype,restbits,valuereg);
+              a_op_const_reg(list,OP_SHL,aluuinttype,restbits,valuereg);
               { mask other bits }
               if (sref.bitlen<>AIntBits) then
-                a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
+                a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
             end;
-          a_op_const_reg(list,OP_SHR,osuinttype,loadbitsize-restbits,extra_value_reg)
+          a_op_const_reg(list,OP_SHR,aluuinttype,loadbitsize-restbits,extra_value_reg)
         end
       else
         begin
           { valuereg contains the lower bits, extra_value_reg the upper }
-          a_op_const_reg(list,OP_SHR,osuinttype,sref.startbit,valuereg);
+          a_op_const_reg(list,OP_SHR,aluuinttype,sref.startbit,valuereg);
           if is_signed(subsetsize) then
             begin
-              a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-sref.bitlen+loadbitsize-sref.startbit,extra_value_reg);
-              a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,extra_value_reg);
+              a_op_const_reg(list,OP_SHL,aluuinttype,AIntBits-sref.bitlen+loadbitsize-sref.startbit,extra_value_reg);
+              a_op_const_reg(list,OP_SAR,aluuinttype,AIntBits-sref.bitlen,extra_value_reg);
             end
           else
             begin
-              a_op_const_reg(list,OP_SHL,osuinttype,loadbitsize-sref.startbit,extra_value_reg);
+              a_op_const_reg(list,OP_SHL,aluuinttype,loadbitsize-sref.startbit,extra_value_reg);
               { mask other bits }
               if (sref.bitlen <> AIntBits) then
-                a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),extra_value_reg);
+                a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),extra_value_reg);
             end;
         end;
       { merge }
-      a_op_reg_reg(list,OP_OR,osuinttype,extra_value_reg,valuereg);
+      a_op_reg_reg(list,OP_OR,aluuinttype,extra_value_reg,valuereg);
     end;
 
   procedure thlcgobj.a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister);
@@ -2152,10 +2152,10 @@ implementation
       extra_value_reg,
       tmpreg: tregister;
     begin
-      tmpreg:=getintregister(list,osuinttype);
+      tmpreg:=getintregister(list,aluuinttype);
       tmpref:=sref.ref;
       inc(tmpref.offset,loadbitsize div 8);
-      extra_value_reg:=getintregister(list,osuinttype);
+      extra_value_reg:=getintregister(list,aluuinttype);
 
       if (target_info.endian=endian_big) then
         begin
@@ -2163,71 +2163,71 @@ implementation
           { is entirely in valuereg.                                      }
 
           { get the data in valuereg in the right place }
-          a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,valuereg);
+          a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,valuereg);
           if is_signed(subsetsize) then
             begin
-              a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-loadbitsize,valuereg);
-              a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg)
+              a_op_const_reg(list,OP_SHL,aluuinttype,AIntBits-loadbitsize,valuereg);
+              a_op_const_reg(list,OP_SAR,aluuinttype,AIntBits-sref.bitlen,valuereg)
             end
           else
             begin
-              a_op_const_reg(list,OP_SHR,osuinttype,loadbitsize-sref.bitlen,valuereg);
+              a_op_const_reg(list,OP_SHR,aluuinttype,loadbitsize-sref.bitlen,valuereg);
               if (loadbitsize<>AIntBits) then
                 { mask left over bits }
-                a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
+                a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
             end;
-          tmpreg := getintregister(list,osuinttype);
+          tmpreg := getintregister(list,aluuinttype);
 
           { ensure we don't load anything past the end of the array }
           current_asmdata.getjumplabel(hl);
-          a_cmp_const_reg_label(list,osuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
+          a_cmp_const_reg_label(list,aluuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
           { the bits in extra_value_reg (if any) start at the most significant bit =>         }
           { extra_value_reg must be shr by (loadbitsize-sref.bitlen)+(loadsize-sref.bitindex) }
           { => = -(sref.bitindex+(sref.bitlen-2*loadbitsize))                                 }
-          a_op_const_reg_reg(list,OP_ADD,osuinttype,sref.bitlen-2*loadbitsize,sref.bitindexreg,tmpreg);
-          a_op_reg_reg(list,OP_NEG,osuinttype,tmpreg,tmpreg);
+          a_op_const_reg_reg(list,OP_ADD,aluuinttype,sref.bitlen-2*loadbitsize,sref.bitindexreg,tmpreg);
+          a_op_reg_reg(list,OP_NEG,aluuinttype,tmpreg,tmpreg);
 
           { load next "loadbitsize" bits of the array }
-          a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
+          a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),aluuinttype,tmpref,extra_value_reg);
 
-          a_op_reg_reg(list,OP_SHR,osuinttype,tmpreg,extra_value_reg);
+          a_op_reg_reg(list,OP_SHR,aluuinttype,tmpreg,extra_value_reg);
           { if there are no bits in extra_value_reg, then sref.bitindex was      }
           { < loadsize-sref.bitlen, and therefore tmpreg will now be >= loadsize }
           { => extra_value_reg is now 0                                          }
           { merge }
-          a_op_reg_reg(list,OP_OR,osuinttype,extra_value_reg,valuereg);
+          a_op_reg_reg(list,OP_OR,aluuinttype,extra_value_reg,valuereg);
           { no need to mask, necessary masking happened earlier on }
           a_label(list,hl);
         end
       else
         begin
-          a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,valuereg);
+          a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,valuereg);
 
           { ensure we don't load anything past the end of the array }
           current_asmdata.getjumplabel(hl);
-          a_cmp_const_reg_label(list,osuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
+          a_cmp_const_reg_label(list,aluuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
           { Y-x = -(Y-x) }
-          a_op_const_reg_reg(list,OP_SUB,osuinttype,loadbitsize,sref.bitindexreg,tmpreg);
-          a_op_reg_reg(list,OP_NEG,osuinttype,tmpreg,tmpreg);
+          a_op_const_reg_reg(list,OP_SUB,aluuinttype,loadbitsize,sref.bitindexreg,tmpreg);
+          a_op_reg_reg(list,OP_NEG,aluuinttype,tmpreg,tmpreg);
 
           { load next "loadbitsize" bits of the array }
-          a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),osuinttype,tmpref,extra_value_reg);
+          a_load_ref_reg(list,cgsize_orddef(int_cgsize(loadbitsize div 8)),aluuinttype,tmpref,extra_value_reg);
 
           { tmpreg is in the range 1..<cpu_bitsize>-1 -> always ok }
-          a_op_reg_reg(list,OP_SHL,osuinttype,tmpreg,extra_value_reg);
+          a_op_reg_reg(list,OP_SHL,aluuinttype,tmpreg,extra_value_reg);
           { merge }
-          a_op_reg_reg(list,OP_OR,osuinttype,extra_value_reg,valuereg);
+          a_op_reg_reg(list,OP_OR,aluuinttype,extra_value_reg,valuereg);
           a_label(list,hl);
           { sign extend or mask other bits }
           if is_signed(subsetsize) then
             begin
-              a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-sref.bitlen,valuereg);
-              a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg);
+              a_op_const_reg(list,OP_SHL,aluuinttype,AIntBits-sref.bitlen,valuereg);
+              a_op_const_reg(list,OP_SAR,aluuinttype,AIntBits-sref.bitlen,valuereg);
             end
           else
-            a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
+            a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
         end;
     end;
 
@@ -2250,8 +2250,8 @@ implementation
       loadbitsize:=loadsize.size*8;
 
       { load the (first part) of the bit sequence }
-      valuereg:=getintregister(list,osuinttype);
-      a_load_ref_reg(list,loadsize,osuinttype,sref.ref,valuereg);
+      valuereg:=getintregister(list,aluuinttype);
+      a_load_ref_reg(list,loadsize,aluuinttype,sref.ref,valuereg);
 
       { constant offset of bit sequence? }
       if not extra_load then
@@ -2260,7 +2260,7 @@ implementation
             begin
               { use subsetreg routine, it may have been overridden with an optimized version }
               tosreg.subsetreg:=valuereg;
-              tosreg.subsetregsize:=def_cgsize(osuinttype);
+              tosreg.subsetregsize:=def_cgsize(aluuinttype);
               { subsetregs always count bits from right to left }
               if (target_info.endian=endian_big) then
                 tosreg.startbit:=loadbitsize-(sref.startbit+sref.bitlen)
@@ -2283,86 +2283,86 @@ implementation
                 begin
                   if (slopt=SL_SETZERO) and (sref.bitlen=1) and (target_info.endian=endian_little) then
                     begin
-                      a_bit_set_reg_reg(list,false,osuinttype,osuinttype,sref.bitindexreg,valuereg);
+                      a_bit_set_reg_reg(list,false,aluuinttype,aluuinttype,sref.bitindexreg,valuereg);
 
                       { store back to memory }
                       tmpreg:=getintregister(list,loadsize);
-                      a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+                      a_load_reg_reg(list,aluuinttype,loadsize,valuereg,tmpreg);
                       a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
                       exit;
                     end
                   else
                     begin
-                      maskreg:=getintregister(list,osuinttype);
+                      maskreg:=getintregister(list,aluuinttype);
                       if (target_info.endian = endian_big) then
                         begin
-                          a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
-                          a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,maskreg);
+                          a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen),maskreg);
+                          a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,maskreg);
                         end
                       else
                         begin
-                          a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
-                          a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,maskreg);
+                          a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
+                          a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,maskreg);
                         end;
-                      a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
-                      a_op_reg_reg(list,OP_AND,osuinttype,maskreg,valuereg);
+                      a_op_reg_reg(list,OP_NOT,aluuinttype,maskreg,maskreg);
+                      a_op_reg_reg(list,OP_AND,aluuinttype,maskreg,valuereg);
                     end;
                 end;
 
               { insert the value }
               if (slopt<>SL_SETZERO) then
                 begin
-                  tmpreg:=getintregister(list,osuinttype);
+                  tmpreg:=getintregister(list,aluuinttype);
                   if (slopt<>SL_SETMAX) then
-                    a_load_reg_reg(list,fromsize,osuinttype,fromreg,tmpreg)
+                    a_load_reg_reg(list,fromsize,aluuinttype,fromreg,tmpreg)
                   { setting of a single bit?
                     then we might take advantage of the CPU's bit set instruction }
                   else if (sref.bitlen=1) and (target_info.endian=endian_little) then
                     begin
-                      a_bit_set_reg_reg(list,true,osuinttype,osuinttype,sref.bitindexreg,valuereg);
+                      a_bit_set_reg_reg(list,true,aluuinttype,aluuinttype,sref.bitindexreg,valuereg);
 
                       { store back to memory }
                       tmpreg:=getintregister(list,loadsize);
-                      a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+                      a_load_reg_reg(list,aluuinttype,loadsize,valuereg,tmpreg);
                       a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
                       exit;
                     end
                   else if (sref.bitlen<>AIntBits) then
-                    a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1), tmpreg)
+                    a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1), tmpreg)
                   else
-                    a_load_const_reg(list,osuinttype,-1,tmpreg);
+                    a_load_const_reg(list,aluuinttype,-1,tmpreg);
                   if (target_info.endian=endian_big) then
                     begin
-                      a_op_const_reg(list,OP_SHL,osuinttype,loadbitsize-sref.bitlen,tmpreg);
+                      a_op_const_reg(list,OP_SHL,aluuinttype,loadbitsize-sref.bitlen,tmpreg);
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
                         begin
                           if (loadbitsize<>AIntBits) then
                             bitmask:=(((aword(1) shl loadbitsize)-1) xor ((aword(1) shl (loadbitsize-sref.bitlen))-1))
                           else
                             bitmask:=(high(aword) xor ((aword(1) shl (loadbitsize-sref.bitlen))-1));
-                          a_op_const_reg(list,OP_AND,osuinttype,bitmask,tmpreg);
+                          a_op_const_reg(list,OP_AND,aluuinttype,bitmask,tmpreg);
                         end;
-                      a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,tmpreg);
+                      a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,tmpreg);
                     end
                   else
                     begin
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
-                        a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),tmpreg);
-                      a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,tmpreg);
+                        a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),tmpreg);
+                      a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,tmpreg);
                     end;
-                  a_op_reg_reg(list,OP_OR,osuinttype,tmpreg,valuereg);
+                  a_op_reg_reg(list,OP_OR,aluuinttype,tmpreg,valuereg);
                 end;
             end;
           { store back to memory }
           tmpreg:=getintregister(list,loadsize);
-          a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+          a_load_reg_reg(list,aluuinttype,loadsize,valuereg,tmpreg);
           a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
           exit;
         end
       else
         begin
           { load next value }
-          extra_value_reg:=getintregister(list,osuinttype);
+          extra_value_reg:=getintregister(list,aluuinttype);
           tmpref:=sref.ref;
           inc(tmpref.offset,loadbitsize div 8);
 
@@ -2370,12 +2370,12 @@ implementation
           { on e.g. i386 with shld/shrd                                 }
           if (sref.bitindexreg = NR_NO) then
             begin
-              a_load_ref_reg(list,loadsize,osuinttype,tmpref,extra_value_reg);
+              a_load_ref_reg(list,loadsize,aluuinttype,tmpref,extra_value_reg);
 
               fromsreg.subsetreg:=fromreg;
               fromsreg.subsetregsize:=def_cgsize(fromsize);
               tosreg.subsetreg:=valuereg;
-              tosreg.subsetregsize:=def_cgsize(osuinttype);
+              tosreg.subsetregsize:=def_cgsize(aluuinttype);
 
               { transfer first part }
               fromsreg.bitlen:=loadbitsize-sref.startbit;
@@ -2410,7 +2410,7 @@ implementation
               a_load_reg_ref(list,loadsize,loadsize,valuereg,sref.ref);
 {$else}
               tmpreg:=getintregister(list,loadsize);
-              a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+              a_load_reg_reg(list,aluuinttype,loadsize,valuereg,tmpreg);
               a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
 {$endif}
 
@@ -2444,7 +2444,7 @@ implementation
                   a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
               end;
               tmpreg:=getintregister(list,loadsize);
-              a_load_reg_reg(list,osuinttype,loadsize,extra_value_reg,tmpreg);
+              a_load_reg_reg(list,aluuinttype,loadsize,extra_value_reg,tmpreg);
               a_load_reg_ref(list,loadsize,loadsize,tmpreg,tmpref);
               exit;
             end
@@ -2460,114 +2460,114 @@ implementation
               { generate mask to zero the bits we have to insert }
               if (slopt <> SL_SETMAX) then
                 begin
-                  maskreg := getintregister(list,osuinttype);
+                  maskreg := getintregister(list,aluuinttype);
                   if (target_info.endian = endian_big) then
                     begin
-                      a_load_const_reg(list,osuinttype,tcgint(((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen)),maskreg);
-                      a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,maskreg);
+                      a_load_const_reg(list,aluuinttype,tcgint(((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen)),maskreg);
+                      a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,maskreg);
                     end
                   else
                     begin
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
-                      a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,maskreg);
+                      a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
+                      a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,maskreg);
                     end;
 
-                  a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
-                  a_op_reg_reg(list,OP_AND,osuinttype,maskreg,valuereg);
+                  a_op_reg_reg(list,OP_NOT,aluuinttype,maskreg,maskreg);
+                  a_op_reg_reg(list,OP_AND,aluuinttype,maskreg,valuereg);
                 end;
 
               { insert the value }
               if (slopt <> SL_SETZERO) then
                 begin
-                  tmpreg := getintregister(list,osuinttype);
+                  tmpreg := getintregister(list,aluuinttype);
                   if (slopt <> SL_SETMAX) then
-                    a_load_reg_reg(list,fromsize,osuinttype,fromreg,tmpreg)
+                    a_load_reg_reg(list,fromsize,aluuinttype,fromreg,tmpreg)
                   else if (sref.bitlen <> AIntBits) then
-                    a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen) - 1), tmpreg)
+                    a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen) - 1), tmpreg)
                   else
-                    a_load_const_reg(list,osuinttype,-1,tmpreg);
+                    a_load_const_reg(list,aluuinttype,-1,tmpreg);
                   if (target_info.endian = endian_big) then
                     begin
-                      a_op_const_reg(list,OP_SHL,osuinttype,loadbitsize-sref.bitlen,tmpreg);
+                      a_op_const_reg(list,OP_SHL,aluuinttype,loadbitsize-sref.bitlen,tmpreg);
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
                         { mask left over bits }
-                        a_op_const_reg(list,OP_AND,osuinttype,tcgint(((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen)),tmpreg);
-                      a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,tmpreg);
+                        a_op_const_reg(list,OP_AND,aluuinttype,tcgint(((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen)),tmpreg);
+                      a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,tmpreg);
                     end
                   else
                     begin
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
                         { mask left over bits }
-                        a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),tmpreg);
-                      a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,tmpreg);
+                        a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),tmpreg);
+                      a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,tmpreg);
                     end;
-                  a_op_reg_reg(list,OP_OR,osuinttype,tmpreg,valuereg);
+                  a_op_reg_reg(list,OP_OR,aluuinttype,tmpreg,valuereg);
                 end;
               tmpreg:=getintregister(list,loadsize);
-              a_load_reg_reg(list,osuinttype,loadsize,valuereg,tmpreg);
+              a_load_reg_reg(list,aluuinttype,loadsize,valuereg,tmpreg);
               a_load_reg_ref(list,loadsize,loadsize,tmpreg,sref.ref);
 
               { make sure we do not read/write past the end of the array }
               current_asmdata.getjumplabel(hl);
-              a_cmp_const_reg_label(list,osuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
+              a_cmp_const_reg_label(list,aluuinttype,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
-              a_load_ref_reg(list,loadsize,osuinttype,tmpref,extra_value_reg);
-              tmpindexreg:=getintregister(list,osuinttype);
+              a_load_ref_reg(list,loadsize,aluuinttype,tmpref,extra_value_reg);
+              tmpindexreg:=getintregister(list,aluuinttype);
 
               { load current array value }
               if (slopt<>SL_SETZERO) then
                 begin
-                  tmpreg:=getintregister(list,osuinttype);
+                  tmpreg:=getintregister(list,aluuinttype);
                   if (slopt<>SL_SETMAX) then
-                     a_load_reg_reg(list,fromsize,osuinttype,fromreg,tmpreg)
+                     a_load_reg_reg(list,fromsize,aluuinttype,fromreg,tmpreg)
                   else if (sref.bitlen<>AIntBits) then
-                    a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen) - 1), tmpreg)
+                    a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen) - 1), tmpreg)
                   else
-                    a_load_const_reg(list,osuinttype,-1,tmpreg);
+                    a_load_const_reg(list,aluuinttype,-1,tmpreg);
                 end;
 
               { generate mask to zero the bits we have to insert }
               if (slopt<>SL_SETMAX) then
                 begin
-                  maskreg:=getintregister(list,osuinttype);
+                  maskreg:=getintregister(list,aluuinttype);
                   if (target_info.endian=endian_big) then
                     begin
-                      a_op_const_reg_reg(list,OP_ADD,osuinttype,sref.bitlen-2*loadbitsize,sref.bitindexreg,tmpindexreg);
-                      a_op_reg_reg(list,OP_NEG,osuinttype,tmpindexreg,tmpindexreg);
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
-                      a_op_reg_reg(list,OP_SHL,osuinttype,tmpindexreg,maskreg);
+                      a_op_const_reg_reg(list,OP_ADD,aluuinttype,sref.bitlen-2*loadbitsize,sref.bitindexreg,tmpindexreg);
+                      a_op_reg_reg(list,OP_NEG,aluuinttype,tmpindexreg,tmpindexreg);
+                      a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
+                      a_op_reg_reg(list,OP_SHL,aluuinttype,tmpindexreg,maskreg);
                     end
                   else
                     begin
                       { Y-x = -(x-Y) }
-                      a_op_const_reg_reg(list,OP_SUB,osuinttype,loadbitsize,sref.bitindexreg,tmpindexreg);
-                      a_op_reg_reg(list,OP_NEG,osuinttype,tmpindexreg,tmpindexreg);
-                      a_load_const_reg(list,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
-                      a_op_reg_reg(list,OP_SHR,osuinttype,tmpindexreg,maskreg);
+                      a_op_const_reg_reg(list,OP_SUB,aluuinttype,loadbitsize,sref.bitindexreg,tmpindexreg);
+                      a_op_reg_reg(list,OP_NEG,aluuinttype,tmpindexreg,tmpindexreg);
+                      a_load_const_reg(list,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),maskreg);
+                      a_op_reg_reg(list,OP_SHR,aluuinttype,tmpindexreg,maskreg);
                     end;
 
-                  a_op_reg_reg(list,OP_NOT,osuinttype,maskreg,maskreg);
-                  a_op_reg_reg(list,OP_AND,osuinttype,maskreg,extra_value_reg);
+                  a_op_reg_reg(list,OP_NOT,aluuinttype,maskreg,maskreg);
+                  a_op_reg_reg(list,OP_AND,aluuinttype,maskreg,extra_value_reg);
                 end;
 
               if (slopt<>SL_SETZERO) then
                 begin
                   if (target_info.endian=endian_big) then
-                    a_op_reg_reg(list,OP_SHL,osuinttype,tmpindexreg,tmpreg)
+                    a_op_reg_reg(list,OP_SHL,aluuinttype,tmpindexreg,tmpreg)
                   else
                     begin
                       if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
-                        a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),tmpreg);
-                      a_op_reg_reg(list,OP_SHR,osuinttype,tmpindexreg,tmpreg);
+                        a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),tmpreg);
+                      a_op_reg_reg(list,OP_SHR,aluuinttype,tmpindexreg,tmpreg);
                     end;
-                  a_op_reg_reg(list,OP_OR,osuinttype,tmpreg,extra_value_reg);
+                  a_op_reg_reg(list,OP_OR,aluuinttype,tmpreg,extra_value_reg);
                 end;
 {$ifndef cpuhighleveltarget}
               extra_value_reg:=cg.makeregsize(list,extra_value_reg,def_cgsize(loadsize));
               a_load_reg_ref(list,loadsize,loadsize,extra_value_reg,tmpref);
 {$else}
               tmpreg:=getintregister(list,loadsize);
-              a_load_reg_reg(list,osuinttype,loadsize,extra_value_reg,tmpreg);
+              a_load_reg_reg(list,aluuinttype,loadsize,extra_value_reg,tmpreg);
               a_load_reg_ref(list,loadsize,loadsize,tmpreg,tmpref);
 {$endif}
 
