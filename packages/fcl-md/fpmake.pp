@@ -21,6 +21,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('rtl-objpas');
     P.Dependencies.Add('fcl-fpcunit');
+    P.Dependencies.Add('regexpr');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
