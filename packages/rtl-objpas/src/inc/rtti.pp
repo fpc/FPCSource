@@ -918,6 +918,7 @@ type
 
   TVirtualInterface = class(TInterfacedObject, IInterface)
   private
+    // Add fields before
     fGUID: TGUID;
     fOnInvoke: TVirtualInterfaceInvokeEvent;
     fContext: TRttiContext;
@@ -930,10 +931,9 @@ type
     FIntfRTTI : trttitype;
     FThunk : TInterfaceThunk;
     Procedure ThunkClassCallback(aInstance: Pointer; aMethod,aCount : Longint; aData: TInterfaceThunk.PArgData);
-{$ENDIF}
-    // Add fields before
     procedure CreateThunk(aPIID: PTypeInfo; T : trttitype; td : PInterfaceData);
     procedure DestroyThunk;
+{$ENDIF}
 
   protected
 {$IFDEF USE_THUNK_CLASS}
