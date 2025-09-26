@@ -1244,6 +1244,13 @@ const
     LibDL = 'dl';
   {$endif}
 {$endif}
+
+{$if defined(linux)}
+    { if libc is not linked explicitly, FPC might chose the wrong startup code, as
+      libdl depends on libc on linux, this does not hurt }
+    {$linklib c}
+{$endif}
+
 {$if defined(LINUX) or defined(BSD)}
 type
   Pdl_info = ^dl_info;
