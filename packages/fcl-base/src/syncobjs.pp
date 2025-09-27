@@ -38,6 +38,9 @@ uses
   {$IFDEF UNIX}
   UnixApi.Types,
   {$ENDIF}
+  {$IFDEF CPUWASM32}
+  Wasm.Semaphore,
+  {$ENDIF}
   System.SysUtils;
   
 {$ELSE FPC_DOTTEDUNITS}
@@ -46,6 +49,9 @@ uses
   {$ENDIF}
   {$IFDEF UNIX}
   unixtype,
+  {$ENDIF}
+  {$IFDEF CPUWASM32}
+  WasmSem,
   {$ENDIF}
   sysutils;
 {$ENDIF FPC_DOTTEDUNITS}
@@ -193,6 +199,9 @@ type
   {$IFDEF UNIX}
      Fsem: TPosixSemaphore;
   {$ENDIF}
+  {$IFDEF CPUWASM32}
+     FSem : TWasmSemaphore;
+  {$ENDIF}
    public
      constructor Create(aUseCOMWait: boolean = false); overload;
      constructor Create(aAttributes: PSecurityAttributes; aInitial, aMaximum: Integer;const aName: string;aUseCOMWait: boolean = false); overload;
@@ -250,6 +259,7 @@ Resourcestring
   SErrNamesNotSupported   = 'Named semaphores are not supported on this platform';
   SErrNoSemaphoreSupport  = 'Semaphores are not supported on this platform';
   SErrInvalidReleaseCount = '%d is not a valid release count, count must be >0';
+  SErrFailedToSignalSemaphore = 'Failed to signal semaphore at count %d';
   SErrMutexNotSupported   = 'Mutexes are not supported on this platform';
   
 { ---------------------------------------------------------------------
@@ -705,9 +715,13 @@ begin
     raise ESyncObjectException.Create(SErrNamesNotSupported);
   if sem_init(@FSem,0,aInitial)<>0 then
     RaiseLastOSError;
-{$ELSE}
+{$ELSE UNIX}
+{$IFDEF CPUWASM32}
+  semaphore_init(FSEM,aInitial,aMaximum);
+{$ELSE CPUWASM32}
   Raise ESyncObjectException.Create(SErrNoSemaphoreSupport);
-{$ENDIF}    
+{$ENDIF CPUWASM32}
+{$ENDIF UNIX}
 {$ENDIF WINDOWS}
 end;
 
@@ -740,7 +754,11 @@ destructor TSemaphore.Destroy;
 begin
 {$IFDEF UNIX}
   sem_destroy(@FSem);
-{$ENDIF}  
+{$ENDIF}
+{$IFDEF CPUWASM32}
+  // If someone is waiting, (s)he'll be notified...
+  semaphore_signal(FSEM);
+{$ENDIF}
   inherited Destroy;
 end;
 
@@ -748,6 +766,10 @@ end;
 
 function TSemaphore.WaitFor(aTimeout: Cardinal = INFINITE): TWaitResult; 
 
+{$IFDEF wasm32}
+var
+  Res : Boolean;
+{$ENDIF}
 
 {$IFDEF UNIX}
 var
@@ -799,8 +821,20 @@ begin
       Result:=wrSignaled
     end;
 {$ELSE UNIX}
+{$IFDEF CPUWASM32}
+  if aTimeout=INFINITE then
+    Res:=semaphore_wait_infinite(FSEM)
+  else
+    Res:=semaphore_wait(FSEM,aTimeOut);
+  if Res then
+    Result:=wrSignaled
+  else
+    Result:=wrTimeout;
+{$ELSE}
   Result:=Inherited WaitFor(aTimeOut);
+{$ENDIF}
 {$ENDIF UNIX}
+
 end;
 
 
@@ -833,6 +867,16 @@ begin
     begin
     if (sem_post(@FSem)<>0) then
       RaiseLastOSError;
+    Inc(Result);
+    Dec(aCount);
+    end;
+{$ENDIF}
+{$IFDEF CPUWASM32}
+  Result:=0;
+  While aCount>0 do
+    begin
+    if not semaphore_signal(FSem) then
+          raise ESyncObjectException.CreateFmt(SErrFailedToSignalSemaphore, [aCount]);
     Inc(Result);
     Dec(aCount);
     end;
