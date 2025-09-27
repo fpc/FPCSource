@@ -858,6 +858,7 @@ var
   lType : TSchemaSimpleType;
   lName,lBaseName,lPascalName : string;
   lFormat : String;
+  lTmp : TJSONSchema;
   lElTypeData : TPascalTypeData;
 
 begin
@@ -911,7 +912,7 @@ begin
         end;
       sstArray:
         begin
-        lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0]);
+        lElTypeData:=GetSchemaTypeData(Nil,lSchema.Items[0],True);
         lPascalName:=Sanitize(ArrayTypePrefix+lElTypeData.PascalName+ArrayTypeSuffix);
         lName:='['+lElTypeData.SchemaName;
         if lSchema.Items[0].Validations.HasKeywordData(jskformat) then
@@ -936,7 +937,18 @@ begin
           if assigned(aType) then
             lBaseName:=aType.GetTypeName(ntSchema)+'_'+lSchema.Name
           else
-            lBaseName:='Nested_'+lSchema.Name;
+            begin
+            lBaseName:=lSchema.Name;
+            lTmp:=lSchema.Parent;
+            While lTmp<>Nil do
+              begin
+              if lTmp.Name<>'' then
+                lBaseName:=lTmp.Name+'_'+lBaseName
+              else
+                lBaseName:='Nested_'+lBaseName;
+              lTmp:=lTmp.Parent;
+              end;
+            end;
           lName:='{'+lBaseName+'}';
           lPascalName:=ObjectTypePrefix+Sanitize(lBaseName);
           Result:=FindSchemaTypeData(lName);
