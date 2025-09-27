@@ -2003,6 +2003,7 @@ type
     procedure   DoWriteLocalProperties(AWriter: TFPReportStreamer; AOriginal: TFPReportElement = nil); override;
     procedure   ExpandExpressions;
     procedure   UpdateAggregates;
+    procedure   ResetAggregates;
     function    PrepareObject(aRTParent: TFPReportElement): TFPReportElement; override;
     procedure   SetParent(const AValue: TFPReportElement); override;
     property    Text: TFPReportString read FText write SetText;
@@ -5074,12 +5075,26 @@ begin
     end;  { for ... }
 end;
 
+procedure TFPReportCustomMemo.ResetAggregates;
+Var
+  i : integer;
+  n : TFPExprNode;
+begin
+  // aggregate handling
+  for i := 0 to Length(ExpressionNodes)-1 do
+    begin
+    n := ExpressionNodes[i].ExprNode;
+    if Assigned(n)
+       and n.HasAggregate
+       and Not (moNoResetAggregateOnPrint in Options) then
+        n.InitAggregate;
+    end;
+end;
+
 function TFPReportCustomMemo.PrepareObject(aRTParent: TFPReportElement): TFPReportElement;
 
 Var
   m : TFPReportCustomMemo;
-  I : integer;
-  N : TFPExprNode;
 
   Procedure CheckVisibility;
 
@@ -5112,15 +5127,6 @@ begin
     end;
   m.ExpandExpressions;
   CheckVisibility;
-  // aggregate handling
-  for I := 0 to Length(m.Original.ExpressionNodes)-1 do
-    begin
-    n := m.Original.ExpressionNodes[I].ExprNode;
-    if Assigned(n)
-       and n.HasAggregate
-       and Not (moNoResetAggregateOnPrint in m.Options) then
-        n.InitAggregate;
-    end;
 end;
 
 procedure TFPReportCustomMemo.SetParent(const AValue: TFPReportElement);
@@ -9540,8 +9546,17 @@ begin
 end;
 
 procedure TFPReportCustomBand.AfterPrintBand(pBand: TFPReportCustomBand);
+var
+  i: integer;
+  c: TFPReportElement;
 begin
-  // Do nothing
+  // reset aggregates after printing
+  for i := 0 to ChildCount - 1 do
+  begin
+    c := Child[i];
+    if c is TFPReportMemo then
+      TFPReportMemo(c).ResetAggregates; // checks for moNoResetAggregateOnPrint
+  end;
 end;
 
 procedure TFPReportCustomBand.BeforePrintWithChilds;
