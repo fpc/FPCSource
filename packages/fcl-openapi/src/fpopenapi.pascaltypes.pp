@@ -895,7 +895,8 @@ function TAPIData.GenerateServiceName(const aUrl: String; const aPath: TPathItem
   function CleanIdentifier(S : String) : String;
 
   begin
-    Result:=StringReplace(S,' ','',[rfReplaceAll])
+    Result:=StringReplace(S,' ','',[rfReplaceAll]);
+    Result:=Sanitize(Result);
   end;
 {
   the maps contain ServiceName[.MethodName]
@@ -923,7 +924,7 @@ begin
     // First non-empty
     For S in lStrings do
       if (Result='') and (S<>'') then
-        Result:=S;
+        Result:=CleanIdentifier(S);
     Result:=ServiceNamePrefix+PrettyPrint(Result)+ServiceNameSuffix;
     end
   else
