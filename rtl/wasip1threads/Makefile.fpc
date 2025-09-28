@@ -97,12 +97,12 @@ Wasm.Api$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Api.pp $(WEBASSEMBLYDEPS)
 # wasmsem/Wasm.Semaphore
 #
 
-WASMSEMDEPS=$(PROCINC)/websem.pp $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc $(WEBASSEMBLYUNIT)$(PPUEXT)
+WASMSEMDEPS=$(PROCINC)/wasmsem.pas $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc $(WEBASSEMBLYUNIT)$(PPUEXT)
 
-wamsem$(PPUEXT) : $(WASMSEMDEPS)
+wasmsem$(PPUEXT) : $(WASMSEMDEPS)
         $(COMPILER) $<
 
-Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WEBASSEMBLYDEPS)
+Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WASMSEMDEPS)
         $(COMPILER) $< 
 
 #
