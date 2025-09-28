@@ -5512,32 +5512,111 @@ begin
 
 {$if defined(riscv32) or defined(riscv64)}
   { RISC-V defaults }
-  if (target_info.abi = abi_riscv_hf) then
-    begin
-    {$ifdef riscv32}
-      if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv32imafd;
-      if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv32imafd;
-    {$else}
-      if not option.CPUSetExplicitly then
-        init_settings.cputype:=cpu_rv64imafdc;
-      if not option.OptCPUSetExplicitly then
-        init_settings.optimizecputype:=cpu_rv64imafdc;
-    {$endif}
+  case target_info.abi of
+{$ifdef RISCV32}
+    abi_riscv_ilp32f:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_rv32imaf;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_rv32imaf;
 
-      { Set FPU type }
-      if not(option.FPUSetExplicitly) then
-        init_settings.fputype:=fpu_fd
-      else
-        begin
-          if not (init_settings.fputype in [fpu_fd]) then
-            begin
-              Message(option_illegal_fpu_eabihf);
-              StopOptions(1);
-            end;
-        end;
-    end;
+        { Set FPU type }
+        if not(option.FPUSetExplicitly) then
+          init_settings.fputype:=fpu_fd
+        else
+          begin
+            if not (init_settings.fputype in [fpu_fd]) then
+              begin
+                Message(option_illegal_fpu_eabihf);
+                StopOptions(1);
+              end;
+          end;
+      end;
+
+    abi_riscv_ilp32d:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_rv32imafd;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_rv32imafd;
+
+        { Set FPU type }
+        if not(option.FPUSetExplicitly) then
+          init_settings.fputype:=fpu_fd
+        else
+          begin
+            if not (init_settings.fputype in [fpu_fd]) then
+              begin
+                Message(option_illegal_fpu_eabihf);
+                StopOptions(1);
+              end;
+          end;
+      end;
+{$endif RISCV32}
+{$ifdef RISCV64}
+    abi_riscv_lp64f:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_rv64imafdc;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_rv64imafdc;
+
+        { Set FPU type }
+        if not(option.FPUSetExplicitly) then
+          init_settings.fputype:=fpu_fd
+        else
+          begin
+            if not (init_settings.fputype in [fpu_fd]) then
+              begin
+                Message(option_illegal_fpu_eabihf);
+                StopOptions(1);
+              end;
+          end;
+      end;
+
+    abi_riscv_lp64d:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_rv64imafdc;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_rv64imafdc;
+
+        { Set FPU type }
+        if not(option.FPUSetExplicitly) then
+          init_settings.fputype:=fpu_fd
+        else
+          begin
+            if not (init_settings.fputype in [fpu_fd]) then
+              begin
+                Message(option_illegal_fpu_eabihf);
+                StopOptions(1);
+              end;
+          end;
+      end;
+    abi_riscv_lp64q:
+      begin
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_rv64imafdc;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_rv64imafdc;
+
+        { Set FPU type }
+        if not(option.FPUSetExplicitly) then
+          init_settings.fputype:=fpu_fd
+        else
+          begin
+            if not (init_settings.fputype in [fpu_fd]) then
+              begin
+                Message(option_illegal_fpu_eabihf);
+                StopOptions(1);
+              end;
+          end;
+      end;
+{$endif RISCV64}
+    else
+      ;
+  end;
 
   { check if the fpu type requires the F and D extension }
   if (init_settings.fputype in [fpu_fd]) and not((cpu_capabilities[init_settings.cputype]*[CPURV_HAS_F,CPURV_HAS_D])=[CPURV_HAS_F,CPURV_HAS_D]) then

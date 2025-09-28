@@ -504,7 +504,6 @@ interface
          (name: 'EABIHF' ; supported:{$if defined(arm)}true{$else}false{$endif}),
          (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif}),
          (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif}),
-         (name: 'RISCVHF'; supported:{$if defined(riscv32) or defined(riscv64)}true{$else}false{$endif}),
          (name: 'RISCV32ILP'; supported:{$if defined(riscv32)}true{$else}false{$endif}),
          (name: 'RISCV32ILPF'; supported:{$if defined(riscv32)}true{$else}false{$endif}),
          (name: 'RISCV32ILPD'; supported:{$if defined(riscv32)}true{$else}false{$endif}),

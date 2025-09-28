@@ -308,7 +308,6 @@ begin
           defdynlinker:=defdynlinker_soft_float;
         abi_riscv_ilp32f:
           defdynlinker:=defdynlinker_single_float;
-        abi_riscv_hf,
         abi_riscv_ilp32d:
           defdynlinker:=defdynlinker_double_float;
       else
@@ -324,7 +323,6 @@ begin
           defdynlinker:=defdynlinker_soft_float;
         abi_riscv_lp64f:
           defdynlinker:=defdynlinker_single_float;
-        abi_riscv_hf,
         abi_riscv_lp64d:
           defdynlinker:=defdynlinker_double_float;
       else

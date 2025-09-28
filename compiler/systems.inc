@@ -385,7 +385,6 @@
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
             ,abi_aarch64_darwin
-            ,abi_riscv_hf
             ,abi_riscv_ilp32
             ,abi_riscv_ilp32f
             ,abi_riscv_ilp32d
