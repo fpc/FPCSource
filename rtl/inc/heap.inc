@@ -518,8 +518,8 @@ type
 
   class function HeapInc.BinIndexToVarSize(binIndex: SizeUint): SizeUint;
   begin
-    result := binIndex div VarSizesPerClass;
-    result := MaxFixedHeaderAndPayload + (SizeUint(1) shl result - 1) shl FirstVarRangeP2 + (1 + binIndex mod VarSizesPerClass) shl (FirstVarStepP2 + result);
+    { Same. }
+    result := (1 shl (FirstVarRangeP2 - FirstVarStepP2) + 1 + binIndex mod VarSizesPerClass) shl (binIndex div VarSizesPerClass + FirstVarStepP2) - (1 shl FirstVarRangeP2 - MaxFixedHeaderAndPayload);
   end;
 
 {$ifndef HAS_SYSOSFREE}
