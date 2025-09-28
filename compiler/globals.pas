@@ -632,8 +632,8 @@ Const
         fputype : fpu_soft;
   {$endif riscv32}
   {$ifdef riscv64}
-        cputype : cpu_rv64imac;
-        optimizecputype : cpu_rv64imac;
+        cputype : cpu_rv64imafdc;
+        optimizecputype : cpu_rv64imafdc;
         asmcputype : cpu_none;
         fputype : fpu_fd;
   {$endif riscv64}
