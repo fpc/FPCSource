@@ -2976,10 +2976,10 @@ webassembly$(PPUEXT) : $(WEBASSEMBLYDEPS)
 	$(COMPILER) $<
 Wasm.Api$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Api.pp $(WEBASSEMBLYDEPS)
 	$(COMPILER) $<
-WASMSEMDEPS=$(PROCINC)/websem.pp $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc $(WEBASSEMBLYUNIT)$(PPUEXT)
-wamsem$(PPUEXT) : $(WASMSEMDEPS)
+WASMSEMDEPS=$(PROCINC)/wasmsem.pas $(SYSTEMUNIT)$(PPUEXT) $(PROCINC)/cpuh.inc $(PROCINC)/cpuinnr.inc $(WEBASSEMBLYUNIT)$(PPUEXT)
+wasmsem$(PPUEXT) : $(WASMSEMDEPS)
 	$(COMPILER) $<
-Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WEBASSEMBLYDEPS)
+Wasm.Semaphore$(PPUEXT) : $(NSDIR)/wasm32/Wasm.Semaphore.pp $(WASMSEMDEPS)
 	$(COMPILER) $< 
 WASIAPIDEPS=$(WASICOMMONINC)/wasiinc/wasitypes.inc $(WASICOMMONINC)/wasiinc/wasiprocs.inc $(SYSTEMUNIT)$(PPUEXT)
 wasiapi$(PPUEXT) : wasiapi.pp $(WASIAPIDEPS)
