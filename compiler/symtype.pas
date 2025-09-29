@@ -906,7 +906,7 @@ implementation
 
     procedure tderef.build(s:TObject);
 
-       procedure do_internal_error(i : integer);
+       procedure do_internal_error(i : integer);noreturn;
        // local proc so we do not have an implicit try..finally in the build proc.
        var
          msg : ansistring;
