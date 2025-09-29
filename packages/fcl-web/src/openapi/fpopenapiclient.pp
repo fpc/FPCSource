@@ -75,8 +75,10 @@ Type
     FBaseURL: String;
     FOnPrepareRequest: TAPIServicePrepareRequestEvent;
     FOnProcessResponse: TAPIServiceProcessResponseEvent;
+    FRequestHeaders: TStrings;
     FWebClient: TAbstractWebClient;
     procedure SetBaseURL(AValue: String);
+    procedure SetRequestHeaders(const aValue: TStrings);
     procedure SetWebClient(AValue: TAbstractWebClient);
   protected
     function StreamToString(aStream : TStream) : string;
@@ -94,9 +96,13 @@ Type
     function ExecuteRequest(const aMethod,aURL: String; aBody,aResponseBody : TStream; aRequestID : TServiceRequestID = '') : TServiceResponse; virtual;
     function ExecuteRequest(const aMethod,aURL,aBody : String; aCallback : TServiceResponseCallback; aRequestID : TServiceRequestID = '') : TServiceRequestID;virtual;
     {$ENDIF}
+  Public
+    constructor create(aOwner : TComponent); override;
+    destructor destroy; override;
   Published
     Property WebClient : TAbstractWebClient Read FWebClient Write SetWebClient;
     Property BaseURL : String Read FBaseURL Write SetBaseURL;
+    Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
     Property OnPrepareRequest : TAPIServicePrepareRequestEvent Read FOnPrepareRequest Write FOnPrepareRequest;
     Property OnProcessResponse : TAPIServiceProcessResponseEvent Read FOnProcessResponse Write FOnProcessResponse;
   end;
@@ -151,11 +157,30 @@ end;
 
 { TFPOpenAPIClient }
 
+constructor TFPOpenAPIServiceClient.create(aOwner: TComponent);
+begin
+  inherited create(aOwner);
+  FRequestHeaders:=TStringList.Create;
+  FRequestHeaders.NameValueSeparator:=':';
+end;
+
+destructor TFPOpenAPIServiceClient.destroy;
+begin
+  FreeAndNil(FRequestHeaders);
+  inherited destroy;
+end;
+
 procedure TFPOpenAPIServiceClient.SetBaseURL(AValue: String);
 
 begin
   if FBaseURL=AValue then Exit;
   FBaseURL:=AValue;
+end;
+
+procedure TFPOpenAPIServiceClient.SetRequestHeaders(const aValue: TStrings);
+begin
+  if FRequestHeaders=aValue then Exit;
+  FRequestHeaders.Assign(aValue);
 end;
 
 
@@ -172,10 +197,18 @@ end;
 
 
 procedure TFPOpenAPIServiceClient.PrepareRequest(aRequest: TWebClientRequest);
+var
+  I : integer;
+  N,V : String;
 
 begin
   aRequest.Headers.Values['Content-Type']:='application/json';
   aRequest.Headers.Values['Accept']:='application/json';
+  For I:=0 to FRequestHeaders.Count-1 do
+    begin
+    FRequestHeaders.GetNameValue(i,N,V);
+    ARequest.Headers.Values[N]:=V;
+    end;
   if assigned(OnPrepareRequest) then
     OnPrepareRequest(Self,aRequest);
 end;
@@ -440,6 +473,7 @@ begin
     lResponse.Free;
   end;
 end;
+
 
 function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod, aURL, aBody: String; aRequestID: TServiceRequestID): TServiceResponse;
 
