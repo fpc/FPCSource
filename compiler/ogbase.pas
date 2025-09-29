@@ -3948,7 +3948,7 @@ implementation
                 DoRelocationFixup(objsec);
                 {for size = 0 data is not valid PM }
                 if assigned(objsec.data) and (objsec.data.size<>objsec.size) then
-                  internalerror(2010092801);
+                  internalerror(2010092801,'wrong data size for '+objsec.FullName);
               end;
           end;
       end;

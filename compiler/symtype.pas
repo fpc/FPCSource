@@ -905,15 +905,28 @@ implementation
 
 
     procedure tderef.build(s:TObject);
+
+       procedure do_internal_error(i : integer);
+       // local proc so we do not have an implicit try..finally in the build proc.
+       var
+         msg : ansistring;
+       begin
+         if assigned(s) then
+           msg:=S.ToString
+         else
+           msg:='Nil object';
+         internalerror(i,'Cannot build:'+msg);
+       end;
+
       var
         len  : byte;
         st   : TSymtable;
         data : array[0..255] of byte;
         idx : word;
+
       begin
         { skip length byte }
         len:=1;
-
         if assigned(s) then
          begin
 { TODO: ugly hack}
@@ -922,7 +935,7 @@ implementation
                { if it has been registered but it wasn't put in a symbol table,
                  this symbol shouldn't be written to a ppu }
                if tsym(s).SymId=symid_registered_nost then
-                 Internalerror(2015102504);
+                 do_internal_error(2015102504);
                if not tsym(s).registered then
                  tsym(s).register_sym;
                st:=FindUnitSymtable(tsym(s).owner)
@@ -931,15 +944,16 @@ implementation
              begin
                { same as above }
                if tdef(s).defid=defid_registered_nost then
-                 Internalerror(2015102501);
+                 do_internal_error(2015102501);
                if tdef(s).typ=errordef then
-                 Internalerror(2024011501);
+                 do_internal_error(2024011501);
                if not tdef(s).registered then
                  tdef(s).register_def;
                st:=FindUnitSymtable(tdef(s).owner);
              end
            else
-             internalerror(2016090204);
+             // Unknown object type
+             do_internal_error(2016090204);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
