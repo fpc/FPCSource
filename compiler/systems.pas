@@ -518,7 +518,13 @@ interface
          (name: 'O32'; supported:{$if defined(mips)}true{$else}false{$endif}),
          (name: 'N32'; supported:{$if defined(mips)}true{$else}false{$endif}),
          (name: 'O64'; supported:{$if defined(mips)}true{$else}false{$endif}),
-         (name: 'N64'; supported:{$if defined(mips)}true{$else}false{$endif})
+         (name: 'N64'; supported:{$if defined(mips)}true{$else}false{$endif}),
+         (name: 'LP64S'; supported:{$if defined(loongarch64)}true{$else}false{$endif}),
+         (name: 'LP64F'; supported:{$if defined(loongarch64)}true{$else}false{$endif}),
+         (name: 'LP64D'; supported:{$if defined(loongarch64)}true{$else}false{$endif}),
+         (name: 'LP32S'; supported:{$if defined(loongarch32)}true{$else}false{$endif}),
+         (name: 'LP32F'; supported:{$if defined(loongarch32)}true{$else}false{$endif}),
+         (name: 'LP32D'; supported:{$if defined(loongarch32)}true{$else}false{$endif})
        );
 
        cgbackend2str: array[tcgbackend] of ansistring = (

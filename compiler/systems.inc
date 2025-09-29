@@ -404,6 +404,12 @@
             ,abi_mips_n32
             ,abi_mips_o64
             ,abi_mips_n64
+            ,abi_loongarch_lp64s
+            ,abi_loongarch_lp64f
+            ,abi_loongarch_lp64d
+            ,abi_loongarch_lp32s
+            ,abi_loongarch_lp32f
+            ,abi_loongarch_lp32d
        );
 
        tcgbackend = (

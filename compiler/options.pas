@@ -5752,7 +5752,7 @@ begin
 
 {$if defined(loongarch64)}
   { LoongArch defaults }
-  if (target_info.abi = abi_default) then
+  if (target_info.abi = abi_loongarch_lp64d) then
     begin
       init_settings.cputype:=cpu_3a;
       init_settings.fputype:=fpu_fd;
