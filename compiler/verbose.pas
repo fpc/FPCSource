@@ -65,6 +65,7 @@ interface
     procedure SetErrorFlags(const s:string);
     procedure GenerateError;
     procedure Internalerror(i:longint);noreturn;
+    procedure Internalerror(i:longint; const s : ansistring);noreturn;
     procedure Comment(l:longint;s:ansistring);
     function  MessageStr(w:longint):TMsgStr;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
@@ -572,13 +573,18 @@ implementation
 
 
     procedure internalerror(i : longint);noreturn;
+    begin
+      InternalError(i,'');
+    end;
+
+    procedure InternalError(i:longint; const s : ansistring);noreturn;
       procedure doraise;
         begin
           raise ECompilerAbort.Create;
         end;
       begin
         UpdateStatus;
-        do_internalerror(i);
+        do_internalerrorex(i,s);
         GenerateError;
         doraise;
       end;
