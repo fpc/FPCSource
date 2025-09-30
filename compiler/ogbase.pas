@@ -1069,7 +1069,7 @@ implementation
           begin
             if Size<>Data.size then
               internalerror(200602281);
-{$ifndef cpu64bitalu}
+{$ifndef cpu64bitaddr}
             if (qword(size)+l)>SizeLimit then
               SectionTooLargeError;
 {$endif}
@@ -1274,7 +1274,7 @@ implementation
 
     procedure TObjSection.alloc(l:TObjSectionOfs);
       begin
-{$ifndef cpu64bitalu}
+{$ifndef cpu64bitaddr}
         if (qword(size)+l)>SizeLimit then
           SectionTooLargeError;
 {$endif}
