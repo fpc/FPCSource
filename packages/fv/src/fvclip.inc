@@ -202,7 +202,6 @@ end;
 
 procedure LinuxClipBoardData;
 var zt,rt  : AnsiString;
-  st  : ShortString;
   escSeq : ShortString;
   inEsc,inRead : boolean;
   k : sw_integer;
@@ -210,7 +209,6 @@ var zt,rt  : AnsiString;
   timewait,finalparsec : TimeSpec;
   ree:longint;
   countemptines : sw_integer;
-  l : sw_integer;
   rlen : longint;
 begin
   countemptines:=0;
@@ -222,26 +220,21 @@ begin
   while inRead do
   begin
     if keypressed then
-      st:=RawReadString
+      ch:=RawReadKey
     else
-      st:='';
-    if length(st)=0 then
     begin
       inc(countemptines);
-      if countemptines = 3 then break;
+      if countemptines = 30 then break;
       {we might be ahead for a shortwhile, wait a little bit longer}
       timewait.tv_sec := 0;
-      timewait.tv_nsec := 20000000;
+      timewait.tv_nsec := 2000000;
       ree:=fpNanoSleep(@timewait,@finalparsec);
       continue;
     end;
     countemptines:=0;
-    if st[1]=';' then
-      st:=copy(st,2,length(st));
-    for k:=1 to length(st) do
-    begin
-      ch:=st[k];
-      if inEsc then
+    if ch = ';' then
+      continue; {ment to eat very first ';', there shoud not be any other}
+    if inEsc then
       begin
         escSeq:=escSeq+ch;
         if ch = '\' then
@@ -251,19 +244,19 @@ begin
           break;
         end;
         {we should not reach this point}
-        continue;
+        {unless OSC 52 is spliced by other escape sequence}
+        break;
       end;
-      if ch = #27 then
-        inEsc:=true
-      else if ch <> #7 then
-        zt:=zt+ch  {base64 encoded data in}
-      else
+    if ch = #27 then
+      inEsc:=true
+    else if ch <> #7 then
+      zt:=zt+ch  {base64 encoded data in}
+    else
       begin
         {data end, xterm terminal}
         inRead:=false;
         break;
       end;
-    end; {for..}
   end; {while do }
   if length(zt)=0 then exit;
   {-- data decode --}
@@ -276,13 +269,12 @@ end;
 
 procedure BracketedPaste;
 var zt  : AnsiString;
-  st  : ShortString;
   k : sw_integer;
   ch : AnsiChar;
   timewait,finalparsec : TimeSpec;
   ree:longint;
   countemptines : sw_integer;
-  l : sw_integer;
+  len : sw_integer;
 begin
   countemptines:=0;
   zt:='';
@@ -290,42 +282,34 @@ begin
   while true do
   begin
     if keypressed then
-      st:=RawReadString
+      ch:=RawReadKey
     else
-      st:='';
-    if length(st)=0 then
     begin
       inc(countemptines);
-      if countemptines = 3 then break;
+      if countemptines = 30 then break;
       {we might be ahead for a shortwhile, wait a little bit longer}
       timewait.tv_sec := 0;
-      timewait.tv_nsec := 20000000;
+      timewait.tv_nsec := 2000000;
       ree:=fpNanoSleep(@timewait,@finalparsec);
       continue;
     end;
     countemptines:=0;
-    for k:=1 to length(st) do
-    begin
-      ch:=st[k];
-      if ch <> '~' then
-        zt:=zt+ch  {data in}
-      else
+    zt:=zt+ch;  {data in}
+    if ch = '~' then
       begin
         {test for terminator string}
         if copy(zt,length(zt)-5,6)=#27'[201~' then
           break;
-        zt:=zt+ch;  {data in}
       end;
-    end; {for..}
   end; {while do }
-  if length(zt)=0 then exit;
-  l:=length(zt);
-  if length(zt)>6 then
+  len:=length(zt);
+  if len=0 then exit;
+  if len>6 then
   begin
-    l:=length(zt)-6;
-    SetLength(zt,l); {get rid of bracketed paste end sequence}
+    len:=length(zt)-6;
+    SetLength(zt,len); {get rid of bracketed paste end sequence}
   end;
-  PutInEventQue(zt,l);
+  PutInEventQue(zt,len);
 end;
 {$endif}
 
