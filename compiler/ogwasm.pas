@@ -106,6 +106,7 @@ interface
         constructor CreateTypeIndex(ADataOffset:TObjSectionOfs; ATypeIndex: Integer);
         constructor CreateFuncType(ADataOffset:TObjSectionOfs; AFuncType: TWasmFuncType);
         destructor Destroy;override;
+        function ToString:ansistring;override;
       end;
 
       { TWasmObjSymbolExtraData }
@@ -735,6 +736,20 @@ implementation
       begin
         FuncType.Free;
         inherited Destroy;
+      end;
+
+    function TWasmObjRelocation.ToString: ansistring;
+      var
+        FuncTypeStr: ansistring;
+      begin
+        if Assigned(FuncType) then
+          FuncTypeStr:=FuncType.ToString
+        else
+          FuncTypeStr:='nil';
+        WriteStr(Result,'('+inherited+';TypeIndex:'+tostr(TypeIndex)+
+          ';Addend:'+tostr(Addend)+';FuncType:'+FuncTypeStr+
+          ';ExeTypeIndex:'+tostr(ExeTypeIndex)+
+          ';IsFunctionOffsetI32:',IsFunctionOffsetI32,')');
       end;
 
 {****************************************************************************
