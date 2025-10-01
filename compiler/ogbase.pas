@@ -343,6 +343,7 @@ interface
        VTRefList : TFPObjectList;
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:longint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
+       function  ToString:ansistring;override;
        function  write(const d;l:TObjSectionOfs):TObjSectionOfs;
        procedure writeInt8(v: int8);
        procedure writeInt16LE(v: int16);
@@ -1064,6 +1065,14 @@ implementation
         ObjRelocations.Free;
         VTRefList.Free;
         inherited destroy;
+      end;
+
+
+    function TObjSection.ToString: ansistring;
+      begin
+        System.WriteStr(Result,'(Name:',Name,';index',index,';SecSymIdx:',SecSymIdx,
+          ';SecAlign:',SecAlign,';Size:',Size,';DataPos:',DataPos,';MemPos:',
+          MemPos,';DataAlignBytes:',DataAlignBytes,';Used:',Used,')');
       end;
 
 
