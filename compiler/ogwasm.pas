@@ -5520,6 +5520,10 @@ implementation
               end
             else
               internalerror(2024010110);
+{$ifdef EXTDEBUG_WASM}
+            if (FRelocationPass=2) and assigned(objsec.data) and (objsec.data.size<>objsec.size) then
+              internalerror(2025100101,'relocation increased section''s data size: '+objreloc.ToString);
+{$endif}
           end;
       end;
 
