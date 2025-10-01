@@ -76,11 +76,11 @@ implementation
             orddef:
               result:=LOC_REGISTER;
             floatdef:
-              if (cs_fp_emulation in current_settings.moduleswitches) or
-                 (current_settings.fputype in [fpu_soft]) then
-                result := LOC_REGISTER
+              if (is_single(p) and (target_info.abi in [abi_riscv_ilp32f,abi_riscv_ilp32d,abi_riscv_lp64f,abi_riscv_lp64d])) or
+                (is_double(p) and (target_info.abi in [abi_riscv_ilp32d,abi_riscv_lp64d])) then
+                result := LOC_FPUREGISTER
               else
-                result := LOC_FPUREGISTER;
+                result := LOC_REGISTER;
             enumdef:
               result:=LOC_REGISTER;
             pointerdef:

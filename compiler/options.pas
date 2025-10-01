@@ -5533,7 +5533,6 @@ begin
               end;
           end;
       end;
-
     abi_riscv_ilp32d:
       begin
         if not option.CPUSetExplicitly then
@@ -5574,7 +5573,6 @@ begin
               end;
           end;
       end;
-
     abi_riscv_lp64d:
       begin
         if not option.CPUSetExplicitly then
