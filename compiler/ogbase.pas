@@ -271,6 +271,7 @@ interface
 {$endif ARM}
 
        constructor create(AList:TFPHashObjectList;const AName:string);virtual;
+       function  ToString:ansistring;override;
        function  address:qword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
        function  ObjData: TObjData;
@@ -858,6 +859,20 @@ implementation
         size:=0;
         offset:=0;
         objsection:=nil;
+      end;
+
+
+    function TObjSymbol.ToString: ansistring;
+      var
+        objsectionstr: ansistring;
+      begin
+        if Assigned(objsection) then
+          objsectionstr:=objsection.ToString
+        else
+          objsectionstr:='nil';
+        WriteStr(Result,'(Name:',Name,';bind:',bind,';typ:',typ,';pass:',pass,
+          ';refs:',refs,';symidx:',symidx,';objsection:',objsectionstr,';offset:',
+          offset,';size:',size,')');
       end;
 
 
