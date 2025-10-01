@@ -308,6 +308,7 @@ interface
         constructor CreateGroup(ADataOffset:TObjSectionOfs;grp:TObjSectionGroup;Atyp:TObjRelocationType);
         constructor CreateRaw(ADataOffset:TObjSectionOfs;s:TObjSymbol;ARawType:byte);
         function TargetName:TSymStr;
+        function ToString: ansistring; override;
         property typ: TObjRelocationType read GetType write SetType;
      end;
 
@@ -996,6 +997,34 @@ implementation
             result:=symbol.Name
         else
           result:=objsection.Name;
+      end;
+
+
+    function TObjRelocation.ToString: ansistring;
+      var
+        typstr,
+        symbolstr,
+        objsectionstr,
+        groupstr: ansistring;
+      begin
+        Str(typ,typstr);
+        if Assigned(symbol) then
+          symbolstr:=symbol.ToString
+        else
+          symbolstr:='nil';
+        if Assigned(objsection) then
+          objsectionstr:=objsection.ToString
+        else
+          objsectionstr:='nil';
+        if Assigned(group) then
+          groupstr:=group.ToString
+        else
+          groupstr:='nil';
+        Result:='(typ:'+typstr+';DataOffset:'+tostr(DataOffset)+
+          ';orgsize:'+tostr(orgsize)+';symbol:'+symbolstr+
+          ';objsection:'+objsectionstr+';group:'+groupstr+
+          ';ftype:'+tostr(ftype)+';size:'+tostr(size)+
+          ';flags:'+tostr(flags)+')';
       end;
 
 {****************************************************************************
