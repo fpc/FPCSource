@@ -2564,16 +2564,16 @@ implementation
 {$else x86}
        result:=(typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches)
 {$ifdef xtensa}
-         and (FPUXTENSA_SINGLE in fpu_capabilities[init_settings.fputype]) and (tfloatdef(self).floattype=s32real)
+         and (FPUXTENSA_SINGLE in fpu_capabilities[current_settings.fputype]) and (tfloatdef(self).floattype=s32real)
 {$endif xtensa}
 {$ifdef riscv}
-         and (((CPURV_HAS_F in cpu_capabilities[init_settings.cputype]) and (tfloatdef(self).floattype=s32real)) or
-           ((CPURV_HAS_D in cpu_capabilities[init_settings.cputype]) and (tfloatdef(self).floattype=s64real)) or
-           ((CPURV_HAS_Q in cpu_capabilities[init_settings.cputype]) and (tfloatdef(self).floattype=s128real)))
+         and (((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and (tfloatdef(self).floattype=s32real)) or
+           ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and (tfloatdef(self).floattype=s64real)) or
+           ((CPURV_HAS_Q in cpu_capabilities[current_settings.cputype]) and (tfloatdef(self).floattype=s128real)))
 {$endif riscv}
 {$ifdef arm}
-         and (((FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[init_settings.fputype]) and (tfloatdef(self).floattype=s32real)) or
-              (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[init_settings.fputype]))
+         and (((FPUARM_HAS_VFP_EXTENSION in fpu_capabilities[current_settings.fputype]) and (tfloatdef(self).floattype=s32real)) or
+              (FPUARM_HAS_VFP_DOUBLE in fpu_capabilities[current_settings.fputype]))
 {$endif arm}
          ;
 {$endif x86}
