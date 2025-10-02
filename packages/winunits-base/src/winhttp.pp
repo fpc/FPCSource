@@ -738,7 +738,7 @@ type
   function WinHttpQueryDataAvailable(hRequest:HINTERNET; lpdwNumberOfBytesAvailable:LPDWORD):WINBOOL; stdcall; external External_library;
   function WinHttpQueryOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; lpdwBufferLength:LPDWORD):WINBOOL; stdcall; external External_library;
   function WinHttpSetOption(hInternet:HINTERNET; dwOption:DWORD; lpBuffer:LPVOID; dwBufferLength:DWORD):WINBOOL; stdcall; external External_library;
-  function WinHttpSetTimes(hInternet:HINTERNET; nResolveTime:longint; nConnectTime:longint; nSendTime:longint; nReceiveTime:longint):WINBOOL; stdcall; external External_library;
+  function WinHttpSetTimeouts(hInternet:HINTERNET; nResolveTime:longint; nConnectTime:longint; nSendTime:longint; nReceiveTime:longint):WINBOOL; stdcall; external External_library;
   function WinHttpIsHostInProxyBypassList(var pProxyInfo:WINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; var pfIsInBypassList:BOOL):DWORD; stdcall; overload; external External_library;
   function WinHttpIsHostInProxyBypassList(pProxyInfo:PWINHTTP_PROXY_INFO; pwszHost:PCWSTR; tScheme:INTERNET_SCHEME; nPort:INTERNET_PORT; pfIsInBypassList:PBOOL):DWORD; stdcall; overload; external External_library;
   function WinHttpOpenRequest(hConnect:HINTERNET; pwszVerb:LPCWSTR; pwszObjectName:LPCWSTR; pwszVersion:LPCWSTR; pwszReferrer:LPCWSTR; 
