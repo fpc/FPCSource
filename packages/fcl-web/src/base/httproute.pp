@@ -744,13 +744,13 @@ begin
   try
     While (Result=Nil) and (I<FRoutes.Count) do
       begin
+      Params.Clear;
       Result:=FRoutes[i];
       If Not Result.MatchPattern(APathInfo,Params,FRouteOptions) then
         Result:=Nil
       else if Not Result.MatchMethod(AMethod) then
         begin
         Result:=Nil;
-        Params.Clear;
         MethodMisMatch:=True;
         end;
       Inc(I);
