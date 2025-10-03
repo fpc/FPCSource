@@ -4241,11 +4241,13 @@ BEGIN
        End;
      evKeyDown: Begin                                 { KEYDOWN EVENT }
        Case Event.KeyCode Of
-         kbTab: Begin                                 { TAB KEY }
+         kbDown, kbRight, kbTab:
+         Begin
            FocusNext(False);                          { Select next view }
            ClearEvent(Event);                         { Clear the event }
          End;
-         kbShiftTab: Begin                            { SHIFT TAB KEY }
+         kbUp, kbLeft, kbShiftTab:
+         Begin
            FocusNext(True);                           { Select prior view }
            ClearEvent(Event);                         { Clear the event }
          End;
