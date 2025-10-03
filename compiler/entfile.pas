@@ -1329,7 +1329,7 @@ begin
 	floatx80_ba:=swapendian_floatx80entryreal(floatx80_ba);
 {$ifdef FPC_BIG_ENDIAN}
       floatx80_e.high:=pword(@floatx80_ba[0])^;
-      floatx80_e.low:=pqword(@floatx80_ba[2])^;
+      floatx80_e.low:=unaligned(pqword(@floatx80_ba[2])^);
 {$else}
       floatx80_e.high:=pword(@floatx80_ba[8])^;
       floatx80_e.low:=pqword(@floatx80_ba[0])^;
