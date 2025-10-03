@@ -1493,6 +1493,19 @@ const
               end;
           end;
 
+        { optimze @<proc>=/<>@<proc>,
+          such code might appear in generic specializations }
+        if (nodetype in [equaln,unequaln]) and
+          (left.nodetype=typeconvn) and (is_voidpointer(left.resultdef)) and (ttypeconvnode(left).left.nodetype=typeconvn) and
+          (ttypeconvnode(ttypeconvnode(left).left).convtype=tc_proc_2_procvar) and
+          (ttypeconvnode(ttypeconvnode(left).left).left.nodetype=loadn) and
+          (ttypeconvnode(ttypeconvnode(left).left).left.resultdef.typ=procdef) and
+          left.isequal(right) then
+          begin
+            result:=cordconstnode.create(ord(nodetype=equaln),resultdef,false);
+            exit;
+          end;
+
         { check if
            typeinfo(<type1>)=/<>typeinfo(<type2>)
           can be evaluated at compile time
@@ -1506,9 +1519,9 @@ const
           begin
             case nodetype of
               equaln:
-                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef=tinlinenode(righttarget).left.resultdef),bool8type,false);
+                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef=tinlinenode(righttarget).left.resultdef),resultdef,false);
               unequaln:
-                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef<>tinlinenode(righttarget).left.resultdef),bool8type,false);
+                result:=cordconstnode.create(ord(tinlinenode(lefttarget).left.resultdef<>tinlinenode(righttarget).left.resultdef),resultdef,false);
               else
                 Internalerror(2020092901);
             end;
@@ -2847,42 +2860,9 @@ const
                       inserttypeconv(left,right.resultdef)
                     else if not(equal_defs(ld,rd)) then
                       IncompatibleTypes(ld,rd);
-                    { now that the type checking is done, convert both to charpointer, }
-                    { because methodpointers are 8 bytes even though only the first 4  }
-                    { bytes must be compared. This can happen here if we are in        }
-                    { TP/Delphi mode, because there @methodpointer = voidpointer (but  }
-                    { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
-                    { optimized away, since the result already was a voidpointer, so   }
-                    { use a charpointer instead (JM)                                   }
 {$if defined(jvm)}
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
-{$elseif defined(i8086)}
-                    if is_hugepointer(left.resultdef) then
-                      inserttypeconv_internal(left,charhugepointertype)
-                    else if is_farpointer(left.resultdef) then
-                      inserttypeconv_internal(left,charfarpointertype)
-                    else
-                      inserttypeconv_internal(left,charnearpointertype);
-                    if is_hugepointer(right.resultdef) then
-                      inserttypeconv_internal(right,charhugepointertype)
-                    else if is_farpointer(right.resultdef) then
-                      inserttypeconv_internal(right,charfarpointertype)
-                    else
-                      inserttypeconv_internal(right,charnearpointertype);
-{$elseif defined(wasm)}
-                    if is_wasm_reference_type(left.resultdef) then
-                      inserttypeconv(right,left.resultdef)
-                    else if is_wasm_reference_type(right.resultdef) then
-                      inserttypeconv(left,right.resultdef)
-                    else
-                      begin
-                        inserttypeconv_internal(left,charpointertype);
-                        inserttypeconv_internal(right,charpointertype);
-                      end;
-{$else}
-                    inserttypeconv_internal(left,charpointertype);
-                    inserttypeconv_internal(right,charpointertype);
 {$endif jvm}
                  end;
                ltn,lten,gtn,gten:
