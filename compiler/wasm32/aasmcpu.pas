@@ -149,8 +149,10 @@ uses
          insoffset : longint;
       public
          is_br_generated_by_goto: boolean;
+         try_table_catch_clauses: tasmlist;
 
          constructor Create(op : tasmop);override;
+         destructor Destroy;override;
 
          constructor op_none(op : tasmop);
 
@@ -1931,6 +1933,15 @@ uses
         inherited Create(op);
         if not (ts_wasm_threads in current_settings.targetswitches) and is_atomic_op(op) then
           internalerror(2024070701);
+        if op=a_try_table then
+          try_table_catch_clauses:=TAsmList.Create;
+      end;
+
+
+    destructor taicpu.Destroy;
+      begin
+        try_table_catch_clauses.free;
+        inherited;
       end;
 
 
