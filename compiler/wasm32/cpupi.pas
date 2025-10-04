@@ -597,6 +597,7 @@ implementation
                       a_block,
                       a_loop,
                       a_if,
+                      a_try_table,
                       a_legacy_try:
                         begin
                           blockstack.Concat(twasmblockitem.create(lastinstr));
@@ -616,6 +617,7 @@ implementation
                       a_end_block,
                       a_end_loop,
                       a_end_if,
+                      a_end_try_table,
                       a_end_legacy_try:
                         begin
                           dec(cur_nesting_depth);
@@ -626,6 +628,7 @@ implementation
                              ((cblock.blockstart.opcode=a_block) and (lastinstr.opcode<>a_end_block)) or
                              ((cblock.blockstart.opcode=a_loop) and (lastinstr.opcode<>a_end_loop)) or
                              ((cblock.blockstart.opcode=a_if) and (lastinstr.opcode<>a_end_if)) or
+                             ((cblock.blockstart.opcode=a_try_table) and (lastinstr.opcode<>a_end_try_table)) or
                              ((cblock.blockstart.opcode=a_legacy_try) and (lastinstr.opcode<>a_end_legacy_try)) then
                             Message1(parser_f_unsupported_feature,'incompatible nesting level');
                           cblock.free;
