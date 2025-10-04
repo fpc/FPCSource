@@ -1947,13 +1947,13 @@ uses
 
     constructor taicpu.op_none(op : tasmop);
       begin
-        inherited create(op);
+        create(op);
       end;
 
 
     constructor taicpu.op_reg(op : tasmop;_op1 : tregister);
       begin
-        inherited create(op);
+        create(op);
         ops:=1;
 {$ifdef EXTDEBUG}
         if getregtype(_op1)=R_INVALIDREGISTER then
@@ -1965,7 +1965,7 @@ uses
 
     constructor taicpu.op_ref(op : tasmop;const _op1 : treference);
       begin
-        inherited create(op);
+        create(op);
         ops:=1;
         loadref(0,_op1);
         if op in [a_local_get,a_local_set,a_local_tee] then
@@ -1983,7 +1983,7 @@ uses
 
     constructor taicpu.op_const(op : tasmop;_op1 : aint);
       begin
-        inherited create(op);
+        create(op);
         ops:=1;
         loadconst(0,_op1);
       end;
@@ -1991,7 +1991,7 @@ uses
 
     constructor taicpu.op_sym(op : tasmop;_op1 : tasmsymbol);
       begin
-        inherited create(op);
+        create(op);
         ops:=1;
         loadsymbol(0,_op1,0);
       end;
@@ -1999,7 +1999,7 @@ uses
 
     constructor taicpu.op_sym_const(op: tasmop; _op1: tasmsymbol; _op2: aint);
       begin
-        inherited create(op);
+        create(op);
         ops:=2;
         loadsymbol(0,_op1,0);
         loadconst(1,_op2);
@@ -2008,7 +2008,7 @@ uses
 
     constructor taicpu.op_sym_functype(op : tasmop;_op1 : tasmsymbol;_op2 : TWasmFuncType);
       begin
-        inherited create(op);
+        create(op);
         ops:=2;
         loadsymbol(0,_op1,0);
         loadfunctype(1,_op2);
@@ -2017,7 +2017,7 @@ uses
 
     constructor taicpu.op_single(op: tasmop; _op1: single);
       begin
-        inherited create(op);
+        create(op);
         ops:=1;
         loadsingle(0,_op1);
       end;
@@ -2025,14 +2025,14 @@ uses
 
     constructor taicpu.op_double(op: tasmop; _op1: double);
       begin
-        inherited create(op);
+        create(op);
         ops:=1;
         loaddouble(0,_op1);
       end;
 
     constructor taicpu.op_functype(op: tasmop; _op1: TWasmFuncType);
       begin
-       inherited create(op);
+       create(op);
        ops:=1;
        loadfunctype(0,_op1);
       end;
