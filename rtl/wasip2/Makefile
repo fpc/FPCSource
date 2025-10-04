@@ -1931,9 +1931,9 @@ ifdef INSTALL_CREATEPACKAGEFPC
 ifdef FPCMAKE
 ifdef PACKAGE_VERSION
 ifneq ($(wildcard Makefile.fpc),)
-	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+	$(FPCMAKE) -o Package-$(TARGETSUFFIX).fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
 	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+	$(INSTALL) Package-$(TARGETSUFFIX).fpc $(INSTALL_UNITDIR)
 endif
 endif
 endif
@@ -2045,7 +2045,7 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package.fpc *.fpm
+	-$(DEL) fpcmade.* Package*.fpc *.fpm
 	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res symbol_order*.fpc
 	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
