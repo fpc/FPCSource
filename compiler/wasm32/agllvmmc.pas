@@ -393,6 +393,33 @@ implementation
         end;
       end;
 
+    procedure WriteCatchClauses(writer: TExternalAssemblerOutputFile; catch_clauses: TAsmList);
+      var
+        hp: taicpu;
+        i: Integer;
+      begin
+        hp:=taicpu(catch_clauses.First);
+        while Assigned(hp) do
+          begin
+            if not (hp.opcode in [a_catch,a_catch_ref,a_catch_all,a_catch_all_ref]) then
+              internalerror(2025100401);
+            writer.AsmWrite(#9'('+gas_op2str[hp.opcode]);
+            if hp.ops<>0 then
+              begin
+                for i:=0 to hp.ops-1 do
+                  begin
+                    writer.AsmWrite(#9);
+                    if hp.oper[i]^.typ=top_functype then
+                      owner.WriteFuncType(hp.oper[i]^.functype)
+                    else
+                      writer.AsmWrite(getopstr(hp.oper[i]^));
+                  end;
+              end;
+            writer.AsmWrite(')');
+            hp:=taicpu(hp.Next);
+          end;
+      end;
+
     var
       cpu : taicpu;
       i   : integer;
@@ -427,6 +454,10 @@ implementation
                   writer.AsmWrite(getopstr(cpu.oper[i]^));
               end;
         end;
+
+      if Assigned(cpu.try_table_catch_clauses) then
+        WriteCatchClauses(writer,cpu.try_table_catch_clauses);
+
       writer.AsmLn;
     end;
 
