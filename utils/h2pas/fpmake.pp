@@ -56,6 +56,7 @@ begin
     T.Dependencies.AddUnit('h2plexlib');
     T.Dependencies.AddUnit('scan');
     T.Dependencies.AddUnit('h2pyacclib');
+    T.Dependencies.AddUnit('h2pparse');
     
     T:=P.Targets.AddUnit('scan.pas');
     T.Install:=false;
@@ -100,6 +101,18 @@ begin
     P.Targets.AddUnit('h2plexlib.pas').install:=false;
     P.Targets.AddUnit('h2pyacclib.pas').install:=false;
     P.Targets.AddUnit('h2pconst.pas').install:=false;
+
+    T:=P.Targets.AddUnit('h2pparse.pp');
+    T.install:=false;
+    T.Dependencies.AddUnit('scan');
+    T.Dependencies.AddUnit('h2pconst');
+    T.Dependencies.AddUnit('h2plexlib');
+    T.Dependencies.AddUnit('h2pyacclib');
+    T.Dependencies.AddUnit('scanbase');
+    T.Dependencies.AddUnit('h2pbase');
+    T.Dependencies.AddUnit('h2ptypes');
+    T.Dependencies.AddUnit('h2pout');
+
     end;
 end;
 
