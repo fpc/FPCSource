@@ -1400,7 +1400,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   {$if defined(FPC_WASM_EXNREF_EXCEPTIONS)}
     {$I except_exnref.inc}
-  {$elseif defined(FPC_WASM_NATIVE_EXCEPTIONS)}
+  {$elseif defined(FPC_WASM_LEGACY_EXCEPTIONS)}
     {$I except_legacy.inc}
   {$elseif defined(FPC_WASM_BRANCHFUL_EXCEPTIONS)}
     {$I except_branchful.inc}
