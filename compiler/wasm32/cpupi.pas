@@ -122,14 +122,14 @@ implementation
       end;
 
 {*****************************************************************************
-                     twasmexceptionstatehandler_nativeexceptions
+              twasmexceptionstatehandler_nativelegacyexceptions
 *****************************************************************************}
 
     type
 
-      { twasmexceptionstatehandler_nativeexceptions }
+      { twasmexceptionstatehandler_nativelegacyexceptions }
 
-      twasmexceptionstatehandler_nativeexceptions = class(tcgexceptionstatehandler)
+      twasmexceptionstatehandler_nativelegacyexceptions = class(tcgexceptionstatehandler)
         class procedure new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate); override;
         class procedure free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean); override;
         class procedure handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate); override;
@@ -139,7 +139,7 @@ implementation
         class procedure end_catch(list: TAsmList); override;
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
+    class procedure twasmexceptionstatehandler_nativelegacyexceptions.new_exception(list:TAsmList;const t:texceptiontemps; const exceptframekind: texceptframekind; out exceptstate: texceptionstate);
       begin
         exceptstate.exceptionlabel:=nil;
         exceptstate.oldflowcontrol:=flowcontrol;
@@ -148,16 +148,16 @@ implementation
         flowcontrol:=[fc_inflowcontrol,fc_catching_exceptions];
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
+    class procedure twasmexceptionstatehandler_nativelegacyexceptions.free_exception(list: TAsmList; const t: texceptiontemps; const s: texceptionstate; a: aint; endexceptlabel: tasmlabel; onlyfree:boolean);
       begin
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
+    class procedure twasmexceptionstatehandler_nativelegacyexceptions.handle_nested_exception(list:TAsmList;var t:texceptiontemps;var entrystate: texceptionstate);
       begin
         Message1(parser_f_unsupported_feature,'nested exception');
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
+    class procedure twasmexceptionstatehandler_nativelegacyexceptions.begin_catch(list: TAsmList; excepttype: tobjectdef; nextonlabel: tasmlabel; out exceptlocdef: tdef; out exceptlocreg: tregister);
       var
         pd: tprocdef;
         href2: treference;
@@ -199,7 +199,7 @@ implementation
         exceptlocreg:=exceptloc.register;
       end;
 
-    class procedure twasmexceptionstatehandler_nativeexceptions.end_catch(list: TAsmList);
+    class procedure twasmexceptionstatehandler_nativelegacyexceptions.end_catch(list: TAsmList);
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_if));
       end;
@@ -417,7 +417,7 @@ implementation
     procedure tcpuprocinfo.setup_eh;
       begin
         if ts_wasm_native_legacy_exceptions in current_settings.targetswitches then
-          cexceptionstatehandler:=twasmexceptionstatehandler_nativeexceptions
+          cexceptionstatehandler:=twasmexceptionstatehandler_nativelegacyexceptions
         else if ts_wasm_no_exceptions in current_settings.targetswitches then
           cexceptionstatehandler:=twasmexceptionstatehandler_noexceptions
         else if ts_wasm_bf_exceptions in current_settings.targetswitches then
