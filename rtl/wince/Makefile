@@ -1953,7 +1953,7 @@ ifdef PACKAGE_VERSION
 ifneq ($(wildcard Makefile.fpc),)
 	$(FPCMAKE) -o Package-$(TARGETSUFFIX).fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
 	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) Package-$(TARGETSUFFIX).fpc $(INSTALL_UNITDIR)
+	$(INSTALL) Package-$(TARGETSUFFIX).fpc $(INSTALL_UNITDIR)/Package.fpc
 endif
 endif
 endif
