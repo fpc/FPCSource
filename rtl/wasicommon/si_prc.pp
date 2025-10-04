@@ -17,7 +17,7 @@
 
 unit si_prc;
 
-{$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS) or defined(FPC_WASM_LEGACY_EXCEPTIONS)}
+{$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS) or defined(FPC_WASM_LEGACY_EXCEPTIONS) or defined(FPC_WASM_EXNREF_EXCEPTIONS)}
   {$MODESWITCH EXCEPTIONS}
 {$endif}
 
@@ -29,7 +29,7 @@ implementation
 
 procedure PASCALMAIN; external 'PASCALMAIN';
 
-{$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS) or defined(FPC_WASM_LEGACY_EXCEPTIONS)}
+{$if defined(FPC_WASM_BRANCHFUL_EXCEPTIONS) or defined(FPC_WASM_LEGACY_EXCEPTIONS) or defined(FPC_WASM_EXNREF_EXCEPTIONS)}
 Procedure DoUnHandledException; external name 'FPC_DOUNHANDLEDEXCEPTION';
 
 procedure _start_pascal;
