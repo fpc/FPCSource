@@ -1247,6 +1247,7 @@ implementation
         excepttemps : tcgexceptionstatehandler.texceptiontemps;
         exceptframekind: tcgexceptionstatehandler.texceptframekind;
         in_loop: Boolean;
+        try_table: taicpu;
 
       procedure generate_exceptreason_check_br(reason: tcgint; br: aint);
         var
@@ -1337,8 +1338,13 @@ implementation
             current_procinfo.CurrContinueLabel:=continuefinallylabel;
           end;
 
-        { the inner 'try..end_try' block }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
+        { the 'catch' block }
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+
+        { the inner 'try_table..end_try_table' block }
+        try_table:=taicpu.op_none(a_try_table);
+        try_table.try_table_catch_clauses.Concat(taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));
+        current_asmdata.CurrAsmList.concat(try_table);
 
         { try code }
         if assigned(left) then
@@ -1355,15 +1361,17 @@ implementation
 
         { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
-        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,5)); // jump to the 'finally' section
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        { exit the inner 'try_table..end_try_table' block }
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
+
         { exceptionreason:=1 (exception) }
         hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
-        { exit the inner 'try..end_try' block }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
+        { exit the 'catch' block }
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
