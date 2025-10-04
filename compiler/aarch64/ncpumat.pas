@@ -388,10 +388,15 @@ implementation
 
                         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_cond(A_CSEL,tmpreg,tmpreg,zeroreg, C_CS));
 
-                        shifterop.shiftmode := SM_LSR;
-                        shifterop.shiftimm := shift;
+                        if shift>=tcgsize2size[opsize]*8 then
+                          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,resultreg,tmpreg))
+                        else
+                          begin
+                            shifterop.shiftmode := SM_LSR;
+                            shifterop.shiftimm := shift;
 
-                        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,resultreg,tmpreg,resultreg,shifterop));
+                            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,resultreg,tmpreg,resultreg,shifterop));
+                          end;
                       end
                     else if expandword then
                       { Include the right-shift by 32 to get the high-order DWord }
