@@ -1364,19 +1364,19 @@ implementation
 
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,exceptframekind,excepttemps,finallyexceptionstate,nil);
 
-        { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
-        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,5)); // jump to the 'finally' section
-
         { exit the inner 'try_table..end_try_table' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
 
-        { exceptionreason:=1 (exception) }
-        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
+        { we've reached the end of the 'try' block, with no exceptions/exit/break/continue, so set exceptionreason:=0 }
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,0,excepttemps.reasonbuf);
         current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4)); // jump to the 'finally' section
 
         { exit the 'catch' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
+
+        { exceptionreason:=1 (exception) }
+        hlcg.g_exception_reason_save_const(current_asmdata.CurrAsmList,exceptionreasontype,1,excepttemps.reasonbuf);
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,3)); // jump to the 'finally' section
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
