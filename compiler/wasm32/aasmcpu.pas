@@ -2114,6 +2114,8 @@ uses
             until v=0;
           end;
 
+      var
+        hp: taicpu;
       begin
         result:=0;
         { Save the old offset and set the new offset }
@@ -2376,7 +2378,8 @@ uses
           a_block,
           a_loop,
           a_if,
-          a_legacy_try:
+          a_legacy_try,
+          a_try_table:
             begin
               if ops=0 then
                 result:=2
@@ -2396,6 +2399,58 @@ uses
                         end;
                       else
                         internalerror(2021092620);
+                    end;
+                end;
+              if opcode=a_try_table then
+                begin
+                  Inc(result,UlebSize(try_table_catch_clauses.Count));
+                  hp:=taicpu(try_table_catch_clauses.First);
+                  while Assigned(hp) do
+                    begin
+                      case hp.opcode of
+                        a_catch,
+                        a_catch_ref:
+                          begin
+                            Inc(result);
+                            if hp.ops<>2 then
+                              internalerror(2025100502);
+                            with hp.oper[0]^ do
+                              case typ of
+                                top_ref:
+                                  begin
+                                    if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                                      internalerror(2025100503);
+                                    Inc(result,5);
+                                  end;
+                                else
+                                  internalerror(2025100504);
+                              end;
+                            with hp.oper[1]^ do
+                              case typ of
+                                top_const:
+                                  Inc(result,UlebSize(val));
+                                else
+                                  internalerror(2025100505);
+                              end;
+                          end;
+                        a_catch_all,
+                        a_catch_all_ref:
+                          begin
+                            Inc(result);
+                            if hp.ops<>1 then
+                              internalerror(2025100506);
+                            with hp.oper[0]^ do
+                              case typ of
+                                top_const:
+                                  Inc(result,UlebSize(val));
+                                else
+                                  internalerror(2025100507);
+                              end;
+                          end;
+                        else
+                          internalerror(2025100508);
+                      end;
+                      hp:=taicpu(hp.Next);
                     end;
                 end;
             end;
@@ -2714,6 +2769,8 @@ uses
             until v=0;
           end;
 
+      var
+        hp: taicpu;
       begin
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
@@ -3161,7 +3218,8 @@ uses
           a_block,
           a_loop,
           a_if,
-          a_legacy_try:
+          a_legacy_try,
+          a_try_table:
             begin
               case opcode of
                 a_block:
@@ -3172,6 +3230,8 @@ uses
                   WriteByte($04);
                 a_legacy_try:
                   WriteByte($06);
+                a_try_table:
+                  WriteByte($1F);
                 else
                   internalerror(2021092626);
               end;
@@ -3198,6 +3258,62 @@ uses
                         end;
                       else
                         internalerror(2021092620);
+                    end;
+                end;
+              if opcode=a_try_table then
+                begin
+                  WriteUleb(try_table_catch_clauses.Count);
+                  hp:=taicpu(try_table_catch_clauses.First);
+                  while Assigned(hp) do
+                    begin
+                      case hp.opcode of
+                        a_catch:
+                          WriteByte($00);
+                        a_catch_ref:
+                          WriteByte($01);
+                        a_catch_all:
+                          WriteByte($02);
+                        a_catch_all_ref:
+                          WriteByte($03);
+                        else
+                          internalerror(2025100501);
+                      end;
+                      if hp.opcode in [a_catch,a_catch_ref] then
+                        begin
+                          if hp.ops<>2 then
+                            internalerror(2025100502);
+                          with hp.oper[0]^ do
+                            case typ of
+                              top_ref:
+                                begin
+                                  if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
+                                    internalerror(2025100503);
+                                  objdata.writeReloc(0,5,TWasmObjData(ObjData).ExceptionTagRef(ref^.symbol),RELOC_TAG_INDEX_LEB);
+                                end;
+                              else
+                                internalerror(2025100504);
+                            end;
+                          with hp.oper[1]^ do
+                            case typ of
+                              top_const:
+                                WriteUleb(val);
+                              else
+                                internalerror(2025100505);
+                            end;
+                        end
+                      else
+                        begin
+                          if hp.ops<>1 then
+                            internalerror(2025100506);
+                          with hp.oper[0]^ do
+                            case typ of
+                              top_const:
+                                WriteUleb(val);
+                              else
+                                internalerror(2025100507);
+                            end;
+                        end;
+                      hp:=taicpu(hp.Next);
                     end;
                 end;
             end;
