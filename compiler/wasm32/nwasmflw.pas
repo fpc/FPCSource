@@ -1247,7 +1247,6 @@ implementation
         excepttemps : tcgexceptionstatehandler.texceptiontemps;
         exceptframekind: tcgexceptionstatehandler.texceptframekind;
         in_loop: Boolean;
-        try_table: taicpu;
 
       procedure generate_exceptreason_check_br(reason: tcgint; br: aint);
         var
@@ -1342,9 +1341,7 @@ implementation
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
 
         { the inner 'try_table..end_try_table' block }
-        try_table:=taicpu.op_none(a_try_table);
-        try_table.try_table_catch_clauses.Concat(taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0));
-        current_asmdata.CurrAsmList.concat(try_table);
+        current_asmdata.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { try code }
         if assigned(left) then
