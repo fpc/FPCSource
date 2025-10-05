@@ -101,7 +101,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../../..
+override DEFAULT_FPCDIR=../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -366,1387 +366,17 @@ FPMAKE_SKIP_CONFIG=-n
 FPCFPMAKE=$(FPC)
 endif
 endif
-ifeq ($(CPU_OS_TARGET),i386-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-win32)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-os2)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-beos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-haiku)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-solaris)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-netware)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-darwin)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-emx)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-wince)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-symbian)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-nativent)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-iphonesim)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-android)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-aros)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),m68k-human68k)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-amiga)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-wii)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-aix)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),sparc-solaris)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),sparc-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-haiku)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-solaris)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-darwin)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-win64)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-android)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-aros)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-netbsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-palmos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-wince)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-gba)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-nds)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-symbian)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-android)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-aros)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-freertos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),arm-ios)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-aix)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),avr-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),armeb-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),armeb-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mips-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-android)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mips64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),mips64el-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),jvm-java)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),jvm-android)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i8086-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i8086-msdos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-darwin)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-win64)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-android)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-ios)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),sparc64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-freertos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-freertos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),z80-embedded)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),z80-msxdos)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),loongarch64-linux)
-override TARGET_PROGRAMS+=debugserver
-endif
-ifeq ($(CPU_OS_TARGET),i386-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-win32)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-os2)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-freebsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-beos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-haiku)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-netbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-solaris)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-netware)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-openbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-wdosx)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-darwin)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-emx)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-watcom)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-netwlibc)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-wince)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-symbian)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-nativent)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-iphonesim)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-android)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-aros)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-netbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-amiga)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-atari)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-palmos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),m68k-human68k)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-amiga)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-darwin)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-morphos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-wii)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-aix)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),sparc-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),sparc-netbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),sparc-solaris)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),sparc-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-haiku)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-solaris)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-darwin)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-win64)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-android)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-aros)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-netbsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-palmos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-wince)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-gba)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-nds)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-symbian)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-android)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-aros)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-freertos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),arm-ios)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-aix)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),avr-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),armeb-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),armeb-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mips-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-android)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mips64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),mips64el-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),jvm-java)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),jvm-android)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i8086-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i8086-msdos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-darwin)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-win64)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-android)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-ios)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),sparc64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-freertos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-freertos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),z80-embedded)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),z80-msxdos)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),loongarch64-linux)
-override TARGET_UNITS+=frmabout frmmain bitmapdata
-endif
-ifeq ($(CPU_OS_TARGET),i386-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-win32)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-os2)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-freebsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-beos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-haiku)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-netbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-solaris)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-netware)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-openbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-wdosx)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-darwin)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-emx)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-watcom)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-netwlibc)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-wince)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-symbian)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-nativent)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-iphonesim)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-android)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i386-aros)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-netbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-amiga)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-atari)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-palmos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),m68k-human68k)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-amiga)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-darwin)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-morphos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-wii)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-aix)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),sparc-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),sparc-netbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),sparc-solaris)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),sparc-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-haiku)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-solaris)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-darwin)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-win64)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-android)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-aros)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-netbsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-palmos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-wince)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-gba)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-nds)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-symbian)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-android)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-aros)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-freertos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),arm-ios)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-aix)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),avr-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),armeb-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),armeb-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mips-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-android)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mips64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),mips64el-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),jvm-java)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),jvm-android)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i8086-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i8086-msdos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),i8086-win16)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-darwin)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-win64)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-android)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-ios)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),sparc64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-freertos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-freertos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),z80-embedded)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),z80-msxdos)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
-override TARGET_RSTS+=frmabout frmmain
-endif
-ifeq ($(CPU_OS_TARGET),loongarch64-linux)
-override TARGET_RSTS+=frmabout frmmain
-endif
+override PACKAGE_NAME=utils
+override PACKAGE_VERSION=3.3.1
+FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 override INSTALL_FPCPACKAGE=y
-ifeq ($(CPU_OS_TARGET),i386-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-go32v2)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-win32)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-os2)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-freebsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-beos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-haiku)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-solaris)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-netware)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-openbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-wdosx)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-emx)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-watcom)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-netwlibc)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-wince)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-symbian)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-nativent)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-iphonesim)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-android)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i386-aros)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-amiga)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-atari)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-palmos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),m68k-human68k)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-amiga)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-morphos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-wii)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc-aix)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),sparc-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),sparc-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),sparc-solaris)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),sparc-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-haiku)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-solaris)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-win64)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-android)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-aros)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-palmos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-wince)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-gba)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-nds)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-symbian)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-android)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-aros)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-freertos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),arm-ios)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),powerpc64-aix)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),avr-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),armeb-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),armeb-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mips-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-android)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mipsel-ps1)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mips64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),mips64el-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),jvm-java)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),jvm-android)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i8086-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i8086-msdos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),i8086-win16)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-win64)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-android)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),aarch64-ios)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),sparc64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),riscv32-freertos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),riscv64-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),xtensa-freertos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),z80-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),z80-msxdos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(CPU_OS_TARGET),loongarch64-linux)
-override COMPILER_UNITDIR+=..
-endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -2547,351 +1177,1041 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl 
+override REQUIRE_PACKAGES=rtl fpmkunit fcl-json fcl-process libtar paszlib
 ifeq ($(CPU_OS_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-android)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i386-aros)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-macosclassic)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-sinclairql)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),m68k-human68k)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-macosclassic)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-wii)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-aix)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-haiku)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-iphonesim)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-android)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-aros)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-dragonfly)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-android)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-aros)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-freertos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),arm-ios)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mips-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-android)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-ps1)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mips64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),mips64el-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),jvm-java)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),jvm-android)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i8086-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i8086-msdos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),i8086-win16)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-win64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-iphonesim)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-android)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-ios)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),wasm32-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),wasm32-wasip1)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),wasm32-wasip1threads)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),wasm32-wasip2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),sparc64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),riscv32-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),riscv32-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),riscv32-freertos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),riscv64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),riscv64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),xtensa-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),xtensa-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),xtensa-freertos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),z80-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),z80-zxspectrum)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),z80-msxdos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),z80-amstradcpc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifeq ($(CPU_OS_TARGET),loongarch64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_PASZLIB=1
+REQUIRE_PACKAGES_FCL-PROCESS=1
+REQUIRE_PACKAGES_HASH=1
+REQUIRE_PACKAGES_LIBTAR=1
+REQUIRE_PACKAGES_FPMKUNIT=1
+REQUIRE_PACKAGES_FCL-JSON=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -2935,6 +2255,270 @@ override COMPILER_UNITDIR+=$(UNITDIR_RTL)
 endif
 ifdef UNITDIR_FPMAKE_RTL
 override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_PASZLIB
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /paszlib/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_PASZLIB),)
+PACKAGEDIR_PASZLIB:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /paszlib/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
+ifneq ($(PACKAGEDIR_PASZLIB),)
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)),)
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)/units/$(TARGETSUFFIX)
+else
+UNITDIR_PASZLIB=$(PACKAGEDIR_PASZLIB)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_PASZLIB=$(PACKAGEDIR_PASZLIB)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_PASZLIB)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_PASZLIB=$(PACKAGEDIR_PASZLIB)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_PASZLIB=$(PACKAGEDIR_PASZLIB)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_PASZLIB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_PASZLIB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_PASZLIB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_PASZLIB=
+UNITDIR_PASZLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /paszlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_PASZLIB),)
+UNITDIR_PASZLIB:=$(firstword $(UNITDIR_PASZLIB))
+else
+UNITDIR_PASZLIB=
+endif
+endif
+ifdef UNITDIR_PASZLIB
+override COMPILER_UNITDIR+=$(UNITDIR_PASZLIB)
+endif
+ifdef UNITDIR_FPMAKE_PASZLIB
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_PASZLIB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-PROCESS
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FCL-PROCESS),)
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-PROCESS),)
+PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fcl-process/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
+ifneq ($(PACKAGEDIR_FCL-PROCESS),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-PROCESS)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-PROCESS) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-PROCESS)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-PROCESS=
+UNITDIR_FCL-PROCESS:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-PROCESS),)
+UNITDIR_FCL-PROCESS:=$(firstword $(UNITDIR_FCL-PROCESS))
+else
+UNITDIR_FCL-PROCESS=
+endif
+endif
+ifdef UNITDIR_FCL-PROCESS
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-PROCESS)
+endif
+ifdef UNITDIR_FPMAKE_FCL-PROCESS
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-PROCESS)
+endif
+endif
+ifdef REQUIRE_PACKAGES_HASH
+PACKAGEDIR_HASH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /hash/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_HASH),)
+PACKAGEDIR_HASH:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /hash/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_HASH),)
+PACKAGEDIR_HASH:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /hash/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
+ifneq ($(PACKAGEDIR_HASH),)
+ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)),)
+UNITDIR_HASH=$(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)
+else
+UNITDIR_HASH=$(PACKAGEDIR_HASH)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_HASH=$(PACKAGEDIR_HASH)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_HASH)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_HASH=$(PACKAGEDIR_HASH)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_HASH=$(PACKAGEDIR_HASH)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_HASH)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_HASH) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_HASH)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_HASH=
+UNITDIR_HASH:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /hash/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_HASH),)
+UNITDIR_HASH:=$(firstword $(UNITDIR_HASH))
+else
+UNITDIR_HASH=
+endif
+endif
+ifdef UNITDIR_HASH
+override COMPILER_UNITDIR+=$(UNITDIR_HASH)
+endif
+ifdef UNITDIR_FPMAKE_HASH
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_HASH)
+endif
+endif
+ifdef REQUIRE_PACKAGES_LIBTAR
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libtar/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_LIBTAR),)
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /libtar/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_LIBTAR),)
+PACKAGEDIR_LIBTAR:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /libtar/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
+ifneq ($(PACKAGEDIR_LIBTAR),)
+ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)),)
+UNITDIR_LIBTAR=$(PACKAGEDIR_LIBTAR)/units/$(TARGETSUFFIX)
+else
+UNITDIR_LIBTAR=$(PACKAGEDIR_LIBTAR)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_LIBTAR=$(PACKAGEDIR_LIBTAR)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_LIBTAR)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_LIBTAR=$(PACKAGEDIR_LIBTAR)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_LIBTAR=$(PACKAGEDIR_LIBTAR)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_LIBTAR)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_LIBTAR) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_LIBTAR)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_LIBTAR=
+UNITDIR_LIBTAR:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /libtar/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_LIBTAR),)
+UNITDIR_LIBTAR:=$(firstword $(UNITDIR_LIBTAR))
+else
+UNITDIR_LIBTAR=
+endif
+endif
+ifdef UNITDIR_LIBTAR
+override COMPILER_UNITDIR+=$(UNITDIR_LIBTAR)
+endif
+ifdef UNITDIR_FPMAKE_LIBTAR
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_LIBTAR)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FPMKUNIT
+PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FPMKUNIT),)
+PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fpmkunit/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FPMKUNIT),)
+PACKAGEDIR_FPMKUNIT:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fpmkunit/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
+ifneq ($(PACKAGEDIR_FPMKUNIT),)
+ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units/$(TARGETSUFFIX)),)
+UNITDIR_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_FPMKUNIT=$(PACKAGEDIR_FPMKUNIT)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FPMKUNIT)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FPMKUNIT) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FPMKUNIT)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FPMKUNIT=
+UNITDIR_FPMKUNIT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fpmkunit/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FPMKUNIT),)
+UNITDIR_FPMKUNIT:=$(firstword $(UNITDIR_FPMKUNIT))
+else
+UNITDIR_FPMKUNIT=
+endif
+endif
+ifdef UNITDIR_FPMKUNIT
+override COMPILER_UNITDIR+=$(UNITDIR_FPMKUNIT)
+endif
+ifdef UNITDIR_FPMAKE_FPMKUNIT
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FPMKUNIT)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-JSON
+PACKAGEDIR_FCL-JSON:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-json/Makefile.fpc,$(PACKAGESDIR))))))
+ifeq ($(PACKAGEDIR_FCL-JSON),)
+PACKAGEDIR_FCL-JSON:=$(firstword $(subst /Makefile,,$(strip $(wildcard $(addsuffix /fcl-json/Makefile,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-JSON),)
+PACKAGEDIR_FCL-JSON:=$(firstword $(subst /fpmake.pp,,$(strip $(wildcard $(addsuffix /fcl-json/fpmake.pp,$(PACKAGESDIR))))))
+endif
+endif
+ifneq ($(PACKAGEDIR_FCL-JSON),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-JSON=$(PACKAGEDIR_FCL-JSON)
+endif
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units/$(SOURCESUFFIX)
+else
+ifneq ($(wildcard $(PACKAGEDIR_FCL-JSON)/units_bs/$(SOURCESUFFIX)),)
+UNITDIR_FPMAKE_FCL-JSON=$(PACKAGEDIR_FCL-JSON)/units_bs/$(SOURCESUFFIX)
+else
+UNITDIR_FPMAKE_FCL-JSON=$(PACKAGEDIR_FCL-JSON)
+endif
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-JSON)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-JSON) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-JSON)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-JSON=
+UNITDIR_FCL-JSON:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-json/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-JSON),)
+UNITDIR_FCL-JSON:=$(firstword $(UNITDIR_FCL-JSON))
+else
+UNITDIR_FCL-JSON=
+endif
+endif
+ifdef UNITDIR_FCL-JSON
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-JSON)
+endif
+ifdef UNITDIR_FPMAKE_FCL-JSON
+override COMPILER_FPMAKE_UNITDIR+=$(UNITDIR_FPMAKE_FCL-JSON)
 endif
 endif
 ifndef NOCPUDEF
@@ -3120,113 +2704,9 @@ else
 EXECPPAS:=@$(PPAS)
 endif
 endif
-.PHONY: fpc_units
-ifneq ($(TARGET_UNITS)$(TARGET_IMPLICITUNITS),)
-override ALLTARGET+=fpc_units
-override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
-override IMPLICITUNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_IMPLICITUNITS))
-override INSTALLPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-override CLEANPPUFILES+=$(UNITPPUFILES) $(IMPLICITUNITPPUFILES)
-endif
-fpc_units: $(COMPILER_UNITTARGETDIR) $(UNITPPUFILES)
-.PHONY: fpc_exes
-ifndef CROSSINSTALL
-ifneq ($(TARGET_PROGRAMS),)
-override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
-override ALL_EXEFILES+=$(foreach lEXEEXT,$(ALL_EXEEXT),$(addprefix $(TARGETDIRPREFIX),$(addsuffix $(lEXEEXT), $(EXEFILES))))
-override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addsuffix $(LTOEXT),$(TARGET_PROGRAMS))$(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS))) $(addprefix $(IMPORTLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
-override EXEDBGFILES:=$(addsuffix $(EXEDBGEXT),$(TARGET_PROGRAMS))
-override ALLTARGET+=fpc_exes
-override INSTALLEXEFILES+=$(EXEFILES)
-override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
-override CLEANEXEDBGFILES+=$(EXEDBGFILES)
-ifeq ($(OS_TARGET),os2)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
-endif
-ifeq ($(OS_TARGET),emx)
-override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
-endif
-endif
-endif
-fpc_exes: $(COMPILER_TARGETDIR) $(COMPILER_UNITTARGETDIR) $(EXEFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
-endif
-.PHONY: fpc_all fpc_smart fpc_debug fpc_release fpc_shared
-$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
-	@$(ECHOREDIR) Compiled > $(FPCMADE)
-fpc_all: $(FPCMADE)
-fpc_smart:
-	$(MAKE) all LINKSMART=1 CREATESMART=1
-fpc_debug:
-	$(MAKE) all DEBUG=1
-fpc_release:
-	$(MAKE) all RELEASE=1
-.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) $(LTOEXT) .pas .lpr .dpr .pp .rc .res
-$(COMPILER_UNITTARGETDIR):
-	$(MKDIRTREE) $(COMPILER_UNITTARGETDIR)
-$(COMPILER_TARGETDIR):
-	$(MKDIRTREE) $(COMPILER_TARGETDIR)
-%$(PPUEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(PPUEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pp
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.pas
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.lpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%$(EXEEXT): %.dpr
-	$(COMPILER) $<
-	$(EXECPPAS)
-%.res: %.rc
-	windres -i $< -o $@
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.lpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.dpr $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
-vpath %.inc $(COMPILER_INCLUDEDIR)
-vpath %$(OEXT) $(COMPILER_UNITTARGETDIR)
-vpath %$(LTOEXT) $(COMPILER_UNITTARGETDIR)
-vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
-.PHONY: fpc_shared
-override INSTALLTARGET+=fpc_shared_install
-ifndef SHARED_LIBVERSION
-SHARED_LIBVERSION=$(FPC_VERSION)
-endif
-ifndef SHARED_LIBNAME
-SHARED_LIBNAME=$(PACKAGE_NAME)
-endif
-ifndef SHARED_FULLNAME
-SHARED_FULLNAME=$(SHAREDLIBPREFIX)$(SHARED_LIBNAME)-$(SHARED_LIBVERSION)$(SHAREDLIBEXT)
-endif
-ifndef SHARED_LIBUNITS
-SHARED_LIBUNITS:=$(TARGET_UNITS) $(TARGET_IMPLICITUNITS)
-override SHARED_LIBUNITS:=$(filter-out $(INSTALL_BUILDUNIT),$(SHARED_LIBUNITS))
-endif
-fpc_shared:
-ifdef HASSHAREDLIB
-	$(MAKE) all CREATESHARED=1 LINKSHARED=1 CREATESMART=1
-ifneq ($(SHARED_BUILD),n)
-	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME) -d$(COMPILER_UNITTARGETDIR) -P$(BINUTILSPREFIX)
-endif
-else
-	@$(ECHO) Shared Libraries not supported
-endif
-fpc_shared_install:
-ifneq ($(SHARED_BUILD),n)
-ifneq ($(SHARED_LIBUNITS),)
-ifneq ($(wildcard $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME)),)
-	$(INSTALL) $(COMPILER_UNITTARGETDIR)/$(SHARED_FULLNAME) $(INSTALL_SHAREDDIR)
-endif
-endif
 endif
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS
@@ -3306,6 +2786,92 @@ endif
 ifdef TARGET_EXAMPLEDIRS
 	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
+.PHONY: fpc_distinstall
+fpc_distinstall: install exampleinstall
+.PHONY: fpc_zipinstall fpc_zipsourceinstall fpc_zipexampleinstall
+ifndef PACKDIR
+ifndef inUnix
+PACKDIR=$(BASEDIR)/../fpc-pack
+else
+PACKDIR=/tmp/fpc-pack
+endif
+endif
+ifndef ZIPNAME
+ifdef DIST_ZIPNAME
+ZIPNAME=$(DIST_ZIPNAME)
+else
+ZIPNAME=$(PACKAGE_NAME)
+endif
+endif
+ifndef FULLZIPNAME
+FULLZIPNAME=$(ZIPCROSSPREFIX)$(ZIPPREFIX)$(ZIPNAME)$(ZIPSUFFIX)
+endif
+ifndef ZIPTARGET
+ifdef DIST_ZIPTARGET
+ZIPTARGET=DIST_ZIPTARGET
+else
+ZIPTARGET=install
+endif
+endif
+ifndef USEZIP
+ifdef inUnix
+USETAR=1
+endif
+endif
+ifndef inUnix
+USEZIPWRAPPER=1
+endif
+ifdef USEZIPWRAPPER
+ZIPPATHSEP=$(PATHSEP)
+ZIPWRAPPER=$(subst /,$(PATHSEP),$(DIST_DESTDIR)/fpczip$(SRCBATCHEXT))
+else
+ZIPPATHSEP=/
+endif
+ZIPCMD_CDPACK:=cd $(subst /,$(ZIPPATHSEP),$(PACKDIR))
+ZIPCMD_CDBASE:=cd $(subst /,$(ZIPPATHSEP),$(BASEDIR))
+ifdef USETAR
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(TAREXT)
+ZIPCMD_ZIP:=$(TARPROG) c$(TAROPT)f $(ZIPDESTFILE) *
+else
+ZIPDESTFILE:=$(DIST_DESTDIR)/$(FULLZIPNAME)$(ZIPEXT)
+ZIPCMD_ZIP:=$(subst /,$(ZIPPATHSEP),$(ZIPPROG)) -Dr $(ZIPOPT) $(ZIPDESTFILE) *
+endif
+fpc_zipinstall:
+	$(MAKE) $(ZIPTARGET) INSTALL_PREFIX=$(PACKDIR) ZIPINSTALL=1
+	$(MKDIR) $(DIST_DESTDIR)
+	$(DEL) $(ZIPDESTFILE)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDPACK))" > $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_ZIP))" >> $(ZIPWRAPPER)
+	$(ECHOREDIR) -e "$(subst \,\\,$(ZIPCMD_CDBASE))" >> $(ZIPWRAPPER)
+else
+	echo $(ZIPCMD_CDPACK) > $(ZIPWRAPPER)
+	echo $(ZIPCMD_ZIP) >> $(ZIPWRAPPER)
+	echo $(ZIPCMD_CDBASE) >> $(ZIPWRAPPER)
+endif
+ifdef inUnix
+	/bin/sh $(ZIPWRAPPER)
+else
+ifdef RUNBATCH
+	$(RUNBATCH) $(ZIPWRAPPER)
+else
+	$(ZIPWRAPPER)
+endif
+endif
+	$(DEL) $(ZIPWRAPPER)
+else
+	$(ZIPCMD_CDPACK) ; $(ZIPCMD_ZIP) ; $(ZIPCMD_CDBASE)
+endif
+	$(DELTREE) $(PACKDIR)
+fpc_zipsourceinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall ZIPSUFFIX=$(ZIPSOURCESUFFIX)
+fpc_zipexampleinstall:
+ifdef HASEXAMPLES
+	$(MAKE) fpc_zipinstall ZIPTARGET=exampleinstall ZIPSUFFIX=$(ZIPEXAMPLESUFFIX)
+endif
+fpc_zipdistinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=distinstall
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
 override CLEANEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEFILES))
@@ -3503,30 +3069,78 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-all: fpc_all
-debug: fpc_debug
-smart: fpc_smart
-release: fpc_release
-units: fpc_units
+units:
 examples:
-shared: fpc_shared
-install: fpc_install
+shared:
 sourceinstall: fpc_sourceinstall
 exampleinstall: fpc_exampleinstall
-distinstall:
-zipinstall:
-zipsourceinstall:
-zipexampleinstall:
-zipdistinstall:
-clean: fpc_clean
-distclean: fpc_distclean
-cleanall: fpc_cleanall
+zipexampleinstall: fpc_zipexampleinstall
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
+.PHONY: units examples shared sourceinstall exampleinstall zipexampleinstall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+override FPCOPT:=$(filter-out $(addprefix -Fu,$(COMPILER_UNITDIR)),$(FPCOPT))# Compose general fpmake-parameters
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
+endif
+FPMAKE_OPT+=--localunitdir=../..
+FPMAKE_OPT+=--globalunitdir=../../packages
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
 .NOTPARALLEL:
-debugserver$(EXEEXT): frmabout$(PPUEXT) frmmain$(PPUEXT) bitmapdata$(PPUEXT) debugserver.pp
-	$(COMPILER) debugserver.pp
+fpmake$(SRCEXEEXT): fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
+all:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
+smart:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
+release:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
+debug:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:
+else
+clean:
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
+endif
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+else
+distclean:
+ifdef inUnix
+	{ $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+	$(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+cleanall: distclean
+install:	fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+endif
+distinstall:	fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
+endif
+zipinstall:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie -fsp 0
+zipsourceinstall:	fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=share/src/fpc-\$$\(PACKAGEVERSION\)/$(INSTALL_FPCSUBDIR)/\$$\(PACKAGEDIRECTORY\)
+else
+	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=source\\$(INSTALL_FPCSUBDIR)\\\$$\(PACKAGEDIRECTORY\)
+endif
