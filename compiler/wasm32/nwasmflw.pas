@@ -1921,7 +1921,9 @@ implementation
         { in the case that another exception is risen
           we've to destroy the old one, so create a new
           exception frame for the catch-handler }
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        current_asmdata.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { the 'exit' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
@@ -1994,11 +1996,13 @@ implementation
             current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
         { clear some stuff }
         if assigned(exceptvarsym) then
