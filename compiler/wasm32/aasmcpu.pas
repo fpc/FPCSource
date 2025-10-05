@@ -192,7 +192,8 @@ uses
         aitws_block,
         aitws_loop,
         aitws_legacy_try_delegate,
-        aitws_legacy_try_catch
+        aitws_legacy_try_catch,
+        aitws_try_table
       );
 
       { taicpu_wasm_structured_instruction }
@@ -1785,7 +1786,7 @@ uses
         Done: Boolean;
         p: tai;
       begin
-        wstyp:=aitws_block;
+        wstyp:=aitws_try_table;
         inherited Create;
         if assigned(a_try_table_instr.Previous) or assigned(a_try_table_instr.Next) then
           internalerror(2023100304);
