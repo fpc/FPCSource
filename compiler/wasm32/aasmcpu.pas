@@ -1799,7 +1799,7 @@ uses
           p:=tai(srclist.First);
           if not assigned(p) then
             internalerror(2023100305);
-          if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_block) then
+          if (p.typ=ait_instruction) and (taicpu(p).opcode=a_end_try_table) then
             begin
               srclist.Remove(p);
               Done:=True;
