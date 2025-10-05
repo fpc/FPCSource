@@ -145,6 +145,8 @@ uses
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)
+      private type
+        TCatchArray = array of taicpu;
       private
          insoffset : longint;
       public
@@ -168,6 +170,8 @@ uses
          constructor op_double(op : tasmop;_op1 : double);
 
          constructor op_functype(op : tasmop; _op1: TWasmFuncType);
+
+         constructor op_catch(op : tasmop;_op1 : TCatchArray);
 
          procedure loadfunctype(opidx:longint;ft:TWasmFuncType);
          procedure loadsingle(opidx:longint;f:single);
@@ -2035,6 +2039,15 @@ uses
        create(op);
        ops:=1;
        loadfunctype(0,_op1);
+      end;
+
+    constructor taicpu.op_catch(op: tasmop; _op1: TCatchArray);
+      var
+        c: taicpu;
+      begin
+        create(op);
+        for c in _op1 do
+          try_table_catch_clauses.Concat(c);
       end;
 
     procedure taicpu.loadfunctype(opidx: longint; ft: TWasmFuncType);
