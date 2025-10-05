@@ -1958,7 +1958,7 @@ implementation
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,doobjectdestroyandreraisestate,nil);
 
         hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
-        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,5));
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,7));
 
         { exit the 'continue' block }
         current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
