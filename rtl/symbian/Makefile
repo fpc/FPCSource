@@ -1949,9 +1949,14 @@ ifdef INSTALL_CREATEPACKAGEFPC
 ifdef FPCMAKE
 ifdef PACKAGE_VERSION
 ifneq ($(wildcard Makefile.fpc),)
-	$(FPCMAKE) -o Package-$(TARGETSUFFIX).fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+ifdef FPCMAKENEW
 	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) Package-$(TARGETSUFFIX).fpc $(INSTALL_UNITDIR)/Package.fpc
+	$(FPCMAKENEW) -o $(INSTALL_UNITDIR)/Package.fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+else
+	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
 endif
 endif
 endif
