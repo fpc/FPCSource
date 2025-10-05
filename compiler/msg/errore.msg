@@ -4161,7 +4161,8 @@ J*3CTlowercaseprocstart_  Lowercase the first character of procedure/function/me
 A*3CTthumbinterworking_ Generate Thumb interworking-safe code if possible
 W*3CTnoexceptions_        Disable the exception support. Raising an exception will abort the program.
 W*3CTbfexceptions_        Enable the branchful exception support for WebAssembly
-W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support
+W*3CTwasmexceptions_      Enable the native WebAssembly exceptions support (current proposal - exceptions with exnref)
+W*3CTlegacyexceptions_    Enable the native WebAssembly exceptions support (legacy proposal, compatible with earlier browser versions)
 W*3CTwasmthreads_         Enable WebAssembly threads support (experimental)
 W*3CTsaturatingfloattoint_ Use saturating (non-trapping) float-to-int conversion instructions
 J*2Cv_Var/out parameter copy-out checking

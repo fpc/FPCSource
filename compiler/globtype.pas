@@ -476,8 +476,8 @@ interface
          (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP'),
          (name: 'NOEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_NO_EXCEPTIONS'),
          (name: 'BFEXCEPTIONS';        hasvalue: false; isglobal: true ; define: 'FPC_WASM_BRANCHFUL_EXCEPTIONS'),
-         (name: 'EXNREFEXCEPTIONS';    hasvalue: false; isglobal: true ; define: 'FPC_WASM_EXNREF_EXCEPTIONS'),
-         (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_LEGACY_EXCEPTIONS'),
+         (name: 'WASMEXCEPTIONS';      hasvalue: false; isglobal: true ; define: 'FPC_WASM_EXNREF_EXCEPTIONS'),
+         (name: 'LEGACYEXCEPTIONS';    hasvalue: false; isglobal: true ; define: 'FPC_WASM_LEGACY_EXCEPTIONS'),
          (name: 'WASMTHREADS';         hasvalue: false; isglobal: true ; define: 'FPC_WASM_THREADS'),
          (name: 'SATURATINGFLOATTOINT';hasvalue: false; isglobal: false; define: 'FPC_WASM_SATURATING_FLOAT_TO_INT')
        );
