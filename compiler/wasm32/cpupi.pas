@@ -933,7 +933,7 @@ implementation
                             a_catch,a_catch_ref:
                               begin
                                 if (catchinstr.ops<>2) or
-                                   (catchinstr.oper[1]^.typ=top_ref) or
+                                   (catchinstr.oper[1]^.typ<>top_ref) or
                                    not assigned(catchinstr.oper[1]^.ref^.symbol) then
                                   internalerror(2025100517);
                                 target_block_index:=blocks.FindIndexOf(catchinstr.oper[1]^.ref^.symbol.Name);
@@ -942,7 +942,7 @@ implementation
                             a_catch_all,a_catch_all_ref:
                               begin
                                 if (catchinstr.ops<>1) or
-                                   (catchinstr.oper[0]^.typ=top_ref) or
+                                   (catchinstr.oper[0]^.typ<>top_ref) or
                                    not assigned(catchinstr.oper[0]^.ref^.symbol) then
                                   internalerror(2025100518);
                                 target_block_index:=blocks.FindIndexOf(catchinstr.oper[0]^.ref^.symbol.Name);
