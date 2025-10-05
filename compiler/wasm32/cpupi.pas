@@ -923,7 +923,7 @@ implementation
                         end_block        ;; Count
                       }
                       for catch_nr:=0 to tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Count do
-                        curr_block.InsertBefore(hp,taicpu.op_none(a_block));
+                        curr_block.InsertBefore(taicpu.op_none(a_block),hp);
                       tmplist.Clear;
                       tmplist.Concat(taicpu.op_const(a_br,tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Count));
                       catchinstr:=taicpu(tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Last);
