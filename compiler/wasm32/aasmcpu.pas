@@ -266,9 +266,9 @@ uses
         procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
-      { tai_wasmstruc_try_delegate }
+      { tai_wasmstruc_legacy_try_delegate }
 
-      tai_wasmstruc_try_delegate = class(tai_wasmstruc_legacy_try)
+      tai_wasmstruc_legacy_try_delegate = class(tai_wasmstruc_legacy_try)
         delegate_instr: taicpu;
 
         constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
@@ -1577,7 +1577,7 @@ uses
           a_end_legacy_try,a_legacy_catch,a_legacy_catch_all:
             result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
           a_legacy_delegate:
-            result:=tai_wasmstruc_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
+            result:=tai_wasmstruc_legacy_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
           else
             internalerror(2023100502);
         end;
@@ -1765,9 +1765,9 @@ uses
           l.concat(tai_label.create(FLabel));
       end;
 
-    { tai_wasmstruc_try_delegate }
+    { tai_wasmstruc_legacy_try_delegate }
 
-    constructor tai_wasmstruc_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
+    constructor tai_wasmstruc_legacy_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
       begin
         wstyp:=aitws_legacy_try_delegate;
         inherited internal_create(a_try_asmlist);
@@ -1776,30 +1776,30 @@ uses
         delegate_instr:=first_ins;
       end;
 
-    destructor tai_wasmstruc_try_delegate.Destroy;
+    destructor tai_wasmstruc_legacy_try_delegate.Destroy;
       begin
         delegate_instr.free;
         inherited Destroy;
       end;
 
-    function tai_wasmstruc_try_delegate.getcopy: TLinkedListItem;
+    function tai_wasmstruc_legacy_try_delegate.getcopy: TLinkedListItem;
       var
-        p: tai_wasmstruc_try_delegate;
+        p: tai_wasmstruc_legacy_try_delegate;
       begin
-        p:=tai_wasmstruc_try_delegate(inherited getcopy);
+        p:=tai_wasmstruc_legacy_try_delegate(inherited getcopy);
         if assigned(delegate_instr) then
           p.delegate_instr:=taicpu(delegate_instr.getcopy);
         getcopy:=p;
       end;
 
-    procedure tai_wasmstruc_try_delegate.Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);
+    procedure tai_wasmstruc_legacy_try_delegate.Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);
       begin
         blockstack.push(self);
         map_structured_asmlist_inner(try_asmlist,f,blockstack);
         blockstack.pop;
       end;
 
-    procedure tai_wasmstruc_try_delegate.ConvertToFlatList(l: TAsmList);
+    procedure tai_wasmstruc_legacy_try_delegate.ConvertToFlatList(l: TAsmList);
       begin
         inherited ConvertToFlatList(l);
         l.Concat(delegate_instr);

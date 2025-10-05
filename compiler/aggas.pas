@@ -1771,7 +1771,7 @@ implementation
                            end;
                          writer.AsmWriteLn('.err } end try');
                        end
-                   else if hp is tai_wasmstruc_try_delegate then
+                   else if hp is tai_wasmstruc_legacy_try_delegate then
                      writer.AsmWriteLn('.err } delegate')
                    else
                      writer.AsmWriteLn('.err unknown try structured instruction: ' + hp.ClassType.ClassName);
