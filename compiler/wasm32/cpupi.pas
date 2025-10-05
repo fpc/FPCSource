@@ -666,7 +666,7 @@ implementation
       function resolve_labels_pass2(asmlist: TAsmList): Boolean;
         var
           hp: tai;
-          instr: taicpu;
+          instr, catchinstr: taicpu;
           hlabel: tasmsymbol;
           cur_nesting_depth: longint;
         begin
@@ -685,10 +685,73 @@ implementation
                     a_legacy_try:
                       inc(cur_nesting_depth);
 
+                    a_try_table:
+                      begin
+                        catchinstr:=taicpu(instr.try_table_catch_clauses.First);
+                        while assigned(catchinstr) do
+                          begin
+                            case catchinstr.opcode of
+                              a_catch,
+                              a_catch_ref:
+                                begin
+                                  if catchinstr.ops<>2 then
+                                    Message1(parser_f_unsupported_feature,'a_catch or a_catch_ref with wrong operand count');
+                                  if catchinstr.oper[1]^.typ=top_ref then
+                                    begin
+                                      if not assigned(catchinstr.oper[1]^.ref^.symbol) then
+                                        Message1(parser_f_unsupported_feature,'a_catch or a_catch_ref with wrong ref operand');
+                                      if (catchinstr.oper[1]^.ref^.base<>NR_NO) or
+                                         (catchinstr.oper[1]^.ref^.index<>NR_NO) or
+                                         (catchinstr.oper[1]^.ref^.offset<>0) then
+                                        Message1(parser_f_unsupported_feature,'a_catch or a_catch_ref with wrong ref type');
+                                      if (catchinstr.oper[1]^.ref^.symbol.nestingdepth<>-1) and
+                                         (cur_nesting_depth>=catchinstr.oper[1]^.ref^.symbol.nestingdepth) then
+                                        catchinstr.loadconst(0,cur_nesting_depth-catchinstr.oper[1]^.ref^.symbol.nestingdepth)
+                                      else
+                                        begin
+                                          result:=false;
+                                          hlabel:=tasmsymbol(catchinstr.oper[1]^.ref^.symbol);
+                                          asmlist.insertafter(tai_comment.create(strpnew('Unable to find destination of label '+hlabel.name)),hp);
+                                        end;
+                                    end;
+                                end;
+                              a_catch_all,
+                              a_catch_all_ref:
+                                begin
+                                  if catchinstr.ops<>1 then
+                                    Message1(parser_f_unsupported_feature,'a_catch_all or a_catch_all_ref with wrong operand count');
+                                  if catchinstr.oper[0]^.typ=top_ref then
+                                    begin
+                                      if not assigned(catchinstr.oper[0]^.ref^.symbol) then
+                                        Message1(parser_f_unsupported_feature,'a_catch_all or a_catch_all_ref with wrong ref operand');
+                                      if (catchinstr.oper[0]^.ref^.base<>NR_NO) or
+                                         (catchinstr.oper[0]^.ref^.index<>NR_NO) or
+                                         (catchinstr.oper[0]^.ref^.offset<>0) then
+                                        Message1(parser_f_unsupported_feature,'a_catch_all or a_catch_all_ref with wrong ref type');
+                                      if (catchinstr.oper[0]^.ref^.symbol.nestingdepth<>-1) and
+                                         (cur_nesting_depth>=catchinstr.oper[0]^.ref^.symbol.nestingdepth) then
+                                        catchinstr.loadconst(0,cur_nesting_depth-catchinstr.oper[0]^.ref^.symbol.nestingdepth)
+                                      else
+                                        begin
+                                          result:=false;
+                                          hlabel:=tasmsymbol(catchinstr.oper[0]^.ref^.symbol);
+                                          asmlist.insertafter(tai_comment.create(strpnew('Unable to find destination of label '+hlabel.name)),hp);
+                                        end;
+                                    end;
+                                end;
+                              else
+                                internalerror(2025100515);
+                            end;
+                            catchinstr:=taicpu(catchinstr.Next);
+                          end;
+                        inc(cur_nesting_depth);
+                      end;
+
                     a_end_block,
                     a_end_loop,
                     a_end_if,
-                    a_end_legacy_try:
+                    a_end_legacy_try,
+                    a_end_try_table:
                       begin
                         dec(cur_nesting_depth);
                         if cur_nesting_depth<0 then
