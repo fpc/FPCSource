@@ -2413,24 +2413,24 @@ uses
                           begin
                             Inc(result);
                             if hp.ops<>2 then
-                              internalerror(2025100502);
+                              internalerror(2025100508);
                             with hp.oper[0]^ do
                               case typ of
                                 top_ref:
                                   begin
                                     if not assigned(ref^.symbol) or (ref^.base<>NR_NO) or (ref^.index<>NR_NO) or (ref^.offset<>0) then
-                                      internalerror(2025100503);
+                                      internalerror(2025100509);
                                     Inc(result,5);
                                   end;
                                 else
-                                  internalerror(2025100504);
+                                  internalerror(2025100510);
                               end;
                             with hp.oper[1]^ do
                               case typ of
                                 top_const:
                                   Inc(result,UlebSize(val));
                                 else
-                                  internalerror(2025100505);
+                                  internalerror(2025100511);
                               end;
                           end;
                         a_catch_all,
@@ -2438,17 +2438,17 @@ uses
                           begin
                             Inc(result);
                             if hp.ops<>1 then
-                              internalerror(2025100506);
+                              internalerror(2025100512);
                             with hp.oper[0]^ do
                               case typ of
                                 top_const:
                                   Inc(result,UlebSize(val));
                                 else
-                                  internalerror(2025100507);
+                                  internalerror(2025100513);
                               end;
                           end;
                         else
-                          internalerror(2025100508);
+                          internalerror(2025100514);
                       end;
                       hp:=taicpu(hp.Next);
                     end;
