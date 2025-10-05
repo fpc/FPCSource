@@ -192,7 +192,7 @@ uses
         aitws_block,
         aitws_loop,
         aitws_legacy_try_delegate,
-        aitws_try_catch
+        aitws_legacy_try_catch
       );
 
       { taicpu_wasm_structured_instruction }
@@ -1664,7 +1664,7 @@ uses
       var
         Done: Boolean;
       begin
-        wstyp:=aitws_try_catch;
+        wstyp:=aitws_legacy_try_catch;
         inherited internal_create(a_try_asmlist);
         if assigned(first_ins.Previous) or assigned(first_ins.Next) then
           internalerror(2023100310);
