@@ -953,7 +953,7 @@ implementation
                     internalerror(2023102201);
                   resolve_labels_of_asmlist_with_try_blocks_recursive(tai_wasmstruc_legacy_try(hp).try_asmlist);
                   if taicpu_wasm_structured_instruction(hp).wstyp=aitws_legacy_try_catch then
-                    with tai_wasmstruc_try_catch(hp) do
+                    with tai_wasmstruc_legacy_try_catch(hp) do
                       begin
                         for i:=low(catch_list) to high(catch_list) do
                           resolve_labels_of_asmlist_with_try_blocks_recursive(catch_list[i].asmlist);

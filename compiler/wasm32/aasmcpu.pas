@@ -278,9 +278,9 @@ uses
         procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
-      { tai_wasmstruc_try_catch }
+      { tai_wasmstruc_legacy_try_catch }
 
-      tai_wasmstruc_try_catch = class(tai_wasmstruc_legacy_try)
+      tai_wasmstruc_legacy_try_catch = class(tai_wasmstruc_legacy_try)
         catch_list: array of record
           catch_instr: taicpu;
           asmlist: TAsmList;
@@ -1575,7 +1575,7 @@ uses
         until Done;
         case taicpu(p).opcode of
           a_end_legacy_try,a_legacy_catch,a_legacy_catch_all:
-            result:=tai_wasmstruc_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
+            result:=tai_wasmstruc_legacy_try_catch.internal_create(taicpu(p),tmp_asmlist,srclist);
           a_legacy_delegate:
             result:=tai_wasmstruc_legacy_try_delegate.internal_create(taicpu(p),tmp_asmlist,srclist);
           else
@@ -1614,9 +1614,9 @@ uses
         l.concatList(try_asmlist);
       end;
 
-    { tai_wasmstruc_try_catch }
+    { tai_wasmstruc_legacy_try_catch }
 
-    constructor tai_wasmstruc_try_catch.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
+    constructor tai_wasmstruc_legacy_try_catch.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
       var
         p: tai;
 
@@ -1694,7 +1694,7 @@ uses
         until Done;
       end;
 
-    destructor tai_wasmstruc_try_catch.Destroy;
+    destructor tai_wasmstruc_legacy_try_catch.Destroy;
       var
         i: Integer;
       begin
@@ -1707,12 +1707,12 @@ uses
         inherited Destroy;
       end;
 
-    function tai_wasmstruc_try_catch.getcopy: TLinkedListItem;
+    function tai_wasmstruc_legacy_try_catch.getcopy: TLinkedListItem;
       var
-        p: tai_wasmstruc_try_catch;
+        p: tai_wasmstruc_legacy_try_catch;
         i: Integer;
       begin
-        p:=tai_wasmstruc_try_catch(inherited getcopy);
+        p:=tai_wasmstruc_legacy_try_catch(inherited getcopy);
         p.catch_list:=Copy(catch_list);
         for i:=0 to length(catch_list)-1 do
           begin
@@ -1732,7 +1732,7 @@ uses
         getcopy:=p;
       end;
 
-    procedure tai_wasmstruc_try_catch.Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);
+    procedure tai_wasmstruc_legacy_try_catch.Map(f: TAsmMapFunc; blockstack: twasmstruc_stack);
       var
         i: Integer;
       begin
@@ -1744,7 +1744,7 @@ uses
         blockstack.pop;
       end;
 
-    procedure tai_wasmstruc_try_catch.ConvertToFlatList(l: TAsmList);
+    procedure tai_wasmstruc_legacy_try_catch.ConvertToFlatList(l: TAsmList);
       var
         i: Integer;
       begin

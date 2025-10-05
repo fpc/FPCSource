@@ -1756,8 +1756,8 @@ implementation
                  begin
                    writer.AsmWriteLn('.err try {');
                    WriteTree(tai_wasmstruc_legacy_try(hp).try_asmlist);
-                   if hp is tai_wasmstruc_try_catch then
-                     with tai_wasmstruc_try_catch(hp) do
+                   if hp is tai_wasmstruc_legacy_try_catch then
+                     with tai_wasmstruc_legacy_try_catch(hp) do
                        begin
                          for i:=low(catch_list) to high(catch_list) do
                            begin
