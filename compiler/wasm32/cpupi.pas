@@ -819,8 +819,9 @@ implementation
           blocks: TFPHashObjectList;
           curr_block, tmplist: TAsmList;
           hp, hpnext: tai;
-          block_nr, machine_state, target_block_index: Integer;
+          block_nr, machine_state, target_block_index, catch_nr: Integer;
           state_machine_loop_start_label, state_machine_exit: TAsmLabel;
+          catchinstr: taicpu;
         begin
           blocks:=TFPHashObjectList.Create;
           curr_block:=TAsmList.Create;
@@ -897,6 +898,67 @@ implementation
                           curr_block.insertListAfter(hp,tmplist);
                           curr_block.Remove(hp);
                         end;
+                    end
+                  else if (hp.typ=ait_wasm_structured_instruction) and
+                          (taicpu_wasm_structured_instruction(hp).wstyp=aitws_try_table) and
+                          (tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Count>0) then
+                    begin
+                      {
+                        block            ;; Count
+                          block          ;; Count-1
+                            ...
+                            block        ;; 1
+                              block      ;; 0
+                                try_table (catch 0) (catch 1) (catch 2) ... (catch Count-1)
+                                  ;; code inside try
+                                end_try_table
+                                br Count
+                              end_block  ;; 0
+                              br catch_0_label
+                            end_block
+                            br catch_1_label
+                            ...
+                          end_block      ;; Count-1
+                          br catch_Count-1_label
+                        end_block        ;; Count
+                      }
+                      for catch_nr:=0 to tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Count do
+                        curr_block.InsertBefore(hp,taicpu.op_none(a_block));
+                      tmplist.Clear;
+                      tmplist.Concat(taicpu.op_const(a_br,tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Count));
+                      catchinstr:=taicpu(tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Last);
+                      for catch_nr:=tai_wasmstruc_try_table(hp).try_table_instr.try_table_catch_clauses.Count-1 downto 0 do
+                        begin
+                          case catchinstr.opcode of
+                            a_catch,a_catch_ref:
+                              begin
+                                if (catchinstr.ops<>2) or
+                                   (catchinstr.oper[1]^.typ=top_ref) or
+                                   not assigned(catchinstr.oper[1]^.ref^.symbol) then
+                                  internalerror(2025100517);
+                                target_block_index:=blocks.FindIndexOf(catchinstr.oper[1]^.ref^.symbol.Name);
+                                catchinstr.loadconst(1,catch_nr);
+                              end;
+                            a_catch_all,a_catch_all_ref:
+                              begin
+                                if (catchinstr.ops<>1) or
+                                   (catchinstr.oper[0]^.typ=top_ref) or
+                                   not assigned(catchinstr.oper[0]^.ref^.symbol) then
+                                  internalerror(2025100518);
+                                target_block_index:=blocks.FindIndexOf(catchinstr.oper[0]^.ref^.symbol.Name);
+                                catchinstr.loadconst(0,catch_nr);
+                              end;
+                            else
+                              internalerror(2025100516);
+                          end;
+                          tmplist.Concat(taicpu.op_none(a_end_block));
+                          tmplist.Concat(taicpu.op_const(a_i32_const,target_block_index));
+                          tmplist.Concat(taicpu.op_const(a_local_set,machine_state));
+                          tmplist.Concat(taicpu.op_sym(a_br,state_machine_loop_start_label));
+                          catchinstr:=taicpu(catchinstr.Previous);
+                        end;
+                      tmplist.Concat(taicpu.op_none(a_end_block));
+                      curr_block.insertListAfter(hp,tmplist);
                     end;
                   hp:=hpnext;
                 end;
