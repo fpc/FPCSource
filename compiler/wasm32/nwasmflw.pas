@@ -519,7 +519,9 @@ implementation
 
         cexceptionstatehandler.new_exception(current_asmdata.CurrAsmList,excepttemps,tek_except,trystate);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+        current_asmdata.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
         { try block }
         secondpass(left);
@@ -528,7 +530,9 @@ implementation
 
         cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,excepttemps,trystate,nil);
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
+        current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
         flowcontrol:=[fc_inflowcontrol]+trystate.oldflowcontrol*[fc_catching_exceptions];
         { on statements }
@@ -567,7 +571,9 @@ implementation
                   flowcontrol+
                   afteronflowcontrol;
 
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_legacy_try));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
+                current_asmdata.CurrAsmList.concat(taicpu.op_catch(a_try_table,[taicpu.op_sym_const(a_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG),0)]));
 
                 { the 'exit' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_block));
@@ -601,7 +607,7 @@ implementation
                 cexceptionstatehandler.end_try_block(current_asmdata.CurrAsmList,tek_except,destroytemps,doobjectdestroyandreraisestate,nil);
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_doneexception',[],nil).resetiftemp;
-                current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,4));
+                current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,6));
 
                 { exit the 'continue' block }
                 current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
@@ -639,11 +645,13 @@ implementation
                     current_procinfo.CurrBreakLabel:=oldBreakLabel;
                   end;
 
-                current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_legacy_catch,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_try_table));
+                current_asmdata.CurrAsmList.concat(taicpu.op_const(a_br,1));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
                 hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_raise_nested',[],nil).resetiftemp;
 
-                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
+                current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
               end
             else
               begin
@@ -653,11 +661,11 @@ implementation
           end
         else
           begin
-            current_asmdata.CurrAsmList.concat(taicpu.op_const(a_legacy_rethrow,0));
+            current_asmdata.CurrAsmList.Concat(taicpu.op_sym(a_throw,current_asmdata.WeakRefAsmSymbol(FPC_EXCEPTION_TAG_SYM,AT_WASM_EXCEPTION_TAG)));
             doobjectdestroyandreraisestate.newflowcontrol:=afteronflowcontrol;
           end;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_legacy_try));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(a_end_block));
 
       errorexit:
         { return all used control flow statements }
