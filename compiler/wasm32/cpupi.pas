@@ -644,11 +644,11 @@ implementation
                     lbl.labsym.nestingdepth:=-1;
                     nextinstr:=FindNextInstruction(hp);
 
-                    if assigned(nextinstr) and (nextinstr.opcode in [a_end_block,a_end_legacy_try,a_end_if]) then
+                    if assigned(nextinstr) and (nextinstr.opcode in [a_end_block,a_end_legacy_try,a_end_try_table,a_end_if]) then
                       lbl.labsym.nestingdepth:=cur_nesting_depth
                     else if assigned(lastinstr) and (lastinstr.opcode=a_loop) then
                       lbl.labsym.nestingdepth:=cur_nesting_depth
-                    else if assigned(lastinstr) and (lastinstr.opcode in [a_end_block,a_end_legacy_try,a_end_if]) then
+                    else if assigned(lastinstr) and (lastinstr.opcode in [a_end_block,a_end_legacy_try,a_end_try_table,a_end_if]) then
                       lbl.labsym.nestingdepth:=cur_nesting_depth+1
                     else if assigned(nextinstr) and (nextinstr.opcode=a_loop) then
                       lbl.labsym.nestingdepth:=cur_nesting_depth+1;
