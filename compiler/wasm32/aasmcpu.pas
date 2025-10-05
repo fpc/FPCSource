@@ -191,7 +191,7 @@ uses
         aitws_if,
         aitws_block,
         aitws_loop,
-        aitws_try_delegate,
+        aitws_legacy_try_delegate,
         aitws_try_catch
       );
 
@@ -1769,7 +1769,7 @@ uses
 
     constructor tai_wasmstruc_try_delegate.internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
       begin
-        wstyp:=aitws_try_delegate;
+        wstyp:=aitws_legacy_try_delegate;
         inherited internal_create(a_try_asmlist);
         if assigned(first_ins.Previous) or assigned(first_ins.Next) then
           internalerror(2023100309);

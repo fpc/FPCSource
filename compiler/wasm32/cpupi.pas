@@ -949,7 +949,7 @@ implementation
             begin
               if hp.typ=ait_wasm_structured_instruction then
                 begin
-                  if not (taicpu_wasm_structured_instruction(hp).wstyp in [aitws_try_catch,aitws_try_delegate]) then
+                  if not (taicpu_wasm_structured_instruction(hp).wstyp in [aitws_try_catch,aitws_legacy_try_delegate]) then
                     internalerror(2023102201);
                   resolve_labels_of_asmlist_with_try_blocks_recursive(tai_wasmstruc_try(hp).try_asmlist);
                   if taicpu_wasm_structured_instruction(hp).wstyp=aitws_try_catch then
@@ -959,7 +959,7 @@ implementation
                           resolve_labels_of_asmlist_with_try_blocks_recursive(catch_list[i].asmlist);
                         resolve_labels_of_asmlist_with_try_blocks_recursive(catch_all_asmlist);
                       end
-                  else if taicpu_wasm_structured_instruction(hp).wstyp=aitws_try_delegate then
+                  else if taicpu_wasm_structured_instruction(hp).wstyp=aitws_legacy_try_delegate then
                     {nothing}
                   else
                     internalerror(2023102202);
