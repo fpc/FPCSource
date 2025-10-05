@@ -411,20 +411,33 @@ implementation
         instr: taicpu;
         bl: taicpu_wasm_structured_instruction;
         l: TAsmLabel;
+        lblopidx: Integer;
       begin
         result.typ:=amfrtNoChange;
         if ai.typ<>ait_instruction then
           exit;
         instr:=taicpu(ai);
-        if not (instr.opcode in [a_br,a_br_if]) then
+        case instr.opcode of
+          a_br,a_br_if,a_catch_all,a_catch_all_ref:
+            begin
+              if instr.ops<>1 then
+                internalerror(2023101601);
+              lblopidx:=0;
+            end;
+          a_catch,a_catch_ref:
+            begin
+              if instr.ops<>2 then
+                internalerror(2023101601);
+              lblopidx:=1;
+            end;
+          else
+            exit;
+        end;
+        if instr.oper[lblopidx]^.typ<>top_const then
           exit;
-        if instr.ops<>1 then
-          internalerror(2023101601);
-        if instr.oper[0]^.typ<>top_const then
-          exit;
-        bl:=blockstack[instr.oper[0]^.val];
+        bl:=blockstack[instr.oper[lblopidx]^.val];
         l:=bl.getlabel;
-        instr.loadsymbol(0,l,0);
+        instr.loadsymbol(lblopidx,l,0);
       end;
 
     function tcpuprocinfo.ConvertIfToBrIf(ai: tai; blockstack: twasmstruc_stack): TAsmMapFuncResult;
