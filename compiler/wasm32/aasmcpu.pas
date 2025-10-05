@@ -252,11 +252,11 @@ uses
         procedure ConvertToFlatList(l: TAsmList);override;
       end;
 
-      { tai_wasmstruc_try }
+      { tai_wasmstruc_legacy_try }
 
-      tai_wasmstruc_try = class(taicpu_wasm_structured_instruction)
+      tai_wasmstruc_legacy_try = class(taicpu_wasm_structured_instruction)
       private
-        class function create_from(srclist: TAsmList): tai_wasmstruc_try;
+        class function create_from(srclist: TAsmList): tai_wasmstruc_legacy_try;
       public
         try_asmlist: TAsmList;
 
@@ -268,7 +268,7 @@ uses
 
       { tai_wasmstruc_try_delegate }
 
-      tai_wasmstruc_try_delegate = class(tai_wasmstruc_try)
+      tai_wasmstruc_try_delegate = class(tai_wasmstruc_legacy_try)
         delegate_instr: taicpu;
 
         constructor internal_create(first_ins: taicpu; a_try_asmlist, srclist: TAsmList);
@@ -280,7 +280,7 @@ uses
 
       { tai_wasmstruc_try_catch }
 
-      tai_wasmstruc_try_catch = class(tai_wasmstruc_try)
+      tai_wasmstruc_try_catch = class(tai_wasmstruc_legacy_try)
         catch_list: array of record
           catch_instr: taicpu;
           asmlist: TAsmList;
@@ -1549,9 +1549,9 @@ uses
         l.Concat(taicpu.op_none(a_end_loop));
       end;
 
-    { tai_wasmstruc_try }
+    { tai_wasmstruc_legacy_try }
 
-    class function tai_wasmstruc_try.create_from(srclist: TAsmList): tai_wasmstruc_try;
+    class function tai_wasmstruc_legacy_try.create_from(srclist: TAsmList): tai_wasmstruc_legacy_try;
       var
         Done: Boolean;
         p: tai;
@@ -1583,23 +1583,23 @@ uses
         end;
       end;
 
-    constructor tai_wasmstruc_try.internal_create(a_try_asmlist: TAsmList);
+    constructor tai_wasmstruc_legacy_try.internal_create(a_try_asmlist: TAsmList);
       begin
         inherited Create;
         try_asmlist:=a_try_asmlist;
       end;
 
-    destructor tai_wasmstruc_try.Destroy;
+    destructor tai_wasmstruc_legacy_try.Destroy;
       begin
         try_asmlist.free;
         inherited Destroy;
       end;
 
-    function tai_wasmstruc_try.getcopy: TLinkedListItem;
+    function tai_wasmstruc_legacy_try.getcopy: TLinkedListItem;
       var
-        p: tai_wasmstruc_try;
+        p: tai_wasmstruc_legacy_try;
       begin
-        p:=tai_wasmstruc_try(inherited getcopy);
+        p:=tai_wasmstruc_legacy_try(inherited getcopy);
         if assigned(try_asmlist) then
           begin
             p.try_asmlist:=TAsmList.Create;
@@ -1608,7 +1608,7 @@ uses
         getcopy:=p;
       end;
 
-    procedure tai_wasmstruc_try.ConvertToFlatList(l: TAsmList);
+    procedure tai_wasmstruc_legacy_try.ConvertToFlatList(l: TAsmList);
       begin
         l.Concat(taicpu.op_none(a_legacy_try));
         l.concatList(try_asmlist);
@@ -3879,7 +3879,7 @@ uses
                 a_loop:
                   result:=tai_wasmstruc_loop.create_from(taicpu(result),srclist);
                 a_legacy_try:
-                  result:=tai_wasmstruc_try.create_from(srclist);
+                  result:=tai_wasmstruc_legacy_try.create_from(srclist);
                 a_else,a_end_if,a_end_block,a_end_loop,a_end_legacy_try,a_legacy_catch,a_legacy_catch_all,a_legacy_delegate:
                   internalerror(2023100503);
                 else

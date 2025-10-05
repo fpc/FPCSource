@@ -1752,10 +1752,10 @@ implementation
                    WriteTree(tai_wasmstruc_if(hp).else_asmlist);
                    writer.AsmWriteLn('.err } endif');
                  end
-               else if hp is tai_wasmstruc_try then
+               else if hp is tai_wasmstruc_legacy_try then
                  begin
                    writer.AsmWriteLn('.err try {');
-                   WriteTree(tai_wasmstruc_try(hp).try_asmlist);
+                   WriteTree(tai_wasmstruc_legacy_try(hp).try_asmlist);
                    if hp is tai_wasmstruc_try_catch then
                      with tai_wasmstruc_try_catch(hp) do
                        begin
