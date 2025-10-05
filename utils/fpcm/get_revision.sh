@@ -15,7 +15,7 @@ export LANG
 tmpfiles=
 
 # git repository?
-if [ -d ../../.git ] ; then
+if [ -e ../../.git ] ; then
   USEGIT=1
   echo Using git repository
   # we just look for the last commit date here
