@@ -712,7 +712,7 @@ unit i_embed;
             first_parm_offset : 16;
             stacksize    : 262144;
             stackalign   : 8;
-            abi : abi_riscv_lp64;
+            abi : abi_riscv_lp64d;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
           );
 
