@@ -68,6 +68,7 @@ begin
     T:=P.Targets.AddUnit('scsidisk.pas');
     T:=P.Targets.AddUnit('lowlevel.pas');
     T:=P.Targets.AddUnit('configregs.pas');
+    T:=P.Targets.AddUnit('cardres.pas');
     T:=P.Targets.AddUnit('prefs.pas');
     T:=P.Targets.AddUnit('parallel.pas');
     T:=P.Targets.AddUnit('gadtools.pas');

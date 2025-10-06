@@ -44,6 +44,7 @@ src/coreunits/rexx.pas=namespaced/Amiga.Core.Rexx.pas
 src/coreunits/iffparse.pas=namespaced/Amiga.Core.Iffparse.pas
 src/coreunits/input.pas=namespaced/Amiga.Core.Input.pas
 src/coreunits/configregs.pas=namespaced/Amiga.Core.Configregs.pas
+src/coreunits/cardres.pas=namespaced/Amiga.Core.Cardres.pas
 src/coreunits/intuition.pas=namespaced/Amiga.Core.Intuition.pas
 src/coreunits/asl.pas=namespaced/Amiga.Core.Asl.pas
 src/coreunits/locale.pas=namespaced/Amiga.Core.Locale.pas
