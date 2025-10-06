@@ -223,5 +223,5 @@ function CardInterface: DWord; syscall CardResBase 102;
 implementation
 
 begin
-  CardResBase:=OpenResource('card.resource');
+  CardResBase:=OpenResource(CARDRESNAME);
 end.
