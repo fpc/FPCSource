@@ -5740,11 +5740,11 @@ begin
   end;
 {$endif m68k}
 {$ifdef wasm}
-  { if no explicit exception handling mode is set for WebAssembly, assume no exceptions }
+  { if no explicit exception handling mode is set for WebAssembly, select branchful exceptions }
   if init_settings.targetswitches*[ts_wasm_no_exceptions,ts_wasm_native_exnref_exceptions,ts_wasm_native_legacy_exceptions,ts_wasm_bf_exceptions]=[] then
     begin
-      def_system_macro(TargetSwitchStr[ts_wasm_no_exceptions].define);
-      include(init_settings.targetswitches,ts_wasm_no_exceptions);
+      def_system_macro(TargetSwitchStr[ts_wasm_bf_exceptions].define);
+      include(init_settings.targetswitches,ts_wasm_bf_exceptions);
     end;
 {$endif wasm}
 
