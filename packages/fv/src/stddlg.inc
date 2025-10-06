@@ -1625,18 +1625,19 @@ begin
   Control := New(PLabel, Init(R, slFiles, FileList));
   Insert(Control);
 
-  R.Assign(3,23,31,24);
+  R.Assign(4+CStrLen(InputName), 13, 31, 14);
   FileName := New(PFileInputLine, Init(R, 79));
-  FileName^.GrowMode:=gfGrowHiX;
+  FileName^.GrowMode := gfGrowHiX or gfGrowLoY or gfGrowHiY;
   FileName^.Data Sw_PString_DeRef := WildCard;
   Insert(FileName);
 
-  R.Assign(2,22,3+CStrLen(InputName),23);
+  R.Assign(2,13,3+CStrLen(InputName),14);
   Control := New(PLabel, Init(R, InputName, FileName));
+  Control^.GrowMode := gfGrowLoY or gfGrowHiY;
   Insert(Control);
-  R.Assign(31,23,34,24);
+  R.Assign(31,13,34,14);
   FileHistory := New(PFileHistory, Init(R, FileName, HistoryId));
-  FileHistory^.GrowMode:=gfGrowHiX or gfGrowLoX;
+  FileHistory^.GrowMode := gfGrowHiX or gfGrowLoX or gfGrowLoY or gfGrowHiY;
   Insert(FileHistory);
 
   R.Assign(35,3,46,5);
