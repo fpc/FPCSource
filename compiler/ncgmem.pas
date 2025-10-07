@@ -720,11 +720,11 @@ implementation
            warning }
 {$push}
 {$warn 6018 off}
-         { we can reuse hreg only if OS_INT and OS_ADDR have the same size/type }
-         if OS_INT<>OS_ADDR then
+         { we can reuse hreg only if def_cgsize(aluuinttype) and OS_ADDR have the same size/type }
+         if def_cgsize(aluuinttype)<>OS_ADDR then
            begin
-             sref.bitindexreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_INT,hreg,sref.bitindexreg);
+             sref.bitindexreg := cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(aluuinttype));
+             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,def_cgsize(aluuinttype),hreg,sref.bitindexreg);
            end
          else
            sref.bitindexreg:=hreg;
