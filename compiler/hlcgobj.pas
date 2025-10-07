@@ -1552,8 +1552,8 @@ implementation
       loadbitsize:=loadsize.size*8;
 
       { load the (first part) of the bit sequence }
-      valuereg:=getintregister(list,osuinttype);
-      a_load_ref_reg(list,loadsize,osuinttype,sref.ref,valuereg);
+      valuereg:=getintregister(list,aluuinttype);
+      a_load_ref_reg(list,loadsize,aluuinttype,sref.ref,valuereg);
 
       if not extra_load then
         begin
@@ -1562,7 +1562,7 @@ implementation
             begin
               { use subsetreg routine, it may have been overridden with an optimized version }
               tosreg.subsetreg:=valuereg;
-              tosreg.subsetregsize:=def_cgsize(osuinttype);
+              tosreg.subsetregsize:=def_cgsize(aluuinttype);
               { subsetregs always count bits from right to left }
               if (target_info.endian=endian_big) then
                 tosreg.startbit:=loadbitsize-(sref.startbit+sref.bitlen)
@@ -1578,40 +1578,40 @@ implementation
                 internalerror(2006081510);
               if (target_info.endian=endian_big) then
                 begin
-                  a_op_reg_reg(list,OP_SHL,osuinttype,sref.bitindexreg,valuereg);
+                  a_op_reg_reg(list,OP_SHL,aluuinttype,sref.bitindexreg,valuereg);
                   if is_signed(fromsubsetsize) then
                     begin
                       { sign extend to entire register }
-                      a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-loadbitsize,valuereg);
-                      a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg);
+                      a_op_const_reg(list,OP_SHL,aluuinttype,AIntBits-loadbitsize,valuereg);
+                      a_op_const_reg(list,OP_SAR,aluuinttype,AIntBits-sref.bitlen,valuereg);
                     end
                   else
-                    a_op_const_reg(list,OP_SHR,osuinttype,loadbitsize-sref.bitlen,valuereg);
+                    a_op_const_reg(list,OP_SHR,aluuinttype,loadbitsize-sref.bitlen,valuereg);
                 end
               else
                 begin
-                  a_op_reg_reg(list,OP_SHR,osuinttype,sref.bitindexreg,valuereg);
+                  a_op_reg_reg(list,OP_SHR,aluuinttype,sref.bitindexreg,valuereg);
                   if is_signed(fromsubsetsize) then
                     begin
-                      a_op_const_reg(list,OP_SHL,osuinttype,AIntBits-sref.bitlen,valuereg);
-                      a_op_const_reg(list,OP_SAR,osuinttype,AIntBits-sref.bitlen,valuereg);
+                      a_op_const_reg(list,OP_SHL,aluuinttype,AIntBits-sref.bitlen,valuereg);
+                      a_op_const_reg(list,OP_SAR,aluuinttype,AIntBits-sref.bitlen,valuereg);
                     end
                 end;
               { mask other bits/sign extend }
               if not is_signed(fromsubsetsize) then
-                a_op_const_reg(list,OP_AND,osuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
+                a_op_const_reg(list,OP_AND,aluuinttype,tcgint((aword(1) shl sref.bitlen)-1),valuereg);
             end
         end
       else
         begin
           { load next value as well }
-          extra_value_reg:=getintregister(list,osuinttype);
+          extra_value_reg:=getintregister(list,aluuinttype);
 
           if (sref.bitindexreg=NR_NO) then
             begin
               tmpref:=sref.ref;
               inc(tmpref.offset,loadbitsize div 8);
-              a_load_ref_reg(list,loadsize,osuinttype,tmpref,extra_value_reg);
+              a_load_ref_reg(list,loadsize,aluuinttype,tmpref,extra_value_reg);
               { can be overridden to optimize }
               a_load_subsetref_regs_noindex(list,fromsubsetsize,loadbitsize,sref,valuereg,extra_value_reg)
             end
@@ -1633,7 +1633,7 @@ implementation
 {$else}
       { can't juggle with register sizes, they are actually typed entities
         here }
-      a_load_reg_reg(list,osuinttype,tosize,valuereg,destreg);
+      a_load_reg_reg(list,aluuinttype,tosize,valuereg,destreg);
 {$endif}
     end;
 
