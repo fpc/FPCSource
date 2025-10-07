@@ -1836,7 +1836,11 @@ implementation
   procedure thlcgwasm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister);
     begin
       if not(op in [OP_NOT,OP_NEG]) then
-        a_load_reg_stack(list,size,src2);
+        begin
+          a_load_reg_stack(list,size,src2);
+          if getsubreg(src1)<>getsubreg(src2) then
+            internalerror(2025100701);
+        end;
       a_op_reg_stack(list,op,size,src1);
       a_load_stack_reg(list,size,dst);
     end;
