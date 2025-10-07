@@ -1648,13 +1648,13 @@ implementation
             internalerror(2019052901);
           tmpsref:=sref;
           tmpsref.bitlen:=AIntBits;
-          fromreg1:=hlcg.getintregister(list,uinttype);
-          a_load_reg_reg(list,fromsize,uinttype,fromreg,fromreg1);
+          fromreg1:=hlcg.getintregister(list,aluuinttype);
+          a_load_reg_reg(list,fromsize,aluuinttype,fromreg,fromreg1);
           if target_info.endian=endian_big then
             begin
               inc(tmpsref.ref.offset,sref.bitlen-AIntBits);
             end;
-          a_load_reg_subsetref(list,uinttype,uinttype,fromreg1,tmpsref);
+          a_load_reg_subsetref(list,aluuinttype,aluuinttype,fromreg1,tmpsref);
           if target_info.endian=endian_big then
             begin
               tmpsref.ref.offset:=sref.ref.offset;
