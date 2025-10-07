@@ -730,7 +730,7 @@ implementation
            sref.bitindexreg:=hreg;
 {$pop}
 
-         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,ossinttype,(1 shl (3+alignpower))-1,sref.bitindexreg);
+         hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,aluuinttype,(1 shl (3+alignpower))-1,sref.bitindexreg);
          sref.startbit := 0;
          sref.bitlen := resultdef.packedbitsize;
          if (left.location.loc = LOC_REFERENCE) then
