@@ -1437,7 +1437,7 @@ implementation
   procedure thlcgwasm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
     begin
       a_load_reg_stack(list,fromsize,reg1);
-      if def2regtyp(fromsize)=R_INTREGISTER then
+      if def2regtyp(fromsize) in [R_INTREGISTER,R_ADDRESSREGISTER] then
         resize_stack_int_val(list,fromsize,tosize,false);
       a_load_stack_reg(list,tosize,reg2);
     end;
