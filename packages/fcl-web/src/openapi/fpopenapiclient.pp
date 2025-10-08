@@ -99,6 +99,7 @@ Type
   Public
     constructor create(aOwner : TComponent); override;
     destructor destroy; override;
+    procedure AddRequestHeader(const aName, aValue: string);
   Published
     Property WebClient : TAbstractWebClient Read FWebClient Write SetWebClient;
     Property BaseURL : String Read FBaseURL Write SetBaseURL;
@@ -156,19 +157,6 @@ begin
 end;
 
 { TFPOpenAPIClient }
-
-constructor TFPOpenAPIServiceClient.create(aOwner: TComponent);
-begin
-  inherited create(aOwner);
-  FRequestHeaders:=TStringList.Create;
-  FRequestHeaders.NameValueSeparator:=':';
-end;
-
-destructor TFPOpenAPIServiceClient.destroy;
-begin
-  FreeAndNil(FRequestHeaders);
-  inherited destroy;
-end;
 
 procedure TFPOpenAPIServiceClient.SetBaseURL(AValue: String);
 
@@ -474,7 +462,6 @@ begin
   end;
 end;
 
-
 function TFPOpenAPIServiceClient.ExecuteRequest(const aMethod, aURL, aBody: String; aRequestID: TServiceRequestID): TServiceResponse;
 
 var
@@ -487,12 +474,31 @@ begin
     SetLength(Result.Content,lResponse.Size);
     lResponse.Position:=0;
     if lResponse.Size>0 then
-      lResponse.ReadBuffer(Result.Content[1],lResponse.Size)
+      lResponse.ReadBuffer(Result.Content[1],lResponse.Size);
   finally
     lResponse.Free;
   end;
 end;  
 {$ENDIF}
+
+constructor TFPOpenAPIServiceClient.create(aOwner: TComponent);
+begin
+  inherited create(aOwner);
+  FRequestHeaders:=TStringList.Create;
+  FRequestHeaders.NameValueSeparator:=':';
+end;
+
+destructor TFPOpenAPIServiceClient.destroy;
+begin
+  FreeAndNil(FRequestHeaders);
+  inherited destroy;
+end;
+
+procedure TFPOpenAPIServiceClient.AddRequestHeader(const aName, aValue : string);
+begin
+  RequestHeaders.Values[aName]:=aValue;
+end;
+
 
 
 end.
