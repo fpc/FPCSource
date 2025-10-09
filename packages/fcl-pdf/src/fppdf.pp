@@ -37,7 +37,7 @@ uses
   System.SysUtils,
   System.StrUtils,
   System.Contnrs,
-  FpImage,
+  FpImage, FpImage.FpUnitOfMeasure,
   FpImage.Reader.JPEG, FpImage.Reader.PNG, FpImage.Reader.Bitmap, // these are required for auto image-handler functionality
   System.ZLib.Zstream,
   FpPdf.Ttf.Parser,
@@ -49,7 +49,7 @@ uses
   SysUtils,
   StrUtils,
   contnrs,
-  fpImage,
+  fpImage, FpUnitOfMeasure,
   FPReadJPEG, FPReadPNG, FPReadBMP, // these are required for auto image-handler functionality
   zstream,
   fpparsettf,
@@ -77,6 +77,13 @@ Const
   clLime    = $00FF00;
   clWaterMark = $F0F0F0;
 
+  //MaxM: since now TPDFUnitOfMeasure = FpUnitOfMeasure.TUnitOfMeasure we declare constants here so
+  //      packages using fcl-pdf will not have to add the FpUnitOfMeasure unit in the uses section
+  uomInches = FpUnitOfMeasure.uomInches;
+  uomMillimeters = FpUnitOfMeasure.uomMillimeters;
+  uomCentimeters = FpUnitOfMeasure.uomCentimeters;
+  uomPixels = FpUnitOfMeasure.uomPixels;
+
 type
   TPDFPaperType = (ptCustom, ptA4, ptA5, ptLetter, ptLegal, ptExecutive, ptComm10, ptMonarch, ptDL, ptC5, ptB5);
   TPDFPaperOrientation = (ppoPortrait,ppoLandscape);
@@ -84,7 +91,7 @@ type
   TPDFLineCapStyle = (plcsButtCap, plcsRoundCap, plcsProjectingSquareCap);
   TPDFLineJoinStyle = (pljsMiterJoin, pljsRoundJoin, pljsBevelJoin);
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
-  TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
+  TPDFUnitOfMeasure = FpUnitOfMeasure.TUnitOfMeasure;
 
   TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts,
     poPageOriginAtTop, poSubsetFont, poMetadataEntry, poNoTrailerID, poUseImageTransparency,poUTF16info);
@@ -111,7 +118,7 @@ type
 
 
   TPDFPaper = record
-    H, W: integer;
+    H, W: TPDFFloat;
     Printable: TPDFDimensions;
   end;
 
@@ -254,6 +261,17 @@ type
     property Value: integer read FInt write FInt;
   end;
 
+  { TPDFFloatObject }
+
+  TPDFFloatObject = class(TPDFDocumentObject)
+  private
+    FValue: TPDFFloat;
+  protected
+    procedure Write(const AStream: TStream); override;
+  public
+    constructor Create(const ADocument : TPDFDocument; const AValue: TPDFFloat);overload;
+    property Value: TPDFFloat read FValue write FValue;
+  end;
 
   TPDFReference = class(TPDFDocumentObject)
   private
@@ -1253,6 +1271,7 @@ type
     Function CreateColor(AColor : TARGBColor; AStroke : Boolean) : TPDFColor;
     Function CreateBoolean(AValue : Boolean) : TPDFBoolean;
     Function CreateInteger(AValue : Integer) : TPDFInteger;
+    function CreateFloat(AValue: TPDFFloat): TPDFFloatObject;
     Function CreateReference(AValue : Integer) : TPDFReference;
     Function CreateLineStyle(APenStyle: TPDFPenStyle; const ALineWidth: TPDFFloat) : TPDFLineStyle;
     function CreateLineStyle(ADashArray: TDashArray; const ALineWidth: TPDFFloat): TPDFLineStyle;
@@ -3570,10 +3589,10 @@ end;
   DecimalSeparator causing float formatting problems in the generated PDF. }
 class function TPDFObject.FloatStr(F: TPDFFloat): String;
 begin
-  if ((Round(F*100) mod 100)=0) then
-    Str(F:4:0,Result)
+  if ((Round(F*1000) mod 1000)=0) then
+    Str(F:5:0,Result)
   else
-    Str(F:4:2,Result);
+    Str(F:5:3,Result);
   result := trim(Result);
 end;
 
@@ -3612,6 +3631,17 @@ begin
   FInt:=AValue;
 end;
 
+procedure TPDFFloatObject.Write(const AStream: TStream);
+begin
+  WriteString(FloatStr(FValue), AStream);
+end;
+
+constructor TPDFFloatObject.Create(const ADocument: TPDFDocument; const AValue: TPDFFloat);
+begin
+  inherited Create(ADocument);
+
+  FValue:= AValue;
+end;
 
 procedure TPDFReference.Write(const AStream: TStream);
 begin
@@ -5657,12 +5687,14 @@ begin
   ADict:=GlobalXRefs[Parent].Dict;
   (ADict.ValueByName('Count') as TPDFInteger).Inc;
   (ADict.ValueByName('Kids') as TPDFArray).AddItem(CreateReference(GlobalXRefCount-1));
+
   Arr:=CreateArray;
   Arr.AddItem(CreateInteger(0));
   Arr.AddItem(CreateInteger(0));
-  Arr.AddItem(CreateInteger(PP.Paper.W));
-  Arr.AddItem(CreateInteger(PP.Paper.H));
+  Arr.AddItem(CreateFloat(PP.Paper.W));
+  Arr.AddItem(CreateFloat(PP.Paper.H));
   PDict.AddElement('MediaBox',Arr);
+
   CreateAnnotEntries(PageNum, PDict);
   ADict:=CreateDictionary;
   PDict.AddElement('Resources',ADict);
@@ -6551,6 +6583,11 @@ end;
 function TPDFDocument.CreateInteger(AValue: Integer): TPDFInteger;
 begin
   Result:=TPDFInteger.Create(Self,AValue);
+end;
+
+function TPDFDocument.CreateFloat(AValue: TPDFFloat): TPDFFloatObject;
+begin
+  Result:= TPDFFloatObject.Create(Self, AValue);
 end;
 
 function TPDFDocument.CreateReference(AValue: Integer): TPDFReference;
