@@ -79,10 +79,10 @@ Const
 
   //MaxM: since now TPDFUnitOfMeasure = FpUnitOfMeasure.TUnitOfMeasure we declare constants here so
   //      packages using fcl-pdf will not have to add the FpUnitOfMeasure unit in the uses section
-  uomInches = FpUnitOfMeasure.uomInches;
-  uomMillimeters = FpUnitOfMeasure.uomMillimeters;
-  uomCentimeters = FpUnitOfMeasure.uomCentimeters;
-  uomPixels = FpUnitOfMeasure.uomPixels;
+  uomInches = {$IFDEF FPC_DOTTEDUNITS}FpImage.{$endif}FpUnitOfMeasure.uomInches;
+  uomMillimeters = {$IFDEF FPC_DOTTEDUNITS}FpImage.{$endif}FpUnitOfMeasure.uomMillimeters;
+  uomCentimeters = {$IFDEF FPC_DOTTEDUNITS}FpImage.{$endif}FpUnitOfMeasure.uomCentimeters;
+  uomPixels = {$IFDEF FPC_DOTTEDUNITS}FpImage.{$endif}FpUnitOfMeasure.uomPixels;
 
 type
   TPDFPaperType = (ptCustom, ptA4, ptA5, ptLetter, ptLegal, ptExecutive, ptComm10, ptMonarch, ptDL, ptC5, ptB5);
@@ -91,7 +91,7 @@ type
   TPDFLineCapStyle = (plcsButtCap, plcsRoundCap, plcsProjectingSquareCap);
   TPDFLineJoinStyle = (pljsMiterJoin, pljsRoundJoin, pljsBevelJoin);
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
-  TPDFUnitOfMeasure = FpUnitOfMeasure.TUnitOfMeasure;
+  TPDFUnitOfMeasure = {$IFDEF FPC_DOTTEDUNITS}FpImage.{$endif}FpUnitOfMeasure.TUnitOfMeasure;
 
   TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG, poNoEmbeddedFonts,
     poPageOriginAtTop, poSubsetFont, poMetadataEntry, poNoTrailerID, poUseImageTransparency,poUTF16info);
