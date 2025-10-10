@@ -401,7 +401,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TE
      case DLLreason of
        DLL_PROCESS_ATTACH :
          begin
-           MainThreadIdWin32 := Win32GetCurrentThreadId;
+           DllProcessAttachPerformed := true;
 
            If SetJmp(DLLBuf) = 0 then
              begin
@@ -451,7 +451,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TE
          end;
        DLL_PROCESS_DETACH :
          begin
-           if MainThreadIDWin32=0 then // already been here.
+           if not DllProcessAttachPerformed then // already been here.
              exit;
            If SetJmp(DLLBuf) = 0 then
              begin
@@ -460,13 +460,13 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_ENTRY_INFORMATION}(constref info : TE
                InternalExit;
              end;
 
+{$ifndef LEGACYHEAP}
+           DoneHeapProcessWide; { Iterates alive “HeapInc.ThreadState”s so requires alive threadvars, careful. }
+{$endif ndef LEGACYHEAP}
            SysReleaseThreadVars;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
-{$ifndef LEGACYHEAP}
-           DoneHeapProcessWide;
-{$endif ndef LEGACYHEAP}
-           MainThreadIDWin32:=0;
+           DllProcessAttachPerformed:=false;
          end;
      end;
      DllInitState:=-1;

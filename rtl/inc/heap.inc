@@ -416,6 +416,10 @@ type
 
       varFree: VarFreeMap;
 
+    {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
+      prev, next: pThreadState; { For gs.threads. }
+    {$endif SUPPORT_INIT_HEAP_PROCESS_WIDE and HAS_SYSOSFREE}
+
     {$ifdef DEBUG_HEAP_INC}
       procedure Dump(var f: text);
     {$endif}
@@ -424,6 +428,9 @@ type
       function AllocFixed(size: SizeUint): pointer; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
       function FreeFixed(p: pointer): SizeUint; {$ifndef DEBUG_HEAP_INC} inline; {$endif}
       procedure FreeEmptyArenas;
+    {$ifdef HAS_SYSOSFREE}
+      procedure ReplaceFreeOS1(&with: pFreeOSChunk); inline;
+    {$endif HAS_SYSOSFREE}
 
       function GetOSChunk(minSize, maxSize: SizeUint): pOSChunk; {$if defined(HAS_SYSOSFREE) or not defined(FPC_HAS_FEATURE_THREADING)} inline; {$endif}
       function AllocateOSChunk(minSize, maxSize: SizeUint): pOSChunk;
@@ -441,6 +448,7 @@ type
     {$ifdef FPC_HAS_FEATURE_THREADING}
       procedure PushToFree(p: pFreeChunk);
       procedure FlushToFree;
+      class procedure FreeToFreeList(tf: pFreeChunk); static;
 
       procedure Orphan;
       procedure AdoptArena(arena: pFixedArena);
@@ -464,13 +472,17 @@ type
     {$ifdef FPC_HAS_FEATURE_THREADING}
       lock: TRTLCriticalSection;
       lockUse: int32;
+    {$ifdef SUPPORT_INIT_HEAP_PROCESS_WIDE}
       askedForProcessWideLockInitialization: boolean;
+    {$endif SUPPORT_INIT_HEAP_PROCESS_WIDE}
 
       { Like ThreadState.varFree but over orphaned OS chunks. Protected by gs.lock. }
       varFree: VarFreeMap;
-    {$ifndef HAS_SYSOSFREE}
+    {$if not defined(HAS_SYSOSFREE)}
       freeOS: FreeOSChunkList;
-    {$endif not HAS_SYSOSFREE}
+    {$elseif defined(SUPPORT_INIT_HEAP_PROCESS_WIDE)}
+      threads: pThreadState;
+    {$endif not HAS_SYSOSFREE | SUPPORT_INIT_HEAP_PROCESS_WIDE}
     {$endif FPC_HAS_FEATURE_THREADING}
     end;
 
@@ -1001,6 +1013,18 @@ type
     end;
   end;
 
+{$ifdef HAS_SYSOSFREE}
+  procedure HeapInc.ThreadState.ReplaceFreeOS1(&with: pFreeOSChunk);
+  begin
+    if Assigned(freeOS1) then
+    begin
+      dec(allocated, freeOS1^.size);
+      SysOSFree(freeOS1, freeOS1^.size);
+    end;
+    freeOS1 := &with;
+  end;
+{$endif HAS_SYSOSFREE}
+
   function HeapInc.ThreadState.GetOSChunk(minSize, maxSize: SizeUint): pOSChunk;
 {$if defined(FPC_HAS_FEATURE_THREADING) and not defined(HAS_SYSOSFREE)}
   var
@@ -1270,13 +1294,7 @@ type
         osNext^.prev := osPrev;
 
     {$ifdef HAS_SYSOSFREE}
-      { Move to freeOS1, discarding old freeOS1. }
-      if Assigned(freeOS1) then
-      begin
-        dec(allocated, freeOS1^.size);
-        SysOSFree(freeOS1, freeOS1^.size);
-      end;
-      freeOS1 := pFreeOSChunk(osChunk);
+      ReplaceFreeOS1(pFreeOSChunk(osChunk)); { Move to freeOS1, discarding old freeOS1. }
     {$else HAS_SYSOSFREE}
       fOs := @freeOS;
       { Share if huge. }
@@ -1601,23 +1619,27 @@ type
 {$ifdef FPC_HAS_FEATURE_THREADING}
   procedure HeapInc.ThreadState.PushToFree(p: pFreeChunk);
   var
-    next: pFreeChunk;
+    nx: pFreeChunk;
   begin
     repeat
-      next := toFree;
-      p^.next := next;
+      nx := toFree;
+      p^.next := nx;
       WriteBarrier; { Write p after p^.next. }
-    until {$ifdef VER3_2} InterlockedCompareExchange {$else} AtomicCmpExchange {$endif} (toFree, p, next) = next;
+    until {$ifdef VER3_2} InterlockedCompareExchange {$else} AtomicCmpExchange {$endif} (toFree, p, nx) = nx;
   end;
 
   procedure HeapInc.ThreadState.FlushToFree;
-  var
-    tf, nx: pFreeChunk;
   begin
-    tf := {$ifdef VER3_2} InterlockedExchange {$else} AtomicExchange {$endif} (toFree, nil);
+    FreeToFreeList({$ifdef VER3_2} InterlockedExchange {$else} AtomicExchange {$endif} (toFree, nil));
+  end;
+
+  class procedure HeapInc.ThreadState.FreeToFreeList(tf: pFreeChunk);
+  var
+    nx: pFreeChunk;
+  begin
     while Assigned(tf) do
     begin
-      ReadDependencyBarrier; { Read toFree^.next after toFree. }
+      ReadDependencyBarrier; { Read tf^.next after tf. }
       nx := tf^.next;
       SysFreeMem(tf);
       tf := nx;
@@ -1638,7 +1660,7 @@ type
     FlushToFree; { Performing it under gs.lock guarantees there will be no new toFree requests. }
     FreeEmptyArenas; { Has to free all empty arenas, otherwise the chunk that contains only empty arenas can leak. }
 
-{$ifndef HAS_SYSOSFREE}
+{$if not defined(HAS_SYSOSFREE)}
     { Prepend freeOS to gs.freeOS. }
     lastFree := freeOS.last;
     if Assigned(lastFree) then
@@ -1650,12 +1672,20 @@ type
       else
         gs.freeOS.last := lastFree;
       gs.freeOS.first := freeOS.first;
-      { Zeroing is probably required, because Orphan is called from FinalizeHeap which is called from DoneThread which can be called twice, according to this comment from syswin.inc: }
-      // DoneThread; { Assume everything is idempotent there }
       freeOS.first := nil;
       freeOS.last := nil;
     end;
-{$endif not HAS_SYSOSFREE}
+{$elseif defined(SUPPORT_INIT_HEAP_PROCESS_WIDE)}
+    { Remove from gs.threads, if present. }
+    if Assigned(prev) then
+      prev^.next := next
+    else if @self = gs.threads then { if prev = nil, then this ThreadState is either absent from gs.threads or is its first item. }
+      gs.threads := next;
+    if Assigned(next) then
+      next^.prev := prev;
+    prev := nil;
+    next := nil;
+{$endif not HAS_SYSOSFREE | defined(SUPPORT_INIT_HEAP_PROCESS_WIDE)}
     vOs := varOS;
     while Assigned(vOs) do
     begin
@@ -1674,11 +1704,7 @@ type
       LeaveCriticalSection(gs.lock);
 
 {$ifdef HAS_SYSOSFREE}
-    if Assigned(freeOS1) then
-    begin
-      SysOSFree(freeOS1, freeOS1^.size); { Does not require gs.lock. }
-      freeOS1 := nil;
-    end;
+    ReplaceFreeOS1(nil); { Does not require gs.lock. }
 {$endif HAS_SYSOSFREE}
   end;
 
@@ -1761,6 +1787,15 @@ type
       vOs^.threadState := @self;
       vOs := vOs^.next;
     end;
+  {$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
+    { Not sure if required... }
+    if Assigned(prev) then
+      prev^.next := @self
+    else
+      gs.threads := @self;
+    if Assigned(next) then
+      next^.prev := @self;
+  {$endif SUPPORT_INIT_HEAP_PROCESS_WIDE and HAS_SYSOSFREE}
   end;
 {$endif ndef FPC_SECTION_THREADVARS}
 {$endif FPC_HAS_FEATURE_THREADING}
@@ -1928,6 +1963,7 @@ end;
 *****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
+{$ifdef SUPPORT_INIT_HEAP_PROCESS_WIDE}
 { DeferInitHeapProcessWide / DoneHeapProcessWide are meant to support DLL_PROCESS_ATTACH / DLL_PROCESS_DETACH.
   Otherwise InitHeapThread + FinalizeHeap called per thread do their best with refcounting... }
 procedure DeferInitHeapProcessWide;
@@ -1936,23 +1972,80 @@ begin
 end;
 
 procedure DoneHeapProcessWide;
+{$ifdef HAS_SYSOSFREE}
+var
+  thisTs, nextTs, ts: HeapInc.pThreadState;
+  stolenTf: HeapInc.pFreeChunk;
+{$endif HAS_SYSOSFREE}
 begin
-  if HeapInc.gs.lockUse = HeapInc.gs.LockInitializedProcessWide then
+  if HeapInc.gs.lockUse <> HeapInc.gs.LockInitializedProcessWide then
+    exit;
+{$ifdef HAS_SYSOSFREE}
+  { We need to free all lingering data of all threads: to-free lists, empty arenas, “freeOS1”s.
+
+    For each particular thread ts, this is what ts^.Orphan does, but ts^.Orphan can’t be (easily) called from another thread:
+    it calls ts^.FlushToFree which calls SysFreeMem which is hardcoded to work with HeapInc.thisTs.
+    It’s not worth redesigning, or the common case of SysFreeMem that must indeed work with HeapInc.thisTs will be slower.
+
+    So we steal and zero ts^.toFree (ts^.FlushToFree is the only thing that prevents ts^.Orphan from working from threads other than ts), call ts^.Orphan,
+    then manually complete toFree requests on our behalf.
+
+    This entire thing is just to handle the case of unloading a DLL before terminating the thread that used this DLL
+    (https://gitlab.com/freepascal.org/fpc/source/-/merge_requests/1173). }
+
+  thisTs := @HeapInc.thisTs;
+  nextTs := HeapInc.gs.threads;
+  while Assigned(nextTs) do
   begin
-    HeapInc.gs.lockUse := 0;
-    DoneCriticalSection(HeapInc.gs.lock);
+    ts := nextTs;
+    nextTs := ts^.next;
+    if ts = thisTs then { Used for executing toFrees and is orphaned the last. }
+      continue;
+    stolenTf := ts^.toFree;
+    ts^.toFree := nil;
+    ts^.Orphan;
+    HeapInc.ThreadState.FreeToFreeList(stolenTf);
   end;
+  thisTs^.Orphan;
+{$endif HAS_SYSOSFREE}
+  HeapInc.gs.lockUse := 0;
+  DoneCriticalSection(HeapInc.gs.lock);
 end;
+{$endif SUPPORT_INIT_HEAP_PROCESS_WIDE}
 
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 procedure InitHeapThread;
+{$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
+var
+  ts, next: HeapInc.pThreadState;
+{$endif SUPPORT_INIT_HEAP_PROCESS_WIDE and HAS_SYSOSFREE}
 begin
+{$ifdef SUPPORT_INIT_HEAP_PROCESS_WIDE}
   if (HeapInc.gs.lockUse = 0) and HeapInc.gs.askedForProcessWideLockInitialization then
-    HeapInc.gs.lockUse := HeapInc.gs.LockInitializedProcessWide
-  else if not ((HeapInc.gs.lockUse >= 0) and ({$ifdef VER3_2} InterlockedIncrement {$else} AtomicIncrement {$endif} (HeapInc.gs.lockUse) = 1)) then
-    exit;
-  InitCriticalSection(HeapInc.gs.lock);
+  begin
+    HeapInc.gs.lockUse := HeapInc.gs.LockInitializedProcessWide;
+    InitCriticalSection(HeapInc.gs.lock);
+  end else
+{$endif SUPPORT_INIT_HEAP_PROCESS_WIDE}
+  if (HeapInc.gs.lockUse >= 0) and ({$ifdef VER3_2} InterlockedIncrement {$else} AtomicIncrement {$endif} (HeapInc.gs.lockUse) = 1) then
+    InitCriticalSection(HeapInc.gs.lock);
+
+{$if defined(SUPPORT_INIT_HEAP_PROCESS_WIDE) and defined(HAS_SYSOSFREE)}
+  { Add to gs.threads. }
+  ts := @HeapInc.thisTs;
+  EnterCriticalSection(HeapInc.gs.lock);
+  next := HeapInc.gs.threads;
+  { Check if already in gs.threads; this function can in principle be called twice on the same thread (or at least I did call redundant InitThread for some time...). }
+  if not Assigned(ts^.prev) and (ts <> next) then
+  begin
+    ts^.next := next;
+    if Assigned(next) then
+      next^.prev := ts;
+    HeapInc.gs.threads := ts;
+  end;
+  LeaveCriticalSection(HeapInc.gs.lock);
+{$endif SUPPORT_INIT_HEAP_PROCESS_WIDE and HAS_SYSOSFREE}
 end;
 {$endif FPC_HAS_FEATURE_THREADING}
 
@@ -1991,12 +2084,7 @@ begin
   if (HeapInc.gs.lockUse > 0) and ({$ifdef VER3_2} InterlockedDecrement {$else} AtomicDecrement {$endif} (HeapInc.gs.lockUse) = 0) then
     DoneCriticalSection(HeapInc.gs.lock);
 {$elseif defined(HAS_SYSOSFREE)}
-  if Assigned(HeapInc.thisTs.freeOS1) then
-  begin
-    dec(HeapInc.thisTs.allocated, HeapInc.thisTs.freeOS1^.size); { Just in case... }
-    SysOSFree(HeapInc.thisTs.freeOS1, HeapInc.thisTs.freeOS1^.size);
-    HeapInc.thisTs.freeOS1 := nil; { Just in case... }
-  end;
+  HeapInc.thisTs.ReplaceFreeOS1(nil);
 {$endif FPC_HAS_FEATURE_THREADING | defined(HAS_SYSOSFREE)}
 end;
 

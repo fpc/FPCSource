@@ -79,6 +79,17 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
                              Threadvar support
 *****************************************************************************}
 
+    type
+      { If IsLibrary, prepended to threadvar blocks allocated with HeapAlloc to forcefully free them in DLL_PROCESS_DETACH (SysFiniMultithreading). }
+      PThreadvarNode=^TThreadvarNode;
+      TThreadvarNode=record
+        prev, next : PThreadvarNode;
+      end;
+
+    const
+      { Align threadvars on 2 * sizeof(pointer)... HeapAlloc has this alignment, so no point in more. }
+      AlignedThreadvarNodeSize=(sizeof(TThreadVarNode)+2*sizeof(pointer)-1) and -(2*sizeof(pointer));
+
     var
       // public names are used by heaptrc unit
       threadvarblocksize : dword; public name '_FPC_TlsSize';
@@ -88,9 +99,13 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
       TLSKeyVar : DWord = $ffffffff;
       TLSKey : PDWord = @TLSKeyVar; public name '_FPC_TlsKey';
       {$endif FPC_HAS_INDIRECT_ENTRY_INFORMATION}
+      DllProcessAttachPerformed : boolean;
 
-    var
-      MainThreadIdWin32 : DWORD;
+      { AllThreadvars* are used only when IsLibrary. (Careful!)
+        Could be used when not IsLibrary as a no-op to simplify the code,
+        but this would require publishing SysFiniMultithreading to be called from sysinit.pp:Exec_Tls_callback.DLL_PROCESS_DETACH. }
+      AllThreadvarsLock : TRTLCriticalSection;
+      AllThreadvars : PThreadvarNode;
 
     procedure SysInitThreadvar(var offset : dword;size : dword);
       begin
@@ -105,8 +120,8 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 
     procedure SysAllocateThreadVars; public name '_FPC_SysAllocateThreadVars';
       var
-        dataindex : pointer;
-        errorsave : dword;
+        tn,nx : PThreadvarNode;
+        prepend,errorsave : dword;
       begin
         { we've to allocate the memory from system  }
         { because the FPC heap management uses      }
@@ -116,13 +131,25 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
         errorsave:=GetLastError;
         if tlskey^=$ffffffff then
           RunError(226);
-        dataindex:=TlsGetValue(tlskey^);
-        if dataindex=nil then
+        if TlsGetValue(tlskey^)=nil then
           begin
-            dataindex:=HeapAlloc(GetProcessHeap,HEAP_ZERO_MEMORY,threadvarblocksize);
-            if dataindex=nil then
+            prepend:=ord(IsLibrary)*AlignedThreadvarNodeSize;
+            tn:=HeapAlloc(GetProcessHeap,HEAP_ZERO_MEMORY,prepend+threadvarblocksize);
+            if tn=nil then
               RunError(226);
-            TlsSetValue(tlskey^,dataindex);
+            TlsSetValue(tlskey^,pointer(tn)+prepend);
+
+            if IsLibrary then
+            begin
+              { Add tn to AllThreadvars. }
+              WinEnterCriticalSection(AllThreadvarsLock);
+              nx:=AllThreadvars;
+              tn^.next:=nx; { “tn^.prev := nil” can be omitted thanks to HEAP_ZERO_MEMORY. }
+              if Assigned(nx) then
+                nx^.prev:=tn;
+              AllThreadvars:=tn;
+              WinLeaveCriticalSection(AllThreadvarsLock);
+            end;
           end;
         SetLastError(errorsave);
       end;
@@ -137,6 +164,8 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
         if TLSKey^=$ffffffff then
          begin
            { We're still running in single thread mode, setup the TLS }
+           if IsLibrary then
+             WinInitCriticalSection(AllThreadvarsLock);
            TLSKey^:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
          end;
@@ -144,10 +173,28 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 
 
     procedure SysFiniMultithreading;
+      var
+        tn,nx : PThreadvarNode;
       begin
-        if TLSKey^<>$ffffffff then
-          TlsFree(TLSKey^);
+        if TLSKey^=$ffffffff then
+          exit;
+        TlsFree(TLSKey^);
         TLSKey^:=$ffffffff;
+
+        if IsLibrary then
+        begin
+          { Purge all remaining threadvars! System doesn’t preface DLL_PROCESS_DETACH by sending DLL_THREAD_DETACH to all threads,
+            so think of it as of emulating the threadvar destroying part of DLL_THREAD_DETACH for all threads that require it. }
+          tn:=AllThreadvars;
+          AllThreadvars:=nil;
+          while Assigned(tn) do
+          begin
+            nx:=tn^.next;
+            HeapFree(GetProcessHeap,0,tn);
+            tn:=nx;
+          end;
+          WinDoneCriticalSection(AllThreadvarsLock);
+        end;
       end;
 
 
@@ -257,14 +304,30 @@ function WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
 
     procedure SysReleaseThreadVars;
       var
-        p: pointer;
+        tn,prev,next: PThreadvarNode;
       begin
-        if TLSKey^<>$ffffffff then
-          begin
-            p:=TlsGetValue(tlskey^);
-            HeapFree(GetProcessHeap,0,p); { HeapFree is OK with nil. }
-            TlsSetValue(tlskey^, nil);
-          end;
+        if TLSKey^=$ffffffff then
+          exit;
+        tn:=TlsGetValue(TLSKey^);
+        if tn=nil then
+          exit;
+        TlsSetValue(TLSKey^,nil);
+        if IsLibrary then
+        begin
+          dec(pointer(tn),AlignedThreadvarNodeSize);
+          { Remove tn from AllThreadvars. }
+          WinEnterCriticalSection(AllThreadvarsLock);
+          prev:=tn^.prev;
+          next:=tn^.next;
+          if Assigned(next) then
+            next^.prev:=prev;
+          if Assigned(prev) then
+            prev^.next:=next
+          else
+            AllThreadvars:=next;
+          WinLeaveCriticalSection(AllThreadvarsLock);
+        end;
+        HeapFree(GetProcessHeap,0,tn);
       end;
 
 

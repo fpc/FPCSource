@@ -100,7 +100,7 @@ begin
     if DllInitState in [DLL_PROCESS_ATTACH,DLL_PROCESS_DETACH] then
       LongJmp(DLLBuf,1)
     else
-      MainThreadIDWin32:=0;
+      DllProcessAttachPerformed:=false;
   end;
   if not IsConsole then
    begin

@@ -104,8 +104,8 @@ begin
       put down the entire process (DLL_PROCESS_DETACH will still
       occur). At this point RTL has been already finalized in InternalExit
       and shouldn't be finalized another time in DLL_PROCESS_DETACH.
-      Indicate this by resetting MainThreadIdWin32. }
-      MainThreadIDWin32:=0;
+      Indicate this by resetting DllProcessAttachPerformed. }
+      DllProcessAttachPerformed:=false;
   end;
   if not IsConsole then
    begin

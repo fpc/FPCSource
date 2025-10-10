@@ -100,8 +100,15 @@ function ReAllocMemory(p:pointer;Size:ptruint):pointer; cdecl;
 function GetHeapStatus:THeapStatus;
 function GetFPCHeapStatus:TFPCHeapStatus;
 
+{ Support for DeferInitHeapProcessWide and DoneHeapProcessWide is not free, so they must be enabled explicitly by defining SUPPORT_INIT_HEAP_PROCESS_WIDE. }
 {$if defined(FPC_HAS_FEATURE_THREADING) and not defined(FPC_NO_DEFAULT_HEAP) and not defined(HAS_MEMORYMANAGER) and not defined(LEGACYHEAP)}
+  {$if defined(WINDOWS)}
+    {$define SUPPORT_INIT_HEAP_PROCESS_WIDE}
+  {$endif need *HeapProcessWide (platforms)}
+{$endif need *HeapProcessWide (general considerations)}
+
+{$ifdef SUPPORT_INIT_HEAP_PROCESS_WIDE}
 procedure DeferInitHeapProcessWide; inline; { for Windows sysinit.pp... }
 procedure DoneHeapProcessWide; inline;
-{$endif FPC_HAS_FEATURE_THREADING and not defined(FPC_NO_DEFAULT_HEAP) and not defined(HAS_MEMORYMANAGER) and not defined(LEGACYHEAP)}
+{$endif SUPPORT_INIT_HEAP_PROCESS_WIDE}
 {$endif FPC_HAS_FEATURE_HEAP}
