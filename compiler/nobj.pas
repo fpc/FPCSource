@@ -91,7 +91,16 @@ implementation
           descendent Objective-C class }
         if not allowoverridingmethod and
            (po_overridingmethod in pd.procoptions) then
-          MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+          begin
+            MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(true));
+            for i:=0 to _class.vmtentries.count-1 do
+              begin
+                vmtentry:=pvmtentry(_class.vmtentries[i]);
+                vmtpd:=tprocdef(vmtentry^.procdef);
+                if (upper(vmtpd.procsym.realname)=upper(pd.procsym.realname)) then
+                  MessagePos1(vmtpd.fileinfo,sym_h_param_list,vmtpd.fullprocname(true));
+	      end;
+          end;
 
         { check that all methods have overload directive }
         if not(m_fpc in current_settings.modeswitches) then
