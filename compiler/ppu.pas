@@ -466,7 +466,7 @@ begin
              do_comment(CRC_implementation_Change_Message_Level,'implementation CRC changed at index '+tostr(implementation_read_crc_index));
              {$IFDEF TEST_CRC_ERROR}
              if CRC_implementation_Change_Message_Level=V_Error then
-               do_internalerror(2020113001);
+               do_internalerrorex(2020113001,'');
              {$ENDIF}
 {$ifdef Test_Double_checksum_write}
              Write(CRCFile,'!!!imp_crc ',implementation_read_crc_index:5,' $',hexstr(crc,8),'<>$',hexstr(implementation_crc_array^[implementation_read_crc_index],8),' ',len);
@@ -517,7 +517,7 @@ begin
                 do_comment(CRC_Interface_Change_Message_Level,'interface CRC changed at index '+tostr(interface_read_crc_index));
                 {$IFDEF TEST_CRC_ERROR}
                 if CRC_interface_Change_Message_Level=V_Error then
-                  do_internalerror(2020113002);
+                  do_internalerrorex(2020113002,'');
                 {$ENDIF}
 {$ifdef Test_Double_checksum_write}
                 Write(CRCFile,'!!!int_crc ',interface_read_crc_index:5,' $',hexstr(interface_crc,8),'<>$',hexstr(interface_crc_array^[interface_read_crc_index],8),' ',len);
@@ -571,7 +571,7 @@ begin
                      do_comment(CRC_Indirect_Change_Message_Level,'Indirect CRC changed at index '+tostr(indirect_read_crc_index));
                      {$IFDEF TEST_CRC_ERROR}
                      if CRC_indirect_Change_Message_Level=V_Error then
-                       do_internalerror(2020113003);
+                       do_internalerrorex(2020113003,'');
                      {$ENDIF}
 {$ifdef Test_Double_checksum_write}
                      Write(CRCFile,'!!!ind_crc ',indirect_read_crc_index:5,' $',hexstr(indirect_crc,8),'<>$',hexstr(indirect_crc_array^[indirect_read_crc_index],8),' ',len);
