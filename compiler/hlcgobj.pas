@@ -404,6 +404,19 @@ unit hlcgobj;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); virtual; abstract;
 {$endif cpuflags}
 
+          {
+             This routine tries to optimize the op_const_reg/ref opcode, and should be
+             called at the start of a_op_const_reg/ref. It returns the actual opcode
+             to emit, and the constant value to emit. This function can opcode OP_NONE to
+             remove the opcode and OP_MOVE to replace it with a simple load
+
+             @param(size Size of the operand in constant)
+             @param(op The opcode to emit, returns the opcode which must be emitted)
+             @param(a  The constant which should be emitted, returns the constant which must
+                    be emitted)
+          }
+          procedure optimize_op_const(size: tdef; var op: topcg; var a : tcgint);virtual;
+
           {#
               This routine is used in exception management nodes. It should
               save the exception reason currently in the reg. The
@@ -3416,6 +3429,128 @@ implementation
       a_jmp_always(list,l);
     end;
 
+  procedure thlcgobj.optimize_op_const(size: tdef; var op: topcg; var a: tcgint);
+    var
+      powerval : longint;
+      signext_a, zeroext_a: tcgint;
+      cgsize: TCgSize;
+    begin
+      cgsize:=def_cgsize(size);
+      case cgsize of
+        OS_64,OS_S64:
+          begin
+            signext_a:=int64(a);
+            zeroext_a:=int64(a);
+          end;
+        OS_32,OS_S32:
+          begin
+            signext_a:=longint(a);
+            zeroext_a:=dword(a);
+          end;
+        OS_16,OS_S16:
+          begin
+            signext_a:=smallint(a);
+            zeroext_a:=word(a);
+          end;
+        OS_8,OS_S8:
+          begin
+            signext_a:=shortint(a);
+            zeroext_a:=byte(a);
+          end
+        else
+          begin
+            { Should we internalerror() here instead? }
+            signext_a:=a;
+            zeroext_a:=a;
+          end;
+      end;
+      case op of
+        OP_OR :
+          begin
+            { or with zero returns same result }
+            if a = 0 then
+              op:=OP_NONE
+            else
+            { or with max returns max }
+              if signext_a = -1 then
+                op:=OP_MOVE;
+          end;
+        OP_AND :
+          begin
+            { and with max returns same result }
+            if (signext_a = -1) then
+              op:=OP_NONE
+            else
+            { and with 0 returns 0 }
+              if a=0 then
+                op:=OP_MOVE;
+          end;
+        OP_XOR :
+          begin
+            { xor with zero returns same result }
+            if a = 0 then
+              op:=OP_NONE;
+          end;
+        OP_DIV :
+          begin
+            { division by 1 returns result }
+            if a = 1 then
+              op:=OP_NONE
+            else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
+              begin
+                a := powerval;
+                op:= OP_SHR;
+              end;
+          end;
+        OP_IDIV:
+          begin
+            if a = 1 then
+              op:=OP_NONE;
+          end;
+       OP_MUL,OP_IMUL:
+          begin
+             if a = 1 then
+               op:=OP_NONE
+             else
+               if a=0 then
+                 op:=OP_MOVE
+             else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
+               begin
+                 a := powerval;
+                 op:= OP_SHL;
+               end;
+          end;
+      OP_ADD,OP_SUB:
+          begin
+             if a = 0 then
+               op:=OP_NONE;
+          end;
+      OP_SAR,OP_SHL,OP_SHR:
+         begin
+           if a = 0 then
+             op:=OP_NONE;
+         end;
+      OP_ROL,OP_ROR:
+        begin
+          case cgsize of
+            OS_64,OS_S64:
+              a:=a and 63;
+            OS_32,OS_S32:
+              a:=a and 31;
+            OS_16,OS_S16:
+              a:=a and 15;
+            OS_8,OS_S8:
+              a:=a and 7;
+            else
+              internalerror(2019050521);
+          end;
+          if a = 0 then
+            op:=OP_NONE;
+        end;
+      else
+        ;
+      end;
+    end;
 
   procedure thlcgobj.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
     begin
