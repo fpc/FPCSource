@@ -728,13 +728,25 @@ implementation
 
   procedure thlcgwasm.a_op_const_stack(list: TAsmList;op: topcg;size: tdef;a: tcgint);
     begin
+      optimize_op_const(size,op,a);
+
       case op of
+        OP_NONE:
+          ;
+        OP_MOVE:
+          begin
+            list.concat(taicpu.op_none(a_drop));
+            decstack(list,1);
+            a_load_const_stack(list,size,a,R_INTREGISTER);
+          end;
         OP_NEG,OP_NOT:
           internalerror(2011010801);
         else
-          a_load_const_stack(list,size,a,R_INTREGISTER);
+          begin
+            a_load_const_stack(list,size,a,R_INTREGISTER);
+            a_op_stack(list,op,size);
+          end;
       end;
-      a_op_stack(list,op,size);
     end;
 
   procedure thlcgwasm.a_op_reg_stack(list: TAsmList; op: topcg; size: tdef; reg: tregister);
