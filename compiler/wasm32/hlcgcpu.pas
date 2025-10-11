@@ -1803,9 +1803,20 @@ implementation
 
   procedure thlcgwasm.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister);
     begin
-      a_load_reg_stack(list,size,src);
-      a_op_const_stack(list,op,size,a);
-      a_load_stack_reg(list,size,dst);
+      optimize_op_const(size,op,a);
+
+      case op of
+        OP_NONE:
+          a_load_reg_reg(list,size,size,src,dst);
+        OP_MOVE:
+          a_load_const_reg(list,size,a,dst);
+        else
+          begin
+            a_load_reg_stack(list,size,src);
+            a_op_const_stack(list,op,size,a);
+            a_load_stack_reg(list,size,dst);
+          end;
+      end;
     end;
 
   procedure thlcgwasm.a_op_const_ref(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; const ref: TReference);
