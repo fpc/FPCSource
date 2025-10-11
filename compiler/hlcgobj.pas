@@ -2679,9 +2679,9 @@ implementation
           reference_reset_base(result.ref,refptrdef,newbase,0,result.ref.temppos,result.ref.alignment,[]);
         end;
       result.ref.index:=tmpreg;
-      tmpreg:=getintregister(list,ptruinttype);
-      a_load_reg_reg(list,bitnumbersize,ptruinttype,bitnumber,tmpreg);
-      a_op_const_reg(list,OP_AND,ptruinttype,7,tmpreg);
+      tmpreg:=getintregister(list,aluuinttype);
+      a_load_reg_reg(list,bitnumbersize,aluuinttype,bitnumber,tmpreg);
+      a_op_const_reg(list,OP_AND,aluuinttype,7,tmpreg);
       result.bitindexreg:=tmpreg;
     end;
 
