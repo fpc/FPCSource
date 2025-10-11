@@ -2831,7 +2831,7 @@ implementation
                   internalerror(2021010302);
               end;
             end
-          else if tcgsize2size[fromcgsize]>=tcgsize2size[tocgsize] then
+          else if (tcgsize2size[fromcgsize]>=tcgsize2size[tocgsize]) and (fromcgsize<>tocgsize) then
             begin
               { truncate }
               case tocgsize of
