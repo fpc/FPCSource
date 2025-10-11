@@ -1824,16 +1824,27 @@ implementation
       extra_slots: longint;
       tmpref: treference;
     begin
-      tmpref:=ref;
-      extra_slots:=prepare_stack_for_ref(list,tmpref,true);
-      { TODO, here or in peepholeopt: use iinc when possible }
-      a_load_ref_stack(list,size,tmpref,extra_slots);
-      a_op_const_stack(list,op,size,a);
-      { for android verifier }
-      if (def2regtyp(size)=R_INTREGISTER) and
-         (assigned(tmpref.symbol)) then
-        resize_stack_int_val(list,size,size,true);
-      a_load_stack_ref(list,size,tmpref,extra_slots);
+      optimize_op_const(size,op,a);
+
+      case op of
+        OP_NONE:
+          ;
+        OP_MOVE:
+          a_load_const_ref(list,size,a,ref);
+        else
+          begin
+            tmpref:=ref;
+            extra_slots:=prepare_stack_for_ref(list,tmpref,true);
+            { TODO, here or in peepholeopt: use iinc when possible }
+            a_load_ref_stack(list,size,tmpref,extra_slots);
+            a_op_const_stack(list,op,size,a);
+            { for android verifier }
+            if (def2regtyp(size)=R_INTREGISTER) and
+               (assigned(tmpref.symbol)) then
+              resize_stack_int_val(list,size,size,true);
+            a_load_stack_ref(list,size,tmpref,extra_slots);
+          end;
+      end;
     end;
 
   procedure thlcgwasm.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
