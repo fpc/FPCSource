@@ -1435,7 +1435,16 @@ implementation
     end;
 
   procedure thlcgwasm.a_load_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
+    var
+      fromcgsize, tocgsize: TCgSize;
     begin
+      fromcgsize:=def_cgsize(fromsize);
+      tocgsize:=def_cgsize(tosize);
+      if (reg1=reg2) and ((fromcgsize=tocgsize) or
+                          ((fromcgsize in [OS_S32,OS_32]) and (tocgsize in [OS_S32,OS_32]) and (getsubreg(reg1)=R_SUBD)) or
+                          ((fromcgsize in [OS_S64,OS_64]) and (tocgsize in [OS_S64,OS_64]))) then
+        exit;
+
       a_load_reg_stack(list,fromsize,reg1);
       if def2regtyp(fromsize) in [R_INTREGISTER,R_ADDRESSREGISTER] then
         resize_stack_int_val(list,fromsize,tosize,false);
