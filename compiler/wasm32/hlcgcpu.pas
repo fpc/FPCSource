@@ -965,13 +965,13 @@ implementation
         LOC_SUBSETREG, LOC_CSUBSETREG:
           begin
             tmpreg:=getintregister(list,size);
-            a_load_ref_reg(list,size,size,loc.reference,tmpreg);
+            a_load_ref_reg(list,size,size,ref,tmpreg);
             a_cmp_subsetreg_reg_stack(list,size,size,swap_opcmp(cmp_op),loc.sreg,tmpreg);
           end;
         LOC_SUBSETREF, LOC_CSUBSETREF:
           begin
             tmpreg:=getintregister(list,size);
-            a_load_ref_reg(list,size,size,loc.reference,tmpreg);
+            a_load_ref_reg(list,size,size,ref,tmpreg);
             a_cmp_subsetref_reg_stack(list,size,size,swap_opcmp(cmp_op),loc.sref,tmpreg);
           end;
         else
