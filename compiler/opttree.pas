@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 
-{$define DEBUG_NORMALIZE}
+{ $define DEBUG_NORMALIZE}
 
 { this unit implements routines to perform all-purpose tree transformations }
 unit opttree;
