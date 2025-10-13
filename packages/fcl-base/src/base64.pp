@@ -36,6 +36,8 @@ uses classes, sysutils;
 
 type
 
+  { TBase64EncodingStream }
+
   TBase64EncodingStream = class(TOwnerStream)
   private type
     TWriteBuffer = array[0..3] of AnsiChar;
@@ -49,16 +51,23 @@ type
     LineLength: Integer;
     Buf: array[0..2] of Byte;
     BufSize: Integer;    // # of bytes used in Buf
+    FEncodingTable : PAnsiChar;
 
     procedure DoWriteBuf(var Buffer: TWriteBuffer; BufferLength: TWriteBufferLength);
   public
     constructor Create(ASource: TStream); overload;
-    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString; APadEnd: Boolean); overload;
+    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString; APadEnd: Boolean); virtual; overload;
     constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: UnicodeString; APadEnd: Boolean); overload;
     destructor Destroy; override;
     Function Flush : Boolean;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+  end;
+
+  { TBase64URLEncodingStream }
+
+  TBase64URLEncodingStream = Class(TBase64EncodingStream)
+    constructor Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString; APadEnd: Boolean); override; overload;
   end;
 
   (* The TBase64DecodingStream supports two modes:
@@ -72,6 +81,8 @@ type
    *    - ignores any characters outside of base64 alphabet
    *    - takes any '=' as end of
    *    - handles apparently truncated input streams gracefully
+   * - 'URL':
+   *    Like Strict, but
    *)
   TBase64DecodingMode = (bdmStrict, bdmMIME);
 
@@ -90,6 +101,7 @@ type
     Buf: array[0..2] of Byte; // last 3 decoded bytes
     BufPos: Integer;          // offset in Buf of byte which is to be read next; if >2, next block must be read from Source & decoded
     FEOF: Boolean;            // if true, all decoded bytes have been read
+    function converturl(c : ansichar) : ansichar; virtual;
   public
     constructor Create(ASource: TStream);
     constructor Create(ASource: TStream; AMode: TBase64DecodingMode);
@@ -100,6 +112,12 @@ type
 
     property EOF: Boolean read fEOF;
     property Mode: TBase64DecodingMode read FMode write SetMode;
+  end;
+
+  { TBase64URLDecodingStream }
+
+  TBase64URLDecodingStream = class(TBase64DecodingStream)
+    function converturl(c : ansichar) : ansichar; override;
   end;
 
   EBase64DecodingException = class(Exception)
@@ -125,12 +143,17 @@ const
 
   EncodingTable: PAnsiChar =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  URLEncodingTable: PAnsiChar =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+Type
+  TByteDict = Array[Byte] of Byte;
 
 const
   NA =  85; // not in base64 alphabet at all; binary: 01010101
   PC = 255; // padding character                      11111111
 
-  DecTable: array[Byte] of Byte =
+  DecTable: TByteDict =
     (NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,  // 0-15
      NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,  // 16-31
      NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 62, NA, NA, NA, 63,  // 32-47
@@ -149,6 +172,7 @@ const
      NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA);
 
   Alphabet = ['a'..'z','A'..'Z','0'..'9','+','/','=']; // all 65 chars that are in the base64 encoding alphabet
+  URLAlphabet = ['a'..'z','A'..'Z','0'..'9','-','_','=']; // all 65 chars that are in the base64 encoding alphabet
 
 function TBase64EncodingStream.Flush : Boolean;
 
@@ -158,16 +182,16 @@ begin
   // Fill output to multiple of 4
   case (TotalBytesProcessed mod 3) of
     1: begin
-        WriteBuf[0] := EncodingTable[Buf[0] shr 2];
-        WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4];
+        WriteBuf[0] := FEncodingTable[Buf[0] shr 2];
+        WriteBuf[1] := FEncodingTable[(Buf[0] and 3) shl 4];
         DoWriteBuf(WriteBuf, 2);
         Result:=True;
         Inc(TotalBytesProcessed,2);
       end;
     2: begin
-        WriteBuf[0] := EncodingTable[Buf[0] shr 2];
-        WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
-        WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2];
+        WriteBuf[0] := FEncodingTable[Buf[0] shr 2];
+        WriteBuf[1] := FEncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
+        WriteBuf[2] := FEncodingTable[(Buf[1] and 15) shl 2];
         DoWriteBuf(WriteBuf, 3);
         Result:=True;
         Inc(TotalBytesProcessed,1);
@@ -185,7 +209,7 @@ end;
 constructor TBase64EncodingStream.Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString; APadEnd: Boolean);
 begin
   inherited Create(ASource);
-
+  FEncodingTable:=EncodingTable;
   CharsPerLine := ACharsPerLine;
   LineSeparator := ALineSeparator;
   PadEnd := APadEnd;
@@ -261,10 +285,10 @@ begin
     Dec(Count, ReadNow);
 
     // Encode the 3 bytes in Buf
-    WriteBuf[0] := EncodingTable[Buf[0] shr 2];
-    WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
-    WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2 or (Buf[2] shr 6)];
-    WriteBuf[3] := EncodingTable[Buf[2] and 63];
+    WriteBuf[0] := FEncodingTable[Buf[0] shr 2];
+    WriteBuf[1] := FEncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
+    WriteBuf[2] := FEncodingTable[(Buf[1] and 15) shl 2 or (Buf[2] shr 6)];
+    WriteBuf[3] := FEncodingTable[Buf[2] and 63];
     DoWriteBuf(WriteBuf, 4);
   end;
   Move(p^, Buf[BufSize], count);
@@ -301,6 +325,20 @@ begin
     raise EStreamError.Create('Invalid stream operation');
 end;
 
+{ TBase64URLEncodingStream }
+
+constructor TBase64URLEncodingStream.Create(ASource: TStream; ACharsPerLine: Integer; ALineSeparator: RawByteString;
+  APadEnd: Boolean);
+begin
+  inherited Create(ASource, ACharsPerLine, ALineSeparator, APadEnd);
+  FEncodingTable:=URLEncodingTable;
+end;
+
+function TBase64DecodingStream.converturl(c: ansichar): ansichar;
+begin
+  Result:=c;
+end;
+
 procedure TBase64DecodingStream.SetMode(const AValue: TBase64DecodingMode);
 begin
   if FMode = AValue then exit;
@@ -327,7 +365,7 @@ begin
       repeat
         count := Source.Read(scanBuf, SizeOf(scanBuf));
         for i := 0 to count-1 do begin
-          c := scanBuf[i];
+          c := ConvertURL(scanBuf[i]);
           if c in Alphabet-['='] then // base64 encoding characters except '='
             Inc(Result)
           else if c = '=' then // end marker '='
@@ -429,7 +467,7 @@ begin
         //WriteLn('ToRead = ', ToRead, ', HaveRead = ', HaveRead, ', ReadOK=', ReadOk);
         if HaveRead > 0 then begin // if any new bytes; in ReadBuf[ReadOK .. ReadOK + HaveRead-1]
           for i := ReadOK to ReadOK + HaveRead - 1 do begin
-            b := DecTable[ReadBuf[i]];
+            b := DecTable[Ord(ConvertURL(Char(ReadBuf[i])))];
             if b <> NA then begin // valid base64 alphabet character ('=' inclusive)
               ReadBuf[ReadOK] := b;
               Inc(ReadOK);
@@ -444,7 +482,7 @@ begin
           //WriteLn('End: ReadOK=', ReadOK, ', count=', Count);
           for i := ReadOK to 3 do
             ReadBuf[i] := 0; // pad buffer with zeros so decoding of 4-bytes will be correct
-          if (Mode = bdmStrict) and (ReadOK > 0) then
+          if (Mode=bdmStrict) and (ReadOK > 0) then
             raise EBase64DecodingException.CreateFmt(SStrictInputTruncated,[]);
           Break;
         end;
@@ -511,6 +549,18 @@ function TBase64DecodingStream.Seek(Offset: Longint; Origin: Word): Longint;
 begin
   // TODO: implement Seeking in TBase64DecodingStream
   raise EStreamError.Create('Invalid stream operation');
+end;
+
+{ TBase64URLDecodingStream }
+
+function TBase64URLDecodingStream.converturl(c: ansichar): ansichar;
+begin
+  case c of
+    '-' : result:='+';
+    '_' : Result:='/';
+  else
+    result:=c;
+  end;
 end;
 
 function DecodeStringBase64(const s: AnsiString;strict:boolean=false): AnsiString;
