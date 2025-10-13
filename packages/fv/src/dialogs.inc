@@ -1701,6 +1701,8 @@ CONST PadKeys = [$47, $4B, $4D, $4F, $73, $74];
 VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: String;
 Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
 SelectedTextAnsi: AnsiString; // For SetGlobalClipboardData
+S: AnsiString;
+Len, I: Integer;
 
    FUNCTION MouseDelta: Sw_Integer;
    VAR Mouse : TPOint;
@@ -1950,6 +1952,27 @@ BEGIN
            (CurPos < Length(Data Sw_PString_DeRef)) Then Begin        { Check not at end }
              Inc(CurPos);                             { Move cursor }
              CheckValid(True);                        { Check if valid }
+           End;
+           kbCtrlLeft: Begin
+             if Data <> Sw_PString_Empty then
+             begin
+               S := Data Sw_PString_DeRef;
+               I := CurPos;
+               while (I > 0) and (S[I] = ' ') do Dec(I);
+               while (I > 0) and (S[I] <> ' ') do Dec(I);
+               CurPos := I;
+             end;
+           End;
+           kbCtrlRight: Begin
+             if Data <> Sw_PString_Empty then
+             begin
+               S := Data Sw_PString_DeRef;
+               Len := Length(S);
+               I := CurPos;
+               while (I < Len) and (S[I+1] <> ' ') do Inc(I);
+               while (I < Len) and (S[I+1] = ' ') do Inc(I);
+               CurPos := I;
+             end;
            End;
            kbHome: CurPos := 0;                       { Move to line start }
            kbEnd: Begin                               { Move to line end }
@@ -3701,6 +3724,7 @@ BEGIN
    Inherited Init(Bounds, '', wnNoNumber);            { Call ancestor }
    Flags := wfClose;                                  { Close flag only }
    InitViewer(HistoryId);                             { Create list view }
+   SelectNext(False);
 END;
 
 {--THistoryWindow-----------------------------------------------------------}
