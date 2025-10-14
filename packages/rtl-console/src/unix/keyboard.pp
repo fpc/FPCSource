@@ -2851,6 +2851,8 @@ end;
 { Exported functions }
 
 procedure SysInitKeyboard;
+var
+  envInput: string;
 begin
   isKittyKeys:=false;
   CurrentShiftState:=[];
@@ -2888,12 +2890,32 @@ begin
         end;
       {kitty_keys_no:=true;}
       isKittyKeys:=kitty_keys_yes;
-      if kitty_keys_yes or (kitty_keys_yes=kitty_keys_no) then
-         write(#27'[>31u'); { try to set up kitty keys }
-      KittyKeyAvailability;
-      if not isKittyKeys then
-        write(#27'[>4;2m'); { xterm ->  modifyOtherKeys }
-      write(#27'[?9001h'); // Try to enable win32-input-mode
+      envInput := fpgetenv('TV_INPUT');
+      if length(envInput) > 0 then
+        envInput[1] := UpCase(envInput[1]);
+
+      if envInput = 'Win32' then
+        begin
+          write(#27'[?9001h');
+        end
+      else if envInput = 'Kitty' then
+        begin
+          write(#27'[>31u');
+          KittyKeyAvailability;
+        end
+      else if envInput = 'Legacy' then
+        begin
+          // Do nothing
+        end
+      else // TV_INPUT not set or incorrect, use default logic
+        begin
+          if kitty_keys_yes or (kitty_keys_yes=kitty_keys_no) then
+             write(#27'[>31u'); { try to set up kitty keys }
+          KittyKeyAvailability;
+          if not isKittyKeys then
+            write(#27'[>4;2m'); { xterm ->  modifyOtherKeys }
+          write(#27'[?9001h'); // Try to enable win32-input-mode
+        end;
 {$ifdef linux}
     end;
 {$endif}
