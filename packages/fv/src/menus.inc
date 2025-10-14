@@ -79,9 +79,9 @@ USES
    {$ENDIF}
 
 {$ifdef FV_UNICODE}
-   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts, System.SysUtils;               { GFV standard units }
+   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts, System.SysUtils; { GFV standard units }
 {$else FV_UNICODE}
-   System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Fvcommon, FreeVision.Fvconsts;                 { GFV standard units }
+   System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Fvcommon, FreeVision.Fvconsts;                     { GFV standard units }
 {$endif FV_UNICODE}
 {$ELSE FPC_DOTTEDUNITS}
 USES
