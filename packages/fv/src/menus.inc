@@ -79,9 +79,9 @@ USES
    {$ENDIF}
 
 {$ifdef FV_UNICODE}
-   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts;               { GFV standard units }
+   System.Objects, FreeVision.Udrivers, FreeVision.Uviews, FreeVision.Ufvcommon, FreeVision.Fvconsts, System.SysUtils; { GFV standard units }
 {$else FV_UNICODE}
-   System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Fvcommon, FreeVision.Fvconsts;                 { GFV standard units }
+   System.Objects, FreeVision.Drivers, FreeVision.Views, FreeVision.Fvcommon, FreeVision.Fvconsts;                     { GFV standard units }
 {$endif FV_UNICODE}
 {$ELSE FPC_DOTTEDUNITS}
 USES
@@ -98,7 +98,7 @@ USES
    {$ENDIF}
 
 {$ifdef FV_UNICODE}
-   objects, udrivers, uviews, UFVCommon, fvconsts;               { GFV standard units }
+   objects, udrivers, uviews, UFVCommon, fvconsts, SysUtils;               { GFV standard units }
 {$else FV_UNICODE}
    objects, drivers, views, fvcommon, fvconsts;                 { GFV standard units }
 {$endif FV_UNICODE}
@@ -214,7 +214,11 @@ TYPE
       FUNCTION Execute: Word; Virtual;
       FUNCTION GetHelpCtx: Word; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
+      {$ifdef FV_UNICODE}
+      FUNCTION FindItem (Ch: WideChar): PMenuItem;
+      {$else}
       FUNCTION FindItem (Ch: AnsiChar): PMenuItem;
+      {$endif}
       FUNCTION HotKey (KeyCode: Word): PMenuItem;
       FUNCTION NewSubView (Var Bounds: TRect; AMenu: PMenu;
         AParentMenu: PMenuView): PMenuView; Virtual;
@@ -533,8 +537,13 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TMenuView.Execute: Word;
 TYPE MenuAction = (DoNothing, DoSelect, DoReturn);
-VAR AutoSelect: Boolean; Action: MenuAction; Ch: AnsiChar; Res: Word; R: TRect;
+VAR AutoSelect: Boolean; Action: MenuAction; Res: Word; R: TRect;
   ItemShown, P: PMenuItem; Target: PMenuView; E: TEvent; MouseActive: Boolean;
+  {$ifdef FV_UNICODE}
+  searchChar: WideChar;
+  {$else}
+  searchChar: AnsiChar;
+  {$endif}
 
    PROCEDURE TrackMouse;
    VAR Mouse: TPoint; R: TRect;
@@ -645,49 +654,70 @@ BEGIN
            AND MouseInMenus Then Action := DoReturn;  { Set return action }
          End;
        evKeyDown:
-         Case CtrlToArrow(E.KeyCode) Of               { Check arrow keys }
-           kbUp, kbDown: If (Size.Y <> 1) Then
-             TrackKey(CtrlToArrow(E.KeyCode) = kbDown){ Track keyboard }
-             Else If (E.KeyCode = kbDown) Then        { Down arrow }
-             AutoSelect := True;                      { Select item }
-           kbLeft, kbRight: If (ParentMenu = Nil) Then
-             TrackKey(CtrlToArrow(E.KeyCode)=kbRight) { Track keyboard }
-             Else Action := DoReturn;                 { Set return action }
-           kbHome, kbEnd: If (Size.Y <> 1) Then Begin
-               Current := Menu^.Items;                { Set to first item }
-               If (E.KeyCode = kbEnd) Then            { If the 'end' key }
-                 TrackKey(False);                     { Move to last item }
-             End;
-           kbEnter: Begin
-               If Size.Y = 1 Then AutoSelect := True; { Select item }
-               Action := DoSelect;                    { Return the item }
-             End;
-           kbEsc: Begin
-               Action := DoReturn;                    { Set return action }
-               If (ParentMenu = Nil) OR
-               (ParentMenu^.Size.Y <> 1) Then         { Check parent }
-                 ClearEvent(E);                       { Kill the event }
-             End;
-           Else Target := @Self;                      { Set target as self }
-           Ch := GetAltChar(E.KeyCode);
-           If (Ch = #0) Then Ch := E.CharCode Else
-             Target := TopMenu;                       { Target is top menu }
-           P := Target^.FindItem(Ch);                 { Check for item }
-           If (P = Nil) Then Begin
-             P := TopMenu^.HotKey(E.KeyCode);         { Check for hot key }
-             If (P <> Nil) AND                        { Item valid }
-             CommandEnabled(P^.Command) Then Begin    { Command enabled }
-               Res := P^.Command;                     { Set return command }
-               Action := DoReturn;                    { Set return action }
-             End
-           End Else If Target = @Self Then Begin
-             If Size.Y = 1 Then AutoSelect := True;   { Set auto select }
-             Action := DoSelect;                      { Select item }
-             Current := P;                            { Set current item }
-           End Else If (ParentMenu <> Target) OR
-           (ParentMenu^.Current <> P) Then            { Item different }
-              Action := DoReturn;                     { Set return action }
-         End;
+         begin
+           Case CtrlToArrow(E.KeyCode) Of
+             kbUp, kbDown: If (Size.Y <> 1) Then
+               TrackKey(CtrlToArrow(E.KeyCode) = kbDown)
+               Else If (E.KeyCode = kbDown) Then AutoSelect := True;
+             kbLeft, kbRight: If (ParentMenu = Nil) Then
+               TrackKey(CtrlToArrow(E.KeyCode)=kbRight)
+               Else Action := DoReturn;
+             kbHome, kbEnd: If (Size.Y <> 1) Then Begin
+                 Current := Menu^.Items;
+                 If (E.KeyCode = kbEnd) Then TrackKey(False);
+               End;
+             kbEnter: Begin
+                 If Size.Y = 1 Then AutoSelect := True;
+                 Action := DoSelect;
+               End;
+             kbEsc: Begin
+                 Action := DoReturn;
+                 If (ParentMenu = Nil) OR (ParentMenu^.Size.Y <> 1) Then ClearEvent(E);
+               End;
+           Else
+             begin
+               P := nil;
+               // Only perform hotkey search (both paths) if Alt is actually pressed.
+               if (E.KeyShift and kbAltShift <> 0) then
+               begin
+                 // Path 1: Character-based search (for correct layouts like Russian)
+                 {$ifdef FV_UNICODE}
+                 searchChar := E.UnicodeChar;
+                 {$else}
+                 searchChar := E.CharCode;
+                 {$endif}
+                 if searchChar <> #0 then P := TopMenu^.FindItem(searchChar);
+
+                 // Path 2: Scancode-based search (fallback for EN hotkeys in RU layout)
+                 if P = nil then
+                 begin
+                   {$ifdef FV_UNICODE}
+                   searchChar := WideChar(GetAltChar(E.ScanCode shl 8));
+                   {$else}
+                   searchChar := GetAltChar(E.ScanCode shl 8);
+                   {$endif}
+                   if searchChar <> #0 then P := TopMenu^.FindItem(searchChar);
+                 end;
+               end;
+
+               If P = nil Then Begin
+                 P := TopMenu^.HotKey(E.KeyCode);
+                 If (P <> Nil) AND CommandEnabled(P^.Command) Then Begin
+                   Res := P^.Command;
+                   Action := DoReturn;
+                 End
+               End Else Begin // P was found by one of the paths above
+                 Target := TopMenu; // Hotkeys should always target the top menu bar
+                 If Target = @Self Then Begin
+                   If Size.Y = 1 Then AutoSelect := True;
+                   Action := DoSelect;
+                   Current := P;
+                 End Else If (ParentMenu <> Target) OR (ParentMenu^.Current <> P) Then
+                    Action := DoReturn;
+               end;
+             end;
+           End;
+         end;
        evCommand: If (E.Command = cmMenu) Then Begin  { Menu command }
            AutoSelect := False;                       { Dont select item }
            If (ParentMenu <> Nil) Then
@@ -766,25 +796,57 @@ END;
 {--TMenuView----------------------------------------------------------------}
 {  FindItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB          }
 {---------------------------------------------------------------------------}
+{$ifndef FV_UNICODE}
 FUNCTION TMenuView.FindItem (Ch: AnsiChar): PMenuItem;
-VAR I: SmallInt; P: PMenuItem;
+VAR I: SmallInt; P: PMenuItem; itemHotkey: AnsiChar;
 BEGIN
-   Ch := UpCase(Ch);                                  { Upper case of AnsiChar }
-   P := Menu^.Items;                                  { First menu item }
-   While (P <> Nil) Do Begin                          { While item valid }
-     If (P^.Name <> Sw_PString_Empty) AND (NOT P^.Disabled)  { Valid enabled cmd }
+   if Ch = #0 then begin FindItem := nil; Exit; end;
+   Ch := UpCase(Ch);
+   P := Menu^.Items;
+   While (P <> Nil) Do Begin
+     If (P^.Name <> Sw_PString_Empty) AND (NOT P^.Disabled)
      Then Begin
-       I := Pos('~', P^.Name Sw_PString_Deref);  { Scan for highlight }
-       If (I <> 0) AND (Ch = UpCase(P^.Name Sw_PString_Deref[I+1]))   { Hotkey AnsiChar found }
-       Then Begin
-         FindItem := P;                               { Return item }
-         Exit;                                        { Now exit }
-       End;
+       I := Pos('~', P^.Name^);
+       If (I > 0) AND (I < Length(P^.Name^)) then
+       begin
+         itemHotkey := UpCase(P^.Name^[I+1]);
+         If Ch = itemHotkey Then
+         Begin
+           FindItem := P;
+           Exit;
+         End;
+       end;
      End;
-     P := P^.Next;                                    { Next item }
+     P := P^.Next;
    End;
-   FindItem := Nil;                                   { No item found }
+   FindItem := Nil;
 END;
+{$else}
+FUNCTION TMenuView.FindItem (Ch: WideChar): PMenuItem;
+VAR I: SmallInt; P: PMenuItem; itemHotkey: WideChar; menuName: UnicodeString;
+BEGIN
+   if Ch = #0 then begin FindItem := nil; Exit; end;
+   P := Menu^.Items;
+   While (P <> Nil) Do Begin
+     If (P^.Name <> Sw_PString_Empty) AND (NOT P^.Disabled)
+     Then Begin
+       menuName := P^.Name;
+       I := Pos('~', menuName);
+       If (I > 0) AND (I < Length(menuName)) then
+       begin
+         itemHotkey := menuName[I+1];
+         If WideUpperCase(String(Ch)) = WideUpperCase(String(itemHotkey)) Then
+         Begin
+           FindItem := P;
+           Exit;
+         End;
+       end;
+     End;
+     P := P^.Next;
+   End;
+   FindItem := Nil;
+END;
+{$endif}
 
 {--TMenuView----------------------------------------------------------------}
 {  HotKey -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB            }
@@ -910,18 +972,43 @@ BEGIN
      Case Event.What Of
        evMouseDown: DoSelect;                         { Select menu item }
        evKeyDown:
-         If (FindItem(GetAltChar(Event.KeyCode)) <> Nil)
-         Then DoSelect Else Begin                     { Select menu item }
-           P := HotKey(Event.KeyCode);                { Check for hotkey }
-           If (P <> Nil) AND
-           (CommandEnabled(P^.Command)) Then Begin
-             Event.What := evCommand;                 { Command event }
-             Event.Command := P^.Command;             { Set command event }
-             Event.InfoPtr := Nil;                    { Clear info ptr }
-             PutEvent(Event);                         { Put event on queue }
-             ClearEvent(Event);                       { Clear the event }
-           End;
-         End;
+         begin
+           P := nil;
+           // Only perform hotkey search (both paths) if Alt is actually pressed.
+           if (Event.KeyShift and kbAltShift <> 0) then
+           begin
+             // Path 1: Character-based search
+             {$ifdef FV_UNICODE}
+             if Event.UnicodeChar <> #0 then P := FindItem(Event.UnicodeChar);
+             {$else}
+             if Event.CharCode <> #0 then P := FindItem(Event.CharCode);
+             {$endif}
+
+             // Path 2: Fallback to scancode-based search
+             if P = nil then
+             begin
+               {$ifdef FV_UNICODE}
+               P := FindItem(WideChar(GetAltChar(Event.ScanCode shl 8)));
+               {$else}
+               P := FindItem(GetAltChar(Event.ScanCode shl 8));
+               {$endif}
+             end;
+           end;
+
+           if P <> nil then
+             DoSelect
+           else
+           begin // Fallback for global shortcuts (F-keys)
+             P := HotKey(Event.KeyCode);
+             If (P <> Nil) AND (CommandEnabled(P^.Command)) Then Begin
+               Event.What := evCommand;
+               Event.Command := P^.Command;
+               Event.InfoPtr := Nil;
+               PutEvent(Event);
+               ClearEvent(Event);
+             End;
+           end;
+         end;
        evCommand:
          If Event.Command = cmMenu Then DoSelect;     { Select menu item }
        evBroadcast:
