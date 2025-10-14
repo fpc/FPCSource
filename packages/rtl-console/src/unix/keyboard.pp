@@ -2231,6 +2231,7 @@ var
         kbDown : byte;
         nKey : longint;
         modifier: longint;
+        shortCutKey: LongInt;
     begin   {
          if arrayind>0 then
          for i:= 0 to arrayind-1 do
@@ -2371,7 +2372,11 @@ var
               nKey:=unicodeCodePoint;
               if (enh[1]>=0) then
                 nKey:=enh[1];
-              BuildKeyEvent(modifier,nKey,nKey);
+
+              shortCutKey := enh[2];
+              if shortCutKey < 0 then
+                shortCutKey := nKey;
+              BuildKeyEvent(modifier, nKey, shortCutKey);
            end;
            arrayind:=0;
         end;
