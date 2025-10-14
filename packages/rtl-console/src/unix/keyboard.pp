@@ -2313,6 +2313,20 @@ var
       if (p_idx <= 5) and (st <> '') then
         Val(st, params[p_idx], code);
 
+      // For non-printable command keys, we must ignore any character code provided
+      // by the terminal (like #127 for Del) and force it to 0. This ensures the
+      // application interprets the key event as a command (via its scancode)
+      // rather than as a character to be printed.
+      case params[0] of // Check Virtual Key Code (wVirtualKeyCode)
+        // Function keys F1-F12
+        $70..$7B,
+        // Arrow keys (Left, Up, Right, Down)
+        $25..$28,
+        // Navigation keys (PgUp, PgDn, End, Home, Ins, Del)
+        $21..$24, $2D, $2E:
+          params[2] := 0; // Force UnicodeChar to be 0
+      end;
+
       // 2. Process only key down and repeat events (param[3] must be non-zero)
       if params[3] = 0 then exit; // Ignore key up events completely for now.
                                   // The sequence is considered "handled".
@@ -2669,6 +2683,34 @@ begin
           {save char later use }
           store[arrayind]:=ch;
           inc(arrayind);
+
+          // If we detect a pattern for a complex parameterized sequence (ESC [ <digit>),
+          // which is common for win32-input-mode and Kitty, we switch from a non-blocking
+          // to a blocking read. This ensures we read the entire sequence even if it
+          // arrives in chunks with micro-delays.
+          if
+            (arrayind = 4) and
+            (store[0]=#27) and
+            (store[1]='[') and
+            (store[2] in ['0'..'9']) and
+            ((store[3] in ['0'..'9']) or (store[3] = ';')) and
+            (not ((store[2] = '1') and (store[3] = ';'))) // skip for legacy seqs like ESC[1;something
+          then
+          begin
+            // Enter blocking read loop with a safety break
+            while (arrayind < 31) do
+            begin
+              // This is a blocking read, it will wait for the next character
+              ch := ttyRecvChar;
+              store[arrayind] := ch;
+              inc(arrayind);
+              // Check for known terminators for win32, kitty, xterm, and other CSI sequences.
+              if (ch = '_') or (ch = 'u') or (ch = '~') or (ch in ['A'..'Z']) or (ch in ['a'..'z']) then
+                break; // Exit this inner blocking loop
+            end;
+            break; // We have the full sequence, so exit the outer `while syskeypressed` loop
+          end;
+
           if arrayind >= 31 then break;
           {check tree for maching sequence}
           if assigned(NPT) then
@@ -2696,28 +2738,12 @@ begin
           if (arrayind>3) and not (ch in [';',':','0'..'9']) and (ch <> '_') then break; {end of escape sequence}
         end;
 
-        // If we detect what looks like a parameterized CSI sequence (ESC [ digit ...), which is very likely a
-        // win32-input-mode sequence, enter a blocking read loop to fetch the rest of it until the terminator `_` is found.
-        // This avoids depending on timings/timeouts and distinguishes it from simple sequences like arrow keys (ESC [ A).
-        if (arrayind > 2) and (store[0]=#27) and (store[1]='[') and (store[2] in ['0'..'9']) and (store[arrayind-1] <> '_') then
-        begin
-          repeat
-            ch := ttyRecvChar; // This is a blocking read
-            if arrayind < 31 then
-            begin
-              store[arrayind]:=ch;
-              inc(arrayind);
-            end;
-          until (ch = '_') or (arrayind >= 31);
-        end;
-
         ch := store[arrayind-1];
 
         if (ch = '_') and (arrayind > 2) and (store[0]=#27) and (store[1]='[') then
         begin
           DecodeAndPushWin32Key(store, arrayind);
-          FoundNPT := RootNPT;
-          arrayind := 0;
+          exit;
         end else
         if (arrayind>3) then
           if (ch = 'u'  )   { for sure kitty keys  or }
@@ -3021,15 +3047,16 @@ begin {main}
       exit;
     end;
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
-  // FAST PATH for pre-constructed events from ReadKey's Alt+UTF8 logic
   MyKey:=ReadKey;
-  // FAST PATH for pre-constructed events from ReadKey's Alt+UTF8 logic OR win32-input-mode
-  if (MyKey.ShiftState <> []) and (MyKey.VirtualScanCode <> 0) then
+
+  // FAST PATH for pre-constructed events from ReadKey's Alt+UTF8 logic
+  if (MyKey.ShiftState <> []) and (Ord(MyKey.UnicodeChar) > 0) and (Ord(MyKey.UnicodeChar) <> Ord(MyKey.AsciiChar)) then
   begin
     SysGetEnhancedKeyEvent := MyKey;
     LastShiftState := MyKey.ShiftState;
     exit;
   end;
+
   MyChar:=MyKey.AsciiChar;
   MyUniChar:=MyKey.UnicodeChar;
   MyScan:=MyKey.VirtualScanCode shr 8;
