@@ -2460,6 +2460,10 @@ var
   k: TEnhancedKeyEvent;
   UnicodeCodePoint: LongInt;
   i : dword;
+  // Variables for Alt+UTF8 sequence handling
+  ch1: AnsiChar;
+  utf8_bytes_to_read, loop_idx: Integer;
+  full_sequence_ok: boolean;
 begin
 {Check Buffer first}
   if KeySend<>KeyPut then
@@ -2570,29 +2574,67 @@ begin
                 end;
             end;
 
-       NPT:=FoundNPT;
-       if assigned(NPT) and NPT^.CanBeTerminal then
+        if not assigned(FoundNPT) then
         begin
-          if assigned(NPT^.SpecialHandler) then
+          // This handles the case for non-kitty terminals sending ESC + UTF-8 bytes for Alt+key
+          if (arrayind > 1) and (store[0] = #27) and not isKittyKeys then
+          begin
+            ch1 := store[1];
+            utf8_bytes_to_read := DetectUtf8ByteSequenceStart(ch1) - 1;
+            full_sequence_ok := (arrayind - 1) = (utf8_bytes_to_read + 1);
+
+            if full_sequence_ok then
             begin
-              NPT^.SpecialHandler;
-              k.AsciiChar := #0;
-              k.UnicodeChar := WideChar(#0);
-              k.VirtualScanCode := 0;
-              PushKey(k);
-            end
-          else if (NPT^.CharValue<>0) or (NPT^.ScanValue<>0) then
-            begin
-              k.AsciiChar := chr(NPT^.CharValue);
-              k.UnicodeChar := WideChar(NPT^.CharValue);
-              k.VirtualScanCode := (NPT^.ScanValue shl 8) or Ord(k.AsciiChar);
-              k.ShiftState:=k.ShiftState+NPT^.ShiftValue;
-              PushKey(k);
+              // Push continuation bytes back to be re-read by ReadUtf8
+              for loop_idx := arrayind - 1 downto 2 do
+                PutBackIntoInBuf(store[loop_idx]);
+
+              UnicodeCodePoint := ReadUtf8(ch1);
+
+              if UnicodeCodePoint > 0 then
+              begin
+                k.ShiftState := [essAlt];
+                k.VirtualScanCode := 0;
+
+                PushUnicodeKey(k, UnicodeCodePoint, ReplacementAsciiChar);
+                ReadKey := PopKey;
+                exit;
+              end
+              else
+              begin
+                // Failed to parse, push everything back as-is
+                PutBackIntoInBuf(ch1);
+                for loop_idx := 2 to arrayind - 1 do
+                  PutBackIntoInBuf(store[loop_idx]);
+              end;
             end;
+          end;
+          RestoreArray;
         end
-      else
-        RestoreArray;
-   end;
+        else
+        NPT:=FoundNPT;
+        if assigned(NPT) and NPT^.CanBeTerminal then
+         begin
+           if assigned(NPT^.SpecialHandler) then
+             begin
+               NPT^.SpecialHandler;
+               k.AsciiChar := #0;
+               k.UnicodeChar := WideChar(#0);
+               k.VirtualScanCode := 0;
+               PushKey(k);
+             end
+           else if (NPT^.CharValue<>0) or (NPT^.ScanValue<>0) then
+             begin
+               k.AsciiChar := chr(NPT^.CharValue);
+               k.UnicodeChar := WideChar(NPT^.CharValue);
+               k.VirtualScanCode := (NPT^.ScanValue shl 8) or Ord(k.AsciiChar);
+               k.ShiftState:=k.ShiftState+NPT^.ShiftValue;
+               PushKey(k);
+             end;
+         end
+       else
+         RestoreArray;
+    end;
 {$ifdef logging}
        writeln(f);
 {$endif logging}
@@ -2798,6 +2840,14 @@ begin {main}
       exit;
     end;
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
+  // FAST PATH for pre-constructed events from ReadKey's Alt+UTF8 logic
+  MyKey:=ReadKey;
+  if (MyKey.ShiftState <> []) and (MyKey.VirtualScanCode = 0) and (MyKey.UnicodeChar <> #0) then
+  begin
+    SysGetEnhancedKeyEvent := MyKey;
+    LastShiftState := MyKey.ShiftState;
+    exit;
+  end;
   MyKey:=ReadKey;
   MyChar:=MyKey.AsciiChar;
   MyUniChar:=MyKey.UnicodeChar;
