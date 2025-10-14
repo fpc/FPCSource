@@ -29,6 +29,21 @@ const
   AltPrefix : byte = 0;
   ShiftPrefix : byte = 0;
   CtrlPrefix : byte = 0;
+  // Constants for win32-input-mode
+  const
+    RIGHT_ALT_PRESSED       = $0001;
+    LEFT_ALT_PRESSED        = $0002;
+    RIGHT_CTRL_PRESSED      = $0004;
+    LEFT_CTRL_PRESSED       = $0008;
+    SHIFT_PRESSED           = $0010;
+    NUMLOCK_ON              = $0020;
+    SCROLLLOCK_ON           = $0040;
+    CAPSLOCK_ON             = $0080;
+    ENHANCED_KEY            = $0100;
+    kbBack        = $0E08;
+    kbTab         = $0F09;
+    kbEnter       = $1C0D;
+    kbSpaceBar    = $3920;
 
 type
   Tprocedure = procedure;
@@ -2214,6 +2229,125 @@ var
   arrayind : byte;
   SState: TEnhancedShiftState;
 
+    procedure DecodeAndPushWin32Key(const store: array of AnsiChar; arrayind: byte);
+
+      function VKToScanCode(vk: Word): Byte;
+      begin
+        case vk of
+          // Standard keys
+          $41..$5A : VKToScanCode := cScanValue[vk]; // 'A'..'Z'
+          $30..$39 : VKToScanCode := cScanValue[vk]; // '0'..'9'
+          $08: VKToScanCode := kbBack;
+          $09: VKToScanCode := kbTab;
+          $0D: VKToScanCode := kbEnter;
+          $1B: VKToScanCode := kbEsc;
+          $20: VKToScanCode := kbSpaceBar;
+          // Function keys
+          $70..$79: VKToScanCode := vk - $70 + kbF1; // F1-F10
+          $7A..$7B: VKToScanCode := vk - $7A + kbF11; // F11-F12
+          // Navigation keys
+          $2D: VKToScanCode := kbIns;
+          $2E: VKToScanCode := kbDel;
+          $24: VKToScanCode := kbHome;
+          $23: VKToScanCode := kbEnd;
+          $21: VKToScanCode := kbPgUp;
+          $22: VKToScanCode := kbPgDn;
+          $26: VKToScanCode := kbUp;
+          $28: VKToScanCode := kbDown;
+          $25: VKToScanCode := kbLeft;
+          $27: VKToScanCode := kbRight;
+          // Modifier keys (scancodes for L/R versions)
+          $10: VKToScanCode := $2A; // VK_SHIFT -> Left shift
+          $11: VKToScanCode := $1D; // VK_CONTROL -> Left control
+          $12: VKToScanCode := $38; // VK_MENU -> Left alt
+          // Lock keys
+          $14: VKToScanCode := $3A; // VK_CAPITAL
+          $90: VKToScanCode := $45; // VK_NUMLOCK
+          $91: VKToScanCode := $46; // VK_SCROLL
+          // OEM Keys
+          $BA: VKToScanCode := $27; // VK_OEM_1 (;)
+          $BB: VKToScanCode := $0D; // VK_OEM_PLUS (=)
+          $BC: VKToScanCode := $33; // VK_OEM_COMMA (,)
+          $BD: VKToScanCode := $0C; // VK_OEM_MINUS (-)
+          $BE: VKToScanCode := $34; // VK_OEM_PERIOD (.)
+          $BF: VKToScanCode := $35; // VK_OEM_2 (/)
+          $C0: VKToScanCode := $29; // VK_OEM_3 (`)
+          $DB: VKToScanCode := $1A; // VK_OEM_4 ([)
+          $DC: VKToScanCode := $2B; // VK_OEM_5 (\)
+          $DD: VKToScanCode := $1B; // VK_OEM_6 (])
+          $DE: VKToScanCode := $28; // VK_OEM_7 (')
+        else
+          VKToScanCode := 0;
+        end;
+      end;
+
+    var
+      params: array[0..5] of LongInt; // Vk, Sc, Uc, Kd, Cs, Rc
+      i, p_idx, code: Integer;
+      st: string;
+      ch: AnsiChar;
+      ScanCode: Byte;
+      k: TEnhancedKeyEvent;
+    begin
+      // 1. Parse the parameters: Vk;Sc;Uc;Kd;Cs;Rc
+      for i := 0 to 5 do params[i] := 0; // Clear params
+      params[5] := 1; // Default repeat count is 1
+
+      p_idx := 0;
+      st := '';
+      // Start from after the CSI: ^[[
+      for i := 2 to arrayind - 2 do
+      begin
+        ch := store[i];
+        if ch = ';' then
+        begin
+          if st <> '' then Val(st, params[p_idx], code);
+          st := '';
+          Inc(p_idx);
+          if p_idx > 5 then Break;
+        end
+        else if ch in ['0'..'9'] then
+          st := st + ch;
+      end;
+      // Last parameter
+      if (p_idx <= 5) and (st <> '') then
+        Val(st, params[p_idx], code);
+
+      // 2. Process only key down and repeat events (param[3] must be non-zero)
+      if params[3] = 0 then exit; // Ignore key up events completely for now.
+                                  // The sequence is considered "handled".
+
+      // 3. Create a new key event
+      k := NilEnhancedKeyEvent;
+
+      // 4. Map ControlKeyState (Cs) to ShiftState
+      if (params[4] and SHIFT_PRESSED) <> 0 then Include(k.ShiftState, essShift);
+      if (params[4] and LEFT_CTRL_PRESSED) <> 0 then Include(k.ShiftState, essLeftCtrl);
+      if (params[4] and RIGHT_CTRL_PRESSED) <> 0 then Include(k.ShiftState, essRightCtrl);
+      if (params[4] and (LEFT_CTRL_PRESSED or RIGHT_CTRL_PRESSED)) <> 0 then Include(k.ShiftState, essCtrl);
+      if (params[4] and LEFT_ALT_PRESSED) <> 0 then Include(k.ShiftState, essLeftAlt);
+      if (params[4] and RIGHT_ALT_PRESSED) <> 0 then Include(k.ShiftState, essRightAlt);
+      if (params[4] and (LEFT_ALT_PRESSED or RIGHT_ALT_PRESSED)) <> 0 then Include(k.ShiftState, essAlt);
+
+      // 5. Map Uc, Sc, and Vk
+      k.UnicodeChar := WideChar(params[2]);
+      if params[2] <= 127 then
+        k.AsciiChar := AnsiChar(params[2])
+      else
+        k.AsciiChar := '?';
+
+      ScanCode := params[1]; // wVirtualScanCode
+      if ScanCode = 0 then
+        ScanCode := VKToScanCode(params[0]); // wVirtualKeyCode
+
+      // If we have a char but no special scancode, use the char's scancode
+      if (ScanCode = 0) and (Ord(k.AsciiChar) > 0) and (Ord(k.AsciiChar) < 128) then
+        ScanCode := cScanValue[Ord(k.AsciiChar)];
+
+      k.VirtualScanCode := (ScanCode shl 8) or Ord(k.AsciiChar);
+      PushKey(k);
+    end;
+
     procedure DecodeKittyKey(var k :TEnhancedKeyEvent; var NPT : PTreeElement);
     var i : dword;
         wc: wideChar;
@@ -2559,9 +2693,32 @@ begin
             dec(arrayind);
             break;
           end;
-          if (arrayind>3) and not (ch in [';',':','0'..'9']) then break; {end of escape sequence}
+          if (arrayind>3) and not (ch in [';',':','0'..'9']) and (ch <> '_') then break; {end of escape sequence}
         end;
 
+        // If we detect what looks like a parameterized CSI sequence (ESC [ digit ...), which is very likely a
+        // win32-input-mode sequence, enter a blocking read loop to fetch the rest of it until the terminator `_` is found.
+        // This avoids depending on timings/timeouts and distinguishes it from simple sequences like arrow keys (ESC [ A).
+        if (arrayind > 2) and (store[0]=#27) and (store[1]='[') and (store[2] in ['0'..'9']) and (store[arrayind-1] <> '_') then
+        begin
+          repeat
+            ch := ttyRecvChar; // This is a blocking read
+            if arrayind < 31 then
+            begin
+              store[arrayind]:=ch;
+              inc(arrayind);
+            end;
+          until (ch = '_') or (arrayind >= 31);
+        end;
+
+        ch := store[arrayind-1];
+
+        if (ch = '_') and (arrayind > 2) and (store[0]=#27) and (store[1]='[') then
+        begin
+          DecodeAndPushWin32Key(store, arrayind);
+          FoundNPT := RootNPT;
+          arrayind := 0;
+        end else
         if (arrayind>3) then
           if (ch = 'u'  )   { for sure kitty keys  or }
               or ( isKittyKeys and  not assigned(FoundNPT) ) {probally kitty keys}
@@ -2736,6 +2893,7 @@ begin
       KittyKeyAvailability;
       if not isKittyKeys then
         write(#27'[>4;2m'); { xterm ->  modifyOtherKeys }
+      write(#27'[?9001h'); // Try to enable win32-input-mode
 {$ifdef linux}
     end;
 {$endif}
@@ -2750,6 +2908,7 @@ begin
   if is_console then
   unpatchkeyboard;
 {$endif linux}
+  write(#27'[?9001l'); // Disable win32-input-mode
   if not isKittyKeys then
     write(#27'[>4m'); { xterm -> reset to default modifyOtherKeys }
   if kitty_keys_yes then
@@ -2842,13 +3001,13 @@ begin {main}
   SysGetEnhancedKeyEvent:=NilEnhancedKeyEvent;
   // FAST PATH for pre-constructed events from ReadKey's Alt+UTF8 logic
   MyKey:=ReadKey;
-  if (MyKey.ShiftState <> []) and (MyKey.VirtualScanCode = 0) and (MyKey.UnicodeChar <> #0) then
+  // FAST PATH for pre-constructed events from ReadKey's Alt+UTF8 logic OR win32-input-mode
+  if (MyKey.ShiftState <> []) and (MyKey.VirtualScanCode <> 0) then
   begin
     SysGetEnhancedKeyEvent := MyKey;
     LastShiftState := MyKey.ShiftState;
     exit;
   end;
-  MyKey:=ReadKey;
   MyChar:=MyKey.AsciiChar;
   MyUniChar:=MyKey.UnicodeChar;
   MyScan:=MyKey.VirtualScanCode shr 8;
@@ -2903,17 +3062,6 @@ begin {main}
           end;
         LastShiftState:=SysGetEnhancedKeyEvent.ShiftState; {to fake shift state later}
         exit;
-      end
-    else if MyChar=#27 then
-      begin
-        if EscUsed then
-          SState:=SState-[essAlt,essLeftAlt,essRightAlt]
-        else
-          begin
-            Include(SState,essAlt);
-            Again:=true;
-            EscUsed:=true;
-          end;
       end
     else if (AltPrefix<>0) and (MyChar=chr(AltPrefix)) then
       begin { ^Z - replace Alt for Linux OS }
