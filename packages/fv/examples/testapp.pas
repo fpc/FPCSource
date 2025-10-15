@@ -1,5 +1,7 @@
 PROGRAM testapp;
 
+{$ifdef unix}{$DEFINE FV_UNICODE}{$endif}
+
 { $UNDEF OS2PM}
 
 {$IFDEF OS2PM}
@@ -41,10 +43,16 @@ PROGRAM testapp;
 {$IFDEF OS2PM}
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
 {$ENDIF OS2PM}
-     Objects, Drivers, Views, Editors, Menus, Dialogs, App,             { Standard GFV units }
+
+{$ifdef FV_UNICODE}
+     Objects, UDrivers, UViews, UEditors, UMenus, UDialogs, UApp,             { Standard GFV units }
+     FVConsts, UAsciiTab,
+     UGadgets, UTimedDlg, UMsgBox, UStdDlg, cwstring;
+{$else FV_UNICODE}
+     Objects, Drivers, Views, Editors, Menus, Dialogs, App,                   { Standard GFV units }
      FVConsts, AsciiTab,
      Gadgets, TimedDlg, MsgBox, StdDlg;
-
+{$endif FV_UNICODE}
 
 CONST cmAppToolbar = 1000;
       cmWindow1    = 1001;
@@ -384,7 +392,12 @@ END;
 
 PROCEDURE TTvDemo.Window3;
 VAR R: TRect; P: PGroup; B: PScrollBar;
-    List: PStrCollection; Lb: PListBox;
+{$ifdef FV_UNICODE}
+    List: PUnicodeStringCollection;
+{$else FV_UNICODE}
+    List: PStrCollection;
+{$endif FV_UNICODE}
+    Lb: PListBox;
 BEGIN
    { Create a basic dialog box. In it are buttons,  }
    { list boxes, scrollbars, inputlines, checkboxes }
@@ -412,6 +425,19 @@ BEGIN
      R.Assign(25, 8, 40, 14);                         { Assign area }
      Lb := New(PListBox, Init(R, 1, B));              { Create listbox }
      P^.Insert(Lb);                                   { Insert listbox }
+{$ifdef FV_UNICODE}
+     List := New(PUnicodeStringCollection, Init(10, 5));        { Create string list }
+     List^.AtInsert(0, 'Zebra');              { Insert text }
+     List^.AtInsert(1, 'Apple');              { Insert text }
+     List^.AtInsert(2, 'Third');              { Insert text }
+     List^.AtInsert(3, 'Peach');              { Insert text }
+     List^.AtInsert(4, 'Rabbit');             { Insert text }
+     List^.AtInsert(5, 'Item six');           { Insert text }
+     List^.AtInsert(6, 'Jaguar');             { Insert text }
+     List^.AtInsert(7, 'Melon');              { Insert text }
+     List^.AtInsert(8, 'Ninth');              { Insert text }
+     List^.AtInsert(9, 'Last item');          { Insert text }
+{$else FV_UNICODE}
      List := New(PStrCollection, Init(10, 5));        { Create string list }
      List^.AtInsert(0, NewStr('Zebra'));              { Insert text }
      List^.AtInsert(1, NewStr('Apple'));              { Insert text }
@@ -423,6 +449,7 @@ BEGIN
      List^.AtInsert(7, NewStr('Melon'));              { Insert text }
      List^.AtInsert(8, NewStr('Ninth'));              { Insert text }
      List^.AtInsert(9, NewStr('Last item'));          { Insert text }
+{$endif FV_UNICODE}
      Lb^.Newlist(List);                               { Give list to listbox }
      R.Assign(30, 2, 40, 4);                          { Assign area }
      P^.Insert(New(PButton, Init(R, '~O~k', 100, bfGrabFocus)));{ Create okay button }
