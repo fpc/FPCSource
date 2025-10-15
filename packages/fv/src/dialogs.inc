@@ -1698,11 +1698,27 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.HandleEvent (Var Event: TEvent);
 CONST PadKeys = [$47, $4B, $4D, $4F, $73, $74];
+CONST
+  DelimiterChars: SET OF AnsiChar =
+    [' ', '.', ',', ';', ':', '!', '?', '-', '_', '/', '\',
+     '(', ')', '[', ']', '{', '}', '<', '>',
+     '"', '''', '`', '|', '@', '#', '$', '%', '^', '&',
+     '*', '+', '=', '~', #9, #10, #13];
 VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: Sw_String;
 Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
 SelectedTextAnsi: AnsiString; // For SetGlobalClipboardData
 S: Sw_String;
 Len, I: Integer;
+
+  FUNCTION IsDelimiter(Ch: Sw_Char): Boolean;
+  BEGIN
+    // Check if the character is in the predefined set of delimiters.
+    // This is safe for Unicode chars as punctuation is in the AnsiChar range.
+    IF Ch <= #255 THEN
+      Result := AnsiChar(Ch) IN DelimiterChars
+    ELSE
+      Result := False;
+  END;
 
    FUNCTION MouseDelta: Sw_Integer;
    VAR Mouse : TPOint;
@@ -1954,12 +1970,14 @@ BEGIN
              CheckValid(True);                        { Check if valid }
            End;
            kbCtrlLeft: Begin
-             if Data <> Sw_PString_Empty then
+             if (Data <> Sw_PString_Empty) and (CurPos > 0) then
              begin
                S := Data Sw_PString_DeRef;
                I := CurPos;
-               while (I > 0) and (S[I] = ' ') do Dec(I);
-               while (I > 0) and (S[I] <> ' ') do Dec(I);
+               // Skip any delimiters immediately to the left
+               while (I > 0) and IsDelimiter(S[I]) do Dec(I);
+               // Skip any word characters to the left
+               while (I > 0) and not IsDelimiter(S[I]) do Dec(I);
                CurPos := I;
              end;
            End;
@@ -1969,8 +1987,10 @@ BEGIN
                S := Data Sw_PString_DeRef;
                Len := Length(S);
                I := CurPos;
-               while (I < Len) and (S[I+1] <> ' ') do Inc(I);
-               while (I < Len) and (S[I+1] = ' ') do Inc(I);
+               // Skip the word
+               while (I < Len) and not IsDelimiter(S[I+1]) do Inc(I);
+               // Skip trailing delimiters
+               while (I < Len) and IsDelimiter(S[I+1]) do Inc(I);
                CurPos := I;
              end;
            End;
