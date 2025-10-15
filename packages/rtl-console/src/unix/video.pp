@@ -1009,6 +1009,7 @@ var
 {$ifdef freebsd}
   ThisTTY: String[30];
 {$endif}
+  envInput: string;
 
 const font_vga:array[0..11] of AnsiChar=#15#27'%@'#27'(U'#27'[3h';
       font_lat1:array[0..5] of AnsiChar=#27'%@'#27'(B';
@@ -1165,7 +1166,13 @@ begin
      videoInitDone;
 
      decide_codepages;
-     SendEscapeSeq(#27'[>31u');{Entering alternativ screen we have to set up kitty keys}
+
+     envInput := fpgetenv('TV_INPUT');
+     if length(envInput) > 0 then
+       envInput[1] := UpCase(envInput[1]);
+
+     if (envInput = '') or (envInput = 'Kitty') then
+       SendEscapeSeq(#27'[>31u');{Entering alternativ screen we have to set up kitty keys}
    end
   else
    ErrorCode:=errVioInit; { not a TTY }
