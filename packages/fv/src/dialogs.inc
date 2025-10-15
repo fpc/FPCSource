@@ -1698,10 +1698,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.HandleEvent (Var Event: TEvent);
 CONST PadKeys = [$47, $4B, $4D, $4F, $73, $74];
-VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: String;
+VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: Sw_String;
 Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
 SelectedTextAnsi: AnsiString; // For SetGlobalClipboardData
-S: AnsiString;
+S: Sw_String;
 Len, I: Integer;
 
    FUNCTION MouseDelta: Sw_Integer;
