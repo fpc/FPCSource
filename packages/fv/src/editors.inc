@@ -246,6 +246,7 @@ type
     PendingWChar   : Sw_Char;  { hold first part of double wide char until next InsertChar }
 {$endif FV_UNICODE}
 
+    function   IsDelimiter(Ch: AnsiChar): Boolean;
     function   BuildLookups(LinePtr : Sw_Word; lookUpCharToPosX, lookUpPosXToChar : PLineLookup):Sw_Word;
     procedure  Center_Text (Select_Mode : Byte);
     function   CharPos (P, Target : Sw_Word) : Sw_Integer;
@@ -486,17 +487,17 @@ implementation
 uses
   TP.DOS,
 {$ifdef FV_UNICODE}
-  System.Console.Video, System.Unicode.Graphemebreakproperty, FreeVision.Uapp, FreeVision.Ustddlg, FreeVision.Umsgbox;
+  System.Console.Video, System.Unicode.Graphemebreakproperty, FreeVision.Uapp, FreeVision.Ustddlg, FreeVision.Umsgbox, FreeVision.Ufvclip;
 {$else FV_UNICODE}
-  FreeVision.App, FreeVision.Stddlg, FreeVision.Msgbox;
+  FreeVision.App, FreeVision.Stddlg, FreeVision.Msgbox, FreeVision.Fvclip;
 {$ENDIF}
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Dos,
 {$ifdef FV_UNICODE}
-  Video, Graphemebreakproperty, uApp, uStdDlg, uMsgBox;
+  Video, Graphemebreakproperty, uApp, uStdDlg, uMsgBox, UFVClip;
 {$else FV_UNICODE}
-  App, StdDlg, MsgBox;
+  App, StdDlg, MsgBox, FVClip;
 {$ENDIF}
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -555,7 +556,9 @@ CONST
   sfSearchFailed = NotFoundValue;
 
   { Arrays that hold all the command keys and options. }
-  FirstKeys : array[0..46 * 2] of Word = (46, Ord (^A),    cmWordLeft,
+  { Editor command constants for new features. }
+  cmSelectAll   = 250;
+  FirstKeys : array[0..47 * 2] of Word = (47, Ord (^A),    cmWordLeft,
                                               Ord (^B),    cmReformPara,
                                               Ord (^C),    cmPageDown,
                                               Ord (^D),    cmCharRight,
@@ -597,6 +600,7 @@ CONST
                                               kbIns,       cmInsMode,
                                               kbDel,       cmDelChar,
                                               kbCtrlBack,  cmDelStart,
+                                              7745,        cmSelectAll,
                                               kbShiftIns,  cmPaste,
                                               kbShiftDel,  cmCut,
                                               kbCtrlIns,   cmCopy,
@@ -1722,7 +1726,30 @@ end; {Check_For_Word_Wrap}
 
 
 function TEditor.ClipCopy : Boolean;
+var
+  SelectedTextAnsi: AnsiString;
+  Len: Sw_Word;
 begin
+  if HasSelection then
+  begin
+    Len := SelEnd - SelStart;
+    SetLength(SelectedTextAnsi, Len);
+    if Len > 0 then
+    begin
+      if SelEnd <= CurPtr then
+        Move(Buffer^[SelStart], SelectedTextAnsi[1], Len)
+      else if SelStart >= CurPtr then
+        Move(Buffer^[SelStart + GapLen], SelectedTextAnsi[1], Len)
+      else
+      begin
+        Move(Buffer^[SelStart], SelectedTextAnsi[1], CurPtr - SelStart);
+        Move(Buffer^[CurPtr + GapLen], SelectedTextAnsi[1 + (CurPtr - SelStart)], SelEnd - CurPtr);
+      end;
+      if Length(SelectedTextAnsi) > 0 then
+        SetGlobalClipboardData(PAnsiChar(SelectedTextAnsi), Length(SelectedTextAnsi));
+    end;
+  end;
+
   ClipCopy := False;
   if Assigned(Clipboard) and (Clipboard <> @Self) then
    begin
@@ -2113,6 +2140,17 @@ end; { TEditor.Find }
 { Functon have functionality only in unicode version of fv. }
 { It mimic FormatLine but instead of drawing line gather }
 { information on character posisionings }
+const
+  DelimiterChars: SET OF AnsiChar =
+    [' ', '.', ',', ';', ':', '!', '?', '-', '_', '/', '\',
+     '(', ')', '[', ']', '{', '}', '<', '>',
+     '"', '''', '`', '|', '@', '#', '$', '%', '^', '&',
+     '*', '+', '=', '~', #9, #10, #13];
+
+function TEditor.IsDelimiter(Ch: AnsiChar): Boolean;
+begin
+  Result := Ch in DelimiterChars;
+end;
 function TEditor.BuildLookups(LinePtr : Sw_Word; lookUpCharToPosX, lookUpPosXToChar : PLineLookup):Sw_Word;
 var idxpos : sw_word;
     Width  : Sw_Integer;
@@ -2595,47 +2633,50 @@ begin
       end; { evMouseDown }
 
     evKeyDown:
-{$ifdef FV_UNICODE}
-      Case Event.UnicodeChar Of
-        ' '..#$FFFF:   { Character key }
-          Begin
-            Lock;
-            if Overwrite and not HasSelection then
-              if CurPtr <> LineEnd (CurPtr) then
-                SelEnd := NextChar (CurPtr);
-            InsertChar(Event.UnicodeChar);
-            if Word_Wrap then
-              Check_For_Word_Wrap (SelectMode, CenterCursor);
-            TrackCursor (CenterCursor);
-            Unlock;
+      if (NOT (GetShiftState AND $04 <> 0)) then { Only insert if Ctrl is not pressed }
+      begin
+    {$ifdef FV_UNICODE}
+        Case Event.UnicodeChar Of
+          ' '..#$FFFF:   { Character key }
+            Begin
+              Lock;
+              if Overwrite and not HasSelection then
+                if CurPtr <> LineEnd (CurPtr) then
+                  SelEnd := NextChar (CurPtr);
+              InsertChar(Event.UnicodeChar);
+              if Word_Wrap then
+                Check_For_Word_Wrap (SelectMode, CenterCursor);
+              TrackCursor (CenterCursor);
+              Unlock;
+            End;
+     {
+          ^Y: If Data <> Sw_PString_Empty Then Begin          { Clear all data }
+             Data Sw_PString_DeRef := '';          { Set empty string }
+             CurPos := 0;                          { Cursor to start }
           End;
-   {
-        ^Y: If Data <> Sw_PString_Empty Then Begin          { Clear all data }
-           Data Sw_PString_DeRef := '';          { Set empty string }
-           CurPos := 0;                          { Cursor to start }
+      }
+          Else Exit;                               { Unused key }
         End;
-    }
-        Else Exit;                               { Unused key }
-      End;
-{$else FV_UNICODE}
-      case Event.CharCode of
-        #32..#255:
-          begin
-            Lock;
-            if Overwrite and not HasSelection then
-              if CurPtr <> LineEnd (CurPtr) then
-                SelEnd := NextChar (CurPtr);
-            InsertText (@Event.CharCode, 1, False);
-            if Word_Wrap then
-              Check_For_Word_Wrap (SelectMode, CenterCursor);
-            TrackCursor (CenterCursor);
-            Unlock;
-          end;
+    {$else FV_UNICODE}
+        case Event.CharCode of
+          #32..#255:
+            begin
+              Lock;
+              if Overwrite and not HasSelection then
+                if CurPtr <> LineEnd (CurPtr) then
+                  SelEnd := NextChar (CurPtr);
+              InsertText (@Event.CharCode, 1, False);
+              if Word_Wrap then
+                Check_For_Word_Wrap (SelectMode, CenterCursor);
+              TrackCursor (CenterCursor);
+              Unlock;
+            end;
 
-      else
-        Exit;
-      end; { evKeyDown }
-{$endif}
+        else
+          Exit;
+        end; { evKeyDown }
+    {$endif}
+      end;
 
     evCommand:
       case Event.Command of
@@ -2646,6 +2687,7 @@ begin
         begin
           Lock;
           case Event.Command of
+            cmSelectAll   : begin SetSelect(0, BufLen, False); TrackCursor(True); end;
             cmCut         : ClipCut;
             cmCopy        : ClipCopy;
             cmPaste       : ClipPaste;
@@ -2731,6 +2773,7 @@ begin
           if (Event.Command <> cmNewLine)   and
              (Event.Command <> cmBackSpace) and
              (Event.Command <> cmTabKey)    and
+             (Event.Command <> cmSelectAll) and
               Modified then
             Remove_EOL_Spaces (SelectMode);
           Unlock;
@@ -3226,12 +3269,12 @@ end; { TEditor.NextLine }
 
 function TEditor.NextWord (P : Sw_Word) : Sw_Word;
 begin
-  { skip word }
-  while (P < BufLen) and (BufChar (P) in WordChars) do
-    P := NextChar (P);
-  { skip spaces }
-  while (P < BufLen) and not (BufChar (P) in WordChars) do
-    P := NextChar (P);
+  // Skip the rest of the current word
+  while (P < BufLen) and not IsDelimiter(BufChar(P)) do
+    P := NextChar(P);
+  // Skip trailing delimiters
+  while (P < BufLen) and IsDelimiter(BufChar(P)) do
+    P := NextChar(P);
   NextWord := P;
 end; { TEditor.NextWord }
 
@@ -3302,12 +3345,12 @@ end; { TEditor.PrevLine }
 
 function TEditor.PrevWord (P : Sw_Word) : Sw_Word;
 begin
-  { skip spaces }
-  while (P > 0) and not (BufChar (PrevChar (P)) in WordChars) do
-    P := PrevChar (P);
-  { skip word }
-  while (P > 0) and (BufChar (PrevChar (P)) in WordChars) do
-    P := PrevChar (P);
+  // Skip any delimiters immediately to the left
+  while (P > 0) and IsDelimiter(BufChar(PrevChar(P))) do
+    P := PrevChar(P);
+  // Skip any word characters to the left
+  while (P > 0) and not IsDelimiter(BufChar(PrevChar(P))) do
+    P := PrevChar(P);
   PrevWord := P;
 end; { TEditor.PrevWord }
 
@@ -4011,6 +4054,7 @@ begin
       SetCmdState (cmPaste, assigned(Clipboard) and (Clipboard^.HasSelection));
     end;
   SetCmdState (cmClear, HasSelection);
+  SetCmdState (cmSelectAll, True);
   SetCmdState (cmFind, True);
   SetCmdState (cmReplace, True);
   SetCmdState (cmSearchAgain, True);
