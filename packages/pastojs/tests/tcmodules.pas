@@ -944,22 +944,22 @@ type
     Procedure TestAttributes_InterfacesList;
 
     // Assertions, checks
-    procedure TestAssert;
-    procedure TestAssert_SysUtils;
-    procedure TestObjectChecks;
-    procedure TestOverflowChecks_Int;
-    procedure TestRangeChecks_AssignInt;
-    procedure TestRangeChecks_AssignIntRange;
-    procedure TestRangeChecks_AssignEnum;
-    procedure TestRangeChecks_AssignEnumRange;
-    procedure TestRangeChecks_AssignChar;
-    procedure TestRangeChecks_AssignCharRange;
-    procedure TestRangeChecks_ArrayIndex;
-    procedure TestRangeChecks_ArrayOfRecIndex;
-    procedure TestRangeChecks_StringIndex;
-    procedure TestRangeChecks_TypecastInt;
-    procedure TestRangeChecks_TypeHelperInt;
-    procedure TestRangeChecks_AssignCurrency;
+    Procedure TestAssert;
+    Procedure TestAssert_SysUtils;
+    Procedure TestObjectChecks;
+    Procedure TestOverflowChecks_Int;
+    Procedure TestRangeChecks_AssignInt;
+    Procedure TestRangeChecks_AssignIntRange;
+    Procedure TestRangeChecks_AssignEnum;
+    Procedure TestRangeChecks_AssignEnumRange;
+    Procedure TestRangeChecks_AssignChar;
+    Procedure TestRangeChecks_AssignCharRange;
+    Procedure TestRangeChecks_ArrayIndex;
+    Procedure TestRangeChecks_ArrayOfRecIndex;
+    Procedure TestRangeChecks_StringIndex;
+    Procedure TestRangeChecks_TypecastInt;
+    Procedure TestRangeChecks_TypeHelperInt;
+    Procedure TestRangeChecks_AssignCurrency;
 
     // Async/AWait
     Procedure TestAsync_Proc;
@@ -979,6 +979,8 @@ type
     Procedure TestAsync_AnonymousProc_PromiseViaDotContext;
     Procedure TestAsync_ProcType;
     Procedure TestAsync_ProcTypeAsyncModMismatchFail;
+    Procedure TestAsync_ProcTypeDelphi_NoTJSPromise;
+    Procedure TestAsync_ProcTypeDelphi_TJSPromise;
     Procedure TestAsync_Inherited;
     Procedure TestAsync_ClassInterface;
     Procedure TestAsync_ClassInterface_AsyncMissmatchFail;
@@ -36584,6 +36586,47 @@ begin
   '  RefFunc:=@Crawl;',
   '  ']);
   SetExpectedPasResolverError('procedure type modifier "async" mismatch',nXModifierMismatchY);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAsync_ProcTypeDelphi_NoTJSPromise;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  'type',
+  '  TRefProc = reference to procedure; async;',
+  'procedure Run(p: TRefProc);',
+  'begin',
+  'end;',
+  'procedure Fly; async;',
+  'begin',
+  'end;',
+  'begin',
+  '  Run(Fly);',
+  '  ']);
+  ConvertProgram;
+end;
+
+procedure TTestModule.TestAsync_ProcTypeDelphi_TJSPromise;
+begin
+  StartProgram(false);
+  Add([
+  '{$mode delphi}',
+  '{$modeswitch externalclass}',
+  'type',
+  '  TJSPromise = class external name ''Promise''',
+  '  end;',
+  '  TRefProc = reference to procedure; async;',
+  'procedure Run(p: TRefProc);',
+  'begin',
+  'end;',
+  'procedure Fly; async;',
+  'begin',
+  'end;',
+  'begin',
+  '  Run(Fly);',
+  '  ']);
   ConvertProgram;
 end;
 
