@@ -675,49 +675,68 @@ BEGIN
                  If (ParentMenu = Nil) OR (ParentMenu^.Size.Y <> 1) Then ClearEvent(E);
                End;
            Else
-             begin
+             Begin
                P := nil;
-               // Only perform hotkey search (both paths) if Alt is actually pressed.
+
+               // CASE 1: Alt key is pressed. Use the new logic for layout-awareness.
                if (E.KeyShift and kbAltShift <> 0) then
-               begin
+               Begin
+                 Target := TopMenu; // Alt-hotkeys always target the top menu bar.
+
                  // Path 1: Character-based search (for correct layouts like Russian)
                  {$ifdef FV_UNICODE}
                  searchChar := E.UnicodeChar;
                  {$else}
                  searchChar := E.CharCode;
                  {$endif}
-                 if searchChar <> #0 then P := TopMenu^.FindItem(searchChar);
+                 if searchChar <> #0 then P := Target^.FindItem(searchChar);
 
                  // Path 2: Scancode-based search (fallback for EN hotkeys in RU layout)
                  if P = nil then
-                 begin
+                 Begin
                    {$ifdef FV_UNICODE}
                    searchChar := WideChar(GetAltChar(E.ScanCode shl 8));
                    {$else}
                    searchChar := GetAltChar(E.ScanCode shl 8);
                    {$endif}
-                   if searchChar <> #0 then P := TopMenu^.FindItem(searchChar);
-                 end;
-               end;
+                   if searchChar <> #0 then P := Target^.FindItem(searchChar);
+                 End;
+               End
+               // CASE 2: No Alt key. This is a standard menu hotkey (like 'F' for File, or '1' for item 1).
+               else
+               Begin
+                 Target := @Self; // Standard hotkeys target the current menu.
+                 {$ifdef FV_UNICODE}
+                 searchChar := E.UnicodeChar;
+                 {$else}
+                 searchChar := E.CharCode;
+                 {$endif}
+                 if searchChar <> #0 then P := Target^.FindItem(searchChar);
+               End;
 
-               If P = nil Then Begin
-                 P := TopMenu^.HotKey(E.KeyCode);
-                 If (P <> Nil) AND CommandEnabled(P^.Command) Then Begin
-                   Res := P^.Command;
-                   Action := DoReturn;
-                 End
-               End Else Begin // P was found by one of the paths above
-                 Target := TopMenu; // Hotkeys should always target the top menu bar
+               // Now, act on the result of the search (P)
+               if P <> nil then
+               Begin
+                 // Item was found via FindItem (either with Alt or without)
                  If Target = @Self Then Begin
                    If Size.Y = 1 Then AutoSelect := True;
                    Action := DoSelect;
                    Current := P;
                  End Else If (ParentMenu <> Target) OR (ParentMenu^.Current <> P) Then
                     Action := DoReturn;
-               end;
-             end;
+               End
+               else
+               Begin
+                 // CASE 3: Fallback for global shortcuts like F-keys that are not found by character.
+                 P := TopMenu^.HotKey(E.KeyCode);
+                 If (P <> Nil) AND CommandEnabled(P^.Command) Then Begin
+                   Res := P^.Command;
+                   Action := DoReturn;
+                 End
+               End;
+             End;
            End;
-         end;
+         End;
        evCommand: If (E.Command = cmMenu) Then Begin  { Menu command }
            AutoSelect := False;                       { Dont select item }
            If (ParentMenu <> Nil) Then
