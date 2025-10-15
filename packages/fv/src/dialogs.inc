@@ -1980,13 +1980,16 @@ BEGIN
                Else CurPos := Length(Data Sw_PString_DeRef);  { Set cursor position }
              CheckValid(True);                        { Check if valid }
            End;
-           kbBack: If (Data <> Sw_PString_Empty) AND (CurPos > 0)  { Not at line start }
-           Then Begin
-             Delete(Data Sw_PString_DeRef, CurPos, 1);  { Backspace over AnsiChar }
-             Dec(CurPos);                             { Move cursor back one }
-             If (FirstPos > 0) Then Dec(FirstPos);    { Move first position }
-             CheckValid(True);                        { Check if valid }
-           End;
+           kbBack: If Data <> Sw_PString_Empty Then
+             Begin
+               If (SelStart = SelEnd) AND (CurPos > 0) Then
+               Begin
+                 SelStart := CurPos - 1;
+                 SelEnd := CurPos;
+               End;
+               DeleteSelect;
+               CheckValid(True);
+             End;
            kbDel: If Data <> Sw_PString_Empty Then Begin  { Delete character }
              If (SelStart = SelEnd) Then              { Select all on }
                If (CurPos < Length(Data Sw_PString_DeRef)) Then Begin { Cursor not at end }
