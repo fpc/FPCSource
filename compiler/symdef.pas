@@ -2675,11 +2675,24 @@ implementation
      var
        gst : tgetsymtable;
        st : tsymtable;
+       tmod : tmodule;
      begin
        if registered then
          exit;
+       if assigned(owner) then
+         begin
+           tmod:=find_module_from_symtable(owner);
+            if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
+              begin
+                comment(v_error,'Definition '+fullownerhierarchyname(false)+' from module '+tmod.mainsource+' regitered with current module '+current_module.mainsource);
+              end;
+           if not assigned(tmod) then
+             tmod:=current_module;
+         end
+       else
+         tmod:=current_module;
        { Register in current_module }
-       if assigned(current_module) then
+       if assigned(tmod) then
          begin
            exclude(defoptions,df_not_registered_no_free);
            for gst:=low(tgetsymtable) to high(tgetsymtable) do
@@ -2692,9 +2705,9 @@ implementation
              defid:=deflist_index
            else
              begin
-               current_module.deflist.Add(self);
-               defid:=current_module.deflist.Count-1;
-               registered_in_module:=current_module;
+               tmod.deflist.Add(self);
+               defid:=tmod.deflist.Count-1;
+               registered_in_module:=tmod;
              end;
            maybe_put_in_symtable_stack;
          end
