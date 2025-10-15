@@ -3269,11 +3269,9 @@ end; { TEditor.NextLine }
 
 function TEditor.NextWord (P : Sw_Word) : Sw_Word;
 begin
-  // Skip the rest of the current word
-  while (P < BufLen) and not IsDelimiter(BufChar(P)) do
-    P := NextChar(P);
-  // Skip trailing delimiters
   while (P < BufLen) and IsDelimiter(BufChar(P)) do
+    P := NextChar(P);
+  while (P < BufLen) and not IsDelimiter(BufChar(P)) do
     P := NextChar(P);
   NextWord := P;
 end; { TEditor.NextWord }

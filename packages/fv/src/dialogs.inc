@@ -1987,10 +1987,8 @@ BEGIN
                S := Data Sw_PString_DeRef;
                Len := Length(S);
                I := CurPos;
-               // Skip the word
-               while (I < Len) and not IsDelimiter(S[I+1]) do Inc(I);
-               // Skip trailing delimiters
                while (I < Len) and IsDelimiter(S[I+1]) do Inc(I);
+               while (I < Len) and not IsDelimiter(S[I+1]) do Inc(I);
                CurPos := I;
              end;
            End;
