@@ -45,6 +45,7 @@
         class function Create(const aData: array of Byte; aStartIndex: Cardinal; aBigEndian: Boolean = False): TGUID; overload; static;
         class function Create(const aData : PByte; aBigEndian: Boolean = False): TGUID; overload; static;
         function IsEmpty: Boolean;
+        function AsString : ShortString;
       Public
          case integer of
             1 : (
@@ -278,6 +279,8 @@
 
           class function MethodAddress(const name : shortstring) : codepointer;
           class function MethodName(address : codepointer) : shortstring;
+          class procedure GetLastCastErrorInfo(out aFrom,aTo : shortstring); static;
+
           function FieldAddress(const name : shortstring) : pointer;
 
           { new since Delphi 4 }

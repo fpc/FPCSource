@@ -42,12 +42,31 @@
            aobject.inheritsfrom(aclass);
       end;
 
+{$IFDEF FPC_HAS_FEATURE_THREADING}
+threadvar
+  CastErrorFrom : ShortString;
+  CastErrorTo : ShortString;
+{$ELSE}
+var
+  CastErrorFrom : ShortString = '';
+  CastErrorTo : ShortString = '';
+{$ENDIF}
+
+
+    procedure SetCastErrorInfo(const aFrom,aTo : shortstring);
+    begin
+      CastErrorFrom:=aFrom;
+      CastErrorTo:=aTo;
+    end;
 
     { the reverse order of the parameters make code generation easier }
     function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; compilerproc;
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
+           begin
+           SetCastErrorInfo(aObject.ClassName,aClass.ClassName);
            handleerroraddrframeInd(219,get_pc_addr,get_frame);
+           end;
          result := aobject;
       end;
 
@@ -205,12 +224,19 @@
     function fpc_intf_as(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_INTF_AS']; compilerproc;
       var
         tmpi: pointer; // _AddRef before _Release
+        errObj : TObject;
       begin
         if assigned(S) then
           begin
              tmpi:=nil;
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
+               begin
+               if (IUnknown(S).QueryInterface(IObjectInstance,errObj)=S_OK) then
+                 SetCastErrorInfo(errObj.ClassName,iid.AsString)
+               else
+                 SetCastErrorInfo('External interface',iid.AsString);
                handleerror(219);
+               end;
              // decrease reference count
              fpc_intf_as:=nil;
              pointer(fpc_intf_as):=tmpi;
@@ -223,11 +249,18 @@
     function fpc_intf_as_class(const S: pointer; const aclass: tclass): pointer;[public,alias: 'FPC_INTF_AS_CLASS']; compilerproc;
       var
         tmpo: tobject;
+        errObj : TObject;
       begin
         if assigned(S) then
           begin
             if not ((IUnknown(S).QueryInterface(IObjectInstance,tmpo)=S_OK) and tmpo.inheritsfrom(aclass)) then
+              begin
+              if (IUnknown(S).QueryInterface(IObjectInstance,errObj)=S_OK) then
+                SetCastErrorInfo(errObj.ClassName,aClass.ClassName)
+              else
+                SetCastErrorInfo('External interface',aClass.ClassName);
               handleerror(219);
+              end;
             fpc_intf_as_class:=tmpo;
           end
         else
@@ -239,13 +272,17 @@
       var
         tmpi: pointer; // _AddRef before _Release
         tmpi2: pointer; // weak!
+        errObj : TObject;
       begin
         if assigned(S) then
           begin
              tmpi:=nil;
              tmpi2:=nil;
              if not ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi)) then
+               begin
+               SetCastErrorInfo(TObject(S).ClassName,iid.AsString);
                handleerror(219);
+               end;
              // decrease reference count
              fpc_class_as_intf:=nil;
              pointer(fpc_class_as_intf):=tmpi;
@@ -263,7 +300,10 @@
           begin
              tmpi:=nil;
              if not TObject(S).GetInterface(iid,tmpi) then
+               begin
+               SetCastErrorInfo(TObject(S).ClassName,iid);
                handleerror(219);
+               end;
              fpc_class_as_corbaintf:=tmpi;
           end
         else
@@ -353,7 +393,17 @@ begin
   Result:=(P[0]=0) and (P[1]=0) and (P[2]=0) and (P[3]=0)
 end;
 
+function TGUID.AsString : ShortString;
 
+
+begin
+  WriteStr(Result,'{',hexstr(Longint(D1),8),
+                      '-',HexStr(D2,4),
+                      '-',HexStr(D3,4),
+                      '-',HexStr(D4[0],2), HexStr(D4[1],2),
+                      '-',HexStr(D4[2],2), HexStr(D4[3],2), HexStr(D4[4],2), HexStr(D4[5],2), HexStr(D4[6],2), HexStr(D4[7],2),
+                   '}');
+end;
 
 {****************************************************************************
                            TINTERFACEENTRY
@@ -1054,6 +1104,15 @@ end;
         begin
           getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
+
+      class procedure TObject.GetLastCastErrorInfo(out aFrom,aTo : shortstring);
+
+      begin
+        aFrom:=CastErrorFrom;
+        aTo:=CastErrorTo;
+        CastErrorFrom:='';
+        CastErrorTo:='';
+      end;
 
       class function TObject.UnitName : RTLString;
 {$ifdef FPC_HAS_FEATURE_RTTI}

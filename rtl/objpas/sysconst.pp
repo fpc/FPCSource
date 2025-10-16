@@ -89,6 +89,7 @@ const
   SInvalidUnaryVarOp     = 'Invalid variant operation %s %s';
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
   SNoError               = 'No error.';
+  SInstanceIsNotA        = ': %s is not a %s';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
   SNoDynLibsSupport      = 'Dynamic libraries not supported. Recompile program with dynamic library driver.';
   SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
