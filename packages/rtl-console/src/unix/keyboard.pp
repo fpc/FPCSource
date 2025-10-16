@@ -77,7 +77,7 @@ function AddSpecialSequence(const St : Shortstring;Proc : Tprocedure) : PTreeEle
 uses
   System.Console.Mouse,  System.Strings,System.Console.Unixkvmbase,
   UnixApi.TermIO,UnixApi.Base
-  {$ifdef Linux},LinuxApi.Vcs{$endif},video,charset;
+  {$ifdef Linux},LinuxApi.Vcs{$endif},System.Console.Video,System.CharSet;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Mouse,  Strings,unixkvmbase,
