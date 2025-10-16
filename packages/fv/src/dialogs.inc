@@ -1973,12 +1973,19 @@ BEGIN
              if (Data <> Sw_PString_Empty) and (CurPos > 0) then
              begin
                S := Data Sw_PString_DeRef;
-               I := CurPos;
-               // Skip any delimiters immediately to the left
-               while (I > 0) and IsDelimiter(S[I]) do Dec(I);
-               // Skip any word characters to the left
-               while (I > 0) and not IsDelimiter(S[I]) do Dec(I);
-               CurPos := I;
+               I := 1;
+               while (I <= Length(S)) and IsDelimiter(S[I]) do Inc(I);
+               if CurPos = I - 1 then
+                 CurPos := 0
+               else
+               begin
+                 I := CurPos;
+                 // Skip any delimiters immediately to the left
+                 while (I > 0) and IsDelimiter(S[I]) do Dec(I);
+                 // Skip any word characters to the left
+                 while (I > 0) and not IsDelimiter(S[I]) do Dec(I);
+                 CurPos := I;
+               end;
              end;
            End;
            kbCtrlRight: Begin
@@ -1986,10 +1993,17 @@ BEGIN
              begin
                S := Data Sw_PString_DeRef;
                Len := Length(S);
-               I := CurPos;
-               while (I < Len) and IsDelimiter(S[I+1]) do Inc(I);
-               while (I < Len) and not IsDelimiter(S[I+1]) do Inc(I);
-               CurPos := I;
+               I := Len;
+               while (I > 0) and IsDelimiter(S[I]) do Dec(I);
+               if CurPos = I then
+                 CurPos := Len
+               else
+               begin
+                 I := CurPos;
+                 while (I < Len) and IsDelimiter(S[I+1]) do Inc(I);
+                 while (I < Len) and not IsDelimiter(S[I+1]) do Inc(I);
+                 CurPos := I;
+               end;
              end;
            End;
            kbHome: CurPos := 0;                       { Move to line start }
