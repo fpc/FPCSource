@@ -2922,20 +2922,18 @@ begin
         end;
       {kitty_keys_no:=true;}
       isKittyKeys:=kitty_keys_yes;
-      envInput := fpgetenv('TV_INPUT');
-      if length(envInput) > 0 then
-        envInput[1] := UpCase(envInput[1]);
 
-      if envInput = 'Win32' then
+      envInput := LowerCase(fpgetenv('TV_INPUT'));
+      if envInput = 'win32' then
         begin
           write(#27'[?9001h');
         end
-      else if envInput = 'Kitty' then
+      else if envInput = 'kitty' then
         begin
           write(#27'[>31u');
           KittyKeyAvailability;
         end
-      else if envInput = 'Legacy' then
+      else if envInput = 'legacy' then
         begin
           // Do nothing
         end
