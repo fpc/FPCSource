@@ -1167,11 +1167,8 @@ begin
 
      decide_codepages;
 
-     envInput := fpgetenv('TV_INPUT');
-     if length(envInput) > 0 then
-       envInput[1] := UpCase(envInput[1]);
-
-     if (envInput = '') or (envInput = 'Kitty') then
+     envInput := LowerCase(fpgetenv('TV_INPUT'));
+     if (envInput = '') or (envInput = 'kitty') then
        SendEscapeSeq(#27'[>31u');{Entering alternativ screen we have to set up kitty keys}
    end
   else
