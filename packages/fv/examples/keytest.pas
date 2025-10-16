@@ -39,6 +39,9 @@ TYPE
     PROCEDURE InitStatusLine; VIRTUAL;
   END;
 
+VAR
+  Cnt: Integer;
+
 {---------------------------------------------------------------------------}
 {                        TKeyInfoView OBJECT METHODS                        }
 {---------------------------------------------------------------------------}
@@ -94,6 +97,8 @@ BEGIN
     Exit;
   END;
 
+  Cnt := Cnt + 1;
+
   { Display all information from the TEvent record }
   Line := Format('Event.What: $%4.4x (evKeyDown)', [LastKeyEvent.What]);
   MoveStr(B, Line, Color);
@@ -130,6 +135,10 @@ BEGIN
     Line := Line + '(not set)';
   MoveStr(B, Line, Color);
   WriteLine(1, 9, StrWidth(Line), 1, B);
+
+  Line := 'Count: ' + IntToStr(Cnt);
+  MoveStr(B, Line, Color);
+  WriteLine(1, 11, StrWidth(Line), 1, B);
 END;
 
 PROCEDURE TKeyInfoView.UpdateInfo(CONST Event: TEvent);
@@ -214,6 +223,7 @@ end;
 VAR
   MyApp: TKeyTestApp;
 BEGIN
+  Cnt := 0;
   MyApp.Init;
   MyApp.Run;
   MyApp.Done;
