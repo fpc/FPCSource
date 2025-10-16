@@ -1735,7 +1735,7 @@ begin
     // However, we do this only for Latin hotkeys, so that non-Latin ones
     // can continue working with the new top menu code. Latin hotkeys,
     // on the other hand, will be recognized by their _key_ codes.
-    if (essAlt in SState) and (UpCase(AnsiChar(Key)) in ['A'..'Z']) then nKey := 0;
+    if (essAlt in SState) and (nKey < 128) then nKey := 0;
 
     if nKey <= $FFFF then
       begin
@@ -1745,7 +1745,8 @@ begin
     else
       PushUnicodeKey (k,nKey,char(k.AsciiChar));
 
-    if byte(k.AsciiChar) = 27 then PushKey(k);
+    // This line caused duplicate ESC key press events in kitty mode
+    // if byte(k.AsciiChar) = 27 then PushKey(k);
   end else
     PushUnicodeKey (k,nKey,'?');
 end;
@@ -2801,10 +2802,12 @@ begin
               end;
             end;
           end;
-          RestoreArray;
+          // This line caused duplicate ESC key press events in legacy mode
+          // RestoreArray;
         end
         else
-        NPT:=FoundNPT;
+          NPT:=FoundNPT;
+
         if assigned(NPT) and NPT^.CanBeTerminal then
          begin
            if assigned(NPT^.SpecialHandler) then
