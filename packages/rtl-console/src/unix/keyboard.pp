@@ -1716,9 +1716,26 @@ begin
       ScanValue :=cScanValue[Key];
 
     if essCtrl in SState then
-      nKey:=Ord(k.AsciiChar); { if Ctrl+key then no normal UnicodeChar. Mimic Windows keyboard driver. }
+      begin
+        // For modern protocols (kitty, modifyOtherKeys), Ctrl+<letter> should
+        // generate the letter itself, not a C0 control character.
+        // Therefore, we do not overwrite nKey (which becomes UnicodeChar)
+        // with the control character's code if a letter was pressed.
+        if not (((Key >= $41) and (Key <= $5A)) or ((Key >= $61) and (Key <= $7A))) then
+          nKey := Ord(k.AsciiChar);
+      end;
 
     k.VirtualScanCode := (ScanValue shl 8) or Ord(k.AsciiChar);
+
+    // This is a dirty hack. Unfortunately, our hotkey mapping code
+    // (everywhere except for the recently fixed code for the top menu)
+    // for some reason (this is to be debugged) cannot handle events
+    // with nonzero _character_ codes. So until all those code paths are fixed,
+    // we zero out the character codes here to make Alt hotkeys work properly.
+    // However, we do this only for Latin hotkeys, so that non-Latin ones
+    // can continue working with the new top menu code. Latin hotkeys,
+    // on the other hand, will be recognized by their _key_ codes.
+    if (essAlt in SState) and (UpCase(AnsiChar(Key)) in ['A'..'Z']) then nKey := 0;
 
     if nKey <= $FFFF then
       begin
@@ -2684,17 +2701,9 @@ begin
           store[arrayind]:=ch;
           inc(arrayind);
 
-          // If we detect a pattern for a complex parameterized sequence (ESC [ <digit>),
-          // which is common for win32-input-mode and Kitty, we switch from a non-blocking
-          // to a blocking read. This ensures we read the entire sequence even if it
-          // arrives in chunks with micro-delays.
-          if
-            (arrayind = 4) and
-            (store[0]=#27) and
-            (store[1]='[') and
-            (store[2] in ['0'..'9']) and
-            ((store[3] in ['0'..'9']) or (store[3] = ';')) and
-            (not ((store[2] = '1') and (store[3] = ';'))) // skip for legacy seqs like ESC[1;something
+          // Switch to blocking read if found win32-input-mode-encoded ESC key
+          // This fixes that key behavior in that mode
+          if (arrayind = 5) and (store[0]=#27) and (store[1]='[') and (store[2]='2') and (store[3]='7') and (store[4]=';')
           then
           begin
             // Enter blocking read loop with a safety break
@@ -2898,9 +2907,6 @@ begin
   else
     begin
 {$endif}
-      { default for Shift prefix is ^ A}
-      if ShiftPrefix = 0 then
-        ShiftPrefix:=1;
       {default for Alt prefix is ^Z }
       if AltPrefix=0 then
         AltPrefix:=26;
@@ -3037,6 +3043,7 @@ var
   MyKey: TEnhancedKeyEvent;
   EscUsed,AltPrefixUsed,CtrlPrefixUsed,ShiftPrefixUsed,Again : boolean;
   SState: TEnhancedShiftState;
+  i: integer;
 
 begin {main}
   if PendingEnhancedKeyEvent<>NilEnhancedKeyEvent then
@@ -3155,6 +3162,34 @@ begin {main}
   until not Again;
   if MyScan = 0 then
       MyScan:=EvalScan(ord(MyChar));
+  // Legacy mode fix: interpret single-byte C0 control characters. This logic
+  // applies only when a raw character was read, not a pre-parsed sequence.
+  if (MyKey.VirtualScanCode and $FF00 = 0) and (Ord(MyChar) >= 1) and (Ord(MyChar) <= 31) and not (essCtrl in SState) then
+  begin
+    case Ord(MyChar) of
+      8, 9, 10, 13, 27: // Backspace, Tab, LF, CR, Esc are their own keys
+        begin
+          // Do not treat these as Ctrl+<key> combinations in this context.
+        end;
+      else // This is a Ctrl+<key> combination (e.g., Ctrl+A = #1).
+      begin
+        Include(SState, essCtrl);
+        // The application expects the actual character ('A'), not the control
+        // code (#1). We must find the original character based on the scan code
+        // to mimic the behavior of the win32 input mode.
+        // Search for the corresponding character in the scan code table.
+        for i := Ord('A') to Ord('Z') do
+        begin
+          if (cScanValue[i] = MyScan) then
+          begin
+            MyChar := AnsiChar(i);
+            MyUniChar := WideChar(i);
+            break;
+          end;
+        end;
+      end;
+    end;
+  end;
   if (essCtrl in SState) and (not (essAlt in SState)) then
     begin
       if (MyChar=#9) and (MyScan <> $17) then
@@ -3192,7 +3227,15 @@ begin {main}
       SysGetEnhancedKeyEvent.AsciiChar:=MyChar;
       SysGetEnhancedKeyEvent.UnicodeChar:=MyUniChar;
       SysGetEnhancedKeyEvent.ShiftState:=SState;
-      SysGetEnhancedKeyEvent.VirtualScanCode:=(MyScan shl 8) or Ord(MyChar);
+
+      // For Ctrl+<letter>, KeyCode must be 1..26 for A..Z.
+      // This ensures backward compatibility with older code.
+      // We check for Ctrl without Alt to avoid interfering with AltGr.
+      if (essCtrl in SState) and not (essAlt in SState) and (UpCase(MyChar) in ['A'..'Z']) then
+        SysGetEnhancedKeyEvent.VirtualScanCode := Ord(UpCase(MyChar)) - Ord('A') + 1
+      else
+        // Default behavior for all other key combinations.
+        SysGetEnhancedKeyEvent.VirtualScanCode := (MyScan shl 8) or Ord(MyChar);
     end;
   LastShiftState:=SysGetEnhancedKeyEvent.ShiftState; {to fake shift state later}
 end;

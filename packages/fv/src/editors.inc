@@ -558,7 +558,7 @@ CONST
   { Arrays that hold all the command keys and options. }
   { Editor command constants for new features. }
   cmSelectAll   = 250;
-  FirstKeys : array[0..47 * 2] of Word = (47, Ord (^A),    cmWordLeft,
+  FirstKeys : array[0..46 * 2] of Word = (46, Ord (^A),    cmSelectAll,
                                               Ord (^B),    cmReformPara,
                                               Ord (^C),    cmPageDown,
                                               Ord (^D),    cmCharRight,
@@ -600,7 +600,6 @@ CONST
                                               kbIns,       cmInsMode,
                                               kbDel,       cmDelChar,
                                               kbCtrlBack,  cmDelStart,
-                                              7745,        cmSelectAll,
                                               kbShiftIns,  cmPaste,
                                               kbShiftDel,  cmCut,
                                               kbCtrlIns,   cmCopy,
