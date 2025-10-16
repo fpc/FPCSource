@@ -930,6 +930,172 @@ begin
   TCSetAttr(1,TCSANOW,tio);
 end;
 
+function DeduceOemCodePageFromLocale: TSystemCodePage;
+var
+  lc: PAnsiChar;
+  lc_str: AnsiString;
+
+  function IsLocaleMatches(const current, wanted: AnsiString): boolean;
+  var
+    wanted_len: integer;
+  begin
+    wanted_len := length(wanted);
+    if length(current) < wanted_len then
+      begin
+        IsLocaleMatches:=false;
+        exit;
+      end;
+    if StrLComp(PAnsiChar(current), PAnsiChar(wanted), wanted_len) <> 0 then
+      begin
+        IsLocaleMatches:=false;
+        exit;
+      end;
+    if length(current) = wanted_len then
+      IsLocaleMatches:=true
+    else
+      IsLocaleMatches:=(current[wanted_len + 1] = '.');
+  end;
+
+begin
+  DeduceOemCodePageFromLocale := 437;
+
+  lc := fpgetenv('LANG');
+
+  if lc = nil then
+    exit;
+
+  lc_str := lc;
+
+  if IsLocaleMatches(lc_str, 'af_ZA') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'ar_SA') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_LB') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_EG') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_DZ') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_BH') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_IQ') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_JO') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_KW') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_LY') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_MA') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_OM') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_QA') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_SY') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_TN') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_AE') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ar_YE') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'ast_ES') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'az_AZ') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'be_BY') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'bg_BG') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'br_FR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'ca_ES') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'zh_CN') then DeduceOemCodePageFromLocale := 936
+  else if IsLocaleMatches(lc_str, 'zh_TW') then DeduceOemCodePageFromLocale := 950
+  else if IsLocaleMatches(lc_str, 'kw_GB') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'cs_CZ') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'cy_GB') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'da_DK') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'de_AT') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'de_LI') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'de_LU') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'de_CH') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'de_DE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'el_GR') then DeduceOemCodePageFromLocale := 737
+  else if IsLocaleMatches(lc_str, 'en_AU') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_CA') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_GB') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_IE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_JM') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_BZ') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_PH') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'en_ZA') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'en_TT') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'en_US') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'en_ZW') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'en_NZ') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_PA') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_BO') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_CR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_DO') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_SV') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_EC') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_GT') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_HN') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_NI') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_CL') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_MX') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_ES') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_CO') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_PE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_AR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_PR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_VE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_UY') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'es_PY') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'et_EE') then DeduceOemCodePageFromLocale := 775
+  else if IsLocaleMatches(lc_str, 'eu_ES') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fa_IR') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'fi_FI') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fo_FO') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fr_FR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fr_BE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fr_CA') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fr_LU') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fr_MC') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'fr_CH') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'ga_IE') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'gd_GB') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'gv_IM') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'gl_ES') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'he_IL') then DeduceOemCodePageFromLocale := 862
+  else if IsLocaleMatches(lc_str, 'hr_HR') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'hu_HU') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'id_ID') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'is_IS') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'it_IT') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'it_CH') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'iv_IV') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'ja_JP') then DeduceOemCodePageFromLocale := 932
+  else if IsLocaleMatches(lc_str, 'kk_KZ') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'ko_KR') then DeduceOemCodePageFromLocale := 949
+  else if IsLocaleMatches(lc_str, 'ky_KG') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'lt_LT') then DeduceOemCodePageFromLocale := 775
+  else if IsLocaleMatches(lc_str, 'lv_LV') then DeduceOemCodePageFromLocale := 775
+  else if IsLocaleMatches(lc_str, 'mk_MK') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'mn_MN') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'ms_BN') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'ms_MY') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'nl_BE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'nl_NL') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'nl_SR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'nn_NO') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'nb_NO') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'pl_PL') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'pt_BR') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'pt_PT') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'rm_CH') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'ro_RO') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'ru_RU') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'sk_SK') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'sl_SI') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'sq_AL') then DeduceOemCodePageFromLocale := 852
+  else if IsLocaleMatches(lc_str, 'sr_RS') then DeduceOemCodePageFromLocale := 855
+  else if IsLocaleMatches(lc_str, 'sv_SE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'sv_FI') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'sw_KE') then DeduceOemCodePageFromLocale := 437
+  else if IsLocaleMatches(lc_str, 'th_TH') then DeduceOemCodePageFromLocale := 874
+  else if IsLocaleMatches(lc_str, 'tr_TR') then DeduceOemCodePageFromLocale := 857
+  else if IsLocaleMatches(lc_str, 'tt_RU') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'uk_UA') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'ur_PK') then DeduceOemCodePageFromLocale := 720
+  else if IsLocaleMatches(lc_str, 'uz_UZ') then DeduceOemCodePageFromLocale := 866
+  else if IsLocaleMatches(lc_str, 'vi_VN') then DeduceOemCodePageFromLocale := 1258
+  else if IsLocaleMatches(lc_str, 'wa_BE') then DeduceOemCodePageFromLocale := 850
+  else if IsLocaleMatches(lc_str, 'zh_HK') then DeduceOemCodePageFromLocale := 950
+  else if IsLocaleMatches(lc_str, 'zh_SG') then DeduceOemCodePageFromLocale := 936
+  else if IsLocaleMatches(lc_str, 'zh_MO') then DeduceOemCodePageFromLocale := 950;
+end;
+
 procedure decide_codepages;
 
 var s:shortstring;
@@ -953,7 +1119,7 @@ begin
     CP_ISO05:            {Cyrillic}
       CurrentLegacy2EnhancedTranslationCodePage:=866;
     CP_UTF8:
-      CurrentLegacy2EnhancedTranslationCodePage:=437;
+      CurrentLegacy2EnhancedTranslationCodePage:=DeduceOemCodePageFromLocale;
     else
       if is_vga_code_page(external_codepage) then
         CurrentLegacy2EnhancedTranslationCodePage:=external_codepage

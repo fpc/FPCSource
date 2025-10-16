@@ -77,12 +77,12 @@ function AddSpecialSequence(const St : Shortstring;Proc : Tprocedure) : PTreeEle
 uses
   System.Console.Mouse,  System.Strings,System.Console.Unixkvmbase,
   UnixApi.TermIO,UnixApi.Base
-  {$ifdef Linux},LinuxApi.Vcs{$endif};
+  {$ifdef Linux},LinuxApi.Vcs{$endif},video,charset;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Mouse,  Strings,unixkvmbase,
   termio,baseUnix
-  {$ifdef linux},linuxvcs{$endif};
+  {$ifdef linux},linuxvcs{$endif},video,charset;
 {$ENDIF FPC_DOTTEDUNITS}
 
 {$i keyboard.inc}
@@ -139,6 +139,33 @@ const
     );
 
 {$endif Unused}
+
+function UnicodeToSingleByte(CodePoint: Cardinal): AnsiChar;
+var
+  UStr: UnicodeString;
+  TempStr: RawByteString;
+begin
+  if CodePoint > $FFFF then
+  begin
+    UnicodeToSingleByte := '?';
+    Exit;
+  end;
+  UStr := UnicodeString(WideChar(CodePoint));
+
+  TempStr := UTF8Encode(UStr);
+
+  SetCodePage(TempStr, GetLegacyCodePage, True);
+
+  if Length(TempStr) = 1 then
+  begin
+    if (TempStr[1] = '?') and (CodePoint <> ord('?')) then
+      UnicodeToSingleByte := '?'
+    else
+      UnicodeToSingleByte := TempStr[1];
+  end
+  else
+    UnicodeToSingleByte := '?';
+end;
 
 procedure SetRawMode(b:boolean);
 
@@ -1748,7 +1775,7 @@ begin
     // This line caused duplicate ESC key press events in kitty mode
     // if byte(k.AsciiChar) = 27 then PushKey(k);
   end else
-    PushUnicodeKey (k,nKey,'?');
+    PushUnicodeKey (k,nKey,UnicodeToSingleByte(nKey));
 end;
 
 procedure xterm_ModifyOtherKeys;
@@ -2238,10 +2265,7 @@ begin
   end else if (essCtrl in CurrentShiftState) then CurrentShiftState:=CurrentShiftState-[essRightCtrl,essCtrl,essLeftCtrl];
 end;
 
-
 function ReadKey:TEnhancedKeyEvent;
-const
-  ReplacementAsciiChar='?';
 var
   store    : array [0..31] of AnsiChar;
   arrayind : byte;
@@ -2366,7 +2390,7 @@ var
       if params[2] <= 127 then
         k.AsciiChar := AnsiChar(params[2])
       else
-        k.AsciiChar := '?';
+        k.AsciiChar := UnicodeToSingleByte(params[2]);
 
       ScanCode := params[1]; // wVirtualScanCode
       if ScanCode = 0 then
@@ -2661,7 +2685,7 @@ begin
       if Utf8KeyboardInputEnabled then
         begin
           UnicodeCodePoint:=ReadUtf8(ch);
-          PushUnicodeKey(k,UnicodeCodePoint,ReplacementAsciiChar);
+          PushUnicodeKey(k,UnicodeCodePoint,UnicodeToSingleByte(UnicodeCodePoint));
         end
       else
         PushKey(k);
@@ -2789,7 +2813,7 @@ begin
                 k.ShiftState := [essAlt];
                 k.VirtualScanCode := 0;
 
-                PushUnicodeKey(k, UnicodeCodePoint, ReplacementAsciiChar);
+                PushUnicodeKey(k, UnicodeCodePoint, UnicodeToSingleByte(UnicodeCodePoint));
                 ReadKey := PopKey;
                 exit;
               end
