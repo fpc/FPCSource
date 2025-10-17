@@ -144,6 +144,12 @@ begin
 {$include fcl-json/fpmake.pp}
 end;
 
+procedure add_fcl_syntax(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-syntax/fpmake.pp}
+end;
+
 procedure add_fcl_md(const ADirectory: string);
 begin
   with Installer do

@@ -34,6 +34,7 @@
   add_fcl_web(ADirectory+IncludeTrailingPathDelimiter('fcl-web'));
   add_fcl_xml(ADirectory+IncludeTrailingPathDelimiter('fcl-xml'));
   add_fcl_pdf(ADirectory+IncludeTrailingPathDelimiter('fcl-pdf'));
+  add_fcl_syntax(ADirectory+IncludeTrailingPathDelimiter('fcl-syntax'));
   add_fcl_md(ADirectory+IncludeTrailingPathDelimiter('fcl-md'));
   add_fcl_css(ADirectory+IncludeTrailingPathDelimiter('fcl-css'));
   add_fcl_jsonschema(ADirectory+IncludeTrailingPathDelimiter('fcl-jsonschema'));
