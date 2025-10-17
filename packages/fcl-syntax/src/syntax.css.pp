@@ -21,7 +21,11 @@ unit syntax.css;
 interface
 
 uses
-  types, syntax.highlighter;
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.SysUtils, syntax.highlighter;
+  {$ELSE}
+  Types, SysUtils, syntax.highlighter;
+  {$ENDIF}
 
 type
 
@@ -72,9 +76,6 @@ const
 function DoCssHighlighting(const Source: string): TSyntaxTokenArray;
 
 implementation
-
-uses
-  SysUtils;
 
   { TCssSyntaxHighlighter }
 

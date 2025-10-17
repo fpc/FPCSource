@@ -20,7 +20,11 @@ unit syntax.pascal;
 interface
 
 uses
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.SysUtils, syntax.highlighter;
+  {$ELSE}
   types, sysutils, syntax.highlighter;
+  {$ENDIF}
 
 type
 

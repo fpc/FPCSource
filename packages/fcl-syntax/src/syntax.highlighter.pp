@@ -22,7 +22,11 @@ unit syntax.highlighter;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.Classes, System.SysUtils, System.Contnrs;
+{$ELSE}
   Types, Classes, SysUtils, contnrs;
+{$ENDIF}
 
 type
   ESyntaxHighlighter = class(Exception);

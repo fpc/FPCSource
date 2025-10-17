@@ -21,7 +21,7 @@ unit syntax.bash;
 interface
 
 uses
-  types, syntax.highlighter;
+  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Types, syntax.highlighter;
 
 type
 

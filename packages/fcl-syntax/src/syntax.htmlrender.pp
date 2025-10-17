@@ -20,7 +20,11 @@ unit syntax.htmlrender;
 interface
 
 uses
+{$IFDEF FPC_DOTTEDUNITS}
+  System.Classes, System.SysUtils, syntax.highlighter;
+{$ELSE}  
   Classes, SysUtils, syntax.highlighter;
+{$ENDIF}
 
 type
   THTMLRenderOption = (hroNoDefaultSpan, hroPreserveLineStructure);

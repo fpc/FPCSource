@@ -21,7 +21,11 @@ unit syntax.html;
 interface
 
 uses
-  types, syntax.highlighter, syntax.css, syntax.javascript;
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.SysUtils, syntax.highlighter, syntax.css, syntax.javascript;
+  {$ELSE}
+  Types, SysUtils, syntax.highlighter, syntax.css, syntax.javascript;
+  {$ENDIF}
 
 type
   THtmlParseState = (
@@ -93,8 +97,6 @@ const
 function DoHtmlHighlighting(const source: string): TSyntaxTokenArray;
 
 implementation
-
-uses SysUtils;
 
 { THtmlSyntaxHighlighter }
 

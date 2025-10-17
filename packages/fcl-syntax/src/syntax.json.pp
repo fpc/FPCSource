@@ -21,7 +21,11 @@ unit syntax.json;
 interface
 
 uses
-  types, syntax.highlighter;
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.SysUtils, syntax.highlighter;
+  {$ELSE}
+  Types, SysUtils, syntax.highlighter;
+  {$ENDIF}
 
 type
 
@@ -52,9 +56,6 @@ type
 function DoJsonHighlighting(const Source: string): TSyntaxTokenArray;
 
 implementation
-
-uses
-  SysUtils;
 
 { TJsonSyntaxHighlighter }
 

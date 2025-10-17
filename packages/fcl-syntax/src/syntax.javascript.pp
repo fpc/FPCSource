@@ -22,7 +22,11 @@ unit syntax.javascript;
 interface
 
 uses
-  types, syntax.highlighter;
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.SysUtils, syntax.highlighter;
+  {$ELSE}
+  Types, SysUtils, syntax.highlighter;
+  {$ENDIF}
 
 type
 
@@ -85,9 +89,6 @@ const
 function DoJavaScriptHighlighting(const Source: string): TSyntaxTokenArray;
 
 implementation
-
-uses
-  SysUtils;
 
   { TJavaScriptSyntaxHighlighter }
 

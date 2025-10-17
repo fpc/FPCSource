@@ -21,7 +21,11 @@ unit syntax.sql;
 interface
 
 uses
-  types, syntax.highlighter;
+  {$IFDEF FPC_DOTTEDUNITS}
+  System.Types, System.SysUtils, syntax.highlighter;
+  {$ELSE}
+  types, sysutils, syntax.highlighter;
+  {$ENDIF}
 
 type
   // String escaping modes for SQL
@@ -94,9 +98,6 @@ function DoSqlHighlighting(const Source: string): TSyntaxTokenArray;
 function DoSqlHighlighting(const Source: string; EscapeMode: TSqlStringEscapeMode): TSyntaxTokenArray;
 
 implementation
-
-uses
-  SysUtils;
 
 { TSqlSyntaxHighlighter }
 
