@@ -1235,7 +1235,7 @@ implementation
                 if not (sp_generic_dummy in dummysym.symoptions) then
                   begin
                     include(dummysym.symoptions,sp_generic_dummy);
-                    add_generic_dummysym(dummysym);
+                    add_generic_dummysym(dummysym,'');
                   end;
                 if dummysym.typ=procsym then
                   tprocsym(dummysym).add_generic_overload(aprocsym);

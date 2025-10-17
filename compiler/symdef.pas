@@ -1850,7 +1850,7 @@ implementation
             else
               begin
                 if addgenerics then
-                  add_generic_dummysym(sym);
+                  add_generic_dummysym(sym,'');
                 { add nested helpers as well }
                 if assigned(def) and
                     (def.typ in [recorddef,objectdef]) and

@@ -865,7 +865,7 @@ implementation
                         { we need to find this symbol even if it's a variable or
                           something else when doing an inline specialization }
                         Include(sym.symoptions,sp_generic_dummy);
-                        add_generic_dummysym(sym);
+                        add_generic_dummysym(sym,'');
                       end;
                 end
               else
@@ -959,7 +959,7 @@ implementation
                     begin
                       hdef.typesym:=newtype;
                       if sp_generic_dummy in newtype.symoptions then
-                        add_generic_dummysym(newtype);
+                        add_generic_dummysym(newtype,'');
                     end;
                 end;
               { in non-Delphi modes we need a reference to the generic def

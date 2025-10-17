@@ -51,7 +51,7 @@ uses
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
     function generate_generic_name(const name:tidstring;const specializename:ansistring;const owner_hierarchy:ansistring):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
-    procedure add_generic_dummysym(sym:tsym);
+    procedure add_generic_dummysym(sym:tsym;const name:tidstring);
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
     function try_implicit_specialization(sym:tsym;para:tnode;pdoverloadlist:tfpobjectlist;var unnamed_syms:tfplist;var first_procsym:tsym;var hasoverload:boolean):boolean;
@@ -2674,21 +2674,25 @@ uses
       end;
 
 
-    procedure add_generic_dummysym(sym:tsym);
+    procedure add_generic_dummysym(sym:tsym;const name:tidstring);
       var
         list: TFPObjectList;
         srsym : tsym;
         srsymtable : tsymtable;
         entry : tgenericdummyentry;
+        n : tidstring;
       begin
         if sp_generic_dummy in sym.symoptions then
           begin
+            n:=sym.name;
+            if n='' then
+              n:=name;
             { did we already search for a generic with that name? }
-            list:=tfpobjectlist(current_module.genericdummysyms.find(sym.name));
+            list:=tfpobjectlist(current_module.genericdummysyms.find(n));
             if not assigned(list) then
               begin
                 list:=tfpobjectlist.create(true);
-                current_module.genericdummysyms.add(sym.name,list);
+                current_module.genericdummysyms.add(n,list);
               end;
             { is the dummy sym still "dummy"? }
             if (sym.typ=typesym) and
@@ -2701,7 +2705,7 @@ uses
               begin
                 { do we have a non-generic type of the same name
                   available? }
-                if not searchsym_with_flags(sym.name,srsym,srsymtable,[ssf_no_addsymref]) then
+                if not searchsym_with_flags(n,srsym,srsymtable,[ssf_no_addsymref]) then
                   srsym:=nil;
               end
             else if sym.typ=procsym then
