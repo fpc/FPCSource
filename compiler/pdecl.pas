@@ -853,6 +853,8 @@ implementation
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
+                      { add as dummy symbol before adding it to the symtable stack }
+                      add_generic_dummysym(sym,typename);
                       symtablestack.top.insertsym(sym);
                       ttypesym(sym).typedef.owner:=sym.owner;
                     end
