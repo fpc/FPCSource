@@ -834,7 +834,9 @@ interface
          { x86 only: subroutine uses ymm registers, requires vzeroupper call }
          pi_uses_ymm,
          { set if no frame pointer is needed, the rules when this applies is target specific }
-         pi_no_framepointer_needed
+         pi_no_framepointer_needed,
+         { procedure has been normalized so no expressions contain block nodes }
+         pi_normalized
        );
        tprocinfoflags=set of tprocinfoflag;
 

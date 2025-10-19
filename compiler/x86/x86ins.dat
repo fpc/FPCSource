@@ -10363,26 +10363,26 @@ xmmreg_mz,xmmreg,mem32                    \350\361\371\1\x2D\75\120             
 xmmreg_mz,xmmreg,xmmreg_er                \350\361\371\1\x2D\75\120                 AVX512
 
 [VSCATTERDPD]
-(Ch_All)
+(Ch_Rop1, Ch_Wop2)
 xmem64_m,xmmreg                           \350\352\361\371\1\xA2\101                AVX512,T1S,DISTINCT,DALL
 xmem64_m,ymmreg                           \350\352\361\364\371\1\xA2\101            AVX512,T1S,DISTINCT,DALL
 ymem64_m,zmmreg                           \350\351\352\361\371\1\xA2\101            AVX512,T1S,DISTINCT,DALL
 
 [VSCATTERDPS]
-(Ch_All)
+(Ch_Rop1, Ch_Wop2)
 xmem32_m,xmmreg                           \350\361\371\1\xA2\101                    AVX512,T1S,DISTINCT,DALL
 ymem32_m,ymmreg                           \350\361\364\371\1\xA2\101                AVX512,T1S,DISTINCT,DALL
 zmem32_m,zmmreg                           \350\351\361\371\1\xA2\101                AVX512,T1S,DISTINCT,DALL
 
 
 [VSCATTERQPD]
-(Ch_All)
+(Ch_Rop1, Ch_Wop2)
 xmem64_m,xmmreg                           \350\352\361\371\1\xA3\101                AVX512,T1S,DISTINCT,DALL
 ymem64_m,ymmreg                           \350\352\361\364\371\1\xA3\101            AVX512,T1S,DISTINCT,DALL
 zmem64_m,zmmreg                           \350\351\352\361\371\1\xA3\101            AVX512,T1S,DISTINCT,DALL
 
 [VSCATTERQPS]
-(Ch_All)
+(Ch_Rop1, Ch_Wop2)
 xmem32_m,xmmreg                           \350\361\371\1\xA3\101                    AVX512,T1S,DISTINCT,DALL
 ymem32_m,xmmreg                           \350\361\364\371\1\xA3\101                AVX512,T1S,DISTINCT,DALL
 zmem32_m,ymmreg                           \350\351\361\371\1\xA3\101                AVX512,T1S,DISTINCT,DALL

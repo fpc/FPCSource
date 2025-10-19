@@ -22,9 +22,9 @@ unit System.NetEncoding;
 interface
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.SysUtils, System.Classes, System.Types;
+uses System.SysUtils, System.Classes, System.Types, System.Hash.Base64;
 {$ELSE FPC_DOTTEDUNITS}
-uses Sysutils, Classes, Types;
+uses Sysutils, Classes, Types, Base64;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
@@ -43,6 +43,7 @@ type
       TStandardEncoding = (
         seBase64,
         seBase64String,
+        seBase64URL,
         seHTML,
         seURL);
     Class var
@@ -90,6 +91,7 @@ type
     Function EncodeBytesToString(const aInput: Pointer; Size: Integer): UnicodeString; overload;
     // Default instances
     class property Base64: TNetEncoding Index seBase64 read GetStdEncoding;
+    class property Base64URL: TNetEncoding Index seBase64URL read GetStdEncoding;
     class property Base64String: TNetEncoding Index seBase64String read GetStdEncoding;
     class property HTML: TNetEncoding Index seHTML read GetStdEncoding;
     class property URL: TURLEncoding read GetURLEncoding;
@@ -105,6 +107,8 @@ type
     FCharsPerline: Integer;
     FLineSeparator: UnicodeString;
     FPadEnd: Boolean;
+    function CreateDecoder(const aInput: TStream) : TBase64DecodingStream; virtual;
+    function CreateEncoder(const aOutput: TStream) : TBase64EncodingStream; virtual;
   protected
     Function DoDecode(const aInput, aOutput: TStream): Integer; overload; override;
     Function DoEncode(const aInput, aOutput: TStream): Integer; overload; override;
@@ -124,6 +128,13 @@ type
     constructor Create(CharsPerLine: Integer); overload; virtual;
     constructor Create(CharsPerLine: Integer; LineSeparator: UnicodeString); overload; virtual;
     constructor Create(CharsPerLine: Integer; LineSeparator: RawByteString); overload;
+  end;
+
+  { TBase64URLEncoding }
+
+  TBase64URLEncoding = class(TBase64Encoding)
+    function CreateDecoder(const aInput: TStream) : TBase64DecodingStream; override;
+    function CreateEncoder(const aOutput: TStream) : TBase64EncodingStream; override;
   end;
 
   { TBase64StringEncoding }
@@ -165,9 +176,9 @@ type
 implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
-uses System.Hash.Base64, FpWeb.Http.Protocol, Html.Defs, Xml.Read;
+uses FpWeb.Http.Protocol, Html.Defs, Xml.Read;
 {$ELSE FPC_DOTTEDUNITS}
-uses base64, httpprotocol, HTMLDefs, xmlread;
+uses httpprotocol, HTMLDefs, xmlread;
 {$ENDIF FPC_DOTTEDUNITS}
 
 Resourcestring
@@ -175,13 +186,27 @@ Resourcestring
 
 { TCustomBase64Encoding }
 
+function TCustomBase64Encoding.CreateDecoder(const aInput: TStream) : TBase64DecodingStream;
+
+begin
+  Result:=TBase64DecodingStream.Create(aInput,bdmMIME);
+end;
+
+
+function TCustomBase64Encoding.CreateEncoder(const aOutput: TStream) : TBase64EncodingStream;
+
+begin
+  Result:=TBase64EncodingStream.Create(aOutput,FCharsPerline,FLineSeparator,FPadEnd);
+end;
+
+
 function TCustomBase64Encoding.DoDecode(const aInput, aOutput: TStream): Integer;
 
 Var
   S : TBase64DecodingStream;
 
 begin
-  S:=TBase64DecodingStream.Create(aInput,bdmMIME);
+  S:=CreateDecoder(aInput);
   try
     Result:=S.Size;
     aOutput.CopyFrom(S,Result);
@@ -208,7 +233,7 @@ begin
     Instream.Position:=0;
     Outstream:=TBytesStream.Create;
     try
-      Decoder:=TBase64DecodingStream.Create(Instream,bdmMIME);
+      Decoder:=CreateDecoder(Instream);
       try
          Outstream.CopyFrom(Decoder,Decoder.Size);
          Result:=Outstream.Bytes;
@@ -229,7 +254,7 @@ Var
   S : TBase64EncodingStream;
 
 begin
-  S:=TBase64EncodingStream.Create(aOutput,FCharsPerline,FLineSeparator,FPadEnd);
+  S:=CreateEncoder(aOutput); //,FCharsPerline,FLineSeparator,FPadEnd);
   try
     Result:=S.CopyFrom(aInput,0);
   finally
@@ -246,7 +271,7 @@ begin
     Exit(nil);
   Outstream:=TBytesStream.Create;
   try
-    Encoder:=TBase64EncodingStream.create(outstream,FCharsPerline,FLineSeparator,FPadEnd);
+    Encoder:=CreateEncoder(outstream);
     try
       Encoder.Write(aInput[0],Length(aInput));
     finally
@@ -273,7 +298,7 @@ begin
     Exit('');
   Outstream:=TStringStream.Create('');
   try
-    Encoder:=TBase64EncodingStream.create(outstream,FCharsPerline,FLineSeparator,FPadEnd);
+    Encoder:=CreateEncoder(outstream);
     try
       Encoder.Write(aInput[1],Length(aInput));
     finally
@@ -308,6 +333,18 @@ end;
 constructor TBase64Encoding.Create;
 begin
   Create(kCharsPerLine, kLineSeparator);
+end;
+
+{ TBase64URLEncoding }
+
+function TBase64URLEncoding.CreateDecoder(const aInput: TStream): TBase64DecodingStream;
+begin
+  Result:=TBase64URLDecodingStream.Create(aInput,bdmMIME);
+end;
+
+function TBase64URLEncoding.CreateEncoder(const aOutput: TStream): TBase64EncodingStream;
+begin
+  Result:=TBase64URLEncodingStream.Create(aOutput,FCharsPerline,FLineSeparator,FPadEnd);
 end;
 
 { TBase64StringEncoding }
@@ -358,6 +395,7 @@ begin
   case aIndex of
     seBase64: Result:=TBase64Encoding.Create;
     seBase64String: Result:=TBase64StringEncoding.Create;
+    seBase64URL: Result:=TBase64URLEncoding.Create;
     seHTML: Result:=THTMLEncoding.Create;
     seURL: Result:=TURLEncoding.Create;
   end;

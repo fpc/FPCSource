@@ -817,7 +817,7 @@ implementation
       function equal_signature(fwpd,currpd:tprocdef;out sameparas,sameret:boolean):boolean;
         begin
           sameparas:=compare_paras(fwpd.paras,currpd.paras,cp_none,[cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact;
-          sameret:=compare_defs(fwpd.returndef,currpd.returndef,nothingn)=te_exact;
+          sameret:=compare_rettype(fwpd.returndef,currpd.returndef)=te_exact;
           result:=sameparas and sameret;
         end;
 

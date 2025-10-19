@@ -75,16 +75,16 @@ begin
     end;
 
   {$IFDEF ENDIAN_LITTLE}
-  QoiHeader.width:=Swap32(QoiHeader.width);
-  QoiHeader.height:=Swap32(QoiHeader.height);
+  QoiHeader.width:=SwapEndian(QoiHeader.width);
+  QoiHeader.height:=SwapEndian(QoiHeader.height);
   {$ENDIF}
 
   //writeln('Save width 2 ',QoiHeader.width, '   height  ', QoiHeader.height);
   Stream.Write(QoiHeader,sizeof(TQoiHeader));
 
   {$IFDEF ENDIAN_LITTLE}
-  QoiHeader.width:=Swap32(QoiHeader.width);
-  QoiHeader.height:=Swap32(QoiHeader.height);
+  QoiHeader.width:=SwapEndian(QoiHeader.width);
+  QoiHeader.height:=SwapEndian(QoiHeader.height);
   {$ENDIF}
   Result:=true;
 end;
@@ -123,7 +123,7 @@ begin
     px.a:=255;
 
     {initalize previosly seen pixel array}
-    fillchar(arr,sizeof(arr),0);
+    FillQWord(arr,sizeof(arr) div sizeof(QWord),0);
     iA:=QoiPixelIndex(px);
      //for iA:=0 to 63 do
      //arr[iA]:=px;

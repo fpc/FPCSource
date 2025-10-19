@@ -42,7 +42,8 @@ unit aoptx86;
       TOptsToCheck = (
         aoc_MovAnd2Mov_3,
         aoc_ForceNewIteration,
-        aoc_DoPass2JccOpts
+        aoc_DoPass2JccOpts,
+        aoc_MovlMovq2MovlMovl
       );
 
       TX86AsmOptimizer = class(TAsmOptimizer)
@@ -10612,55 +10613,71 @@ unit aoptx86;
 
       var
         NewRef: TReference;
-        hp1, hp2, hp3, hp4: Tai;
+        hp1, hp2, hp3: Tai;
 {$ifndef x86_64}
+        hp4: tai;
         OperIdx: Integer;
 {$endif x86_64}
         NewInstr : Taicpu;
-        NewAligh : Tai_align;
         DestLabel: TAsmLabel;
         TempTracking: TAllUsedRegs;
 
         function TryMovArith2Lea(InputInstr: tai): Boolean;
           var
             NextInstr: tai;
+            NextPresent: Boolean;
           begin
             Result := False;
-            UpdateUsedRegs(TmpUsedRegs, tai(InputInstr.Next));
 
-            if not GetNextInstruction(InputInstr, NextInstr) or
-              (
-                { The FLAGS register isn't always tracked properly, so do not
-                  perform this optimisation if a conditional statement follows }
-                not RegReadByInstruction(NR_DEFAULTFLAGS, NextInstr) and
-                not RegUsedAfterInstruction(NR_DEFAULTFLAGS, NextInstr, TmpUsedRegs)
-              ) then
+            { be lazy, checking separately for sub would be slightly better }
+            if (taicpu(InputInstr).oper[0]^.typ = top_const) and
+              (abs(taicpu(InputInstr).oper[0]^.val)<=$7fffffff) then
               begin
-                reference_reset(NewRef, 1, []);
-                NewRef.base := taicpu(p).oper[0]^.reg;
-                NewRef.scalefactor := 1;
-
-                if taicpu(InputInstr).opcode = A_ADD then
+                NextPresent := GetNextInstruction(InputInstr, NextInstr);
+                if NextPresent then
                   begin
-                    DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
-                    NewRef.offset := taicpu(InputInstr).oper[0]^.val;
-                  end
-                else
-                  begin
-                    DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
-                    NewRef.offset := -taicpu(InputInstr).oper[0]^.val;
+                    { Try to avoid using TmpUsedRegs if possible (it's slow!) }
+                    TransferUsedRegs(TmpUsedRegs);
+                    UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
+                    UpdateUsedRegs(TmpUsedRegs, tai(InputInstr.Next));
                   end;
 
-                taicpu(p).opcode := A_LEA;
-                taicpu(p).loadref(0, NewRef);
+                if (
+                    not NextPresent or
+                    (
+                      { The FLAGS register isn't always tracked properly, so do not
+                        perform this optimisation if a conditional statement follows }
+                      not RegReadByInstruction(NR_DEFAULTFLAGS, NextInstr) and
+                      not RegUsedAfterInstruction(NR_DEFAULTFLAGS, NextInstr, TmpUsedRegs)
+                    )
+                  ) then
+                  begin
+                    reference_reset(NewRef, 1, []);
+                    NewRef.base := taicpu(p).oper[0]^.reg;
+                    NewRef.scalefactor := 1;
 
-                { For the sake of debugging, have the line info match the
-                  arithmetic instruction rather than the MOV instruction }
-                taicpu(p).fileinfo := taicpu(InputInstr).fileinfo;
+                    if taicpu(InputInstr).opcode = A_ADD then
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovAdd2Lea', p);
+                        NewRef.offset := taicpu(InputInstr).oper[0]^.val;
+                      end
+                    else
+                      begin
+                        DebugMsg(SPeepholeOptimization + 'MovSub2Lea', p);
+                        NewRef.offset := -taicpu(InputInstr).oper[0]^.val;
+                      end;
 
-                RemoveInstruction(InputInstr);
+                    taicpu(p).opcode := A_LEA;
+                    taicpu(p).loadref(0, NewRef);
 
-                Result := True;
+                    { For the sake of debugging, have the line info match the
+                      arithmetic instruction rather than the MOV instruction }
+                    taicpu(p).fileinfo := taicpu(InputInstr).fileinfo;
+
+                    RemoveInstruction(InputInstr);
+
+                    Result := True;
+                  end;
               end;
           end;
 
@@ -10916,36 +10933,32 @@ unit aoptx86;
               To:
                 leal/q x(%reg1),%reg2   leal/q -x(%reg1),%reg2
             }
-            if (taicpu(hp1).oper[0]^.typ = top_const) and
-              { be lazy, checking separately for sub would be slightly better }
-              (abs(taicpu(hp1).oper[0]^.val)<=$7fffffff) then
+            if TryMovArith2Lea(hp1) then
               begin
-                TransferUsedRegs(TmpUsedRegs);
-                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                if TryMovArith2Lea(hp1) then
-                  begin
-                    Result := True;
-                    Exit;
-                  end
+                Result := True;
+                Exit;
               end
-            else if not RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^) and
-              GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
+            else if
               { Same as above, but also adds or subtracts to %reg2 in between.
                 It's still valid as long as the flags aren't in use }
+              (
+                (
+                  MatchInstruction(hp1,A_ADD,A_SUB,A_LEA,[]) and
+                  not RegInOp(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^)
+                ) or
+                (
+                  not RegModifiedByInstruction(taicpu(p).oper[1]^.reg, taicpu(hp1)) and
+                  { If it's not modified, make sure it isn't read as is }
+                  not RegReadByInstruction(taicpu(p).oper[1]^.reg, taicpu(hp1))
+                )
+              ) and
+              GetNextInstructionUsingReg(hp1, hp2, taicpu(p).oper[1]^.reg) and
               MatchInstruction(hp2,A_ADD,A_SUB,[taicpu(p).opsize]) and
-              MatchOpType(taicpu(hp2), top_const, top_reg) and
-              (taicpu(hp2).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
-              { be lazy, checking separately for sub would be slightly better }
-              (abs(taicpu(hp2).oper[0]^.val)<=$7fffffff) then
+              MatchOperand(taicpu(hp2).oper[1]^, taicpu(p).oper[1]^.reg) and
+              TryMovArith2Lea(hp2) then
               begin
-                TransferUsedRegs(TmpUsedRegs);
-                UpdateUsedRegs(TmpUsedRegs, tai(p.Next));
-                UpdateUsedRegs(TmpUsedRegs, tai(hp1.Next));
-                if TryMovArith2Lea(hp2) then
-                  begin
-                    Result := True;
-                    Exit;
-                  end;
+                Result := True;
+                Exit;
               end;
           end;
 
@@ -11441,59 +11454,74 @@ unit aoptx86;
         if MatchOpType(taicpu(p), top_reg, top_reg) and
           (taicpu(p).opsize = S_L) then
           begin
-            TransferUsedRegs(TmpUsedRegs);
-             { Mark the start point for sequential calls to
-               GetNextInstructionUsingReg, RegModifiedBetween and
-               UpdateUsedRegsBetween in case this optimisation is run multiple
-               times }
-            hp2 := p;
-            repeat
-              if (
-                  not(cs_opt_level3 in current_settings.optimizerswitches) or
-                  { Look further ahead for this one }
-                  GetNextInstructionUsingReg(hp2, hp1, taicpu(p).oper[1]^.reg)
-                ) and
-                MatchInstruction(hp1,A_MOV,[S_Q]) and
-                not RegModifiedBetween(taicpu(p).oper[0]^.reg, hp2, hp1) and
-                MatchOpType(taicpu(hp1), top_reg, top_reg) and
-                SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^.reg) then
-                begin
-                  UpdateUsedRegsBetween(TmpUsedRegs, tai(hp2.Next), hp1);
-
-                  taicpu(hp1).opsize := S_L;
-                  taicpu(hp1).loadreg(0, taicpu(p).oper[0]^.reg);
-                  setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
-
-                  AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, UsedRegs);
-
-                  DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
-
-                  if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+            { If the movq instruction is followed by addq or subq, it
+              might be possible to convert them to a leaq instruction
+              whose opportunity might be lost if it's changed to a movl
+              first, so we can't do this optimisation on a first iteration }
+            if not (aoc_MovlMovq2MovlMovl in OptsToCheck) and
+              not NotFirstIteration and
+              { If -O2 and under, do the optimisation anyway because Pass 2
+                won't run more than once }
+              (cs_opt_level3 in current_settings.optimizerswitches) then
+              begin
+                { Flag that we need to run Pass 2 again }
+                Include(OptsToCheck, aoc_ForceNewIteration);
+              end
+            else
+              begin
+                TransferUsedRegs(TmpUsedRegs);
+                 { Mark the start point for sequential calls to
+                   GetNextInstructionUsingReg, RegModifiedBetween and
+                   UpdateUsedRegsBetween in case this optimisation is run multiple
+                   times }
+                hp2 := p;
+                repeat
+                  if (
+                      not(cs_opt_level3 in current_settings.optimizerswitches) or
+                      { Look further ahead for this one }
+                      GetNextInstructionUsingReg(hp2, hp1, taicpu(p).oper[1]^.reg)
+                    ) and
+                    MatchInstruction(hp1,A_MOV,[S_Q]) and
+                    not RegModifiedBetween(taicpu(p).oper[0]^.reg, hp2, hp1) and
+                    MatchOpType(taicpu(hp1), top_reg, top_reg) and
+                    SuperRegistersEqual(taicpu(p).oper[1]^.reg, taicpu(hp1).oper[0]^.reg) then
                     begin
-                      DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
-                      RemoveCurrentP(p);
-                      Result := True;
-                      Exit;
+                      UpdateUsedRegsBetween(TmpUsedRegs, tai(hp2.Next), hp1);
+
+                      taicpu(hp1).opsize := S_L;
+                      taicpu(hp1).loadreg(0, taicpu(p).oper[0]^.reg);
+                      setsubreg(taicpu(hp1).oper[1]^.reg, R_SUBD);
+
+                      AllocRegBetween(taicpu(p).oper[0]^.reg, p, hp1, TmpUsedRegs);
+
+                      DebugMsg(SPeepholeOptimization + 'Made 32-to-64-bit zero extension more efficient (MovlMovq2MovlMovl 1)', hp1);
+
+                      if not RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs) then
+                        begin
+                          DebugMsg(SPeepholeOptimization + 'Mov2Nop 8 done', p);
+                          RemoveCurrentP(p);
+                          Result := True;
+                          Exit;
+                        end;
+
+                      { Initial instruction wasn't actually changed }
+                      Include(OptsToCheck, aoc_ForceNewIteration);
+
+                      if (cs_opt_level3 in current_settings.optimizerswitches) then
+                        begin
+                          { GetNextInstructionUsingReg will return a different
+                            instruction, so check this optimisation again }
+
+                          { Update the start point for the next calls to
+                            GetNextInstructionUsingReg, RegModifiedBetween and
+                            UpdateUsedRegsBetween to grant a speed boost }
+                          hp2 := hp1;
+                          Continue; { Jump back to "repeat" }
+                        end;
                     end;
-
-                  { Initial instruction wasn't actually changed }
-                  Include(OptsToCheck, aoc_ForceNewIteration);
-
-                  if (cs_opt_level3 in current_settings.optimizerswitches) then
-                    begin
-                      { GetNextInstructionUsingReg will return a different
-                        instruction, so check this optimisation again }
-
-                      { Update the start point for the next calls to
-                        GetNextInstructionUsingReg, RegModifiedBetween and
-                        UpdateUsedRegsBetween to grant a speed boost }
-                      hp2 := hp1;
-                      Continue; { Jump back to "repeat" }
-                    end;
-                end;
-
-              Break;
-            until False;
+                  Break;
+                until False;
+              end;
           end;
 {$endif x86_64}
 
@@ -16294,8 +16322,10 @@ unit aoptx86;
                   UpdateUsedRegs(UsedRegs, tai(p.Next));
 
                 hp2 := hp1;
+                Include(OptsToCheck, aoc_MovlMovq2MovlMovl);
                 if OptPass2MOV(hp1) then
                   Include(OptsToCheck, aoc_ForceNewIteration);
+                Exclude(OptsToCheck, aoc_MovlMovq2MovlMovl);
 
                 { Reset the tracking to the current instruction }
                 RestoreUsedRegs(TempTracking);
@@ -16643,8 +16673,10 @@ unit aoptx86;
                   UpdateUsedRegs(UsedRegs, tai(p.Next));
 
                 hp2 := hp1;
+                Include(OptsToCheck, aoc_MovlMovq2MovlMovl);
                 if OptPass2MOV(hp1) then
                   Include(OptsToCheck, aoc_ForceNewIteration);
+                Exclude(OptsToCheck, aoc_MovlMovq2MovlMovl);
 
                 { Reset the tracking to the current instruction }
                 RestoreUsedRegs(TempTracking);

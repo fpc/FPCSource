@@ -1082,15 +1082,15 @@ resourcestring  slCancel='Cancel';
 
 {$IFDEF FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
-USES FreeVision.Uapp,FreeVision.Uhistlist;                             { Standard GFV unit }
+USES FreeVision.Uapp,FreeVision.Uhistlist,FreeVision.Ufvclip;                            { Standard GFV unit }
 {$else FV_UNICODE}
-USES FreeVision.App,FreeVision.Histlist;                               { Standard GFV unit }
+USES FreeVision.App,FreeVision.Histlist,FreeVision.Fvclip;                               { Standard GFV unit }
 {$endif FV_UNICODE}
 {$ELSE FPC_DOTTEDUNITS}
 {$ifdef FV_UNICODE}
-USES UApp,UHistList;                             { Standard GFV unit }
+USES UApp,UHistList,UFVClip;                            { Standard GFV unit }
 {$else FV_UNICODE}
-USES App,HistList;                               { Standard GFV unit }
+USES App,HistList,FVClip;                               { Standard GFV unit }
 {$endif FV_UNICODE}
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -1698,8 +1698,27 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.HandleEvent (Var Event: TEvent);
 CONST PadKeys = [$47, $4B, $4D, $4F, $73, $74];
-VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: String;
+CONST
+  DelimiterChars: SET OF AnsiChar =
+    [' ', '.', ',', ';', ':', '!', '?', '-', '_', '/', '\',
+     '(', ')', '[', ']', '{', '}', '<', '>',
+     '"', '''', '`', '|', '@', '#', '$', '%', '^', '&',
+     '*', '+', '=', '~', #9, #10, #13];
+VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: Sw_String;
 Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
+SelectedTextAnsi: AnsiString; // For SetGlobalClipboardData
+S: Sw_String;
+Len, I: Integer;
+
+  FUNCTION IsDelimiter(Ch: Sw_Char): Boolean;
+  BEGIN
+    // Check if the character is in the predefined set of delimiters.
+    // This is safe for Unicode chars as punctuation is in the AnsiChar range.
+    IF Ch <= #255 THEN
+      Result := AnsiChar(Ch) IN DelimiterChars
+    ELSE
+      Result := False;
+  END;
 
    FUNCTION MouseDelta: Sw_Integer;
    VAR Mouse : TPOint;
@@ -1918,11 +1937,74 @@ BEGIN
              ExtendBlock := True;                     { Extended block true }
          End Else ExtendBlock := False;               { No extended block }
          Case Event.KeyCode Of
+           kbCtrlIns: // COPY command
+             begin
+               if (Data <> Sw_PString_Empty) and (SelStart < SelEnd) then
+               begin
+                 // Copy selected text to OSC 52 clipboard
+                 SelectedTextAnsi := AnsiString(Copy(Data Sw_PString_DeRef, SelStart + 1, SelEnd - SelStart));
+                 if Length(SelectedTextAnsi) > 0 then
+                 begin
+                   SetGlobalClipboardData(PAnsiChar(SelectedTextAnsi), Length(SelectedTextAnsi));
+                 end;
+               end;
+             end;
+           kbShiftDel: // CUT command
+             begin
+               if (Data <> Sw_PString_Empty) and (SelStart < SelEnd) then
+               begin
+                 // Copy selected text to OSC 52 clipboard
+                 SelectedTextAnsi := AnsiString(Copy(Data Sw_PString_DeRef, SelStart + 1, SelEnd - SelStart));
+                 if Length(SelectedTextAnsi) > 0 then
+                 begin
+                     SetGlobalClipboardData(PAnsiChar(SelectedTextAnsi), Length(SelectedTextAnsi));
+                 end;
+                 DeleteSelect; // Then delete the selection
+                 CheckValid(True); // Validate after deletion
+               end;
+             end;
            kbLeft: If (CurPos > 0) Then Dec(CurPos);  { Move cursor left }
            kbRight: If (Data <> Sw_PString_Empty) AND   { Move right cursor }
            (CurPos < Length(Data Sw_PString_DeRef)) Then Begin        { Check not at end }
              Inc(CurPos);                             { Move cursor }
              CheckValid(True);                        { Check if valid }
+           End;
+           kbCtrlLeft: Begin
+             if (Data <> Sw_PString_Empty) and (CurPos > 0) then
+             begin
+               S := Data Sw_PString_DeRef;
+               I := 1;
+               while (I <= Length(S)) and IsDelimiter(S[I]) do Inc(I);
+               if CurPos = I - 1 then
+                 CurPos := 0
+               else
+               begin
+                 I := CurPos;
+                 // Skip any delimiters immediately to the left
+                 while (I > 0) and IsDelimiter(S[I]) do Dec(I);
+                 // Skip any word characters to the left
+                 while (I > 0) and not IsDelimiter(S[I]) do Dec(I);
+                 CurPos := I;
+               end;
+             end;
+           End;
+           kbCtrlRight: Begin
+             if Data <> Sw_PString_Empty then
+             begin
+               S := Data Sw_PString_DeRef;
+               Len := Length(S);
+               I := Len;
+               while (I > 0) and IsDelimiter(S[I]) do Dec(I);
+               if CurPos = I then
+                 CurPos := Len
+               else
+               begin
+                 I := CurPos;
+                 while (I < Len) and IsDelimiter(S[I+1]) do Inc(I);
+                 while (I < Len) and not IsDelimiter(S[I+1]) do Inc(I);
+                 CurPos := I;
+               end;
+             end;
            End;
            kbHome: CurPos := 0;                       { Move to line start }
            kbEnd: Begin                               { Move to line end }
@@ -1930,13 +2012,16 @@ BEGIN
                Else CurPos := Length(Data Sw_PString_DeRef);  { Set cursor position }
              CheckValid(True);                        { Check if valid }
            End;
-           kbBack: If (Data <> Sw_PString_Empty) AND (CurPos > 0)  { Not at line start }
-           Then Begin
-             Delete(Data Sw_PString_DeRef, CurPos, 1);  { Backspace over AnsiChar }
-             Dec(CurPos);                             { Move cursor back one }
-             If (FirstPos > 0) Then Dec(FirstPos);    { Move first position }
-             CheckValid(True);                        { Check if valid }
-           End;
+           kbBack: If Data <> Sw_PString_Empty Then
+             Begin
+               If (SelStart = SelEnd) AND (CurPos > 0) Then
+               Begin
+                 SelStart := CurPos - 1;
+                 SelEnd := CurPos;
+               End;
+               DeleteSelect;
+               CheckValid(True);
+             End;
            kbDel: If Data <> Sw_PString_Empty Then Begin  { Delete character }
              If (SelStart = SelEnd) Then              { Select all on }
                If (CurPos < Length(Data Sw_PString_DeRef)) Then Begin { Cursor not at end }
@@ -1951,6 +2036,7 @@ BEGIN
 {$ifdef FV_UNICODE}
            Else Case Event.UnicodeChar Of
              ' '..#$FFFF:   { Character key }
+               if (NOT (GetShiftState AND $04 <> 0)) then { Only insert if Ctrl is not pressed }
                Begin
                  If (State AND sfCursorIns <> 0) Then
                    Delete(Data Sw_PString_DeRef, CurPos + 1, 1) Else    { Overwrite character }
@@ -1975,22 +2061,26 @@ BEGIN
            End
 {$else FV_UNICODE}
            Else Case Event.CharCode Of
-             ' '..#255: If Data <> Sw_PString_Empty Then Begin   { Character key }
-               If (State AND sfCursorIns <> 0) Then
-                 Delete(Data Sw_PString_DeRef, CurPos + 1, 1) Else    { Overwrite character }
-                 DeleteSelect;                        { Deselect selected }
-               If CheckValid(True) Then Begin         { Check data valid }
-                 If (Length(Data Sw_PString_DeRef) < MaxLen) Then     { Must not exceed maxlen }
-                 Begin
-                   If (FirstPos > CurPos) Then
-                     FirstPos := CurPos;              { Advance first position }
-                   Inc(CurPos);                       { Increment cursor }
-                   Insert(Event.CharCode, Data Sw_PString_DeRef,
-                     CurPos);                         { Insert the character }
+             ' '..#255:
+               If (NOT (GetShiftState AND $04 <> 0)) Then { Only insert if Ctrl is not pressed }
+               Begin
+                 If Data <> Sw_PString_Empty Then Begin   { Character key }
+                   If (State AND sfCursorIns <> 0) Then
+                     Delete(Data Sw_PString_DeRef, CurPos + 1, 1) Else    { Overwrite character }
+                     DeleteSelect;                        { Deselect selected }
+                   If CheckValid(True) Then Begin         { Check data valid }
+                     If (Length(Data Sw_PString_DeRef) < MaxLen) Then     { Must not exceed maxlen }
+                     Begin
+                       If (FirstPos > CurPos) Then
+                         FirstPos := CurPos;              { Advance first position }
+                       Inc(CurPos);                       { Increment cursor }
+                       Insert(Event.CharCode, Data Sw_PString_DeRef,
+                         CurPos);                         { Insert the character }
+                     End;
+                     CheckValid(False);                   { Check data valid }
+                   End;
                  End;
-                 CheckValid(False);                   { Check data valid }
                End;
-             End;
              ^Y: If Data <> Sw_PString_Empty Then Begin          { Clear all data }
                 Data Sw_PString_DeRef := '';          { Set empty string }
                 CurPos := 0;                          { Cursor to start }
@@ -3674,6 +3764,7 @@ BEGIN
    Inherited Init(Bounds, '', wnNoNumber);            { Call ancestor }
    Flags := wfClose;                                  { Close flag only }
    InitViewer(HistoryId);                             { Create list view }
+   SelectNext(False);
 END;
 
 {--THistoryWindow-----------------------------------------------------------}

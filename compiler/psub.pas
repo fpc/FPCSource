@@ -156,6 +156,7 @@ implementation
        ncgutil,
 
        optbase,
+       opttree,
        opttail,
        optcse,
        optloop,
@@ -1262,15 +1263,16 @@ implementation
 
            if cs_opt_dead_store_eliminate in current_settings.optimizerswitches then
              begin
-               do_optdeadstoreelim(code,RedoDFA);
-               if RedoDFA then
-                 dfabuilder.redodfainfo(code);
+               if normalize(code) then
+                 begin
+                   do_optdeadstoreelim(code,RedoDFA);
+                   if RedoDFA then
+                     dfabuilder.redodfainfo(code);
+                 end;
              end;
          end
        else
-         begin
-           ConvertForLoops(code);
-         end;
+         ConvertForLoops(code);
 
        if (cs_opt_remove_empty_proc in current_settings.optimizerswitches) and
          (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and

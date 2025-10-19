@@ -4266,6 +4266,9 @@ implementation
                    { if the final procedure definition is not yet owned,
                      ensure that it is }
                    procdefinition.register_def;
+                   if (procdefinition.typ=procdef) and assigned(tprocdef(procdefinition).procsym) then
+                     tprocdef(procdefinition).procsym.register_sym;
+
                    if procdefinition.is_specialization and (procdefinition.typ=procdef) then
                      maybe_add_pending_specialization(procdefinition,candidates.para_anon_syms);
 

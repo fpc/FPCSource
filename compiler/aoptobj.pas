@@ -2766,6 +2766,7 @@ Unit AoptObj;
         PassCount := 0;
 
         { Pass 2 is only executed multiple times under -O3 and above }
+        NotFirstIteration := False;
         repeat
           stoploop := True;
           p := BlockStart;
@@ -2786,6 +2787,9 @@ Unit AoptObj;
             end;
 
           Inc(PassCount);
+
+          if not stoploop then
+            NotFirstIteration := True;
 
         until stoploop or not (cs_opt_level3 in current_settings.optimizerswitches) or (PassCount >= MaxPasses_Pass2);
       end;

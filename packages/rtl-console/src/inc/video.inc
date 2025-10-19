@@ -709,6 +709,11 @@ begin
     Result := DefaultSystemCodePage;
 end;
 
+function GetLegacyCodePage: TSystemCodePage;
+begin
+  Result := CurrentLegacy2EnhancedTranslationCodePage;
+end;
+
 { disallowed codepages (variable length), code points larger than an 8-bit byte, etc. }
 function IsDisallowedCodePage(CodePage: TSystemCodePage): Boolean;
 const

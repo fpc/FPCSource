@@ -363,6 +363,9 @@ interface
          { do not override this routine in platform-specific subclasses,
            override ppuwrite_platform instead }
          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+         { returns the symbol type of the local variable or local parameter
+           referenced by the absolute symbol }
+         function reftyp : tsymtyp;
       end;
       tabsolutevarsymclass = class of tabsolutevarsym;
 
@@ -738,14 +741,28 @@ implementation
 
 
     procedure tstoredsym.register_sym;
+      var
+        tmod : tmodule;
       begin
         if registered then
           exit;
-        { Register in current_module }
-        if assigned(current_module) then
+        if assigned(owner) then
           begin
-            current_module.symlist.Add(self);
-            SymId:=current_module.symlist.Count-1;
+            tmod:=find_module_from_symtable(owner);
+            if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
+              begin
+                comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' regitered with current module '+current_module.mainsource);
+              end;
+	    if not assigned(tmod) then
+              tmod:=current_module;
+          end
+	else
+          tmod:=current_module;
+        { Register in current_module }
+        if assigned(tmod) then
+          begin
+            tmod.symlist.Add(self);
+            SymId:=tmod.symlist.Count-1;
           end
         else
           SymId:=symid_registered_nost;
@@ -2606,6 +2623,21 @@ implementation
          end;
       end;
 
+         { returns the symbol type of the local variable or local parameter
+           referenced by the absolute symbol }
+    function tabsolutevarsym.reftyp : tsymtyp;
+      var
+        plist : ppropaccesslistitem;
+      begin
+        reftyp:=typ;
+        if abstyp=tovar then
+          begin
+            plist:=ref.firstsym;
+            if assigned(plist) and (plist^.sltype=sl_load) and
+               assigned(plist^.sym) and not(assigned(plist^.next)) then
+              reftyp:=plist^.sym.typ;
+          end;
+      end;
 
 {****************************************************************************
                                   TCONSTSYM

@@ -1952,22 +1952,33 @@ unit rgobj;
                 { Insert live end deallocation before reg allocations
                   to reduce conflicts }
                 p:=live_end;
-                while assigned(p) and
-                      assigned(p.previous) and
+                if assigned(p) then
+                  begin
+                    while assigned(p.previous) and
                       (
-                        (tai(p.previous).typ in [ait_comment,ait_tempalloc,ait_varloc]) or
                         (
                           (tai(p.previous).typ=ait_regalloc) and
-                          (tai_regalloc(p.previous).ratype=ra_alloc) and
-                          (tai_regalloc(p.previous).reg<>r)
-                        )
+                          (
+                            (
+                              (tai_regalloc(p.previous).ratype=ra_alloc) and
+                              (tai_regalloc(p.previous).reg<>r)
+                            ) or (
+                              (tai_regalloc(p.previous).ratype=ra_resize)
+                              { Don't worry if a resize for the same supreg as
+                                r appears - it won't cause issues in the end
+                                since it's stripped out anyway and the deallocs
+                                are adjusted after graph colouring }
+                            )
+                          )
+                        ) or
+                        (tai(p.previous).typ in [ait_comment,ait_tempalloc,ait_varloc])
                       ) do
-                  p:=tai(p.previous);
-                { , but add release after a reg_a_sync }
-                if assigned(p) and
-                   (p.typ=ait_regalloc) and
-                   (tai_regalloc(p).ratype=ra_sync) then
-                  p:=tai(p.next);
+                      p:=tai(p.previous);
+                    { , but add release after a reg_a_sync }
+                    if (p.typ=ait_regalloc) and
+                      (tai_regalloc(p).ratype=ra_sync) then
+                    p:=tai(p.next);
+                  end;
                 if assigned(p) then
                   list.insertbefore(pdealloc,p)
                 else

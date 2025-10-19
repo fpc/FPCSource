@@ -902,6 +902,8 @@ type
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail1;
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail2;
     Procedure TestProcType_TNotifyEvent_NoAtFPC_Fail3;
+    Procedure TestProcType_PassAsArg_NoAtFPC_Fail;
+    Procedure TestProcType_PassAsArg_NoAtDelphi;
     Procedure TestProcType_WhileListCompare;
     Procedure TestProcType_IsNested;
     Procedure TestProcType_IsNested_AssignProcFail;
@@ -1372,7 +1374,7 @@ var
 
   procedure AddLabel;
   var
-    Identifier, Param: String;
+    Identifier: String;
     p: PChar;
   begin
     p:=CommentStartP+2;
@@ -16633,6 +16635,38 @@ begin
   CheckResolverException(
     'Wrong number of parameters specified for call to "procedure BtnClickHandler(TObject) of Object"',
     nWrongNumberOfParametersForCallTo);
+end;
+
+procedure TTestResolver.TestProcType_PassAsArg_NoAtFPC_Fail;
+begin
+  StartProgram(false);
+  Add('{$mode objfpc}');
+  Add('type');
+  Add('  TProc = procedure;');
+  Add('procedure Run;');
+  Add('begin end;');
+  Add('procedure Fly(p: TProc);');
+  Add('begin end;');
+  Add('begin');
+  Add('  Fly(Run);');
+  CheckResolverException(
+    'Incompatible type for arg no. 1: Got "procedural type", expected "TProc"',
+    nIncompatibleTypeArgNo);
+end;
+
+procedure TTestResolver.TestProcType_PassAsArg_NoAtDelphi;
+begin
+  StartProgram(false);
+  Add('{$mode delphi}');
+  Add('type');
+  Add('  TFunc = function: word;');
+  Add('function Run: word;');
+  Add('begin end;');
+  Add('procedure Fly(p: TFunc);');
+  Add('begin end;');
+  Add('begin');
+  Add('  Fly(Run);');
+  ParseProgram;
 end;
 
 procedure TTestResolver.TestProcType_WhileListCompare;

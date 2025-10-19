@@ -2242,6 +2242,8 @@ type
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil); virtual;
     procedure ComputeResultElement(El: TPasResultElement; out ResolvedEl: TPasResolverResult;
       Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil); virtual;
+    function ComputeProcAsyncResult(El: TPasElement; var ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil): boolean; virtual; // for descendants to return the promise
     function Eval(Expr: TPasExpr; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
     function Eval(const Value: TPasResolverResult; Flags: TResEvalFlags; Store: boolean = true): TResEvalValue; overload;
     // checking compatibilility
@@ -14019,7 +14021,11 @@ begin
   else if IsProcedureType(ArgResolved,true)
       or (ArgResolved.BaseType=btPointer)
       or ((ArgResolved.LoTypeEl=nil) and (ArgResolved.IdentEl is TPasArgument)) then
+  begin
     Include(RHSFlags,rcNoImplicitProcType);
+    if msDelphi in GetElModeSwitches(Expr) then
+      Include(RHSFlags,rcNoImplicitProc);
+  end;
   if SetReferenceFlags then
     Include(RHSFlags,rcSetReferenceFlags);
   ComputeElement(Expr,ExprResolved,RHSFlags);
@@ -14241,11 +14247,8 @@ begin
         // function call => return result
         ComputeResultElement(TPasFunctionType(Proc.ProcType).ResultEl,ResolvedEl,
           Flags+[rcCall],StartEl)
-      else if Proc.IsAsync then
-        begin
+      else if Proc.IsAsync and ComputeProcAsyncResult(Proc,ResolvedEl,Flags,StartEl) then
         // async proc => return promise
-        ComputeElement(Proc,ResolvedEl,Flags+[rcCall],StartEl);
-        end
       else if (Proc.ClassType=TPasConstructor) then
         begin
         // constructor -> return value of type class
@@ -14272,6 +14275,10 @@ begin
           // function call => return result
           ComputeResultElement(TPasFunctionType(ResolvedEl.LoTypeEl).ResultEl,
             ResolvedEl,Flags+[rcCall],StartEl)
+        else if (ResolvedEl.LoTypeEl is TPasProcedureType)
+            and TPasProcedureType(ResolvedEl.LoTypeEl).IsAsync
+            and ComputeProcAsyncResult(ResolvedEl.LoTypeEl,ResolvedEl,Flags,StartEl) then
+          // async proc => return promise
         else
           // procedure call, result is neither readable nor writable
           SetResolverTypeExpr(ResolvedEl,btProc,
@@ -27842,11 +27849,9 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
               ResolvedEl,Flags+[rcCall],StartEl);
             end
           else if (ResolvedEl.IdentEl is TPasProcedure)
-              and TPasProcedure(ResolvedEl.IdentEl).IsAsync then
-            begin
+              and TPasProcedure(ResolvedEl.IdentEl).IsAsync
+              and ComputeProcAsyncResult(ResolvedEl.IdentEl,ResolvedEl,Flags,StartEl) then
             // async proc => return promise
-            ComputeElement(ResolvedEl.IdentEl,ResolvedEl,Flags+[rcCall],StartEl);
-            end
           else if (ResolvedEl.IdentEl.ClassType=TPasConstructor) then
             begin
             // constructor -> return value of type class
@@ -27885,6 +27890,10 @@ procedure TPasResolver.ComputeElement(El: TPasElement; out
             // function => return result
             ComputeResultElement(TPasFunctionType(ResolvedEl.LoTypeEl).ResultEl,
               ResolvedEl,Flags+[rcCall],StartEl)
+          else if (ResolvedEl.LoTypeEl is TPasProcedureType)
+              and TPasProcedureType(ResolvedEl.LoTypeEl).IsAsync
+              and ComputeProcAsyncResult(ResolvedEl.LoTypeEl,ResolvedEl,Flags,StartEl) then
+            // async proc => return promise
           else if ParentNeedsExprResult(Expr) then
             begin
             // a procedure has no result
@@ -28416,6 +28425,16 @@ begin
   ComputeElement(El.ResultType,ResolvedEl,Flags+[rcType,rcNoImplicitProc],StartEl);
   ResolvedEl.IdentEl:=El;
   ResolvedEl.Flags:=[rrfReadable,rrfWritable];
+end;
+
+function TPasResolver.ComputeProcAsyncResult(El: TPasElement; var ResolvedEl: TPasResolverResult;
+  Flags: TPasResolverComputeFlags; StartEl: TPasElement): boolean;
+begin
+  Result:=false;
+  if El=nil then ;
+  if Flags=[] then ;
+  if StartEl=nil then ;
+  if ResolvedEl.IdentEl=nil then ;
 end;
 
 function TPasResolver.Eval(Expr: TPasExpr; Flags: TResEvalFlags;

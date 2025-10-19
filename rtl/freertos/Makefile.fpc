@@ -82,11 +82,21 @@ ifeq ($(ARCH),riscv32)
 CPU_SPECIFIC_COMMON_UNITS=$(SYSUTILSUNIT) $(MATHUNIT) $(CLASSESUNIT) $(FGLUNIT) $(MACPASUNIT) $(TYPINFOUNIT) $(TYPESUNIT) $(RTLCONSTSUNIT) $(GETOPTSUNIT) $(LINEINFOUNIT)
 ifeq ($(SUBARCH),rv32imc)
 override FPCOPT+=-Cprv32imc
-CPU_UNITS=esp32c2 esp32c2idf_50000 esp32c2idf_50200 esp32c3 esp32c3idf_40400 esp32c3idf_50000 esp32c3idf_50200 esp32c3idf_50300
+CPU_UNITS=
 CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),rv32imac)
 override FPCOPT+=-Cprv32imac
+CPU_UNITS=
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),rv32imc_zicsr_zifencei)
+override FPCOPT+=-Cprv32imc_zicsr_zifencei
+CPU_UNITS=esp32c2 esp32c2idf_50000 esp32c2idf_50200 esp32c3 esp32c3idf_40400 esp32c3idf_50000 esp32c3idf_50200 esp32c3idf_50300
+CPU_UNITS_DEFINED=1
+endif
+ifeq ($(SUBARCH),rv32imac_zicsr_zifencei)
+override FPCOPT+=-Cprv32imac_zicsr_zifencei
 CPU_UNITS=esp32c6 esp32c6idf_50200
 CPU_UNITS_DEFINED=1
 endif

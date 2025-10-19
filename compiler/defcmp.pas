@@ -149,6 +149,11 @@ interface
     }
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
+    { Compares the compatibility of two return types (in contrast to
+      compare_defs the cdo_strict_undefined_check will be passed to
+      compare_defs_ext as well) }
+    function compare_rettype(def1,def2:tdef):tequaltype;
+
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
     { used to test compatibility between two pprocvardefs (JM)               }
@@ -2540,6 +2545,15 @@ implementation
              (((i1<para1.count) and assigned(tparavarsym(para1[i1]).defaultconstsym)) or
               ((i2<para2.count) and assigned(tparavarsym(para2[i2]).defaultconstsym)))) then
            compare_paras:=lowesteq;
+      end;
+
+
+    function compare_rettype(def1,def2:tdef):tequaltype;
+      var
+        doconv : tconverttype;
+        pd : tprocdef;
+      begin
+        result:=compare_defs_ext(def1,def2,nothingn,doconv,pd,[cdo_check_operator,cdo_allow_variant,cdo_strict_undefined_check]);
       end;
 
 

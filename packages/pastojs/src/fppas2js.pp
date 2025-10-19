@@ -1696,11 +1696,11 @@ type
     procedure CheckDispatchField(Proc: TPasProcedure; Switch: TValueSwitch);
     procedure AddMessageStr(var MsgToProc: TMessageIdToProc_List; const S: string; Proc: TPasProcedure);
     procedure AddMessageIdToClassScope(Proc: TPasProcedure; EmitHints: boolean); virtual;
-    procedure ComputeElement(El: TPasElement; out ResolvedEl: TPasResolverResult;
-      Flags: TPasResolverComputeFlags; StartEl: TPasElement = nil); override;
     procedure ComputeResultElement(El: TPasResultElement; out
       ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
       StartEl: TPasElement = nil); override;
+    function ComputeProcAsyncResult(El: TPasElement; var ResolvedEl: TPasResolverResult;
+      Flags: TPasResolverComputeFlags; StartEl: TPasElement=nil): boolean; override;
     // CustomData
     function GetElementData(El: TPasElementBase;
       DataClass: TPas2JsElementDataClass): TPas2JsElementData; virtual;
@@ -7320,52 +7320,53 @@ begin
   end;
 end;
 
-procedure TPas2JSResolver.ComputeElement(El: TPasElement; out
-  ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
-  StartEl: TPasElement);
-var
-  Proc: TPasProcedure;
-  JSPromiseClass: TPasClassType;
-begin
-  if (rcCall in Flags) and (El is TPasProcedure) then
-    begin
-    Proc:=TPasProcedure(El);
-    if Proc.IsAsync then
-      begin
-      // an async function call returns a TJSPromise if available
-      JSPromiseClass:=FindTJSPromise(nil);
-      if JSPromiseClass<>nil then
-        begin
-         SetResolverIdentifier(ResolvedEl, btContext, El, JSPromiseClass,
-           JSPromiseClass, [rrfReadable, rrfWritable]);
-         Exit;
-        end;
-      end;
-    end;
-  inherited ComputeElement(El,ResolvedEl,Flags,StartEl);
-end;
-
 procedure TPas2JSResolver.ComputeResultElement(El: TPasResultElement; out
   ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags;
   StartEl: TPasElement);
 var
-  FuncType: TPasFunctionType;
   Proc: TPasProcedure;
+  ProcType: TPasProcedureType;
+  JSPromiseClass: TPasClassType;
 begin
-  if (rcCall in Flags) and (El.Parent is TPasFunctionType) then
+  if (rcCall in Flags) and (El.Parent is TPasProcedureType) then
     begin
-    FuncType:=TPasFunctionType(El.Parent);
-    if FuncType.Parent is TPasProcedure then
+    ProcType:=TPasProcedureType(El.Parent);
+    if ProcType.Parent is TPasProcedure then
       begin
-      Proc:=TPasProcedure(FuncType.Parent);
+      Proc:=TPasProcedure(ProcType.Parent);
       if Proc.IsAsync then
         begin
-        ComputeElement(Proc, ResolvedEl, Flags, StartEl);
-        Exit;
+        // an async function returns a TJSPromise if available
+        JSPromiseClass:=FindTJSPromise(nil); // nil for no error on fail
+        if JSPromiseClass<>nil then
+          begin
+           SetResolverIdentifier(ResolvedEl, btContext, El, JSPromiseClass,
+             JSPromiseClass, [rrfReadable, rrfWritable]);
+           Exit;
+          end;
         end;
       end;
     end;
   inherited ComputeResultElement(El, ResolvedEl, Flags, StartEl);
+end;
+
+function TPas2JSResolver.ComputeProcAsyncResult(El: TPasElement;
+  var ResolvedEl: TPasResolverResult; Flags: TPasResolverComputeFlags; StartEl: TPasElement
+  ): boolean;
+var
+  JSPromiseClass: TPasClassType;
+begin
+  JSPromiseClass:=FindTJSPromise(nil); // nil for no error on fail
+  if JSPromiseClass=nil then
+    exit(false)
+  else
+    begin
+    SetResolverIdentifier(ResolvedEl, btContext, El, JSPromiseClass,
+      JSPromiseClass, [rrfReadable, rrfWritable]);
+    exit(true);
+    end;
+  if StartEl=nil then ;
+  if Flags=[] then ;
 end;
 
 function TPas2JSResolver.GetElementData(El: TPasElementBase;
