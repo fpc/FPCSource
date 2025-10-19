@@ -55,6 +55,7 @@ unit cgcpu;
        procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
        procedure a_load64_ref_cgpara(list: TAsmList; const r: treference; const paraloc: tcgpara);override;
        procedure a_load64_ref_reg(list: TAsmList; const ref: treference; reg: tregister64);override;
+       procedure a_load64_reg_ref(list: TAsmList; reg: tregister64; const ref: treference);override;
      end;
 
   procedure create_codegen;
@@ -497,6 +498,19 @@ unit cgcpu;
         hreg64.reghi:=cg.GetIntRegister(list,OS_32);
         a_load64_ref_reg(list,r,hreg64);
         a_load64_reg_cgpara(list,hreg64,paraloc);
+      end;
+
+
+    procedure tcg64frv.a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);
+      var
+        tmpref: treference;
+      begin
+        { Override this function to prevent loading the reference twice }
+        tmpref:=ref;
+        tcgrv32(cg).fixref(list,tmpref);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
+        inc(tmpref.offset,4);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
       end;
 
 
