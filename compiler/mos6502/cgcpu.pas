@@ -128,25 +128,6 @@ unit cgcpu;
 
     procedure create_codegen;
 
-    {     OP_NONE,
-          OP_MOVE,      { replaced operation with direct load }
-          OP_ADD,       { simple addition          }
-          OP_AND,       { simple logical and       }
-          OP_DIV,       { simple unsigned division }
-          OP_IDIV,      { simple signed division   }
-          OP_IMUL,      { simple signed multiply   }
-          OP_MUL,       { simple unsigned multiply }
-          OP_NEG,       { simple negate            }
-          OP_NOT,       { simple logical not       }
-          OP_OR,        { simple logical or        }
-          OP_SAR,       { arithmetic shift-right   }
-          OP_SHL,       { logical shift left       }
-          OP_SHR,       { logical shift right      }
-          OP_SUB,       { simple subtraction       }
-          OP_XOR,       { simple exclusive or      }
-          OP_ROL,       { rotate left              }
-          OP_ROR        { rotate right             }
-}
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (
         A_NONE,   { OP_NONE }
