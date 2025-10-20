@@ -190,7 +190,7 @@ function TLinkerOric.WriteResponseFile_Vlink: Boolean;
 
 procedure TLinkerOric.SetDefaultInfo_Sdld;
   const
-    ExeName='sdldz80';
+    ExeName='sdld';
   begin
     if ImageBaseSetExplicity then
       FOrigin:=ImageBase
