@@ -108,7 +108,8 @@ Unit ramos6502asm;
       begin
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
-          iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+          if i<>A_Bxx then
+            iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
       end;
 
 
