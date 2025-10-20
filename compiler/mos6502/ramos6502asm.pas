@@ -79,6 +79,7 @@ Unit ramos6502asm;
         function consume(t : tasmtoken):boolean;
         procedure RecoverConsume(allowcomma:boolean);
         function is_asmopcode(const s: string):boolean;
+        function is_register(const s:string):boolean;
         procedure BuildOperand(oper: tmos6502operand;istypecast:boolean);
         procedure BuildOpCode(instr:TMOS6502Instruction);
         procedure handleopcode;
@@ -194,17 +195,17 @@ Unit ramos6502asm;
                        actasmtoken:=AS_END;
                        exit;
                      end;
-                   //if is_register(actasmpattern) then
-                   //  begin
-                   //    actasmtoken:=AS_REGISTER;
-                   //    { is it an alternate register? }
-                   //    if (c='''') and is_register(actasmpattern+'''') then
-                   //      begin
-                   //        actasmpattern:=actasmpattern+c;
-                   //        c:=current_scanner.asmgetchar;
-                   //      end;
-                   //    exit;
-                   //  end;
+                   if is_register(actasmpattern) then
+                     begin
+                       actasmtoken:=AS_REGISTER;
+                       { is it an alternate register? }
+                       if (c='''') and is_register(actasmpattern+'''') then
+                         begin
+                           actasmpattern:=actasmpattern+c;
+                           c:=current_scanner.asmgetchar;
+                         end;
+                       exit;
+                     end;
                    { if next is a '.' and this is a unitsym then we also need to
                      parse the identifier }
                    //if (c='.') then
@@ -301,6 +302,18 @@ Unit ramos6502asm;
           end
         else
           is_asmopcode:=false;
+      end;
+
+
+    function tmos6502reader.is_register(const s:string):boolean;
+      begin
+        is_register:=false;
+        actasmregister:=std_regnum_search(lower(s));
+        if actasmregister<>NR_NO then
+          begin
+            is_register:=true;
+            actasmtoken:=AS_REGISTER;
+          end;
       end;
 
 
@@ -504,18 +517,18 @@ Unit ramos6502asm;
             //         end;
             //     end;
             //  end;
-            //
-            //AS_REGISTER : { Register, a variable reference or a constant reference }
-            //  begin
-            //    Consume(AS_REGISTER);
-            //
-            //    { Simple register }
-            //    if (oper.opr.typ <> OPR_NONE) then
-            //      Message(asmr_e_syn_operand);
-            //    oper.opr.typ:=OPR_REGISTER;
-            //    oper.opr.reg:=actasmregister;
-            //    oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
-            //  end;
+
+            AS_REGISTER : { Register, a variable reference or a constant reference }
+              begin
+                Consume(AS_REGISTER);
+
+                { Simple register }
+                if (oper.opr.typ <> OPR_NONE) then
+                  Message(asmr_e_syn_operand);
+                oper.opr.typ:=OPR_REGISTER;
+                oper.opr.reg:=actasmregister;
+                oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
+              end;
 
             AS_SEPARATOR,
             AS_END,
