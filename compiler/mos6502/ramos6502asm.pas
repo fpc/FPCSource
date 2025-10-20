@@ -77,6 +77,7 @@ Unit ramos6502asm;
         procedure SetupTables;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
+        procedure RecoverConsume(allowcomma:boolean);
         function is_asmopcode(const s: string):boolean;
         function Assemble: tlinkedlist;override;
       end;
@@ -259,6 +260,17 @@ Unit ramos6502asm;
         repeat
           gettoken;
         until actasmtoken<>AS_NONE;
+      end;
+
+
+    procedure tmos6502reader.RecoverConsume(allowcomma:boolean);
+      begin
+        while not (actasmtoken in [AS_SEPARATOR,AS_END]) do
+          begin
+            if allowcomma and (actasmtoken=AS_COMMA) then
+             break;
+            Consume(actasmtoken);
+          end;
       end;
 
 
