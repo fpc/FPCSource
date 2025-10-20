@@ -39,7 +39,7 @@ implementation
       ,t_embed
     {$endif}
     {$ifndef NOTARGETORIC}
-      //,t_oric
+      ,t_oric
     {$endif}
 
 {**************************************

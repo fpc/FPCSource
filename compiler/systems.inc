@@ -219,7 +219,8 @@
              system_mipsel_ps1,         { 123 }
              system_wasm32_wasip1threads,{ 124 }
              system_wasm32_wasip2,      { 125 }
-             system_mos6502_embedded    { 126 }
+             system_mos6502_embedded,   { 126 }
+             system_mos6502_oric        { 127 }
        );
 
      type
@@ -347,7 +348,8 @@
              ld_sinclairql,
              ld_wasi,
              ld_human68k,
-             ld_ps1
+             ld_ps1,
+             ld_oric
        );
 
        tar = (ar_none

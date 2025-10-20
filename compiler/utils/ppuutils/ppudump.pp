@@ -254,7 +254,8 @@ const
   { 123 } 'PS1-mipsel',
   { 124 } 'WASIp1threads-WASM32',
   { 125 } 'WASIp2-WASM32',
-  { 126 } 'Embedded-MOS6502'
+  { 126 } 'Embedded-MOS6502',
+  { 127 } 'Oric-MOS6502'
   );
 
 const
