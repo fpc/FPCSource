@@ -373,7 +373,7 @@ CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr 
 BETATARGETS=mips64 mips64el
 ALLTARGETS=$(CYCLETARGETS)
 NO_NATIVE_COMPILER_OS_LIST=amstradcpc embedded freertos gba macosclassic msdos msxdos nds palmos sinclairql symbian watcom wii win16 zxspectrum ps1 wasip2
-NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80
+NO_NATIVE_COMPILER_CPU_LIST=avr i8086 jvm z80 mos6502
 ifneq ($(CPU_SOURCE),$(CPU_TARGET))
 ifneq ($(findstring $(CPU_TARGET),$(NO_NATIVE_COMPILER_CPU_LIST)),)
 NoNativeBinaries=1
