@@ -70,6 +70,7 @@ Unit ramos6502asm;
       { tmos6502reader }
 
       tmos6502reader = class(tasmreader)
+        actasmcond : TAsmCond;
         actasmtoken   : tasmtoken;
         procedure SetupTables;
         function is_asmopcode(const s: string):boolean;
@@ -118,6 +119,9 @@ Unit ramos6502asm;
 
 
     function tmos6502reader.is_asmopcode(const s: string):boolean;
+      var
+        cond: TAsmCond;
+        condstr: String;
       begin
         actcondition:=C_None;
         actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
@@ -125,6 +129,16 @@ Unit ramos6502asm;
           begin
             actasmtoken:=AS_OPCODE;
             is_asmopcode:=true;
+            if actopcode=A_Bxx then
+              begin
+                condstr:=Copy(s,2,2);
+                for cond in TAsmCond do
+                  if (cond<>C_None) and (uppercond2str[cond]=condstr) then
+                    begin
+                      actasmcond:=cond;
+                      exit;
+                    end;
+              end;
           end
         else
           is_asmopcode:=false;
