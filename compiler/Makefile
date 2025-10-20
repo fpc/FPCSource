@@ -456,6 +456,9 @@ endif
 ifdef LOONGARCH64
 PPC_TARGET=loongarch64
 endif
+ifdef MOS6502
+PPC_TARGET=mos6502
+endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif
@@ -604,6 +607,9 @@ CPUSUF=wasm32
 endif
 ifeq ($(CPC_TARGET),loongarch64)
 CPUSUF=loongarch64
+endif
+ifeq ($(CPC_TARGET),mos6502)
+CPUSUF=6502
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg

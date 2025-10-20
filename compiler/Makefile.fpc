@@ -134,6 +134,9 @@ endif
 ifdef LOONGARCH64
 PPC_TARGET=loongarch64
 endif
+ifdef MOS6502
+PPC_TARGET=mos6502
+endif
 
 # Default is to generate a compiler for the same
 # platform as CPU_TARGET (a native compiler)
@@ -316,6 +319,9 @@ CPUSUF=wasm32
 endif
 ifeq ($(CPC_TARGET),loongarch64)
 CPUSUF=loongarch64
+endif
+ifeq ($(CPC_TARGET),mos6502)
+CPUSUF=6502
 endif
 
 # Do not define the default -d$(CPU_TARGET) because that
