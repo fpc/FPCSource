@@ -105,11 +105,15 @@ Unit ramos6502asm;
     procedure tmos6502reader.SetupTables;
       var
         i: TAsmOp;
+        cond: TAsmCond;
       begin
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
           if i<>A_Bxx then
             iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+        for cond in TAsmCond do
+          if cond<>C_None then
+            iasmops.Add('B'+uppercond2str[cond],Pointer(PtrInt(A_Bxx)));
       end;
 
 
