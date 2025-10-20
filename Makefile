@@ -444,6 +444,9 @@ endif
 ifeq ($(CPU_TARGET),loongarch64)
 PPSUF=loongarch64
 endif
+ifeq ($(CPU_TARGET),mos6502)
+PPSUF=6502
+endif
 ifdef CROSSCOMPILE
 ifneq ($(CPU_TARGET),jvm)
 PPPRE=ppcross
