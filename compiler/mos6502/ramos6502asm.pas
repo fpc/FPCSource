@@ -76,6 +76,7 @@ Unit ramos6502asm;
         prevasmtoken  : tasmtoken;
         procedure SetupTables;
         procedure GetToken;
+        function consume(t : tasmtoken):boolean;
         function is_asmopcode(const s: string):boolean;
         function Assemble: tlinkedlist;override;
       end;
@@ -244,6 +245,20 @@ Unit ramos6502asm;
                  current_scanner.illegal_char(c);
             end;
           end;
+      end;
+
+
+    function tmos6502reader.consume(t : tasmtoken):boolean;
+      begin
+        Consume:=true;
+        if t<>actasmtoken then
+         begin
+           Message2(scan_f_syn_expected,token2str[t],token2str[actasmtoken]);
+           Consume:=false;
+         end;
+        repeat
+          gettoken;
+        until actasmtoken<>AS_NONE;
       end;
 
 
