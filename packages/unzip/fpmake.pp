@@ -20,7 +20,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.3.1';
     P.SourcePath.Add('src');
-    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasip1,wasip1threads,ps1,wasip2];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16,macosclassic,palmos,zxspectrum,msxdos,amstradcpc,sinclairql,wasip1,wasip1threads,ps1,wasip2,oric];
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
 
