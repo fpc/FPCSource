@@ -98,9 +98,6 @@ uses
          procedure loadbool(opidx:longint;_b:boolean);
          { register allocation }
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
-
-         { register spilling code }
-         function spilling_get_operation_type(opnr: longint): topertype;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -293,12 +290,6 @@ implementation
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         result:=false;
-      end;
-
-
-    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
-      begin
-        internalerror(2024040602);
       end;
 
 
