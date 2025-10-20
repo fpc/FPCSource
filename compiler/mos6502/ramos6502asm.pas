@@ -305,9 +305,233 @@ Unit ramos6502asm;
 
 
     procedure tmos6502reader.BuildOperand(oper: tmos6502operand;istypecast:boolean);
+
+      //procedure AddLabelOperand(hl:tasmlabel);
+      //begin
+      //  if (oper.opr.typ=OPR_NONE) and
+      //     is_calljmp(actopcode) then
+      //   begin
+      //     oper.opr.typ:=OPR_SYMBOL;
+      //     oper.opr.symbol:=hl;
+      //   end
+      //  else
+      //   begin
+      //     oper.InitRef;
+      //     oper.opr.ref.symbol:=hl;
+      //     oper.haslabelref:=true;
+      //   end;
+      //end;
+
+      //var
+      //  l: tcgint;
+      //  tsize: tcgint;
+      //  expr: string;
+      //  hl: tasmlabel;
       begin
-        // TODO: implement
-        InternalError(2025102001);
+        repeat
+          case actasmtoken of
+            //AS_OFFSET,
+            //AS_SIZEOF,
+            //AS_VMTOFFSET,
+            //AS_TYPE,
+            //AS_NOT,
+            //AS_STRING,
+            //AS_PLUS,
+            //AS_MINUS,
+            //AS_INTNUM :
+            //  begin
+            //    case oper.opr.typ of
+            //      OPR_REFERENCE :
+            //        begin
+            //          l := BuildRefConstExpression(tsize);
+            //          if tsize<>0 then
+            //            oper.SetSize(tsize,false);
+            //          inc(oper.opr.ref.offset,l);
+            //          inc(oper.opr.constoffset,l);
+            //        end;
+            //      OPR_LOCAL :
+            //        begin
+            //          l := BuildConstExpression;
+            //          inc(oper.opr.localsymofs,l);
+            //          inc(oper.opr.localconstoffset,l);
+            //        end;
+            //
+            //      OPR_NONE,
+            //      OPR_CONSTANT :
+            //        BuildConstantOperand(oper);
+            //      else
+            //        Message(asmr_e_invalid_operand_type);
+            //    end;
+            //  end;
+            //
+            //AS_LPAREN:
+            //  begin
+            //    BuildReference(oper);
+            //  end;
+            //
+            //AS_ID : { A constant expression, or a Variable ref. }
+            //  Begin
+            //    { Label or Special symbol reference? }
+            //    if actasmpattern[1] = '@' then
+            //     Begin
+            //       if actasmpattern = '@RESULT' then
+            //        Begin
+            //          oper.SetupResult;
+            //          Consume(AS_ID);
+            //          expr:='result';
+            //        end
+            //       else
+            //        if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
+            //         begin
+            //           Message(asmr_w_CODE_and_DATA_not_supported);
+            //           Consume(AS_ID);
+            //         end
+            //       else
+            //        { Local Label }
+            //        begin
+            //          CreateLocalLabel(actasmpattern,hl,false);
+            //          Consume(AS_ID);
+            //          AddLabelOperand(hl);
+            //        end;
+            //     end
+            //    else
+            //    { support result for delphi modes }
+            //     if (m_objpas in current_settings.modeswitches) and (actasmpattern='RESULT') then
+            //      begin
+            //        oper.SetUpResult;
+            //        Consume(AS_ID);
+            //        expr:='result';
+            //      end
+            //    { probably a variable or normal expression }
+            //    { or a procedure (such as in CALL ID)      }
+            //    else
+            //     Begin
+            //       { is it a constant ? }
+            //       if SearchIConstant(actasmpattern,l) then
+            //        Begin
+            //          case oper.opr.typ of
+            //            OPR_REFERENCE :
+            //              begin
+            //                l := BuildRefConstExpression(tsize);
+            //                if tsize<>0 then
+            //                  oper.SetSize(tsize,false);
+            //                inc(oper.opr.ref.offset,l);
+            //                inc(oper.opr.constoffset,l);
+            //              end;
+            //
+            //            OPR_LOCAL :
+            //              begin
+            //                l := BuildRefConstExpression(tsize);
+            //                if tsize<>0 then
+            //                  oper.SetSize(tsize,false);
+            //                inc(oper.opr.localsymofs,l);
+            //                inc(oper.opr.localconstoffset,l);
+            //              end;
+            //            OPR_NONE,
+            //            OPR_CONSTANT :
+            //              BuildConstantOperand(oper);
+            //            else
+            //              Message(asmr_e_invalid_operand_type);
+            //          end;
+            //        end
+            //       else
+            //        { Check for pascal label }
+            //        if SearchLabel(actasmpattern,hl,false) then
+            //         begin
+            //           Consume(AS_ID);
+            //           AddLabelOperand(hl);
+            //         end
+            //        else
+            //        { is it a normal variable ? }
+            //         Begin
+            //           expr:=actasmpattern;
+            //           Consume(AS_ID);
+            //
+            //
+            //           { typecasting? }
+            //           if SearchType(expr,l) then
+            //            begin
+            //              oper.hastype:=true;
+            //              oper.typesize:=l;
+            //              case actasmtoken of
+            //                AS_LPAREN :
+            //                  begin
+            //                    { Support Type([Reference]) }
+            //                    Consume(AS_LPAREN);
+            //                    BuildOperand(oper,true);
+            //                    { Delphi also supports Type(Register) and
+            //                      interprets it the same as Type([Register]).  }
+            //                    if (oper.opr.typ = OPR_REGISTER) then
+            //                      { This also sets base to the register.  }
+            //                      oper.InitRef;
+            //                    Consume(AS_RPAREN);
+            //                  end;
+            //                //AS_LBRACKET :
+            //                //  begin
+            //                //    { Support Var.Type[Index] }
+            //                //    { Convert @label.Byte[1] to reference }
+            //                //    if oper.opr.typ=OPR_SYMBOL then
+            //                //      oper.initref;
+            //                //  end;
+            //                else
+            //                  ;
+            //              end;
+            //            end
+            //           else
+            //            begin
+            //              if not oper.SetupVar(expr,false) then
+            //                Begin
+            //                  { not a variable, check special variables.. }
+            //                  if expr = 'SELF' then
+            //                    begin
+            //                      oper.SetupSelf;
+            //                      expr:='self';
+            //                    end
+            //                  else
+            //                    begin
+            //                      Message1(sym_e_unknown_id,expr);
+            //                      expr:='';
+            //                    end;
+            //                end;
+            //              { indexed access to variable? }
+            //              //if actasmtoken=AS_LBRACKET then
+            //              //  begin
+            //              //    { ... then the operand size is not known anymore }
+            //              //    oper.size:=OS_NO;
+            //              //    BuildReference(oper);
+            //              //  end;
+            //            end;
+            //         end;
+            //     end;
+            //  end;
+            //
+            //AS_REGISTER : { Register, a variable reference or a constant reference }
+            //  begin
+            //    Consume(AS_REGISTER);
+            //
+            //    { Simple register }
+            //    if (oper.opr.typ <> OPR_NONE) then
+            //      Message(asmr_e_syn_operand);
+            //    oper.opr.typ:=OPR_REGISTER;
+            //    oper.opr.reg:=actasmregister;
+            //    oper.SetSize(tcgsize2size[reg_cgsize(oper.opr.reg)],true);
+            //  end;
+
+            AS_SEPARATOR,
+            AS_END,
+            AS_COMMA:
+              begin
+                break;
+              end;
+
+            else
+              begin
+                Message(asmr_e_syn_operand);
+                RecoverConsume(true);
+                break;
+              end;
+          end;
+        until false;
       end;
 
 
