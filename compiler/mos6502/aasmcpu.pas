@@ -295,6 +295,7 @@ implementation
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
+        Result:=nil;
         internalerror(2024040603);
         //case getregtype(r) of
         //  R_INTREGISTER :
@@ -307,6 +308,7 @@ implementation
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
+        Result:=nil;
         internalerror(2024040604);
         //case getregtype(r) of
         //  R_INTREGISTER :
