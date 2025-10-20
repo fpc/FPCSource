@@ -70,6 +70,7 @@ Unit ramos6502asm;
       { tmos6502reader }
 
       tmos6502reader = class(tasmreader)
+        procedure SetupTables;
         function Assemble: tlinkedlist;override;
       end;
 
@@ -99,6 +100,16 @@ Unit ramos6502asm;
 *****************************************************************************}
 
 
+    procedure tmos6502reader.SetupTables;
+      var
+        i: TAsmOp;
+      begin
+        iasmops:=TFPHashList.create;
+        for i:=firstop to lastop do
+          iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+      end;
+
+
     function tmos6502reader.Assemble: tlinkedlist;
       var
         hl: tasmlabel;
@@ -111,7 +122,7 @@ Unit ramos6502asm;
         { sets up all opcode and register tables in uppercase }
         if not _asmsorted then
           begin
-            //SetupTables;
+            SetupTables;
             _asmsorted:=TRUE;
           end;
         curlist:=TAsmList.Create;
