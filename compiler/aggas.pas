@@ -206,6 +206,7 @@ implementation
            create_smartlink_sections and
            (atype<>sec_toc) and
            (atype<>sec_user) and
+           (atype<>sec_note) and
            { on embedded systems every byte counts, so smartlink bss too }
            ((atype<>sec_bss) or (target_info.system in (systems_embedded+systems_freertos)));
       end;
@@ -282,7 +283,8 @@ implementation
           '.stack',
           '.heap',
           '.gcc_except_table',
-          '.ARM.attributes'
+          '.ARM.attributes',
+          '.note'
         );
         secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -343,7 +345,8 @@ implementation
           '.stack',
           '.heap',
           '.gcc_except_table',
-          '..ARM.attributes'
+          '..ARM.attributes',
+          '.note'
         );
       var
         sep     : string[3];
@@ -397,6 +400,9 @@ implementation
         { section type user gives the user full controll on the section name }
         if atype=sec_user then
           secname:=aname;
+
+        if atype=sec_note then
+          secname:='.note'+aname;
 
         if is_smart_section(atype) and (aname<>'') then
           begin
@@ -580,6 +586,7 @@ implementation
              if not(atype in [sec_data,sec_rodata,sec_rodata_norel]) and
                 not(asminfo^.id=as_solaris_as) and
                 not(atype=sec_fpc) and
+                not(atype=sec_note) and
                 not(target_info.system in (systems_embedded+systems_freertos)) then
                begin
                  usesectionflags:=true;
@@ -646,6 +653,8 @@ implementation
                     internalerror(2006031101);
                 end;
               end;
+            sec_note :
+              writer.AsmWrite(', "", @note');
           else
             { GNU AS won't recognize '.text.n_something' section name as belonging
               to '.text' and assigns default attributes to it, which is not
@@ -2264,7 +2273,8 @@ implementation
          sec_none (* sec_stack *),
          sec_none (* sec_heap *),
          sec_none (* gcc_except_table *),
-         sec_none (* sec_arm_attribute *)
+         sec_none (* sec_arm_attribute *),
+         sec_none (* sec_note *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

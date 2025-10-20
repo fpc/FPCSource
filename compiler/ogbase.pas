@@ -1528,7 +1528,8 @@ implementation
           {stack} [oso_load,oso_write],
           {heap} [oso_load,oso_write],
           {gcc_except_table} [oso_data,oso_load],
-          {arm_attribute} [oso_data]
+          {arm_attribute} [oso_data],
+          {note} [oso_Data,oso_note]
         );
       begin
         if target_asm.id in asms_int_coff then

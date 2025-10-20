@@ -1021,7 +1021,7 @@ implementation
               if not(section in [low(TObjCAsmSectionType)..high(TObjCAsmSectionType)]) then
                 prelist.concat(tai_directive.Create(asd_reference,asmsym.name))
              end
-           else if section<>sec_fpc then
+           else if not(section in [sec_fpc,sec_note]) then
              internalerror(2015101402);
          end;
 
