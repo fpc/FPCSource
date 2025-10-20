@@ -71,8 +71,11 @@ Unit ramos6502asm;
 
       tmos6502reader = class(tasmreader)
         actasmcond : TAsmCond;
+        actasmpattern_origcase : string;
         actasmtoken   : tasmtoken;
+        prevasmtoken  : tasmtoken;
         procedure SetupTables;
+        procedure GetToken;
         function is_asmopcode(const s: string):boolean;
         function Assemble: tlinkedlist;override;
       end;
@@ -115,6 +118,132 @@ Unit ramos6502asm;
         for cond in TAsmCond do
           if cond<>C_None then
             iasmops.Add('B'+uppercond2str[cond],Pointer(PtrInt(A_Bxx)));
+      end;
+
+
+    procedure tmos6502reader.GetToken;
+      var
+        len: Integer;
+      begin
+        c:=scanner.c;
+        { save old token and reset new token }
+        prevasmtoken:=actasmtoken;
+        actasmtoken:=AS_NONE;
+        { reset }
+        actasmpattern:='';
+        { while space and tab , continue scan... }
+        while c in [' ',#9] do
+          c:=current_scanner.asmgetchar;
+        { get token pos }
+        if not (c in [#10,#13,'{',';','/','(']) then
+          current_scanner.gettokenpos;
+        { Local Label, Label, Directive, Prefix or Opcode }
+        if firsttoken and not(c in [#10,#13,';']) then
+          begin
+            firsttoken:=FALSE;
+            len:=0;
+            { only opcodes, global and local labels are allowed now. }
+            while c in ['A'..'Z','a'..'z','0'..'9','_','@'] do
+              begin
+                inc(len);
+                actasmpattern[len]:=c;
+                c:=current_scanner.asmgetchar;
+              end;
+            actasmpattern[0]:=chr(len);
+            actasmpattern_origcase:=actasmpattern;
+            { Opcode ? }
+            if is_asmopcode(upper(actasmpattern)) then
+              begin
+                uppervar(actasmpattern);
+                exit;
+              end;
+            { End of assemblerblock ? }
+            if upper(actasmpattern) = 'END' then
+              begin
+                actasmtoken:=AS_END;
+                exit;
+              end;
+            message1(asmr_e_unknown_opcode,actasmpattern);
+            actasmtoken:=AS_NONE;
+          end
+        else { else firsttoken }
+          { Here we must handle all possible cases }
+          begin
+            case c of
+            { identifier, register, prefix or directive }
+               '_','A'..'Z','a'..'z':
+                 begin
+                   len:=0;
+                   while c in ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                    begin
+                      inc(len);
+                      actasmpattern[len]:=c;
+                      c:=current_scanner.asmgetchar;
+                    end;
+                   actasmpattern[0]:=chr(len);
+                   actasmpattern_origcase:=actasmpattern;
+                   uppervar(actasmpattern);
+                   { check for end which is a reserved word unlike the opcodes }
+                   if actasmpattern = 'END' then
+                     begin
+                       actasmtoken:=AS_END;
+                       exit;
+                     end;
+                   //if is_register(actasmpattern) then
+                   //  begin
+                   //    actasmtoken:=AS_REGISTER;
+                   //    { is it an alternate register? }
+                   //    if (c='''') and is_register(actasmpattern+'''') then
+                   //      begin
+                   //        actasmpattern:=actasmpattern+c;
+                   //        c:=current_scanner.asmgetchar;
+                   //      end;
+                   //    exit;
+                   //  end;
+                   { if next is a '.' and this is a unitsym then we also need to
+                     parse the identifier }
+                   //if (c='.') then
+                   // begin
+                   //   searchsym(actasmpattern,srsym,srsymtable);
+                   //   if assigned(srsym) and
+                   //      (srsym.typ=unitsym) and
+                   //      (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
+                   //      srsym.owner.iscurrentunit then
+                   //    begin
+                   //      actasmpattern:=actasmpattern+c;
+                   //      c:=current_scanner.asmgetchar;
+                   //      while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                   //       begin
+                   //         actasmpattern:=actasmpattern + upcase(c);
+                   //         c:=current_scanner.asmgetchar;
+                   //       end;
+                   //    end;
+                   // end;
+                   actasmtoken:=AS_ID;
+                   exit;
+                 end;
+
+               #13,#10:
+                 begin
+                   current_scanner.linebreak;
+                   c:=current_scanner.asmgetchar;
+                   firsttoken:=TRUE;
+                   actasmtoken:=AS_SEPARATOR;
+                   exit;
+                 end;
+
+               ';' :
+                 begin
+                   c:=current_scanner.asmgetchar;
+                   firsttoken:=TRUE;
+                   actasmtoken:=AS_SEPARATOR;
+                   exit;
+                 end;
+
+               else
+                 current_scanner.illegal_char(c);
+            end;
+          end;
       end;
 
 
@@ -167,7 +296,7 @@ Unit ramos6502asm;
           current_procinfo.generate_parameter_info;
 
         { start tokenizer }
-        //gettoken;
+        gettoken;
         lastsectype:=sec_code;
         { main loop }
         //repeat
