@@ -326,129 +326,129 @@ Unit ramos6502asm;
         gettoken;
         lastsectype:=sec_code;
         { main loop }
-        //repeat
-        //  case actasmtoken of
-        //    AS_LLABEL:
-        //      Begin
-        //        if CreateLocalLabel(actasmpattern,hl,true) then
-        //          ConcatLabel(curlist,hl);
-        //        Consume(AS_LLABEL);
-        //      end;
-        //
-        //    AS_LABEL:
-        //      Begin
-        //        if SearchLabel(upper(actasmpattern),hl,true) then
-        //          begin
-        //            if hl.is_public then
-        //              ConcatPublic(curlist,actasmpattern_origcase);
-        //            ConcatLabel(curlist,hl);
-        //          end
-        //        else
-        //         Message1(asmr_e_unknown_label_identifier,actasmpattern);
-        //        Consume(AS_LABEL);
-        //      end;
-        //
-        //    AS_END:
-        //      begin
-        //        break; { end assembly block }
-        //      end;
-        //
-        //    AS_SEPARATOR:
-        //      begin
-        //        Consume(AS_SEPARATOR);
-        //      end;
-        //
-        //    AS_DEFB :
-        //      Begin
-        //        inexpression:=true;
-        //        Consume(AS_DEFB);
-        //        BuildConstant(1);
-        //        inexpression:=false;
-        //      end;
-        //
-        //    AS_DEFW :
-        //      Begin
-        //        inexpression:=true;
-        //        Consume(AS_DEFW);
-        //        BuildConstant(2);
-        //        inexpression:=false;
-        //      end;
-        //
-        //    AS_AREA :
-        //      begin
-        //        Consume(AS_AREA);
-        //        sectionname:=actasmpattern;
-        //        {secflags:=[];
-        //        secprogbits:=SPB_None;}
-        //        Consume(AS_STRING);
-        //        {if actasmtoken=AS_COMMA then
-        //          begin
-        //            Consume(AS_COMMA);
-        //            if actasmtoken=AS_STRING then
-        //              begin
-        //                case actasmpattern of
-        //                  'a':
-        //                    Include(secflags,SF_A);
-        //                  'w':
-        //                    Include(secflags,SF_W);
-        //                  'x':
-        //                    Include(secflags,SF_X);
-        //                  '':
-        //                    ;
-        //                  else
-        //                    Message(asmr_e_syntax_error);
-        //                end;
-        //                Consume(AS_STRING);
-        //                if actasmtoken=AS_COMMA then
-        //                  begin
-        //                    Consume(AS_COMMA);
-        //                    if (actasmtoken=AS_MOD) or (actasmtoken=AS_AT) then
-        //                      begin
-        //                        Consume(actasmtoken);
-        //                        if actasmtoken=AS_ID then
-        //                          begin
-        //                            case actasmpattern of
-        //                              'PROGBITS':
-        //                                secprogbits:=SPB_PROGBITS;
-        //                              'NOBITS':
-        //                                secprogbits:=SPB_NOBITS;
-        //                              'NOTE':
-        //                                secprogbits:=SPB_NOTE;
-        //                              else
-        //                                Message(asmr_e_syntax_error);
-        //                            end;
-        //                            Consume(AS_ID);
-        //                          end
-        //                        else
-        //                          Message(asmr_e_syntax_error);
-        //                      end
-        //                    else
-        //                      Message(asmr_e_syntax_error);
-        //                  end;
-        //              end
-        //            else
-        //              Message(asmr_e_syntax_error);
-        //          end;}
-        //
-        //        //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
-        //        section:=new_section(curlist, sec_user, sectionname, 0);
-        //        lastsectype:=sec_user;
-        //        //section.secflags:=secflags;
-        //        //section.secprogbits:=secprogbits;
-        //      end;
-        //
-        //    AS_OPCODE:
-        //      begin
-        //        HandleOpCode;
-        //      end;
-        //
-        //    else
-        //      begin
-        //        Message(asmr_e_syntax_error);
-        //        RecoverConsume(false);
-        //      end;
-        //  end;
-        //until false;
+        repeat
+          case actasmtoken of
+            //AS_LLABEL:
+            //  Begin
+            //    if CreateLocalLabel(actasmpattern,hl,true) then
+            //      ConcatLabel(curlist,hl);
+            //    Consume(AS_LLABEL);
+            //  end;
+            //
+            //AS_LABEL:
+            //  Begin
+            //    if SearchLabel(upper(actasmpattern),hl,true) then
+            //      begin
+            //        if hl.is_public then
+            //          ConcatPublic(curlist,actasmpattern_origcase);
+            //        ConcatLabel(curlist,hl);
+            //      end
+            //    else
+            //     Message1(asmr_e_unknown_label_identifier,actasmpattern);
+            //    Consume(AS_LABEL);
+            //  end;
+
+            AS_END:
+              begin
+                break; { end assembly block }
+              end;
+
+            AS_SEPARATOR:
+              begin
+                Consume(AS_SEPARATOR);
+              end;
+
+            //AS_DEFB :
+            //  Begin
+            //    inexpression:=true;
+            //    Consume(AS_DEFB);
+            //    BuildConstant(1);
+            //    inexpression:=false;
+            //  end;
+            //
+            //AS_DEFW :
+            //  Begin
+            //    inexpression:=true;
+            //    Consume(AS_DEFW);
+            //    BuildConstant(2);
+            //    inexpression:=false;
+            //  end;
+            //
+            //AS_AREA :
+            //  begin
+            //    Consume(AS_AREA);
+            //    sectionname:=actasmpattern;
+            //    {secflags:=[];
+            //    secprogbits:=SPB_None;}
+            //    Consume(AS_STRING);
+            //    {if actasmtoken=AS_COMMA then
+            //      begin
+            //        Consume(AS_COMMA);
+            //        if actasmtoken=AS_STRING then
+            //          begin
+            //            case actasmpattern of
+            //              'a':
+            //                Include(secflags,SF_A);
+            //              'w':
+            //                Include(secflags,SF_W);
+            //              'x':
+            //                Include(secflags,SF_X);
+            //              '':
+            //                ;
+            //              else
+            //                Message(asmr_e_syntax_error);
+            //            end;
+            //            Consume(AS_STRING);
+            //            if actasmtoken=AS_COMMA then
+            //              begin
+            //                Consume(AS_COMMA);
+            //                if (actasmtoken=AS_MOD) or (actasmtoken=AS_AT) then
+            //                  begin
+            //                    Consume(actasmtoken);
+            //                    if actasmtoken=AS_ID then
+            //                      begin
+            //                        case actasmpattern of
+            //                          'PROGBITS':
+            //                            secprogbits:=SPB_PROGBITS;
+            //                          'NOBITS':
+            //                            secprogbits:=SPB_NOBITS;
+            //                          'NOTE':
+            //                            secprogbits:=SPB_NOTE;
+            //                          else
+            //                            Message(asmr_e_syntax_error);
+            //                        end;
+            //                        Consume(AS_ID);
+            //                      end
+            //                    else
+            //                      Message(asmr_e_syntax_error);
+            //                  end
+            //                else
+            //                  Message(asmr_e_syntax_error);
+            //              end;
+            //          end
+            //        else
+            //          Message(asmr_e_syntax_error);
+            //      end;}
+            //
+            //    //curList.concat(tai_section.create(sec_user, actasmpattern, 0));
+            //    section:=new_section(curlist, sec_user, sectionname, 0);
+            //    lastsectype:=sec_user;
+            //    //section.secflags:=secflags;
+            //    //section.secprogbits:=secprogbits;
+            //  end;
+
+            //AS_OPCODE:
+            //  begin
+            //    HandleOpCode;
+            //  end;
+
+            else
+              begin
+                Message(asmr_e_syntax_error);
+                RecoverConsume(false);
+              end;
+          end;
+        until false;
         { are we back in the code section? }
         if lastsectype<>sec_code then
           begin
