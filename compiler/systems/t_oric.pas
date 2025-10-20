@@ -337,7 +337,7 @@ end;
 
 function TLinkerOric.postprocessexecutable(const fn: string; isdll: boolean): boolean;
   begin
-    result:=DoExec(FindUtil(utilsprefix+'ihxutil'),' '+fn,true,false);
+    result:=DoExec(FindUtil(utilsprefix+'ihxutil'),' -t bin '+fn+' '+maybequoted(ScriptFixFileName(current_module.exefilename)),true,false);
   end;
 
 
