@@ -2213,6 +2213,8 @@ begin
       target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     system_z80_msxdos:
       target_unsup_features:=[f_threading,f_dynlibs];
+    system_mos6502_oric:
+      target_unsup_features:=[f_threading,f_dynlibs{,f_fileio,f_textio},f_commandargs,f_exitcode];
     else
       target_unsup_features:=[];
   end;
