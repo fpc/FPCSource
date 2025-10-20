@@ -303,13 +303,13 @@ unit cpupara;
                    by adding paralen mod 2, make the size even
                  }
                  nextintreg:=curintreg-(paralen+(paralen mod 2))+1;
-                 if nextintreg>=RS_A then
-                   curintreg:=nextintreg-1
-                 else
+                 {if nextintreg>=RS_A then}
+                   curintreg:=nextintreg-1;
+                 {else
                    begin
                      curintreg:=RS_A;
                      loc:=LOC_REFERENCE;
-                   end;
+                   end;}
                end;
              while paralen>0 do
                begin
@@ -338,17 +338,17 @@ unit cpupara;
                  case loc of
                     LOC_REGISTER:
                       begin
-                        if nextintreg>=RS_A then
-                          begin
+                        {if nextintreg>=RS_A then
+                          begin}
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.size:=OS_8;
                             paraloc^.def:=u8inttype;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
-                          end
-                        else
+                          {end
+                        else}
                           { parameters are always passed completely in registers or in memory on Z80 }
-                          internalerror(2015041002);
+                          {internalerror(2015041002);}
                         dec(paralen,tcgsize2size[paraloc^.size]);
                       end;
                     LOC_REFERENCE:
