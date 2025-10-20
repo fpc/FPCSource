@@ -79,6 +79,9 @@ Unit ramos6502asm;
         function consume(t : tasmtoken):boolean;
         procedure RecoverConsume(allowcomma:boolean);
         function is_asmopcode(const s: string):boolean;
+        procedure BuildOperand(oper: tmos6502operand;istypecast:boolean);
+        procedure BuildOpCode(instr:TMOS6502Instruction);
+        procedure handleopcode;
         function Assemble: tlinkedlist;override;
       end;
 
@@ -301,6 +304,69 @@ Unit ramos6502asm;
       end;
 
 
+    procedure tmos6502reader.BuildOperand(oper: tmos6502operand;istypecast:boolean);
+      begin
+        // TODO: implement
+        InternalError(2025102001);
+      end;
+
+
+    procedure tmos6502reader.BuildOpCode(instr:TMOS6502Instruction);
+      var
+        operandnum: Integer;
+      begin
+        instr.opcode:=actopcode;
+        operandnum:=1;
+        Consume(AS_OPCODE);
+        { Zero operand opcode ?  }
+        if actasmtoken in [AS_SEPARATOR,AS_END] then
+          exit;
+        { Read Operands }
+        repeat
+          case actasmtoken of
+            { End of asm operands for this opcode }
+            AS_END,
+            AS_SEPARATOR :
+              break;
+
+            { Operand delimiter }
+            AS_COMMA :
+              begin
+                { should have something before the comma }
+                if instr.operands[operandnum].opr.typ=OPR_NONE then
+                  Message(asmr_e_syntax_error);
+                if operandnum >= max_operands then
+                  Message(asmr_e_too_many_operands)
+                else
+                  Inc(operandnum);
+                Consume(AS_COMMA);
+              end;
+            else
+              BuildOperand(instr.Operands[operandnum] as tmos6502operand,false);
+          end;
+        until false;
+        instr.ops:=operandnum;
+      end;
+
+
+    procedure tmos6502reader.handleopcode;
+      var
+        instr: TMOS6502Instruction;
+      begin
+        instr:=TMOS6502Instruction.create(TMOS6502Operand);
+        BuildOpcode(instr);
+        with instr do
+          begin
+            //CheckNonCommutativeOpcodes;
+            //AddReferenceSizes;
+            //SetInstructionOpsize;
+            //CheckOperandSizes;
+            ConcatInstruction(curlist);
+          end;
+        instr.Free;
+      end;
+
+
     function tmos6502reader.Assemble: tlinkedlist;
       var
         hl: tasmlabel;
@@ -437,10 +503,10 @@ Unit ramos6502asm;
             //    //section.secprogbits:=secprogbits;
             //  end;
 
-            //AS_OPCODE:
-            //  begin
-            //    HandleOpCode;
-            //  end;
+            AS_OPCODE:
+              begin
+                HandleOpCode;
+              end;
 
             else
               begin
