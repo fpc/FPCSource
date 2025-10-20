@@ -70,7 +70,9 @@ Unit ramos6502asm;
       { tmos6502reader }
 
       tmos6502reader = class(tasmreader)
+        actasmtoken   : tasmtoken;
         procedure SetupTables;
+        function is_asmopcode(const s: string):boolean;
         function Assemble: tlinkedlist;override;
       end;
 
@@ -107,6 +109,20 @@ Unit ramos6502asm;
         iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
           iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
+      end;
+
+
+    function tmos6502reader.is_asmopcode(const s: string):boolean;
+      begin
+        actcondition:=C_None;
+        actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
+        if actopcode<>A_NONE then
+          begin
+            actasmtoken:=AS_OPCODE;
+            is_asmopcode:=true;
+          end
+        else
+          is_asmopcode:=false;
       end;
 
 
