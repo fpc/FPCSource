@@ -229,6 +229,21 @@ Unit ramos6502asm;
                    exit;
                  end;
 
+               '0'..'9': { integer number }
+                 begin
+                   len:=0;
+                   while c in ['0'..'9'] do
+                    Begin
+                      inc(len);
+                      actasmpattern[len]:=c;
+                      c:=current_scanner.asmgetchar;
+                    end;
+                   actasmpattern[0]:=chr(len);
+                   actasmpattern:=tostr(ParseVal(actasmpattern,10));
+                   actasmtoken:=AS_INTNUM;
+                   exit;
+                 end;
+
                #13,#10:
                  begin
                    current_scanner.linebreak;
