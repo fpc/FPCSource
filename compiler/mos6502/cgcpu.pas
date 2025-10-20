@@ -699,7 +699,7 @@ unit cgcpu;
 
        const
          shiftcountreg = NR_X;
-         maskshiftcount = true;
+         //maskshiftcount = true;
        var
          skipshift, shiftloopstart, rornocarry: TAsmLabel;
          shiftthruaccumulator: Boolean;
@@ -797,8 +797,8 @@ unit cgcpu;
              begin
                current_asmdata.getjumplabel(skipshift);
                current_asmdata.getjumplabel(shiftloopstart);
-               if maskshiftcount then
-                 begin
+               //if maskshiftcount then
+               //  begin
                    getcpuregister(list,NR_A);
                    a_load_reg_reg(list,OS_8,OS_8,src,NR_A);
                    case size of
@@ -813,14 +813,14 @@ unit cgcpu;
                    getcpuregister(list,shiftcountreg);
                    a_load_reg_reg(list,OS_8,OS_8,NR_A,shiftcountreg); { TAX/TAY }
                    ungetcpuregister(list,NR_A);
-                 end
-               else
-                 begin
-                   getcpuregister(list,shiftcountreg);
-                   a_load_reg_reg(list,OS_8,OS_8,src,shiftcountreg);  { LDX/LDY }
-                   { BEQ skip (the zero flag has already been set by the LDX/LDY instruction) }
-                   list.Concat(taicpu.op_cond_sym(A_Bxx,C_EQ,skipshift));
-                 end;
+               //  end
+               //else
+               //  begin
+               //    getcpuregister(list,shiftcountreg);
+               //    a_load_reg_reg(list,OS_8,OS_8,src,shiftcountreg);  { LDX/LDY }
+               //    { BEQ skip (the zero flag has already been set by the LDX/LDY instruction) }
+               //    list.Concat(taicpu.op_cond_sym(A_Bxx,C_EQ,skipshift));
+               //  end;
 
                shiftthruaccumulator:=(size in [OS_8,OS_S8]) and not(cs_opt_size in current_settings.optimizerswitches);
 
