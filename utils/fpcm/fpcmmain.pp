@@ -87,7 +87,7 @@ interface
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
     aix,java,android,nativent,msdos,wii,aros,dragonfly,
     win16,freertos,zxspectrum,msxdos,ios,amstradcpc,sinclairql,
-    wasip1,human68k,ps1,wasip1threads,wasip2
+    wasip1,human68k,ps1,wasip1threads,wasip2,oric
   );}
   TOS = fpmkunit.TOS;
 {$else}
@@ -105,7 +105,7 @@ interface
         win64,wince,gba,nds,embedded,symbian,nativent,iphonesim,
         wii,aix,java,android,msdos,aros,dragonfly,win16,freertos,
         zxspectrum,msxdos,ios,amstradcpc,sinclairql,wasip1,human68k,ps1,
-        wasip1threads,wasip2
+        wasip1threads,wasip2,oric
       );
 {$endif}
 
@@ -141,7 +141,7 @@ interface
         'iphonesim', 'wii', 'aix', 'java', 'android', 'msdos', 'aros',
         'dragonfly', 'win16', 'freertos', 'zxspectrum', 'msxdos',
         'ios','amstradcpc','sinclairql','wasip1','human68k','ps1','wasip1threads',
-        'wasip2'
+        'wasip2','oric'
       );
 
       OSSuffix : array[TOS] of string=(
@@ -152,7 +152,7 @@ interface
         '_iphonesim','_wii','_aix','_java','_android','_msdos','_aros',
         '_dragonfly','_win16','_freertos','_zxspectrum','_msxdos',
         '_ios','_amstradcpc','_sinclairql','_wasip1','_human68k','_ps1','_wasip1threads',
-        '_wasip2'
+        '_wasip2','_oric'
       );
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -214,7 +214,8 @@ interface
         { human68k }( false, false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false,      false),
         { ps1 }     ( false, false, false, false, false, false, false, false, false, false, false, false, true,  false, false,   false, false, false,  false, false, false,  false,  false, false, false,      false),
   { wasip1threads } ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false,      false),
-        { wasip2 }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false,      false)
+        { wasip2 }  ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  true,  false, false,  false,  false, false, false,      false),
+        { oric }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false,      true)
       );
 {$endif }
     type
