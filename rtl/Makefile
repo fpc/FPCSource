@@ -713,6 +713,9 @@ endif
 ifeq ($(CPU_OS_TARGET),mos6502-embedded)
 override TARGET_DIRS+=embedded
 endif
+ifeq ($(CPU_OS_TARGET),mos6502-oric)
+override TARGET_DIRS+=oric
+endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_CREATEPACKAGEFPC=y
 ifdef REQUIRE_UNITSDIR
@@ -2413,6 +2416,9 @@ TARGET_DIRS_LINUX=1
 endif
 ifeq ($(CPU_OS_TARGET),mos6502-embedded)
 TARGET_DIRS_EMBEDDED=1
+endif
+ifeq ($(CPU_OS_TARGET),mos6502-oric)
+TARGET_DIRS_ORIC=1
 endif
 ifdef TARGET_DIRS_LINUX
 linux_all:
@@ -4438,6 +4444,51 @@ msxdos_makefiles:
 msxdos:
 	$(MAKE) -C msxdos all
 .PHONY: msxdos_all msxdos_debug msxdos_smart msxdos_release msxdos_units msxdos_examples msxdos_shared msxdos_install msxdos_sourceinstall msxdos_exampleinstall msxdos_distinstall msxdos_zipinstall msxdos_zipsourceinstall msxdos_zipexampleinstall msxdos_zipdistinstall msxdos_clean msxdos_distclean msxdos_cleanall msxdos_info msxdos_makefiles msxdos
+endif
+ifdef TARGET_DIRS_ORIC
+oric_all:
+	$(MAKE) -C oric all
+oric_debug:
+	$(MAKE) -C oric debug
+oric_smart:
+	$(MAKE) -C oric smart
+oric_release:
+	$(MAKE) -C oric release
+oric_units:
+	$(MAKE) -C oric units
+oric_examples:
+	$(MAKE) -C oric examples
+oric_shared:
+	$(MAKE) -C oric shared
+oric_install:
+	$(MAKE) -C oric install
+oric_sourceinstall:
+	$(MAKE) -C oric sourceinstall
+oric_exampleinstall:
+	$(MAKE) -C oric exampleinstall
+oric_distinstall:
+	$(MAKE) -C oric distinstall
+oric_zipinstall:
+	$(MAKE) -C oric zipinstall
+oric_zipsourceinstall:
+	$(MAKE) -C oric zipsourceinstall
+oric_zipexampleinstall:
+	$(MAKE) -C oric zipexampleinstall
+oric_zipdistinstall:
+	$(MAKE) -C oric zipdistinstall
+oric_clean:
+	$(MAKE) -C oric clean
+oric_distclean:
+	$(MAKE) -C oric distclean
+oric_cleanall:
+	$(MAKE) -C oric cleanall
+oric_info:
+	$(MAKE) -C oric info
+oric_makefiles:
+	$(MAKE) -C oric makefiles
+oric:
+	$(MAKE) -C oric all
+.PHONY: oric_all oric_debug oric_smart oric_release oric_units oric_examples oric_shared oric_install oric_sourceinstall oric_exampleinstall oric_distinstall oric_zipinstall oric_zipsourceinstall oric_zipexampleinstall oric_zipdistinstall oric_clean oric_distclean oric_cleanall oric_info oric_makefiles oric
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
