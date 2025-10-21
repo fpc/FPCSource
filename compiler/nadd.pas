@@ -2874,7 +2874,22 @@ const
                         inserttypeconv(right,left.resultdef)
                        else if is_voidpointer(left.resultdef) then
                         inserttypeconv(left,right.resultdef)
-                       else if not(equal_defs(ld,rd)) then
+                       else if not (
+                           { in Delphi two different pointer types can be compared
+                             if either $POINTERMATH is currently enabled or if
+                             both pointer defs were declared with $POINTERMATH
+                             enabled }
+                           (m_delphi in current_settings.modeswitches) and
+                           (ld.typ=pointerdef) and
+                           (rd.typ=pointerdef) and
+                           (
+                             (cs_pointermath in current_settings.localswitches) or
+                             (
+                               tpointerdef(ld).has_pointer_math and
+                               tpointerdef(rd).has_pointer_math
+                             )
+                           )
+                         ) and not(equal_defs(ld,rd)) then
                         IncompatibleTypes(ld,rd);
                      end
                     else
