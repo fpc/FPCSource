@@ -66,6 +66,24 @@ Unit ramos6502asm;
         'directive');
 
     type
+      { input flags for BuildConstSymbolExpression }
+      tconstsymbolexpressioninputflag = (
+        cseif_needofs,
+        cseif_isref,
+        cseif_startingminus,
+        { allows using full reference-like syntax for constsymbol expressions,
+          for example:
+          Rec.Str[5]  ->  Rec.Str+5 }
+        cseif_referencelike
+      );
+      tconstsymbolexpressioninputflags = set of tconstsymbolexpressioninputflag;
+      { output flags for BuildConstSymbolExpression }
+      tconstsymbolexpressionoutputflag = (
+        cseof_isseg,
+        cseof_is_farproc_entry,
+        cseof_hasofs
+      );
+      tconstsymbolexpressionoutputflags = set of tconstsymbolexpressionoutputflag;
 
       { tmos6502reader }
 
@@ -74,12 +92,16 @@ Unit ramos6502asm;
         actasmpattern_origcase : string;
         actasmtoken   : tasmtoken;
         prevasmtoken  : tasmtoken;
+        inexpression : boolean;
         procedure SetupTables;
         procedure GetToken;
         function consume(t : tasmtoken):boolean;
         procedure RecoverConsume(allowcomma:boolean);
+        function is_locallabel(const s:string):boolean;
         function is_asmopcode(const s: string):boolean;
         function is_register(const s:string):boolean;
+        procedure BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
+        procedure BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
         function BuildConstExpression:longint;
         function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
         procedure BuildConstantOperand(oper: tmos6502operand);
@@ -299,6 +321,12 @@ Unit ramos6502asm;
       end;
 
 
+    function tmos6502reader.is_locallabel(const s:string):boolean;
+      begin
+        is_locallabel:=(length(s)>1) and (s[1]='@');
+      end;
+
+
     function tmos6502reader.is_asmopcode(const s: string):boolean;
       var
         cond: TAsmCond;
@@ -338,28 +366,519 @@ Unit ramos6502asm;
       end;
 
 
-    function tmos6502reader.BuildConstExpression:longint;
+    procedure tmos6502reader.BuildRecordOffsetSize(const expr: string;out offset:tcgint;out size:tcgint; out mangledname: string; needvmtofs: boolean; out hastypecast: boolean);
+      var
+        s: string;
+      Begin
+        offset:=0;
+        size:=0;
+        mangledname:='';
+        hastypecast:=false;
+        s:=expr;
+        while (actasmtoken=AS_DOT) do
+         begin
+           Consume(AS_DOT);
+           if actasmtoken in [AS_ID,AS_REGISTER] then
+             begin
+               s:=s+'.'+actasmpattern;
+               consume(actasmtoken);
+             end
+           else
+            begin
+              Consume(AS_ID);
+              RecoverConsume(true);
+              break;
+            end;
+         end;
+        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs,hastypecast) then
+          Message(asmr_e_building_record_offset);
+      end;
+
+
+    procedure tmos6502reader.BuildConstSymbolExpression(in_flags: tconstsymbolexpressioninputflags;out value:tcgint;out asmsym:string;out asmsymtyp:TAsmsymtype;out size:tcgint;out out_flags:tconstsymbolexpressionoutputflags);
+      var
+        tempstr,expr,hs,mangledname : string;
+        parenlevel : longint;
+        l,k : tcgint;
+        hasparen,
+        errorflag,
+        needvmtofs : boolean;
+        prevtok : tasmtoken;
+        hl : tasmlabel;
+        hssymtyp : Tasmsymtype;
+        def : tdef;
+        sym : tsym;
+        srsymtable : TSymtable;
+        hastypecast : boolean;
       begin
-        // TODO: implement
-        internalerror(2025102101);
-        result:=0;
+        { reset }
+        value:=0;
+        asmsym:='';
+        asmsymtyp:=AT_DATA;
+        size:=0;
+        out_flags:=[];
+        errorflag:=FALSE;
+        tempstr:='';
+        expr:='';
+        if cseif_startingminus in in_flags then
+          expr:='-';
+        inexpression:=TRUE;
+        parenlevel:=0;
+        sym:=nil;
+        needvmtofs:=FALSE;
+        Repeat
+          { Support ugly delphi constructs like: [ECX].1+2[EDX] }
+          if (cseif_isref in in_flags) and (actasmtoken=AS_LBRACKET) then
+            break;
+          if (cseif_referencelike in in_flags) and
+             (actasmtoken in [AS_LBRACKET,AS_RBRACKET]) then
+            case actasmtoken of
+              AS_LBRACKET:
+                begin
+                  Consume(AS_LBRACKET);
+                  if (length(expr)>0) and
+                     not (expr[length(expr)] in ['+','-']) then
+                    expr:=expr+'+';
+                  expr:=expr+'[';
+                end;
+              AS_RBRACKET:
+                begin
+                  Consume(AS_RBRACKET);
+                  expr:=expr+']';
+                end;
+              else
+                ;
+            end;
+          Case actasmtoken of
+            AS_LPAREN:
+              Begin
+                Consume(AS_LPAREN);
+                expr:=expr + '(';
+                inc(parenlevel);
+              end;
+            AS_RPAREN:
+              Begin
+                { Keep the AS_PAREN in actasmtoken, it is maybe a typecast }
+                if parenlevel=0 then
+                  break;
+                Consume(AS_RPAREN);
+                expr:=expr + ')';
+                dec(parenlevel);
+              end;
+            AS_SHL:
+              Begin
+                Consume(AS_SHL);
+                expr:=expr + '<';
+              end;
+            AS_SHR:
+              Begin
+                Consume(AS_SHR);
+                expr:=expr + '>';
+              end;
+            AS_SLASH:
+              Begin
+                Consume(AS_SLASH);
+                expr:=expr + '/';
+              end;
+            AS_MOD:
+              Begin
+                Consume(AS_MOD);
+                expr:=expr + '%';
+              end;
+            AS_STAR:
+              Begin
+                Consume(AS_STAR);
+                if (cseif_isref in in_flags) and (actasmtoken=AS_REGISTER) then
+                 break;
+                expr:=expr + '*';
+              end;
+            AS_PLUS:
+              Begin
+                Consume(AS_PLUS);
+                if (cseif_isref in in_flags) and ((actasmtoken=AS_REGISTER) or (actasmtoken=AS_LBRACKET)) then
+                 break;
+                expr:=expr + '+';
+              end;
+            AS_MINUS:
+              Begin
+                Consume(AS_MINUS);
+                expr:=expr + '-';
+              end;
+            AS_AND:
+              Begin
+                Consume(AS_AND);
+                expr:=expr + '&';
+              end;
+            AS_NOT:
+              Begin
+                Consume(AS_NOT);
+                expr:=expr + '~';
+              end;
+            AS_XOR:
+              Begin
+                Consume(AS_XOR);
+                expr:=expr + '^';
+              end;
+            AS_OR:
+              Begin
+                Consume(AS_OR);
+                expr:=expr + '|';
+              end;
+            AS_INTNUM:
+              Begin
+                expr:=expr + actasmpattern;
+                Consume(AS_INTNUM);
+              end;
+{$ifdef i8086}
+            AS_SEG:
+              begin
+                include(out_flags,cseof_isseg);
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_seg_without_identifier);
+              end;
+{$endif i8086}
+            AS_VMTOFFSET,
+            AS_OFFSET:
+              begin
+                if (actasmtoken = AS_OFFSET) then
+                  begin
+                    include(in_flags,cseif_needofs);
+                    include(out_flags,cseof_hasofs);
+                  end
+                else
+                  needvmtofs:=true;
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_offset_without_identifier);
+              end;
+            AS_SIZEOF,
+            AS_TYPE:
+              begin
+                l:=0;
+                hasparen:=false;
+                Consume(actasmtoken);
+                if actasmtoken=AS_LPAREN then
+                  begin
+                    hasparen:=true;
+                    Consume(AS_LPAREN);
+                  end;
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_type_without_identifier)
+                else
+                 begin
+                   tempstr:=actasmpattern;
+                   Consume(AS_ID);
+                   if actasmtoken=AS_DOT then
+                     begin
+                       BuildRecordOffsetSize(tempstr,k,l,mangledname,false,hastypecast);
+                       if mangledname<>'' then
+                         { procsym }
+                         Message(asmr_e_wrong_sym_type);
+                       if hastypecast then
+
+                     end
+                   else
+                    begin
+                      asmsearchsym(tempstr,sym,srsymtable);
+                      if assigned(sym) then
+                       begin
+                         case sym.typ of
+                           staticvarsym,
+                           localvarsym,
+                           paravarsym :
+                             l:=tabstractvarsym(sym).getsize;
+                           typesym :
+                             l:=ttypesym(sym).typedef.size;
+                           else
+                             Message(asmr_e_wrong_sym_type);
+                         end;
+                       end
+                      else
+                       Message1(sym_e_unknown_id,tempstr);
+                    end;
+                 end;
+                str(l, tempstr);
+                expr:=expr + tempstr;
+                if hasparen then
+                  Consume(AS_RPAREN);
+              end;
+            //AS_PTR :
+            //  begin
+            //    { Support ugly delphi constructs like <constant> PTR [ref] }
+            //    break;
+            //  end;
+            AS_STRING:
+              begin
+                l:=0;
+                case Length(actasmpattern) of
+                 1 :
+                  l:=ord(actasmpattern[1]);
+                 2 :
+                  l:=ord(actasmpattern[2]) + ord(actasmpattern[1]) shl 8;
+                 3 :
+                  l:=ord(actasmpattern[3]) +
+                     Ord(actasmpattern[2]) shl 8 + ord(actasmpattern[1]) shl 16;
+                 4 :
+                  l:=ord(actasmpattern[4]) + ord(actasmpattern[3]) shl 8 +
+                     Ord(actasmpattern[2]) shl 16 + ord(actasmpattern[1]) shl 24;
+                else
+                  Message1(asmr_e_invalid_string_as_opcode_operand,actasmpattern);
+                end;
+                str(l, tempstr);
+                expr:=expr + tempstr;
+                Consume(AS_STRING);
+              end;
+            AS_ID:
+              begin
+                hs:='';
+                hssymtyp:=AT_DATA;
+                def:=nil;
+                tempstr:=actasmpattern;
+                prevtok:=prevasmtoken;
+                { stop parsing a constant expression if we find an opcode after a
+                  non-operator like "db $66 mov eax,ebx" }
+                if (prevtok in [AS_ID,AS_INTNUM,AS_RPAREN]) and
+                   is_asmopcode(actasmpattern) then
+                  break;
+                consume(AS_ID);
+                if (tempstr='@CODE') or (tempstr='@DATA') then
+                 begin
+                   if asmsym='' then
+                     begin
+                       asmsym:=tempstr;
+                       asmsymtyp:=AT_SECTION;
+                     end
+                   else
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                 end
+                else if SearchIConstant(tempstr,l) then
+                 begin
+                   str(l, tempstr);
+                   expr:=expr + tempstr;
+                 end
+                else
+                 begin
+                   if is_locallabel(tempstr) then
+                    begin
+                      CreateLocalLabel(tempstr,hl,false);
+                      hs:=hl.name;
+                      hssymtyp:=AT_FUNCTION;
+                    end
+                   else
+                    if SearchLabel(tempstr,hl,false) then
+                      begin
+                        hs:=hl.name;
+                        hssymtyp:=AT_FUNCTION;
+                      end
+                   else
+                    begin
+                      asmsearchsym(tempstr,sym,srsymtable);
+                      if assigned(sym) then
+                       begin
+                         case sym.typ of
+                           staticvarsym :
+                             begin
+                               hs:=tstaticvarsym(sym).mangledname;
+                               def:=tstaticvarsym(sym).vardef;
+                             end;
+                           localvarsym,
+                           paravarsym :
+                             begin
+                               Message(asmr_e_no_local_or_para_allowed);
+                             end;
+                           procsym :
+                             begin
+                               if Tprocsym(sym).ProcdefList.Count>1 then
+                                Message(asmr_w_calling_overload_func);
+                               hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+{$ifdef i8086}
+                               if is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                                  and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) then
+                                 include(out_flags,cseof_is_farproc_entry)
+                               else
+                                 exclude(out_flags,cseof_is_farproc_entry);
+{$endif i8086}
+                               hssymtyp:=AT_FUNCTION;
+                             end;
+                           typesym :
+                             begin
+                               if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
+                                Message(asmr_e_wrong_sym_type);
+                               size:=ttypesym(sym).typedef.size;
+                             end;
+                           fieldvarsym :
+                             begin
+                               tempstr:=upper(tdef(sym.owner.defowner).GetTypeName)+'.'+tempstr;
+                             end;
+                           else
+                             Message(asmr_e_wrong_sym_type);
+                         end;
+                       end
+                      else
+                       Message1(sym_e_unknown_id,tempstr);
+                    end;
+                   { symbol found? }
+                   if hs<>'' then
+                    begin
+                      if asmsym='' then
+                        begin
+                          asmsym:=hs;
+                          asmsymtyp:=hssymtyp;
+                        end
+                      else
+                       Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                      if (expr='') or (expr[length(expr)]='+') then
+                       begin
+                         { don't remove the + if there could be a record field }
+                         if actasmtoken<>AS_DOT then
+                          delete(expr,length(expr),1);
+                       end
+                      else if (cseif_needofs in in_flags) then
+                        begin
+                          if (prevtok<>AS_OFFSET) then
+                            Message(asmr_e_need_offset);
+                        end
+                      else
+                        Message(asmr_e_only_add_relocatable_symbol);
+                    end;
+                   if (actasmtoken=AS_DOT) or
+                      (assigned(sym) and
+                       is_normal_fieldvarsym(sym)) then
+                     begin
+                      BuildRecordOffsetSize(tempstr,l,size,hs,needvmtofs,hastypecast);
+                      if hs <> '' then
+                        hssymtyp:=AT_FUNCTION
+                      else
+                        begin
+                          str(l, tempstr);
+                          expr:=expr + tempstr;
+                        end
+                    end
+                   else if (actasmtoken<>AS_DOT) and
+                           assigned(sym) and
+                           (sym.typ=typesym) and
+                           (ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
+                     begin
+                       { just a record type (without being followed by dot)
+                         evaluates to 0. Ugly, but TP7 compatible. }
+                       expr:=expr+'0';
+                     end
+                   else
+                    begin
+                      if (expr='') or (expr[length(expr)] in ['+','-','/','*']) then
+                       delete(expr,length(expr),1);
+                    end;
+                   if (actasmtoken=AS_LBRACKET) and
+                      assigned(def) and
+                      (def.typ=arraydef) then
+                     begin
+                       consume(AS_LBRACKET);
+                       l:=BuildConstExpression;
+                       if l<tarraydef(def).lowrange then
+                         begin
+                           Message(asmr_e_constant_out_of_bounds);
+                           l:=0;
+                         end
+                       else
+                         l:=(l-tarraydef(def).lowrange)*tarraydef(def).elesize;
+                       str(l, tempstr);
+                       expr:=expr + '+' + tempstr;
+                       consume(AS_RBRACKET);
+                     end;
+                 end;
+                { check if there are wrong operator used like / or mod etc. }
+                if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
+                 Message(asmr_e_only_add_relocatable_symbol);
+              end;
+            //AS_ALIGN,
+            AS_DEFB,
+            AS_DEFW,
+            AS_END,
+            AS_RBRACKET,
+            AS_SEPARATOR,
+            AS_COMMA,
+            AS_COLON:
+              break;
+          else
+            begin
+              { write error only once. }
+              if not errorflag then
+                Message(asmr_e_invalid_constant_expression);
+              { consume tokens until we find COMMA or SEPARATOR }
+              Consume(actasmtoken);
+              errorflag:=TRUE;
+            end;
+          end;
+        Until false;
+        { calculate expression }
+        if not ErrorFlag then
+          value:=CalculateExpression(expr)
+        else
+          value:=0;
+        { no longer in an expression }
+        inexpression:=FALSE;
+      end;
+
+
+    function tmos6502reader.BuildConstExpression:longint;
+      var
+        l,size : tcgint;
+        hs : string;
+        hssymtyp : TAsmsymtype;
+        out_flags : tconstsymbolexpressionoutputflags;
+      begin
+        BuildConstSymbolExpression([],l,hs,hssymtyp,size,out_flags);
+        if hs<>'' then
+         Message(asmr_e_relocatable_symbol_not_allowed);
+        BuildConstExpression:=l;
       end;
 
 
     function tmos6502reader.BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
+      var
+        l : tcgint;
+        hs : string;
+        hssymtyp : TAsmsymtype;
+        in_flags : tconstsymbolexpressioninputflags;
+        out_flags : tconstsymbolexpressionoutputflags;
       begin
-        // TODO: implement
-        internalerror(2025102102);
-        result:=0;
+        in_flags:=[cseif_isref];
+        if startingminus then
+          include(in_flags,cseif_startingminus);
+        BuildConstSymbolExpression(in_flags,l,hs,hssymtyp,size,out_flags);
+        if hs<>'' then
+         Message(asmr_e_relocatable_symbol_not_allowed);
+        BuildRefConstExpression:=l;
       end;
 
 
     procedure tmos6502reader.BuildConstantOperand(oper: tmos6502operand);
+      var
+        l,size : tcgint;
+        tempstr : string;
+        tempsymtyp : tasmsymtype;
+        cse_out_flags : tconstsymbolexpressionoutputflags;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        // TODO: implement
-        internalerror(2025102103);
+        BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,cse_out_flags);
+        if tempstr<>'' then
+          begin
+            oper.opr.typ:=OPR_SYMBOL;
+            oper.opr.symofs:=l;
+            oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
+            oper.opr.symseg:=cseof_isseg in cse_out_flags;
+            oper.opr.sym_farproc_entry:=cseof_is_farproc_entry in cse_out_flags;
+          end
+        else
+          if oper.opr.typ=OPR_NONE then
+            begin
+              oper.opr.typ:=OPR_CONSTANT;
+              oper.opr.val:=l;
+            end
+          else
+            inc(oper.opr.val,l);
       end;
 
 
