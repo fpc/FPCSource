@@ -475,6 +475,11 @@ unit scandir;
         do_delphiswitch('D');
       end;
 
+    procedure dir_definitioninfo;
+      begin
+        do_delphiswitch('Y');
+      end;
+
     procedure dir_denypackageunit;
       begin
         do_moduleflagswitch(mf_package_deny,true);
@@ -2015,6 +2020,11 @@ unit scandir;
         do_delphiswitch('J');
       end;
 
+    procedure dir_yd;
+      begin
+        HandleSwitch('Y','+');
+      end;
+
     procedure dir_z1;
       begin
         current_settings.packenum:=1;
@@ -2198,6 +2208,7 @@ unit scandir;
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
+        AddDirective('DEFINITIONINFO',directive_all, @dir_definitioninfo);
         AddDirective('DENYPACKAGEUNIT',directive_all,@dir_denypackageunit);
         AddDirective('DESCRIPTION',directive_all, @dir_description);
         AddDirective('ENDREGION',directive_all, @dir_endregion);
@@ -2309,6 +2320,7 @@ unit scandir;
         AddDirective('WARNINGS',directive_all, @dir_warnings);
         AddDirective('WEAKPACKAGEUNIT',directive_all, @dir_weakpackageunit);
         AddDirective('WRITEABLECONST',directive_all, @dir_writeableconst);
+        AdDDirective('YD',directive_all, @dir_yd);
         AddDirective('Z1',directive_all, @dir_z1);
         AddDirective('Z2',directive_all, @dir_z2);
         AddDirective('Z4',directive_all, @dir_z4);
