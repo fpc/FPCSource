@@ -977,6 +977,12 @@ Unit ramos6502asm;
                 end;
               end;
 
+            AS_HASH:
+              begin
+                Consume(AS_HASH);
+                BuildConstantOperand(oper);
+              end;
+
             //AS_LPAREN:
             //  begin
             //    BuildReference(oper);
