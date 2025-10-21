@@ -80,6 +80,9 @@ Unit ramos6502asm;
         procedure RecoverConsume(allowcomma:boolean);
         function is_asmopcode(const s: string):boolean;
         function is_register(const s:string):boolean;
+        function BuildConstExpression:longint;
+        function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
+        procedure BuildConstantOperand(oper: tmos6502operand);
         procedure BuildOperand(oper: tmos6502operand;istypecast:boolean);
         procedure BuildOpCode(instr:TMOS6502Instruction);
         procedure handleopcode;
@@ -335,6 +338,29 @@ Unit ramos6502asm;
       end;
 
 
+    function tmos6502reader.BuildConstExpression:longint;
+      begin
+        // TODO: implement
+        internalerror(2025102101);
+      end;
+
+
+    function tmos6502reader.BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
+      begin
+        // TODO: implement
+        internalerror(2025102102);
+      end;
+
+
+    procedure tmos6502reader.BuildConstantOperand(oper: tmos6502operand);
+      begin
+        if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
+          Message(asmr_e_invalid_operand_type);
+        // TODO: implement
+        internalerror(2025102103);
+      end;
+
+
     procedure tmos6502reader.BuildOperand(oper: tmos6502operand;istypecast:boolean);
 
       //procedure AddLabelOperand(hl:tasmlabel);
@@ -353,9 +379,9 @@ Unit ramos6502asm;
       //   end;
       //end;
 
-      //var
-      //  l: tcgint;
-      //  tsize: tcgint;
+      var
+        l: tcgint;
+        tsize: tcgint;
       //  expr: string;
       //  hl: tasmlabel;
       begin
@@ -366,35 +392,35 @@ Unit ramos6502asm;
             //AS_VMTOFFSET,
             //AS_TYPE,
             //AS_NOT,
-            //AS_STRING,
-            //AS_PLUS,
-            //AS_MINUS,
-            //AS_INTNUM :
-            //  begin
-            //    case oper.opr.typ of
-            //      OPR_REFERENCE :
-            //        begin
-            //          l := BuildRefConstExpression(tsize);
-            //          if tsize<>0 then
-            //            oper.SetSize(tsize,false);
-            //          inc(oper.opr.ref.offset,l);
-            //          inc(oper.opr.constoffset,l);
-            //        end;
-            //      OPR_LOCAL :
-            //        begin
-            //          l := BuildConstExpression;
-            //          inc(oper.opr.localsymofs,l);
-            //          inc(oper.opr.localconstoffset,l);
-            //        end;
-            //
-            //      OPR_NONE,
-            //      OPR_CONSTANT :
-            //        BuildConstantOperand(oper);
-            //      else
-            //        Message(asmr_e_invalid_operand_type);
-            //    end;
-            //  end;
-            //
+            AS_STRING,
+            AS_PLUS,
+            AS_MINUS,
+            AS_INTNUM :
+              begin
+                case oper.opr.typ of
+                  OPR_REFERENCE :
+                    begin
+                      l := BuildRefConstExpression(tsize);
+                      if tsize<>0 then
+                        oper.SetSize(tsize,false);
+                      inc(oper.opr.ref.offset,l);
+                      inc(oper.opr.constoffset,l);
+                    end;
+                  OPR_LOCAL :
+                    begin
+                      l := BuildConstExpression;
+                      inc(oper.opr.localsymofs,l);
+                      inc(oper.opr.localconstoffset,l);
+                    end;
+
+                  OPR_NONE,
+                  OPR_CONSTANT :
+                    BuildConstantOperand(oper);
+                  else
+                    Message(asmr_e_invalid_operand_type);
+                end;
+              end;
+
             //AS_LPAREN:
             //  begin
             //    BuildReference(oper);
