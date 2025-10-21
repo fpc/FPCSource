@@ -269,6 +269,19 @@ Unit ramos6502asm;
                    exit;
                  end;
 
+               '$': { hex number }
+                 begin
+                   c:=current_scanner.asmgetchar;
+                   while c in ['0'..'9','a'..'f','A'..'F'] do
+                    Begin
+                      actasmpattern:=actasmpattern + c;
+                      c:=current_scanner.asmgetchar;
+                    end;
+                   actasmpattern:=tostr(ParseVal(actasmpattern,16));
+                   actasmtoken:=AS_INTNUM;
+                   exit;
+                 end;
+
                '#' :
                  begin
                    actasmtoken:=AS_HASH;
