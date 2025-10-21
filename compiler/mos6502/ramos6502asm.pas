@@ -283,6 +283,20 @@ Unit ramos6502asm;
                    exit;
                  end;
 
+               '%': { binary number }
+                 begin
+                   actasmpattern:='';
+                   c:=current_scanner.asmgetchar;
+                   while c in ['0','1'] do
+                    Begin
+                      actasmpattern:=actasmpattern + c;
+                      c:=current_scanner.asmgetchar;
+                    end;
+                   actasmpattern:=tostr(ParseVal(actasmpattern,2));
+                   actasmtoken:=AS_INTNUM;
+                   exit;
+                 end;
+
                '#' :
                  begin
                    actasmtoken:=AS_HASH;
