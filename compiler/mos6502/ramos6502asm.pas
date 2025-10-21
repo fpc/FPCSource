@@ -271,6 +271,7 @@ Unit ramos6502asm;
 
                '$': { hex number }
                  begin
+                   actasmpattern:='';
                    c:=current_scanner.asmgetchar;
                    while c in ['0'..'9','a'..'f','A'..'F'] do
                     Begin
