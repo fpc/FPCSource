@@ -255,7 +255,10 @@ Unit ramos6502asm;
 
                ';' :
                  begin
-                   c:=current_scanner.asmgetchar;
+                   { skip comment }
+                   repeat
+                     c:=current_scanner.asmgetchar;
+                   until c in [#13,#10,#26];
                    firsttoken:=TRUE;
                    actasmtoken:=AS_SEPARATOR;
                    exit;
