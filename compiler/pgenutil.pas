@@ -2784,6 +2784,8 @@ uses
       state.oldgenericdummysyms:=current_module.genericdummysyms;
       state.oldcurrent_genericdef:=current_genericdef;
       state.oldspecializestate:=pspecializationstate(current_module.specializestate);
+      state.oldoptoken:=optoken;
+      optoken:=NOTOKEN;
       current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
@@ -2865,6 +2867,7 @@ uses
       current_module.genericdummysyms.free;
       current_module.genericdummysyms:=state.oldgenericdummysyms;
       current_module.specializestate:=state.oldspecializestate;
+      optoken:=state.oldoptoken;
       symtablestack.free;
       symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }
