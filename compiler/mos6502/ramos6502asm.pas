@@ -342,6 +342,7 @@ Unit ramos6502asm;
       begin
         // TODO: implement
         internalerror(2025102101);
+        result:=0;
       end;
 
 
@@ -349,6 +350,7 @@ Unit ramos6502asm;
       begin
         // TODO: implement
         internalerror(2025102102);
+        result:=0;
       end;
 
 
