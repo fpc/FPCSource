@@ -41,7 +41,6 @@ unit cgcpu;
         procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;     
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; register: tregister); override;
 
-        procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
         procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation); override;
 
         procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
@@ -204,24 +203,6 @@ implementation
       end;
 
 
-    procedure tcgrv64.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
-      var
-        signed: Boolean;
-        l: TAsmLabel;
-        tmpreg: tregister;
-        ai: taicpu;
-      begin
-        if setflags then
-          begin
-            tmpreg:=getintregister(list,size);
-            a_load_const_reg(list,size,a,tmpreg);
-            a_op_reg_reg_reg_checkoverflow(list,op,size,tmpreg,src,dst,setflags,ovloc);
-          end
-        else
-          a_op_const_reg_reg(list,op,size,a,src,dst);
-      end;
-
-
     procedure tcgrv64.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
         var
         signed: Boolean;
@@ -230,6 +211,7 @@ implementation
         ai: taicpu;
       begin
         signed:=tcgsize2unsigned[size]<>size;
+        ovloc.loc:=LOC_VOID;
 
         if setflags then
           case op of
@@ -362,7 +344,7 @@ implementation
               internalerror(2019051032);
           end
         else
-          a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+          inherited a_op_reg_reg_reg_checkoverflow(list,op,size,src1,src2,dst,false,ovloc);
       end;
 
 
