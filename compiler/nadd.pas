@@ -837,7 +837,9 @@ const
                      { pointer-pointer results in an integer }
                      if (rt=pointerconstn) then
                        begin
-                         if not(anf_has_pointerdiv in addnodeflags) then
+                         if (cs_typed_addresses in current_settings.localswitches) and
+                            (tpointerdef(rd).pointeddef.size>1) and
+                            not(anf_has_pointerdiv in addnodeflags) then
                            internalerror(2008030101);
                          t:=cpointerconstnode.create(qword(v),resultdef)
                        end
