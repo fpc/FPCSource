@@ -393,11 +393,13 @@ Unit ramos6502asm;
       begin
         is_register:=false;
         actasmregister:=std_regnum_search(lower(s));
-        if actasmregister<>NR_NO then
+        if is_6502_general_purpose_register(actasmregister) then
           begin
             is_register:=true;
             actasmtoken:=AS_REGISTER;
-          end;
+          end
+        else
+          actasmregister:=NR_NO;
       end;
 
 
