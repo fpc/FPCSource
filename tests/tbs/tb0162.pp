@@ -79,6 +79,17 @@ begin
       doerror(8);
   end;
 
+  l := low(longint);
+  try
+    l := l div -1;
+    doerror(9);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(10);
+  end;
+
   c := high(cardinal);
   try
     c := c+1;
