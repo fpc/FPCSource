@@ -508,7 +508,9 @@ implementation
                      { pointer-pointer results in an integer }
                      if (rt=pointerconstn) then
                        begin
-                         if not(nf_has_pointerdiv in flags) then
+                         if (cs_typed_addresses in current_settings.localswitches) and
+                            (tpointerdef(rd).pointeddef.size>1) and
+                            not(nf_has_pointerdiv in flags) then
                            internalerror(2008030101);
                          t := cpointerconstnode.create(qword(v),resultdef)
                        end
