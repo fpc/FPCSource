@@ -111,6 +111,9 @@ unit cgutils;
          indexoffset: aint;
          checkcast: boolean;
 {$endif jvm}
+{$ifdef mos6502}
+         addressmode : taddressmode;
+{$endif mos6502}
          volatility: tvolatilityset;
          alignment : byte;
       end;
