@@ -1451,11 +1451,12 @@ unit cgcpu;
          shift : byte;
          href: treference;
          i: Integer;
+         allocatedregs: tregisterlist;
        begin
-         list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref '+tcgsize2str(size) + ' '+tostr(a)+' '+ref2string(ref))));
+         //list.Concat(tai_comment.Create(strpnew('TODO: a_load_const_ref '+tcgsize2str(size) + ' '+tostr(a)+' '+ref2string(ref))));
          mask:=$ff;
          shift:=0;
-         href:=ref;
+         href:=normalize_ref(list,ref,allocatedregs);
          if (href.base=NR_NO) and (href.index=NR_NO) then
            begin
              { TODO: get/unget register A }
@@ -1470,7 +1471,24 @@ unit cgcpu;
                      inc(href.offset);
                    end;
                end;
+           end
+         else
+           begin
+             { TODO: get/unget register A }
+             for i:=tcgsize2size[size] downto 1 do
+               begin
+                 list.Concat(taicpu.op_const(A_LDA,(qword(a) and mask) shr shift));
+                 list.Concat(taicpu.op_ref(A_STA,href));
+                 if i<>1 then
+                   begin
+                     mask:=mask shl 8;
+                     inc(shift,8);
+                     list.Concat(taicpu.op_none(A_INY));
+                     //inc(href.offset);
+                   end;
+               end;
            end;
+         ungetcpuregisters(list,allocatedregs);
          //if (href.base=NR_NO) and (href.index<>NR_NO) then
          //  begin
          //    href.base:=href.index;
