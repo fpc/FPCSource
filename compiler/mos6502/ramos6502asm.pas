@@ -184,6 +184,12 @@ Unit ramos6502asm;
               end;
             actasmpattern[0]:=chr(len);
             actasmpattern_origcase:=actasmpattern;
+            { check for end which is a reserved word unlike the opcodes }
+            if actasmpattern = 'END' then
+              begin
+                actasmtoken:=AS_END;
+                exit;
+              end;
             { Opcode ? }
             if is_asmopcode(upper(actasmpattern)) then
               begin
