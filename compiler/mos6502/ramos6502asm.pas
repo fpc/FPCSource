@@ -1738,7 +1738,7 @@ Unit ramos6502asm;
             //AS_TYPE,
             //AS_NOT,
             AS_ID,
-            AS_LPAREN,
+            //AS_LPAREN,
             AS_STRING,
             AS_PLUS,
             AS_MINUS,
@@ -1771,6 +1771,11 @@ Unit ramos6502asm;
                 //  else
                 //    Message(asmr_e_invalid_operand_type);
                 //end;
+              end;
+
+            AS_LPAREN:
+              begin
+                BuildReference(oper);
               end;
 
             AS_HASH:
