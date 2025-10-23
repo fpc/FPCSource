@@ -188,7 +188,9 @@ unit rgobj;
         procedure dealloccpuregisters(list:TAsmList;const r:Tcpuregisterset);virtual;
         function uses_registers:boolean;virtual;
         procedure add_reg_instruction(instr:Tai;r:tregister;aweight:longint);
+{$if max_operands>1}
         procedure add_move_instruction(instr:Taicpu);
+{$endif max_operands>1}
         { Do the register allocation.}
         procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
         { Adds an interference edge.
@@ -929,6 +931,7 @@ unit rgobj;
       end;
 
 
+{$if max_operands>1}
     procedure trgobj.add_move_instruction(instr:Taicpu);
 
     {This procedure notifies a certain as a move instruction so the
@@ -967,6 +970,7 @@ unit rgobj;
       i.x:=ssupreg;
       i.y:=dsupreg;
     end;
+{$endif max_operands>1}
 
     function trgobj.move_related(n:Tsuperregister):boolean;
 
@@ -2835,6 +2839,7 @@ unit rgobj;
         if not spilled then
           exit;
 
+{$if max_operands>1}
         { Check if the instruction is "OP reg1,reg2" and reg1 is coalesced with reg2 }
         if (spregs.spillreginfocount=1) and (instr.ops=2) and
           (instr.oper[0]^.typ=top_reg) and (instr.oper[1]^.typ=top_reg) and
@@ -2848,6 +2853,7 @@ unit rgobj;
             if instr.is_same_reg_move(regtype) then
               exit;
           end;
+{$endif max_operands>1}
 
 {$if defined(x86) or defined(mips) or defined(sparcgen) or defined(arm) or defined(m68k)}
         { Try replacing the register with the spilltemp. This is useful only

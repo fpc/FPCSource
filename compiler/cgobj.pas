@@ -104,7 +104,9 @@ unit cgobj;
 {$endif cpu8bitalu}
 
           procedure add_reg_instruction(instr:Tai;r:tregister);virtual;
+{$if max_operands>1}
           procedure add_move_instruction(instr:Taicpu);virtual;
+{$endif max_operands>1}
 
           function  uses_registers(rt:Tregistertype):boolean;virtual;
           {# Get a specific register.}
@@ -879,6 +881,7 @@ implementation
       end;
 
 
+{$if max_operands>1}
     procedure tcg.add_move_instruction(instr:Taicpu);
       var
         rt : tregistertype;
@@ -889,6 +892,7 @@ implementation
         else
           internalerror(200310095);
       end;
+{$endif max_operands>1}
 
 
     procedure tcg.set_regalloc_live_range_direction(dir: TRADirection);

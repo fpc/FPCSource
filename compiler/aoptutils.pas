@@ -30,7 +30,9 @@ unit aoptutils;
       cpubase,aasmtai,aasmcpu;
 
     function MatchOpType(const p : taicpu;type0: toptype) : Boolean;
+{$if max_operands>1}
     function MatchOpType(const p : taicpu;type0,type1 : toptype) : Boolean;
+{$endif max_operands>1}
 {$if max_operands>2}
     function MatchOpType(const p : taicpu; type0,type1,type2 : toptype) : Boolean;
 {$endif max_operands>2}
@@ -56,10 +58,12 @@ unit aoptutils;
       end;
 
 
+{$if max_operands>1}
     function MatchOpType(const p : taicpu; type0,type1 : toptype) : Boolean; inline;
       begin
         Result:=(p.ops=2) and (p.oper[0]^.typ=type0) and (p.oper[1]^.typ=type1);
       end;
+{$endif max_operands>1}
 
 
 {$if max_operands>2}
