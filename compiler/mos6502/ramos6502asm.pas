@@ -327,6 +327,20 @@ Unit ramos6502asm;
                    exit;
                  end;
 
+               '+' :
+                 begin
+                   actasmtoken:=AS_PLUS;
+                   c:=current_scanner.asmgetchar;
+                   exit;
+                 end;
+
+               '-' :
+                 begin
+                   actasmtoken:=AS_MINUS;
+                   c:=current_scanner.asmgetchar;
+                   exit;
+                 end;
+
                #13,#10:
                  begin
                    current_scanner.linebreak;
