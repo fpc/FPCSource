@@ -441,6 +441,16 @@ unit agsdas6500;
                         writer.AsmWrite(']');
                     end;
                 end
+              else if is_6502_zero_page_register(o.ref^.base) and (o.ref^.index=NR_Y) then
+                begin
+                  if assigned(o.ref^.symbol) then
+                    internalerror(2025102305);
+                  if o.ref^.offset<>0 then
+                    internalerror(2025102306);
+                  writer.AsmWrite('[');
+                  writer.AsmWrite(tostr(get_6502_zero_page_register_address(o.ref^.base)));
+                  writer.AsmWrite('],y');
+                end
               else
                 begin
                   need_plus:=false;
