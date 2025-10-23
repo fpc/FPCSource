@@ -2408,65 +2408,43 @@ unit cgcpu;
 
 
     procedure tcgmos6502.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
-      //var
-      //  tmpref : treference;
+      var
+        tmpref : treference;
       begin
         list.Concat(tai_comment.Create(strpnew('TODO: a_loadaddr_ref_reg '+' '+ref2string(ref)+' '+std_regname(r))));
-        //if assigned(ref.symbol) then
-        //  begin
-        //    reference_reset(tmpref,0,[]);
-        //    tmpref.symbol:=ref.symbol;
-        //    tmpref.offset:=ref.offset;
-        //
-        //    tmpref.refaddr:=addr_lo8;
-        //    list.concat(taicpu.op_reg_ref(A_LD,r,tmpref));
-        //
-        //    tmpref.refaddr:=addr_hi8;
-        //    list.concat(taicpu.op_reg_ref(A_LD,GetNextReg(r),tmpref));
-        //
-        //    if (ref.base<>NR_NO) then
-        //      a_op_reg_reg(list,OP_ADD,OS_16,ref.base,r);
-        //    if (ref.index<>NR_NO) then
-        //      a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
-        //  end
-        //else if ref.base=NR_IX then
-        //  begin
-        //    list.concat(taicpu.op_reg(A_PUSH,NR_IX));
-        //    getcpuregister(list,NR_H);
-        //    getcpuregister(list,NR_L);
-        //    list.concat(taicpu.op_reg(A_POP,NR_HL));
-        //    emit_mov(list,r,NR_L);
-        //    ungetcpuregister(list,NR_L);
-        //    emit_mov(list,GetNextReg(r),NR_H);
-        //    ungetcpuregister(list,NR_H);
-        //    if (ref.index<>NR_NO) then
-        //      a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
-        //    if ref.offset<>0 then
-        //      a_op_const_reg(list,OP_ADD,OS_16,ref.offset,r);
-        //  end
-        //else if (ref.base=NR_SP) or (ref.base=NR_BC) or (ref.base=NR_DE) then
-        //  begin
-        //    getcpuregister(list,NR_H);
-        //    getcpuregister(list,NR_L);
-        //    list.Concat(taicpu.op_reg_const(A_LD,NR_HL,ref.offset));
-        //    list.Concat(taicpu.op_reg_reg(A_ADD,NR_HL,ref.base));
-        //    emit_mov(list,r,NR_L);
-        //    ungetcpuregister(list,NR_L);
-        //    emit_mov(list,GetNextReg(r),NR_H);
-        //    ungetcpuregister(list,NR_H);
-        //    if (ref.index<>NR_NO) then
-        //      a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
-        //  end
-        //else if ref.base<>NR_NO then
-        //  begin
-        //    a_op_const_reg_reg(list,OP_ADD,OS_16,ref.offset,ref.base,r);
-        //    if (ref.index<>NR_NO) then
-        //      a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
-        //  end
-        //else if ref.index<>NR_NO then
-        //  a_op_const_reg_reg(list,OP_ADD,OS_16,ref.offset,ref.index,r)
-        //else
-        //  a_load_const_reg(list,OS_16,ref.offset,r);
+        if assigned(ref.symbol) then
+          begin
+            reference_reset(tmpref,0,[]);
+            tmpref.symbol:=ref.symbol;
+            tmpref.offset:=ref.offset;
+
+            tmpref.refaddr:=addr_lo8;
+            getcpuregister(list,NR_A);
+            list.concat(taicpu.op_ref(A_LDA,tmpref));
+            list.concat(taicpu.op_reg(A_STA,r));
+            ungetcpuregister(list,NR_A);
+
+            tmpref.refaddr:=addr_hi8;
+            getcpuregister(list,NR_A);
+            list.concat(taicpu.op_ref(A_LDA,tmpref));
+            list.concat(taicpu.op_reg(A_STA,GetNextReg(r)));
+            ungetcpuregister(list,NR_A);
+
+            if (ref.base<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.base,r);
+            if (ref.index<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
+          end
+        else if ref.base<>NR_NO then
+          begin
+            a_op_const_reg_reg(list,OP_ADD,OS_16,ref.offset,ref.base,r);
+            if (ref.index<>NR_NO) then
+              a_op_reg_reg(list,OP_ADD,OS_16,ref.index,r);
+          end
+        else if ref.index<>NR_NO then
+          a_op_const_reg_reg(list,OP_ADD,OS_16,ref.offset,ref.index,r)
+        else
+          a_load_const_reg(list,OS_16,ref.offset,r);
       end;
 
 
