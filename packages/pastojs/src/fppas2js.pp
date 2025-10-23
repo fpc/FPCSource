@@ -20875,12 +20875,31 @@ begin
     Param.Elements.AddElement.Expr:=CreateLiteralNumber(Arg,Flags);
 end;
 
-function TPasToJSConverter.GetClassBIName(El: TPasClassType;
-  AContext: TConvertContext): string;
+function TPasToJSConverter.GetClassBIName(El: TPasClassType; AContext: TConvertContext): string;
+
+  function IsAncestorExternal: Boolean;
+  var
+    Element: TPasClassType;
+
+  begin
+    Element := El;
+    Result := False;
+
+    while not Result and Assigned(Element) do
+    begin
+      Result := Element.IsExternal;
+
+      if Element.AncestorType is TPasAliasType then
+        Element := TPasAliasType(Element.AncestorType).DestType as TPasClassType
+      else
+        Element := Element.AncestorType as TPasClassType;
+    end;
+  end;
+
 begin
   case El.ObjKind of
   okClass:
-    if El.IsExternal then
+    if IsAncestorExternal then
       Result:=GetBIName(pbifnRTTINewExtClass)
     else
       Result:=GetBIName(pbifnRTTINewClass);
