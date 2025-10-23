@@ -26,8 +26,8 @@ implementation
 procedure PascalMain; external name 'PASCALMAIN';
 
 { this *must* always remain the first procedure with code in this unit }
-procedure _start; {assembler; nostackframe;} public name 'start';
-{asm}begin
+procedure _start; assembler; nostackframe; public name 'start';
+asm
   // TODO...
 end;
 
