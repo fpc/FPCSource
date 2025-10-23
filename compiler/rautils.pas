@@ -57,6 +57,8 @@ type
       OPR_CONSTANT  : (val:longint);
 {$elseif defined(Z80)}
       OPR_CONSTANT  : (val:longint);
+{$elseif defined(MOS6502)}
+      OPR_CONSTANT  : (val:longint);
 {$else}
       OPR_CONSTANT  : (val:aint);
 {$endif}
