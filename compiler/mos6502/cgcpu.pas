@@ -1531,7 +1531,7 @@ unit cgcpu;
             ref.index:=NR_NO;
           end;
 
-        if (ref.base<>NR_NO) and not assigned(ref.symbol) and (ref.offset>=0) and (ref.offset<=255) then
+        if (ref.base<>NR_NO) and (ref.index=NR_NO) and not assigned(ref.symbol) and (ref.offset>=0) and (ref.offset<=255) then
           begin
             SetLength(allocatedregs,1);
             allocatedregs[0]:=NR_Y;
