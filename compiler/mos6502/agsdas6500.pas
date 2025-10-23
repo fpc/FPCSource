@@ -415,28 +415,21 @@ unit agsdas6500;
                  ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
                  (o.ref^.offset<>0) then
                 begin
-                  { sdasz80 doesn't range check the offset d in the (IX+d) and
-                    (IY+d) addressing modes, but instead truncates it to
-                    shortint, introducing silent bugs, and prevents us from
-                    catching bugs in the code generator during compilation }
-                  if ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
-                     ((o.ref^.offset<-128) or (o.ref^.offset>127)) then
-                    internalerror(2020042805);
                   writer.AsmWrite(tostr(o.ref^.offset));
-                  writer.AsmWrite(' (');
                   if o.ref^.base<>NR_NO then
                     begin
                       if o.ref^.index<>NR_NO then
                         internalerror(2020040201);
+                      writer.AsmWrite(',');
                       writer.AsmWrite(std_regname(o.ref^.base));
                     end
                   else if o.ref^.index<>NR_NO then
                     begin
                       if o.ref^.scalefactor>1 then
                         internalerror(2020040202);
+                      writer.AsmWrite(',');
                       writer.AsmWrite(std_regname(o.ref^.index));
                     end;
-                  writer.AsmWrite(')');
                 end
               else
                 begin
