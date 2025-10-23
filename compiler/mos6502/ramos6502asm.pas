@@ -1519,15 +1519,47 @@ Unit ramos6502asm;
 
                 Consume(AS_RPAREN);
 
-
-
-                if actasmtoken=AS_LPAREN then
+                if actasmtoken=AS_COMMA then
                   begin
-                    tmpoper:=Tmos6502Operand.create;
-                    BuildReference(tmpoper);
-                    AddReferences(oper,tmpoper);
-                    tmpoper.Free;
+                    Consume(AS_COMMA);
+
+                    if actasmtoken<>AS_REGISTER then
+                      begin
+                        Message(asmr_e_invalid_reference_syntax);
+                        RecoverConsume(true);
+                        break;
+                      end;
+
+                    hreg:=actasmregister;
+                    Consume(AS_REGISTER);
+
+                    if hreg<>NR_Y then
+                      begin
+                        Message(asmr_e_invalid_reference_syntax);
+                        RecoverConsume(true);
+                        break;
+                      end;
+
+                    case oper.opr.typ of
+                      OPR_REFERENCE :
+                        begin
+                          if oper.opr.ref.base<>NR_NO then
+                            internalerror(2025102302);
+                          oper.opr.ref.base:=hreg;
+                          oper.opr.ref.addressmode:=taddressmode.AM_INDIRECT;
+                        end;
+                      else
+                        internalerror(2025102301);
+                    end;
                   end;
+
+                //if actasmtoken=AS_LPAREN then
+                //  begin
+                //    tmpoper:=Tmos6502Operand.create;
+                //    BuildReference(tmpoper);
+                //    AddReferences(oper,tmpoper);
+                //    tmpoper.Free;
+                //  end;
                 break;
               end;
 
