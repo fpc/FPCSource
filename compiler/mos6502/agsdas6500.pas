@@ -490,7 +490,7 @@ unit agsdas6500;
             writer.AsmWrite(std_regname(o.reg));
           top_const :
             begin
-              writer.AsmWrite('#'+tostr(longint(o.val)));
+              writer.AsmWrite(tostr(longint(o.val)));
             end;
           top_ref:
             begin
