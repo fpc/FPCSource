@@ -1117,7 +1117,7 @@ Unit ramos6502asm;
           else
             forceaddrtype:=false;
         end;
-        BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,cse_out_flags);
+        BuildConstSymbolExpression([],l,tempstr,tempsymtyp,size,cse_out_flags);
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
@@ -1502,7 +1502,7 @@ Unit ramos6502asm;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                cse_in_flags:=[cseif_needofs,cseif_isref];
+                cse_in_flags:=[cseif_isref];
                 if GotPlus and negative then
                   include(cse_in_flags,cseif_startingminus);
                 BuildConstSymbolExpression(cse_in_flags,l,tempstr,tempsymtyp,size,cse_out_flags);
