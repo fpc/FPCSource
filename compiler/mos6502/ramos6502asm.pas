@@ -35,7 +35,7 @@ Unit ramos6502asm;
       tasmtoken = (
         AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_INTNUM,
         AS_REALNUM,AS_COMMA,AS_LPAREN,
-        AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
+        AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,AS_LESSTHAN,AS_GREATERTHAN,
         AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_CONDITION,AS_SLASH,AS_DOLLAR,
         AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
         AS_EQUAL,
@@ -57,7 +57,7 @@ Unit ramos6502asm;
       token2str : array[tasmtoken] of tasmkeyword=(
         '','Label','LLabel','string','integer',
         'float',',','(',
-        ')',':','.','+','-','*',
+        ')',':','.','+','-','*','<','>',
         ';','identifier','register','opcode','condition','/','$',
         '#','{','}','[',']',
         '=',
@@ -337,6 +337,20 @@ Unit ramos6502asm;
                '-' :
                  begin
                    actasmtoken:=AS_MINUS;
+                   c:=current_scanner.asmgetchar;
+                   exit;
+                 end;
+
+               '<' :
+                 begin
+                   actasmtoken:=AS_LESSTHAN;
+                   c:=current_scanner.asmgetchar;
+                   exit;
+                 end;
+
+               '>' :
+                 begin
+                   actasmtoken:=AS_GREATERTHAN;
                    c:=current_scanner.asmgetchar;
                    exit;
                  end;
