@@ -2411,6 +2411,7 @@ unit cgcpu;
       //var
       //  tmpref : treference;
       begin
+        list.Concat(tai_comment.Create(strpnew('TODO: a_loadaddr_ref_reg '+' '+ref2string(ref)+' '+std_regname(r))));
         //if assigned(ref.symbol) then
         //  begin
         //    reference_reset(tmpref,0,[]);
