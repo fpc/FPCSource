@@ -107,7 +107,7 @@ Unit ramos6502asm;
         function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
         procedure BuildConstantOperand(oper: tmos6502operand);
         procedure BuildReference(oper : tmos6502operand);
-        procedure BuildOperand(oper: tmos6502operand);
+        procedure BuildOperand(oper: tmos6502operand;iscalljmp: boolean);
         procedure BuildOpCode(instr:TMOS6502Instruction);
         procedure handleopcode;
         function Assemble: tlinkedlist;override;
@@ -1238,7 +1238,7 @@ Unit ramos6502asm;
                       oper.hastype:=true;
                       oper.typesize:=l;
                       Consume(AS_LPAREN);
-                      BuildOperand(oper);
+                      BuildOperand(oper,false);
                       Consume(AS_RPAREN);
                     end
                    else
@@ -1706,7 +1706,7 @@ Unit ramos6502asm;
       end;
 
 
-    procedure tmos6502reader.BuildOperand(oper: tmos6502operand);
+    procedure tmos6502reader.BuildOperand(oper: tmos6502operand;iscalljmp: boolean);
 
       //procedure AddLabelOperand(hl:tasmlabel);
       //begin
@@ -1744,7 +1744,10 @@ Unit ramos6502asm;
             AS_MINUS,
             AS_INTNUM :
               begin
-                BuildReference(oper);
+                if iscalljmp then
+                  BuildConstantOperand(oper)
+                else
+                  BuildReference(oper);
 
                 //case oper.opr.typ of
                 //  OPR_REFERENCE :
@@ -1772,6 +1775,13 @@ Unit ramos6502asm;
 
             AS_HASH:
               begin
+                if iscalljmp then
+                  begin
+                    Message(asmr_e_syn_operand);
+                    RecoverConsume(true);
+                    break;
+                  end;
+
                 Consume(AS_HASH);
                 BuildConstantOperand(oper);
               end;
@@ -1973,7 +1983,7 @@ Unit ramos6502asm;
                 Consume(AS_COMMA);
               end;
             else
-              BuildOperand(instr.Operands[operandnum] as tmos6502operand);
+              BuildOperand(instr.Operands[operandnum] as tmos6502operand,is_calljmp(instr.opcode));
           end;
         until false;
         instr.ops:=operandnum;
