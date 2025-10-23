@@ -196,8 +196,19 @@ Unit ramos6502asm;
                 actasmtoken:=AS_END;
                 exit;
               end;
-            message1(asmr_e_unknown_opcode,actasmpattern);
-            actasmtoken:=AS_NONE;
+            { Local label ? }
+            if is_locallabel(actasmpattern) then
+              begin
+                actasmtoken:=AS_LLABEL;
+                firsttoken:=true;
+                exit;
+              end
+            else
+              begin
+                actasmtoken:=AS_LABEL;
+                firsttoken:=true;
+                exit;
+              end;
           end
         else { else firsttoken }
           { Here we must handle all possible cases }
@@ -2014,25 +2025,25 @@ Unit ramos6502asm;
         { main loop }
         repeat
           case actasmtoken of
-            //AS_LLABEL:
-            //  Begin
-            //    if CreateLocalLabel(actasmpattern,hl,true) then
-            //      ConcatLabel(curlist,hl);
-            //    Consume(AS_LLABEL);
-            //  end;
-            //
-            //AS_LABEL:
-            //  Begin
-            //    if SearchLabel(upper(actasmpattern),hl,true) then
-            //      begin
-            //        if hl.is_public then
-            //          ConcatPublic(curlist,actasmpattern_origcase);
-            //        ConcatLabel(curlist,hl);
-            //      end
-            //    else
-            //     Message1(asmr_e_unknown_label_identifier,actasmpattern);
-            //    Consume(AS_LABEL);
-            //  end;
+            AS_LLABEL:
+              Begin
+                if CreateLocalLabel(actasmpattern,hl,true) then
+                  ConcatLabel(curlist,hl);
+                Consume(AS_LLABEL);
+              end;
+
+            AS_LABEL:
+              Begin
+                if SearchLabel(upper(actasmpattern),hl,true) then
+                  begin
+                    if hl.is_public then
+                      ConcatPublic(curlist,actasmpattern_origcase);
+                    ConcatLabel(curlist,hl);
+                  end
+                else
+                 Message1(asmr_e_unknown_label_identifier,actasmpattern);
+                Consume(AS_LABEL);
+              end;
 
             AS_END:
               begin
