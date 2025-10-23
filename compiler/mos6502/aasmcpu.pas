@@ -33,11 +33,6 @@ uses
   ogbase;
 
     const
-      { "mov reg,reg" source operand number }
-      O_MOV_SOURCE = 1;
-      { "mov reg,reg" source operand number }
-      O_MOV_DEST = 0;
-
       instabentries = {$i mos6502nop.inc}
 
     type
