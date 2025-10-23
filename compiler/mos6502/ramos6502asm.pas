@@ -1531,9 +1531,43 @@ Unit ramos6502asm;
                 break;
               end;
 
-            AS_SEPARATOR,
-            AS_END,
             AS_COMMA:
+              begin
+                Consume(AS_COMMA);
+
+                if actasmtoken<>AS_REGISTER then
+                  begin
+                    Message(asmr_e_invalid_reference_syntax);
+                    RecoverConsume(true);
+                    break;
+                  end;
+
+                hreg:=actasmregister;
+                Consume(AS_REGISTER);
+
+                if (hreg<>NR_X) and (hreg<>NR_Y) then
+                  begin
+                    Message(asmr_e_invalid_reference_syntax);
+                    RecoverConsume(true);
+                    break;
+                  end;
+
+                case oper.opr.typ of
+                  OPR_REFERENCE :
+                    begin
+                      if oper.opr.ref.base<>NR_NO then
+                        internalerror(2025102302);
+                      oper.opr.ref.base:=hreg;
+                    end;
+                  else
+                    internalerror(2025102301);
+                end;
+
+                break;
+              end;
+
+            AS_SEPARATOR,
+            AS_END:
               begin
                 if not BracketlessReference then
                   begin
