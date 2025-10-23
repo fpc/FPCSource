@@ -108,7 +108,7 @@ unit cgcpu;
         procedure g_restore_registers(list : TAsmList);override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
-        //function normalize_ref(list : TAsmList;ref : treference; const refopertypes:trefoperandtypes; out allocatedregs:tregisterlist) : treference;
+        function normalize_ref(list : TAsmList;ref : treference; out allocatedregs:tregisterlist) : treference;
         procedure adjust_normalized_ref(list: TAsmList;var ref: treference; value: longint);
 
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
@@ -1495,113 +1495,54 @@ unit cgcpu;
        end;
 
 
-    //function tcgmos6502.normalize_ref(list: TAsmList; ref: treference;
-    //    const refopertypes: trefoperandtypes; out allocatedregs: tregisterlist): treference;
-    //  var
-    //    tmpref : treference;
-    //    l : tasmlabel;
-    //  begin
-    //    SetLength(allocatedregs,0);
-    //
-    //    if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=1) then
-    //      begin
-    //        ref.base:=ref.index;
-    //        ref.index:=NR_NO;
-    //      end;
-    //
-    //    if is_ref_in_opertypes(ref,refopertypes) then
-    //      begin
-    //        Result:=ref;
-    //        exit;
-    //      end;
-    //
-    //    { can we use the HL register? }
-    //    if OT_REF_HL in refopertypes then
-    //      begin
-    //        SetLength(allocatedregs,2);
-    //        allocatedregs[0]:=NR_H;
-    //        allocatedregs[1]:=NR_L;
-    //        getcpuregisters(list,allocatedregs);
-    //        if assigned(ref.symbol) or (ref.offset<>0) then
-    //          begin
-    //            if assigned(ref.symbol) then
-    //              begin
-    //                reference_reset(tmpref,0,[]);
-    //                tmpref.symbol:=ref.symbol;
-    //                tmpref.offset:=ref.offset;
-    //
-    //                tmpref.refaddr:=addr_full;
-    //                list.concat(taicpu.op_reg_ref(A_LD,NR_HL,tmpref));
-    //              end
-    //            else
-    //              list.concat(taicpu.op_reg_const(A_LD,NR_HL,ref.offset));
-    //            if (ref.base=NR_IX) or (ref.base=NR_IY) then
-    //              begin
-    //                getcpuregister(list,NR_D);
-    //                getcpuregister(list,NR_E);
-    //                list.concat(taicpu.op_reg(A_PUSH,ref.base));
-    //                list.concat(taicpu.op_reg(A_POP,NR_DE));
-    //                list.concat(taicpu.op_reg_reg(A_ADD,NR_HL,NR_DE));
-    //                ungetcpuregister(list,NR_E);
-    //                ungetcpuregister(list,NR_D);
-    //              end
-    //            else if ref.base<>NR_NO then
-    //              begin
-    //                getcpuregister(list,NR_A);
-    //                emit_mov(list,NR_A,NR_L);
-    //                list.concat(taicpu.op_reg_reg(A_ADD,NR_A,ref.base));
-    //                emit_mov(list,NR_L,NR_A);
-    //                emit_mov(list,NR_A,NR_H);
-    //                list.concat(taicpu.op_reg_reg(A_ADC,NR_A,GetNextReg(ref.base)));
-    //                emit_mov(list,NR_H,NR_A);
-    //                ungetcpuregister(list,NR_A);
-    //              end;
-    //            if ref.index<>NR_NO then
-    //              begin
-    //                if ref.scalefactor>1 then
-    //                  internalerror(2020042002);
-    //                getcpuregister(list,NR_A);
-    //                emit_mov(list,NR_A,NR_L);
-    //                list.concat(taicpu.op_reg_reg(A_ADD,NR_A,ref.index));
-    //                emit_mov(list,NR_L,NR_A);
-    //                emit_mov(list,NR_A,NR_H);
-    //                list.concat(taicpu.op_reg_reg(A_ADC,NR_A,GetNextReg(ref.index)));
-    //                emit_mov(list,NR_H,NR_A);
-    //                ungetcpuregister(list,NR_A);
-    //              end;
-    //          end
-    //        else
-    //          begin
-    //            { not assigned(ref.symbol) and (ref.offset=0) }
-    //            if (ref.base=NR_IX) or (ref.base=NR_IY) then
-    //              begin
-    //                list.concat(taicpu.op_reg(A_PUSH,ref.base));
-    //                list.concat(taicpu.op_reg(A_POP,NR_HL));
-    //              end
-    //            else if ref.base<>NR_NO then
-    //              begin
-    //                emit_mov(list,NR_L,ref.base);
-    //                emit_mov(list,NR_H,GetNextReg(ref.base));
-    //              end;
-    //            if ref.index<>NR_NO then
-    //              begin
-    //                if ref.scalefactor>1 then
-    //                  internalerror(2020042003);
-    //                getcpuregister(list,NR_A);
-    //                emit_mov(list,NR_A,NR_L);
-    //                list.concat(taicpu.op_reg_reg(A_ADD,NR_A,ref.index));
-    //                emit_mov(list,NR_L,NR_A);
-    //                emit_mov(list,NR_A,NR_H);
-    //                list.concat(taicpu.op_reg_reg(A_ADC,NR_A,GetNextReg(ref.index)));
-    //                emit_mov(list,NR_H,NR_A);
-    //                ungetcpuregister(list,NR_A);
-    //              end;
-    //          end;
-    //        reference_reset_base(result,NR_HL,0,ctempposinvalid,0,[]);
-    //      end
-    //    else
-    //      internalerror(2020042001);
-    //  end;
+    function tcgmos6502.normalize_ref(list: TAsmList; ref: treference; out allocatedregs: tregisterlist): treference;
+      var
+        tmpreg: tregister;
+      begin
+        SetLength(allocatedregs,0);
+
+        if (ref.base=NR_NO) and (ref.index=NR_NO) then
+          begin
+            result:=ref;
+            exit;
+          end;
+
+        if (ref.base=NR_NO) and (ref.index<>NR_NO) and (ref.scalefactor<=1) then
+          begin
+            ref.base:=ref.index;
+            ref.index:=NR_NO;
+          end;
+
+        if (ref.base<>NR_NO) and not assigned(ref.symbol) and (ref.offset>=0) and (ref.offset<=255) then
+          begin
+            SetLength(allocatedregs,1);
+            allocatedregs[0]:=NR_Y;
+            getcpuregisters(list,allocatedregs);
+            list.concat(taicpu.op_const(A_LDY,ref.offset));
+            reference_reset_base(result,ref.base,0,ctempposinvalid,0,[]);
+            result.index:=NR_Y;
+            exit;
+          end;
+
+        tmpreg:=getintregister(list,OS_ADDR);
+        a_load_const_reg(list,OS_ADDR,ref.offset,tmpreg);
+        if ref.base<>NR_NO then
+          a_op_reg_reg(list,OP_ADD,OS_ADDR,ref.base,tmpreg);
+        if ref.index<>NR_NO then
+          begin
+            if ref.scalefactor>1 then
+              internalerror(2025102304);
+            a_op_reg_reg(list,OP_ADD,OS_ADDR,ref.index,tmpreg);
+          end;
+        if assigned(ref.symbol) then
+          list.Concat(tai_comment.Create(strpnew('TODO: normalize_ref with symbol')));
+        SetLength(allocatedregs,1);
+        allocatedregs[0]:=NR_Y;
+        getcpuregisters(list,allocatedregs);
+        list.concat(taicpu.op_const(A_LDY,0));
+        reference_reset_base(result,tmpreg,0,ctempposinvalid,0,[]);
+        result.index:=NR_Y;
+      end;
 
 
     procedure tcgmos6502.adjust_normalized_ref(list: TAsmList; var ref: treference; value: longint);
