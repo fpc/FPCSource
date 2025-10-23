@@ -107,7 +107,7 @@ Unit ramos6502asm;
         function BuildRefConstExpression(out size:tcgint;startingminus:boolean=false):longint;
         procedure BuildConstantOperand(oper: tmos6502operand);
         procedure BuildReference(oper : tmos6502operand);
-        procedure BuildOperand(oper: tmos6502operand;istypecast:boolean);
+        procedure BuildOperand(oper: tmos6502operand);
         procedure BuildOpCode(instr:TMOS6502Instruction);
         procedure handleopcode;
         function Assemble: tlinkedlist;override;
@@ -1238,7 +1238,7 @@ Unit ramos6502asm;
                       oper.hastype:=true;
                       oper.typesize:=l;
                       Consume(AS_LPAREN);
-                      BuildOperand(oper,true);
+                      BuildOperand(oper);
                       Consume(AS_RPAREN);
                     end
                    else
@@ -1706,7 +1706,7 @@ Unit ramos6502asm;
       end;
 
 
-    procedure tmos6502reader.BuildOperand(oper: tmos6502operand;istypecast:boolean);
+    procedure tmos6502reader.BuildOperand(oper: tmos6502operand);
 
       //procedure AddLabelOperand(hl:tasmlabel);
       //begin
@@ -1973,7 +1973,7 @@ Unit ramos6502asm;
                 Consume(AS_COMMA);
               end;
             else
-              BuildOperand(instr.Operands[operandnum] as tmos6502operand,false);
+              BuildOperand(instr.Operands[operandnum] as tmos6502operand);
           end;
         until false;
         instr.ops:=operandnum;
