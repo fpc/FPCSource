@@ -1957,6 +1957,8 @@ Unit ramos6502asm;
         operandnum: Integer;
       begin
         instr.opcode:=actopcode;
+        if actopcode=A_Bxx then
+          instr.condition:=actasmcond;
         operandnum:=1;
         Consume(AS_OPCODE);
         { Zero operand opcode ?  }
