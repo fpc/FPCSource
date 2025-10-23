@@ -1552,6 +1552,13 @@ Unit ramos6502asm;
                     break;
                   end;
 
+                if not BracketlessReference and (hreg<>NR_X) then
+                  begin
+                    Message(asmr_e_invalid_reference_syntax);
+                    RecoverConsume(true);
+                    break;
+                  end;
+
                 case oper.opr.typ of
                   OPR_REFERENCE :
                     begin
@@ -1562,6 +1569,12 @@ Unit ramos6502asm;
                   else
                     internalerror(2025102301);
                 end;
+
+                if not BracketlessReference then
+                  begin
+                    Consume(AS_RPAREN);
+                    oper.opr.ref.addressmode:=taddressmode.AM_INDIRECT;
+                  end;
 
                 break;
               end;
@@ -1619,6 +1632,7 @@ Unit ramos6502asm;
             //AS_VMTOFFSET,
             //AS_TYPE,
             //AS_NOT,
+            AS_LPAREN,
             AS_STRING,
             AS_PLUS,
             AS_MINUS,
@@ -1656,11 +1670,6 @@ Unit ramos6502asm;
                 BuildConstantOperand(oper);
               end;
 
-            //AS_LPAREN:
-            //  begin
-            //    BuildReference(oper);
-            //  end;
-            //
             //AS_ID : { A constant expression, or a Variable ref. }
             //  Begin
             //    { Label or Special symbol reference? }
