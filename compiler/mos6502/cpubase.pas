@@ -78,7 +78,7 @@ unit cpubase;
       {$i rmos6502sup.inc}
 
       { No Subregisters }
-      R_SUBWHOLE = R_SUBL;
+      R_SUBWHOLE = R_SUBW;
 
       { Available Registers }
       {$i rmos6502con.inc}
