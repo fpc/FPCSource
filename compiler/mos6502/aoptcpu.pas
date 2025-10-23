@@ -122,13 +122,6 @@ Implementation
     end;
 
 
-  function MatchOpType(const instr : tai;ot0,ot1 : toptype) : Boolean;
-    begin
-      Result:=(taicpu(instr).ops=2) and
-        (taicpu(instr).oper[0]^.typ=ot0) and
-        (taicpu(instr).oper[1]^.typ=ot1);
-    end;
-
 {$ifdef DEBUG_AOPTCPU}
   procedure TCpuAsmOptimizer.DebugMsg(const s: string;p : tai);
     begin
