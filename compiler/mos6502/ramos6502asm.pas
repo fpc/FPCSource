@@ -1083,9 +1083,29 @@ Unit ramos6502asm;
         tempstr : string;
         tempsymtyp : tasmsymtype;
         cse_out_flags : tconstsymbolexpressionoutputflags;
+        forceaddrtype: Boolean;
+        newaddrtype: trefaddr;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
+        case actasmtoken of
+          AS_LESSTHAN:
+            begin
+              Consume(AS_LESSTHAN);
+              forceaddrtype:=true;
+              newaddrtype:=addr_lo8;
+            end;
+
+          AS_GREATERTHAN:
+            begin
+              Consume(AS_GREATERTHAN);
+              forceaddrtype:=true;
+              newaddrtype:=addr_hi8;
+            end;
+
+          else
+            forceaddrtype:=false;
+        end;
         BuildConstSymbolExpression([cseif_needofs],l,tempstr,tempsymtyp,size,cse_out_flags);
         if tempstr<>'' then
           begin
@@ -1094,6 +1114,11 @@ Unit ramos6502asm;
             oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr,tempsymtyp);
             oper.opr.symseg:=cseof_isseg in cse_out_flags;
             oper.opr.sym_farproc_entry:=cseof_is_farproc_entry in cse_out_flags;
+            if forceaddrtype then
+              begin
+                oper.InitRef;
+                oper.opr.ref.refaddr:=newaddrtype;
+              end
           end
         else
           if oper.opr.typ=OPR_NONE then
@@ -1103,6 +1128,15 @@ Unit ramos6502asm;
             end
           else
             inc(oper.opr.val,l);
+        if forceaddrtype and (oper.opr.typ=OPR_CONSTANT) then
+          case newaddrtype of
+            addr_lo8:
+              oper.opr.val:=oper.opr.val and $FF;
+            addr_hi8:
+              oper.opr.val:=oper.opr.val shr 8;
+            else
+              internalerror(2025102303);
+          end;
       end;
 
 
