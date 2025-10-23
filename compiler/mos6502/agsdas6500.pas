@@ -415,20 +415,30 @@ unit agsdas6500;
                  ((o.ref^.base<>NR_NO) or (o.ref^.index<>NR_NO)) and
                  (o.ref^.offset<>0) then
                 begin
+                  if o.ref^.addressmode=AM_INDIRECT then
+                    writer.AsmWrite('[');
                   writer.AsmWrite(tostr(o.ref^.offset));
                   if o.ref^.base<>NR_NO then
                     begin
                       if o.ref^.index<>NR_NO then
                         internalerror(2020040201);
+                      if (o.ref^.addressmode=AM_INDIRECT) and (o.ref^.base=NR_Y) then
+                        writer.AsmWrite(']');
                       writer.AsmWrite(',');
                       writer.AsmWrite(std_regname(o.ref^.base));
+                      if (o.ref^.addressmode=AM_INDIRECT) and (o.ref^.base=NR_X) then
+                        writer.AsmWrite(']');
                     end
                   else if o.ref^.index<>NR_NO then
                     begin
                       if o.ref^.scalefactor>1 then
                         internalerror(2020040202);
+                      if (o.ref^.addressmode=AM_INDIRECT) and (o.ref^.index=NR_Y) then
+                        writer.AsmWrite(']');
                       writer.AsmWrite(',');
                       writer.AsmWrite(std_regname(o.ref^.index));
+                      if (o.ref^.addressmode=AM_INDIRECT) and (o.ref^.index=NR_X) then
+                        writer.AsmWrite(']');
                     end;
                 end
               else
