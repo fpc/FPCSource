@@ -90,6 +90,17 @@ begin
       doerror(10);
   end;
 
+  l := low(longint);
+  try
+    l := -l;
+    doerror(109);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(110);
+  end;
+
   c := high(cardinal);
   try
     c := c+1;

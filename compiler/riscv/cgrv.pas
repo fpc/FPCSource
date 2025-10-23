@@ -235,7 +235,7 @@ unit cgrv;
         tmpreg1, tmpreg2: TRegister;
       begin
         if setflags and
-          { do we know overflow checking for this operation? fix me! }(size in [OS_32,OS_S32]) and (op in [OP_ADD,OP_SUB,OP_MUL,OP_IMUL,OP_IDIV]) then
+          { do we know overflow checking for this operation? fix me! }(size in [OS_32,OS_S32]) and (op in [OP_ADD,OP_SUB,OP_MUL,OP_IMUL,OP_IDIV,OP_NEG]) then
           begin
             ovloc.loc:=LOC_JUMP;
             current_asmdata.getjumplabel(ovloc.truelabel);
@@ -251,6 +251,15 @@ unit cgrv;
         else if op=OP_NEG then
           begin
             list.concat(taicpu.op_reg_reg_reg(A_SUB,dst,NR_X0,src1));
+
+            if setflags then
+              begin
+                { if dst and src are equal, an overflow happened }
+                a_cmp_reg_reg_label(list,OS_INT,OC_NE,dst,src1,ovloc.falselabel);
+
+                a_jmp_always(list,ovloc.truelabel);
+              end;
+
             maybeadjustresult(list,op,size,dst);
           end
         else
