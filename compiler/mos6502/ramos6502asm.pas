@@ -1664,6 +1664,7 @@ Unit ramos6502asm;
             //AS_VMTOFFSET,
             //AS_TYPE,
             //AS_NOT,
+            AS_ID,
             AS_LPAREN,
             AS_STRING,
             AS_PLUS,
