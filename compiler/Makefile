@@ -5377,7 +5377,10 @@ regdatrv64 : riscv/rvreg.dat
 regdatloongarch64 : loongarch64/loongarchreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkloongarch64reg.pp
 	cd loongarch64 && ..$(PATHSEP)utils$(PATHSEP)mkloongarch64reg$(SRCEXEEXT)
-regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80 regdatwasm regdatrv32 regdatrv64 regdatloongarch64
+regdat6502 : mos6502/mos6502reg.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mk6502reg.pp
+	cd mos6502 && ..$(PATHSEP)utils$(PATHSEP)mk6502reg$(SRCEXEEXT)
+regdat : regdatx86 regdatarm regdatsp regdatavr regdataarch64 regdatmips regdatsp64 regdatz80 regdatwasm regdatrv32 regdatrv64 regdatloongarch64 regdat6502
 intrdatx86 : x86/x86intr.dat
 		$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86inl.pp
 	cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86inl$(SRCEXEEXT)
