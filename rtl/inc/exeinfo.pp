@@ -1013,7 +1013,7 @@ begin
           end;
       end;
 
-    if ((found_addr=ptruint(-1)) or (found_addr < ptruint(phdr))) and (ptruint(phdr)<ptruint(addr)) then
+    if (found_addr=ptruint(-1)) or ((found_addr < ptruint(phdr)) and (ptruint(phdr)<ptruint(addr))) then
       found_addr:=ptruint(phdr);
     { Set pagesize to a default small value }
     if (pagesize=ptruint(-1)) then
