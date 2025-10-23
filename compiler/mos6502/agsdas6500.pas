@@ -496,8 +496,19 @@ unit agsdas6500;
             begin
               if o.ref^.refaddr=addr_no then
                 begin
-                  writer.AsmWrite('TODO:indirect jump ref');
-                  //WriteReference(o.ref^);
+                  writer.AsmWrite('[');
+                  if assigned(o.ref^.symbol) then
+                    begin
+                      writer.AsmWrite(ApplyAsmSymbolRestrictions(o.ref^.symbol.name));
+                      if o.ref^.offset>0 then
+                       writer.AsmWrite('+'+tostr(o.ref^.offset))
+                      else
+                       if o.ref^.offset<0 then
+                        writer.AsmWrite(tostr(o.ref^.offset));
+                    end
+                  else
+                    writer.AsmWrite(tostr(o.ref^.offset));
+                  writer.AsmWrite(']');
                 end
               else
                 begin
