@@ -5331,7 +5331,10 @@ insdatz80 : z80/z80ins.dat
 insdatloongarch64 : loongarch64/loongarchins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkloongarch64ins.pp
 	cd loongarch64 && ..$(PATHSEP)utils$(PATHSEP)mkloongarch64ins$(SRCEXEEXT)
-insdat: insdatx86 insdatarm insdataarch64 insdatz80 insdatloongarch64
+insdat6502 : mos6502/mos6502ins.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mk6502ins.pp
+	cd mos6502 && ..$(PATHSEP)utils$(PATHSEP)mk6502ins$(SRCEXEEXT)
+insdat: insdatx86 insdatarm insdataarch64 insdatz80 insdatloongarch64 insdat6502
 regdatx86 : x86/x86reg.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86reg.pp
 	cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86reg$(SRCEXEEXT) i8086
