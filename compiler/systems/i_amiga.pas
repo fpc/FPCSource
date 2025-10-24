@@ -93,6 +93,7 @@ unit i_amiga;
             stackalign   : 2;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_powerpc_amiga_info : tsysteminfo =
@@ -159,6 +160,7 @@ unit i_amiga;
             stackalign   : 16;
             abi : abi_powerpc_sysv;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v128:128:128-n32';
+            mos6502page0alloc : [];
           );
 
   implementation

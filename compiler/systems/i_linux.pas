@@ -104,6 +104,7 @@ unit i_linux;
             abi : abi_i386_dynalignedstack;
             { note: default LLVM stack alignment is 16 bytes for this target }
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
+            mos6502page0alloc : [];
           );
 
        system_x86_6432_linux_info : tsysteminfo =
@@ -172,6 +173,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_m68k_linux_info : tsysteminfo =
@@ -241,6 +243,7 @@ unit i_linux;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_powerpc_linux_info : tsysteminfo =
@@ -309,6 +312,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_powerpc_sysv;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v128:128:128-n32';
+            mos6502page0alloc : [];
           );
 
        system_powerpc64_linux_info : tsysteminfo =
@@ -377,6 +381,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_powerpc_sysv;
             llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
+            mos6502page0alloc : [];
           );
 
        system_x86_64_linux_info : tsysteminfo =
@@ -454,6 +459,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
+            mos6502page0alloc : [];
           );
 
        system_sparc_linux_info : tsysteminfo =
@@ -524,6 +530,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_sparc64_linux_info : tsysteminfo =
@@ -594,6 +601,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
 {$ifdef FPC_ARMHF}
@@ -670,6 +678,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_eabihf;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S64';
+            mos6502page0alloc : [];
           );
 {$else FPC_ARMHF}
 {$ifdef FPC_ARMEL}
@@ -743,6 +752,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_eabi;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S64';
+            mos6502page0alloc : [];
           );
 {$else FPC_ARMEL}
 {$ifdef FPC_ARMEB}
@@ -813,6 +823,7 @@ unit i_linux;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout: 'todo';
+            mos6502page0alloc : [];
           );
 {$else FPC_ARMEB}
        system_arm_linux_info : tsysteminfo =
@@ -881,6 +892,7 @@ unit i_linux;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout: 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:32:64-v128:32:128-a0:0:32-n32-S32';
+            mos6502page0alloc : [];
           );
 {$endif FPC_ARMEB}
 {$endif FPC_ARMEL}
@@ -959,7 +971,8 @@ unit i_linux;
             stacksize    : 8*1024*1024;
             stackalign   : 16;
             abi : abi_default;
-            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128'
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-n32:64-S128';
+            mos6502page0alloc : [];
           );
 
        system_mipseb_linux_info : tsysteminfo =
@@ -1030,6 +1043,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_mipsel_linux_info : tsysteminfo =
@@ -1100,6 +1114,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_mips64_linux_info : tsysteminfo =
@@ -1170,6 +1185,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_mips64el_linux_info : tsysteminfo =
@@ -1240,6 +1256,7 @@ unit i_linux;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_riscv32_linux_info : tsysteminfo =
@@ -1311,6 +1328,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_riscv_ilp32;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_riscv64_linux_info : tsysteminfo =
@@ -1383,6 +1401,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_riscv_lp64d;
             llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
+            mos6502page0alloc : [];
           );
 
        system_xtensa_linux_info : tsysteminfo =
@@ -1453,6 +1472,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_xtensa_windowed;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
+            mos6502page0alloc : [];
           );
 
        system_loongarch64_linux_info : tsysteminfo =
@@ -1525,6 +1545,7 @@ unit i_linux;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
+            mos6502page0alloc : [];
           );
 
   implementation

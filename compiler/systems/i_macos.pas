@@ -92,6 +92,7 @@ unit i_macos;
             stackalign   : 16;
             abi : abi_powerpc_darwin;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
      const
@@ -159,6 +160,7 @@ unit i_macos;
             stackalign   : 2;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
   implementation

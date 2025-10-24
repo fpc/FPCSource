@@ -95,6 +95,7 @@ unit i_symbian;
             stackalign   : 4;
             abi          : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_arm_symbian_info : tsysteminfo =
@@ -162,6 +163,7 @@ unit i_symbian;
             stackalign   : 4;
             abi          : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
 

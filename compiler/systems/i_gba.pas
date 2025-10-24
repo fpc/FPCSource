@@ -94,6 +94,7 @@ unit i_gba;
             stackalign   : 8;
             abi : abi_eabi;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
   implementation

@@ -100,6 +100,7 @@ unit i_freertos;
             stackalign   : 16;
             abi : abi_xtensa_windowed;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
        system_arm_freertos_info : tsysteminfo =
@@ -167,6 +168,7 @@ unit i_freertos;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
 
@@ -235,6 +237,7 @@ unit i_freertos;
             stackalign   : 16;
             abi : abi_riscv_ilp32;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
 

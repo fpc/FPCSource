@@ -116,6 +116,7 @@ unit i_win16;
             stackalign   : 2;
             abi          : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
   implementation

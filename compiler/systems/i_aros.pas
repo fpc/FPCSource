@@ -93,6 +93,7 @@ unit i_aros;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_x86_64_aros_info : tsysteminfo =
@@ -159,6 +160,7 @@ unit i_aros;
             stackalign   : 16; { fix me: this is a wild guess for now (KB) }
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
        system_arm_aros_info : tsysteminfo =
           (
@@ -224,6 +226,7 @@ unit i_aros;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
   implementation

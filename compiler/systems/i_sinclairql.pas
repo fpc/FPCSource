@@ -94,6 +94,7 @@ unit i_sinclairql;
             stackalign   : 2;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
   implementation

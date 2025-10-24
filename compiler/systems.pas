@@ -185,6 +185,12 @@ interface
             { indicates that the default value of the ts_wasm_threads target switch is 'on' for this target }
             tf_wasm_threads
        );
+{$ifdef MOS6502}
+       tmos6502page0alloc = set of 0..255;
+{$else MOS6502}
+       { little trick to avoid ifdefs and avoid wasting memory on non-6502 targets }
+       tmos6502page0alloc = set of 0..0;
+{$endif MOS6502}
        psysteminfo = ^tsysteminfo;
        { using packed causes bus errors on processors which require alignment }
        tsysteminfo = record
@@ -245,6 +251,13 @@ interface
             lib/Basic/Targets.cpp in the clang (cfe 3.3) source tree, sometimes
             adapted to match our (custom) stack alignment requirements }
           llvmdatalayout: ansistring;
+          { MOS 6502 CPU Page 0 Allocation: Which page 0 addresses (between
+            $0000 and $00FF) can be used by the compiler to store temporary
+            values:
+             True: Indicates that this address can be used by the compiler.
+            False: Indicates that this address is used by the computer's
+                   operating system and should not be used by the compiler. }
+          mos6502page0alloc: tmos6502page0alloc;
        end;
 
     tabiinfo = record

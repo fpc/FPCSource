@@ -100,6 +100,7 @@ unit i_oric;
             stackalign   : 1;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [$00..$0B,$BB,$BC,$F3..$F9];
           );
 
  implementation

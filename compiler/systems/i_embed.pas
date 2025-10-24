@@ -100,6 +100,7 @@ unit i_embed;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'e-m:e-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128';
+            mos6502page0alloc : [];
           );
 
        system_arm_embedded_info : tsysteminfo =
@@ -167,6 +168,7 @@ unit i_embed;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
        system_avr_embedded_info : tsysteminfo =
@@ -234,6 +236,7 @@ unit i_embed;
             stackalign   : 1;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_mipsel_embedded_info : tsysteminfo =
@@ -301,6 +304,7 @@ unit i_embed;
             stackalign   : 8;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_i386_embedded_info : tsysteminfo =
@@ -368,6 +372,7 @@ unit i_embed;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
+            mos6502page0alloc : [];
           );
 
        system_x86_64_embedded_info : tsysteminfo =
@@ -435,6 +440,7 @@ unit i_embed;
             stackalign   : 16;
             abi : abi_default;
             llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
+            mos6502page0alloc : [];
          );
 
        system_i8086_embedded_info : tsysteminfo =
@@ -513,6 +519,7 @@ unit i_embed;
             stackalign   : 2;
             abi          : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_m68k_embedded_info : tsysteminfo =
@@ -580,6 +587,7 @@ unit i_embed;
             stackalign   : 4;
             abi : abi_default;
             llvmdatalayout : 'TODO';
+            mos6502page0alloc : [];
           );
 
        system_riscv32_embedded_info : tsysteminfo =
@@ -647,6 +655,7 @@ unit i_embed;
             stackalign   : 16;
             abi : abi_riscv_ilp32;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
        system_riscv64_embedded_info : tsysteminfo =
@@ -714,6 +723,7 @@ unit i_embed;
             stackalign   : 8;
             abi : abi_riscv_lp64d;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
        system_xtensa_embedded_info : tsysteminfo =
@@ -781,6 +791,7 @@ unit i_embed;
             stackalign   : 16;
             abi : abi_xtensa_call0;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
+            mos6502page0alloc : [];
           );
 
        system_z80_embedded_info : tsysteminfo =
@@ -849,6 +860,7 @@ unit i_embed;
             stackalign   : 1;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
        system_mos6502_embedded_info : tsysteminfo =
@@ -917,6 +929,7 @@ unit i_embed;
             stackalign   : 1;
             abi : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [0..255];
           );
 
        system_wasm32_embedded_info : tsysteminfo =
@@ -988,6 +1001,7 @@ unit i_embed;
             stackalign   : 16;
             abi          : abi_default;
             llvmdatalayout : 'todo';
+            mos6502page0alloc : [];
           );
 
  implementation
