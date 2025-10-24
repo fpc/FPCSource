@@ -4265,9 +4265,15 @@ implementation
 
                    { if the final procedure definition is not yet owned,
                      ensure that it is }
-                   procdefinition.register_def;
                    if (procdefinition.typ=procdef) and assigned(tprocdef(procdefinition).procsym) then
-                     tprocdef(procdefinition).procsym.register_sym;
+                     begin
+                       { if the procdef does not yet have an owner (e.g. because it has just been
+                         specialized) then insert it into the same owner as the procsym }
+                       if not assigned(procdefinition.owner) and assigned(tprocdef(procdefinition).procsym.owner) then
+                         tprocdef(procdefinition).procsym.owner.insertdef(procdefinition);
+                       tprocdef(procdefinition).procsym.register_sym;
+                     end;
+                   procdefinition.register_def;
 
                    if procdefinition.is_specialization and (procdefinition.typ=procdef) then
                      maybe_add_pending_specialization(procdefinition,candidates.para_anon_syms);
