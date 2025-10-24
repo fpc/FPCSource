@@ -63,8 +63,6 @@ Type
   TPropertyType = TPascalType;
   TPropertyTypes = TPascalTypes;
 
-  { TPascalProperty }
-
   { TPascalPropertyData }
 
   TPascalPropertyData = class(TObject)
@@ -674,12 +672,27 @@ procedure TSchemaData.CheckDependencies;
 var
   I : Integer;
   lData : TPascalTypeData;
+  lName : string;
 
 begin
   For I:=0 to TypeCount-1 do
     begin
     lData:=Types[I];
-    CheckProps(lData,lData);
+    Case lData.Pascaltype of
+      ptAnonStruct,
+      ptSchemaStruct:
+        CheckProps(lData,lData) ;
+      ptArray:
+        begin
+        // Resolve element type ref
+        if (lData.Schema.Items.Count=1) then
+          begin
+          lName:=lData.Schema.Items[0].Ref;
+          if lName<>'' then
+            lData.ElementTypeData:=GetPascalTypeDataFromRef(lName);
+          end;
+        end;
+    end;
     end;
 end;
 
