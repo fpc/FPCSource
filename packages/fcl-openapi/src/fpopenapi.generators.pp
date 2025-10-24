@@ -23,7 +23,7 @@ uses
   {$IFDEF FPC_DOTTEDUNITS}
   System.Classes, System.SysUtils, System.DateUtils, System.Contnrs, Pascal.CodeGenerator,
   {$ELSE}
-  Classes, SysUtils, strutils, dateutils,  pascodegen, inifiles,
+  Classes, SysUtils, strutils, dateutils,  pascodegen,
   {$ENDIF}
   fpjson.schema.types,
   fpjson.schema.Pascaltypes,
@@ -411,7 +411,7 @@ begin
     lBodyType:=aMethod.RequestBodyDataType.GetTypeName(ntPascal);
   if lBodyType<>'' then
     AddTo(lParams, 'aRequest : '+lBodyType);
-  if aMethod.ResultDataType.BinaryData then
+  if Assigned(aMethod.ResultDataType) and aMethod.ResultDataType.BinaryData then
     AddTo(lParams, 'aResponseStream : TStream');
   if AsyncService then
     AddTo(lParams, 'aCallback : '+MethodResultCallbackName(aMethod));
@@ -805,10 +805,10 @@ begin
     lBodyArg:='aRequest.Serialize'
   else
     lBodyArg:='aRequest';
-  if aMethod.ResultDataType.BinaryData then
-    Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s,aResponseStream);', [lHTTPMethod, lBodyArg])
-  else
-    Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s);', [lHTTPMethod, lBodyArg]);
+  if Assigned(aMethod.ResultDataType) and aMethod.ResultDataType.BinaryData then
+      Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s,aResponseStream);', [lHTTPMethod, lBodyArg])
+    else
+      Addln('lResponse:=ExecuteRequest(''%s'',lURL,%s);', [lHTTPMethod, lBodyArg]);
   AddLn('Result:=%s.Create(lResponse);', [GetMethodResultType(aMethod)]);
   lResultType:=aMethod.ResultDataType;
   if (aMethod.ResultDataType=nil) then
@@ -909,9 +909,9 @@ begin
   Addln('uses');
   indent;
   if DelphiCode then
-    Addln('System.SysUtils')
+    Addln('System.SysUtils, System.DateUtils')
   else
-    Addln('SysUtils');
+    Addln('SysUtils, DateUtils');
   Addln(', %s;', [SerializerUnit]);
   undent;
   Addln('');
