@@ -20,9 +20,9 @@ interface
 
 uses
   {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils, System.DateUtils, Pascal.CodeGenerator,
+  System.Classes, System.SysUtils, System.DateUtils, Pascal.CodeGenerator,  System.Contnrs,
   {$ELSE}
-  Classes, SysUtils, dateutils, pascodegen,
+  Classes, SysUtils, dateutils, pascodegen, contnrs,
   {$ENDIF}
   fpjson.schema.types,
   fpjson.schema.Pascaltypes;
@@ -58,15 +58,22 @@ Type
   TTypeCodeGenerator = class(TJSONSchemaCodeGenerator)
   private
     FTypeParentClass: string;
+    FGenerated : TFPObjectHashTable;
+    procedure GenerateClassForwardTypes(aData: TSchemaData);
     procedure GenerateClassTypes(aData: TSchemaData);
+    procedure GenerateIntegerTypes(aData: TSchemaData);
     procedure GeneratePascalArrayTypes(aData: TSchemaData);
     procedure GenerateStringTypes(aData: TSchemaData);
     procedure WriteDtoConstructor(aType: TPascalTypeData); virtual;
     procedure WriteDtoField(aType: TPascalTypeData; aProperty: TPascalPropertyData); virtual;
     procedure WriteDtoType(aType: TPascalTypeData); virtual;
+    procedure WriteDtoForwardType(aType: TPascalTypeData); virtual;
     procedure WriteDtoArrayType(aType: TPascalTypeData); virtual;
+    procedure WriteDtoArrayRefType(aType: TPascalTypeData); virtual;
     procedure WriteStringArrayType(aType: TPascalTypeData);
+    procedure WriteIntegerArrayType(aType: TPascalTypeData);
     procedure WriteStringType(aType: TPascalTypeData); virtual;
+    procedure WriteIntegerType(aType: TPascalTypeData); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Execute(aData: TSchemaData);
@@ -275,6 +282,7 @@ var
   I: integer;
 
 begin
+  fGenerated.Add(aType.PascalName,aType);
   if WriteClassType then
     Addln('%s = Class(%s)', [aType.PascalName, TypeParentClass])
   else
@@ -289,17 +297,38 @@ begin
   Addln('');
 end;
 
+procedure TTypeCodeGenerator.WriteDtoForwardType(aType: TPascalTypeData);
+begin
+  Addln('%s = class;',[aType.PascalName]);
+end;
+
 procedure TTypeCodeGenerator.WriteDtoArrayType(aType: TPascalTypeData);
 
 var
   Fmt : String;
 
 begin
+  if FGenerated.Items[aType.PascalName]<>Nil then
+    exit;
+  FGenerated.Add(aType.PascalName,aType);
   if DelphiCode then
     Fmt:='%s = TArray<%s>;'
   else
     Fmt:='%s = Array of %s;';
   Addln(Fmt,[aType.PascalName,aType.ElementTypeData.PascalName]);
+end;
+
+procedure TTypeCodeGenerator.WriteDtoArrayRefType(aType: TPascalTypeData);
+var
+  Fmt : String;
+  lName : string;
+begin
+  if DelphiCode then
+    Fmt:='%s = TArray<%s>;'
+  else
+    Fmt:='%s = Array of %s;';
+  Addln(Fmt,[aType.PascalName,aType.ElementTypeData.PascalName]);
+
 end;
 
 procedure TTypeCodeGenerator.WriteStringArrayType(aType: TPascalTypeData);
@@ -308,10 +337,51 @@ begin
   WriteDtoArrayType(aType);
 end;
 
+procedure TTypeCodeGenerator.WriteIntegerArrayType(aType: TPascalTypeData);
+begin
+  WriteDtoArrayType(aType);
+end;
+
 procedure TTypeCodeGenerator.WriteStringType(aType: TPascalTypeData);
 
 begin
+  FGenerated.Add(aType.PascalName,aType);
   Addln('%s = string;',[aType.PascalName]);
+end;
+
+procedure TTypeCodeGenerator.WriteIntegerType(aType: TPascalTypeData);
+var
+  I,lEl,lMin,lMax : Integer;
+  lName: string;
+begin
+  lMin:=0;
+  lMax:=0;
+  FGenerated.Add(aType.PascalName,aType);
+  if aType.Schema.Validations.HasKeywordData(jskEnum) and
+     (aType.Schema.Validations.Enum.Count>0) then
+    begin
+    lMin:=aType.Schema.Validations.Enum.Items[0].AsInteger;
+    lMax:=aType.Schema.Validations.Enum.Items[0].AsInteger;
+    for I:=1 to aType.Schema.Validations.Enum.Count-1 do
+      begin
+      lEl:=aType.Schema.Validations.Enum.Items[i].AsInteger;
+      if lEl<lMin then
+        lMin:=lEl;
+      if lEl>lMax then
+        lMax:=lEl;
+      end;
+    if (lMax-lMin+1)<>aType.Schema.Validations.Enum.Count then
+      begin
+      lMin:=0;
+      lMax:=0;
+      end;
+    end;
+  lName:=aType.PascalName;
+  if lMin<>lMax then
+    Addln('%s = %d..%d;',[lName,lMin,lMax])
+  else
+    Addln('%s = Integer;',[lName]);
+
 end;
 
 
@@ -348,6 +418,49 @@ begin
     AddLn('');
 end;
 
+procedure TTypeCodeGenerator.GenerateIntegerTypes(aData : TSchemaData);
+
+var
+  I,lCount: integer;
+  lType,lArray : TPascalTypeData;
+begin
+  lCount:=0;
+  for I := 0 to aData.TypeCount-1 do
+    begin
+    lType:=aData.Types[I];
+    if (lType.PascalType=ptInteger) then
+      begin
+      DoLog('Generating integer type %s', [lType.PascalName]);
+      WriteIntegerType(lType);
+      inc(lCount);
+      lArray:=aData.FindSchemaTypeData('['+lType.SchemaName+']');
+      if lArray<>Nil then
+        begin
+        WriteIntegerArrayType(lArray);
+        inc(lCount);
+        end;
+      end;
+    end;
+  if lCount>0 then
+    AddLn('');
+end;
+
+procedure TTypeCodeGenerator.GenerateClassForwardTypes(aData: TSchemaData);
+var
+  I: integer;
+  lArray : TPascalTypeData;
+  lName : string;
+begin
+  for I := 0 to aData.TypeCount-1 do
+    if aData.Types[I].PascalType in [ptSchemaStruct,ptAnonStruct] then
+      begin
+        DoLog('Generating DTO class forward type %s', [aData.Types[I].PascalName]);
+        lName:=aData.Types[I].PascalName;
+        WriteDtoForwardType(aData.Types[I]);
+      end
+
+end;
+
 procedure TTypeCodeGenerator.GenerateClassTypes(aData : TSchemaData);
 
 var
@@ -374,6 +487,7 @@ procedure TTypeCodeGenerator.GeneratePascalArrayTypes(aData : TSchemaData);
 var
   I, lCount: integer;
   lType : TPascalTypeData;
+  lName : string;
 
 begin
   lCount := 0;
@@ -383,13 +497,12 @@ begin
     // It is an array
     if (lType.PascalType=ptArray) then
       begin
-      // the element type is a standard type
-      if (lType.ElementTypeData.Schema=Nil) then
+      if (lType.ElementTypeData.PascalName<>'') then
         begin
         DoLog('Generating array type %s', [lType.PascalName]);
         WriteDtoArrayType(lType);
         inc(lCount);
-        end;
+        end
       end;
     end;
   if lCount>0 then
@@ -400,9 +513,11 @@ procedure TTypeCodeGenerator.Execute(aData: TSchemaData);
 
 var
   I: integer;
+  False: Boolean;
 
 begin
   FData := aData;
+  FGenerated:=TFPObjectHashTable.Create(False);
   GenerateHeader;
   try
     Addln('unit %s;', [OutputUnitName]);
@@ -419,6 +534,9 @@ begin
     EnsureSection(csType);
     Addln('');
     indent;
+    if WriteClassType then
+      GenerateClassForwardTypes(aData);
+    GenerateIntegerTypes(aData);
     GenerateStringTypes(aData);
     GeneratePascalArrayTypes(aData);
     GenerateClassTypes(aData);
@@ -951,6 +1069,8 @@ begin
 end;
 
 procedure TSerializerCodeGenerator.WriteArrayHelperSerializeArray(aType: TPascalTypeData);
+var
+  lSerializeCall : String;
 begin
   Addln('');
   Addln('function %s.SerializeArray : TJSONArray;',[aType.SerializerName]);
@@ -965,7 +1085,15 @@ begin
   indent;
   Addln('For I:=0 to length(Self)-1 do');
   Indent;
-  Addln('Result.Add(self[i]);');
+  if aType.ElementTypeData.Pascaltype in [ptSchemaStruct,ptAnonStruct] then
+    lSerializeCall:='.SerializeObject'
+  else  if aType.ElementTypeData.Pascaltype=ptArray then
+    lSerializeCall:='.SerializeArray'
+  else if aType.ElementTypeData.schema=Nil then
+    lSerializeCall:=''
+  else
+    Raise EJSONSchema.CreateFmt('Cannot decide how to serialize %',[aType.ElementTypeData.PascalName]);
+  Addln('Result.Add(self[i]%s);',[lSerializeCall]);
   undent;
   undent;
   Addln('except');
@@ -1150,6 +1278,7 @@ begin
               begin
               WriteArrayHelper(ElementTypeData);
               end;
+            WriteArrayHelper(lType);
             end;
     end;
     undent;
@@ -1186,6 +1315,7 @@ begin
             begin
             WriteArrayHelperImpl(lType.ElementTypeData);
             end;
+          WriteArrayHelperImpl(lType);
           end;
       end;
     end;
