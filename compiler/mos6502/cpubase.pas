@@ -250,6 +250,11 @@ unit cpubase;
       NR_DEFAULTFLAGS = NR_P;
       RS_DEFAULTFLAGS = RS_P;
 
+      RS_RZB_FIRST = RS_RZB0;
+      RS_RZB_LAST = RS_RZB255;
+      RS_RZW_FIRST = RS_RZW0;
+      RS_RZW_LAST = RS_RZW254;
+
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
@@ -417,8 +422,8 @@ unit cpubase;
     function is_6502_zero_page_register(r:TRegister):boolean;
       begin
         result:=(getregtype(r)=R_INTREGISTER) and
-          (((getsupreg(r)>=RS_RZB0) and (getsupreg(r)<=RS_RZB255)) or
-           ((getsupreg(r)>=RS_RZW0) and (getsupreg(r)<=RS_RZW254)));
+          (((getsupreg(r)>=RS_RZB_FIRST) and (getsupreg(r)<=RS_RZB_LAST)) or
+           ((getsupreg(r)>=RS_RZW_FIRST) and (getsupreg(r)<=RS_RZW_LAST)));
       end;
 
 
@@ -429,11 +434,11 @@ unit cpubase;
         if getregtype(r)<>R_INTREGISTER then
           internalerror(2024050401);
         supreg:=getsupreg(r);
-        if (supreg>=RS_RZB0) and (supreg<=RS_RZB255) then
-          result:=supreg-RS_RZB0
-        else if (supreg>=RS_RZW0) and (supreg<=RS_RZW254) then
+        if (supreg>=RS_RZB_FIRST) and (supreg<=RS_RZB_LAST) then
+          result:=supreg-RS_RZB_FIRST
+        else if (supreg>=RS_RZW_FIRST) and (supreg<=RS_RZW_LAST) then
           begin
-            result:=supreg-RS_RZW0;
+            result:=supreg-RS_RZW_FIRST;
             if getsubreg(r)=R_SUBH then
               Inc(result);
           end
