@@ -177,11 +177,23 @@ unit cgcpu;
 
 
     procedure tcgmos6502.init_register_allocators;
+      var
+        regmap: tmos6502registermap;
+        usable:array of tsuperregister;
+        I: Integer;
       begin
         inherited init_register_allocators;
-        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-            [RS_RZB0,RS_RZB1,RS_RZB2,RS_RZB3,RS_RZB4,RS_RZB5,RS_RZB6,RS_RZB7,RS_RZB8,RS_RZB9,RS_RZB10,RS_RZB11,RS_RZB249,
-             RS_RZW187,RS_RZW243,RS_RZW245,RS_RZW247],first_int_imreg,[]);
+        regmap:=get_register_map_for_system(target_info);
+        { pass 2 registers less to the register allocator, because we use
+          RS_RZW0 as a stack pointer, and RS_RZW1 as a frame pointer }
+        SetLength(usable,regmap.BRegCount+regmap.WRegCount-2);
+        for I:=0 to regmap.BRegCount-1 do
+          usable[I]:=RS_RZB_FIRST+I;
+        for I:=0 to regmap.WRegCount-3 do
+          usable[I+regmap.BRegCount]:=RS_RZW_FIRST+I+2;
+        {for I:=low(usable) to high(usable) do
+          Writeln(usable[I]);}
+        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,usable,first_int_imreg,[RS_RZW1]);
       end;
 
 
