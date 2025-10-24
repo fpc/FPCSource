@@ -408,12 +408,14 @@ var
   lType : TSchemaSimpleType;
 
 begin
-  lType:=TAPITypeData.ExtractFirstType(FParameter.Schema);
-  case lType of
-    sstInteger : Result:=Format('IntToStr(%s)',[Name]); // Also handles int64
-    sstString :  Result:=Name;
-    sstNumber : Result:=Format('FloatToStr(%s,cRestFormatSettings)',[Name]);
-    sstBoolean : Result:=Format('cRESTBooleans[%s]',[Name]);
+  Case FArgType of
+    ptInteger,
+    ptInt64: Result:=Format('IntToStr(%s)',[Name]); // Also handles int64
+    ptString : Result:=Name;
+    ptDateTime : Result:=Format('DateToISO8601(%s)',[Name]);
+    ptFloat32,
+    ptFloat64 : Result:=Format('FloatToStr(%s,cRestFormatSettings)',[Name]);
+    ptBoolean : Result:=Format('cRESTBooleans[%s]',[Name]);
   else
     Result:=Name;
   end;
@@ -833,8 +835,10 @@ begin
       if NeedsDeserialize(lData) then
         Include(lSerTypes,stDeSerialize);
       end;
-    lData.SerializeTypes:=lSerTypes;
+    lData.SerializeTypes:=lData.SerializeTypes+lSerTypes;
     DoLog(etInfo,'%s needs serialize: %s, deserialize: %s',[lData.SchemaName,BoolToStr(stSerialize in lSerTypes,True),BoolToStr(stDeSerialize in lSerTypes,True)]);
+    if (lData.Pascaltype=ptArray) and Assigned(lData.ElementTypeData) then
+      lData.ElementTypeData.SerializeTypes:=lData.ElementTypeData.SerializeTypes+lSerTypes;
     end;
 end;
 
@@ -865,21 +869,55 @@ begin
     lName:=FAPI.Components.Schemas.Names[I];
     lSchema:=FAPI.Components.Schemas.Schemas[lName];
     lType:=lSchema.Validations.GetFirstType;
-    if (lType in [sstObject,sstString]) then
+    if (lType in [sstArray,sstObject,sstInteger,sstString]) then
       begin
       lTypeName:=EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix);
       case lType of
-        sstObject : lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
+        sstObject :
+          lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
         sstString :
           begin
           lData:=CreatePascalType(I,ptString,lName,lTypeName,lSchema);
           end;
+        sstInteger:
+          lData:=CreatePascalType(I,ptInteger,lName,lTypeName,lSchema);
+        sstArray:
+          lData:=CreatePascalType(I,ptArray,lName,lTypeName,lSchema);
       end;
       ConfigType(lData);
       AddType(lName,lData);
       AddToTypeMap(lName,lData);
       end;
     end;
+  For I:=0 to FAPI.Components.Parameters.Count-1 Do
+    begin
+    lName:=FAPI.Components.Parameters.Names[I];
+    if FAPI.Components.Parameters.ParameterOrReferences[lName].HasReference then
+      Continue;
+    lSchema:=FAPI.Components.Parameters.ParameterOrReferences[lName].Schema;
+    if assigned(lSchema) then
+    lType:=lSchema.Validations.GetFirstType;
+    if (lType in [sstArray,sstObject,sstInteger,sstString]) then
+      begin
+      lTypeName:=EscapeKeyWord(ObjectTypePrefix+Sanitize(lName)+ObjectTypeSuffix);
+      case lType of
+        sstObject :
+          lData:=CreatePascalType(I,ptSchemaStruct,lName,lTypeName,lSchema);
+        sstString :
+          begin
+          lData:=CreatePascalType(I,ptString,lName,lTypeName,lSchema);
+          end;
+        sstInteger:
+          lData:=CreatePascalType(I,ptInteger,lName,lTypeName,lSchema);
+        sstArray:
+          lData:=CreatePascalType(I,ptArray,lName,lTypeName,lSchema);
+      end;
+      ConfigType(lData);
+      AddType(lName,lData);
+      AddToTypeMap(lName,lData);
+      end;
+    end;
+
   // We do this here, so all API type references can be resolved
   For I:=0 to APITypeCount-1 do
     AddProperties(APITypes[i]);
@@ -1070,28 +1108,29 @@ var
   S : String;
 
 begin
+  Result:=Nil;
   if AMethod.Operation.Responses.Count>0 then
     begin
     lResponse:=AMethod.Operation.Responses.ResponseByindex[0];
-    lMedia:=lResponse.Content.MediaTypes['application/json'];
-    if lMedia=Nil then
+    if lResponse.Content.Count<>0 then
       begin
-      // Check if we must stream
-      For S in StreamContentTypes do
+      lMedia:=lResponse.Content.MediaTypes['application/json'];
+      if lMedia=Nil then
         begin
-        lMedia:=lResponse.Content.MediaTypes[S];
-        if lMedia<>nil then
-          break;
+        // Check if we must stream
+        For S in StreamContentTypes do
+          begin
+          lMedia:=lResponse.Content.MediaTypes[S];
+          if lMedia<>nil then
+            break;
+          end;
+        if lMedia=nil then
+          Raise EGenAPI.CreateFmt('No application/json response media type for %s.%s',[aMethod.Service.ServiceName,aMethod.MethodName]);
+        Result:=GetStreamTypeData(S);
         end;
-      if lMedia=nil then
-        Raise EGenAPI.CreateFmt('No application/json response media type for %s.%s',[aMethod.Service.ServiceName,aMethod.MethodName]);
-      Result:=GetStreamTypeData(S);
-      end
-    else
       Result:=GetSchemaTypeData(Nil,lMedia.Schema,True) as TAPITypeData;
-    end
-  else
-    Result:=Nil; // FindApiType('boolean');
+      end;
+    end;
 end;
 
 function TAPIData.GetMethodResultType(aMethod : TAPIServiceMethod; aNameType : TNameType) : String;
