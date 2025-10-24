@@ -93,6 +93,7 @@ uses
          procedure loadbool(opidx:longint;_b:boolean);
          { register allocation }
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
+         function spilling_get_operation_type(opnr: longint): topertype; override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -285,6 +286,39 @@ implementation
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         result:=false;
+      end;
+
+
+    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
+      begin
+        case opcode of
+          A_LDA,
+          A_LDX,
+          A_LDY,
+          A_AND,
+          A_EOR,
+          A_ORA,
+          A_BIT,
+          A_ADC,
+          A_SBC,
+          A_CMP,
+          A_CPX,
+          A_CPY:
+            result:=operand_read;
+          A_STA,
+          A_STX,
+          A_STY:
+            result:=operand_write;
+          A_INC,
+          A_DEC,
+          A_ASL,
+          A_LSR,
+          A_ROL,
+          A_ROR:
+            result:=operand_readwrite;
+          else
+            result:=operand_read;
+        end;
       end;
 
 
