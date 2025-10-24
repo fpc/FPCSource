@@ -251,9 +251,9 @@ unit cpubase;
       RS_DEFAULTFLAGS = RS_P;
 
       RS_RZB_FIRST = RS_RZB0;
-      RS_RZB_LAST = RS_RZB255;
+      RS_RZB_LAST = RS_RZB121;
       RS_RZW_FIRST = RS_RZW0;
-      RS_RZW_LAST = RS_RZW254;
+      RS_RZW_LAST = RS_RZW127;
 
 {*****************************************************************************
                        GCC /ABI linking information
