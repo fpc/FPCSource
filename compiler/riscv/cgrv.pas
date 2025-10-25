@@ -339,7 +339,7 @@ unit cgrv;
                 if setflags and (op=OP_MUL) and (size=OS_32) then
                   begin
                     tmpreg1:=getintregister(list,size);
-                    list.concat(taicpu.op_reg_reg_reg(A_MULH,tmpreg1,src2,src1));
+                    list.concat(taicpu.op_reg_reg_reg(A_MULHU,tmpreg1,src2,src1));
                   end
                 else
                   tmpreg1:=NR_NO;
@@ -349,23 +349,22 @@ unit cgrv;
                     case op of
                       OP_ADD:
                         begin
-                          if size=OS_S32 then
+                          if size=OS_SINT then
                             begin
                               tmpreg1:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg1,dst,src2));
                               tmpreg2:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_const(A_SLTI,tmpreg2,src1,0));
-                              ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg1,tmpreg2,ovloc.falselabel,0);
-                              ai.condition:=C_EQ;
+                              a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg1,tmpreg2,ovloc.falselabel)
                             end
-                          else if size=OS_32 then
+                          else if size=OS_INT then
                             begin
                               ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,dst,src2,ovloc.falselabel,0);
                               ai.condition:=C_GEU;
+                              list.concat(ai);
                             end
                           else
                             Internalerror(2025102003);
-                          list.concat(ai);
                           a_jmp_always(list,ovloc.truelabel);
                         end;
                       OP_SUB:
@@ -376,45 +375,38 @@ unit cgrv;
                               list.concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg1,src2,dst));
                               tmpreg2:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_const(A_SLTI,tmpreg2,src1,0));
-                              ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg1,tmpreg2,ovloc.falselabel,0);
-                              ai.condition:=C_EQ;
+                              a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg1,tmpreg2,ovloc.falselabel)
                             end
                           else if size=OS_32 then
                             begin
                               ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,src2,dst,ovloc.falselabel,0);
                               ai.condition:=C_GEU;
+                              list.concat(ai);
                             end
                           else
                             Internalerror(2025102002);
-                          list.concat(ai);
                           a_jmp_always(list,ovloc.truelabel);
                         end;
                       OP_MUL:
                         begin
-                          if size=OS_32 then
-                            begin
-                              ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg1,NR_X0,ovloc.falselabel,0);
-                              ai.condition:=C_EQ;
-                            end
+                          if size=OS_INT then
+                            a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg1,NR_X0,ovloc.falselabel)
                           else
                             Internalerror(2025102002);
-                          list.concat(ai);
                           a_jmp_always(list,ovloc.truelabel);
                         end;
                       OP_IMUL:
                         begin
-                          if size=OS_S32 then
+                          if size=OS_SINT then
                             begin
                               tmpreg1:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_reg(A_MULH,tmpreg1,src2,src1));
                               tmpreg2:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_const(A_SRAI,tmpreg2,dst,31));
-                              ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,tmpreg1,tmpreg2,ovloc.falselabel,0);
-                              ai.condition:=C_EQ;
+                              a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg1,tmpreg2,ovloc.falselabel);
                             end
                           else
                             Internalerror(2025102004);
-                          list.concat(ai);
                           a_jmp_always(list,ovloc.truelabel);
                         end;
                       OP_IDIV:
