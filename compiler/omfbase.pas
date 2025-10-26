@@ -88,7 +88,8 @@ interface
       'stack',
       'heap',
       'gcc_except_table',
-      'ARM_attributes'
+      'ARM_attributes',
+      'note'
     );
 
     { OMF record types }
@@ -2966,7 +2967,8 @@ implementation
         {stack} 'STACK',
         {heap} 'HEAP',
         {gcc_except_table} 'DATA',
-        {ARM_attributes} 'DATA'
+        {ARM_attributes} 'DATA',
+        {note} 'DATA'
       );
     begin
       result:=segclass[atype];
