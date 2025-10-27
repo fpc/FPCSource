@@ -306,8 +306,8 @@ unit cpubase;
     { Checks if Subset is a subset of c (e.g. "less than" is a subset of "less than or equal" }
     function condition_in(const Subset, c: TAsmCond): Boolean;
 
-    function dwarf_reg(r:tregister):byte;
-    function dwarf_reg_no_error(r:tregister):shortint;
+    function dwarf_reg(r:tregister):int64;
+    function dwarf_reg_no_error(r:tregister):int64;
     function eh_return_data_regno(nr: longint): longint;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -476,9 +476,9 @@ unit cpubase;
       end;
 
 
-    function dwarf_reg(r:tregister):byte;
+    function dwarf_reg(r:tregister):int64;
       var
-        reg : shortint;
+        reg : int64;
       begin
         if is_6502_zero_page_register(r) then
           begin
@@ -497,7 +497,7 @@ unit cpubase;
       end;
 
 
-    function dwarf_reg_no_error(r:tregister):shortint;
+    function dwarf_reg_no_error(r:tregister):int64;
       begin
         if is_6502_zero_page_register(r) then
           begin
