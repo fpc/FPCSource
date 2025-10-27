@@ -315,7 +315,7 @@ unit cpubase;
   implementation
 
     uses
-      rgBase,verbose;
+      rgBase,verbose,rgcpu,systems;
 
 
     const
@@ -430,15 +430,17 @@ unit cpubase;
     function get_6502_zero_page_register_address(r:TRegister): Byte;
       var
         supreg: TSuperRegister;
+        map: tmos6502registermap;
       begin
         if getregtype(r)<>R_INTREGISTER then
           internalerror(2024050401);
+        map:=get_register_map_for_system(target_info);
         supreg:=getsupreg(r);
         if (supreg>=RS_RZB_FIRST) and (supreg<=RS_RZB_LAST) then
-          result:=supreg-RS_RZB_FIRST
+          result:=map.bmap[supreg]
         else if (supreg>=RS_RZW_FIRST) and (supreg<=RS_RZW_LAST) then
           begin
-            result:=supreg-RS_RZW_FIRST;
+            result:=map.wmap[supreg];
             if getsubreg(r)=R_SUBH then
               Inc(result);
           end
