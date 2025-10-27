@@ -220,8 +220,8 @@ unit cpubase;
       }
       NR_PIC_OFFSET_REG = NR_INVALID;
       { Results are returned in this register (32-bit values) }
-      NR_FUNCTION_RETURN_REG = NR_INVALID;
-      RS_FUNCTION_RETURN_REG = RS_INVALID;
+      NR_FUNCTION_RETURN_REG = NR_A;
+      RS_FUNCTION_RETURN_REG = RS_A;
       { Low part of 64bit return value }
       NR_FUNCTION_RETURN64_LOW_REG = NR_INVALID;
       RS_FUNCTION_RETURN64_LOW_REG = RS_INVALID;
