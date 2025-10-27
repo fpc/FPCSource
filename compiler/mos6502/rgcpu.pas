@@ -47,7 +47,11 @@ unit rgcpu;
          constructor Create(p0a: tmos6502page0alloc);
        end;
 
+       { trgcpu }
+
        trgcpu = class(trgobj)
+         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);override;
+         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);override;
        end;
 
        trgintcpu = class(trgcpu)
@@ -108,6 +112,35 @@ unit rgcpu;
           Writeln('RS_RZB',R-RS_RZB_FIRST,'=*',bmap[R]);
         for R:=RS_RZW_FIRST to LastWReg do
           Writeln('RS_RZW',R-RS_RZW_FIRST,'=*',wmap[R]);}
+      end;
+
+    { trgcpu }
+
+    procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
+      //var
+      //  ins:tai_cpu_abstract_sym;
+      begin
+        list.insertafter(tai_comment.Create(strpnew('TODO: Spilling: Spill Read')),pos);
+        //ins:=spilling_create_load(spilltemp,tempreg);
+        //add_cpu_interferences(ins);
+        //list.insertafter(ins,pos);
+        //{$ifdef DEBUG_SPILLING}
+        //list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Read')),ins);
+        //{$endif}
+      end;
+
+
+    procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
+      //var
+      //  ins:tai_cpu_abstract_sym;
+      begin
+        list.insertafter(tai_comment.Create(strpnew('TODO: Spilling: Spill Write')),pos);
+        //ins:=spilling_create_store(tempreg,spilltemp);
+        //add_cpu_interferences(ins);
+        //list.insertafter(ins,pos);
+        //{$ifdef DEBUG_SPILLING}
+        //list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Write')),ins);
+        //{$endif}
       end;
 
 
