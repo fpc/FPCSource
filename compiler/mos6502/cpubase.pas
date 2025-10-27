@@ -480,7 +480,17 @@ unit cpubase;
       var
         reg : shortint;
       begin
-        reg:=regdwarf_table[findreg_by_number(r)];
+        if is_6502_zero_page_register(r) then
+          begin
+            if (getsupreg(r)>=RS_RZB_FIRST) and (getsupreg(r)<=RS_RZB_LAST) then
+              reg:=get_6502_zero_page_register_address(r)+$20000
+            else if (getsupreg(r)>=RS_RZW_FIRST) and (getsupreg(r)<=RS_RZW_LAST) then
+              reg:=(get_6502_zero_page_register_address(r) shr 1)+$30000
+            else
+              internalerror(2025102701);
+          end
+        else
+          reg:=regdwarf_table[findreg_by_number(r)];
         if reg=-1 then
           internalerror(200603251);
         result:=reg;
@@ -489,7 +499,17 @@ unit cpubase;
 
     function dwarf_reg_no_error(r:tregister):shortint;
       begin
-        result:=regdwarf_table[findreg_by_number(r)];
+        if is_6502_zero_page_register(r) then
+          begin
+            if (getsupreg(r)>=RS_RZB_FIRST) and (getsupreg(r)<=RS_RZB_LAST) then
+              result:=get_6502_zero_page_register_address(r)+$20000
+            else if (getsupreg(r)>=RS_RZW_FIRST) and (getsupreg(r)<=RS_RZW_LAST) then
+              result:=(get_6502_zero_page_register_address(r) shr 1)+$30000
+            else
+              internalerror(2025102701);
+          end
+        else
+          result:=regdwarf_table[findreg_by_number(r)];
       end;
 
 
