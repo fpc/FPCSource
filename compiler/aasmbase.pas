@@ -181,7 +181,9 @@ interface
          sec_heap,
          { dwarf based/gcc style exception handling }
          sec_gcc_except_table,
-         sec_arm_attribute
+         sec_arm_attribute,
+         { Used for GNU .note sections }
+         sec_note
        );
 
        TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;

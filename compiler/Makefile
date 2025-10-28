@@ -5409,6 +5409,11 @@ endif
 ifeq ($(COMPILEREXENAME),)
 COMPILEREXENAME:=$(EXENAME)
 endif
+ifeq ($(OS_SOURCE),morphos)
+COMPILEREXEDIR:=$(shell echo $(BASEDIR) | sed 's/\///;s/\//:/')
+else
+COMPILEREXEDIR:=$(BASEDIR)
+endif
 .PHONY : revision
 revision :
 	$(DEL) revision.inc
@@ -5429,7 +5434,7 @@ else
 endif
 	$(COMPILER) version.pas
 endif
-	$(COMPILER) -o$(BASEDIR)/$(COMPILEREXENAME) pp.pas
+	$(COMPILER) -o$(COMPILEREXEDIR)/$(COMPILEREXENAME) pp.pas
 	$(EXECPPAS)
 .PHONY: cycle full full_targets fullcycle wpocycle
 ifeq ($(CPU_SOURCE),$(PPC_TARGET))

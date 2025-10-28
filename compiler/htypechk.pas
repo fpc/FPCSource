@@ -528,7 +528,8 @@ implementation
                  { <dyn. array> + <dyn. array> is handled by the compiler }
                  if (m_array_operators in current_settings.modeswitches) and
                      (treetyp=addn) and
-                     (is_dynamic_array(ld) or is_dynamic_array(rd)) then
+                     (is_dynamic_array(ld) or is_array_constructor(ld)) and
+                     (is_dynamic_array(rd) or is_array_constructor(rd)) then
                     begin
                       allowed:=false;
                       exit;

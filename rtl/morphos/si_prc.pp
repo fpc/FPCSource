@@ -41,7 +41,7 @@ procedure PascalMainEntry; cdecl; forward;
   all .text.* section, so if we link any object with an unnamed .text
   section, this won't be at the start of the executable, and we get
   crashes. (KB) }
-function _FPC_proc_start: longint; cdecl; public name '_start'; section '.text';
+function _FPC_proc_start: longint; cdecl; public name '_start'; {$IFNDEF VER3_2}section '.text';{$ENDIF}
 var
   sst: TStackSwapStruct;
   newStack: Pointer;

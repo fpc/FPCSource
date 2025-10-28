@@ -2784,6 +2784,8 @@ uses
       state.oldgenericdummysyms:=current_module.genericdummysyms;
       state.oldcurrent_genericdef:=current_genericdef;
       state.oldspecializestate:=pspecializationstate(current_module.specializestate);
+      state.oldoptoken:=optoken;
+      optoken:=NOTOKEN;
       current_module.specializestate:=@state;
       current_module.extendeddefs:=TFPHashObjectList.create(true);
       current_module.genericdummysyms:=tfphashobjectlist.create(true);
@@ -2821,23 +2823,18 @@ uses
               that we specialize a generic in a different unit that was used
               in the implementation section of the generic's unit and were the
               interface is still being parsed and thus the localsymtable is in
-              reality the global symtable }
+              reality the global symtable
+
+              In addition to that it can also be the case that neither the
+              global- nor the localsymtable is set, namely when the compiler
+              didn't yet have the chance to process on of the units in the
+              (implementation) uses clause simply due to the orders, so don't
+              add anything of that unit yet (once routine bodies need to be
+              specialized everything needed should be in place however). }
             if pu.u.in_interface then
               begin
-                {
-                  MVC: The case where localsymtable is also nil can appear in complex cases and still produce valid code.
-                  In order to allow people in this case to continue, SKIP_INTERNAL20231102 can be defined.
-                  Default behaviour is to raise an internal error.
-                  See also
-                  https://gitlab.com/freepascal.org/fpc/source/-/issues/40502
-                }
-                {$IFDEF SKIP_INTERNAL20231102}
-                if (pu.u.localsymtable<>Nil) then
-                {$ELSE}
-                if (pu.u.localsymtable=Nil) then
-                  internalerror(20231102);
-                {$ENDIF}
-                  symtablestack.push(pu.u.localsymtable);
+                if assigned(pu.u.localsymtable) then
+                  symtablestack.push(pu.u.localsymtable)
               end
             else
               internalerror(200705153)
@@ -2865,6 +2862,7 @@ uses
       current_module.genericdummysyms.free;
       current_module.genericdummysyms:=state.oldgenericdummysyms;
       current_module.specializestate:=state.oldspecializestate;
+      optoken:=state.oldoptoken;
       symtablestack.free;
       symtablestack:=state.oldsymtablestack;
       { clear the state record to be on the safe side }

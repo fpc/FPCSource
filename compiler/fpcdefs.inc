@@ -183,6 +183,7 @@
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
+  {$define CPU_BC_HAS_SIZE_LIMIT}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -196,6 +197,7 @@
   {$define cpurefshaveindexreg}
   {$define cpuno32bitops}
   {$define SUPPORT_SAFECALL}
+  {$define CPU_BC_HAS_SIZE_LIMIT}
 {$endif powerpc64}
 
 {$ifdef arm}

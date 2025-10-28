@@ -4275,6 +4275,16 @@ implementation
         if result=nil then
           result:=search_specific_assignment_operator(_ASSIGNMENT,from_def,to_def);
 
+        { if we're assigning to a typed pointer, but we did not find a suitable assignement
+          operator then we also check for a untyped pointer assignment operator }
+        if not assigned(result) and is_pointer(to_def) and not is_voidpointer(to_def) then
+          begin
+            if explicit then
+              result:=search_specific_assignment_operator(_OP_EXPLICIT,from_def,voidpointertype);
+            if not assigned(result) then
+              result:=search_specific_assignment_operator(_ASSIGNMENT,from_def,voidpointertype);
+          end;
+
         { restore symtable stack }
         if to_def.typ in [recorddef,objectdef] then
           symtablestack.pop(tabstractrecorddef(to_def).symtable);

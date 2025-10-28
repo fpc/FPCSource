@@ -29,7 +29,7 @@ Unit AoptObj;
 
 {$i fpcdefs.inc}
 
-{$if not defined(JVM) and not defined(WASM) and not defined(POWERPC) and not defined (POWERPC64)}
+{$if not defined(JVM) and not defined(WASM)}
 {$define CPU_SUPPORTS_OPT_COND_JUMP}
 {$endif}
 
@@ -1261,13 +1261,28 @@ Unit AoptObj;
 
       class function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
       Var TempP: Tai;
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+         count: ASizeUInt;
+{$endif CPU_BC_HAS_SIZE_LIMIT}
       Begin
         TempP := hp;
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+        count:=0;
+{$endif CPU_BC_HAS_SIZE_LIMIT}
         While Assigned(TempP) and
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+	     (count < BC_max_distance) and
+{$endif CPU_BC_HAS_SIZE_LIMIT}
              (TempP.typ In SkipInstr + [ait_label,ait_align]) Do
           If (TempP.typ <> ait_Label) Or
              (Tai_label(TempP).labsym <> L)
-            Then GetNextInstruction(TempP, TempP)
+            Then
+               begin
+                 GetNextInstruction(TempP, TempP);
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+		 inc(count);
+{$endif CPU_BC_HAS_SIZE_LIMIT}
+               end
             Else
               Begin
                 hp := TempP;

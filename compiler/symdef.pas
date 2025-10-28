@@ -2684,7 +2684,7 @@ implementation
            tmod:=find_module_from_symtable(owner);
             if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
               begin
-                comment(v_error,'Definition '+fullownerhierarchyname(false)+' from module '+tmod.mainsource+' regitered with current module '+current_module.mainsource);
+                comment(v_error,'Definition '+fullownerhierarchyname(false)+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
               end;
            if not assigned(tmod) then
              tmod:=current_module;

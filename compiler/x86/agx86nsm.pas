@@ -592,7 +592,8 @@ interface
           '.stack',
           '.heap',
           ',gcc_except_table',
-          ',ARM_attributes'
+          ',ARM_attributes',
+          ',note'
         );
       var
         secname,secgroup: string;

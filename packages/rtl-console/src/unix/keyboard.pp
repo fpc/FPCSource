@@ -2273,7 +2273,7 @@ var
 
     procedure DecodeAndPushWin32Key(const store: array of AnsiChar; arrayind: byte);
 
-      function VKToScanCode(vk: Word): Byte;
+      function VKToScanCode(vk: Word): Word;
       begin
         case vk of
           // Standard keys
@@ -2328,7 +2328,7 @@ var
       i, p_idx, code: Integer;
       st: string;
       ch: AnsiChar;
-      ScanCode: Byte;
+      ScanCode: Word;
       k: TEnhancedKeyEvent;
     begin
       // 1. Parse the parameters: Vk;Sc;Uc;Kd;Cs;Rc

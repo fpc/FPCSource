@@ -34,9 +34,14 @@ interface
 
 
   type
+
+    { tavrnodeutils }
+
     tavrnodeutils = class(tnodeutils)
     protected
       class procedure insert_init_final_table(main: tmodule; entries:tfplist); override;
+    public
+      class procedure InsertMemorySizes; override;
     end;
 
 implementation
@@ -106,6 +111,68 @@ implementation
       finalList.Free;
 
       inherited insert_init_final_table(main,entries);
+    end;
+
+  class procedure tavrnodeutils.InsertMemorySizes;
+    var
+      tcb: ttai_typedconstbuilder;
+      notename, strtable: shortstring;
+      sym: tasmsymbol;
+      defstr, defu32: tdef;
+    begin
+      { Store device information in the .note.gnu.avr.deviceinfo section.
+
+        Layout of.note.gnu.avr.deviceinfo:
+         note_name_len: dword
+         note_desc_len: dword // Size of the Tavr_desc data record
+         note_type: dword = 1
+         Tavr_desc = record
+           note_name: char[note_name_len] = 'AVR'#0;
+           flash_start,
+           flash_size,
+           sram_start,
+           sram_size,
+           eeprom_start,
+           eeprom_size: dword;
+           offset_table_len: dword;
+           offset_table: char[] = #0+mcuname#0+#0;
+         end }
+
+      notename:='AVR'#0;
+      strtable:=#0+lower(embedded_controllers[current_settings.controllertype].controllertypestr)+#0#0;
+      tcb:=ctai_typedconstbuilder.create([tcalo_no_dead_strip]);
+      defu32:=corddef.create(u32bit,0,$FFFFFFFF,false);
+      tcb.maybe_begin_aggregate(defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(length(notename)),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(length(strtable)+32),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(1),defu32);
+      defstr:=carraydef.getreusable(cansichartype,length(notename));
+      tcb.maybe_begin_aggregate(defstr);
+      tcb.emit_tai(Tai_string.Create(notename),defstr);
+      tcb.maybe_begin_aggregate(defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].flashbase),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].flashsize),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].srambase),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].sramsize),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].eeprombase),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(embedded_controllers[current_settings.controllertype].eepromsize),defu32);
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(8),defu32);  // Size of string offset table
+      tcb.emit_tai(tai_const.Create_32bit_unaligned(1),defu32);  // Offset of string in table
+      tcb.maybe_begin_aggregate(defstr);
+      tcb.emit_tai(Tai_string.Create(strtable),defstr);
+      tcb.maybe_end_aggregate(defstr);
+      tcb.maybe_end_aggregate(defu32);
+      tcb.maybe_end_aggregate(defstr);
+      tcb.maybe_end_aggregate(defu32);
+
+      sym:=current_asmdata.DefineAsmSymbol('__AVR_deviceinfo',AB_LOCAL,AT_DATA,defstr);
+      current_asmdata.asmlists[al_globals].concatlist(
+        tcb.get_final_asmlist(sym,defstr,sec_note,'.gnu.avr.deviceinfo',const_align(32))
+      );
+      defu32.free;
+      tcb.free;
+
+      inherited InsertMemorySizes;
     end;
 
 begin

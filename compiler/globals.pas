@@ -232,6 +232,15 @@ Const
 
     const
       LinkMapWeightDefault = 1000;
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+    {$if defined(POWERPC) or defined(POWERPC64)}
+      { instructions are 4-byte long and relative jump distance
+        a signed 16-bit signed integer, code as
+        reduced by a small amount to avoid troubles
+        as distance can be modified by optimizations. }
+      BC_max_distance = ($8000 div 4) - $100;
+    {$endif}
+{$endif CPU_BC_HAS_SIZE_LIMIT}
 
     type
       TLinkRec = record
