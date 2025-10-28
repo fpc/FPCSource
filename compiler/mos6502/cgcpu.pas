@@ -48,8 +48,10 @@ unit cgcpu;
         procedure getcpuregisters(list:TAsmList;regs:tregisterlist);
         procedure ungetcpuregisters(list:TAsmList;regs:tregisterlist);
 
+        function getintregister(list:TAsmList;size:Tcgsize):Tregister;override;
         function getaddressregister(list:TAsmList):TRegister;override;
 
+        function GetNextReg(const r: TRegister): TRegister;override;
         function GetOffsetReg(const r: TRegister;ofs : shortint): TRegister;override;
         function GetOffsetReg64(const r,rhi: TRegister;ofs : shortint): TRegister;override;
 
@@ -221,9 +223,58 @@ unit cgcpu;
       end;
 
 
+    function tcgmos6502.getintregister(list: TAsmList; size: Tcgsize): Tregister;
+      begin
+        if not assigned(rg[R_INTREGISTER]) then
+          internalerror(200312122);
+        case size of
+          OS_8, OS_S8,
+          OS_16, OS_S16:
+            Result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(R_INTREGISTER,size));
+          OS_32, OS_S32:
+            begin
+              Result:=getintregister(list, OS_16);
+              has_next_reg[getsupreg(Result)]:=true;
+              { ensure that the high register can be retrieved by
+                GetNextReg
+              }
+              //if getintregister(list, OS_16)<>GetNextReg(Result) then
+              //  internalerror(2013030202);
+            end;
+          else
+            internalerror(2013030201);
+        end;
+      end;
+
+
     function tcgmos6502.getaddressregister(list: TAsmList): TRegister;
       begin
        Result:=getintregister(list,OS_ADDR);
+      end;
+
+
+    function tcgmos6502.GetNextReg(const r: TRegister): TRegister;
+      begin
+        if getregtype(r)<>R_INTREGISTER then
+          internalerror(2025102801);
+        case getsubreg(r) of
+          R_SUBW:
+            begin
+              result:=r;
+              setsubreg(result,R_SUBH);
+            end;
+          R_SUBH:
+            begin
+              if getsupreg(r)<first_int_imreg then
+                internalerror(2025102802);
+              if not has_next_reg[getsupreg(r)] then
+                internalerror(2017091103);
+              result:=TRegister(longint(r)+1);
+              setsubreg(result,R_SUBW);
+            end;
+          else
+            internalerror(2025102804);
+        end;
       end;
 
 
