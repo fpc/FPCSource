@@ -424,25 +424,25 @@ unit cpupara;
                   OS_F32:
                     begin
                       paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_RZB0;
+                      paraloc^.register:=NR_RZW2L;
                       paraloc^.size:=OS_8;
                       paraloc^.def:=u8inttype;
 
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_RZB1;
+                      paraloc^.register:=NR_RZW2H;
                       paraloc^.size:=OS_8;
                       paraloc^.def:=u8inttype;
 
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_RZB2;
+                      paraloc^.register:=NR_RZW3L;
                       paraloc^.size:=OS_8;
                       paraloc^.def:=u8inttype;
 
                       paraloc:=result.add_location;
                       paraloc^.loc:=LOC_REGISTER;
-                      paraloc^.register:=NR_RZB3;
+                      paraloc^.register:=NR_RZW3H;
                       paraloc^.size:=OS_8;
                       paraloc^.def:=u8inttype;
                     end;
@@ -465,25 +465,25 @@ unit cpupara;
               OS_32,OS_S32:
                 begin
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_RZB0;
+                  paraloc^.register:=NR_RZW2L;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_RZB1;
+                  paraloc^.register:=NR_RZW2H;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_RZB2;
+                  paraloc^.register:=NR_RZW3L;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
 
                   paraloc:=result.add_location;
                   paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_RZB3;
+                  paraloc^.register:=NR_RZW3H;
                   paraloc^.size:=OS_8;
                   paraloc^.def:=u8inttype;
                 end;
