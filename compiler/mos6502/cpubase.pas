@@ -77,7 +77,7 @@ unit cpubase;
       { Available Superregisters }
       {$i rmos6502sup.inc}
 
-      { No Subregisters }
+      { 16-bit virtual (zero page) registers }
       R_SUBWHOLE = R_SUBW;
 
       { Available Registers }
