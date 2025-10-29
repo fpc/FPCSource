@@ -7984,13 +7984,13 @@ var R: TRect;
 begin
   inherited init(AWildCard,ATitle,InputName,AOptions,HistoryId);
   FileName^.getData(S);
-  R.Assign(3, 3, 31, 4);
+  FileName^.GetBounds(R);
   DInput := New(PFPFileInputLine, Init(R, 79{FileNameLen+4}));
   DInput^.SetData(S);
+  DInput^.GrowMode:=FileName^.GrowMode;
   InsertBefore(DInput,FileName); {insert before to preserv order as it was}
   Delete(FileName);
   Dispose(FileName,done);
-  DInput^.GrowMode:=gfGrowHiX;
   FileName:=DInput;
   FileHistory^.Link:=DInput;
   {resize}
