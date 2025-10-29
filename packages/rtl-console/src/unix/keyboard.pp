@@ -1811,6 +1811,12 @@ begin
       DoAddSequence(st,AnsiChar,scan,shift);
   end;
   sunKeySquences;
+  if fpgetenv('TERM')='xterm-kitty' then {special exception for kitty keys only for Kitty terminal emulator}
+  begin
+    DoAddSequence(#27'[P',0,kbF1,[]);
+    DoAddSequence(#27'[Q',0,kbF2,[]);
+    DoAddSequence(#27'[S',0,kbF4,[]);
+  end;
 end;
 
 function RawReadKey:AnsiChar;
