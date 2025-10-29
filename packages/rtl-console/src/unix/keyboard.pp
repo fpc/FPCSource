@@ -1778,48 +1778,6 @@ begin
     PushUnicodeKey (k,nKey,UnicodeToSingleByte(nKey));
 end;
 
-procedure xterm_ModifyOtherKeys;
-{ format: CSI 27 ; modifier ; number ~ }
-var ch : AnsiChar;
-    fdsin : tfdSet;
-    st: string[31];
-    modifier : dword;
-    nKey : dword;
-    nr : byte;
-    i : dword;
-begin
-  fpFD_ZERO(fdsin);
-  fpFD_SET(StdInputHandle,fdsin);
-
-  nr:=0;
-  modifier:=1;
-  nKey:=0;
-  st:='0';
-  repeat
-     if inhead=intail then
-       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
-     ch:=ttyRecvChar;
-     if ch in [';','~'] then
-     begin
-       if nr = 0 then val(st,modifier,i);
-       if nr = 1 then val(st,nKey,i);
-       inc(nr);
-       st:='0';
-     end else
-     begin
-       if not (ch in ['0'..'9']) then break;
-       st:=st+ch;
-     end;
-  until ch='~';
-
-  {test for validity}
-  if ch<>'~' then exit;
-  if nr<> 2  then exit;
-
-  BuildKeyEvent(modifier,nKey,nKey);
-end;
-
-
 procedure LoadDefaultSequences;
 
 var i:cardinal;
@@ -1829,8 +1787,6 @@ begin
   AddSpecialSequence(#27'[<',@GenMouseEvent_ExtendedSGR1006);
   AddSpecialSequence(#27#27'[M',@GenMouseEvent);
   AddSpecialSequence(#27#27'[<',@GenMouseEvent_ExtendedSGR1006);
-  if not isKittyKeys then
-    AddSpecialSequence(#27'[27;',@xterm_ModifyOtherKeys);
 
   {Unix backspace/delete hell... Is #127 a backspace or delete?}
   if copy(fpgetenv('TERM'),1,4)='cons' then
@@ -2572,6 +2528,50 @@ var
         end;
     end;
 
+    procedure DecodeXtermModifyOtherKeys;
+    { format: CSI 2 7 ; modifier ; number ~ }
+    var ch : AnsiChar;
+        fdsin : tfdSet;
+        st: string[31];
+        modifier : dword;
+        nKey : dword;
+        nr : byte;
+        i,n : dword;
+        //asIs: string[31];
+    begin
+      nr:=0;
+      modifier:=1;
+      nKey:=0;
+      st:='0';
+      //asIs:='';
+      if arrayind > 5 then
+      for i:= 5 to arrayind-1 do
+      begin
+         ch:=store[i];
+         //asIs:=asIs+ch;
+         if ch in [';','~'] then
+         begin
+           if nr = 0 then val(st,modifier,n);
+           if nr = 1 then val(st,nKey,n);
+           inc(nr);
+           st:='0';
+         end else
+         begin
+           if not (ch in ['0'..'9']) then break;
+           st:=st+ch;
+         end;
+      end;
+
+      {test for validity}
+      if ch<>'~' then exit;
+      if nr<> 2  then exit;
+
+      BuildKeyEvent(modifier,nKey,nKey);
+
+      arrayind:=0; { assume we have exactly full escape sequence and we have consumed it all }
+    end;
+
+
     procedure RestoreArray;
       var
         i : byte;
@@ -2725,26 +2725,6 @@ begin
           {save char later use }
           store[arrayind]:=ch;
           inc(arrayind);
-
-          // Switch to blocking read if found win32-input-mode-encoded ESC key
-          // This fixes that key behavior in that mode
-          if (arrayind = 5) and (store[0]=#27) and (store[1]='[') and (store[2]='2') and (store[3]='7') and (store[4]=';')
-          then
-          begin
-            // Enter blocking read loop with a safety break
-            while (arrayind < 31) do
-            begin
-              // This is a blocking read, it will wait for the next character
-              ch := ttyRecvChar;
-              store[arrayind] := ch;
-              inc(arrayind);
-              // Check for known terminators for win32, kitty, xterm, and other CSI sequences.
-              if (ch = '_') or (ch = 'u') or (ch = '~') or (ch in ['A'..'Z']) or (ch in ['a'..'z']) then
-                break; // Exit this inner blocking loop
-            end;
-            break; // We have the full sequence, so exit the outer `while syskeypressed` loop
-          end;
-
           if arrayind >= 31 then break;
           {check tree for maching sequence}
           if assigned(NPT) then
@@ -2769,7 +2749,7 @@ begin
             dec(arrayind);
             break;
           end;
-          if (arrayind>3) and not (ch in [';',':','0'..'9']) and (ch <> '_') then break; {end of escape sequence}
+          if (arrayind>3) and not (ch in [';',':','0'..'9']) and (ch <> '_') and (ch <> '~') then break; {end of escape sequence}
         end;
 
         ch := store[arrayind-1];
@@ -2789,7 +2769,10 @@ begin
                   FoundNPT:=RootNPT;
                   DecodeKittyKey(k,FoundNPT);
                 end;
-            end;
+            end else
+          if (ch='~') and (arrayind>5) then
+            if (store[0]=#27) and (store[1]='[')and (store[2]='2')and (store[3]='7')and (store[4]=';') then
+              DecodeXtermModifyOtherKeys;
 
         if not assigned(FoundNPT) then
         begin
