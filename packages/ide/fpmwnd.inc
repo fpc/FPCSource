@@ -181,7 +181,7 @@ constructor TWindowListDialog.Init;
 var R,R2: TRect;
     SB: PScrollBar;
 begin
-  R.Assign(0,0,Max(60,round(ScreenWidth*5/8)),Max(13,round(ScreenHeight*3/5)));
+  R.Assign(0,0,Max(60,round(ScreenWidth*5/8)),Max(14,round(ScreenHeight*3/5)));
   inherited Init(R, dialog_windowlist);
   HelpCtx:=hcWindowList;
   New(C, Init(20,10));
@@ -203,7 +203,7 @@ begin
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=R.B.X-13+1; R.B.Y:=R.A.Y+2;
   Insert(New(PButton, Init(R, button_OK, cmOK, bfDefault)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, button_Delete, cmDeleteItem, bfNormal)));
+  Insert(New(PButton, Init(R, button_Close, cmDeleteItem, bfNormal)));
   R.Move(0,2);
   New(BtnShow, Init(R, button_Show, cmShowItem, bfNormal));
   Insert(BtnShow);

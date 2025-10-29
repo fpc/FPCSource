@@ -474,6 +474,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 button_Delete      = '~D~elete';
                 button_Show        = '~S~how';
                 button_Hide        = '~H~ide';
+                button_Close       = '~C~lose';
 
                 { dialogs }
                 dialog_fillintemplateparameter = 'Fill in template parameter';
