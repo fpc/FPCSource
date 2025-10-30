@@ -697,6 +697,8 @@ implementation
          _exports.free;
         if assigned(dllscannerinputlist) then
          dllscannerinputlist.free;
+        if assigned(localnamespacelist) then
+         localnamespacelist.free;
         if assigned(scanner) then
          begin
             { also update current_scanner if it was pointing
