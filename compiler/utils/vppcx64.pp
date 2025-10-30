@@ -69,6 +69,7 @@ begin
 end;
 
 var
+   valgrind_args,
    all_args : String;
    ValGrindExeName : String;
    CompilerName : String;
@@ -83,6 +84,7 @@ var
 
 begin
   all_args:='';
+  valgrind_args:='';
   if FileExists('.'+DirSep+FpcValgrindIniName) then
     begin
       Assign(F,'.'+DirSep+FpcValgrindIniName);
@@ -90,7 +92,7 @@ begin
       while not eof(F) do
         begin
           readln(f,line);
-	  all_args:=all_args+' '+line;
+	  valgrind_args:=valgrind_args+' '+line;
 	end;
       Close(F);
     end;
@@ -155,10 +157,10 @@ begin
     end;
   AdaptToValgrind(FullCompilerName);
   {$ifdef EXTDEBUG}
-  Writeln(stderr,'Starting ',ValgrindExeName+' '+FullCompilerName+all_args);
+  Writeln(stderr,'Starting ',ValgrindExeName+' '+valgrind_args+' '+FullCompilerName+all_args);
   flush(stderr);
   {$endif}
-  ValgrindExitCode:=ExecuteProcess(ValgrindExeName,FullCompilerName+all_args);
+  ValgrindExitCode:=ExecuteProcess(ValgrindExeName,valgrind_args+' '+FullCompilerName+all_args);
   if (ValgrindExitCode<>0) then
     begin
       Writeln('Error running Valgrind');
