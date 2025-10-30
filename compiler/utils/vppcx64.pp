@@ -77,7 +77,7 @@ var
    argv0 : pchar;
 {$endif}
    Dir,Name,Ext,Param : ShortString;
-   ValgrindError,ValgrindExitCode,i : longint;
+   ValgrindExitCode,i : longint;
    line : string;
    f : text;
 
@@ -86,11 +86,13 @@ begin
   if FileExists('.'+DirSep+FpcValgrindIniName) then
     begin
       Assign(F,'.'+DirSep+FpcValgrindIniName);
+      Reset(F);
       while not eof(F) do
         begin
           readln(f,line);
 	  all_args:=all_args+' '+line;
 	end;
+      Close(F);
     end;
 
   fsplit(paramstr(0),Dir,Name,Ext);
@@ -153,23 +155,14 @@ begin
     end;
   AdaptToValgrind(FullCompilerName);
   {$ifdef EXTDEBUG}
-  Writeln(stderr,'Starting ',ValgrindExeName+' '+FullCompilerName);
+  Writeln(stderr,'Starting ',ValgrindExeName+' '+FullCompilerName+all_args);
   flush(stderr);
   {$endif}
-   DosError:=0;
-   Exec(ValgrindExeName,FullCompilerName+all_args);
-  ValgrindError:=DosError;
-  ValgrindExitCode:=DosExitCode;
-  if (ValgrindError<>0) or (ValgrindExitCode<>0) then
+  ValgrindExitCode:=ExecuteProcess(ValgrindExeName,FullCompilerName+all_args);
+  if (ValgrindExitCode<>0) then
     begin
       Writeln('Error running Valgrind');
-      if (ValgrindError<>0) then
-        Writeln('DosError = ',ValgrindError);
-      if (ValgrindExitCode<>0) then
-        Writeln('DosExitCode = ',ValgrindExitCode);
-      if ValgrindExitCode<>0 then
-        RunError(ValgrindExitCode)
-      else
-        RunError(ValgrindError);
+      Writeln('ExecuteProcess return value = ',ValgrindExitCode);
+      RunError(ValgrindExitCode);
     end;
 end.
