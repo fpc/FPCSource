@@ -368,11 +368,14 @@ begin
   DeskUseSyntaxHighlight:=b;
 end;
 
+function ReadVideoMode(F: PResourceFile;var NewScreenMode : TVideoMode): boolean; forward;
+
 function ReadOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
     DV: word;
     WI: TWindowInfo;
+    VM: TVideoMode;
     Title: string;
     XDataOfs: word;
     XData: array[0..1024] of byte;
@@ -535,6 +538,20 @@ begin
       Desktop^.Unlock;
       Exit;
     end;
+  {calculate new location and size of window}
+  if (VM.col > 0) and (ScreenWidth<>VM.col) then
+  begin
+    WI.Bounds.A.X:=round(WI.Bounds.A.X*ScreenWidth/VM.col);
+    if (W^.Flags and wfGrow)<>0 then
+      WI.Bounds.B.X:=Max(16,round(WI.Bounds.B.X*ScreenWidth/VM.col));
+  end;
+  if (VM.row > 2) and (ScreenHeight<>VM.row) then
+  begin
+    WI.Bounds.A.Y:=round(WI.Bounds.A.Y*(ScreenHeight-2)/(VM.row-2));
+    if (W^.Flags and wfGrow)<>0 then
+      WI.Bounds.B.Y:=Max(6,round(WI.Bounds.B.Y*(ScreenHeight-2)/(VM.row-2)));
+  end;
+  {relocat and resize window as needed}
   W^.GetBounds(R);
   if (R.A.X<>WI.Bounds.A.X) or (R.A.Y<>WI.Bounds.A.Y) then
     R.Move(WI.Bounds.A.X-R.A.X,WI.Bounds.A.Y-R.A.Y);
@@ -552,6 +569,7 @@ begin
       end
     else
       W^.Hide;
+  {check if window is out screen bounds and bring it back if so}
   ZZ:=0;
   Desktop^.GetExtent(Z);
   if R.A.Y>Z.B.Y-7 then
@@ -580,6 +598,7 @@ begin
 end;
 begin
   PushStatus(msg_readingdesktopcontents);
+  OK:=ReadVideoMode(F,VM); {read video mode again (need old Hight and Width)}
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resDesktop,langDefault,S^);
   S^.Seek(0);
