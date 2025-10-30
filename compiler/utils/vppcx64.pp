@@ -1,0 +1,175 @@
+{
+    Copyright (c) 2000-2002 by Pierre Muller
+
+    This program allows to run the Makefiles
+    with the compiler running inside valgrind
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************}
+
+{$mode objfpc}
+{ Use ansitrings for long PATH variables }
+{$H+}
+program fpc_with_valgrind;
+
+{
+  This program uses several files :
+
+   -- 'valgrind.fpc' is an optional file that can contain optional
+      commmand line parameters for valgrind.
+
+  Use EXTDEBUG conditional to get debug information.
+}
+
+uses
+  sysutils,
+  dos;
+
+const
+{$ifdef Unix}
+  ValgrindPasExeName : String = 'valgrindpas';
+  ValgrindDefaultExeName = 'valgrind';
+  DefaultCompilerName = 'ppcx64';
+  PathSep=':';
+  DirSep = '/';
+{$else}
+  ValgrindPasExeName : String = 'valgrindpas.exe';
+  ValgrindDefaultExeName = 'valgrind.exe';
+  DefaultCompilerName = 'ppcx64.exe';
+  PathSep=';';
+  DirSep = '\';
+{$endif not linux}
+
+  { If you add a valgrind.fpc file in a given directory   }
+  { This executable will read it; this allows you to add  }
+  { specific command line options to valgrind call. PM    }
+  FpcValgrindIniName  : string = 'valgrind.fpc';
+
+{ Dos/Windows Valgrind still need forward slashes }
+procedure AdaptToValgrind(var filename : string);
+var
+  i : longint;
+begin
+  for i:=1 to length(filename) do
+    if filename[i]='\' then
+      filename[i]:='/';
+end;
+
+var
+   all_args : String;
+   ValGrindExeName : String;
+   CompilerName : String;
+   FullCompilerName : String;
+{$ifdef linux}
+   argv0 : pchar;
+{$endif}
+   Dir,Name,Ext,Param : ShortString;
+   ValgrindError,ValgrindExitCode,i : longint;
+   line : string;
+   f : text;
+
+begin
+  all_args:='';
+  if FileExists('.'+DirSep+FpcValgrindIniName) then
+    begin
+      Assign(F,'.'+DirSep+FpcValgrindIniName);
+      while not eof(F) do
+        begin
+          readln(f,line);
+	  all_args:=all_args+' '+line;
+	end;
+    end;
+
+  fsplit(paramstr(0),Dir,Name,Ext);
+{$ifdef linux}
+  argv0:=argv[0];
+  if (argv0 <> '') then
+    fsplit(argv0,Dir,Name,Ext);
+{$endif}
+  
+  if (length(Name)>3) and (UpCase(Name[1])='V') then
+    CompilerName:=Copy(Name,2,255)+Ext
+  else
+    begin
+      if (Name+ext = DefaultCompilerName) then
+        begin
+          writeln(stderr,'Avoiding infinite recursion with ',Name+Ext,' binary');
+          halt(1);
+        end;
+      CompilerName:=DefaultCompilerName;
+    end;
+
+  FullCompilerName:=filesearch(CompilerName,Dir+PathSep+GetEnvironmentVariable('PATH'));
+
+  if FullCompilerName='' then
+    begin
+      writeln(stderr,'Unable to find ',CompilerName,' binary');
+      halt(2);
+    end;
+
+
+  { support for info functions directly : used in makefiles }
+  if (paramcount=1) and (pos('-i',Paramstr(1))=1) then
+    begin
+      Exec(FullCompilerName,Paramstr(1));
+      exit;
+    end;
+
+  {$ifdef EXTDEBUG}
+  writeln(stderr,'Using compiler "',FullCompilerName,'"');
+  flush(stderr);
+  {$endif}
+  { this will not work correctly if there are " or '' inside the command line :( }
+  for i:=1 to Paramcount do
+    begin
+      Param:=Paramstr(i);
+      if pos(' ',Param)>0 then
+        all_args:=all_args+' "'+Param+'"'
+      else
+        all_args:=all_args+' '+Param;
+    end;
+
+  ValgrindExeName:=filesearch(ValgrindPasExeName,Dir+PathSep+GetEnvironmentVariable('PATH'));
+  if ValgrindExeName='' then
+    ValgrindExeName:=filesearch(ValgrindDefaultExeName,Dir+PathSep+GetEnvironmentVariable('PATH'));
+
+  if ValgrindExeName='' then
+    begin
+      writeln('Unable to find ',ValgrindDefaultExeName,' and ',ValgrindPasExeName);
+      halt(3);
+    end;
+  AdaptToValgrind(FullCompilerName);
+  {$ifdef EXTDEBUG}
+  Writeln(stderr,'Starting ',ValgrindExeName+' '+FullCompilerName);
+  flush(stderr);
+  {$endif}
+   DosError:=0;
+   Exec(ValgrindExeName,FullCompilerName+all_args);
+  ValgrindError:=DosError;
+  ValgrindExitCode:=DosExitCode;
+  if (ValgrindError<>0) or (ValgrindExitCode<>0) then
+    begin
+      Writeln('Error running Valgrind');
+      if (ValgrindError<>0) then
+        Writeln('DosError = ',ValgrindError);
+      if (ValgrindExitCode<>0) then
+        Writeln('DosExitCode = ',ValgrindExitCode);
+      if ValgrindExitCode<>0 then
+        RunError(ValgrindExitCode)
+      else
+        RunError(ValgrindError);
+    end;
+end.
