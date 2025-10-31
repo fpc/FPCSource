@@ -685,6 +685,7 @@ type
     property ReturnType: TRttiType read GetReturnType;
     function Invoke(const aProcOrMeth: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
     function CreateImplementation(aCallback: TCallback): TMethodImplementation;
+    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallback): TMethodImplementation;
     function ToString : string; override;
   end;
 
@@ -6162,6 +6163,19 @@ begin
 end;
 
 function TRttiInvokableType.CreateImplementation(aCallback: TCallback): TMethodImplementation;
+
+  procedure SelfCallback(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+  begin
+    aCallback(TRttiInvokableType(aUserData), aArgs, aResult);
+  end;
+
+begin
+  if not Assigned(aCallback) then
+    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
+  Result := CreateImplementation(Self, @SelfCallback);
+end;
+
+function TRttiInvokableType.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallback): TMethodImplementation;
 var
   params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
@@ -6194,7 +6208,7 @@ begin
   else
     res := Nil;
 
-  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallback(aCallback));
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, aUserData, aCallback);
 end;
 
 function TRttiInvokableType.ToString: string;
