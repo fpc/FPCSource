@@ -299,7 +299,7 @@ implementation
                        begin
                          if not allowspecialization then
                            Message(parser_e_no_local_para_def);
-                         generate_specialization(t2,isunitspecific,false,'');
+                         generate_specialization(t2,isunitspecific,false,'',srsym.name,srsymtable);
                        end;
                      def:=t2;
                    end;
@@ -486,6 +486,7 @@ implementation
          again : boolean;
          srsym : tsym;
          srsymtable : tsymtable;
+         symname : tsymstr;
        begin
          dospecialize:=false;
          isunitspecific:=false;
@@ -572,7 +573,24 @@ implementation
           begin
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
-            generate_specialization(def,isunitspecific,stoParseClassParent in options,'');
+            if assigned(srsym) then
+              symname:=srsym.name
+            else if assigned(def.typesym) then
+              begin
+                symname:=def.typesym.name;
+                srsymtable:=def.typesym.owner;
+              end
+            else if (def.typ=objectdef) then
+              begin
+                symname:=tobjectdef(def).objname^;
+                if assigned(def.owner) then
+                  srsymtable:=def.owner
+                else
+                  srsymtable:=symtablestack.top;
+              end
+            else
+              symname:='';
+            generate_specialization(def,isunitspecific,stoParseClassParent in options,'',symname,srsymtable);
             parse_nested_types(def,stoIsForwardDef in options,[stoAllowSpecialization,stoAllowTypeDef]*options<>[],nil);
           end
         else
@@ -1297,7 +1315,9 @@ implementation
                      end;
                    if dospecialize then
                      begin
-                       generate_specialization(def,false,false,name);
+                       if not assigned(ttypenode(pt1).typesym) then
+                         internalerror(2025103102);
+                       generate_specialization(def,false,false,name,ttypenode(pt1).typesym.name,ttypenode(pt1).typesym.owner);
                        { handle nested types }
                        if assigned(def) then
                          post_comp_expr_gendef(def);

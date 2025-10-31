@@ -39,7 +39,7 @@ uses
   symtype,symdef,symbase;
 
     procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;parsedtype:tdef;const symname:string;parsedpos:tfileposinfo);inline;
-    procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string);inline;
+    procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;const symname:string;symtable:tsymtable);inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;const symname:string;symtable:tsymtable):tdef;inline;
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean;parsedtype:tdef;const symname:string;symtable:tsymtable;parsedpos:tfileposinfo):tdef;
@@ -661,12 +661,19 @@ uses
       end;
 
 
-    procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string);
+    procedure generate_specialization(var tt:tdef;enforce_unit:boolean;parse_class_parent:boolean;const _prettyname:string;const symname:string;symtable:tsymtable);
       var
+        context : tspecializationcontext;
+        genericdef : tstoreddef;
         dummypos : tfileposinfo;
       begin
         FillChar(dummypos, SizeOf(tfileposinfo), 0);
-        generate_specialization(tt,enforce_unit,parse_class_parent,_prettyname,nil,'',dummypos);
+        genericdef:=tstoreddef(generate_specialization_phase1(context,tt,enforce_unit,nil,symname,symtable,dummypos));
+        if genericdef<>generrordef then
+          genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
+        tt:=genericdef;
+        if assigned(context) then
+          context.free;
       end;
 
 
