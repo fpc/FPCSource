@@ -1658,7 +1658,6 @@ implementation
     function handle_specialize_inline_specialization(var srsym:tsym;enforce_unit:boolean;out srsymtable:tsymtable;out spezcontext:tspecializationcontext):boolean;
       var
         spezdef : tdef;
-        symname : tsymstr;
       begin
         result:=false;
         spezcontext:=nil;
@@ -1676,11 +1675,7 @@ implementation
                 spezdef:=tdef(tprocsym(srsym).procdeflist[0])
               else
                 spezdef:=nil;
-              if (not assigned(spezdef) or (spezdef.typ=errordef)) and (sp_generic_dummy in srsym.symoptions) then
-                symname:=srsym.RealName
-              else
-                symname:='';
-              spezdef:=generate_specialization_phase1(spezcontext,spezdef,enforce_unit,symname,srsym.owner);
+              spezdef:=generate_specialization_phase1(spezcontext,spezdef,enforce_unit,srsym.realname,srsym.owner);
               case spezdef.typ of
                 errordef:
                   begin
