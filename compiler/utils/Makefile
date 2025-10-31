@@ -3592,6 +3592,7 @@ ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 endif
 msg2inc$(EXEEXT): $(COMPILER_UNITTARGETDIR) msg2inc.pp
 gppc386$(EXEEXT): $(COMPILER_UNITTARGETDIR) gppc386.pp
+vppcx64$(EXEEXT): $(COMPILER_UNITTARGETDIR) vppcx64.pp
 fpcsubst$(EXEEXT): fpcsubst.pp usubst.pp
 fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc fpcfg.inc fpini.inc
 ifneq ($(DATA2INC),)
