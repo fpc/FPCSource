@@ -24,6 +24,7 @@ unit Rtti;
 
 {$mode objfpc}{$H+}
 {$modeswitch advancedrecords}
+{$modeswitch functionreferences}
 {$goto on}
 {$Assertions on}
 
@@ -641,16 +642,16 @@ type
   end;
   TRttiParameterArray = specialize TArray<TRttiParameter>;
 
-  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object;
-  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+  TMethodImplementationCallback = reference to procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
+  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object; deprecated 'Use TMethodImplementationCallback';
+  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue); deprecated 'Use TMethodImplementationCallback';
   TFunctionCallParameterInfoArray = specialize TArray<TFunctionCallParameterInfo>;
   TPointerArray = specialize TArray<Pointer>;
 
   TMethodImplementation = class
   private
     fLowLevelCallback: TFunctionCallCallback;
-    fCallbackProc: TMethodImplementationCallbackProc;
-    fCallbackMethod: TMethodImplementationCallbackMethod;
+    fCallback: TMethodImplementationCallback;
     fArgs: specialize TArray<TFunctionCallParameterInfo>;
     fArgLen: SizeInt;
     fRefArgs: specialize TArray<SizeInt>;
@@ -659,8 +660,7 @@ type
     fCC: TCallConv;
     procedure InitArgs;
     procedure HandleCallback(const aArgs: TPointerArray; aResult: Pointer; aContext: Pointer);
-    constructor Create(aCC: TCallConv; aArgs: TFunctionCallParameterInfoArray; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
-    constructor Create(aCC: TCallConv; aArgs: TFunctionCallParameterInfoArray; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
+    constructor Create(aCC: TCallConv; aArgs: TFunctionCallParameterInfoArray; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallback);
   Protected
     function GetCodeAddress: CodePointer; inline;
   public
@@ -676,16 +676,15 @@ type
     function GetReturnType: TRttiType; virtual; abstract;
     function GetFlags: TFunctionCallFlags; virtual; abstract;
   public type
-    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object;
-    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
+    TCallback = reference to procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
+    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object; deprecated 'Use TRttiInvokableType.TCallback';
+    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue); deprecated 'Use TRttiInvokableType.TCallback';
   public
     function GetParameters: TRttiParameterArray; inline;
     property CallingConvention: TCallConv read GetCallingConvention;
     property ReturnType: TRttiType read GetReturnType;
     function Invoke(const aProcOrMeth: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
-    { Note: once "reference to" is supported these will be replaced by a single method }
-    function CreateImplementation(aCallback: TCallbackMethod): TMethodImplementation;
-    function CreateImplementation(aCallback: TCallbackProc): TMethodImplementation;
+    function CreateImplementation(aCallback: TCallback): TMethodImplementation;
     function ToString : string; override;
   end;
 
@@ -767,9 +766,7 @@ type
     function Invoke(aInstance: TObject; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TClass; const aArgs: array of TValue): TValue;
     function Invoke(aInstance: TValue; const aArgs: array of TValue): TValue; virtual; abstract;
-    { Note: once "reference to" is supported these will be replaced by a single method }
-    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
-    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
+    function CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallback): TMethodImplementation;
   end;
 
   TRttiIndexedProperty = class(TRttiMember)
@@ -5749,10 +5746,7 @@ begin
     Inc(i);
   end;
 
-  if Assigned(fCallbackMethod) then
-    fCallbackMethod(aContext, args, res)
-  else
-    fCallbackProc(aContext, args, res);
+  fCallback(aContext, args, res);
 
   { copy back var/out parameters }
   for i := 0 to High(fRefArgs) do begin
@@ -5763,26 +5757,13 @@ begin
     res.ExtractRawData(aResult);
 end;
 
-constructor TMethodImplementation.Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod);
+constructor TMethodImplementation.Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallback);
 begin
   fCC := aCC;
   fArgs := aArgs;
   fResult := aResult;
   fFlags := aFlags;
-  fCallbackMethod := aCallback;
-  InitArgs;
-  fLowLevelCallback := CreateCallbackMethod(@HandleCallback, fCC, aArgs, aResult, aFlags, aUserData);
-  if not Assigned(fLowLevelCallback) then
-    raise EInsufficientRtti.Create(SErrMethodImplCreateFailed);
-end;
-
-constructor TMethodImplementation.Create(aCC: TCallConv; aArgs: specialize TArray<TFunctionCallParameterInfo>; aResult: PTypeInfo; aFlags: TFunctionCallFlags; aUserData: Pointer; aCallback: TMethodImplementationCallbackProc);
-begin
-  fCC := aCC;
-  fArgs := aArgs;
-  fResult := aResult;
-  fFlags := aFlags;
-  fCallbackProc := aCallback;
+  fCallback := aCallback;
   InitArgs;
   fLowLevelCallback := CreateCallbackMethod(@HandleCallback, fCC, aArgs, aResult, aFlags, aUserData);
   if not Assigned(fLowLevelCallback) then
@@ -5887,43 +5868,7 @@ begin
   Result := Invoke(instance, aArgs);
 end;
 
-function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackMethod): TMethodImplementation;
-var
-  params: TRttiParameterArray;
-  args: specialize TArray<TFunctionCallParameterInfo>;
-  res: PTypeInfo;
-  restype: TRttiType;
-  resinparam: Boolean;
-  i: SizeInt;
-begin
-  if not Assigned(aCallback) then
-    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
-
-  resinparam := False;
-  params := GetParameters(True);
-  args:=[];
-  SetLength(args, Length(params));
-  for i := 0 to High(params) do begin
-    if Assigned(params[i].ParamType) then
-      args[i].ParamType := params[i].ParamType.FTypeInfo
-    else
-      args[i].ParamType := Nil;
-    args[i].ParamFlags := params[i].Flags;
-    args[i].ParaLocs := Nil;
-    if pfResult in params[i].Flags then
-      resinparam := True;
-  end;
-
-  restype := GetReturnType;
-  if Assigned(restype) and not resinparam then
-    res := restype.FTypeInfo
-  else
-    res := Nil;
-
-  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, aUserData, aCallback);
-end;
-
-function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallbackProc): TMethodImplementation;
+function TRttiMethod.CreateImplementation(aUserData: Pointer; aCallback: TMethodImplementationCallback): TMethodImplementation;
 var
   params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
@@ -6216,7 +6161,7 @@ begin
   Result := GetParameters(False);
 end;
 
-function TRttiInvokableType.CreateImplementation(aCallback: TCallbackMethod): TMethodImplementation;
+function TRttiInvokableType.CreateImplementation(aCallback: TCallback): TMethodImplementation;
 var
   params: TRttiParameterArray;
   args: specialize TArray<TFunctionCallParameterInfo>;
@@ -6249,43 +6194,7 @@ begin
   else
     res := Nil;
 
-  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallbackMethod(aCallback));
-end;
-
-function TRttiInvokableType.CreateImplementation(aCallback: TCallbackProc): TMethodImplementation;
-var
-  params: TRttiParameterArray;
-  args: specialize TArray<TFunctionCallParameterInfo>;
-  res: PTypeInfo;
-  restype: TRttiType;
-  resinparam: Boolean;
-  i: SizeInt;
-begin
-  if not Assigned(aCallback) then
-    raise EArgumentNilException.Create(SErrMethodImplNoCallback);
-
-  resinparam := False;
-  params := GetParameters(True);
-  args:=[];
-  SetLength(args, Length(params));
-  for i := 0 to High(params) do begin
-    if Assigned(params[i].ParamType) then
-      args[i].ParamType := params[i].ParamType.FTypeInfo
-    else
-      args[i].ParamType := Nil;
-    args[i].ParamFlags := params[i].Flags;
-    args[i].ParaLocs := Nil;
-    if pfResult in params[i].Flags then
-      resinparam := True;
-  end;
-
-  restype := GetReturnType;
-  if Assigned(restype) and not resinparam then
-    res := restype.FTypeInfo
-  else
-    res := Nil;
-
-  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallbackProc(aCallback));
+  Result := TMethodImplementation.Create(GetCallingConvention, args, res, GetFlags, Self, TMethodImplementationCallback(aCallback));
 end;
 
 function TRttiInvokableType.ToString: string;
