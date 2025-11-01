@@ -490,6 +490,7 @@ implementation
        begin
          dospecialize:=false;
          isunitspecific:=false;
+         srsymtable:=nil;
          srsym:=nil;
          repeat
            again:=false;
