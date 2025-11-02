@@ -70,6 +70,7 @@ unit cgrv;
         procedure g_profilecode(list: TAsmList); override;
 
         procedure g_overflowcheck_loc(list: TAsmList; const Loc: tlocation; def: tdef; ovloc: tlocation); override;
+        procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
@@ -233,9 +234,12 @@ unit cgrv;
         paraloc1, paraloc2: tcgpara;
         ai: taicpu;
         tmpreg1, tmpreg2: TRegister;
+        signed: Boolean;
       begin
+        signed:=tcgsize2unsigned[size]<>size;
         if setflags and
-          { do we know overflow checking for this operation? fix me! }(size in [OS_32,OS_S32]) and (op in [OP_ADD,OP_SUB,OP_MUL,OP_IMUL,OP_IDIV,OP_NEG]) then
+          { do we know overflow checking for this operation? fix me! }(size in [OS_32,OS_S32{$ifdef RISCV64},OS_S64,OS_64{$endif RISCV64}]) and
+          (op in [OP_ADD,OP_SUB,OP_MUL,OP_IMUL,OP_IDIV,OP_NEG]) then
           begin
             ovloc.loc:=LOC_JUMP;
             current_asmdata.getjumplabel(ovloc.truelabel);
@@ -286,7 +290,7 @@ unit cgrv;
                 list.concat(taicpu.op_reg_reg_reg(A_SRAW,dst,src2,src1));
                 maybeadjustresult(list,op,size,dst);
               end
-            else if (op=OP_SUB) and
+            else if (op=OP_SUB) and not(setflags) and
                (size in [OS_32,OS_S32]) then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_SUBW,dst,src2,src1));
@@ -336,7 +340,7 @@ unit cgrv;
               end
             else
               begin
-                if setflags and (op=OP_MUL) and (size=OS_32) then
+                if setflags and (op=OP_MUL) and (size in [OS_32{$ifdef RISCV64},OS_64{$endif RISCV64}]) then
                   begin
                     tmpreg1:=getintregister(list,size);
                     list.concat(taicpu.op_reg_reg_reg(A_MULHU,tmpreg1,src2,src1));
@@ -344,7 +348,7 @@ unit cgrv;
                 else
                   tmpreg1:=NR_NO;
                 list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src2,src1));
-                if setflags and (size in [OS_S32,OS_32]) then
+                if setflags and (size in [OS_S32,OS_32{$ifdef RISCV64},OS_S64,OS_64{$endif RISCV64}]) then
                   begin
                     case op of
                       OP_ADD:
@@ -369,7 +373,7 @@ unit cgrv;
                         end;
                       OP_SUB:
                         begin
-                          if size=OS_S32 then
+                          if signed then
                             begin
                               tmpreg1:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_reg(A_SLT,tmpreg1,src2,dst));
@@ -377,14 +381,21 @@ unit cgrv;
                               list.concat(taicpu.op_reg_reg_const(A_SLTI,tmpreg2,src1,0));
                               a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg1,tmpreg2,ovloc.falselabel)
                             end
-                          else if size=OS_32 then
+                          else
                             begin
+{$ifdef RISCV64}
+                              { no overflow if result<=src2 }
+                              if size in [OS_S32,OS_32] then
+                                begin
+                                  tmpreg1:=getintregister(list,OS_INT);
+                                  a_load_reg_reg(list,size,OS_64,dst,tmpreg1);
+                                  dst:=tmpreg1;
+                                end;
+{$endif RISCV64}
                               ai:=taicpu.op_reg_reg_sym_ofs(A_Bxx,src2,dst,ovloc.falselabel,0);
                               ai.condition:=C_GEU;
                               list.concat(ai);
-                            end
-                          else
-                            Internalerror(2025102002);
+                            end;
                           a_jmp_always(list,ovloc.truelabel);
                         end;
                       OP_MUL:
@@ -402,7 +413,7 @@ unit cgrv;
                               tmpreg1:=getintregister(list,size);
                               list.concat(taicpu.op_reg_reg_reg(A_MULH,tmpreg1,src2,src1));
                               tmpreg2:=getintregister(list,size);
-                              list.concat(taicpu.op_reg_reg_const(A_SRAI,tmpreg2,dst,31));
+                              list.concat(taicpu.op_reg_reg_const(A_SRAI,tmpreg2,dst,sizeof(aint)*8-1));
                               a_cmp_reg_reg_label(list,OS_INT,OC_EQ,tmpreg1,tmpreg2,ovloc.falselabel);
                             end
                           else
@@ -450,7 +461,7 @@ unit cgrv;
             exit;
           end;
 
-        if op=OP_SUB then
+        if (op=OP_SUB) and not(setflags) then
           begin
             op:=OP_ADD;
             a:=-a;
@@ -458,19 +469,19 @@ unit cgrv;
 
 {$ifdef RISCV64}
         if (op=OP_SHL) and
-               (size=OS_S32) then
+          (size=OS_S32) then
           begin
             list.concat(taicpu.op_reg_reg_const(A_SLLIW,dst,src,a));
             maybeadjustresult(list,op,size,dst);
           end
         else if (op=OP_SHR) and
-               (size=OS_S32) then
+          (size=OS_S32) then
           begin
             list.concat(taicpu.op_reg_reg_const(A_SRLIW,dst,src,a));
             maybeadjustresult(list,op,size,dst);
           end
         else if (op=OP_SAR) and
-               (size=OS_S32) then
+          (size=OS_S32) then
           begin
             list.concat(taicpu.op_reg_reg_const(A_SRAIW,dst,src,a));
             maybeadjustresult(list,op,size,dst);
@@ -862,8 +873,6 @@ unit cgrv;
 
     procedure tcgrv.g_overflowcheck_loc(list: TAsmList; const Loc: tlocation; def: tdef; ovloc: tlocation);
       begin
-        if not(cs_check_overflow in current_settings.localswitches) then
-          exit;
         { no overflow checking yet generated }
         if ovloc.loc=LOC_VOID then
           exit;
@@ -872,6 +881,11 @@ unit cgrv;
         a_label(list,ovloc.truelabel);
         a_call_name(list,'FPC_OVERFLOW',false);
         a_label(list,ovloc.falselabel);
+      end;
+
+
+    procedure tcgrv.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
+      begin
       end;
 
 

@@ -44,8 +44,6 @@ unit cgcpu;
         procedure a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
 
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);override;
-
-        procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
      end;
 
      tcg64frv = class(tcg64f32)
@@ -301,12 +299,6 @@ unit cgcpu;
             a_load_reg_ref(list, OS_8, OS_8, hreg, dst);
           end;
         end;
-      end;
-
-
-    procedure tcgrv32.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
-      begin
-
       end;
 
 
