@@ -251,6 +251,7 @@ procedure fail;
     if (round(vextended) <> RESULT_ONE_INT) then
       _result := false;
 
+{$ifndef CPU64}
    { test overflow checking }
 {$PUSH}
 {$Q+}
@@ -272,6 +273,7 @@ procedure fail;
         _result := false;
     end;
 {$POP}
+{$endif CPU64}
 
     if not _result then
       fail
