@@ -46,7 +46,7 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-   MacOsApi.Video, Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Inputevent, System.Console.Mouse, System.SysUtils, Amiga.Core.Keymap, Amiga.Core.Timer, Amiga.Core.Amigados;
+   System.Console.Video, Amiga.Core.Exec, Amiga.Core.Intuition, Amiga.Core.Inputevent, System.Console.Mouse, System.SysUtils, Amiga.Core.Keymap, Amiga.Core.Timer, Amiga.Core.Amigados;
 {$ELSE FPC_DOTTEDUNITS}
 uses
    video, exec, intuition, inputevent, mouse, sysutils, keymap, timer, amigados;

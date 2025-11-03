@@ -6,9 +6,9 @@ interface
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  System.Classes, MacOsApi.Video, System.SysUtils,
+  System.Classes, System.Console.Video, System.SysUtils,
   System.Console.Mouse,
-  System.Types, System.Math, PalmApi.Keyboard;
+  System.Types, System.Math, System.Console.Keyboard;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   Classes, Video, sysutils,

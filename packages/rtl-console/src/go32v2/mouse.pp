@@ -27,7 +27,7 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  MacOsApi.Video,DOSApi.GO32;
+  System.Console.Video,DOSApi.GO32;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   video,go32;

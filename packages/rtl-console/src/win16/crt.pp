@@ -30,7 +30,7 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  MacOsApi.Video, PalmApi.Keyboard, WinApi.WinProcs, WinApi.WinTypes;
+  System.Console.Video, System.Console.Keyboard, WinApi.WinProcs, WinApi.WinTypes;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   video, keyboard, WinProcs, WinTypes;

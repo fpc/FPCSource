@@ -23,7 +23,7 @@ unit vesamode;
 
 {$IFDEF FPC_DOTTEDUNITS}
     uses
-       TP.DOS,DOSApi.GO32,DOSApi.dpmiexcp,MacOsApi.Video,System.Console.Mouse;
+       TP.DOS,DOSApi.GO32,DOSApi.dpmiexcp,System.Console.Video,System.Console.Mouse;
 {$ELSE FPC_DOTTEDUNITS}
     uses
        dos,go32,dpmiexcp,video,mouse;

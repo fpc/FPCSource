@@ -24,7 +24,7 @@ implementation
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  WinApi.WinProcs, WinApi.WinTypes, MacOsApi.Video;
+  WinApi.WinProcs, WinApi.WinTypes, System.Console.Video;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   WinProcs, WinTypes, video;
