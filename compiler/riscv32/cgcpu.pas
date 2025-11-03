@@ -197,12 +197,12 @@ unit cgcpu;
         lab:      tasmlabel;
         Count, count2: aint;
 
-        function reference_is_reusable(const ref: treference): boolean;
-          begin
-            result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
-               (ref.symbol=nil) and
-               is_imm12(ref.offset);
-          end;
+      function reference_is_reusable(const ref: treference): boolean;
+        begin
+          result:=(ref.base<>NR_NO) and (ref.index=NR_NO) and
+             (ref.symbol=nil) and
+             is_imm12(ref.offset);
+        end;
 
       begin
         src2:=source;
