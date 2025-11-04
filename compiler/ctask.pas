@@ -350,6 +350,7 @@ begin
         {$IFDEF DEBUG_CTASK}Writeln(t.module.ToString,' is finished, removing from task list');{$ENDIF}
         hash.Remove(t.module);
         list.Remove(t);
+        FreeAndNil(t);
         end;
 
       // first search for any module that is ready to be written as ppu
