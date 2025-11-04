@@ -954,6 +954,7 @@ interface
           function  is_addressonly:boolean;override;
           procedure make_external;
           procedure init_genericdecl;
+          procedure reset_after_conv;
 
           function get_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; virtual;
           function get_safecall_funcretsym_info(out ressym: tsym; out resdef: tdef): boolean; virtual;
@@ -7107,6 +7108,12 @@ implementation
         if assigned(genericdecltokenbuf) then
           internalerror(2015061901);
         genericdecltokenbuf:=tdynamicarray.create(256);
+      end;
+
+
+    procedure tprocdef.reset_after_conv;
+      begin
+        _parentfpsym:=nil;
       end;
 
 
