@@ -26,10 +26,17 @@
 program fpc_with_valgrind;
 
 {
-  This program uses several files :
+  This program uses:
 
-   -- 'valgrind.fpc' is an optional file that can contain optional
-      commmand line parameters for valgrind.
+   -- 'valgrind.fpc' is an optional file in starting directory
+      that can contain optional commmand line parameters for valgrind.
+   -- 'VALGRIND_FPC' is an optional environment variable
+      that can contain optional commmand line parameters for valgrind.
+
+  Note that valgrind also parses:
+   -- '~/.valgrindrc' user file.
+   -- 'VALGRIND_OPTS' environment variable.
+   -- './.valgrindrc' local file.
 
   Use EXTDEBUG conditional to get debug information.
 }
@@ -70,6 +77,7 @@ end;
 
 var
    valgrind_args,
+   env_value,
    all_args : String;
    ValGrindExeName : String;
    CompilerName : String;
@@ -96,6 +104,9 @@ begin
 	end;
       Close(F);
     end;
+  env_value:=GetEnvironmentVariable('VALGRIND_FPC');
+  if env_value<>'' then
+    valgrind_args:=valgrind_args+' '+env_value;
 
   fsplit(paramstr(0),Dir,Name,Ext);
 {$ifdef linux}
