@@ -85,7 +85,9 @@ procedure DoneTaskHandler;
 
 implementation
 
-uses verbose, fppu, finput, globtype, sysutils, scanner, parser, pmodules;
+uses
+  verbose, fppu, finput, globtype, sysutils,
+  scanner, parser, pmodules, symbase;
 
 procedure InitTaskHandler;
 begin
@@ -270,7 +272,15 @@ begin
     t.RestoreState;
   case m.state of
     ms_registered : parser.compile_module(m);
-    ms_compile : parser.compile_module(m);
+    ms_compile :
+      begin
+        if m=main then
+          begin
+            macrosymtablestack.clear;
+	    FreeAndNil(macrosymtablestack);
+          end;
+        parser.compile_module(m);
+      end;
     ms_compiled : if (not m.is_initial) or m.is_unit  then
                    (m as tppumodule).post_load_or_compile(m,m.compilecount>1);
     ms_compiling_wait : pmodules.proc_program_declarations(m,m.islibrary);
