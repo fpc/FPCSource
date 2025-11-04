@@ -63,6 +63,10 @@ Type
     Procedure DoSendHeaders(Headers : TStrings); override;
     Procedure DoSendContent; override;
     Property Connection : TFPHTTPConnection Read FConnection;
+  Public
+    procedure StartServerEvents; override;
+    Procedure SendServerEvent(const aEvent : THTTPServerEvent); override;
+    Procedure EndServerEvents; override;
   end;
 
 
@@ -896,13 +900,34 @@ end;
 
 procedure TFPHTTPConnectionResponse.DoSendContent;
 begin
-  if Connection.IsUpgraded then
+  if Connection.IsUpgraded or EventsStarted then
     exit;
   If Assigned(ContentStream) and (ContentStream.Size>0) then
     Connection.Socket.CopyFrom(ContentStream,0)
   else
     if Length(Content)>0 then
       Connection.Socket.WriteBuffer(Content[1],Length(Content));
+end;
+
+procedure TFPHTTPConnectionResponse.StartServerEvents;
+begin
+  CheckServerEvents;
+end;
+
+procedure TFPHTTPConnectionResponse.SendServerEvent(const aEvent: THTTPServerEvent);
+var
+  lEvent : RawByteString;
+begin
+  if not EventsStarted then
+    Raise EHTTPServer.Create('Server side events not started');
+  lEvent:=aEvent.ToString;
+  SetCodePage(lEvent,CP_UTF8); // UTF8 is mandatory
+  Connection.Socket.WriteBuffer(lEvent[1],Length(lEvent));
+end;
+
+procedure TFPHTTPConnectionResponse.EndServerEvents;
+begin
+  inherited EndServerEvents;
 end;
 
 { TFPHTTPConnection }

@@ -48,6 +48,44 @@ Type
 
   TFPCustomHTTPClient = Class;
 
+
+
+  { TCustomHTTPEventSource }
+
+  TCustomHTTPEventSource = Class(TObject)
+  private
+    FSocket : TSocketStream;
+    FBuffer : AnsiString;
+    FTerminated : Boolean;
+    FHeaders : TStrings;
+    FEOF: Boolean;
+  protected
+    procedure Terminate; virtual;
+    function ReadFromSocket(var aBuffer; aCount: Longint): Longint; virtual;
+    function ReadString(out S: String): Boolean;
+    property Socket : TSocketStream read FSocket;
+    property Buffer : AnsiString read FBuffer;
+    property Terminated : boolean read FTerminated;
+  Public
+    constructor Create(aSocket : TSocketStream; const aBuffer : AnsiString);
+    Destructor Destroy; override;
+    // Is data available for reading ?
+    function DataAvailable : Boolean;
+    // Read one event. Will block. Returns false if no event was read.
+    function ReadEvent(out aEvent: THTTPServerEvent; aConcatData : Boolean = True): Boolean;
+    // Close the socket.
+    Procedure Close;
+    // Headers as returned by the server when initial HTTP request was made.
+    Property Headers : TStrings Read FHeaders;
+    // End of events was reached: server closed the stream.
+    Property EOF : Boolean Read FEOF;
+  end;
+
+  THTTPEventStreamHandler = Procedure(aSender : TObject; aSource : TCustomHTTPEventSource) of object;
+  // Default class returned by TFPCustomHTTPClient
+  THTTPEventSource = class(TCustomHTTPEventSource);
+
+
   { TProxyData }
 
   TProxyData = Class (TPersistent)
@@ -74,6 +112,7 @@ Type
   private
     FDataRead : Int64;
     FContentLength : Int64;
+    FOnEventStream: THTTPEventStreamHandler;
     FRequestCookies: TCookies;
     FRequestDataWritten : Int64;
     FRequestContentLength : Int64;
@@ -111,10 +150,12 @@ Type
     FAfterSocketHandlerCreated : TSocketHandlerCreatedEvent;
     FProxy : TProxyData;
     FVerifySSLCertificate: Boolean;
+    FGetEventSource :  TCustomHTTPEventSource;
     FCertCAFileName: String;
     FTrustedCertsDir: String;
     function CheckContentLength: Int64;
     function CheckTransferEncoding: string;
+    function CheckContentType : string;
     function CreateCookies: TCookies;
     function GetCookies: TStrings;
     function GetCookieList: TCookies;
@@ -131,7 +172,16 @@ Type
     procedure SetIOTimeout(AValue: Integer);
     Procedure ExtractHostPort(AURI: TURI; Out AHost: String; Out APort: Word);
     Procedure CheckConnectionCloseHeader;
+    procedure GetEventSourceHandler(Sender : TObject; aSource : TCustomHTTPEventSource);
   protected
+    // Return header value. aHeader is the header name, followed by a colon ':'
+    function CheckHeader(const aHeader: string): string;
+    // Event stream handling:
+    function CreateEventSource(aSocket: TSocketStream; const aBuffer: AnsiString): TCustomHTTPEventSource; virtual;
+    // transfers socket to event stream handler.
+    procedure StartEventStream; virtual;
+    // Checks if the user has registered an event stream handler.
+    function HandlesEventstream : Boolean; virtual;
     // Called with TSSLSocketHandler as sender
     procedure DoVerifyCertificate(Sender: TObject; var Allow: Boolean); virtual;
     Function NoContentAllowed(ACode : Integer) : Boolean;
@@ -196,6 +246,10 @@ Type
     Procedure SendRequest(const AMethod: String; URI: TURI); virtual;
     // Create socket handler for protocol AProtocol. Calls OnGetSocketHandler.
     Function GetSocketHandler(Const UseSSL : Boolean) : TSocketHandler;  virtual;
+    // extract the socket and nil the socket.
+    Function ExtractSocket : TSocketStream;
+    // Return the buffer and empty the local buffer.
+    function ExtractBuffer : AnsiString;
   Public
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
@@ -224,6 +278,7 @@ Type
     Procedure Get(Const AURL : String; const LocalFileName : String);
     Procedure Get(Const AURL : String; Response : TStrings);
     Function Get(Const AURL : String) : RawByteString;
+    Function GetEventSource(const aMethod,aURL : String; const aBody : string = '') : TCustomHTTPEventSource;
     // Check if responsecode is a redirect code that this class handles (301,302,303,307,308)
     Class Function IsRedirect(ACode : Integer) : Boolean; virtual;
     // If the code is a redirect, then this method  must return TRUE if the next request should happen with a GET (307/308)
@@ -398,8 +453,12 @@ Type
     Property AfterSocketHandlerCreate : TSocketHandlerCreatedEvent Read FAfterSocketHandlerCreated Write FAfterSocketHandlerCreated;
     // Called when a SSL certificate must be verified.
     Property OnVerifySSLCertificate : THTTPVerifyCertificateEvent Read FOnVerifyCertificate Write FOnVerifyCertificate;
+    // Called when a server-sent event stream is detected
+    Property OnEventStream : THTTPEventStreamHandler Read FOnEventStream Write FOnEventStream;
   end;
 
+
+  { TFPHTTPClient }
 
   TFPHTTPClient = Class(TFPCustomHTTPClient)
   public
@@ -434,7 +493,7 @@ Type
     Property TrustedCertsDir;
     Property AfterSocketHandlerCreate;
     Property OnVerifySSLCertificate;
-
+    Property OnEventStream;
   end;
 
   EHTTPClient = Class(EHTTP)
@@ -472,6 +531,7 @@ resourcestring
   SErrChunkTooBig = 'Chunk too big: Got %d, maximum allowed size: %d';
   SErrChunkLineEndMissing = 'Chunk line end missing';
   SErrMaxRedirectsReached = 'Maximum allowed redirects reached : %d';
+  SErrNoEventStream = 'No Event Stream returned by server';
   //SErrRedirectAborted = 'Redirect aborted.';
 
 Const
@@ -722,6 +782,18 @@ begin
     AfterSocketHandlerCreate(Self,Result);
 end;
 
+function TFPCustomHTTPClient.ExtractSocket: TSocketStream;
+begin
+  Result:=FSocket;
+  FSocket:=Nil;
+end;
+
+function TFPCustomHTTPClient.ExtractBuffer: AnsiString;
+begin
+  Result:=FBuffer;
+  FBuffer:='';
+end;
+
 procedure TFPCustomHTTPClient.ConnectToServer(const AHost: String;
   APort: Integer; UseSSL : Boolean = False);
 
@@ -778,9 +850,14 @@ end;
 
 procedure TFPCustomHTTPClient.DisconnectFromServer;
 
+var
+  lSocket : TSocketStream;
+
 begin
-  FreeAndNil(FSocket);
+  lSocket:=ExtractSocket;
+  lSocket.Free;
 end;
+
 function TFPCustomHTTPClient.ProtocolSupported(Protocol: String; out IsSSL: Boolean): Boolean;
 begin
   Result := (Protocol='http') or (Protocol='https');
@@ -791,6 +868,7 @@ function TFPCustomHTTPClient.ReadFromSocket(var Buffer; Count: Longint): Longint
 begin
   Result:=FSocket.Read(Buffer,Count)
 end;
+
 function TFPCustomHTTPClient.WriteToSocket(const Buffer; Count: Longint): Longint;
 begin
   Result:=FSocket.Write(Buffer,Count)
@@ -1137,30 +1215,12 @@ function TFPCustomHTTPClient.CheckContentLength: Int64;
 
 Const CL ='content-length:';
 
-Var
-  S : String;
-  I : integer;
-
 begin
-  Result:=-1;
-  I:=0;
-  While (Result=-1) and (I<FResponseHeaders.Count) do
-    begin
-    S:=Trim(LowerCase(FResponseHeaders[i]));
-    If StartsStr(Cl,S) then
-      begin
-      System.Delete(S,1,Length(CL));
-      Result:=StrToInt64Def(Trim(S),-1);
-      end;
-    Inc(I);
-    end;
+  Result:=StrToIntDef(CheckHeader(CL),-1);
   FContentLength:=Result;
 end;
 
-function TFPCustomHTTPClient.CheckTransferEncoding: string;
-
-Const CL ='transfer-encoding:';
-
+function TFPCustomHTTPClient.CheckHeader(const aHeader : string): string;
 Var
   S : String;
   I : integer;
@@ -1171,14 +1231,32 @@ begin
   While (I<FResponseHeaders.Count) do
     begin
     S:=Trim(LowerCase(FResponseHeaders[i]));
-    If StartsStr(Cl,S) then
+    If StartsStr(aHeader,S) then
       begin
-      System.Delete(S,1,Length(CL));
+      System.Delete(S,1,Length(aHeader));
       Result:=Trim(S);
       exit;
       end;
     Inc(I);
     end;
+end;
+
+function TFPCustomHTTPClient.CheckTransferEncoding: string;
+
+Const
+  CL ='transfer-encoding:';
+
+begin
+  Result:=CheckHeader(CL);
+end;
+
+function TFPCustomHTTPClient.CheckContentType: string;
+
+Const
+  CL ='content-type:';
+
+begin
+  Result:=CheckHeader(CL);
 end;
 
 procedure TFPCustomHTTPClient.DoVerifyCertificate(Sender: TObject; var Allow: Boolean);
@@ -1405,7 +1483,9 @@ begin
     Raise EHTTPClient.Create(SErrUnexpectedResponse, ResponseStatusCode);
   if HeadersOnly Or (AllowRedirect and IsRedirect(FResponseStatusCode)) then
     exit;
-  if CompareText(CheckTransferEncoding,'chunked')=0 then
+  if SameText(CheckContentType,'text/event-stream') and HandlesEventStream then
+    StartEventStream
+  else if CompareText(CheckTransferEncoding,'chunked')=0 then
     ReadChunkedResponse
   else
     begin
@@ -1474,6 +1554,34 @@ begin
     end
   Else
     AddHeader('Connection', 'close');
+end;
+
+procedure TFPCustomHTTPClient.GetEventSourceHandler(Sender: TObject; aSource: TCustomHTTPEventSource);
+begin
+  FGetEventSource:=aSource;
+end;
+
+function TFPCustomHTTPClient.CreateEventSource(aSocket : TSocketStream; const aBuffer : AnsiString): TCustomHTTPEventSource;
+begin
+  Result:=THTTPEventSource.Create(aSocket,aBuffer);
+end;
+
+procedure TFPCustomHTTPClient.StartEventStream;
+var
+  lSource : TCustomHTTPEventSource;
+  lSocket : TSocketStream;
+  lBuffer : AnsiString;
+begin
+  lBuffer:=ExtractBuffer;
+  lSocket:=ExtractSocket;
+  lSource:=CreateEventSource(lSocket,lBuffer);
+  if HandlesEventStream then
+    FOnEventStream(Self,lSource);
+end;
+
+function TFPCustomHTTPClient.HandlesEventstream: Boolean;
+begin
+  Result:=Assigned(FOnEventStream);
 end;
 
 procedure TFPCustomHTTPClient.DoNormalRequest(const AURI: TURI; const AMethod: string; AStream: TStream;
@@ -1767,6 +1875,34 @@ begin
   finally
     SS.Free;
   end;
+end;
+
+function TFPCustomHTTPClient.GetEventSource(const aMethod, aURL: String; const aBody: string): TCustomHTTPEventSource;
+
+var
+  lEventSource : THTTPEventStreamHandler;
+  lStream : TStream;
+begin
+  FGetEventSource:=Nil;
+  lEventSource:=OnEventStream;
+  try
+    lStream:=TStringStream.Create;
+    OnEventStream:=@GetEventSourceHandler;
+    if (aBody<>'') and not SameText(aMethod,'GET') then
+      RequestBody:=TStringStream.Create(aBody);
+    DoMethod(aMethod,aURL,lStream,[200,204]);
+    Result:=FGetEventSource;
+    FGetEventSource:=Nil;
+    if not Assigned(Result) then
+      raise EHTTP.Create(SErrNoEventStream);
+    if Assigned(lEventSource) then
+      lEventSource(self,Result);
+
+  finally
+    lStream.Create;
+    OnEventStream:=lEventSource;
+  end;
+
 end;
 
 class function TFPCustomHTTPClient.IsRedirect(ACode: Integer): Boolean;
@@ -2554,6 +2690,156 @@ begin
     Finally
       Free;
     end;
+end;
+
+{ TCustomHTTPEventSource }
+
+constructor TCustomHTTPEventSource.Create(aSocket: TSocketStream; const aBuffer: AnsiString);
+begin
+  FTerminated:=False;
+  FHeaders:=TStringList.Create;
+  FHeaders.NameValueSeparator:=':';
+  FSocket:=aSocket;
+  FBuffer:=aBuffer;
+end;
+
+function TCustomHTTPEventSource.DataAvailable: Boolean;
+begin
+  Result:=FSocket.Handler.BytesAvailable<>0;
+end;
+
+function TCustomHTTPEventSource.ReadFromSocket(var aBuffer; aCount: Longint): Longint;
+begin
+  Result:=FSocket.Read(aBuffer,aCount);
+  FEOF:=Result<=0;
+end;
+
+function TCustomHTTPEventSource.ReadString(out S: String): Boolean;
+
+  Function FillBuffer: Boolean;
+
+  Var
+    R : Integer;
+
+  begin
+    if Terminated then
+      Exit(False);
+    SetLength(FBuffer,ReadBufLen);
+    r:=ReadFromSocket(FBuffer[1],ReadBufLen);
+    If (r=0) or Terminated Then
+      Exit(False);
+    If (r<0) then
+      Raise EHTTPClientSocketRead.Create(SErrReadingSocket);
+    if (r<ReadBuflen) then
+      SetLength(FBuffer,r);
+    Result:=r>0;
+  end;
+
+  function FindNewLineChar(aBufLen,StartAt : Integer) : Integer;
+  var
+    lBuf,I : Integer;
+  begin
+    lBuf:=aBufLen;
+    i:=StartAt;
+    While (I<=lbuf) and not (FBuffer[i] in [#10,#13]) Do
+      inc(i);
+    Result:=I;
+  end;
+
+Var
+  lCheck,lFound : boolean;
+  P,lBufLen,lStart : integer;
+
+begin
+  S:='';
+  Result:=False;
+  lCheck:=False;
+  lStart:=1;
+  Repeat
+    lBufLen:=Length(FBuffer);
+    if lBufLen=0 then
+      begin
+      if not FillBuffer then
+        Break;
+      lBufLen:=Length(FBuffer);
+      if lCheck and (lBufLen>0) and (FBuffer[1]=#10) then
+        lStart:=2
+      else
+        lStart:=1;
+      end;
+    P:=FindNewLineChar(lBufLen,lStart);
+    lFound:=P<=lBufLen;
+    S:=S+Copy(FBuffer,lStart,P-lStart);
+    // Check #10 at start of next line ?
+    lCheck:=lFound and (FBuffer[P]=#13) and (P=lBufLen);
+    // if not at EOL, check if next is
+    if lFound and not lCheck then
+      begin
+      if (P<lBufLen) and (FBuffer[P]=#13) and (FBuffer[P+1]=#10) then
+        Inc(P);
+      end;
+    Delete(FBuffer,1,P);
+  until Terminated or lFound;
+  Result:=lFound or (S<>'');
+end;
+
+procedure TCustomHTTPEventSource.Terminate;
+begin
+  FTerminated:=True;
+end;
+
+
+function TCustomHTTPEventSource.ReadEvent(out aEvent: THTTPServerEvent; aConcatData: Boolean): Boolean;
+var
+  lLine, lKey, lValue: string;
+  lCount : integer;
+begin
+  aEvent:=Default(THTTPServerEvent);
+  SetLength(aEvent.Data,1);
+  lCount:=0;
+  Result:=False;
+  While ReadString(lLine) and (lLine<>'') do
+    begin
+    lKey:=ExtractWord(1,lLine,[':']);
+    lValue:=TrimLeft(ExtractWord(2,lLine,[':']));
+    Case lKey of
+      'data' :
+        begin
+        if aConcatData then
+          begin
+          if aEvent.Data[0]<>'' then
+            aEvent.Data[0]:=aEvent.Data[0]+sLineBreak;
+          aEvent.Data[0]:=aEvent.Data[0]+lValue;
+          end
+        else
+          begin
+          if Length(aEvent.Data)=lCount then
+            SetLength(aEvent.Data,lCount+3);
+          aEvent.Data[lCount]:=lValue;
+          inc(lCount);
+          end;
+        Result:=True;
+        end;
+      'id' : aEvent.id:=lValue;
+      'event' : aEvent.Event:=lValue;
+      '': aEvent.Comment:=aEVent.Comment+sLineBreak+lValue;
+      'retry':
+    end
+    end;
+  if not aConcatData then
+    SetLength(aEvent.Data,lCount);
+end;
+
+procedure TCustomHTTPEventSource.Close;
+begin
+  FreeAndNil(FSocket);
+end;
+
+destructor TCustomHTTPEventSource.Destroy;
+begin
+  Close;
+  FreeAndNil(FHeaders);
+  inherited Destroy;
 end;
 
 { EHTTPClient }

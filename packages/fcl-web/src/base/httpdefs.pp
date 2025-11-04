@@ -23,6 +23,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 {$mode objfpc}
+{$modeswitch advancedrecords}
 {$H+}
 { $DEFINE CGIDEBUG}
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -560,6 +561,18 @@ type
   end;
 
 
+  { THTTPServerEvent }
+
+  THTTPServerEvent = record
+    Id : string;
+    Data : Array of string;
+    Event : string;
+    Comment : string;
+    Retry : integer;
+    // Return formattted event message. Includes terminating newlines.
+    Function ToString : AnsiString;
+  end;
+
   { TResponse }
 
   TResponse = class(THttpHeader)
@@ -573,6 +586,7 @@ type
     FContentSent: Boolean;
     FRequest : TRequest;
     FCookies : TCookies;
+    FEventsStarted : Boolean;
     function GetContent: RawByteString;
     procedure SetContent(const AValue: RawByteString);
     procedure SetContents(AValue: TStrings);
@@ -584,12 +598,17 @@ type
     Procedure DoSendHeaders(Headers : TStrings); virtual; abstract;
     Procedure DoSendContent; virtual; abstract;
     Procedure CollectHeaders(Headers : TStrings); virtual;
+    procedure CheckServerEvents; virtual;
+    property EventsStarted : Boolean Read FEventsStarted;
   public
     constructor Create(ARequest : TRequest); overload;
     destructor destroy; override;
     Procedure SendContent;
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
+    procedure StartServerEvents; virtual;
+    Procedure SendServerEvent(const aEvent : THTTPServerEvent); virtual;
+    Procedure EndServerEvents; virtual;
     Procedure SendRedirect(const TargetURL:String);
     Function ToString: RTLstring; override;
     // Set Code and CodeText. Send content if aSend=True
@@ -615,7 +634,7 @@ type
     property Cookies: TCookies read FCookies;
     Property FreeContentStream : Boolean Read FFreeContentStream Write FFreeContentStream;
   end;
-  
+
   { TSessionVariable }
 
 
@@ -777,6 +796,12 @@ Resourcestring
   SErrNoSuchUploadedFile        = 'No such uploaded file : "%s"';
   SErrUnknownCookie             = 'Unknown cookie: "%s"';
   SErrNoRequestMethod           = 'No REQUEST_METHOD passed from server.';
+  SErrServerEventsNotSupported  = 'Server events not supported';
+  SErrCannotStartServerEventsWrongStatus = 'Cannot start server event stream: Status is not 200';
+  SErrCannotStartServerEventsHaveContents = 'Cannot start server event stream: Content already set';
+  SErrCannotStartServerEventsWrongContentType = 'Cannot start server event stream: Content-Type is not text/event-stream';
+  SErrCannotStartServerEventsWrongContentLength = 'Cannot start server event stream: Content-Length is nonzero';
+  SErrCannotStartServerEventsWrongConnection = 'Cannot start server event stream: Connection header is not close';
 
 const
    hexTable = '0123456789ABCDEF';
@@ -2794,6 +2819,34 @@ begin
     FOnStreamEncodingEvent(Self, State, Buf, Size);
 end;
 
+{ THTTPServerEvent }
+
+function THTTPServerEvent.ToString: AnsiString;
+
+  procedure AddToResult(const aName : string; aValue : string; aForce : boolean = false);
+  begin
+    if (aValue='') and not aForce then exit;
+    if Pos(#10,aValue)<>0 then
+      raise EInOutArgumentException.Create('Cannot send strings with embedded newline');
+    if Result<>'' then
+      Result:=Result+#10;
+    Result:=Result+aName+': '+aValue;
+  end;
+
+var
+  lData : string;
+begin
+  Result:='';
+  AddToResult('id',ID);
+  AddToResult('event',Event);
+  for lData in Data do
+    AddToResult('data',lData,True);
+  if Retry<>0 then
+    AddToResult('retry',IntToStr(Retry));
+  AddToResult('',Comment);
+  Result:=Result+#10#10;
+end;
+
 { ---------------------------------------------------------------------
   TUploadedFiles
   ---------------------------------------------------------------------}
@@ -2975,6 +3028,21 @@ begin
   SendContent;
 end;
 
+procedure TResponse.StartServerEvents;
+begin
+  Raise ENotSupportedException.Create(SErrServerEventsNotSupported);
+end;
+
+procedure TResponse.SendServerEvent(const aEvent: THTTPServerEvent);
+begin
+  Raise ENotSupportedException.Create(SErrServerEventsNotSupported);
+end;
+
+procedure TResponse.EndServerEvents;
+begin
+  Raise ENotSupportedException.Create(SErrServerEventsNotSupported);
+end;
+
 
 procedure TResponse.SendRedirect(const TargetURL: String);
 begin
@@ -2991,7 +3059,7 @@ begin
     end;
 end;
 
-function TResponse.ToString: rtlstring;
+function TResponse.ToString: RTLstring;
 begin
   if assigned(Request) then
     Result:=Request.ToString
@@ -3113,6 +3181,42 @@ begin
       end;
   Headers.Add('');
 {$ifdef cgidebug} SendMethodExit('Collectheaders');{$endif}
+end;
+
+procedure TResponse.CheckServerEvents;
+const
+  CT =  'text/event-stream';
+begin
+  if (Contents.Count>0) or Assigned(ContentStream) then
+    raise EHTTP.Create(SErrCannotStartServerEventsHaveContents);
+  if Code<>200 then
+    begin
+    if HeadersSent then
+      Raise EHTTP.Create(SErrCannotStartServerEventsWrongStatus);
+    Code:=200;
+    CodeText:='OK';
+    end;
+  if (ContentType<>CT) then
+    begin
+    if HeadersSent then
+      Raise EHTTP.Create(SErrCannotStartServerEventsWrongContentType);
+    ContentType:=CT;
+    end;
+  if (ContentLength<>0) then
+    begin
+    if HeadersSent then
+      Raise EHTTP.Create(SErrCannotStartServerEventsWrongContentLength);
+    ContentLength:=0;
+    end;
+  if (Connection<>'') and (Connection<>'close') then
+    begin
+    if HeadersSent then
+      Raise EHTTP.Create(SErrCannotStartServerEventsWrongConnection);
+    Connection:='close';
+    end;
+  if not HeadersSent then
+    SendHeaders;
+  FEventsStarted:=True;
 end;
 
 
