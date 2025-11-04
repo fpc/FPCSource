@@ -793,13 +793,22 @@ Unit racpugas;
             begin
               subreg:=ParseArrangementSpecifier(upper(actasmpattern));
               if (subreg<>R_SUBNONE) and
-                 (getregtype(result)=R_MMREGISTER) and
-                 ((actinsmmsubreg=R_SUBNONE) or
-                  (actinsmmsubreg=subreg)) then
+                (getregtype(result)=R_MMREGISTER) then
                 begin
-                  setsubreg(result,subreg);
-                  { they all have to be the same }
-                  actinsmmsubreg:=subreg;
+                  if ((actinsmmsubreg=R_SUBNONE) or
+                    (actinsmmsubreg=subreg)) then
+                    begin
+                      setsubreg(result,subreg);
+                      { they all have to be the same }
+                      actinsmmsubreg:=subreg;
+                    end
+                  else if (actopcode=A_SHRN) or (actopcode=A_SHRN2) then
+                    begin
+                      { shrn, shrn2 allow combinations of different sizes ]}
+                      setsubreg(result,subreg);
+                    end
+                  else
+                    Message1(asmr_e_invalid_arrangement,actasmpattern);
                 end
               else
                 Message1(asmr_e_invalid_arrangement,actasmpattern);
