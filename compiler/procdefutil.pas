@@ -1010,6 +1010,7 @@ implementation
           { fix function return symbol }
           pd.funcretsym:=pinested.procdef.funcretsym;
           pinested.procdef.funcretsym:=nil;
+          pinested.procdef.reset_after_conv;
           insert_funcret_para(pinested.procdef);
           insert_funcret_local(pinested.procdef);
           { the nested function needs access to the parent's framepointer to
