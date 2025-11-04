@@ -352,6 +352,7 @@ implementation
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len,p.constdef);
+              freemem(pc);
             end;
           constwstring :
             p1:=cstringconstnode.createunistr(p.value.valuews);
