@@ -300,6 +300,10 @@ Unit AoptObj;
         { instruction                                                  }
         class function FindLabel(L: TasmLabel; Var hp: Tai): Boolean; static;
 
+        { returns true if p is after p2 or before                                    }
+        { and the number of instructions between p and p2 in out variable count      }
+        function GetInstructionDistance(p,p2: Tai; out count: ASizeInt) : boolean;
+
         { inserts new_one between prev and foll in AsmL }
         Procedure InsertLLItem(prev, foll, new_one: TLinkedListItem);
 
@@ -1261,27 +1265,15 @@ Unit AoptObj;
 
       class function TAOptObj.FindLabel(L: TasmLabel; Var hp: Tai): Boolean;
       Var TempP: Tai;
-{$ifdef CPU_BC_HAS_SIZE_LIMIT}
-         count: ASizeUInt;
-{$endif CPU_BC_HAS_SIZE_LIMIT}
       Begin
         TempP := hp;
-{$ifdef CPU_BC_HAS_SIZE_LIMIT}
-        count:=0;
-{$endif CPU_BC_HAS_SIZE_LIMIT}
         While Assigned(TempP) and
-{$ifdef CPU_BC_HAS_SIZE_LIMIT}
-	     (count < BC_max_distance) and
-{$endif CPU_BC_HAS_SIZE_LIMIT}
              (TempP.typ In SkipInstr + [ait_label,ait_align]) Do
           If (TempP.typ <> ait_Label) Or
              (Tai_label(TempP).labsym <> L)
             Then
                begin
                  GetNextInstruction(TempP, TempP);
-{$ifdef CPU_BC_HAS_SIZE_LIMIT}
-		 inc(count);
-{$endif CPU_BC_HAS_SIZE_LIMIT}
                end
             Else
               Begin
@@ -1290,6 +1282,42 @@ Unit AoptObj;
                 exit
               End;
         FindLabel := False;
+      End;
+
+      function TAOptObj.GetInstructionDistance(p,p2: Tai; out count: ASizeInt) : boolean;
+      Var TempP: Tai;
+      Begin
+        { Forward search }
+        TempP := p;
+        count:=0;
+        While Assigned(TempP) Do
+          Begin
+            if TempP.typ=ait_instruction then
+              inc(count);
+            If (TempP<>p2) then
+              TempP:=tai(TempP.Next)
+            Else
+              Begin
+                GetInstructionDistance := true;
+                exit
+              End;
+          End;
+	{ Search p after p2 }
+        TempP := p2;
+        count:=0;
+        While Assigned(TempP) Do
+          Begin
+            If TempP.typ=ait_instruction then
+              dec(count);
+            If (TempP<>p) then
+              TempP:=tai(TempP.Next)
+            Else
+              Begin
+                GetInstructionDistance := true;
+                exit
+              End;
+          End;
+        GetInstructionDistance := false;
       End;
 
       Procedure TAOptObj.InsertLLItem(prev, foll, new_one : TLinkedListItem);
@@ -2113,6 +2141,10 @@ Unit AoptObj;
       var
         hp2: tai;
         NCJLabel: TAsmLabel;
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+	hpncg : tai;
+	count  : ASizeInt;
+{$endif CPU_BC_HAS_SIZE_LIMIT}
       begin
         Result := False;
         while (hp1 <> BlockEnd) do
@@ -2133,6 +2165,9 @@ Unit AoptObj;
                       stoploop := False;
 
                     hp2 := getlabelwithsym(NCJLabel);
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+                    hpncg :=hp2;
+{$endif CPU_BC_HAS_SIZE_LIMIT}
                     if Assigned(hp2) then
                       { Collapse the cluster now to aid optimisation and potentially
                         cut down on the number of iterations required }
@@ -2160,7 +2195,12 @@ Unit AoptObj;
                         Exit;
                       end;
 
-                    if FindLabel(CJLabel, hp2) then
+                    if FindLabel(CJLabel, hp2)
+{$ifdef CPU_BC_HAS_SIZE_LIMIT}
+                       and assigned(hpncg) and GetInstructionDistance(p, hpncg, count) and
+                       (abs(count) < BC_max_distance)
+{$endif CPU_BC_HAS_SIZE_LIMIT}
+                        then
                       begin
                         { change the following jumps:
                             jmp<cond> CJLabel         jmp<inv_cond> NCJLabel
