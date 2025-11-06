@@ -65,6 +65,7 @@ a.out
 symbol_order*.fpc
 /compiler/ppc*
 /compiler/gppc*
+/compiler/vppc*
 !/compiler/ppc*.lpi
 !/compiler/ppc*.pas
 /compiler/*/pp
