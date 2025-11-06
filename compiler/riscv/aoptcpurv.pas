@@ -70,12 +70,22 @@ implementation
     cutils,
     verbose;
 
-  function MatchInstruction(const instr: tai; const op: TCommonAsmOps; const AConditions: TAsmConds = []): boolean;
+  function MatchInstruction(const instr: tai; const ops : array of TAsmOp; const AConditions: TAsmConds = []): boolean;
+    var
+      op : TAsmOp;
     begin
-      result :=
-        (instr.typ = ait_instruction) and
-        (taicpu(instr).opcode in op) and
-        ((AConditions=[]) or (taicpu(instr).condition in AConditions));
+      result:=false;
+      if (instr.typ <> ait_instruction) or
+        ((AConditions <> []) and not(taicpu(instr).condition in AConditions)) then
+        exit;
+      for op in ops do
+        begin
+          if taicpu(instr).opcode = op then
+            begin
+              result:=true;
+              exit;
+            end;
+        end;
     end;
 
 

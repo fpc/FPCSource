@@ -3011,7 +3011,10 @@ implementation
               and not(r.refaddr in [addr_full,addr_gotpageoffset,addr_gotpage])
 {$endif aarch64}
 {$ifdef riscv}
-              and not(opcode in [A_LA,A_FLD,A_FLQ,A_FLW])
+              and not(opcode=A_LA)
+              and not(opcode=A_FLD)
+              and not(opcode=A_FLQ)
+              and not(opcode=A_FLW)
 {$endif riscv}
               then
               internalerror(200502052);

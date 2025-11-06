@@ -195,12 +195,6 @@ uses
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      { Last value of opcode for TCommonAsmOps set below  }
-      LastCommonAsmOp = A_MRET;
-
-    Type
-      TCommonAsmOps = Set of A_None .. LastCommonAsmOp;
-
 {*****************************************************************************
                                   Registers
 *****************************************************************************}
