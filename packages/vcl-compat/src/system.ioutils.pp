@@ -1966,7 +1966,7 @@ begin
     Result:=TFileStream.Create(aPath, {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}Classes.fmCreate or sMode);
   TFileMode.fmOpen:
     begin
-    if Exists(aPath) then
+    if not Exists(aPath) then
       Raise EInOutError.CreateFmt(SErrFileNotFound,[aPath]);
     Result:=TFileStream.Create(aPath,fMode);
     end;
