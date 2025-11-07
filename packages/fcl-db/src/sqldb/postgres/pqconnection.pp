@@ -59,9 +59,10 @@ type
     FConnected: Boolean;
     FCOnnection: TPQConnection;
     FDBName : String;
-    FActive : Boolean;
-    FUsed: Boolean;
+    FActive : Boolean; // within BEGIN - COMMIT/ROLLBACK
+    FUsed: Boolean; // is currently used in a transaction and cannot be obtained from handle pool
     function GetConnected: Boolean;
+    function GetHasOpenCursors: Boolean; // has open cursors
   protected
     FNativeConn: PPGConn;
     FCursorList  : TThreadList;
@@ -86,6 +87,7 @@ type
     Property NativeConn : PPGConn Read FNativeConn;
     Property Active : Boolean Read Factive;
     Property Used : Boolean Read FUsed Write FUsed;
+    Property HasOpenCursors : Boolean Read GetHasOpenCursors;
     Property Connected : Boolean Read GetConnected;
   end;
 
@@ -323,6 +325,20 @@ begin
   Result:=FNativeConn<>Nil;
 end;
 
+function TPGHandle.GetHasOpenCursors: Boolean;
+
+Var
+  L : TList;
+
+begin
+  L:=FCursorList.LockList;
+  try
+    Result:=L.Count>0;
+  finally
+    FCursorList.UnlockList;
+  end;
+end;
+
 procedure TPGHandle.RegisterCursor(Cursor: TPQCursor);
 begin
   if Cursor.handle=Self then
@@ -350,15 +366,9 @@ begin
   {$ENDIF}
   Cursor.Handle:=Nil;
   FCursorList.Remove(Cursor);
-  L:=FCursorList.LockList;
-  try
-    Used:=L.Count>0;
-    {$IFDEF PQDEBUG}
-    Writeln('>>> ',FHandleID,' [',TThread.CurrentThread.ThreadID, ']  unregistering cursor ',PtrInt(Cursor),'. Handle still used: ',Used);
-    {$ENDIF}
-  finally
-    FCursorList.UnlockList;
-  end;
+  {$IFDEF PQDEBUG}
+  Writeln('>>> ',FHandleID,' [',TThread.CurrentThread.ThreadID, ']  unregistering cursor ',PtrInt(Cursor),'. Handle still used: ',Used);
+  {$ENDIF}
 end;
 
 procedure TPGHandle.UnprepareStatement(Cursor: TPQCursor; Force : Boolean);
@@ -595,6 +605,7 @@ var
 
 begin
   tr := (trans as TPQTransactionHandle).Handle as TPGHandle;
+  tr.Used:=False; // handle can be reused after rollback (even if it failed)
   TR.RollBack;
   result := true;
 end;
@@ -605,6 +616,7 @@ var
 begin
   tr := (trans as TPQTransactionHandle).Handle;
   tr.Commit;
+  tr.Used:=False; // handle can be reused after successful commit
   Result:=True;
 end;
 
@@ -641,7 +653,7 @@ begin
     while (i<L.Count) do
       begin
       T:=TPGHandle(L[i]);
-      if Not (T.Connected and T.Used) then
+      if Not (T.Used or T.HasOpenCursors) then // existing handle must not be used and must not have open cursors
         break
       else
         T:=Nil;
@@ -815,6 +827,7 @@ procedure TPGHandle.Commit;
 
 begin
   Exec('COMMIT',True,SErrCommitFailed);
+  FActive:=False; // handle is not active after successful COMMIT
 end;
 
 procedure TPGHandle.Reset;
