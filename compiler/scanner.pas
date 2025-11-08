@@ -1587,6 +1587,7 @@ type
           dispose(pnormalset(value.valueptr));
         constguid :
           dispose(pguid(value.valueptr));
+        constpointer,
         constord,
         { error values }
         constnone:
