@@ -1587,13 +1587,12 @@ type
           dispose(pnormalset(value.valueptr));
         constguid :
           dispose(pguid(value.valueptr));
+        constnil,
         constpointer,
         constord,
         { error values }
         constnone:
           ;
-        else
-          internalerror(2013112802);
       end;
       inherited destroy;
     end;

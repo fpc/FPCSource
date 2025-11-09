@@ -11,6 +11,11 @@ const
     {$MESSAGE 'ACONSTANT is not equal to b'}
   {$endif}
 
+const
+  ptr = nil;
+
+{$if ptr <> pointer(5)}
+{$endif}
 
 type
   PRECORD = ^TRECORD;
