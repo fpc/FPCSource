@@ -146,7 +146,13 @@ begin
         fnt:=gTTFontCache.FindFont(AFontName);
       if fnt=Nil then
         raise Exception.CreateFmt('fpreport: Could not find the font <%s> in the font cache.', [AFontName]);
-      Result := Document.AddFont(fnt.FileName, AFontName)
+      if fnt.FileName <> EmptyStr then
+        Result := Document.AddFont(fnt.FileName, AFontName)
+      else if Assigned(fnt.Stream) then
+      begin
+        fnt.Stream.Position := 0;
+        Result := Document.AddFont(fnt.Stream, AFontName);
+      end;
     end;
   end;
 end;
