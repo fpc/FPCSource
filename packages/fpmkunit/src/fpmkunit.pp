@@ -1928,8 +1928,8 @@ Const
   KeyDocInstallDir      = 'DocInstallDir';
   KeyExamplesInstallDir = 'ExamplesInstallDir';
   KeyInstallExamples    = 'InstallExamples';
-  KeySkipCrossProdrams  = 'SkipCrossPrograms';
-  KeySkipProdrams       = 'SkipPrograms';
+  KeySkipCrossPrograms  = 'SkipCrossPrograms';
+  KeySkipPrograms       = 'SkipPrograms';
   // Keys for unit config
   KeyName     = 'Name';
   KeyVersion  = 'Version';
@@ -5046,9 +5046,9 @@ begin
       if FInstallExamples then
           Values[KeyInstallExamples]:='Y';
       if FSkipCrossPrograms then
-        Values[KeySkipCrossProdrams]:='Y';
+        Values[KeySkipCrossPrograms]:='Y';
       if FSkipPrograms then
-        Values[KeySkipProdrams]:='Y';
+        Values[KeySkipPrograms]:='Y';
       end;
     L.SaveToStream(S);
   Finally
@@ -5108,8 +5108,8 @@ begin
       FDocInstallDir:=Values[KeyDocInstallDir];
       FExamplesInstallDir:=Values[KeyExamplesInstallDir];
       FInstallExamples:=(Upcase(Values[KeyInstallExamples])='Y');
-      FSkipCrossPrograms:=(Upcase(Values[KeySkipCrossProdrams])='Y');
-      FSkipPrograms:=(Upcase(Values[KeySkipProdrams])='Y');
+      FSkipCrossPrograms:=(Upcase(Values[KeySkipCrossPrograms])='Y');
+      FSkipPrograms:=(Upcase(Values[KeySkipPrograms])='Y');
       FNoFPCCfg:=(Upcase(Values[KeyNoFPCCfg])='Y');
       FUseEnvironment:=(Upcase(Values[KeyUseEnv])='Y');
 
