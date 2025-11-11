@@ -415,6 +415,8 @@ Type
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     // Called when a connection encounters an error outside the request. Will call OnUnexpectedError when set.
     procedure HandleUnexpectedError(Sender: TObject; E : Exception); virtual;
+    // Inet Server
+    Property Server : TInetServer Read FServer;
     // Connection Handler
     Property Connectionhandler : TFPHTTPServerConnectionHandler Read FConnectionHandler;
     // Connection count. Convenience shortcut for Connectionhandler.GetActiveConnectionCount;
