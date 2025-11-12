@@ -317,11 +317,11 @@ implementation
            (
             (
              (A_FMADD_S,A_FMSUB_S),
-             (A_FNMADD_S,A_FNMSUB_S)
+             (A_FNMSUB_S,A_FNMADD_S)
             ),
             (
              (A_FMADD_D,A_FMSUB_D),
-             (A_FNMADD_D,A_FNMSUB_D)
+             (A_FNMSUB_D,A_FNMADD_D)
             )
            );
        var
