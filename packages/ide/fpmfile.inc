@@ -215,7 +215,7 @@ procedure TIDEApp.ChangeDir;
 var
   D : PFPChDirDialog;
 begin
-  New(D, Init(cdNormal, hisChDirDialog));
+  New(D, Init(cdNormal, hidChDirDialog));
   ExecuteDialog(D,nil);
   CurDirChanged;
   { Set new startup dir }
