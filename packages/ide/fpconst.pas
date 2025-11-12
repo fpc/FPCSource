@@ -162,11 +162,12 @@ const
      hidConditionalDefines= 205;
      hidCompilerArgs      = 206;
      hidWatchDialog       = 207;
-     hidBreakpointDialogName = 208;
+     hidChDirDialog       = 208;
      hidRunDir            = 209;
      hidBreakpointDialogCond = 210;
      hidPrinterDevice      = 211;
      hidEvaluate           = 212;
+     hidBreakpointDialogName = 213;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -471,8 +472,6 @@ const
      hcEditorOptions     = hcShift+cmEditorOptions;
      hcBrowserOptions    = hcShift+cmBrowserOptions;
      hcDoReload          = hcShift+cmDoReload;
-     { History constants }
-     hisChDirDialog      = 2000;
 
      CIDEHelpDialog      =
         #128#129#130#131#132#133#134#135#136#137#138#139#140#141#142#143 +
