@@ -482,7 +482,7 @@ type
     property Index: Longint read GetIndex write SetIndex;
     property ImportedConstraint: string read FImportedConstraint write FImportedConstraint;
     property KeyFields: string read FKeyFields write FKeyFields;
-    property LookupCache: Boolean read FLookupCache write FLookupCache;
+    property LookupCache: Boolean read FLookupCache write FLookupCache default False;
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
     property LookupResultField: string read FLookupResultField write FLookupResultField;
@@ -490,8 +490,8 @@ type
     property Origin: string read FOrigin write FOrigin;
     property ParentField: TObjectField read FParentField write SetParentField;
     property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
-    property ReadOnly: Boolean read FReadOnly write SetReadOnly;
-    property Required: Boolean read FRequired write FRequired;
+    property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
+    property Required: Boolean read FRequired write FRequired default False;
     property Visible: Boolean read FVisible write SetVisible default True;
     property OnChange: TFieldNotifyEvent read FOnChange write FOnChange;
     property OnGetText: TFieldGetTextEvent read FOnGetText write FOnGetText;
