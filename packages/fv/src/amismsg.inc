@@ -22,7 +22,7 @@
 
 {$IFDEF FPC_DOTTEDUNITS}
 uses
-  MacOsApi.Video;
+  System.Console.Video;
 {$ELSE FPC_DOTTEDUNITS}
 uses
   video;
@@ -43,7 +43,7 @@ begin
   PendingSystemTail:=@PendingSystemEvent;
   PendingSystemEvents:=0;
   FillChar(LastSystemEvent,sizeof(TSystemEvent),0);
-  Video.HasResizeWindow(LastXSize,LastYSize);
+  HasResizeWindow(LastXSize,LastYSize);
 
   If LastXSize=0 then
     LastXSize:=80;
@@ -91,12 +91,12 @@ begin
   else
    begin
      PollSystemEvent:=false;
-     if Video.HasCloseWindow then begin
+     if HasCloseWindow then begin
        SystemEvent.typ:=SysClose;
        SystemEvent.CloseTyp:=0;
        PutSystemEvent(SystemEvent);
        PollSystemEvent:=true;
-     end else if Video.HasResizeWindow(width, height) then begin
+     end else if HasResizeWindow(width, height) then begin
        if (width>0) and (height>0) and 
           ((width<>lastxsize) or (height<>lastysize)) then begin
          SystemEvent.typ:=SysResize;
@@ -107,11 +107,11 @@ begin
          LastYSize:=height;
          PollSystemEvent:=true;
        end;
-     end else if Video.HasActiveWindow then begin
+     end else if HasActiveWindow then begin
        SystemEvent.typ:=SysSetFocus;
        PutSystemEvent(SystemEvent);
        PollSystemEvent:=true;
-     end else if Video.HasInactiveWindow then begin
+     end else if HasInactiveWindow then begin
        SystemEvent.typ:=SysReleaseFocus;
        PutSystemEvent(SystemEvent);
        PollSystemEvent:=true;
