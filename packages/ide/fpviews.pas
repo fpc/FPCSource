@@ -399,6 +399,7 @@ type
     PFPChDirDialog = ^TFPChDirDialog;
     TFPChDirDialog = object(TEditChDirDialog)
       constructor Init(AOptions: Word; HistoryId: Sw_Word);
+      procedure   SizeLimits (Var Min, Max: TPoint); Virtual;
     end;
 
     PFPAboutDialog = ^TFPAboutDialog;
@@ -4653,6 +4654,7 @@ var
   S : String;
 begin
    inherited init(AOptions,HistoryId);
+   GrowMode := gfGrowAll + gfGrowRel;                 { Set window growmodes }
    HelpCtx:=hcChangeDir;
    {replace TInputLine with TEditorInputLine in order to be able to use Clipboard in it}
    DirInput^.getData(S);
@@ -4682,6 +4684,14 @@ begin
      GrowTo(Min(Desktop^.Size.X-(60-Size.X),102),Size.Y);
    {set focus on the new input line}
    DirInput^.Focus;
+end;
+
+procedure TFPChDirDialog.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=40;
+  Min.Y:=20;
+  Max.X:=WUtils.Min(102,WUtils.Max(40,ScreenWidth-2));
+  Max.Y:=WUtils.Max(20,Desktop^.Size.Y-6);
 end;
 
 constructor TFPAboutDialog.Init;
