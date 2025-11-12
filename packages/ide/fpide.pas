@@ -1500,7 +1500,6 @@ begin
 {$endif ndef Windows}
   InitEvents;
   InitSysError;
-  CurDirChanged;
 {$ifndef Windows}
   if (oldH<>ScreenHeight) or (oldW<>ScreenWidth) then
   begin
@@ -1532,6 +1531,7 @@ begin
   UpdateScreen(true);
 {$endif go32v2}
 {$endif Windows}
+  CurDirChanged; {To avoid memory corruption, palce this call after screen resize has been done.}
   displaymode:=dmIDE;
 end;
 
