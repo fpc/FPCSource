@@ -162,7 +162,7 @@ Const
        GreaterThanValue = types.GreaterThanValue;
 {$ENDIF FPC_DOTTEDUNITS}
 
-       
+
 {$push}
 {$R-}
 {$Q-}
@@ -1290,10 +1290,11 @@ function cosh(x : Single) : Single;
   var
      temp : ValReal;
   begin
+{$push}
+{$checkfpuexceptions on}
      if (x>8.94159862326326216608E+0001) or (x<-8.94159862326326216608E+0001) then
        exit(huge_single*huge_single);
     temp:=exp(x);
-{$push}
 {$safefpuexceptions on}
      cosh:=0.5*(temp+1.0/temp);
 {$pop}
@@ -1306,10 +1307,11 @@ function cosh(x : Double) : Double;
   var
      temp : ValReal;
   begin
+{$push}
+{$checkfpuexceptions on}
      if (x>7.10475860073943942030E+0002) or (x<-7.10475860073943942030E+0002) then
        exit(huge_double*huge_double);
      temp:=exp(x);
-{$push}
 {$safefpuexceptions on}
      cosh:=0.5*(temp+1.0/temp);
 {$pop}
@@ -1333,6 +1335,8 @@ function sinh(x : Single) : Single;
   var
      temp : ValReal;
   begin
+{$push}
+{$checkfpuexceptions on}
      if x>8.94159862326326216608E+0001 then
        exit(huge_single*huge_single);
      if x<-8.94159862326326216608E+0001 then
@@ -1341,7 +1345,6 @@ function sinh(x : Single) : Single;
      { gives better behavior around zero, and in particular ensures that sinh(-0.0)=-0.0 }
      if temp=1 then
        exit(x);
-{$push}
 {$safefpuexceptions on}
      sinh:=0.5*(temp-1.0/temp);
 {$pop}
@@ -1354,6 +1357,8 @@ function sinh(x : Double) : Double;
   var
      temp : ValReal;
   begin
+{$push}
+{$checkfpuexceptions on}
      if x>7.10475860073943942030E+0002 then
        exit(huge_double*huge_double);
      if x<-7.10475860073943942030E+0002 then
@@ -1361,7 +1366,6 @@ function sinh(x : Double) : Double;
      temp:=exp(x);
      if temp=1 then
        exit(x);
-{$push}
 {$safefpuexceptions on}
      sinh:=0.5*(temp-1.0/temp);
 {$pop}
@@ -1392,6 +1396,7 @@ function tanh(x : Single) : Single;
       if tmp=1 then
         exit(x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
       result:=(tmp-1)/(1+tmp)
 {$pop}
@@ -1401,6 +1406,7 @@ function tanh(x : Single) : Single;
       if tmp=1 then
         exit(x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
       result:=(1-tmp)/(1+tmp)
 {$pop}
@@ -1419,6 +1425,7 @@ function tanh(x : Double) : Double;
       if tmp=1 then
         exit(x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
       result:=(tmp-1)/(1+tmp)
 {$pop}
@@ -1428,6 +1435,7 @@ function tanh(x : Double) : Double;
       if tmp=1 then
         exit(x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
       result:=(1-tmp)/(1+tmp)
 {$pop}
@@ -1466,6 +1474,7 @@ begin
   //SecH = 2 / (e^X + e^-X)
   Ex:=Exp(X);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
   SecH:=2/(Ex+1/Ex);
 {$pop}
@@ -1480,6 +1489,7 @@ var
 begin
   Ex:=Exp(X);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
   SecH:=2/(Ex+1/Ex);
 {$pop}
@@ -1505,6 +1515,7 @@ begin
   //CscH = 2 / (e^X - e^-X)
   Ex:=Exp(X);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
   CscH:=2/(Ex-1/Ex);
 {$pop}
@@ -1519,6 +1530,7 @@ var
 begin
   Ex:=Exp(X);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
   CscH:=2/(Ex-1/Ex);
 {$pop}
@@ -1546,6 +1558,7 @@ begin
     if e2=1 then
       exit(1/x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
     result:=(1+e2)/(e2-1)
 {$pop}
@@ -1555,6 +1568,7 @@ begin
     if e2=1 then
       exit(1/x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
     result:=(1+e2)/(1-e2)
 {$pop}
@@ -1573,6 +1587,7 @@ begin
     if e2=1 then
       exit(1/x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
     result:=(1+e2)/(e2-1)
 {$pop}
@@ -1582,6 +1597,7 @@ begin
     if e2=1 then
       exit(1/x);
 {$push}
+{$checkfpuexceptions on}
 {$safefpuexceptions on}
     result:=(1+e2)/(1-e2)
 {$pop}
@@ -1959,7 +1975,7 @@ begin
       else
         res:=0;
       exit;
-    end; 
+    end;
   res:=1;
   while exponent<>0 do
     begin
