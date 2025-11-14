@@ -22,9 +22,11 @@ TYPE
   TKeyInfoView = OBJECT(TView)
     LastKeyEvent: TEvent; { Store the last event here }
     TVInputValue: UnicodeString;
+    Cnt: Integer;
     CONSTRUCTOR Init(VAR Bounds: TRect);
     PROCEDURE Draw; VIRTUAL;
     PROCEDURE UpdateInfo(CONST Event: TEvent);
+    PROCEDURE HandleEvent(VAR Event: TEvent); VIRTUAL;
   END;
 
   PKeyTestApp = ^TKeyTestApp;
@@ -34,13 +36,9 @@ TYPE
   TKeyTestApp = OBJECT(TApplication)
     KeyInfoView: PKeyInfoView; { Pointer to our view for displaying information }
     CONSTRUCTOR Init;
-    PROCEDURE HandleEvent(VAR Event: TEvent); VIRTUAL;
     PROCEDURE InitMenuBar; VIRTUAL;
     PROCEDURE InitStatusLine; VIRTUAL;
   END;
-
-VAR
-  Cnt: Integer;
 
 {---------------------------------------------------------------------------}
 {                        TKeyInfoView OBJECT METHODS                        }
@@ -50,9 +48,11 @@ CONSTRUCTOR TKeyInfoView.Init(VAR Bounds: TRect);
 BEGIN
   Inherited Init(Bounds);
   Options := Options OR ofSelectable; { Make the View selectable so it can get focus }
+  GrowMode := gfGrowHiX + gfGrowHiY;  { Grow along with window resize }
   EventMask := $FFFF;                 { Accept all event types }
   FillChar(LastKeyEvent, SizeOf(TEvent), 0); { Initialize with zeros }
   LastKeyEvent.What := evNothing;     { No events initially }
+  Cnt := 0;
 END;
 
 { Function to format the modifier key state byte into a readable string }
@@ -78,6 +78,8 @@ VAR
   Line: UnicodeString;
   Y: Integer;
   Color: Byte;
+  LastKeyCharCode: AnsiChar;
+  LastKeyUnicodeChar: WideChar;
 BEGIN
   Color := GetColor(1);
   { Fill the view's background with spaces using the current color }
@@ -97,8 +99,6 @@ BEGIN
     Exit;
   END;
 
-  Cnt := Cnt + 1;
-
   { Display all information from the TEvent record }
   Line := Format('Event.What: $%4.4x (evKeyDown)', [LastKeyEvent.What]);
   MoveStr(B, Line, Color);
@@ -108,7 +108,10 @@ BEGIN
   MoveStr(B, Line, Color);
   WriteLine(1, 2, StrWidth(Line), 1, B);
 
-  Line := Format('CharCode:    ''%s'' ($%2.2x)', [LastKeyEvent.CharCode, Ord(LastKeyEvent.CharCode)]);
+  LastKeyCharCode:=LastKeyEvent.CharCode;
+  IF LastKeyCharCode < #32 THEN
+    LastKeyCharCode:=#32;   { Non displayable chars are shown as space }
+  Line := Format('CharCode:    ''%s'' ($%2.2x)', [LastKeyCharCode, Ord(LastKeyEvent.CharCode)]);
   MoveStr(B, Line, Color);
   WriteLine(1, 3, StrWidth(Line), 1, B);
 
@@ -116,7 +119,10 @@ BEGIN
   MoveStr(B, Line, Color);
   WriteLine(1, 4, StrWidth(Line), 1, B);
 
-  Line := Format('UnicodeChar: ''%s'' (U+%4.4x)', [LastKeyEvent.UnicodeChar, Ord(LastKeyEvent.UnicodeChar)]);
+  LastKeyUnicodeChar:=LastKeyEvent.UnicodeChar;
+  IF LastKeyUnicodeChar < #32 THEN
+    LastKeyUnicodeChar:=#32;   { Non displayable chars are shown as space }
+  Line := Format('UnicodeChar: ''%s'' (U+%4.4x)', [LastKeyUnicodeChar, Ord(LastKeyEvent.UnicodeChar)]);
   MoveStr(B, Line, Color);
   WriteLine(1, 5, StrWidth(Line), 1, B);
 
@@ -144,7 +150,21 @@ END;
 PROCEDURE TKeyInfoView.UpdateInfo(CONST Event: TEvent);
 BEGIN
   LastKeyEvent := Event;
+  Cnt := Cnt + 1;
   DrawView; { Request a redraw }
+END;
+
+PROCEDURE TKeyInfoView.HandleEvent(VAR Event: TEvent);
+BEGIN
+  { Call the ancestor's handler }
+  Inherited HandleEvent(Event);
+
+  { If the event is a key press, update the info in our View }
+  IF Event.What = evKeyDown THEN
+  BEGIN
+    UpdateInfo(Event);
+    ClearEvent(Event);    { Clear the event }
+  END;
 END;
 
 {---------------------------------------------------------------------------}
@@ -173,20 +193,6 @@ BEGIN
 
   { Insert the window into the Desktop }
   DeskTop^.Insert(MainWindow);
-END;
-
-PROCEDURE TKeyTestApp.HandleEvent(VAR Event: TEvent);
-BEGIN
-  { First, call the ancestor's handler so standard things like menus work }
-  Inherited HandleEvent(Event);
-
-  { If the event is a key press, update the info in our View }
-  IF Event.What = evKeyDown THEN
-  BEGIN
-    IF Assigned(KeyInfoView) THEN
-      KeyInfoView^.UpdateInfo(Event);
-    { Don't clear the event, so standard handlers (like Alt+X) also get to process it }
-  END;
 END;
 
 PROCEDURE TKeyTestApp.InitMenuBar;
@@ -223,7 +229,6 @@ end;
 VAR
   MyApp: TKeyTestApp;
 BEGIN
-  Cnt := 0;
   MyApp.Init;
   MyApp.Run;
   MyApp.Done;
