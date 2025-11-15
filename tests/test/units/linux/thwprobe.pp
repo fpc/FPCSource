@@ -255,4 +255,49 @@ begin
     writeln('SUPM extension supported')
   else
     writeln('  SUPM extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZFBFMIN)<>0 then
+    writeln('ZFBFMIN extension supported')
+  else
+    writeln('  ZFBFMIN extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZVFBFMIN)<>0 then
+    writeln('ZVFBFMIN extension supported')
+  else
+    writeln('  ZVFBFMIN extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZVFBFWMA)<>0 then
+    writeln('ZVFBFWMA extension supported')
+  else
+    writeln('  ZVFBFWMA extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZVFBFMIN)<>0 then
+    writeln('ZVFBFMIN extension supported')
+  else
+    writeln('  ZVFBFMIN extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZVFBFWMA)<>0 then
+    writeln('ZVFBFWMA extension supported')
+  else
+    writeln('  ZVFBFWMA extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZICBOM)<>0 then
+    writeln('ZICBOM extension supported')
+  else
+    writeln('  ZICBOM extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZAAMO)<>0 then
+    writeln('ZAAMO extension supported')
+  else
+    writeln('  ZAAMO extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZALRSC)<>0 then
+    writeln('ZALRSC extension supported')
+  else
+    writeln('  ZALRSC extension not supported');
+
+  if (ariscv_hwprobe.value and RISCV_HWPROBE_EXT_ZABHA)<>0 then
+    writeln('ZABHA extension supported')
+  else
+    writeln('  ZABHA extension not supported');
 end.
