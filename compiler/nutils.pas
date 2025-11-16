@@ -986,11 +986,17 @@ implementation
                       begin
                         { operation (add, sub, or, and }
                         inc(cv);
-                        { left expression }
-                        inc(cv,node_complexity(tcallparanode(tunarynode(p).left).left));
-                        p:=tcallparanode(tunarynode(p).left).right;
-                        if assigned(p) then
-                          p:=tcallparanode(p).left;
+                        { rox_x has no call para node, so check for this }
+                        if tunarynode(p).left.nodetype=callparan then
+                          begin
+                            { left expression }
+                            inc(cv,node_complexity(tcallparanode(tunarynode(p).left).left));
+                            p:=tcallparanode(tunarynode(p).left).right;
+                            if assigned(p) then
+                              p:=tcallparanode(p).left;
+                          end
+                        else
+                          p:=tunarynode(p).left;
                       end;
                     else
                       exit;
