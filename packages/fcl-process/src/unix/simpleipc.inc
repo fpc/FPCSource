@@ -155,7 +155,7 @@ constructor TPipeServerComm.Create(AOWner: TSimpleIPCServer);
 begin
   inherited Create(AOWner);
   FFileName:=Owner.ServerID;
-  If Owner.Global then
+  If not Owner.Global then
     FFileName:=FFileName+'-'+IntToStr(fpGetPID);
   if FFileName[1]<>'/' then
     FFileName:=GetTempDir(Owner.SystemGlobal)+FFileName;
