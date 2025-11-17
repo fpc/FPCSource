@@ -6939,6 +6939,14 @@ unit aoptx86;
                             else
                               taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(hp1).oper[0]^.ref^.scalefactor * max(taicpu(p).oper[0]^.ref^.scalefactor, 1);
 
+                            if (taicpu(p).oper[0]^.ref^.base<>NR_NO) and 
+                               (not RegInUsedRegs(taicpu(p).oper[0]^.ref^.base, TmpUsedRegs)) then
+                              AllocRegBetween(taicpu(p).oper[0]^.ref^.base , p, hp1, TmpUsedRegs);
+                            if (taicpu(p).oper[0]^.ref^.index<>NR_NO) and
+                               (not RegInUsedRegs(taicpu(p).oper[0]^.ref^.index, TmpUsedRegs)) then
+                              AllocRegBetween(taicpu(p).oper[0]^.ref^.index , p, hp1, TmpUsedRegs);
+                            UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
+
                             { Only remove the first LEA if we don't need the intermediate register's value as is }
                             if IntermediateRegDiscarded then
                               begin
@@ -7035,6 +7043,14 @@ unit aoptx86;
                                 else
                                   taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(p).oper[0]^.ref^.scalefactor;
                               end;
+
+                            if (taicpu(p).oper[0]^.ref^.base<>NR_NO) and 
+                               (not RegInUsedRegs(taicpu(p).oper[0]^.ref^.base, TmpUsedRegs)) then
+                              AllocRegBetween(taicpu(p).oper[0]^.ref^.base , p, hp1, TmpUsedRegs);
+                            if (taicpu(p).oper[0]^.ref^.index<>NR_NO) and
+                               (not RegInUsedRegs(taicpu(p).oper[0]^.ref^.index, TmpUsedRegs)) then
+                              AllocRegBetween(taicpu(p).oper[0]^.ref^.index , p, hp1, TmpUsedRegs);
+                            UpdateUsedRegsBetween(TmpUsedRegs, p, hp1);
 
                             { Only remove the first LEA if we don't need the intermediate register's value as is }
                             if IntermediateRegDiscarded then
