@@ -657,10 +657,11 @@ begin
   end;
   CreateCIF(arginfos, argvalues, aCallConv, aResultType, aResultValue, aFlags, ffidata);
 
+  ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
+
   arginfos := Nil;
   argvalues := Nil;
 
-  ffi_call(@ffidata.CIF, ffi_fn(aCodeAddress), ffidata.ResultValue, @ffidata.Values[0]);
 
 {$ifdef USE_EXTENDED_AS_COMP_CURRENCY_RES}
   if Assigned(ffidata.ResultTypeData) then begin
