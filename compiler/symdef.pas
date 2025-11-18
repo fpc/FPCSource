@@ -5469,6 +5469,7 @@ implementation
              symtable:=trecordsymtable.create(objrealname^,0,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).explicitrecordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignmin:=shortint(ppufile.getbyte);
@@ -5627,6 +5628,7 @@ implementation
            begin
              ppufile.putbyte(byte(trecordsymtable(symtable).fieldalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
+             ppufile.putbyte(byte(trecordsymtable(symtable).explicitrecordalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignmin));

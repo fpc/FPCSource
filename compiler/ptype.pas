@@ -1161,7 +1161,10 @@ implementation
              if ((alignment and not $7F) <> 0) or (PopCnt(Byte(alignment))<>1) then
                message(scanner_e_illegal_alignment_directive)
              else
-               recst.recordalignment:=shortint(alignment);
+               begin
+                 recst.recordalignment:=shortint(alignment);
+                 recst.explicitrecordalignment:=shortint(alignment);
+               end;
            end;
          { make the record size aligned (has to be done before inserting the
            parameters, because that may depend on the record's size) }

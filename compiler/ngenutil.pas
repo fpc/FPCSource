@@ -955,7 +955,7 @@ implementation
   class procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
     var
       l : asizeint;
-      varalign,wantedalign : shortint;
+      varalign,wantedalign,explicitalign : shortint;
       storefilepos : tfileposinfo;
       list : TAsmList;
       sectype : TAsmSectiontype;
@@ -965,17 +965,27 @@ implementation
       current_filepos:=sym.fileinfo;
       l:=sym.getsize;
       wantedalign:=sym.vardef.alignment;
+      if sym.vardef.inheritsfrom(tabstractrecorddef) and
+         (sym.vardef.typ in [recorddef]) then
+        explicitalign:=tabstractrecordsymtable(tabstractrecorddef(sym.vardef).symtable).explicitrecordalignment
+      else
+        explicitalign:=0;
       if (wantedalign=0) then
         varalign:=var_align_size(l)
       else
         begin
           varalign:=var_align(wantedalign);
-          if (wantedalign>varalign) then
+          if (explicitalign>varalign) then
+            begin
+              Message1(scanner_w_alignment_larger_than_max,sym.name);
+              varalign:=explicitalign;
+            end
+          else if (wantedalign>varalign) then
             begin
               { varalign:=wantedalign; this can lead to
                 troubles on systems like for instance
                 msdos which do not support 8-byte alignment }
-              Message1(scanner_w_alignment_large_than_max,sym.name);
+              Message1(scanner_n_alignment_larger_than_max,sym.name);
 	    end;
 	end;
       asmtype:=AT_DATA;

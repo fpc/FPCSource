@@ -2131,6 +2131,9 @@ implementation
               if unionsymtable.recordalignment>recst.fieldalignment then
                 recst.fieldalignment:=unionsymtable.recordalignment;
 
+              if unionsymtable.explicitrecordalignment>recst.explicitrecordalignment then
+                recst.explicitrecordalignment:=unionsymtable.explicitrecordalignment;
+
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
               uniondef.owner.deletedef(uniondef);
            end;

@@ -113,6 +113,7 @@ interface
        public
           usefieldalignment,     { alignment to use for fields (PACKRECORDS value), C_alignment is C style }
           recordalignment,       { alignment desired when inserting this record }
+          explicitrecordalignment, { explicit alignment for inserting this record, given by align XX at end of declaration }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
           recordalignmin: shortint; { local equivalentsof global settings, so that records can be created with custom settings internally }
@@ -1193,6 +1194,7 @@ implementation
         _datasize:=0;
         databitsize:=0;
         recordalignment:=1;
+        explicitrecordalignment:=0;
         usefieldalignment:=usealign;
         recordalignmin:=recordminalign;
         padalignment:=1;
@@ -1230,6 +1232,7 @@ implementation
         if ppufile.readentry<>ibrecsymtableoptions then
           Message(unit_f_ppu_read_error);
         recordalignment:=shortint(ppufile.getbyte);
+        explicitrecordalignment:=shortint(ppufile.getbyte);
         usefieldalignment:=shortint(ppufile.getbyte);
         recordalignmin:=shortint(ppufile.getbyte);
         if (usefieldalignment=C_alignment) then
@@ -1248,6 +1251,7 @@ implementation
          { in case of classes using C alignment, the alignment of the parent
            affects the alignment of fields of the childs }
          ppufile.putbyte(byte(recordalignment));
+         ppufile.putbyte(byte(explicitrecordalignment));
          ppufile.putbyte(byte(usefieldalignment));
          ppufile.putbyte(byte(recordalignmin));
          if (usefieldalignment=C_alignment) then

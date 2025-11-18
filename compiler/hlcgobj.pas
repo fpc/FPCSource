@@ -5490,8 +5490,14 @@ implementation
 
 
   procedure thlcgobj.getlocal(list: TAsmList; sym: tsym; size: asizeint; alignment: shortint; def: tdef; out ref: treference);
+    var
+      explicitalign : shortint;
     begin
-      tg.getlocal(list,size,alignment,def,sym,ref);
+      if def.inheritsfrom(tabstractrecorddef) and (def.typ in [recorddef]) then
+        explicitalign:=tabstractrecordsymtable(tabstractrecorddef(def).symtable).explicitrecordalignment
+      else
+        explicitalign:=0;
+      tg.getlocal(list,size,alignment,explicitalign,def,sym,ref);
       recordnewsymloc(list,sym,def,ref,true);
     end;
 
