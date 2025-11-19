@@ -186,6 +186,7 @@
      NMPWAIT_WAIT_FOREVER = -(1);
      NMPWAIT_USE_DEFAULT_WAIT = 0;
   { CascadeWindows, TileWindows  }
+     MDITILE_ZORDER = 4;
      MDITILE_SKIPDISABLED = 2;
      MDITILE_HORIZONTAL = 1;
      MDITILE_VERTICAL = 0;
@@ -225,7 +226,7 @@
      DISP_CHANGE_NOTUPDATED = -(3);
      DISP_CHANGE_BADPARAM = -5;
      DISP_CHANGE_BADDUALVIEW = -6;
- 
+
   { ChangeServiceConfig  }
      SERVICE_NO_CHANGE = -(1);
      SERVICE_WIN32_OWN_PROCESS = 16;
@@ -719,7 +720,7 @@
      PROFILE_USER                      = $10000000;
      PROFILE_KERNEL                    = $20000000;
      PROFILE_SERVER                    = $40000000;
-     CREATE_IGNORE_SYSTEM_DEFAULT      = $80000000;  
+     CREATE_IGNORE_SYSTEM_DEFAULT      = $80000000;
   { CreateService  }
      SERVICE_ALL_ACCESS = $f01ff;
      SERVICE_CHANGE_CONFIG = 2;
@@ -1184,7 +1185,7 @@
      PROCESS_SUSPEND_RESUME            = $0800;
      PROCESS_QUERY_LIMITED_INFORMATION = $1000;
      PROCESS_SET_LIMITED_INFORMATION   = $2000;
-    
+
      THREAD_ALL_ACCESS = $1FFFFF; // vista+, for old systems 0x3FF
      THREAD_DIRECT_IMPERSONATION = 512;
      THREAD_GET_CONTEXT = 8;
@@ -1271,7 +1272,7 @@
    LAYOUT_ORIENTATIONMASK             = (LAYOUT_RTL or LAYOUT_BTT or LAYOUT_VBH);
    LAYOUT_BITMAPORIENTATIONPRESERVED  = 8;
 
-  // DEVMODE dmDisplayFixedOutput 
+  // DEVMODE dmDisplayFixedOutput
      DMDFO_DEFAULT = 0;
      DMDFO_STRETCH = 1;
      DMDFO_CENTER  = 2;
@@ -1948,9 +1949,9 @@
      SM_ARRANGE = 56;
      SM_CLEANBOOT = 67;
   { The right value for SM_CEMETRICS for NT 3.5 is 75.  For Windows 95
-     and NT 4.0, it is 76.  The meaning is undocumented, anyhow.  
+     and NT 4.0, it is 76.  The meaning is undocumented, anyhow.
     win2000=83,XP=90, vista/w7=93, but I suspect that is not properly
-    updated for win7 (which should be 96) in platform SDK 7. 
+    updated for win7 (which should be 96) in platform SDK 7.
     It seems to be the highest SM_ constant occupied.
  }
      SM_CMETRICS = 76;
@@ -2041,8 +2042,8 @@
      SM_MOUSEHORIZONTALWHEELPRESENT = 91; // Vista+
      SM_CXPADDEDBORDER       = 92; // Vista+
 
-     SM_DIGITIZER            = 94; // win7+ 
-     SM_MAXIMUMTOUCHES       = 95; // win7+   
+     SM_DIGITIZER            = 94; // win7+
+     SM_MAXIMUMTOUCHES       = 95; // win7+
 
 
      SM_REMOTESESSION        = $1000; // WinXP+
@@ -2539,7 +2540,7 @@
 Type
     SE_OBJECT_TYPE = (   // enum in Delphi apparantly.
         SE_UNKNOWN_OBJECT_TYPE	= 0,
-	SE_FILE_OBJECT,	
+	SE_FILE_OBJECT,
 	SE_SERVICE,
 	SE_PRINTER,
 	SE_REGISTRY_KEY,
@@ -4287,7 +4288,7 @@ Type
      LVIS_OVERLAYMASK = 3840;
      LVIS_STATEIMAGEMASK = 61440;
 
-     LPSTR_TEXTCALLBACKW = LPWSTR(-1);	
+     LPSTR_TEXTCALLBACKW = LPWSTR(-1);
      LPSTR_TEXTCALLBACKA = LPSTR(-1);
 
 {$ifdef UNICODE}
@@ -4853,7 +4854,7 @@ Type
 
      OFN_READONLY                  = $1;
      OFN_OVERWRITEPROMPT           = $2;
-     OFN_HIDEREADONLY              = $4;	
+     OFN_HIDEREADONLY              = $4;
      OFN_NOCHANGEDIR               = $8;
      OFN_SHOWHELP                  = $10;
      OFN_ENABLEHOOK               = $20;
@@ -4882,7 +4883,7 @@ Type
      OFN_SHAREFALLTHROUGH  = $2;
      OFN_SHARENOWARN  = $1;
      OFN_SHAREWARN = 0;
-	
+
      OFN_EX_NOPLACESBAR          = $00000001;
   { Open/Save notifications  }
      CDN_INITDONE  = $fffffda7;
@@ -6346,13 +6347,13 @@ const
      IMAGE_SCN_SCALE_INDEX                 = $00000001;  // Tls index is scaled
 
 
-    GWLP_WNDPROC        		 = -4; 
-    GWLP_HINSTANCE      		 = -6; 
-    GWLP_HWNDPARENT     		 = -8; 
+    GWLP_WNDPROC        		 = -4;
+    GWLP_HINSTANCE      		 = -6;
+    GWLP_HWNDPARENT     		 = -8;
     GWLP_USERDATA       		 = -21;
     GWLP_ID             		 = -12;
 
-    GCLP_MENUNAME                        = -8;    
+    GCLP_MENUNAME                        = -8;
     GCLP_HBRBACKGROUND                   = -10;
     GCLP_HCURSOR                         = -12;
     GCLP_HICON                           = -14;
@@ -6379,7 +6380,7 @@ const
     IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG64;
 {$else}
     IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG32;
-{$endif}                                                          
+{$endif}
 
 // #if(WINVER >= 0x0500)
 {/*
@@ -6405,14 +6406,14 @@ const
 //#endif /* WINVER >= 0x0500 */
 
 
-// Menubar information 
+// Menubar information
 const
 // Constants for the tagMENUBARINFO.FocusedBits bit mask
       MBIFB_BAR_FOCUSED  = $00000001;
       MBIFB_FOCUSED      = $00000002;
 
 
-const 
+const
 //
 // Define possible return codes from the CopyFileEx callback routine
 //
@@ -6599,11 +6600,11 @@ const
     NLS_IME_CONVERSION  = $00800000;    { DBCS for JPN: IME conversion. }
     NLS_IME_DISABLE  = $20000000;    { DBCS for JPN: IME enable/disable. }
 
-  
-    MOUSE_WHEELED  = $0004;    
-    MOUSE_HWHEELED  = $0008;    
 
-  
+    MOUSE_WHEELED  = $0004;
+    MOUSE_HWHEELED  = $0008;
+
+
     COMMON_LVB_LEADING_BYTE  = $0100;    { Leading Byte of DBCS }
     COMMON_LVB_TRAILING_BYTE  = $0200;    { Trailing Byte of DBCS }
     COMMON_LVB_GRID_HORIZONTAL  = $0400;    { DBCS: Grid attribute: top horizontal. }
@@ -6612,32 +6613,32 @@ const
     COMMON_LVB_REVERSE_VIDEO  = $4000;    { DBCS: Reverse fore/back ground attribute. }
     COMMON_LVB_UNDERSCORE  = $8000;    { DBCS: Underscore. }
     COMMON_LVB_SBCSDBCS  = $0300;    { SBCS or DBCS flag. }
-  
-    HISTORY_NO_DUP_FLAG  = $1;    
 
-  
-    CONSOLE_NO_SELECTION  = $0000;    
+    HISTORY_NO_DUP_FLAG  = $1;
+
+
+    CONSOLE_NO_SELECTION  = $0000;
     CONSOLE_SELECTION_IN_PROGRESS  = $0001;    { selection has begun }
     CONSOLE_SELECTION_NOT_EMPTY  = $0002;    { non-null select rectangle }
     CONSOLE_MOUSE_SELECTION  = $0004;    { selecting with mouse }
     CONSOLE_MOUSE_DOWN  = $0008;    { mouse is down }
-  
-    ENABLE_INSERT_MODE  = $0020;    
-    ENABLE_QUICK_EDIT_MODE  = $0040;    
-    ENABLE_EXTENDED_FLAGS  = $0080;    
-    ENABLE_AUTO_POSITION  = $0100;    
-    ENABLE_VIRTUAL_TERMINAL_INPUT  = $0200;    
-  
-    ENABLE_VIRTUAL_TERMINAL_PROCESSING  = $0004;    
-    DISABLE_NEWLINE_AUTO_RETURN  = $0008;    
-    ENABLE_LVB_GRID_WORLDWIDE  = $0010;    
-    
+
+    ENABLE_INSERT_MODE  = $0020;
+    ENABLE_QUICK_EDIT_MODE  = $0040;
+    ENABLE_EXTENDED_FLAGS  = $0080;
+    ENABLE_AUTO_POSITION  = $0100;
+    ENABLE_VIRTUAL_TERMINAL_INPUT  = $0200;
+
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING  = $0004;
+    DISABLE_NEWLINE_AUTO_RETURN  = $0008;
+    ENABLE_LVB_GRID_WORLDWIDE  = $0010;
+
     CONSOLE_FULLSCREEN = 1;    { fullscreen console }
     CONSOLE_FULLSCREEN_HARDWARE = 2;    { console owns the hardware }
 
 
-    CONSOLE_FULLSCREEN_MODE = 1;    
-    CONSOLE_WINDOWED_MODE   = 2;    
+    CONSOLE_FULLSCREEN_MODE = 1;
+    CONSOLE_WINDOWED_MODE   = 2;
     PROCESS_NAME_NATIVE     = 1;
 
     GR_GDIOBJECTS       = 0;       { Count of GDI objects }
