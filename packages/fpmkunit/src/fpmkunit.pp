@@ -1418,6 +1418,7 @@ Type
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd : String; const Args : TStrings; Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
+    Function GetExecuteCommandOutput(const Cmd : String; const Args : TStrings; Env: TStrings = nil; IgnoreError : Boolean = False) : string; virtual;
     procedure CmdCopyFiles(List: TStrings; const DestDir: String; APackage: TPackage);
     Procedure CmdCreateDir(const DestDir : String);
     Procedure CmdMoveFiles(List : TStrings; Const DestDir : String);
@@ -6843,13 +6844,14 @@ begin
 end;
 
 
-procedure TBuildEngine.ExecuteCommand(const Cmd : String; const Args : TStrings;  Env: TStrings = nil; IgnoreError : Boolean = False);
+function TBuildEngine.GetExecuteCommandOutput(const Cmd : String; const Args : TStrings; Env: TStrings = nil; IgnoreError : Boolean = False) : string;
 Var
   E : Integer;
   cmdLine: string;
   ConsoleOutput: TMemoryStream;
   s: string;
 begin
+  Result:='';
   cmdLine:='';
   if Args.Count<>0 then
     for s in Args do
@@ -6876,11 +6878,18 @@ begin
             Error(SErrExternalCommandFailed,[cmdLine,E,s]);
           end;
       finally
+        ConsoleOutput.Seek(0, soBeginning);
+        SetLength(Result,ConsoleOutput.Size);
+        ConsoleOutput.Read(Result[1],ConsoleOutput.Size);
         ConsoleOutput.Free;
       end;
     end;
 end;
 
+procedure TBuildEngine.ExecuteCommand(const Cmd : String; const Args : TStrings;  Env: TStrings = nil; IgnoreError : Boolean = False);
+begin
+  GetExecuteCommandOutput(Cmd,Args,Env,IgnoreError);
+end;
 
 function TBuildEngine.SysDirectoryExists(const ADir: string): Boolean;
 begin
