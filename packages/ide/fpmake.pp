@@ -15,7 +15,30 @@ const
   LLVM_Disabled: boolean = false;
   GDBMI_DEFAULT_OSes = [aix, darwin, freebsd, haiku, linux, netbsd, openbsd, solaris, win32, win64];
 
+const
+  CompilerGitDate : ansistring = '';
+
 procedure ide_check_gdb_availability(Sender: TObject);
+
+  procedure GetCompilerGitDate;
+    var
+     Cmd : string;
+      Opts : TStringList;
+    begin
+      Cmd:=ExeSearch(AddProgramExtension('git',Defaults.OS),{$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('PATH'));
+      Opts:=TStringList.Create;
+      try
+        Opts.Add('log');
+        Opts.Add('-1');
+        Opts.Add('--pretty=%cd');
+        Opts.Add('--date=format:%Y/%m/%d');
+        CompilerGitDate:=Installer.BuildEngine.GetExecuteCommandOutput(Cmd,Opts);
+        while (length(CompilerGitDate)>0) and (CompilerGitDate[length(CompilerGitDate)] in [#10,#13]) do
+          SetLength(CompilerGitDate,length(CompilerGitDate)-1);
+      finally
+        Opts.Free;
+      end;
+    end;
 
   function DetectLibGDBDir: string;
 
@@ -185,6 +208,9 @@ begin
       P.Options.Add('-dNODEBUG');
       end;
     end;
+  GetCompilerGitDate;
+  if (CompilerGitDate<>'') then
+    P.Options.Add('-DD'+CompilerGitDate);
 end;
 
 
