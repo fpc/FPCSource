@@ -168,7 +168,7 @@ general_t_objectpath_local=01033_T_$1: Using local object path: $2
 #
 # Scanner
 #
-# 02119 is the last used one
+# 02122 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -408,10 +408,10 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 % The alignment directive is not valid. Either the alignment type is not known or the alignment
 % value is not a power of two.
 scanner_w_alignment_larger_than_max=02114_W_Variable "$1" has align directive larger than system maximum alignment for variables
-scanner_n_alignment_larger_than_max=02118_N_Variable "$1" has align directive larger than system maximum alignment for variables
+scanner_n_alignment_larger_than_max=02121_N_Variable "$1" has align directive larger than system maximum alignment for variables
 % The type of the variable has an 'align' directive which is larger than  current maximum
 scanner_w_local_alignment_larger_than_max=02115_W_Local variable "$1" has align directive larger than system maximum alignment for local variables
-scanner_n_local_alignment_larger_than_max=02119_N_Local variable "$1" has align directive larger than system maximum alignment for local variables
+scanner_n_local_alignment_larger_than_max=02122_N_Local variable "$1" has align directive larger than system maximum alignment for local variables
 % The type of the variable has an 'align' directive which is larger than current  maximum.
 scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
 % All source code that is part of a single compilation entity (program, library, unit) must be encoded
