@@ -35,6 +35,8 @@ procedure ide_check_gdb_availability(Sender: TObject);
         CompilerGitDate:=Installer.BuildEngine.GetExecuteCommandOutput(Cmd,Opts);
         while (length(CompilerGitDate)>0) and (CompilerGitDate[length(CompilerGitDate)] in [#10,#13]) do
           SetLength(CompilerGitDate,length(CompilerGitDate)-1);
+      except
+	CompilerGitDate:={$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.GetEnvironmentVariable('COMPDATESTR');
       finally
         Opts.Free;
       end;
