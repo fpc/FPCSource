@@ -1475,18 +1475,26 @@ function tanh(x : Extended) : Extended;
   var
     tmp:Extended;
   begin
-    if x < 0 then begin
-      tmp:=exp(2*x);
-      if tmp=1 then
-        exit(x);
-      result:=(tmp-1)/(1+tmp)
-    end
-    else begin
-      tmp:=exp(-2*x);
-      if tmp=1 then
-        exit(x);
-      result:=(1-tmp)/(1+tmp)
-    end;
+    if abs(x)>25 then
+      begin
+        result:=sign(x);
+        exit;
+      end;
+
+    if x < 0 then
+      begin
+        tmp:=exp(2*x);
+        if tmp=1 then
+          exit(x);
+        result:=(tmp-1)/(1+tmp)
+      end
+    else
+      begin
+        tmp:=exp(-2*x);
+        if tmp=1 then
+          exit(x);
+        result:=(1-tmp)/(1+tmp)
+      end;
   end;
 {$ENDIF}
 
