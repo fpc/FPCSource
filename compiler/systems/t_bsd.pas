@@ -751,6 +751,19 @@ initialization
   RegisterExport(system_powerpc_netbsd,texportlibbsd);
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
+{$ifdef powerpc64}
+ {$ifdef freebsd}
+ 	{$ifdef powerpc64le}
+   		system_powerpc64_freebsd_info.endian:=endian_little;
+	 {$else}
+   		system_powerpc64_freebsd_info.endian:=endian_big;
+  	{$endif powerpc64le}
+  system_powerpc64_freebsd_info.abi:=abi_powerpc_elfv2;
+ {$endif freebsd}
+  RegisterImport(system_powerpc64_freebsd,timportlibbsd);
+  RegisterExport(system_powerpc64_freebsd,texportlibbsd);
+  RegisterTarget(system_powerpc64_freebsd_info);
+{$endif powerpc64}
 {$ifdef arm}
   RegisterImport(system_arm_netbsd,timportlibbsd);
   RegisterExport(system_arm_netbsd,texportlibbsd);

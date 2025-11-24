@@ -130,6 +130,12 @@ type sigset_t = array[0..3] of Longint;
         end;
 {$endif cpuaarch64}
 
+{$ifdef CPUPOWERPC64}
+    SigContextRec = record
+            _dummy : cint;
+       end;
+{$endif}
+
   Sigval = Record
             Case Boolean OF
         { Members as suggested by Annex C of POSIX 1003.1b. }

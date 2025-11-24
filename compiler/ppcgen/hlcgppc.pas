@@ -130,7 +130,7 @@ implementation
         { use R12 for dispatch because most ABIs don't care and ELFv2
           requires it }
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
-        if (target_info.system in systems_aix) or
+        if (target_info.system in systems_aix) or (target_info.system = system_powerpc64_freebsd) or
            ((target_info.system = system_powerpc64_linux) and
             (target_info.abi=abi_powerpc_sysv)) then
           begin
@@ -139,7 +139,7 @@ implementation
           end;
         list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
         list.concat(taicpu.op_none(A_BCTR));
-        if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+        if (target_info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
           list.concat(taicpu.op_none(A_NOP));
       end;
 
@@ -190,7 +190,7 @@ implementation
                 list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname,AT_FUNCTION)))
               else
                 list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)));
-              if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+              if (target_info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then
                 list.concat(taicpu.op_none(A_NOP));
             end;
         end;
@@ -202,7 +202,7 @@ implementation
     var
       href : treference;
     begin
-      if not(target_info.system in ([system_powerpc64_linux]+systems_aix)) then begin
+      if not(target_info.system in ([system_powerpc64_freebsd]+[system_powerpc64_linux]+systems_aix)) then begin
         inherited;
         exit;
       end;

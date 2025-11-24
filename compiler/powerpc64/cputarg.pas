@@ -38,6 +38,9 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETBSD}
+      ,t_bsd
+    {$endif}
     {$ifndef NOTARGETDARWIN}
       ,t_darwin
     {$endif}

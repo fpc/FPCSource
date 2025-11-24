@@ -5883,11 +5883,13 @@ begin
     begin
       if (target_info.abi=abi_powerpc_sysv) and
          (target_info.endian=endian_little) then
-        target_info.abi:=abi_powerpc_elfv2
-      else
-        if (target_info.abi=abi_powerpc_elfv2) and
+        target_info.abi:=abi_powerpc_elfv2;
+     if (target_info.abi=abi_powerpc_elfv2) and
          (target_info.endian=endian_big) then
-        target_info.abi:=abi_powerpc_sysv
+        target_info.abi:=abi_powerpc_sysv;
+	if (target_info.system=system_powerpc64_freebsd) and
+         (target_info.endian=endian_big) then
+        target_info.abi:=abi_powerpc_elfv2;
     end;
 {$endif}
 

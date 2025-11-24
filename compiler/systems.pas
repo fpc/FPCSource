@@ -266,6 +266,7 @@ interface
                        system_riscv32_linux,system_riscv64_linux,system_xtensa_linux,system_loongarch64_linux];
        systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_aarch64_freebsd,
+                          system_powerpc64_freebsd,
                           system_i386_freebsd,
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
@@ -1067,6 +1068,10 @@ begin
     {$endif}
     {$ifdef aix}
      default_target(system_powerpc64_aix);
+     {$define default_target_set}
+    {$endif}
+    {$ifdef freebsd}
+     default_target(system_powerpc64_freebsd);
      {$define default_target_set}
     {$endif}
   {$endif cpupowerpc64}

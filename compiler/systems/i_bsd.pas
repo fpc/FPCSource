@@ -182,6 +182,74 @@ unit i_bsd;
             llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
           );
 
+       system_powerpc64_freebsd_info : tsysteminfo =
+          (
+            system       : system_powerpc64_freebsd;
+            name         : 'FreeBSD for PowerPC64';
+            shortname    : 'FreeBSD';
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
+                            tf_files_case_sensitive,
+                            tf_dwarf_only_local_labels,
+                            {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
+            cpu          : cpu_powerpc64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;HASUNIX;BSD';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : ld_none;
+            linkextern   : ld_bsd;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                jumpalignskipmax    : 0;
+                coalescealign   : 0;
+                coalescealignskipmax: 0;
+                constalignmin   : 4;
+                constalignmax   : 16;
+                varalignmin     : 4;
+                varalignmax     : 16;
+                localalignmin   : 0;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 8;
+            stacksize    : 10*1024*1024;
+            stackalign   : 16;
+            abi : abi_powerpc_elfv2;
+            llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
+          );
 
        system_x86_64_freebsd_info : tsysteminfo =
           (
@@ -845,6 +913,11 @@ initialization
      set_source_info(system_powerpc_netbsd_info);
   {$endif}
 {$endif cpupowerpc32}
+{$ifdef cpupowerpc64}
+  {$ifdef FreeBSD}
+    set_source_info(system_powerpc64_freebsd_info);
+  {$endif FreeBSD}
+{$endif powerpc64}
 {$ifdef cpuarm}
   {$ifdef NetBSD}
      set_source_info(system_arm_netbsd_info);
