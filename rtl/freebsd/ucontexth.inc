@@ -83,6 +83,36 @@ type
   end;
 {$endif cpuaarch64}
 
+{$ifdef powerpc64}
+  gpregs = record
+    { General-purpose registers r0..r31 }
+    gp_r: array[0..31] of NativeUInt;  { 64-bit each }
+
+    { Special registers saved in mcontext }
+    gp_nip: NativeUInt;  { Next instruction pointer (PC) }
+    gp_msr: NativeUInt;  { Machine state register }
+    gp_ctr: NativeUInt;  { Count register }
+    gp_lr:  NativeUInt;  { Link register }
+    gp_xer: NativeUInt;  { Integer exception register }
+    gp_cr:  NativeUInt;  { Condition register }
+  end;
+
+  fpregs = record
+    { 32 double-precision FP regs f0..f31 }
+    fp_f: array[0..31] of Double;  { each 64-bit IEEE754 }
+    fp_fpscr: QWord;               { Floating-point status/control reg }
+    fp_pad:  array[0..1] of QWord; { padding/reserved }
+  end;
+
+  mcontext_t = record
+    mc_gpregs: gpregs;
+    mc_fpregs: fpregs;
+    mc_flags: Int32;
+    mc_pad:   Int32;
+    mc_spare: array[0..7] of NativeInt;
+  end;
+{$endif}
+
   pucontext_t = ^ucontext_t;
   ucontext_t = record  // required for kse threads
     {*

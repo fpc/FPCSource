@@ -252,7 +252,7 @@ Const
     { go32v2 }  ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
     { win32 }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
     { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
-    { freebsd } ( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false,   false, false, true , false, false,  false,  false,   false, false, false),
+    { freebsd } ( false, true,  false, false, false, true,  false, true,  false, false, false, false, false, false,   false, false, true , false, false,  false,  false,   false, false, false),
     { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
     { netbsd }  ( false, true,  true,  true,  true,  true,  true,  false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),
     { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false,   false, false, false, false, false,  false,  false,   false, false, false),

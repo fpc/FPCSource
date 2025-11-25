@@ -217,7 +217,8 @@
              system_m68k_human68k,      { 122 }
              system_mipsel_ps1,         { 123 }
              system_wasm32_wasip1threads,{ 124 }
-             system_wasm32_wasip2       { 125 }
+             system_wasm32_wasip2,      { 125 }
+             system_powerpc64_freebsd   { 126 }
        );
 
      type
