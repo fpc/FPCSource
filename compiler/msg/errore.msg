@@ -4586,7 +4586,8 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xf_Substitute pthread library name for linking (BSD)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2Xi_Use internal linker
-L*2XlS<x>_LLVM utilties suffix (e.g. -7 in case clang is called clang-7)
+L*2XlS<x>_LLVM utilities suffix (e.g. -7 in case clang is called clang-7)
+W*2XlS<x>_LLVM utilities suffix (e.g. -17 in case llvm-mc is called llvm-mc-17)
 **2XLA_Define library substitutions for linking
 **2XLD_Exclude default order of standard libraries
 **2XLO_Define order of library linking

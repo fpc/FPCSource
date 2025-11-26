@@ -596,7 +596,7 @@ implementation
          asmbin : 'llvm-mc';
          asmcmd : '--assemble --arch=wasm32 -mattr=+sign-ext,+exception-handling,+bulk-memory,+atomics,+reference-types --filetype=obj --no-type-check -o $OBJ $EXTRAOPT $ASM';
          supported_targets : [system_wasm32_embedded,system_wasm32_wasip1,system_wasm32_wasip1threads,system_wasm32_wasip2];
-         flags : [af_smartlink_sections];
+         flags : [af_smartlink_sections, af_llvm];
          labelprefix : '.L';
          labelmaxlen : -1;
          comment : '# ';
