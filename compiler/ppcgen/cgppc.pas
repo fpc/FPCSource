@@ -1034,7 +1034,7 @@ unit cgppc;
           end;
 
         { if we have to create PIC, add the symbol to the TOC/GOT }
-        if (((target_info.system=system_powerpc64_freebsd) or (target_info.system = system_powerpc64_linux) and
+        if ((((target_info.system=system_powerpc64_freebsd) or (target_info.system = system_powerpc64_linux)) and
              (cs_create_pic in current_settings.moduleswitches)) or
             (target_info.system in systems_aix+[system_powerpc_macosclassic])) and
            (assigned(ref.symbol) and
