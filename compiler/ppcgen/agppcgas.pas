@@ -165,8 +165,8 @@ unit agppcgas;
                  s := s+refaddr2str[refaddr];
              end;
 {$ifdef cpu64bitaddr}
-           if (refaddr=addr_pic) and (target_info.system=system_powerpc64_linux) or 
-             (target_info.system=system_powerpc64_freebsd) then
+           if (refaddr=addr_pic) and ((target_info.system=system_powerpc64_linux) or 
+             (target_info.system=system_powerpc64_freebsd)) then
              s := s + '@got';
 {$endif cpu64bitaddr}
 
