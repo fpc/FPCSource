@@ -469,9 +469,14 @@ unit rgobj;
          for i:=low(Ausable) to high(Ausable) do
            begin
              usable_registers[i]:=Ausable[i];
-             include(usable_register_set,Ausable[i]);
+	     if (Ausable[i] in usable_register_set) then
+               internalerror(2025112601)
+             else
+               begin
+                 include(usable_register_set,Ausable[i]);
+                 inc(usable_registers_cnt);
+               end;
            end;
-         usable_registers_cnt:=high(Ausable)+1;
          { Initialize Worklists }
          spillednodes.init;
          simplifyworklist.init;

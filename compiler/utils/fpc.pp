@@ -57,14 +57,14 @@ Const
 {$endif not darwin}
 
 
-  procedure error(const s : string);
+  procedure error(const s : string);noreturn;
 
   begin
      writeln('Error: ',s);
      halt(1);
   end;
 
-  function processortosuffix(processorstr : string ) : String;
+  function processortosuffix(const processorstr : string ) : String;
 
   begin
     case processorstr of
@@ -73,11 +73,14 @@ Const
       'avr': Result := 'avr';
       'i386': Result := '386';
       'i8086': Result := '8086';
-      'jvm': Result := 'jvm';  
+      'jvm': Result := 'jvm';
       'loongarch64': Result:='loongarch64';
       'm68k': Result := '68k';
       'mips': Result := 'mips';
       'mipsel': Result := 'mipsel';
+      'mipseb': Result := 'mipseb';
+      'mips64': Result := 'mips64';
+      'mips64el': Result := 'mips64el';
       'powerpc': Result := 'ppc';
       'powerpc64': Result := 'ppc64';
       'riscv32': Result := 'rv32';
@@ -136,9 +139,23 @@ Const
          ppcbin:='ppcmipsel';
          processorname:='mipsel';
     {$else : not mipsel}
-      {$ifdef mips}
-         ppcbin:='ppcmips';
-         processorname:='mips';
+      {$ifdef mipseb}
+          ppcbin:='ppcmipseb';
+          processorname:='mipseb';
+      {$else : not mipseb}
+        {$ifdef mips}
+          ppcbin:='ppcmips';
+          processorname:='mips';
+        {$endif mips}
+      {$endif not mipseb}
+    {$endif not mipsel}
+    {$ifdef mips64el}
+         ppcbin:='ppcmips64el';
+         processorname:='mips64el';
+    {$else : not mips64el}
+      {$ifdef mips64}
+         ppcbin:='ppcmips64';
+         processorname:='mips64';
       {$endif mips}
     {$endif not mipsel}
     {$ifdef riscv32}
@@ -315,7 +332,7 @@ begin
     end;
   if configpath='' then
     begin
-    {  
+    {
       We need to search relative to compiler binary, not relative to FPC binary.
       Beware of symlinks !
     }
@@ -325,7 +342,7 @@ begin
       if copy(sl,1,1)<>'/' then
         hs:=ExpandFileName(ExtractFilePath(hs)+sl)
       else
-        hs:=sl;  
+        hs:=sl;
       end;
     ExePath:=ExtractFilePath(hs);
     configpath:=ExpandFileName(ExePath+'../etc/');
@@ -376,14 +393,14 @@ end;
 
 Procedure ProcessConfigFile(aFileName : String; var ExeSuffix : String);
 
-  Function Stripline(aLine : String) : string;
+  Function Stripline(const aLine : String) : string;
 
   Var
     P : integer;
 
   begin
-    if (aLine<>'') and (aLine[1]=';') then exit;
-    Pos('#',aLine); // no ifdef or include.
+    if (aLine<>'') and (aLine[1]=';') then exit('');
+    P:=Pos('#',aLine); // no ifdef or include.
     if P=0 then
       P:=Length(aLine)+1;
     Result:=Copy(aLine,1,P-1);

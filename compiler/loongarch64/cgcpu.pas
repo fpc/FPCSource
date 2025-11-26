@@ -135,10 +135,16 @@ implementation
         inherited init_register_allocators;
         { From GCC REG_ALLOC_ORDER }
         rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-          [RS_R12,RS_R13,RS_R14,RS_R16,RS_R16,RS_R17,RS_R18,RS_R19,RS_R20,
+           { scratch registers r12(t0) to r31(t7) }
+          [RS_R12,RS_R13,RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,RS_R20,
+           { parameter registers r4(a0) to r11(a7) }
            RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10,RS_R11,
+	   { register r1(ra) }
            RS_R1,
-           RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29,RS_R30,RS_R31],first_int_imreg,[]);
+           { callee saved registers r23(s0) to r31(s8) }
+           RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29,RS_R30,RS_R31],
+	   first_int_imreg,[]);
+	   { registers r0(zero), r2(tp), r3(sp), r21(x) and r22(sp) are excluded }
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
           [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,
            RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,RS_F16,
