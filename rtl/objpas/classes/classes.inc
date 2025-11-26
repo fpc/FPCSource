@@ -362,6 +362,7 @@ begin
 {$endif}
   begin
     try
+      Writeln('Immediate execute');
       ExecuteThreadQueueEntry(aEntry);
     finally
       if not Assigned(aEntry^.SyncEvent) then
@@ -559,8 +560,12 @@ procedure TThread.Synchronize(AProcedure: TThreadProcedure);
 {$endif}
 
 Function PopThreadQueueHead : TThread.PThreadQueueEntry;
+var
+  lPrev : TThread.PThreadQueueEntry;
+  lNow : TDateTime;
 
 begin
+  lPrev:=Nil;
   Result:=ThreadQueueHead;
   if (Result<>Nil) then
     begin
@@ -569,10 +574,22 @@ begin
     try
 {$endif}
       Result:=ThreadQueueHead;
+      lNow:=Now;
+      While Assigned(Result) and (Result^.ExecuteAfter<>0) and (Result^.ExecuteAfter>lNow) do
+        begin
+        lPrev:=Result;
+        Result:=Result^.Next;
+        end;
       if Result<>Nil then
-        ThreadQueueHead:=ThreadQueueHead^.Next;
-      if Not Assigned(ThreadQueueHead) then
-        ThreadQueueTail := Nil;
+        begin
+        if Assigned(lPrev) then
+          lPrev^.Next:=Result^.Next
+        else
+          ThreadQueueHead:=Result^.Next;
+        // if Result^.Next is Nil, it means we popped the last
+        if Not Assigned(Result^.Next) then
+           ThreadQueueTail := lPrev;
+        end;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
       System.LeaveCriticalSection(ThreadQueueLock);
@@ -666,17 +683,17 @@ end;
 
 class procedure TThread.Queue(aThread: TThread; aMethod: TThreadMethod); static;
 begin
-  InternalQueue(aThread, aMethod, False);
+  InternalQueue(aThread, aMethod, False, 0);
 end;
 
 {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
 class procedure TThread.Queue(aThread: TThread; AProcedure: TThreadProcedure);
 begin
-  InternalQueue(aThread, aProcedure, False);
+  InternalQueue(aThread, aProcedure, False, 0);
 end;
 {$endif}
 
-class procedure TThread.InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean); static;
+class procedure TThread.InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean; aExecuteAfter: TDateTime); static;
 var
   queueentry: PThreadQueueEntry;
 begin
@@ -684,13 +701,14 @@ begin
   FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
   queueentry^.Thread := aThread;
   queueentry^.Method := aMethod;
+  queueentry^.ExecuteAfter:=aExecuteAfter;
 
   { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
   ThreadQueueAppend(queueentry, aQueueIfMain);
 end;
 
 {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
-class procedure TThread.InternalQueue(aThread: TThread; aProcedure: TThreadProcedure; aQueueIfMain: Boolean); static;
+class procedure TThread.InternalQueue(aThread: TThread; aProcedure: TThreadProcedure; aQueueIfMain: Boolean; aExecuteAfter: TDateTime); static;
 var
   queueentry: PThreadQueueEntry;
 begin
@@ -698,6 +716,7 @@ begin
   FillChar(queueentry^, SizeOf(TThreadQueueEntry), 0);
   queueentry^.Thread := aThread;
   queueentry^.ThreadProc := aProcedure;
+  queueentry^.ExecuteAfter:=aExecuteAfter;
 
   { the queueentry is freed by CheckSynchronize (or by RemoveQueuedEvents) }
   ThreadQueueAppend(queueentry, aQueueIfMain);
@@ -710,15 +729,28 @@ begin
 end;
 
 
-class procedure TThread.ForceQueue(aThread: TThread; aMethod: TThreadMethod); static;
+class procedure TThread.ForceQueue(aThread: TThread; aMethod: TThreadMethod; aDelay : Integer = 0); static;
+var
+  lEnd : TDateTime;
 begin
-  InternalQueue(aThread, aMethod, True);
+  if aDelay<>0 then
+    lEnd:=Now+aDelay*(1/MSecsPerDay)
+  else
+    lEnd:=0;
+  InternalQueue(aThread, aMethod, True, lEnd);
 end;
 
 {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
-class procedure TThread.ForceQueue(aThread: TThread; aMethod: TThreadProcedure); static;
+class procedure TThread.ForceQueue(aThread: TThread; aMethod: TThreadProcedure; aDelay : Integer = 0); static;
+
+var
+  lEnd : TDateTime;
 begin
-  InternalQueue(aThread, aMethod, True);
+  if aDelay<>0 then
+    lEnd:=Now+aDelay*(1/MSecsPerDay)
+  else
+    lEnd:=0;
+  InternalQueue(aThread, aMethod, True, lEnd);
 end;
 {$endif}
 
