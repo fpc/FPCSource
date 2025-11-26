@@ -362,7 +362,6 @@ begin
 {$endif}
   begin
     try
-      Writeln('Immediate execute');
       ExecuteThreadQueueEntry(aEntry);
     finally
       if not Assigned(aEntry^.SyncEvent) then
