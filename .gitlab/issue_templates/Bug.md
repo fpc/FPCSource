@@ -1,3 +1,5 @@
+<!-- See available text formatting: https://gitlab.com/help/user/markdown.md -->
+
 ## Summary
 <!-- Summarize the bug encountered concisely -->
 
@@ -22,10 +24,7 @@ behavior, and link to it here in the bug report. -->
 <!-- What you should see instead -->
 
 ## Relevant logs and/or screenshots
-<!-- Paste any relevant logs - please use code blocks (```) to format console output, logs, and code, as
-it's very hard to read otherwise.
-You can also use syntax highlighting for Pascal with: ```pascal  the code```
-For more information see https://docs.gitlab.com/ee/user/markdown.html -->
+<!-- Paste any relevant logs - please use code blocks (```) to format console output, logs, and code -->
 
 ## Possible fixes
 <!-- If you can, link to the line of code that might be responsible for the problem -->

@@ -1,3 +1,5 @@
+<!-- See available text formatting: https://gitlab.com/help/user/markdown.md -->
+
 ## Summary
 <!-- Summarize the wanted feature concisely -->
 
