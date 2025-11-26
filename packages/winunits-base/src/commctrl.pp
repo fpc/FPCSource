@@ -626,6 +626,7 @@ CONST
 
 function ImageList_Create(cx:cint;cy:cint;flags:UINT;cInitial:cint;cGrow:cint):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Create';
 function ImageList_Destroy(himl:HIMAGELIST):BOOL; stdcall; external commctrldll name 'ImageList_Destroy';
+function ImageList_CoCreateInstance(constref rclsid:TCLSID; unkOuter:IUnknown; const riid:TIID;out ppv):HRESULT;stdcall; external commctrldll name 'ImageList_CoCreateInstance';
 
 function ImageList_GetImageCount(himl:HIMAGELIST):cint; stdcall; external commctrldll name 'ImageList_GetImageCount';
 {$ifdef ie3plus}
@@ -641,6 +642,9 @@ function ImageList_SetOverlayImage(himl:HIMAGELIST;iImage:cint;iOverlay:cint):BO
 
 // Macro 11
 Function ImageList_AddIcon(Himl:HIMAGELIST;hicon:HICON):cint;
+
+// Vista++
+function HIMAGELIST_QueryInterface(himl  : HIMAGELIST;constref riid : REFIID; out ppv) : HRESULT; stdcall; external commctrldll name 'HIMAGELIST_QueryInterface';    
 
 CONST
          ILD_NORMAL                     = $00000000;

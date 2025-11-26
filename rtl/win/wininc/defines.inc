@@ -4909,6 +4909,7 @@ Type
      CC_RGBINIT  = $1;
      CC_SHOWHELP  = $8;
      CC_SOLIDCOLOR  = $80;
+     CC_ANYCOLOR  = $100;
   { FINDREPLACE structure  }
      FR_DIALOGTERM  = $40;
      FR_DOWN  = $1;
@@ -6649,6 +6650,16 @@ const
     ES_USER_PRESENT       = dword($00000004);
     ES_AWAYMODE_REQUIRED  = dword($00000040);
     ES_CONTINUOUS         = dword($80000000);
+
+// tlhelp32.h
+    TH32CS_SNAPHEAPLIST = $1;
+    TH32CS_SNAPPROCESS  = $2;
+    TH32CS_SNAPTHREAD   = $4;
+    TH32CS_SNAPMODULE   = $8;
+    TH32CS_SNAPMODULE32 = $10;
+    TH32CS_INHERIT      = $80000000;
+    TH32CS_SNAPALL      = TH32CS_SNAPHEAPLIST or TH32CS_SNAPMODULE or TH32CS_SNAPPROCESS or TH32CS_SNAPTHREAD;
+    MAX_MODULE_NAME32   = 255;
 
 {$endif read_interface}
 

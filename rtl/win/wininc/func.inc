@@ -248,6 +248,7 @@ function SetLocalTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' na
 procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
 procedure GetNativeSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32' name 'GetNativeSystemInfo';
 function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SystemTimeToTzSpecificLocalTime';
+function TzSpecificLocalTimeToSystemTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpLocalTime:LPSYSTEMTIME; lpUniversalTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'TzSpecificLocalTimeToSystemTime';
 function GetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):DWORD; external 'kernel32' name 'GetTimeZoneInformation';
 function SetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):WINBOOL; external 'kernel32' name 'SetTimeZoneInformation';
 function SystemTimeToFileTime(lpSystemTime:LPSYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'SystemTimeToFileTime';
@@ -1353,6 +1354,26 @@ function CONSOLE_REAL_OUTPUT_HANDLE : HANDLE;
   function GetNumaAvailableMemoryNodeEx(Node:USHORT; AvailableBytes:PULONGLONG):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaAvailableMemoryNodeEx';
   function GetNumaProximityNode(ProximityId:ULONG; NodeNumber:PUCHAR):BOOL;stdcall;external 'kernel32.dll' name 'GetNumaProximityNode';
 
+  // tlhelp32.h
+  function CreateToolhelp32Snapshot(dwFlags: DWORD; th32ProcessID: DWORD): HANDLE; stdcall; external KernelDLL;
+  function Heap32First(var lphe: HEAPENTRY32; th32ProcessID: DWORD; th32HeapID: ULONG_PTR): BOOL; stdcall; external KernelDLL;
+  function Heap32Next(var lphe: HEAPENTRY32): BOOL; stdcall; external KernelDLL;
+  function Heap32ListFirst(hSnapshot: HANDLE; var lphl: HEAPLIST32): BOOL; stdcall; external KernelDLL;
+  function Heap32ListNext(hSnapshot: HANDLE; var lphl: HEAPLIST32): BOOL; stdcall; external KernelDLL;
+  function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall; external KernelDLL;
+  function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall; external KernelDLL;
+  function Module32FirstW(hSnapshot: HANDLE; var lpme: MODULEENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Module32NextW(hSnapshot: HANDLE; var lpme: MODULEENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall; external KernelDLL;
+  function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall; external KernelDLL;
+  function Process32FirstW(hSnapshot: HANDLE; var lppe: PROCESSENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Process32NextW(hSnapshot: HANDLE; var lppe: PROCESSENTRY32W): BOOL; stdcall; external KernelDLL;
+  function Thread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
+  function Thread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall; external KernelDLL;
+  function Toolhelp32ReadProcessMemory(th32ProcessID: DWORD; lpBaseAddress: pointer; lpBuffer: pointer; cbRead: SIZE_T; lpNumberOfBytesRead: PSIZE_T): BOOL; stdcall; external KernelDLL;
+  function GetFileSizeEx(InFileHandle : THANDLE;OutFileSize  : PLARGE_INTEGER): BOOL; stdcall; external kernelDLL; 
+  function SetFilePointerEx(InFile : THANDLE; InDistanceToMove : LARGE_INTEGER;OutoptNewFilePointer : PLARGE_INTEGER;InMoveMethod : DWORD): BOOL; stdcall; external KernelDLL;
+  
 {$endif read_interface}
 
 {$ifdef read_implementation}

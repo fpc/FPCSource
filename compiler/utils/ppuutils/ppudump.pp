@@ -2187,7 +2187,8 @@ const
         'Link no default lib order', {cs_link_no_default_lib_order}
         'Link using native linker', {cs_link_native}
         'Link for GNU linker version <=2.19', {cs_link_pre_binutils_2_19}
-        'Link using vlink' {cs_link_vlink}
+        'Link using vlink', {cs_link_vlink}
+        'Link using ld.lld GNU compatible LLVM linker' {cs_link_lld}
        );
     localswitchname : array[tlocalswitch] of string[50] =
        { Switches which can be changed locally }

@@ -2485,7 +2485,7 @@ TYPE
      IMallocSpy = Interface(IUnknown)
         ['{0000001d-0000-0000-C000-000000000046}']
 
-        Function  PreAlloc(cbrequest:Size_t):Longint; StdCall;
+        Function  PreAlloc(cbrequest:Size_t):Size_t; StdCall;
         function  PostAlloc(Pactual:Pointer):Pointer;StdCall;
         Function  PreFree(pRequest:Pointer;fSpyed:bool):pointer;StdCall;
         Procedure PostFree(fspyed:Bool);Stdcall;
@@ -2702,7 +2702,7 @@ TYPE
        Function Commit(grfCommitFlags:Dword):Hresult; StdCall;
        Function Revert:HResult; StdCall;
        Function EnumElements(Reserved1 :Dword;Reserved2:Pointer;Reserved3:DWord;Out penum:IEnumStatStg):HResult;StdCall;
-       Function RemoteEnumElements(Reserved1 :Dword;cbReserved2:ULong;Reserved2:pbyte;reserved3:DWord;Out penum:IEnumStatStg):HResult;StdCall;
+//       Function RemoteEnumElements(Reserved1 :Dword;cbReserved2:ULong;Reserved2:pbyte;reserved3:DWord;Out penum:IEnumStatStg):HResult;StdCall;
        Function DestroyElement(wcsName: POleStr):HResult;StdCall;
        Function RenameElement(wcsoldName: POleStr;wcsnewName: POleStr):HResult;StdCall;
        Function SetElementTimes(wcsName:POleStr; Const pctime,patime,pmtime : FileTime):HResult;StdCall;
@@ -3338,7 +3338,7 @@ TYPE
      Function  GetRefTypeOfImplType(index: UINT; OUT pRefType: HREFTYPE):HResult;StdCall;
      Function  GetImplTypeFlags(index: UINT; OUT pImplTypeFlags: WINT):HResult;StdCall;
      {$ifndef Call_as}
-      Function  GetIDsOfNames(CONST rgszNames: pOleStr; cNames: UINT; OUT pMemId: MEMBERID):HResult;StdCall;
+      Function  GetIDsOfNames(rgszNames: POleStrList; cNames: UINT; OUT pMemId: MEMBERID):HResult;StdCall;
      {$else}
       Function  LocalGetIDsOfNames():HResult;StdCall;
      {$endif}
@@ -3844,6 +3844,7 @@ type
 
 { redefinitions }
   function CoCreateGuid(out _para1:TGUID):HRESULT;stdcall;external 'ole32.dll' name 'CoCreateGuid';
+  function CoGetCancelObject (InThreadId : DWORD; constref InIid : TIID; out ppunk : IUnknown):HRESULT;stdcall;external 'ole32.dll' name 'CoGetCancelObject';
 
 { additional definitions }
 {$ifndef wince}
@@ -4334,7 +4335,7 @@ type
 {$ifndef wince}
   function OleCreateMenuDescriptor(hmenuCombined:HMENU; lpMenuWidths:LPOLEMENUGROUPWIDTHS):HOLEMENU;stdcall;external 'ole32.dll' name 'OleCreateMenuDescriptor';
   function OleDestroyMenuDescriptor(holemenu:HOLEMENU):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDestroyMenuDescriptor';
-  function OleTranslateAccelerator(lpFrame:IOleInPlaceFrame; lpFrameInfo:TOleInPlaceFrameInfo; lpmsg:LPMSG):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleTranslateAccelerator';
+  function OleTranslateAccelerator(lpFrame:IOleInPlaceFrame; var lpFrameInfo:TOleInPlaceFrameInfo; lpmsg:LPMSG):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleTranslateAccelerator';
 {$endif wince}
   function OleSetMenuDescriptor(holemenu:HOLEMENU; hwndFrame:HWND; hwndActiveObject:HWND; lpFrame:IOleInPlaceFrame; lpActiveObj:IOleInPlaceActiveObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetMenuDescriptor';
 
@@ -4403,12 +4404,12 @@ type
   type
      LPOLESTREAM = ^_OLESTREAM;
      _OLESTREAMVTBL = record
-       Get : function (p : POleStr;out o;dw : DWORD) : DWORD;
-       Put : function (p : POleStr;const o;dw : DWORD) : DWORD;
+       Get : function (p : POleStr;out o;dw : DWORD) : DWORD; stdcall;
+       Put : function (p : POleStr;const o;dw : DWORD) : DWORD; stdcall;
      end;
      OLESTREAMVTBL =  _OLESTREAMVTBL;
 
-     LPOLESTREAMVTBL = OLESTREAMVTBL;
+     LPOLESTREAMVTBL = ^OLESTREAMVTBL;
 
      _OLESTREAM = record
           lpstbl : LPOLESTREAMVTBL;

@@ -1141,15 +1141,15 @@ implementation
            else
              targetopts:='-b pei-i386 -m i386pe';
 {$endif not x86_64}
-           ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
-           DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
+           ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE -T $RES';
+           DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE -T $RES';
            { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
              use short forms to avoid 128 char limitation problem }
            ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-           ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $ENTRY $IMAGEBASE -o $EXE $RES exp.$$$';
+           ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $ENTRY $IMAGEBASE -o $EXE -T $RES exp.$$$';
            { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
            DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-           DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE -o $EXE $RES exp.$$$';
+           DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE -o $EXE -T $RES exp.$$$';
          end;
       end;
 
@@ -1344,6 +1344,7 @@ implementation
             Add('    ___crt_xt_start__ = . ;');
             Add('    *(SORT(.CRT$XT*))  /* Termination */');
             Add('    ___crt_xt_end__ = . ;');
+            Add('    . = . ; /* This forces GNU linker to keep the section even if it is empty */');
             Add('  }');
             Add('  .tls BLOCK(__section_alignment__) :');
             Add('  {');
@@ -1352,6 +1353,7 @@ implementation
             Add('    *(.tls$)');
             Add('    *(SORT(.tls$*))');
             Add('    ___tls_end__ = . ;');
+            Add('    . = . ; /* This forces GNU linker to keep the section even if it is empty */');
             Add('  }');
             Add('  .rsrc BLOCK(__section_alignment__) :');
             Add('  {');

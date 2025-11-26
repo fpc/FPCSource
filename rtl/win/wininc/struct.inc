@@ -1117,15 +1117,14 @@ Const
 //
 
 //typedef struct DECLSPEC_ALIGN(16) _M128A {
-{$note todo, fix alignment }
   type
      M128A = record
           Low: ULONGLONG;
           High: LONGLONG;
-       end;
+       end {$ifndef VER3_2} align 16 {$endif}; // Also implicitly aligns CONTEXT to 16 bytes as required.
      _M128A = M128A;
      TM128A = M128A;
-     PM128A = TM128A;
+     PM128A = ^TM128A;
 
 //
 // Format of data for 32-bit fxsave/fxrstor instructions.
@@ -1192,7 +1191,6 @@ Const
 //
 
 //typedef struct DECLSPEC_ALIGN(16) _CONTEXT {
-{$note todo, fix alignment }
   type
      CONTEXT = record
 
@@ -9526,6 +9524,88 @@ type
         Reserved : BYTE;
       end;
    TPROCESSOR_NUMBER = _PROCESSOR_NUMBER;
+
+// tlhelp32.h
+    HEAPENTRY32 = record
+        dwSize: SIZE_T;
+        hHandle: HANDLE;
+        dwAddress: ULONG_PTR;
+        dwBlockSize: SIZE_T;
+        dwFlags: DWORD;
+        dwLockCount: DWORD;
+        dwResvd: DWORD;
+        th32ProcessID: DWORD;
+        th32HeapID: ULONG_PTR;
+    end;
+
+    HEAPLIST32 = record
+        dwSize: SIZE_T;
+        th32ProcessID: DWORD;
+        th32HeapID: ULONG_PTR;
+        dwFlags: DWORD;
+    end;
+
+    MODULEENTRY32 = record
+        dwSize: DWORD;
+        th32ModuleID: DWORD;
+        th32ProcessID: DWORD;
+        GlblcntUsage: DWORD;
+        ProccntUsage: DWORD;
+        modBaseAddr: pointer;
+        modBaseSize: DWORD;
+        hModule: HMODULE;
+        szModule: array[0 .. MAX_MODULE_NAME32 { not - 1 }] of ansichar;
+        szExePath: array[0 .. MAX_PATH - 1] of ansichar;
+    end;
+
+    MODULEENTRY32W = record
+        dwSize: DWORD;
+        th32ModuleID: DWORD;
+        th32ProcessID: DWORD;
+        GlblcntUsage: DWORD;
+        ProccntUsage: DWORD;
+        modBaseAddr: pointer;
+        modBaseSize: DWORD;
+        hModule: HMODULE;
+        szModule: array[0 .. MAX_MODULE_NAME32 { not - 1 }] of unicodechar;
+        szExePath: array[0 .. MAX_PATH - 1] of unicodechar;
+    end;
+
+    PROCESSENTRY32  = record
+        dwSize: DWORD;
+        cntUsage: DWORD;
+        th32ProcessID: DWORD;
+        th32DefaultHeapID: ULONG_PTR;
+        th32ModuleID: DWORD;
+        cntThreads: DWORD;
+        th32ParentProcessID: DWORD;
+        pcPriClassBase: LONG;
+        dwFlags: DWORD;
+        szExeFile: array[0 .. MAX_PATH - 1] of ansichar;
+    end;
+
+    PROCESSENTRY32W  = record
+        dwSize: DWORD;
+        cntUsage: DWORD;
+        th32ProcessID: DWORD;
+        th32DefaultHeapID: ULONG_PTR;
+        th32ModuleID: DWORD;
+        cntThreads: DWORD;
+        th32ParentProcessID: DWORD;
+        pcPriClassBase: LONG;
+        dwFlags: DWORD;
+        szExeFile: array[0 .. MAX_PATH - 1] of unicodechar;
+    end;
+
+    THREADENTRY32 = record
+        dwSize: DWORD;
+        cntUsage: DWORD;
+        th32ThreadID: DWORD;
+        th32OwnerProcessID: DWORD;
+        tpBasePri: LONG;
+        tpDeltaPri: LONG;
+        dwFlags: DWORD;
+    end;
 
 {$pop}
 {$endif read_interface}

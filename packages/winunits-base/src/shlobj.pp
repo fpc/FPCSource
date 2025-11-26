@@ -2232,7 +2232,7 @@ const
 type
     THUMBBUTTONMASK = DWord;
 
-    THUMBBUTTON = packed record
+    THUMBBUTTON = {$IFNDEF CPU64} packed {$ENDIF} record
       dwMask: THUMBBUTTONMASK;
       iId: UINT;
       iBitmap: UINT;

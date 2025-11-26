@@ -114,7 +114,15 @@ begin
           TRCResourceReader(aReader).RCDefines.Assign(fRCDefines);
           SetCurrentDir(ExtractFilePath(ExpandFileName(fFileList[i])));
         end;
-        tmpres.LoadFromStream(aStream,aReader);
+        try
+          tmpres.LoadFromStream(aStream,aReader);
+        except
+           on e :EParserError do
+              begin
+                e.message:=fFileList[i]+': '+e.message;
+              raise;
+            end;
+        end;
         aResources.MoveFrom(tmpres);
         Messages.DoVerbose('Resource information read');
       finally

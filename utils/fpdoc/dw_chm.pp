@@ -212,7 +212,7 @@ end;
 function TCHMHTMLWriter.RetrieveOtherFiles(const DataName: String; out
   PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
 begin
-  Result:=True;
+  Result:=False;
   if Stream <> nil then
     Stream.Free;
   Stream := TMemoryStream.Create;
@@ -223,7 +223,7 @@ begin
     PathInChm := ExtractRelativepath(GetCurrentDir, ExtractFileDir(DataName))
   else
     PathInChm := '/';
-  FixHTMLpath(PathInChm);
+  PathInChm:=FixHTMLpath(IncludeLeadingPathDelimiter(IncludeTrailingPathDelimiter(PathInChm)));
   Stream.Position := 0;
 end;
 
