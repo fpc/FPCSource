@@ -1872,8 +1872,10 @@ end;
 
 destructor TJSONPair.Destroy;
 begin
-  JSonString:=nil;
-  JsonValue:=nil;
+  if Assigned(FJSonString) and (FJSONString.Owned) then
+    FreeAndNil(FJSonString);
+  if Assigned(FJSonValue) and (FJSONValue.Owned) then
+    FreeAndNil(FJSonValue);
   inherited Destroy;
 end;
 

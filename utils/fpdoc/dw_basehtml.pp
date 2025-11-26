@@ -96,46 +96,46 @@ type
     procedure DescrEndTableCell; override;
 
     // Basic HTML handling
-    Procedure SetHTMLDocument(aDoc : THTMLDocument);
-    procedure PushOutputNode(ANode: TDOMNode);
-    procedure PopOutputNode;
-    procedure AppendText(Parent: TDOMNode; const AText: AnsiString);
-    procedure AppendText(Parent: TDOMNode; const AText: DOMString);
-    procedure AppendNbSp(Parent: TDOMNode; ACount: Integer);
-    procedure AppendSym(Parent: TDOMNode; const AText: DOMString);
-    procedure AppendKw(Parent: TDOMNode; const AText: AnsiString);
-    procedure AppendKw(Parent: TDOMNode; const AText: DOMString);
-    function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte): Byte;
-    procedure AppendFragment(aParentNode: TDOMElement; aStream: TStream);
+    Procedure SetHTMLDocument(aDoc : THTMLDocument); virtual;
+    procedure PushOutputNode(ANode: TDOMNode); virtual;
+    procedure PopOutputNode; virtual;
+    procedure AppendText(Parent: TDOMNode; const AText: AnsiString); virtual;
+    procedure AppendText(Parent: TDOMNode; const AText: DOMString); virtual;
+    procedure AppendNbSp(Parent: TDOMNode; ACount: Integer); virtual;
+    procedure AppendSym(Parent: TDOMNode; const AText: DOMString); virtual;
+    procedure AppendKw(Parent: TDOMNode; const AText: AnsiString); virtual;
+    procedure AppendKw(Parent: TDOMNode; const AText: DOMString); virtual;
+    function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte): Byte; virtual;
+    procedure AppendFragment(aParentNode: TDOMElement; aStream: TStream); virtual;
     // FPDoc specifics
     procedure AppendSourceRef(aParent: TDOMElement; AElement: TPasElement);
     Procedure AppendSeeAlsoSection(AElement: TPasElement; DocNode: TDocNode); virtual;
     Procedure AppendExampleSection(AElement : TPasElement;DocNode : TDocNode); virtual;
-    Procedure AppendShortDescr(Parent: TDOMNode; Element: TPasElement);
-    procedure AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode: TDocNode);
-    procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement);
-    procedure AppendDescr(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; AutoInsertBlock: Boolean);
-    procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: DOMString);
-    procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: AnsiString);
+    Procedure AppendShortDescr(Parent: TDOMNode; Element: TPasElement); virtual;
+    procedure AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode: TDocNode); virtual;
+    procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement); virtual;
+    procedure AppendDescr(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; AutoInsertBlock: Boolean); virtual;
+    procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: DOMString); virtual;
+    procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: AnsiString); virtual;
     function AppendHyperlink(Parent: TDOMNode; Element: TPasElement): TDOMElement;
 
     // Helper functions for creating DOM elements
 
-    function CreateEl(Parent: TDOMNode; const AName: DOMString): THTMLElement;
-    function CreatePara(Parent: TDOMNode): THTMLElement;
-    function CreateH1(Parent: TDOMNode): THTMLElement;
-    function CreateH2(Parent: TDOMNode): THTMLElement;
-    function CreateH3(Parent: TDOMNode): THTMLElement;
-    function CreateTable(Parent: TDOMNode; const AClass: DOMString = ''): THTMLElement;
-    function CreateContentTable(Parent: TDOMNode): THTMLElement;
-    function CreateTR(Parent: TDOMNode): THTMLElement;
-    function CreateTD(Parent: TDOMNode): THTMLElement;
-    function CreateTD_vtop(Parent: TDOMNode): THTMLElement;
-    function CreateLink(Parent: TDOMNode; const AHRef: AnsiString): THTMLElement;
-    function CreateLink(Parent: TDOMNode; const AHRef: DOMString): THTMLElement;
-    function CreateAnchor(Parent: TDOMNode; const AName: DOMString): THTMLElement;
-    function CreateCode(Parent: TDOMNode): THTMLElement;
-    function CreateWarning(Parent: TDOMNode): THTMLElement;
+    function CreateEl(Parent: TDOMNode; const AName: DOMString): THTMLElement; virtual;
+    function CreatePara(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateH1(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateH2(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateH3(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateTable(Parent: TDOMNode; const AClass: DOMString = ''): THTMLElement;virtual;
+    function CreateContentTable(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateTR(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateTD(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateTD_vtop(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateLink(Parent: TDOMNode; const AHRef: AnsiString): THTMLElement; virtual;
+    function CreateLink(Parent: TDOMNode; const AHRef: DOMString): THTMLElement; virtual;
+    function CreateAnchor(Parent: TDOMNode; const AName: DOMString): THTMLElement; virtual;
+    function CreateCode(Parent: TDOMNode): THTMLElement; virtual;
+    function CreateWarning(Parent: TDOMNode): THTMLElement; virtual;
 
 
     // Some info
@@ -465,10 +465,20 @@ begin
 end;
 
 procedure TBaseHTMLWriter.DescrBeginCode(HasBorder: Boolean; const AHighlighterName: String);
+var
+  lNode : THTMLElement;
+  lClass : string;
 begin
   FDoPasHighlighting := (AHighlighterName = '') or (AHighlighterName = 'Pascal');
   FHighlighterFlags := 0;
-  PushOutputNode(CreateEl(CurOutputNode, 'pre'));
+  lNode:=CreateEl(CurOutputNode, 'pre');
+  lClass:='code code-';
+  if AHighlighterName='' then
+    lClass:=lClass+'pascal'
+  else
+    lClass:=lClass+lowercase(AHighlighterName);
+  lNode['class']:=lClass;
+  PushOutputNode(lNode);
 end;
 
 procedure TBaseHTMLWriter.DescrWriteCodeLine(const ALine: String);

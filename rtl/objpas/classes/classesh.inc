@@ -2263,6 +2263,7 @@ type
       Exception: TObject;
       SyncEvent: PRtlEvent;
       Next: PThreadQueueEntry;
+      ExecuteAfter : TDateTime;
     end;
   public type
     TSystemTimes = record
@@ -2286,9 +2287,9 @@ type
     FSynchronizeEntry: PThreadQueueEntry;
     class function GetCurrentThread: TThread; static;
     class function GetIsSingleProcessor: Boolean; static; inline;
-    class procedure InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean); static;
+    class procedure InternalQueue(aThread: TThread; aMethod: TThreadMethod; aQueueIfMain: Boolean; aExecuteAfter: TDateTime); static;
 {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
-    class procedure InternalQueue(aThread: TThread; aProcedure: TThreadProcedure; aQueueIfMain: Boolean); static;
+    class procedure InternalQueue(aThread: TThread; aProcedure: TThreadProcedure; aQueueIfMain: Boolean; aExecuteAfter: TDateTime); static;
 {$endif}
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
@@ -2366,9 +2367,9 @@ type
     {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
     class procedure Queue(aThread: TThread; AProcedure : TThreadProcedure); static;
     {$endif}
-    class procedure ForceQueue(aThread: TThread; aMethod: TThreadMethod); inline; static;
+    class procedure ForceQueue(aThread: TThread; aMethod: TThreadMethod; aDelay : Integer = 0); inline; static;
     {$ifdef FPC_HAS_REFERENCE_PROCEDURE}
-    class procedure ForceQueue(aThread: TThread; aMethod: TThreadProcedure); inline; static;
+    class procedure ForceQueue(aThread: TThread; aMethod: TThreadProcedure; aDelay : Integer = 0); inline; static;
     {$endif}
     class procedure RemoveQueuedEvents(aThread: TThread; aMethod: TThreadMethod); static;
     class procedure RemoveQueuedEvents(aMethod: TThreadMethod); static;

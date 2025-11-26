@@ -20,9 +20,9 @@ interface
 
 uses
 {$IFDEF FPC_DOTTEDUNITS}
-  System.Classes, System.SysUtils,
+  System.Classes, System.SysUtils, System.SyncObjs,
 {$ELSE}
-  Classes, SysUtils,
+  Classes, SysUtils, SyncObjs,
 {$ENDIF}
   wasm.timer.api, wasm.timer.shared;
 
@@ -76,6 +76,41 @@ uses wasm.logger.api;
 resourcestring
   SErrCouldNotCreateTimer = 'Could not create timer';
 
+var
+  ActiveTimers : TFPList;
+  Lock : TCriticalSection;
+
+procedure AddTimer(aTimer : TWasmTimer);
+begin
+  Lock.Enter;
+  try
+    ActiveTimers.Add(aTimer);
+  finally
+    Lock.Leave
+  end;
+end;
+
+function ValidTimer(aTimer : TWasmTimer): boolean;
+begin
+  Lock.Enter;
+  try
+    Result:=ActiveTimers.IndexOf(aTimer)<>-1;
+  finally
+    Lock.Leave;
+  end;
+end;
+
+procedure RemoveTimer(aTimer : TWasmTimer);
+
+begin
+  Lock.Enter;
+  try
+    ActiveTimers.Remove(aTimer);
+  finally
+    Lock.Leave;
+  end;
+end;
+
 constructor TWasmTimer.Create(aInterval: Integer; aEvent: TNotifyEvent; aSender: TObject);
 begin
   FOnTimer:=aEvent;
@@ -87,17 +122,21 @@ begin
     __wasmtimer_log(wllError,SErrCouldNotCreateTimer);
     Raise EWasmTimer.Create(SErrCouldNotCreateTimer);
     end;
+  AddTimer(Self);
 end;
 
 destructor TWasmTimer.Destroy;
 begin
+  FOnTimer:=Nil;
+  RemoveTimer(Self);
   __wasm_timer_deallocate(FID);
   inherited Destroy;
 end;
 
 procedure TWasmTimer.Execute;
 begin
-  FOnTimer(FSender);
+  if assigned(FOnTimer) then
+    FOnTimer(FSender);
 end;
 
 class procedure TWasmTimer.HandleWasmTimer(aTimerID: TWasmTimerID; userdata: pointer; var aContinue: Boolean);
@@ -107,7 +146,7 @@ var
 
 begin
   __wasmtimer_log(wllTrace, 'Timer(ID: %d) tick. Data [%p]',[aTimerID,UserData]);
-  aContinue:=(Obj.FID=aTimerID);
+  aContinue:=ValidTimer(Obj) and (Obj.FID=aTimerID);
   __wasmtimer_log(wllDebug, 'Timer(id: %d) tick. Data [%p] continue: %b',[aTimerID,UserData,aContinue]);
   if aContinue then
     Obj.Execute;
@@ -149,7 +188,7 @@ end;
 procedure TTimer.DoOnTimer(Sender : TObject);
 
 begin
-  If Assigned(FOnTimer) then
+  If FEnabled and Assigned(FOnTimer) then
     FOnTimer(Self);
 end;
 
@@ -175,11 +214,20 @@ end;
 
 destructor TTimer.Destroy;
 begin
+  OnTimer:=Nil;
   Enabled:=False;
+
   inherited Destroy;
 end;
 
 initialization
+  ActiveTimers:=TFPList.Create;
+  Lock:=TCriticalSection.Create;
   OnWasmTimerTick:=@TWasmTimer.HandleWasmTimer
+
+finalization
+  OnWasmTimerTick:=Nil;
+  FreeAndNil(ActiveTimers);
+  FreeAndNil(Lock);
 end.
 
