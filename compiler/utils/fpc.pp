@@ -57,14 +57,14 @@ Const
 {$endif not darwin}
 
 
-  procedure error(const s : string);
+  procedure error(const s : string);noreturn;
 
   begin
      writeln('Error: ',s);
      halt(1);
   end;
 
-  function processortosuffix(processorstr : string ) : String;
+  function processortosuffix(const processorstr : string ) : String;
 
   begin
     case processorstr of
@@ -393,14 +393,14 @@ end;
 
 Procedure ProcessConfigFile(aFileName : String; var ExeSuffix : String);
 
-  Function Stripline(aLine : String) : string;
+  Function Stripline(const aLine : String) : string;
 
   Var
     P : integer;
 
   begin
-    if (aLine<>'') and (aLine[1]=';') then exit;
-    Pos('#',aLine); // no ifdef or include.
+    if (aLine<>'') and (aLine[1]=';') then exit('');
+    P:=Pos('#',aLine); // no ifdef or include.
     if P=0 then
       P:=Length(aLine)+1;
     Result:=Copy(aLine,1,P-1);
