@@ -6,7 +6,7 @@
 #   Based on errore.msg of git commit f364bb6b + 1, 29 Jul, 2023
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2024 by the Free Pascal Development team
+#   Copyright (c) 1998-2025 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -3881,8 +3881,8 @@ package_u_ppl_filename=13029_U_PPL Dateiname $1
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] fr $FPCTARGET
-Copyright (c) 1993-2024 Florian Klmpfl und andere
+Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] f�r $FPCTARGET
+Copyright (c) 1993-2025 Florian Kl�mpfl und andere
 ]
 
 #
