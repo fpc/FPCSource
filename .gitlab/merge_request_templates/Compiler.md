@@ -2,7 +2,7 @@
 <!-- Summarize the changes from this merge request -->
 
 ## System
-<!-- All systems this patch will have an effect om -->
+<!-- All systems this patch will have an effect on -->
 - **Operating system:** <!-- Windows, Linux (if possible, also name the distro), FreeBSD, Android, ... -->
 - **Processor architecture:** <!-- x86, x86-64, ARM, AARCH64, AVR, RISC-V, PowerPC, ... -->
 - **Device:** <!-- Computer, Tablet, Mobile, Amiga, Microcontroller, ... -->
