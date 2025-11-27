@@ -572,8 +572,13 @@ var
 
 begin
   tr := (trans as TPQTransactionHandle).Handle as TPGHandle;
-  tr.Used:=False; // handle can be reused after rollback (even if it failed)
   TR.RollBack;
+  FHandlePool.LockList; // protect the Used change with critical section
+  try
+    tr.Used:=False; // handle can be reused after successful rollback
+  finally
+    FHandlePool.UnLockList;
+  end;
   result := true;
 end;
 
@@ -583,7 +588,12 @@ var
 begin
   tr := (trans as TPQTransactionHandle).Handle;
   tr.Commit;
-  tr.Used:=False; // handle can be reused after successful commit
+  FHandlePool.LockList; // protect the Used change with critical section
+  try
+    tr.Used:=False; // handle can be reused after successful commit
+  finally
+    FHandlePool.UnLockList;
+  end;
   Result:=True;
 end;
 
