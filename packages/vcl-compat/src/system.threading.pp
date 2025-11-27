@@ -3175,6 +3175,7 @@ begin
     Sub.Start;
     ThreadLog('TTask.ExecuteReplicates','Started replica');
     end;
+  DoCallUserCode;
 end;
 
 

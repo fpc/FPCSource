@@ -33,6 +33,8 @@ interface
         function pass_1 : tnode;override;
 
         procedure pass_generate_code;override;
+      private
+        function is_real_constant: boolean;
       end;
 
 
@@ -51,16 +53,23 @@ implementation
                            TARMREALCONSTNODE
 *****************************************************************************}
 
-    function trvrealconstnode.pass_1 : tnode;
+    function trvrealconstnode.is_real_constant: boolean;
+
       begin
-        result:=nil;
-        if is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
+        result:=is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
           (
             ((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and is_single(resultdef))
 {$ifdef RISCV64}
             or ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and is_double(resultdef))
 {$endif RISCV64}
-          ) then
+          );
+      end;
+
+
+    function trvrealconstnode.pass_1 : tnode;
+      begin
+        result:=nil;
+        if is_real_constant then
            expectloc:=LOC_FPUREGISTER
          else
            expectloc:=LOC_CREFERENCE;
@@ -69,13 +78,7 @@ implementation
 
     procedure trvrealconstnode.pass_generate_code;
       begin
-        if is_number_float(value_real) and (value_real=0.0) and (get_real_sign(value_real)=1) and
-          (
-            ((CPURV_HAS_F in cpu_capabilities[current_settings.cputype]) and is_single(resultdef))
-{$ifdef RISCV64}
-            or ((CPURV_HAS_D in cpu_capabilities[current_settings.cputype]) and is_double(resultdef))
-{$endif RISCV64}
-          ) then
+        if is_real_constant then
           begin
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
