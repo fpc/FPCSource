@@ -422,30 +422,23 @@ end;
 Procedure TStrings.Reverse(aList : TStrings);
 
 Var
-  I : Integer;
-  lList : TStrings;
-  lOwns : boolean;
+  I,J : Integer;
 
 begin
-  lOwns:=False;
   if aList=self then
     begin
-    lList:=Nil;
-    BeginUpdate;
+    I:=0; 
+    J:=Count-1;
+    beginUpdate;
     try
-      if (self is TStringList) then
+      while I<J do 
         begin
-        lOwns:=TstringList(Self).OwnsObjects;
-        TStringList(Self).OwnsObjects:=False;
+        Exchange(I, J);
+        Inc(I);
+        Dec(J);
         end;
-      lList:=TStringList.Create;
-      Reverse(lList);
-      AddStrings(lList,True);
     finally
-      if (self is TStringList) then
-        TStringList(Self).OwnsObjects:=lOwns;
       EndUpdate;
-      lList.Free;
     end;
     end
   else 
