@@ -1,3 +1,5 @@
+<!-- See available text formatting: https://gitlab.com/help/user/markdown.md -->
+
 ## Summary
 <!-- Summarize the changes from this merge request -->
 
@@ -8,8 +10,5 @@
 <!-- What you should see instead -->
 
 ## Relevant logs and/or screenshots
-<!-- Paste any relevant logs - please use code blocks (```) to format console output, logs, and code, as
-it's very hard to read otherwise.  -->
+<!-- Paste any relevant logs - please use code blocks (```) to format console output, logs, and code -->
 
-<!-- automatically add a label - do not touch this area -->
-/label ~Packages

@@ -423,10 +423,44 @@ Procedure TStrings.Reverse(aList : TStrings);
 
 Var
   I : Integer;
+  lList : TStrings;
+  lOwns : boolean;
 
 begin
-  for I:=Count-1 downto 0 do
-    aList.Add(Strings[i]);
+  lOwns:=False;
+  if aList=self then
+    begin
+    lList:=Nil;
+    BeginUpdate;
+    try
+      if (self is TStringList) then
+        begin
+        lOwns:=TstringList(Self).OwnsObjects;
+        TStringList(Self).OwnsObjects:=False;
+        end;
+      lList:=TStringList.Create;
+      Reverse(lList);
+      AddStrings(lList,True);
+    finally
+      if (self is TStringList) then
+        TStringList(Self).OwnsObjects:=lOwns;
+      EndUpdate;
+      lList.Free;
+    end;
+    end
+  else 
+    begin
+    aList.BeginUpdate;
+    try
+      aList.Clear;
+      if aList.Capacity<Self.Count then
+        aList.Capacity:=Self.Count;
+      for I:=Count-1 downto 0 do
+        aList.AddObject(Strings[i],Objects[i]);
+    finally
+      aList.EndUpdate;
+    end;      
+    end;  
 end;
 
 
