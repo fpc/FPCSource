@@ -12,5 +12,3 @@
 ## Relevant logs and/or screenshots
 <!-- Paste any relevant logs - please use code blocks (```) to format console output, logs, and code -->
 
-<!-- automatically add a label - do not touch this area -->
-/label ~Packages
