@@ -177,23 +177,7 @@ begin
 end;
 
 procedure TTestRecompile.GetCompiler;
-const
-  CompilerParam = '--compiler=';
-var
-  i: Integer;
-  aParam: String;
 begin
-  for i:=1 to ParamCount do
-  begin
-    aParam:=ParamStr(i);
-    if LeftStr(aParam,length(CompilerParam))=CompilerParam then
-    begin
-      PP:=copy(aParam,length(CompilerParam)+1,255);
-      CheckCompiler;
-      exit;
-    end;
-  end;
-
   PP:=GetEnvironmentVariable(String('PP'));
   if PP>'' then
   begin
@@ -201,7 +185,7 @@ begin
     exit;
   end;
 
-  raise Exception.Create('I need either environment var "PP" or cmd line param "compiler"');
+  raise Exception.Create('I need environment var "PP"');
 end;
 
 procedure TTestRecompile.CheckCompiler;
