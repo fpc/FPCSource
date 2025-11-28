@@ -937,6 +937,9 @@ endif
 ifeq ($(CPU_OS_TARGET),powerpc64-aix)
 override COMPILER_TARGETDIR+=$(TARGETSUFFIX)
 endif
+ifeq ($(CPU_OS_TARGET),powerpc64-freebsd)
+override COMPILER_TARGETDIR+=$(TARGETSUFFIX)
+endif
 ifeq ($(CPU_OS_TARGET),avr-embedded)
 override COMPILER_TARGETDIR+=$(TARGETSUFFIX)
 endif
