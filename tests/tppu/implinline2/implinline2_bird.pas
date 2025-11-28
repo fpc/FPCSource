@@ -1,4 +1,4 @@
-unit implinline1_bird;
+unit implinline2_bird;
 
 {$mode objfpc}
 
@@ -8,7 +8,7 @@ procedure Walk;
 
 implementation
 
-uses implinline1_ant;
+uses implinline2_ant;
 
 procedure Walk; inline;
 begin

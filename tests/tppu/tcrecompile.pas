@@ -39,6 +39,8 @@ type
   published
     procedure TestTwoUnits;
     procedure TestImplInline1;
+    procedure TestImplInline2;
+    procedure TestImplInline_Bug41291;
   end;
 
 
@@ -216,10 +218,13 @@ begin
 
   Step:='Second compile';
   Compile;
+  // the bird ppu does not depend on ant, so it is kept
   CheckCompiled(['tppu_twounits_ant.pas']);
 end;
 
 procedure TTestRecompile.TestImplInline1;
+// unit ant uses bird
+// unit bird impl uses ant and has a function with inline modifier in implementation
 begin
   UnitPath:='implinline1';
   OutDir:='implinline1'+PathDelim+'ppus';
@@ -232,7 +237,46 @@ begin
 
   Step:='Second compile';
   Compile;
-  CheckCompiled(['implinline1_ant.pas']);
+  // the main src is always compiled, and since bird ppu depends on ant, it is always compiled as well
+  CheckCompiled(['implinline1_ant.pas','implinline1_bird.pas']);
+end;
+
+procedure TTestRecompile.TestImplInline2;
+// prg uses ant
+// unit ant uses bird
+// unit bird impl uses ant and has a function with inline modifier in implementation
+begin
+  UnitPath:='implinline2';
+  OutDir:='implinline2'+PathDelim+'ppus';
+  MainSrc:='implinline2'+PathDelim+'implinline2_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['implinline2_prg.pas','implinline2_ant.pas','implinline2_bird.pas']);
+
+  Step:='Second compile';
+  Compile;
+  // the main src is always compiled, the two ppus of ant and bird are kept
+  CheckCompiled(['implinline2_prg.pas']);
+end;
+
+procedure TTestRecompile.TestImplInline_Bug41291;
+begin
+  UnitPath:='bug41291';
+  OutDir:='bug41291'+PathDelim+'ppus';
+  MainSrc:='bug41291'+PathDelim+'bug41291_app.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['bug41291_app.pas','bug41291_mclasses.pas','bug41291_mseapplication.pas',
+    'bug41291_mseclasses.pas','bug41291_mseeditglob.pas','bug41291_mseifiglob.pas']);
+
+  Step:='Second compile';
+  Compile;
+  // the main src is always compiled, the other ppus are kept
+  CheckCompiled(['bug41291_app.pas']);
 end;
 
 initialization
