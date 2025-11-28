@@ -329,6 +329,8 @@ uses
       TFenceFlag = (ffI, ffO, ffR, ffW);
       TFenceFlags = set of TFenceFlag;
 
+      TAsmRealSpecialValue = (ARSV_None,ARSV_Nan,ARSV_Min,ARSV_Inf);
+
       TRoundingMode = (RM_Default,
                        RM_RNE,
                        RM_RTZ,
