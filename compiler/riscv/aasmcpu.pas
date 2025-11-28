@@ -28,7 +28,7 @@ interface
 uses
   globtype,verbose,
   aasmbase,aasmtai,aasmdata,aasmsym,
-  cpubase,cgbase,cgutils;
+  cpubase,cpuinfo,cgbase,cgutils;
 
     const
       { "mov reg,reg" source operand number }
@@ -53,6 +53,7 @@ uses
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
          constructor op_const_reg(op:tasmop; _op1: aint; _op2: tregister);
+         constructor op_reg_realconst(op:tasmop; _op1: tregister; _op2: bestreal;special_value: TAsmRealSpecialValue);
 
          constructor op_const_const(op : tasmop;_op1,_op2 : aint);
 
@@ -91,6 +92,7 @@ uses
          procedure loadroundingmode(opidx:aint;_roundmode:TRoundingMode);
          procedure loadfenceflags(opidx:aint;_flags:TFenceFlags);
          procedure loadbool(opidx:aint;_b:boolean);
+         procedure loadrealconst(opidx:longint;const _value:bestreal;_special_value:TAsmRealSpecialValue);
 
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
@@ -129,6 +131,20 @@ uses cutils, cclasses;
            b:=_b;
            typ:=top_bool;
          end;
+      end;
+
+
+    procedure taicpu.loadrealconst(opidx:longint;const _value:bestreal;_special_value:TAsmRealSpecialValue);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            special_value:=special_value;
+            val_real:=_value;
+            typ:=top_realconst;
+          end;
       end;
 
 
@@ -185,6 +201,15 @@ uses cutils, cclasses;
          loadconst(0,_op1);
          loadreg(1,_op2);
       end;
+
+
+     constructor taicpu.op_reg_realconst(op: tasmop; _op1: tregister; _op2: bestreal; special_value: TAsmRealSpecialValue);
+       begin
+         inherited create(op);
+         ops:=2;
+         loadreg(0,_op1);
+         loadrealconst(1,_op2,special_value);
+       end;
 
 
     constructor taicpu.op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);

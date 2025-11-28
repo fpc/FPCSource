@@ -311,6 +311,7 @@ interface
 {$if defined(riscv32) or defined(riscv64)}
        ,top_fenceflags
        ,top_roundingmode
+       ,top_realconst
 {$endif defined(riscv32) or defined(riscv64)}
 {$ifdef wasm}
        ,top_functype
@@ -564,6 +565,7 @@ interface
         {$if defined(riscv32) or defined(riscv64)}
             top_fenceflags : (fenceflags : TFenceFlags);
             top_roundingmode : (roundingmode : TRoundingMode);
+            top_realconst : (val_real:bestreal;special_value : TAsmRealSpecialValue);
         {$endif defined(riscv32) or defined(riscv64)}
         {$ifdef wasm}
             top_functype : (functype: TWasmFuncType);
