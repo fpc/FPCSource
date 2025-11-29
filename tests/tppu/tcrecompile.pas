@@ -37,10 +37,15 @@ type
     procedure GetCompiler;
     procedure CheckCompiler;
   published
-    procedure TestTwoUnits;
-    procedure TestImplInline1;
-    procedure TestImplInline2;
-    procedure TestImplInline_Bug41291;
+    procedure TestTwoUnits; // 2 units
+    procedure TestChangeLeaf1; // prog+2 units, change leaf
+    procedure TestChangeInner1; // prog+2 units, change inner unit, keep leaf
+
+    // inline modifier in implementation (not in interface)
+    procedure TestImplInline1; // 2 units, cycle, impl inline
+    procedure TestImplInline2; // program + 2 units cycle, impl inline
+    procedure TestImplInline_Bug41291; // program plus 3 cycles
+    procedure TestImplInline3; // program + 2 units cycle, impl inline, implementation changed
   end;
 
 
@@ -222,6 +227,42 @@ begin
   CheckCompiled(['tppu_twounits_ant.pas']);
 end;
 
+procedure TTestRecompile.TestChangeLeaf1;
+begin
+  UnitPath:='changeleaf1;changeleaf1'+PathDelim+'src1';
+  OutDir:='changeleaf1'+PathDelim+'ppus';
+  MainSrc:='changeleaf1'+PathDelim+'changeleaf1_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['changeleaf1_prg.pas','changeleaf1_ant.pas','changeleaf1_bird.pas']);
+
+  Step:='Second compile';
+  UnitPath:='changeleaf1;changeleaf1'+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, bird changed, so all ant must be recompiled as well
+  CheckCompiled(['changeleaf1_prg.pas','changeleaf1_ant.pas','changeleaf1_bird.pas']);
+end;
+
+procedure TTestRecompile.TestChangeInner1;
+begin
+  UnitPath:='changeinner1;changeinner1'+PathDelim+'src1';
+  OutDir:='changeinner1'+PathDelim+'ppus';
+  MainSrc:='changeinner1'+PathDelim+'changeinner1_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas','changeinner1_bird.pas']);
+
+  Step:='Second compile';
+  UnitPath:='changeinner1;changeinner1'+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, ant changed, bird is kept
+  CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas']);
+end;
+
 procedure TTestRecompile.TestImplInline1;
 // unit ant uses bird
 // unit bird impl uses ant and has a function with inline modifier in implementation
@@ -277,6 +318,24 @@ begin
   Compile;
   // the main src is always compiled, the other ppus are kept
   CheckCompiled(['bug41291_app.pas']);
+end;
+
+procedure TTestRecompile.TestImplInline3;
+begin
+  UnitPath:='implinline3;implinline3'+PathDelim+'src1';
+  OutDir:='implinline3'+PathDelim+'ppus';
+  MainSrc:='implinline3'+PathDelim+'implinline3_prg.pas';
+
+  Step:='First compile';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['implinline3_prg.pas','implinline3_ant.pas','implinline3_bird.pas']);
+
+  Step:='Second compile';
+  UnitPath:='implinline3;implinline3'+PathDelim+'src2';
+  Compile;
+  // the main src is always compiled, and the ant impl changed, so bird is also compiled
+  CheckCompiled(['implinline3_prg.pas','implinline3_ant.pas','implinline3_bird.pas']);
 end;
 
 initialization
