@@ -1,6 +1,4 @@
 #
-# $Id: install.dat,v 1.39 2005/03/06 18:00:07 hajny Exp $
-#
 # Install file for Go32v2/Win32/OS2/EMX
 #
 # Warning: no package should contain more than 31 files (32-bit version
