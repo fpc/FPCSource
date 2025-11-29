@@ -192,7 +192,7 @@ interface
         mainname      : pshortstring; { alternate name for "main" procedure }
         package       : tpackage;
 
-        used_units           : tlinkedlist;
+        used_units           : tlinkedlist; { list of tused_unit }
         dependent_units      : tlinkedlist;
 
         localunitsearchpath,           { local searchpaths }
@@ -905,7 +905,7 @@ implementation
           Because the used_units is used in loops in the load cycle(s) which
           can recurse into the same unit due to circular dependencies,
           we do not destroy the list, we only update the contents.
-          As a result so the loop variable does not get reset during the loop.
+          As a result the loop variable does not get reset during the loop.
           For recompile, we recreate the list }
         if for_recompile then
           begin
