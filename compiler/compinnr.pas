@@ -229,7 +229,7 @@ type
 {$endif}
 {$if defined(RISCV)}
      ,
-     {$i ccpuinnr.inc}
+     {$i riscv/ccpuinnr.inc}
 {$endif}
    );
 
