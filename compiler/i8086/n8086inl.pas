@@ -29,9 +29,6 @@ interface
        nx86inl,node;
 
     type
-
-       { ti8086inlinenode }
-
        ti8086inlinenode = class(tx86inlinenode)
          function pass_typecheck_cpu: tnode; override;
          procedure pass_generate_code_cpu;override;

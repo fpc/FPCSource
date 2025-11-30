@@ -26,6 +26,7 @@
   in_x86_get_es   = in_cpu_first+11,
   in_x86_get_fs   = in_cpu_first+12,
   in_x86_get_gs   = in_cpu_first+13,
+  in_x86_pause    = in_cpu_first+14,
 
   { include mm inline routines }
   {$I cx86mminnr.inc}
