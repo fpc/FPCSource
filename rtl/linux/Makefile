@@ -957,6 +957,9 @@ CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT)
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 override LOADERS=abitag
 endif
+ifeq ($(ARCH),aarch64)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 ifeq ($(ARCH),powerpc64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
@@ -986,7 +989,7 @@ override FPCOPT+=-Ur
 endif
 ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
-CPU_UNITS=$(CPUUNIT)
+CPU_UNITS=$(CPUUNIT) $(INTRINSICSUNIT)
 endif
 ifeq ($(ARCH),sparc)
   override FPCOPT+=-Fisparcgen
@@ -3191,6 +3194,13 @@ mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
 System.CPU.MMX$(PPUEXT) : $(NSINC)/System.CPU.MMX.pp $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
+INTRINSICS_DEPS=$(PROCINC)/intrinsics.pp \
+	 $(SYSTEMUNIT)$(PPUEXT) \
+	 $(INTRINSICS_DEPS_OS) $(INTRINSICS_DEPS_CPU)
+intrinsics$(PPUEXT) : $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
+System.Intrinsics$(PPUEXT) : $(NSINC)/System.Intrinsics.pp $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   X86_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif

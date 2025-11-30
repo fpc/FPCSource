@@ -52,6 +52,10 @@ interface
         procedure second_prefetch; override;
         procedure second_abs_long; override;
         procedure second_fma; override;
+
+        function first_cpu: tnode; override;
+        procedure pass_generate_code_cpu; override;
+        function pass_typecheck_cpu: tnode; override;
       private
         procedure load_fpu_location(out singleprec: boolean);
       end;
@@ -62,7 +66,7 @@ implementation
     uses
       globtype,verbose,globals,
       procinfo,
-      cpuinfo, defutil,symdef,aasmdata,aasmcpu,
+      compinnr,cpuinfo,defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
       cpubase,ncgutil,cgobj,cgcpu, hlcgobj,
       nutils,ncal;
@@ -70,6 +74,44 @@ implementation
 {*****************************************************************************
                               tarminlinenode
 *****************************************************************************}
+
+     function tarminlinenode.pass_typecheck_cpu: tnode;
+       begin
+         Result:=nil;
+         case inlinenumber of
+           in_arm_yield:
+             resultdef:=voidtype;
+           else
+             result:=inherited;
+         end;
+       end;
+
+
+    function tarminlinenode.first_cpu : tnode;
+      begin
+        Result:=nil;
+        case inlinenumber of
+          in_arm_yield:
+            begin
+              expectloc:=LOC_VOID;
+              resultdef:=voidtype;
+            end;
+          else
+            Result:=inherited first_cpu;
+        end;
+      end;
+
+
+     procedure tarminlinenode.pass_generate_code_cpu;
+       begin
+         case inlinenumber of
+           in_arm_yield:
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD));
+           else
+             inherited pass_generate_code_cpu;
+         end;
+       end;
+
 
     procedure tarminlinenode.load_fpu_location(out singleprec: boolean);
       begin

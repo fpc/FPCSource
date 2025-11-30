@@ -219,6 +219,14 @@ type
      ,
      {$i ccpuinnr.inc}
 {$endif}
+{$if defined(ARM)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif}
+{$if defined(AARCH64)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif}
    );
 
 implementation
