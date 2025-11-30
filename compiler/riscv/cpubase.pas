@@ -179,6 +179,9 @@ uses
 //        A_FCVT_D_S,A_FCVT_S_D,
 //        A_FCVT_W_D,A_FCVT_WU_D,A_FCVT_D_W,A_FCVT_D_WU,
 
+        { Zihintpause }
+        A_PAUSE,
+
         { Machine mode }
         A_MRET,A_HRET,A_SRET,A_URET,
         A_WFI,

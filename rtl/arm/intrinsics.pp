@@ -1,5 +1,5 @@
 {
-    Defines CPU intrinsics for AArch64
+    Provides CPU intrinsics for ARM
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2021 by the Free Pascal development team.
@@ -12,5 +12,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFNDEF FPC_DOTTEDUNITS}
+unit intrinsics;
+{$ENDIF FPC_DOTTEDUNITS}
 
-procedure fpc_aarch64_yield;[internproc:fpc_in_aarch64_yield];
+  interface
+
+    const
+    {$i cpuinnr.inc}
+
+    {$i cpuprocs.inc}
+
+  implementation
+
+end.

@@ -1147,7 +1147,8 @@ implementation
            A_UMULL,
            A_UMULH,
            A_UXTB,
-           A_UXTH:
+           A_UXTH,
+           A_MRS:
              if opnr=0 then
                result:=operand_write
              else

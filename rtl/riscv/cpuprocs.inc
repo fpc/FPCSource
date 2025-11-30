@@ -1,8 +1,8 @@
 {
-    Defines CPU intrinsics for AArch64
+    Defines CPU intrinsics for RiscV
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2021 by the Free Pascal development team.
+    Copyright (c) 2025 by the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,4 +13,4 @@
 
  **********************************************************************}
 
-procedure fpc_aarch64_yield;[internproc:fpc_in_aarch64_yield];
+procedure fpc_riscv_pause;[internproc:fpc_in_riscv_pause];

@@ -51,6 +51,9 @@ interface
         procedure second_fma; override;
         procedure second_prefetch; override;
         procedure second_minmax; override;
+        procedure pass_generate_code_cpu; override;
+        function pass_typecheck_cpu: tnode; override;
+        function first_cpu: tnode; override;
       private
         procedure load_fpu_location;
       end;
@@ -70,6 +73,44 @@ implementation
 {*****************************************************************************
                               taarch64inlinenode
 *****************************************************************************}
+
+     function taarch64inlinenode.pass_typecheck_cpu: tnode;
+       begin
+         Result:=nil;
+         case inlinenumber of
+           in_a64_yield:
+             resultdef:=voidtype;
+           else
+             result:=inherited;
+         end;
+       end;
+
+
+    function taarch64inlinenode.first_cpu : tnode;
+      begin
+        Result:=nil;
+        case inlinenumber of
+          in_a64_yield:
+            begin
+              expectloc:=LOC_VOID;
+              resultdef:=voidtype;
+            end;
+          else
+            Result:=inherited first_cpu;
+        end;
+      end;
+
+
+     procedure taarch64inlinenode.pass_generate_code_cpu;
+       begin
+         case inlinenumber of
+           in_a64_yield:
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD));
+           else
+             inherited pass_generate_code_cpu;
+         end;
+       end;
+
 
     procedure taarch64inlinenode.load_fpu_location;
       begin

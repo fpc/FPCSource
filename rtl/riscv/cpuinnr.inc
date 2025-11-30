@@ -1,5 +1,5 @@
-{
-    Defines CPU intrinsics for AArch64
+  {
+    Defines CPU intrinsic indicies for RiscV
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 2021 by the Free Pascal development team.
@@ -13,4 +13,4 @@
 
  **********************************************************************}
 
-procedure fpc_aarch64_yield;[internproc:fpc_in_aarch64_yield];
+fpc_in_riscv_pause = fpc_in_cpu_first+0;

@@ -14,3 +14,4 @@
  **********************************************************************}
 
 fpc_in_aarch64_fcadd = fpc_in_cpu_first+0;
+fpc_in_aarch64_yield = fpc_in_cpu_first+1;
