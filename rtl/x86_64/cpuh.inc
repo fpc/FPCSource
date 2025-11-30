@@ -34,6 +34,7 @@ function fpc_x86_get_ds:longint;[internproc:fpc_in_x86_get_ds];
 function fpc_x86_get_es:longint;[internproc:fpc_in_x86_get_es];
 function fpc_x86_get_fs:longint;[internproc:fpc_in_x86_get_fs];
 function fpc_x86_get_gs:longint;[internproc:fpc_in_x86_get_gs];
+procedure fpc_x86_pause;[internproc:fpc_in_x86_pause];
 
 { include automatically generated procs }
 {$if not defined(VER3_2)}
