@@ -163,6 +163,9 @@ unit itcpugas;
         'flq','fsq',
         'fmax.q','fmax.q',
 
+        { Zihintpause }
+        'pause',
+
         { Machine mode }
         'mret','hret','sret','uret',
         'wfi',

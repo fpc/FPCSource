@@ -227,6 +227,10 @@ type
      ,
      {$i ccpuinnr.inc}
 {$endif}
+{$if defined(RISCV)}
+     ,
+     {$i ccpuinnr.inc}
+{$endif}
    );
 
 implementation

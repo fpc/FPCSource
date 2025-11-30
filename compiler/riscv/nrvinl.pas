@@ -51,6 +51,10 @@ interface
 
         procedure second_fma; override;
         procedure second_minmax; override;
+
+        function pass_typecheck_cpu: tnode; override;
+        function first_cpu: tnode; override;
+        procedure pass_generate_code_cpu; override;
       protected
         procedure load_fpu_location;
       end;
@@ -73,6 +77,44 @@ implementation
 {*****************************************************************************
                               trvinlinenode
 *****************************************************************************}
+
+     function trvinlinenode.pass_typecheck_cpu: tnode;
+       begin
+         Result:=nil;
+         case inlinenumber of
+           in_riscv_pause:
+             resultdef:=voidtype;
+           else
+             result:=inherited;
+         end;
+       end;
+
+
+    function trvinlinenode.first_cpu : tnode;
+      begin
+        Result:=nil;
+        case inlinenumber of
+          in_riscv_pause:
+            begin
+              expectloc:=LOC_VOID;
+              resultdef:=voidtype;
+            end;
+          else
+            Result:=inherited first_cpu;
+        end;
+      end;
+
+
+     procedure trvinlinenode.pass_generate_code_cpu;
+       begin
+         case inlinenumber of
+           in_riscv_pause:
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_PAUSE));
+           else
+             inherited pass_generate_code_cpu;
+         end;
+       end;
+
 
      function trvinlinenode.first_sqrt_real : tnode;
        begin

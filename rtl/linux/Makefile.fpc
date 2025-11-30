@@ -78,7 +78,7 @@ endif
 endif
 # syscall unit compiled with -dFPC_USE_LIBC
 # required mode objfpc which adds a dependency to
-# objpas unit 
+# objpas unit
 ifneq ($(filter -dFPC_USE_LIBC,$(OPT) $(CROSSOPT)),)
   SYSCALL_DEPS_OS+=$(OBJPASUNIT)$(PPUEXT)
 endif
@@ -120,11 +120,13 @@ endif
 ifeq ($(ARCH),riscv32)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c
+CPU_UNITS=$(INTRINSICSUNIT)
 endif
 
 ifeq ($(ARCH),riscv64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c si_g
+CPU_UNITS=$(INTRINSICSUNIT)
 endif
 
 ifeq ($(ARCH),mips64)

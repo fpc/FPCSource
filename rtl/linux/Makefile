@@ -971,10 +971,12 @@ endif
 ifeq ($(ARCH),riscv32)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c
+CPU_UNITS=$(INTRINSICSUNIT)
 endif
 ifeq ($(ARCH),riscv64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_dll si_c si_g
+CPU_UNITS=$(INTRINSICSUNIT)
 endif
 ifeq ($(ARCH),mips64)
 override LOADERS=
