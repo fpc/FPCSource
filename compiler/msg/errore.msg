@@ -2696,6 +2696,9 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 cg_f_unknown_internal_procedure_number=06063_F_Unknown internal procedure number "$1"
 % The directive \var{internproc} is used with a number not known by the compiler. \var{internproc} should be used only by the
 % supplied RTL or by users really knowing what they are doing.
+cg_e_intrinsic_not_supported_by_instruction_set=06064_E_Intrinsic not supported by the currently selected instruction set
+% The intrinsic translates into an assembler instruction which is not supported by the instruction set
+% selected by \var{-Cp}
 %
 % \end{description}
 # EndOfTeX

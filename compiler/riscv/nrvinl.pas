@@ -83,7 +83,11 @@ implementation
          Result:=nil;
          case inlinenumber of
            in_riscv_pause:
-             resultdef:=voidtype;
+             begin
+               if not(CPURV_HAS_ZIHINTPAUSE in cpu_capabilities[current_settings.cputype]) then
+                 Message(cg_e_intrinsic_not_supported_by_instruction_set);
+               resultdef:=voidtype;
+             end;
            else
              result:=inherited;
          end;

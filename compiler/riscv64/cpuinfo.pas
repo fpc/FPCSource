@@ -139,6 +139,7 @@ Const
        CPURV_HAS_ZBKX,
        CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }
        CPURV_HAS_FETCH_FENCE,        { extension Zifencei }
+       CPURV_HAS_ZIHINTPAUSE,
        CPURV_HAS_F,
        CPURV_HAS_D,
        CPURV_HAS_Q,
