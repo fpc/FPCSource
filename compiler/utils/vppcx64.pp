@@ -127,7 +127,10 @@ begin
       CompilerName:=DefaultCompilerName;
     end;
 
-  FullCompilerName:=filesearch(CompilerName,Dir+PathSep+GetEnvironmentVariable('PATH'));
+  if FileExists(Dir+CompilerName) then
+    FullCompilerName:=Dir+CompilerName
+  else
+    FullCompilerName:=filesearch(CompilerName,Dir+PathSep+GetEnvironmentVariable('PATH'));
 
   if FullCompilerName='' then
     begin
