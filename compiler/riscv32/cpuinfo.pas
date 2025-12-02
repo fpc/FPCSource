@@ -21,7 +21,7 @@ Interface
   uses
     globtype;
 
-{$I cpuinfo.inc}
+{$I ../riscv/cpuinfo.inc}
 
 Type
    { possible supported processors for this target }
