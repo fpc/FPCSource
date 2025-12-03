@@ -37,6 +37,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-syntax');
     P.Dependencies.Add('chm');
     P.Dependencies.Add('univint',[darwin,iphonesim,ios]);
 

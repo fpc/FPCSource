@@ -1,0 +1,161 @@
+/*
+  $Id: fpdoc2.css,v 1.1 2003/03/17 23:03:20 michael Exp $
+
+  Default style sheet for FPDoc reference documentation
+  by Sebastian Guenther, sg@freepascal.org
+
+  Feel free to use this file as a template for your own style sheets.
+*/
+
+.section {
+  padding: 1rem 1rem; !important
+}
+
+div.code, tt, span.kw, pre, div.code a {
+  font-family: Courier, monospace
+}
+
+.column.list {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+/* source fragments */
+span.code {
+  white-space: nowrap
+}
+
+/* symbols in source fragments */
+span.sym {
+  color: darkred
+}
+
+/* keywords in source fragments */
+span.kw {
+  font-weight: bold
+}
+
+/* comments in source fragments */
+span.cmt {
+  color: darkcyan;
+  font-style: italic
+}
+
+/* directives in source fragments */
+span.dir {
+  color: darkyellow;
+  font-style: italic
+}
+
+/* numbers in source fragments */
+span.num {
+  color: darkmagenta
+}
+
+/* characters (#...) in source fragments */
+span.chr {
+  color: darkcyan
+}
+
+/* strings in source fragments */
+span.str {
+  color: blue
+}
+
+/* assembler passages in source fragments */
+span.asm {
+  color: green
+}
+
+p.cmt {
+  color: gray
+}
+
+span.warning {
+  color: red;
+  font-weight: bold
+}
+
+/* !!!: How should we define this...? */
+span.file {
+  color: darkgreen
+}
+
+span.footer {
+  font-style: italic;
+  color: darkblue
+}
+
+span.toggletreeclose {
+    background: url(minus.png) center left no-repeat;
+    padding-left: 20px;
+}
+span.toggletreeopen {
+    background: url(plus.png) center left no-repeat;
+    padding-left: 20px;
+}
+
+ul.classtreelist li { padding-left: 0px; }
+
+ul.classtreelist { list-style-type:none; }
+
+li.classtree ul { display: block; }
+ 
+li.classtreeclosed ul { display: none; }
+
+        /* --- Base Structure Styling --- */
+        .treeview, .treeview ul {
+            list-style: none; /* Remove default bullets */
+            padding-left: 15px;
+            margin: 0;
+        }
+
+        .treeview li {
+            line-height: 1.5;
+            cursor: pointer;
+            position: relative; /* Needed for positioning the pseudo-element */
+            padding-left: 5px; /* Add some space for the icon */
+        }
+
+        /* --- Nested List Visibility --- */
+
+        /* Hide all nested ULs by default */
+        .treeview ul {
+            display: none;
+        }
+
+        /* Show the nested UL when the parent LI has the 'expanded' class */
+        .treeview li.expanded > ul {
+            display: block;
+        }
+
+        /* --- Icon Logic using ::before Pseudo-Element --- */
+        
+        /* 1. Default/Collapsed State for Parent Nodes */
+        .treeview li.parent::before {
+            /* Right-pointing triangle: &#9656; or \25B8 */
+            content: '\25B8'; 
+            margin-right: 5px;
+            color: #007bff;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 18px; /* Adjust size to look neat */
+        }
+
+        /* 2. Expanded State for Parent Nodes */
+        .treeview li.expanded.parent::before {
+            /* Down-pointing triangle: &#9662; or \25BE */
+            content: '\25BE';
+        }
+
+        /* 3. Styling for Leaf Nodes (No Expansion) */
+        /* The element without the 'parent' class is a leaf node */
+        .treeview li:not(.parent)::before {
+            /* Black circle/dot for a simple leaf icon: &#9679; or \25CF */
+            content: '\25CF'; 
+            margin-right: 5px;
+            color: gray;
+            font-size: 0.8em;
+            cursor: default; 
+        }
+
