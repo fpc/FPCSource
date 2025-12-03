@@ -2696,6 +2696,9 @@ cg_w_interrupt_does_not_save_registers=06062_W_The target CPU does not support p
 cg_f_unknown_internal_procedure_number=06063_F_Unknown internal procedure number "$1"
 % The directive \var{internproc} is used with a number not known by the compiler. \var{internproc} should be used only by the
 % supplied RTL or by users really knowing what they are doing.
+cg_e_intrinsic_not_supported_by_instruction_set=06064_E_Intrinsic not supported by the currently selected instruction set
+% The intrinsic translates into an assembler instruction which is not supported by the instruction set
+% selected by \var{-Cp}
 %
 % \end{description}
 # EndOfTeX
@@ -4583,7 +4586,8 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xf_Substitute pthread library name for linking (BSD)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2Xi_Use internal linker
-L*2XlS<x>_LLVM utilties suffix (e.g. -7 in case clang is called clang-7)
+L*2XlS<x>_LLVM utilities suffix (e.g. -7 in case clang is called clang-7)
+W*2XlS<x>_LLVM utilities suffix (e.g. -17 in case llvm-mc is called llvm-mc-17)
 **2XLA_Define library substitutions for linking
 **2XLD_Exclude default order of standard libraries
 **2XLO_Define order of library linking

@@ -4286,7 +4286,7 @@ begin
            else
              include(init_settings.globalswitches,cs_link_native);
          end;
-{$ifdef llvm}
+{$if defined(llvm) or defined(wasm32)}
        'l' :
          begin
            if j=length(more) then

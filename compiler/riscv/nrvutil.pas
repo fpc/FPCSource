@@ -93,6 +93,8 @@ implementation
             attr_arch:=attr_arch+'_zicsr2p0';
           if CPURV_HAS_FETCH_FENCE in cpu_capabilities[current_settings.cputype] then
             attr_arch:=attr_arch+'_zifencei2p0';
+          if CPURV_HAS_ZIHINTPAUSE in cpu_capabilities[current_settings.cputype] then
+            attr_arch:=attr_arch+'_zihintpause1p0';
           if CPURV_HAS_ZMMUL in cpu_capabilities[current_settings.cputype] then
             attr_arch:=attr_arch+'_zmmul1p0';
           if CPURV_HAS_ZFA in cpu_capabilities[current_settings.cputype] then

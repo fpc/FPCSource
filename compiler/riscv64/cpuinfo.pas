@@ -21,17 +21,9 @@ interface
 uses
   globtype;
 
+{$I ../riscv/cpuinfo.inc}
+
 type
-  bestreal = double;
-  bestrealrec = TDoubleRec;
-  ts32real = single;
-  ts64real = double;
-  ts80real = extended;
-  ts128real = extended;
-  ts64comp = comp;
-
-  pbestreal = ^bestreal;
-
   { possible supported processors for this target }
   tcputype = (cpu_none,
     cpu_rv64imac,
@@ -44,23 +36,15 @@ type
     cpu_rv64gcb
   );
 
-  tfputype =
-    (fpu_none,
-    fpu_libgcc,
-    fpu_soft,
-    fpu_fd
+  tcontrollertype =
+    (ct_none
     );
 
-   tcontrollertype =
-     (ct_none
-     );
-
-   tcontrollerdatatype = record
-      controllertypestr, controllerunitstr: string[20];
-      cputype: tcputype; fputype: tfputype;
-      flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
-   end;
-
+  tcontrollerdatatype = record
+     controllertypestr, controllerunitstr: string[20];
+     cputype: tcputype; fputype: tfputype;
+     flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
+  end;
 
 Const
   { Is there support for dealing with multiple microcontrollers available }
@@ -101,13 +85,6 @@ Const
     'RV64GCB'
     );
 
-  fputypestr: array[tfputype] of string[8] = (
-    'NONE',
-    'LIBGCC',
-    'SOFT',
-    'FD'
-    );
-
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
                                  genericlevel2optimizerswitches+
@@ -123,35 +100,6 @@ Const
      [{$ifndef llvm}cs_opt_regvar,{$endif}cs_opt_stackframe,cs_opt_nodecse,cs_opt_tailrecursion,cs_opt_consts];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches;
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_opt_stackframe];
-
- type
-   tcpuflags =
-      (CPURV_HAS_MUL,
-       CPURV_HAS_ATOMIC,
-       CPURV_HAS_COMPACT,
-       CPURV_HAS_16REGISTERS,
-       CPURV_HAS_ZBA,
-       CPURV_HAS_ZBB,
-       CPURV_HAS_ZBC,
-       CPURV_HAS_ZBS,
-       CPURV_HAS_ZBKB,
-       CPURV_HAS_ZBKC,
-       CPURV_HAS_ZBKX,
-       CPURV_HAS_CSR_INSTRUCTIONS,   { extension Zicsr    }
-       CPURV_HAS_FETCH_FENCE,        { extension Zifencei }
-       CPURV_HAS_F,
-       CPURV_HAS_D,
-       CPURV_HAS_Q,
-       CPURV_HAS_ZFH,
-       CPURV_HAS_ZFHMIN,
-       CPURV_HAS_ZFA,
-       CPURV_HAS_ZFINX,
-       CPURV_HAS_ZDINX,
-       CPURV_HAS_ZHINX,
-       CPURV_HAS_ZHINXMIN,
-       CPURV_HAS_ZICOND,
-       CPURV_HAS_ZMMUL
-      );
 
  const
    cpu_capabilities : array[tcputype] of set of tcpuflags =
