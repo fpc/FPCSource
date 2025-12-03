@@ -187,10 +187,9 @@ unit i_bsd;
             system       : system_powerpc64_freebsd;
             name         : 'FreeBSD for PowerPC64';
             shortname    : 'FreeBSD';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
-                            tf_files_case_sensitive,
-                            tf_dwarf_only_local_labels,
-                            {tf_pic_uses_got,}tf_smartlink_sections,tf_has_winlike_resources];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_requires_proper_alignment,tf_safecall_exceptions,tf_smartlink_sections,tf_has_winlike_resources,
+                            tf_supports_hidden_symbols];
             cpu          : cpu_powerpc64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
