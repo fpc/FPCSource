@@ -810,7 +810,7 @@ type
 
   TPasRecordType = class(TPasMembersType)
   private
-    procedure GetMembers(S: TStrings);
+    procedure GetMembers(S: TStrings; aSkipSection: Boolean=false);
   public
     constructor Create(const AName: TPasTreeString; AParent: TPasElement); override;
     destructor Destroy; override;
@@ -1166,7 +1166,8 @@ type
     procedure FreeChildren(Prepare: boolean); override;
     function ElementTypeName: TPasTreeString; override;
     function TypeName: TPasTreeString; override;
-    function GetDeclaration(full: Boolean): TPasTreeString; override;
+    function GetDeclaration(full: Boolean): TPasTreeString; override; overload;
+    function GetDeclaration(full, AddArgs, AddModifiers, AddParent: Boolean): TPasTreeString; virtual; overload;
     procedure GetModifiers(List: TStrings);
     procedure ForEachCall(const aMethodCall: TOnForEachPasElement;
       const Arg: Pointer); override;
@@ -1268,7 +1269,7 @@ type
     function ElementTypeName: TPasTreeString; override;
     function TypeName: TPasTreeString; override;
     function GetProcTypeEnum: TProcType; override;
-    function GetDeclaration (full : boolean) : TPasTreeString; override;
+    function GetDeclaration(full, AddArgs, AddModifiers, AddParent: Boolean): TPasTreeString; override;
     Property OperatorType : TOperatorType Read FOperatorType Write FOperatorType;
     // True if the declaration was using a token instead of an identifier
     Property TokenBased : Boolean Read FTokenBased Write FTokenBased;
@@ -2971,7 +2972,7 @@ begin
     Result:=Pred(Result);
 end;
 
-Function TPasOperator.NameSuffix : TPasTreeString;
+function TPasOperator.NameSuffix: TPasTreeString;
 
 Var
   I : Integer;
@@ -3514,7 +3515,7 @@ begin
     Result:=Result+': ('+sLineBreak;
     S:=TStringList.Create;
     try
-      Members.GetMembers(S);
+      Members.GetMembers(S,True);
       Result:=Result+S.Text;
     finally
       S.Free;
@@ -4610,7 +4611,7 @@ begin
   If IsPacked then
     Result := 'packed '+Result;      // 12/04/04 Dave - Added
   If Assigned(Eltype) then
-    Result:=Result+ElType.GetDeclaration(ElType is TPasUnresolvedTypeRef)
+    Result:=Result+ElType.GetDeclaration(Not (ElType is TPasUnresolvedTypeRef))
   else
     Result:=Result+'const';
 end;
@@ -4798,7 +4799,7 @@ end;
 
 { TPasRecordType }
 
-procedure TPasRecordType.GetMembers(S: TStrings);
+procedure TPasRecordType.GetMembers(S: TStrings; aSkipSection : Boolean = false);
 
 Var
   T : TStringList;
@@ -4818,7 +4819,7 @@ begin
     if E.Visibility<>CV then
       begin
       CV:=E.Visibility;
-      if CV<>visDefault then
+      if (CV<>visDefault) and not aSkipSection then
         S.Add(VisibilityNames[CV]);
       end;
     Temp:=E.GetDeclaration(True);
@@ -5186,14 +5187,14 @@ procedure TPasProcedure.GetModifiers(List: TStrings);
   end;
 
 begin
-  Doadd(IsVirtual,' Virtual');
-  DoAdd(IsDynamic,' Dynamic');
-  DoAdd(IsOverride,' Override');
-  DoAdd(IsAbstract,' Abstract');
-  DoAdd(IsOverload,' Overload');
-  DoAdd(IsReintroduced,' Reintroduce');
-  DoAdd(IsStatic,' Static');
-  DoAdd(IsMessage,' Message');
+  Doadd(IsVirtual,' virtual');
+  DoAdd(IsDynamic,' dynamic');
+  DoAdd(IsOverride,' override');
+  DoAdd(IsAbstract,' abstract');
+  DoAdd(IsReintroduced,' reintroduce');
+  DoAdd(IsOverload,' overload');
+  DoAdd(IsStatic,' static');
+  DoAdd(IsMessage,' message');
 end;
 
 procedure TPasProcedure.ForEachCall(const aMethodCall: TOnForEachPasElement;
@@ -5337,6 +5338,24 @@ begin
 end;
 
 function TPasProcedure.GetDeclaration(full: Boolean): TPasTreeString;
+
+begin
+  GetDeclaration(Full,True,Full,False);
+end;
+
+function TPasProcedure.GetDeclaration(full, AddArgs, AddModifiers, AddParent: Boolean): TPasTreeString;
+
+  function GetName(t : string) : String;
+  begin
+    Result:=T;
+    if Name='' then
+      exit;
+    Result:=Result+' ';
+    if addParent and (Parent is TPasType) then
+      Result:=Result+Parent.Name+'.';
+    Result:=Result+SafeName;
+  end;
+
 Var
   S : TStringList;
   T: TPasTreeString;
@@ -5344,31 +5363,29 @@ Var
 begin
   S:=TStringList.Create;
   try
-    If Full then
+    T:=TypeName;
+    If (NameParts=Nil) or not Full then
+      T:=GetName(T)
+    else
       begin
-      T:=TypeName;
-      if NameParts<>nil then
+      T:=T+' ';
+      for i:=0 to NameParts.Count-1 do
         begin
-        T:=T+' ';
-        for i:=0 to NameParts.Count-1 do
+        if i>0 then
+          T:=T+'.';
+        with TProcedureNamePart(NameParts[i]) do
           begin
-          if i>0 then
-            T:=T+'.';
-          with TProcedureNamePart(NameParts[i]) do
-            begin
-            T:=T+Name;
-            if Templates<>nil then
-              T:=T+GenericTemplateTypesAsString(Templates);
-            end;
+          T:=T+Name;
+          if Templates<>nil then
+            T:=T+GenericTemplateTypesAsString(Templates);
           end;
-        end
-      else if Name<>'' then
-        T:=T+' '+SafeName;
-      S.Add(T);
+        end;
       end;
+    S.Add(T);
     if Assigned(ProcType) then
       begin
-      ProcType.GetArguments(S);
+      if AddArgs then
+        ProcType.GetArguments(S);
       If (ProcType is TPasFunctionType)
           and Assigned(TPasFunctionType(Proctype).ResultEl) then
         With TPasFunctionType(ProcType).ResultEl.ResultType do
@@ -5380,13 +5397,16 @@ begin
             T:=T+GetDeclaration(False);
           S.Add(T);
           end;
-      GetModifiers(S); // needs proctype
+      if AddModifiers then
+        GetModifiers(S); // needs proctype
       end;
-    Result:=IndentStrings(S,Length(S[0]));
+    if s.Count>0 then
+      Result:=IndentStrings(S,Length(S[0]));
   finally
     S.Free;
   end;
 end;
+
 
 function TPasFunction.TypeName: TPasTreeString;
 begin
@@ -5415,7 +5435,7 @@ begin
     Result:=Result+TypeName+' '+OperatorTypeToOperatorName(OperatorType);
 end;
 
-function TPasOperator.GetDeclaration (full : boolean) : TPasTreeString;
+function TPasOperator.GetDeclaration(full, AddArgs, AddModifiers, AddParent: Boolean): TPasTreeString;
 
 Var
   S : TStringList;
@@ -5424,8 +5444,7 @@ Var
 begin
   S:=TStringList.Create;
   try
-    If Full then
-      S.Add(GetOperatorDeclaration(Full));
+    S.Add(GetOperatorDeclaration(Full));
     ProcType.GetArguments(S);
     If Assigned((Proctype as TPasFunctionType).ResultEl) then
       if Assigned(TPasFunctionType(ProcType).ResultEl.ResultType) then
@@ -5440,7 +5459,6 @@ begin
         end;
     GetModifiers(S);
     Result:=IndentStrings(S,Length(S[0]));
-
   finally
     S.Free;
   end;
