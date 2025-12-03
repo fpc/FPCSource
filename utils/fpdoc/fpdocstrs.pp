@@ -62,6 +62,7 @@ resourcestring
   SDocProperties             = 'Properties';
   SDocMethods                = 'Methods';
   SDocEvents                 = 'Events';
+  SDocFields                 = 'Fieldss';
   SDocByName                 = 'by Name';
   SDocByInheritance          = 'By inheritance';
   SDocValue                  = 'Value';
@@ -73,6 +74,7 @@ resourcestring
   SDocVisibility             = 'Visibility';
   SDocOpaque                 = 'Opaque type';
   SDocDateGenerated          = 'Documentation generated on: %s';
+  SSeeAll                    = 'See all';
   // The next line requires leading/trailing space due to XML comment layout:
   SDocGeneratedByComment     = ' Generated using FPDoc - (c) 2000-2021 FPC contributors and Sebastian Guenther, sg@freepascal.org ';
   SDocNotes                  = 'Notes';

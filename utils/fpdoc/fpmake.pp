@@ -109,6 +109,7 @@ begin
     if Bin2Obj <> '' then
       begin
       P.Commands.AddCommand(Bin2Obj,'-o $(DEST) -c DefaultCSS $(SOURCE)','css.inc','fpdoc.css');
+      P.Commands.AddCommand(Bin2Obj,'-o $(DEST) -c DefaultNewCSS $(SOURCE)','newcss.inc','fpdocs.css');
       P.Commands.AddCommand(Bin2Obj,'-o $(DEST) -c PlusImageData $(SOURCE)','plusimage.inc','images/plus.png');
       P.Commands.AddCommand(Bin2Obj,'-o $(DEST) -c MinusImageData $(SOURCE)','minusimage.inc','images/minus.png');
       end;
