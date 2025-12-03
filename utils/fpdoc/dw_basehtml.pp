@@ -490,8 +490,12 @@ begin
 end;
 
 procedure TBaseHTMLWriter.DescrWriteVarEl(const AText: DOMString);
+var
+  NewEl: TDOMElement;
 begin
-  AppendText(CreateEl(CurOutputNode, 'var'), AText);
+  NewEl := CreateEl(CurOutputNode, 'span');
+  NewEl['class'] := 'identifier';
+  AppendText(NewEl, AText);
 end;
 
 procedure TBaseHTMLWriter.DescrBeginLink(const AId: DOMString);
@@ -1101,8 +1105,8 @@ var
 begin
   if Not Assigned(Element) then
     begin
-    Result := nil;
-    AppendText(CreateWarning(Parent), '<NIL>');
+    Result := CreateWarning(Parent);
+    AppendText(Result, '<NIL>');
     exit;
     end
   else if Element.InheritsFrom(TPasUnresolvedTypeRef) then
@@ -1162,11 +1166,11 @@ begin
     end
   else
     begin
-    Result := nil;
+    Result := CreateEl(Parent,'span');
     if  Element is TPasAliasType then
-      AppendText(Parent, TPasAliasType(Element).DestType.Name)
+      AppendText(Result, TPasAliasType(Element).DestType.Name)
     else
-      AppendText(Parent, Element.Name); // unresolved items
+      AppendText(Result, Element.Name); // unresolved items
     end;
 end;
 
