@@ -264,6 +264,7 @@ Type
     function GetOutputPageNames: TStrings;
     function GetPageCount: Integer;
     function LinkFix(ALink:String):String;
+    procedure SetModule(AValue: TPasModule);
   Protected
     FAllocator: TFileAllocator;
     Procedure LinkUnresolvedInc();
@@ -302,7 +303,7 @@ Type
     function InterpretOption(const Cmd, Arg: String): boolean; override;
     property PageCount: Integer read GetPageCount;
     Property Allocator : TFileAllocator Read FAllocator;
-    Property Module: TPasModule  Read FModule Write FModule;
+    Property Module: TPasModule  Read FModule Write SetModule;
     Property CurDirectory: String Read FCurDirectory Write FCurDirectory;    // relative to curdir of process
     property BaseDirectory: String read FBaseDirectory Write FBaseDirectory; // relative path to package base directory
     Property OutputPageNames : TStrings Read GetOutputPageNames;
@@ -560,6 +561,12 @@ begin
       res := BaseDirectory + res;
   end;
   Result:= res;
+end;
+
+procedure TMultiFileDocWriter.SetModule(AValue: TPasModule);
+begin
+  if FModule=AValue then Exit;
+  FModule:=AValue;
 end;
 
 { Used for:

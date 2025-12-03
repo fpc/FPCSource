@@ -27,6 +27,7 @@ type
 
   TNewHTMLWriter = class(TBaseHTMLWriter)
   private
+    FCreateSideMenu: Boolean;
     FHeadElement: TDomElement;
     FOnTest: TNotifyEvent;
     FCSSFile: String;
@@ -40,7 +41,10 @@ type
     FDateFormat: String;
     FIndexColCount : Integer;
     FSearchPage : String;
+    procedure AppendSideMenuScript(aHead : THTMLElement);
+    procedure AppendSideMenu(aMenu: THTMLElement);
     function GetVarDef(aElement: TPasVariable; aPrefixParent: Boolean): string;
+    procedure SetModuleInfo(aElement: TPasElement; ASubpageIndex: integer);
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
     function CreateAllocator : TFileAllocator; override;
@@ -54,9 +58,11 @@ type
     function CreateListColumn2(aParent: THTMLElement): THTMLElement;
     function CreateListColumns(aParent: THTMLElement): THTMLElement;
     function CreateSection(aParent : THTMLElement) : THTMLElement; virtual;
+    procedure DescrWriteFileEl(const AText: DOMString); override;
+    procedure DescrWriteVarEl(const AText: DOMString); override;
 
     function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte): Byte; override;
-    function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte; aLinkIdentifierMap : TLinkIdentifierMap): Byte; virtual;
+    function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte; aLinkIdentifierMap : TLinkIdentifierMap): Byte; override;
 
     procedure CreateCSSFile; virtual;
 
@@ -66,7 +72,7 @@ type
     function AppendProcType(CodeEl : TDOMElement;  Element: TPasProcedureType; Indent: Integer): TDOMElement; virtual;
     procedure AppendProcExt(CodeEl: TDOMElement; Element: TPasProcedure); virtual;
     procedure AppendProcDecl(CodeEl: TDOMElement; Element: TPasProcedureBase); virtual;
-    procedure AppendProcArgsSection(Parent: TDOMNode; Element: TPasProcedureType; SkipResult : Boolean = False); virtual;
+    procedure AppendProcArgsSection(Parent: THTMLElement; Element: TPasProcedureType; SkipResult : Boolean = False); virtual;
     procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement); override;
     procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: DOMString); override;
     Procedure AppendSeeAlsoSection(AElement: TPasElement; aParent : TDOMElement; DocNode: TDocNode); override;
@@ -86,12 +92,13 @@ type
     procedure AppendInheritanceTree(aParent: THTMLELement; aClass: TPasClassType);
 
     // Package
+
     procedure CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer); virtual;
     procedure CreatePackagePageBody;virtual;
     procedure CreatePackageIndex;
     procedure CreatePackageClassHierarchy;
     procedure CreateClassHierarchyPage(AddUnit : Boolean);
-    procedure CreateIndexPage(L : TStringList); virtual;
+    procedure CreateIndexPage(aParent : THTMLElement; L : TStringList); virtual;
     // Topic
     Procedure CreateTopicPageBody(AElement : TTopicElement);
     // Module
@@ -151,7 +158,7 @@ type
     property OnTest: TNotifyEvent read FOnTest write SetOnTest;
     Property CharSet : String Read FCharSet Write FCharSet;
     Property IndexColCount : Integer Read FIndexColCount write FIndexColCount;
-    Property UseMenuBrackets : Boolean Read FUseMenuBrackets write FUseMenuBrackets;
+    Property CreateSideMenu : Boolean Read FCreateSideMenu Write FCreateSideMenu;
   end;
 
 
@@ -166,10 +173,106 @@ constructor TNewHTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 begin
   inherited Create(APackage, AEngine);
   // should default to true since this is the old behavior
-  UseMenuBrackets:=True;
+  CreateSideMenu:=True;
   IndexColCount:=3;
   Charset:='iso-8859-1';
   FCSSFile:='fpdocs.css';
+end;
+
+procedure TNewHTMLWriter.AppendSideMenuScript(aHead: THTMLElement);
+
+Const
+  SFunc =
+    '  document.addEventListener("DOMContentLoaded", () => {'+sLinebreak+
+    '       const toggleButton = document.getElementById("menu-toggle");'+sLinebreak+
+    '       const sideMenu = document.getElementById("side-menu");'+sLinebreak+
+    '       const mainContent = document.getElementById("main-content");'+sLinebreak+
+    '       if (toggleButton && sideMenu && mainContent) {'+sLinebreak+
+    '           toggleButton.addEventListener("click", () => {'+sLinebreak+
+    '               sideMenu.classList.toggle("is-expanded");'+sLinebreak+
+    '               mainContent.classList.toggle("is-shifted");'+sLinebreak+
+    '           });'+sLinebreak+
+    '       }'+sLinebreak+
+    '   });';
+
+Var
+  SE : THTMLElement;
+
+begin
+  SE:=Doc.CreateElement('script');
+  aHead.AppendChild(SE);
+  AppendText(SE,SFunc);
+end;
+
+
+procedure TNewHTMLWriter.AppendSideMenu(aMenu: THTMLElement);
+
+  function AddLink(aParent : THTMLElement; ALinkSubpageIndex: Integer; const AName: String) : THTMLElement;
+
+  begin
+    Result:=CreateLink(aParent, ResolveLinkWithinPackage(Module, ALinkSubpageIndex));
+    AppendText(Result,aName);
+  end;
+
+  function AddPackageLink(aParent: THTMLElement; ALinkSubpageIndex: Integer; const AName: String) : THTMLElement;
+  var
+    lURL : String;
+  begin
+    lURL:=ResolveLinkWithinPackage(Package, ALinkSubpageIndex);
+    Result:=CreateLink(aParent,lURL);
+    AppendText(Result,aName);
+  end;
+
+
+var
+  lPara,lList,lItem : THTMLElement;
+  lModule : TPasModule;
+  I : Integer;
+
+begin
+  lPara:=CreateEl(aMenu,'p','menu-label');
+  AppendText(lPara,SDocPackageLinkTitle);
+  lList:=CreateEl(aMenu,'ul','menu-list');
+  lItem:=CreateEl(lList,'li');
+  if Assigned(Module) then
+  AddPackageLink(lItem,0, SDocReference);
+  //El:=AppendHyperlink(lItem, Package) as THTMLELement;
+  lItem:=CreateEl(lList,'li');
+  AddPackageLink(lItem,IndexSubIndex, SDocIdentifierIndex);
+  lItem:=CreateEl(lList,'li');
+  AddPackageLink(lItem,ClassHierarchySubIndex, SDocPackageClassHierarchy);
+  lPara:=CreateEl(aMenu,'p','menu-label');
+  AppendText(lPara,SDocUnits);
+  lList:=CreateEl(aMenu,'ul','menu-list');
+  For I:=0 to Package.Modules.Count-1 do
+    begin
+    lModule:=TPasModule(Package.Modules[I]);
+    lItem:=CreateEl(lList,'li');
+    AppendHyperlink(lItem, lModule);
+    end;
+end;
+
+procedure TNewHTMLWriter.SetModuleInfo(aElement : TPasElement; ASubpageIndex : integer);
+
+var
+  i : integer;
+  Element : TPasElement;
+begin
+  CurDirectory := Allocator.GetFilename(AElement, ASubpageIndex);
+  i := Length(CurDirectory);
+  while (i > 0) and not (CurDirectory[i] in AllowDirectorySeparators) do
+    Dec(i);
+  CurDirectory := Copy(CurDirectory, 1, i);
+  BaseDirectory := Allocator.GetRelativePathToTop(AElement);
+  if aElement is TPasPackage then
+    Module:=Nil
+  else
+    begin
+    Element := AElement;
+    while (Element<>Nil) and (not (Element.ClassType.inheritsfrom(TPasModule))) do
+      Element := Element.Parent;
+    Module := TPasModule(Element);
+    end;
 end;
 
 function TNewHTMLWriter.CreateHTMLPage(AElement: TPasElement;
@@ -177,9 +280,11 @@ function TNewHTMLWriter.CreateHTMLPage(AElement: TPasElement;
 var
   HTMLEl: THTMLHtmlElement;
   HeadEl: THTMLHeadElement;
-  BodyElement : THTMLElement;
+  LMain,lMenu,LContent,BodyElement : THTMLElement;
   El: TDOMElement;
+
 begin
+
   Result := THTMLDocument.Create;
   SetHTMLDocument(THTMLDocument(Result));
   Doc.AppendChild(Doc.Impl.CreateDocumentType('html','',''));
@@ -208,7 +313,20 @@ begin
   BodyElement['class']:='has-navbar-fixed-top';
   ContentElement:=BodyElement;
   HTMLEl.AppendChild(BodyElement);
-
+  SetModuleInfo(aElement,ASubpageIndex);
+  AppendMenuBar(ASubpageIndex);
+  if CreateSideMenu then
+    begin
+    AppendSideMenuScript(HeadEl);
+    LMain:=CreateEl(ContentElement,'div');
+    LMain['id']:='main-layout';
+    lMenu:=CreateEl(lMain,'aside','is-expanded');
+    LMenu['id']:='side-menu';
+    AppendSideMenu(lMenu);
+    LContent:=CreateEl(lMain,'div','is-shifted');
+    LContent['id']:='main-content';
+    ContentElement:=lContent;
+    end;
   CreatePageBody(AElement, ASubpageIndex);
 
   AppendFooter;
@@ -436,33 +554,39 @@ begin
     WriteVariant(TPasProcedure(Element),False);
 end;
 
-procedure TNewHTMLWriter.AppendProcArgsSection(Parent: TDOMNode;
+procedure TNewHTMLWriter.AppendProcArgsSection(Parent: THTMLElement;
   Element: TPasProcedureType; SkipResult : Boolean = False);
 var
-  HasFullDescr, IsFirst: Boolean;
+  HasFullDescr, HaveArgDescr: Boolean;
   ResultEl: TPasResultElement;
-  ArgTableEl, TREl: TDOMElement;
+  lColumns, lColumn: THTMLElement;
   DocNode: TDocNode;
   i: Integer;
   Arg: TPasArgument;
 begin
-  IsFirst := True;
-  for i := 0 to Element.Args.Count - 1 do
-  begin
-    Arg := TPasArgument(Element.Args[i]);
-    if IsDescrNodeEmpty(Engine.FindShortDescr(Arg)) then
-      continue;
-    if IsFirst then
+  HaveArgDescr:=False;
+  I:=0;
+  While (I<Element.Args.Count) and not HaveArgDescr do
     begin
-      IsFirst := False;
-      AppendText(CreateH2(Parent), SDocArguments);
-      ArgTableEl := CreateTable(Parent);
+    Arg := TPasArgument(Element.Args[i]);
+    HaveArgDescr:=Not IsDescrNodeEmpty(Engine.FindShortDescr(Arg));
+    inc(i);
     end;
-    TREl := CreateTR(ArgTableEl);
-    AppendText(CreateCode(CreatePara(CreateTD_vtop(TREl))), Arg.Name);
-    AppendShortDescrCell(TREl, Arg);
-  end;
-
+  if HaveArgDescr then
+    begin
+    AppendText(CreateH2(Parent), SDocArguments);
+    for i := 0 to Element.Args.Count - 1 do
+      begin
+      lColumns := CreateListColumns(Parent);
+      Arg := TPasArgument(Element.Args[i]);
+      if IsDescrNodeEmpty(Engine.FindShortDescr(Arg)) then
+        continue;
+      lColumn:=CreateListColumn1(lColumns);
+      AppendText(lColumn, Arg.Name);
+      lColumn:=CreateListColumn2(lColumns);
+      AppendShortDescrCell(lColumn, Arg);
+      end;
+    end;
   if (Element.ClassType = TPasFunctionType) and not SkipResult then
   begin
     ResultEl := TPasFunctionType(Element).ResultEl;
@@ -602,17 +726,27 @@ begin
   NavBrand:=CreateEl(NavEl,'div');
   // We use the brand for the link to the overview
   NavBrand['class']:='navbar-brand';
+  if CreateSideMenu then
+    begin
+    NavItem:=CreateEl(NavBrand,'a','navbar-item');
+    NavItem['role']:='button';
+    NavItem['id']:='menu-toggle';
+    NavItem['aria-label']:='menu';
+    NavItem['aria-expanded']:='false';
+    El:=CreateEl(NavItem,'span','burger-icon');
+    AppendText(El,#$2261); //
+    end;
   NavItem:=CreateEl(NavBrand,'a');
   NavItem['class']:='navbar-item';
   if Assigned(Module) then
     begin
     NavItem['href']:=UTF8Decode(ResolveLinkWithinPackage(Module, 0));
-    AppendText(NavItem,UTF8Decode(Module.Name));
+    AppendText(NavItem, UTF8Decode(Format(SDocUnitMenuTitle,[Module.Name])));
     end
   else
     begin
     NavItem['href']:=UTF8Decode(ResolveLinkWithinPackage(Package, IndexSubIndex));
-    AppendText(NavItem,UTF8Decode(Package.Name));
+    AppendText(NavItem,UTF8Decode(Format(SDocPackageMenuTitle,[Package.Name])));
     end;
   // Now the other items follow
   NavMenu:=CreateEl(NavEl,'div');
@@ -690,6 +824,24 @@ end;
 function TNewHTMLWriter.CreateSection(aParent: THTMLElement): THTMLElement;
 begin
   Result:=CreateEl(aParent,'section','section');
+end;
+
+procedure TNewHTMLWriter.DescrWriteFileEl(const AText: DOMString);
+var
+  NewEl: TDOMElement;
+begin
+  NewEl := CreateEl(CurOutputNode, 'span');
+  NewEl['class'] := 'fileref';
+  AppendText(NewEl, AText);
+end;
+
+procedure TNewHTMLWriter.DescrWriteVarEl(const AText: DOMString);
+var
+  NewEl: TDOMElement;
+begin
+  NewEl := CreateEl(CurOutputNode, 'span');
+  NewEl['class'] := 'identifier';
+  AppendText(NewEl, AText);
 end;
 
 function TNewHTMLWriter.AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte): Byte;
@@ -773,14 +925,15 @@ end;
 procedure TNewHTMLWriter.AppendDescrSection(AContext: TPasElement; Parent: TDOMNode; DescrNode: TDOMElement; const ATitle: DOMString);
 
 var
-  lSection : THTMLElement;
+  lContent,lSection : THTMLElement;
 begin
   if not IsDescrNodeEmpty(DescrNode) then
   begin
     lSection:=CreateSection(Parent as THTMLElement);
+    lContent:=CreateEl(lSection,'div','content');
     If (ATitle<>'') then // Can be empty for topic.
-      AppendText(CreateH2(lSection), ATitle);
-    AppendDescr(AContext, lSection, DescrNode, True);
+      AppendText(CreateH2(lContent), ATitle);
+    AppendDescr(AContext, lContent, DescrNode, True);
   end;
 end;
 
@@ -896,7 +1049,7 @@ procedure TNewHTMLWriter.FinishElementPage(AElement: TPasElement; aDescription :
 
 var
   DocNode: TDocNode;
-
+  lSection : THTMLElement;
 begin
   DocNode := Engine.FindDocNode(AElement);
   If Not Assigned(DocNode) then
@@ -918,7 +1071,8 @@ begin
   AppendSeeAlsoSection(AElement,ContentElement,DocNode);
 
   // Append examples, if present
-  AppendExampleSection(AElement,DocNode);
+  lSection:=CreateSection(ContentElement);
+  AppendExampleSection(AElement,lSection, DocNode);
   // Append notes, if present
   ConvertNotes(AElement,DocNode.Notes);
 end;
@@ -1044,7 +1198,6 @@ begin
   SE := Doc.CreateElement('script');
   AppendText(SE,SFunc);
   HeadElement.AppendChild(SE);
-  AppendMenuBar(ClassHierarchySubIndex);
   S:=Package.Name;
   If Length(S)>0 then
     Delete(S,1,1);
@@ -1054,20 +1207,9 @@ end;
 
 procedure TNewHTMLWriter.CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer);
 
-var
-  i: Integer;
-  Element: TPasElement;
-
 begin
-  CurDirectory := Allocator.GetFilename(AElement, ASubpageIndex);
-  i := Length(CurDirectory);
-  while (i > 0) and not (CurDirectory[i] in AllowDirectorySeparators) do
-    Dec(i);
-  CurDirectory := Copy(CurDirectory, 1, i);
-  BaseDirectory := Allocator.GetRelativePathToTop(AElement);
-  if AElement.ClassType = TPasPackage then
+  if Module=nil then
     begin
-    Module:=Nil;
     If (ASubPageIndex=0) then
       CreatePackagePageBody
     else if ASubPageIndex=IndexSubIndex then
@@ -1077,11 +1219,6 @@ begin
     end
   else
     begin
-    Element := AElement;
-    while (Element<>Nil) and (not (Element.ClassType.inheritsfrom(TPasModule))) do
-      Element := Element.Parent;
-    Module := TPasModule(Element);
-
     if AElement.ClassType.inheritsfrom(TPasModule) then
       CreateModulePageBody(TPasModule(AElement), ASubpageIndex)
     else if AElement.Parent.InheritsFrom(TPasClassType) then
@@ -1105,13 +1242,13 @@ begin
   end;
 end;
 
-procedure TNewHTMLWriter.CreateIndexPage(L : TStringList);
+procedure TNewHTMLWriter.CreateIndexPage(aParent: THTMLElement; L: TStringList);
 Var
   Lists  : Array['A'..'Z'] of TStringList;
   CL : TStringList;
-  TableEl, TREl, EL: TDOMElement;
+  lColumns, lColumn,  EL, el2: TDOMElement;
   E : TPasElement;
-  I,Rows,J,Index : Integer;
+  I : Integer;
   S : String;
   C : Char;
 
@@ -1142,50 +1279,35 @@ begin
         CL.AddObject(S,E);
       end;  
     end;  
-  Try  
-  // Create a quick jump table to all available letters.    
-  TableEl := CreateEl(ContentElement,'div','columns');
+  Try
+  // Create a quick jump table to all available letters.
+  lColumns := CreateEl(aParent,'div','columns is-multiline');
   for C:='A' to 'Z' do
     If (Lists[C]<>Nil) then
       begin
-      El:=CreateEl(TableEl,'div','column is-1');
-      EL:=CreateLink(El,UTF8Decode('#SECTION'+C));
-      EL['class']:='button is-link';
-      AppendText(EL,UTF8Decode(C));
-      If C<>'Z' then
-       AppendNBsp(El,1);
+      lColumn:=CreateEl(lColumns,'div','column is-narrow');
+      lColumn:=CreateLink(lColumn,UTF8Decode('#SECTION'+C));
+      lColumn['class']:='button is-link';
+      AppendText(lColumn,UTF8Decode(C));
       end;
   // Now emit all identifiers.    
-  TableEl:=Nil;
   For C:='A' to 'Z' do
     begin
     CL:=Lists[C];
     If CL<>Nil then
       begin
-      AppendText(CreateH2(ContentElement),UTF8Decode(C));
+      El:=CreateH2(aParent);
+      AppendText(El,UTF8Decode(C));
       CreateAnchor(El,UTF8Decode('SECTION'+C));
-      TableEl := CreateTable(ContentElement);
-      TableEl['Width']:='80%';
-      // Determine number of rows needed
-      Rows:=(CL.Count div IndexColCount);
-      If ((CL.Count Mod IndexColCount)<>0) then
-        Inc(Rows);
-      // Fill rows  
-      For I:=0 to Rows-1 do
+      El:=CreateEl(aParent,'div');
+      EL['style']:='display: block; column-count: 3';
+      for I:=0 to CL.Count-1 do
         begin
-        TREl := CreateTR(TableEl);
-        For J:=0 to IndexColCount-1 do 
-          begin
-          El:=CreateTD_vtop(TREl);
-          Index:=(J*Rows)+I;
-          If (Index<CL.Count) then
-            begin
-            S:=CL[Index];
-            E:=TPasElement(CL.Objects[Index]);
-            AppendHyperlink(El,E);
-            end;
-          end;  
-        end;  
+        E:=TPasElement(CL.Objects[I]);
+        El2:=AppendHyperlink(El,E);
+        if assigned(EL2) then
+          EL2['style']:='display: block;';
+        end;
       end; // have List
     end;  // For C:=
   Finally
@@ -1201,7 +1323,7 @@ Var
   I : Integer;
   M : TPasModule;
   S : String;
-  
+  lSection : THTMLElement;
 begin
   L:=TStringList.Create;
   try
@@ -1212,12 +1334,12 @@ begin
       L.AddObject(M.Name,M);
       AddModuleIdentifiers(M,L);
       end;
-    AppendMenuBar(IndexSubIndex);
     S:=Package.Name;
     If Length(S)>0 then
       Delete(S,1,1);
-    AppendTitle(ContentElement,UTF8Decode(Format(SDocPackageIndex, [S])));
-    CreateIndexPage(L);
+    lSection:=CreateSection(ContentElement);
+    AppendTitle(lSection,UTF8Decode(Format(SDocPackageIndex, [S])));
+    CreateIndexPage(lSection,L);
   Finally
     L.Free;
   end;
@@ -1227,14 +1349,13 @@ procedure TNewHTMLWriter.CreatePackagePageBody;
 
 var
   DocNode: TDocNode;
-  lSection : THTMLElement;
+  lSection, lColumns, lColumn : THTMLElement;
   TableEl, TREl: TDOMElement;
   i: Integer;
   ThisModule: TPasModule;
   L : TStringList;
 
 begin
-  AppendMenuBar(0);
   lSection:=CreateSection(ContentElement);
   AppendTitle(lSection,Format(SDocPackageTitle, [Copy(Package.Name, 2, 256)]));
   AppendShortDescr(CreatePara(lSection), Package);
@@ -1250,9 +1371,11 @@ begin
     for i:=0 to L.Count - 1 do
       begin
       ThisModule := TPasModule(L.Objects[i]);
-      TREl := CreateTR(TableEl);
-      AppendHyperlink(CreateCode(CreatePara(CreateTD_vtop(TREl))), ThisModule);
-      AppendShortDescrCell(TREl, ThisModule);
+      lColumns:=CreateListColumns(lSection);
+      lColumn:=CreateListColumn1(lColumns);
+      AppendHyperlink(lColumn, ThisModule);
+      lColumn:=CreateListColumn2(lColumns);
+      AppendShortDescrCell(lColumn, ThisModule);
       end;
   Finally
     L.Free;
@@ -1357,11 +1480,10 @@ begin
   L:=TStringList.Create;
   try
     AddModuleIdentifiers(AModule,L);
-    AppendMenuBar(IndexSubIndex);
     lSection:=CreateSection(ContentElement);
     AppendTitle(lSection,Format(SDocModuleIndex, [AModule.Name]));
     PushContentElement(lSection);
-    CreateIndexPage(L);
+    CreateIndexPage(lSection,L);
     PopContentElement;
   Finally
     L.Free;
@@ -1371,38 +1493,32 @@ end;
 procedure TNewHTMLWriter.CreateModuleMainPage(aModule : TPasModule);
 
 var
-  lSection,TableEl, TREl, TDEl, CodeEl: TDOMElement;
+  lContent,lSection,lColumns,lColumn: THTMLElement;
   i: Integer;
   UnitRef: TPasType;
   DocNode: TDocNode;
 
+
 begin
-  AppendMenuBar(0);
   lSection:=CreateSection(ContentElement);
   AppendTitle(lSection,Format(SDocUnitTitle, [AModule.Name]),AModule.Hints);
-  AppendShortDescr(CreatePara(lSection), AModule);
+  lContent:=CreateEl(lSection,'div','content');
+  AppendShortDescr(lContent, AModule);
 
   if AModule.InterfaceSection.UsesList.Count > 0 then
   begin
-    TableEl := CreateTable(lSection);
-    AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), 'uses');
+    AppendKw(CreateCode(CreatePara(lContent)), 'uses');
     for i := 0 to AModule.InterfaceSection.UsesList.Count - 1 do
     begin
+      lColumns:=CreateListColumns(lSection);
       UnitRef := TPasType(AModule.InterfaceSection.UsesList[i]);
       DocNode := Engine.FindDocNode(UnitRef);
       if Assigned(DocNode) and DocNode.IsSkipped then
         continue;
-      TREl := CreateTR(TableEl);
-      TDEl := CreateTD_vtop(TREl);
-      CodeEl := CreateCode(CreatePara(TDEl));
-      AppendNbSp(CodeEl, 2);
-      AppendHyperlink(CodeEl, UnitRef);
-      if i < AModule.InterfaceSection.UsesList.Count - 1 then
-        AppendSym(CodeEl, ',')
-      else
-        AppendSym(CodeEl, ';');
-      AppendText(CodeEl, '  ');               // Space for descriptions
-      AppendShortDescrCell(TREl, UnitRef);
+      lColumn:=CreateListColumn1(lColumns);
+      AppendHyperlink(lColumn, UnitRef);
+      lColumn:=CreateListColumn2(lColumns);
+      AppendShortDescrCell(lColumn, UnitRef);
     end;
   end;
 
@@ -1428,7 +1544,6 @@ var
   S : String;
 
 begin
-  AppendMenuBar(ASubpageIndex);
   S:=UTF8Encode(ATitle);
   lSection:=CreateSection(ContentElement);
   AppendTitle(lSection,Format(SDocUnitTitle + ': %s', [AModule.Name, S]));
@@ -1471,7 +1586,6 @@ var
   Decl: TPasResString;
 
 begin
-  AppendMenuBar(ResstrSubindex);
   lSection:=CreateSection(ContentElement);
   AppendTitle(lSection,Format(SDocUnitTitle + ': %s', [AModule.Name, SDocResStrings]));
 
@@ -1517,7 +1631,6 @@ var
   Section,CodeEl: THTMLElement;
 
 begin
-  AppendMenuBar(-1);
   Section:=CreateSection(ContentElement);
   AppendTitle(Section,AConst.Name,AConst.Hints);
   AppendShortDescr(CreatePara(Section), AConst);
@@ -1636,7 +1749,7 @@ procedure TNewHTMLWriter.AppendProcedureTypeDecl(aType: TPasProcedureType);
 
 begin
   AppendHighlightedCode(ContentElement,CreateCodeLines(['type','  '+aType.GetDeclaration(True)+';']));
-//  AppendProcArgsSection(ContentElement, AType);
+  AppendProcArgsSection(ContentElement, AType);
 end;
 
 
@@ -1717,7 +1830,6 @@ var
   Section,CodeEl: THTMLElement;
   DocNode: TDocNode;
 begin
-  AppendMenuBar(-1);
   Section:=CreateSection(ContentElement);
   AppendTitle(Section,AType.Name,AType.Hints);
   AppendShortDescr(CreatePara(section), AType);
@@ -1862,7 +1974,6 @@ var
   DocNode: TDocNode;
 begin
   // Menu bar
-  AppendMenuBar(-1);
   // Title, short description & navs
   lSection:=CreateSection(ContentElement);
   AppendTitle(lSection,AClass.Name,AClass.Hints);
@@ -2003,7 +2114,6 @@ var
   lSection,TitleEl, linkEl: THTMLElement;
 
 begin
-  AppendMenuBar(-1);
   lSection:=CreateSection(ContentElement);
   TitleEl:=CreateH1(lSection);
   AppendText(TitleEl, GetMemberOverviewTitle(aType));
@@ -2017,7 +2127,6 @@ procedure TNewHTMLWriter.CreateClassInheritedSubpage(AClass: TPasClassType; aTyp
 var
   lSection,TitleEl, linkEl: THTMLElement;
 begin
-  AppendMenuBar(-1);
   lSection:=CreateSection(ContentElement);
   TitleEl:=CreateH1(lSection);
   AppendText(TitleEl, GetMemberOverviewTitle(aType));
@@ -2101,7 +2210,6 @@ var
   s: String;
 
 begin
-  AppendMenuBar(-1);
   AppendTitle(ContentElement,AElement.FullName,AElement.Hints);
   AppendShortDescr(CreatePara(ContentElement), AElement);
 
@@ -2133,14 +2241,15 @@ end;
 
 procedure TNewHTMLWriter.CreateVarPageBody(AVar: TPasVariable);
 var
-  CodeEl: TDOMElement;
+  lSection,CodeEl: TDOMElement;
+
 begin
-  AppendMenuBar(-1);
-  AppendTitle(ContentElement,AVar.FullName,AVar.Hints);
-  AppendShortDescr(CreatePara(ContentElement), AVar);
-  AppendText(CreateH2(ContentElement), SDocDeclaration);
-  AppendSourceRef(ContentElement,AVar);
-  CodeEl := AppendCodeBlock(ContentElement);
+  lSection:=CreateSection(ContentElement);
+  AppendTitle(lSection,AVar.FullName,AVar.Hints);
+  AppendShortDescr(CreatePara(lSection), AVar);
+  AppendText(CreateH2(lSection), SDocDeclaration);
+  AppendSourceRef(lSection,AVar);
+  CodeEl := AppendCodeBlock(lSection);
   AppendPasSHFragment(CodeEl, GetElementCode(aVar,False),0);
   FinishElementPage(AVar);
 end;
@@ -2148,10 +2257,9 @@ end;
 procedure TNewHTMLWriter.CreateProcPageBody(AProc: TPasProcedureBase);
 
 var
-  lSection,CodeEl: TDOMElement;
+  lSection,CodeEl: THTMLElement;
 
 begin
-  AppendMenuBar(-1);
   lSection:=CreateSection(ContentElement);
   AppendTitle(lSection,AProc.Name,AProc.Hints);
   AppendShortDescr(CreatePara(lSection), AProc);
@@ -2160,6 +2268,9 @@ begin
   AppendSourceRef(lSection,AProc);
   CodeEl := CreateCode(lSection);
   AppendProcDecl(CodeEl, AProc);
+  if aProc is TPasProcedure then
+    if Assigned(TPasProcedure(aProc).ProcType) then
+      AppendProcArgsSection(lSection, TPasProcedure(aProc).ProcType);
   FinishElementPage(AProc);
 end;
 

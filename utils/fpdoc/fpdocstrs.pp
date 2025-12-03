@@ -6,6 +6,7 @@ interface
 
 resourcestring
   // Output strings
+  SDocReference              = 'Reference';
   SDocPackageTitle           = 'Reference for package ''%s''';
   SDocPackageMenuTitle       = 'Package ''%s''';
   SDocPackageLinkTitle       = 'Package';

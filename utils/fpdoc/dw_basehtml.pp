@@ -126,6 +126,7 @@ type
     Procedure AppendSeeAlsoSection(AElement: TPasElement; DocNode: TDocNode); virtual;
     Procedure AppendSeeAlsoSection(AElement: TPasElement; aParent : TDOMElement; DocNode: TDocNode); virtual;
     Procedure AppendExampleSection(AElement : TPasElement;DocNode : TDocNode); virtual;
+    Procedure AppendExampleSection(AElement : TPasElement;aParent : TDOMElement; DocNode : TDocNode); virtual;
     Procedure AppendShortDescr(Parent: TDOMNode; Element: TPasElement); virtual;
     procedure AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode: TDocNode); virtual;
     procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement); virtual;
@@ -961,6 +962,12 @@ end;
 
 procedure TBaseHTMLWriter.AppendExampleSection ( AElement: TPasElement; DocNode: TDocNode ) ;
 
+begin
+  AppendExampleSection(AElement,ContentElement,DocNode);
+end;
+
+Procedure TBaseHTMLWriter.AppendExampleSection(AElement : TPasElement;aParent : TDOMElement; DocNode : TDocNode);
+
 var
   Node: TDOMNode;
   fn,s: String;
@@ -977,12 +984,12 @@ begin
       fn:=Engine.GetExampleFilename(TDOMElement(Node));
       If (fn<>'') then
         begin
-        AppendText(CreateH2(ContentElement), SDocExample);
+        AppendText(CreateH2(aParent), SDocExample);
         try
           Assign(f, FN);
           Reset(f);
           try
-            PushOutputNode(ContentElement);
+            PushOutputNode(aParent);
             DescrBeginCode(False, UTF8Encode(TDOMElement(Node)['highlighter']));
             while not EOF(f) do
               begin
