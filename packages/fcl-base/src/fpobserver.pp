@@ -151,11 +151,11 @@ Type
   { General-purpose of Mediating views. Can be used on any form/component }
 
   TComponentMediator = Class(TBaseMediator)
+  Private
     FViewComponent : TComponent;
   Protected
     function  GetView : TObject; override;
     procedure SetComponent(const AValue: TComponent);
-  Public
     procedure Notification(AComponent: TComponent;  Operation: TOperation); override;
   Published
     // General component which can be set in Object Inspector
