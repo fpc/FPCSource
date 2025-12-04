@@ -135,7 +135,8 @@ span.identifier {
     /* Hidden off-screen */
     transform: translateX(-10em); 
     transition: transform 0.3s ease-in-out;
-    z-index: 100; /* Ensure it is above the main content */
+    z-index: 20; /* Ensure it is above the main content, but below navbar (navbar uses 30) */
+    overflow-y: scroll
 }
 
 /* 3. Side Menu (Expanded State) */
