@@ -149,7 +149,7 @@ unit itcpugas;
 {$endif RISCV64}
 
         { Zfa extension }
-        'fli.s',
+        'fli.s','fli.d','fli.q','fli.h',
         'fminm.s','fmaxm.s','fminm.d','fmaxm.d','fminm.h','fmaxm.h','fminm.q','fmaxm.q',
         'fround.s','froundnx.s','fround.d','froundnx.d','fround.h','froundnx.h','fround.q','froundnx.q',
         'fcvtmod.w.d',
