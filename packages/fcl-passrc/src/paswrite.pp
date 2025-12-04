@@ -839,8 +839,9 @@ begin
     PrepareDeclSectionInStruct('var');
   Add(aVar.SafeName + ': ');
   if Not Assigned(aVar.VarType) then
-    Raise EWriteError.CreateFmt('No type for variable %s',[aVar.SafeName]);
-  WriteType(aVar.VarType,False);
+    Add('unknown_type') // Raise EWriteError.CreateFmt('No type for variable %s',[aVar.SafeName]);
+  else
+    WriteType(aVar.VarType,False);
   if (aVar.AbsoluteExpr<>nil) then
     Add(' absolute %s',[aVar.AbsoluteExpr.ClassName])
   else if (aVar.LibraryName<>Nil) or Assigned (aVar.ExportName) then
@@ -1196,8 +1197,7 @@ begin
   end;
   if Assigned(AProp.VarType) then
   begin
-    Add(': ');
-    WriteType(AProp.VarType,False);
+    Add(': '+aProp.VarType.Name);
   end;
   if not ((woSparse in Options) and (efMember in aFlags)) then
     begin
@@ -1698,14 +1698,19 @@ end;
 
 procedure TPasWriter.PrepareDeclSectionInStruct(const ADeclSection: string);
 
+var
+  dodec : boolean;
 begin
   if Not SameText(ADeclSection,CurDeclSection) then
     begin
     if ADeclSection <> '' then
       begin
-      DecIndent;
+      DoDec:=Indent<>'';
+      if DoDec then
+        DecIndent;
       AddLn(ADeclSection);
-      IncIndent;
+      if DoDec then
+        IncIndent;
       end
     else
       DecIndent;
