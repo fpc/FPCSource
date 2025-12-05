@@ -41,8 +41,6 @@ type
     FDateFormat: String;
     FIndexColCount : Integer;
     FSearchPage : String;
-    procedure AppendSideMenuScript(aHead : THTMLElement);
-    procedure AppendSideMenu(aMenu: THTMLElement);
     function GetVarDef(aElement: TPasVariable; aPrefixParent: Boolean): string;
     procedure SetModuleInfo(aElement: TPasElement; ASubpageIndex: integer);
     procedure SetOnTest(const AValue: TNotifyEvent);
@@ -82,6 +80,8 @@ type
     procedure AppendTopicMenuBar(Topic : TTopicElement);virtual;
     procedure FinishElementPage(AElement: TPasElement; aDescription: Boolean=True); virtual;
     procedure AppendFooter;virtual;
+    procedure AppendSideMenuScript(aHead : THTMLElement);
+    procedure AppendSideMenu(aMenu: THTMLElement);
 
     // Class
     procedure CreateClassMainPage(aClass: TPasClassType);virtual;
@@ -226,6 +226,7 @@ procedure TNewHTMLWriter.AppendSideMenu(aMenu: THTMLElement);
 
 var
   lPara,lList,lItem : THTMLElement;
+  lModules : TStringList;
   lModule : TPasModule;
   I : Integer;
 
@@ -244,12 +245,24 @@ begin
   lPara:=CreateEl(aMenu,'p','menu-label');
   AppendText(lPara,SDocUnits);
   lList:=CreateEl(aMenu,'ul','menu-list');
-  For I:=0 to Package.Modules.Count-1 do
-    begin
-    lModule:=TPasModule(Package.Modules[I]);
-    lItem:=CreateEl(lList,'li');
-    AppendHyperlink(lItem, lModule);
-    end;
+  lModules:=TStringList.Create;
+  try
+    For I:=0 to Package.Modules.Count-1 do
+      begin
+      lModule:=TPasModule(Package.Modules[I]);
+      lModules.AddObject(lModule.Name,lModule);
+      end;
+    lModules.Sort;
+    For I:=0 to lModules.Count-1 do
+      begin
+      lModule:=TPasModule(lModules.Objects[I]);
+      lItem:=CreateEl(lList,'li');
+      AppendHyperlink(lItem, lModule);
+      end;
+  finally
+    LModules.Free;
+  end;
+
 end;
 
 procedure TNewHTMLWriter.SetModuleInfo(aElement : TPasElement; ASubpageIndex : integer);
@@ -1056,7 +1069,7 @@ begin
     exit;
 
   // Description
-  if Assigned(DocNode.Descr) then
+  if aDescription and Assigned(DocNode.Descr) then
     AppendDescrSection(AElement, ContentElement, DocNode.Descr, UTF8Decode(SDocDescription));
 
   // Append "Errors" section
@@ -1943,7 +1956,8 @@ begin
     AppendHyperlink(CodeEl, ThisClass);
     if Assigned(PrevClass) and (PrevClass Is TPasClassType)  then // Interfaces from prevClass
       AppendInterfaceInfo(CodeEl, TPasClassType(PrevClass));
-    AppendShortDescrCell(TREl, ThisClass);
+    TDEl := CreateTD_vtop(TREl);
+    AppendShortDescrCell(TDEl, ThisClass);
 
     if Assigned(ThisTreeNode) then
       if Assigned(ThisTreeNode.ParentNode) then
