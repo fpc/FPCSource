@@ -558,6 +558,7 @@ end;
 
 destructor TPerlRegEx.Destroy;
 begin
+  CleanUp;
   inherited Destroy;
 end;
 
@@ -644,6 +645,7 @@ var
   Buffer : Array[0..255] of ansichar;
 
 begin
+  FillChar(Buffer,SizeOf(Buffer),0);
   pcre2_get_error_message(ErrorNr,@Buffer,SizeOf(Buffer));
   Result:=strpas(@Buffer);
 end;
