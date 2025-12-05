@@ -2777,6 +2777,7 @@ uses
       hmodule : tmodule;
       unitsyms : TFPHashObjectList;
       sym : tsym;
+      symtable : tsymtable;
       i : Integer;
       n : string;
 
@@ -2855,10 +2856,20 @@ uses
       unitsyms.free;
       if assigned(hmodule.globalsymtable) then
         symtablestack.push(hmodule.globalsymtable);
+      symtable:=genericdef.owner;
       { push the localsymtable if needed }
       if ((hmodule<>current_module) or not current_module.in_interface)
           and assigned(hmodule.localsymtable) then
         symtablestack.push(hmodule.localsymtable);
+      { also push the symtables of all owning types }
+      while assigned(symtable) and (symtable.symtabletype in [objectsymtable,recordsymtable]) do
+        begin
+          symtablestack.push(symtable);
+          if assigned(symtable.defowner) then
+            symtable:=symtable.defowner.owner
+          else
+            symtable:=nil;
+        end;
     end;
 
     procedure specialization_done(var state: tspecializationstate);
