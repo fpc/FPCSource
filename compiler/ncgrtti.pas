@@ -652,7 +652,7 @@ implementation
            def:=tarraydef(def).elementdef;
          { name }
          if assigned(def.typesym) then
-           tcb.emit_shortstring_const(ttypesym(def.typesym).realname)
+           tcb.emit_shortstring_const(ttypesym(def.typesym).prettyname)
          else
            tcb.emit_shortstring_const('');
       end;
