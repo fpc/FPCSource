@@ -2030,7 +2030,7 @@ var
          internalerror(200208187);
         deflist.count:=ppufile.header.deflistsize;
         symlist.count:=ppufile.header.symlistsize;
-        globalsymtable:=tglobalsymtable.create(modulename^,moduleid);
+        globalsymtable:=tglobalsymtable.create(realmodulename^,moduleid);
         tstoredsymtable(globalsymtable).ppuload(ppufile);
 
         if ppufile.readentry<>ibexportedmacros then
@@ -2082,7 +2082,7 @@ var
         { load implementation symtable }
         if mf_local_symtable in moduleflags then
           begin
-            localsymtable:=tstaticsymtable.create(modulename^,moduleid);
+            localsymtable:=tstaticsymtable.create(realmodulename^,moduleid);
             tstaticsymtable(localsymtable).ppuload(ppufile);
           end;
 
