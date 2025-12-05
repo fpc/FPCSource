@@ -339,7 +339,7 @@ implementation
                      structdefstack.add(structdef);
                      structdef:=tabstractrecorddef(structdef.owner.defowner);
                    end;
-                 parse_nested_types(def,isfowarddef,false,structdefstack);
+                 parse_nested_types(def,isfowarddef,true,structdefstack);
                  structdefstack.free;
                  result:=true;
                  exit;
