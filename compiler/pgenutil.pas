@@ -1528,7 +1528,7 @@ uses
           begin
             if not assigned(symowner) then
               internalerror(2022102101);
-            if not (symowner.symtabletype in [globalsymtable,recordsymtable]) then
+            if not (symowner.symtabletype in [globalsymtable,staticsymtable]) then
               internalerror(2022102102);
             hmodule:=find_module_from_symtable(symowner);
             if not assigned(hmodule) then
