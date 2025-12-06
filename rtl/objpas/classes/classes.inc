@@ -909,6 +909,9 @@ begin
     as volatile, so the access won't be optimized away by the compiler. (KB) }
   for i:=1 to aIterations do
     begin
+    {$if FPC_FULLVERSION<30300}
+    Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
+    {$else}
     {$IF defined(CPUX86_64) or Defined(CPUI386)}
     fpc_x86_pause;
     {$ELSEIF defined(CPUARM)}
@@ -918,6 +921,7 @@ begin
     {$ELSE}
     Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
     {$ENDIF}
+    {$ifend}
     end;
 end;
 
