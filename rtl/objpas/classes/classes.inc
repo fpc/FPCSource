@@ -913,7 +913,7 @@ begin
     fpc_x86_pause;
     {$ELSEIF defined(CPUARM)}
     fpc_arm_yield;
-    {$ELSEIF defined(CPUAARCH64}
+    {$ELSEIF defined(CPUAARCH64)}
     fpc_aarch64_yield;
     {$ELSE}
     Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
