@@ -326,6 +326,7 @@ type
   TFileEditor = object (TEditor)
     //FileName : FNameStr;
     FileName : Sw_String;
+    WriteBOM: Boolean;
     constructor Init (var Bounds : TRect; AHScrollBar, AVScrollBar : PScrollBar;
                           AIndicator : PIndicator; AFileName : FNameStr);
     constructor Load (var S : TStream);
@@ -4313,6 +4314,7 @@ begin
   S.Read (FileName[0], SizeOf (Byte));
   S.Read (Filename[1], Length (FileName));
 {$endif}
+  S.Read (WriteBOM, SizeOf (WriteBOM));
   if IsValid then
     IsValid := LoadFile;
   S.Read (SStart, SizeOf (SStart));
@@ -4389,6 +4391,14 @@ begin
             EditorDialog(edReadError, @FileName)
           else
             begin
+              if (FRead>=3)
+                and (Buffer^[BufSize-FSize+0]=#$EF)
+                and (Buffer^[BufSize-FSize+1]=#$BB)
+                and (Buffer^[BufSize-FSize+2]=#$BF) then { utf BOM detected }
+              begin
+                WriteBOM:=true; {write BOM back on save}
+                FRead:=FRead-3; {reduce size by BOM size}
+              end;
               LoadFile := True;
               Length := FRead;
             end;
@@ -4423,6 +4433,8 @@ end; { TFileEditor.SaveAs }
 
 
 function TFileEditor.SaveFile : Boolean;
+const
+  sbom : string[3] = #$EF#$BB#$BF;
 VAR
   F          : File;
   BackupName : FNameStr;
@@ -4447,6 +4459,8 @@ begin
     EditorDialog (edCreateError, @FileName)
   else
     begin
+      if WriteBOM then
+        BlockWrite (F, sbom[1], 3);
       BlockWrite (F, Buffer^, CurPtr);
       BlockWrite (F, Buffer^[CurPtr + GapLen], BufLen - CurPtr);
       if IOResult <> 0 then
@@ -4495,6 +4509,7 @@ begin
 {$else}
   S.Write (FileName, Length (FileName) + 1);
 {$endif}
+  S.Write (WriteBOM, SizeOf (WriteBOM));
   S.Write (SelStart, SizeOf (SelStart));
   S.Write (SelEnd, SizeOf (SelEnd));
   S.Write (CurPtr, SizeOf (CurPtr));
