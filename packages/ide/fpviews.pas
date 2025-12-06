@@ -338,6 +338,7 @@ type
     PFPDlgWindow = ^TFPDlgWindow;
     TFPDlgWindow = object(TDlgWindow)
       procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   CalcBounds (Var Bounds: TRect; Delta: TPoint); virtual;
     end;
 
 (*
@@ -3784,6 +3785,51 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
+end;
+
+
+procedure TFPDlgWindow.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+var InX,InY: boolean;
+    R : TRect;
+    D : Sw_Integer;
+begin
+  if assigned(Owner) then
+  begin
+    GetBounds(R);
+    InX:=(R.B.X)<=(Owner^.Size.X-Delta.X);
+    InY:=(R.B.Y)<=(Owner^.Size.Y-Delta.Y);
+  end;
+  inherited CalcBounds(Bounds,Delta);
+  if assigned(Owner) then
+  begin
+    R:=Bounds;
+    {keep within bounds if was before}
+    if InX then
+      if (R.B.X)>(Owner^.Size.X) then
+      begin
+        D:=Owner^.Size.X-R.B.X;
+        R.B.X:=R.B.X+D;
+        R.A.X:=R.A.X+D;
+        if R.A.X<0 then
+        begin
+          R.B.X:=R.B.X-R.A.X;
+          R.A.X:=0;
+        end;
+      end;
+    if InY then
+      if (R.B.Y)>(Owner^.Size.Y) then
+      begin
+        D:=Owner^.Size.Y-R.B.Y;
+        R.B.Y:=R.B.Y+D;
+        R.A.Y:=R.A.Y+D;
+        if R.A.Y<0 then
+        begin
+          R.B.Y:=R.B.Y-R.A.Y;
+          R.A.Y:=0;
+        end;
+      end;
+    Bounds:=R;
+  end;
 end;
 
 

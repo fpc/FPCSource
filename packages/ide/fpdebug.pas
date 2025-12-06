@@ -2525,6 +2525,7 @@ begin
   Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
   inherited Init(R, dialog_breakpointlist, wnNoNumber);
 
+  GrowMode:=gfGrowAll+gfGrowRel;
   HelpCtx:=hcBreakpointListWindow;
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
@@ -2550,7 +2551,7 @@ begin
   GetExtent(R);R.Grow(-1,-1);
   Dec(R.B.Y);
   R.A.Y:=R.B.Y-2;
-  X:=(R.B.X-R.A.X) div NumButtons;
+  X:=Min(76,(R.B.X-R.A.X)) div NumButtons;
   X1:=R.A.X+(X div 2);
   R.A.X:=X1-3;R.B.X:=X1+7;
   New(Btn, Init(R, button_Close, cmClose, bfDefault));
@@ -3350,6 +3351,7 @@ end;
       Desktop^.GetExtent(R);
       R.A.Y:=R.B.Y-7;
       inherited Init(R, dialog_watches,SearchFreeWindowNo);
+      GrowMode:=gfGrowAll+gfGrowRel;
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcWatchesWindow;
@@ -3600,8 +3602,9 @@ end;
       R,R2 : trect;
     begin
       Desktop^.GetExtent(R);
-      R.A.Y:=R.B.Y-5;
+      R.A.Y:=R.B.Y-6;
       inherited Init(R, dialog_callstack, wnNoNumber);
+      GrowMode:=gfGrowAll+gfGrowRel;
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcStackWindow;
