@@ -909,7 +909,15 @@ begin
     as volatile, so the access won't be optimized away by the compiler. (KB) }
   for i:=1 to aIterations do
     begin
-      Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
+    {$IF defined(CPUX86_64) or Defined(CPUI386)}
+    fpc_x86_pause;
+    {$ELSEIF defined(CPUARM)}
+    fpc_arm_yield;
+    {$ELSEIF defined(CPUAARCH64}
+    fpc_aarch64_yield;
+    {$ELSE}
+    Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
+    {$ENDIF}
     end;
 end;
 
