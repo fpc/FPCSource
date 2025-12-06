@@ -58,7 +58,7 @@ implementation
 
 const
   MaxKeywordLength = 15;
-  MaxKeyword = 60;
+  MaxKeyword = 61;
 
   KeywordTable: array[0..MaxKeyword] of string =
     ('AND', 'ARRAY', 'ASM', 'ASSEMBLER',
@@ -70,7 +70,7 @@ const
     'GOTO',
     'IF', 'IMPLEMENTATION', 'IN', 'INHERITED', 'INITIALIZATION', 'INTERFACE',
     'NIL', 'NOT',
-    'OBJECT', 'OF', 'ON', 'OR', 'OVERRIDE',
+    'OBJECT', 'OF', 'ON', 'OPERATOR', 'OR', 'OVERRIDE',
     'PACKED', 'PRIVATE', 'PROCEDURE', 'PROGRAM', 'PROPERTY', 'PROTECTED',
     'PUBLIC', 'PUBLISHED',
     'RAISE', 'RECORD', 'REPEAT', 'RESOURCESTRING',

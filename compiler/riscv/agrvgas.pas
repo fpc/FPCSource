@@ -180,6 +180,17 @@ unit agrvgas;
           end;
         top_roundingmode:
           getopstr:=roundingmode2str[o.roundingmode];
+        top_realconst:
+          case o.special_value of
+            ARSV_None:
+              str(o.val_real,getopstr);
+            ARSV_Nan:
+              getopstr:='nan';
+            ARSV_Min:
+              getopstr:='min';
+            ARSV_Inf:
+              getopstr:='inf';
+          end;
         else
           internalerror(2002070604);
       end;

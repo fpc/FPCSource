@@ -1212,18 +1212,14 @@ end;
 function TFPDocEngine.FindAbsoluteLink(const AName: String): String;
 var
   LinkNode: TLinkNode;
-  P : String;
+
 begin
   // Writeln('Finding absolute link: ',aName);
   LinkNode := RootLinkNode.FindChild(AName);
   if Assigned(LinkNode) then
-    begin
-    Result := LinkNode.Link;
-    P:=LinkNode.Path;
-    end
+    Result := LinkNode.Link
   else
     SetLength(Result, 0);
-  // Writeln('Finding absolute link: ',aName,' (Node: ',P,') --> ',Result);
 end;
 
 function TFPDocEngine.ResolveLinkInPackages(AModule: TPasModule; const ALinkDest: String; Strict : Boolean = False): String;

@@ -295,7 +295,11 @@ implementation
                      symtablestack.pop(tabstractrecorddef(def).symtable);
                      symtablestack.free;
                      symtablestack:=oldsymtablestack;
-                     if isspecialize then
+                     if isspecialize or
+                         (
+                           (m_delphi in current_settings.modeswitches) and
+                           (token=_LSHARPBRACKET)
+                         ) then
                        begin
                          if not allowspecialization then
                            Message(parser_e_no_local_para_def);
@@ -335,7 +339,7 @@ implementation
                      structdefstack.add(structdef);
                      structdef:=tabstractrecorddef(structdef.owner.defowner);
                    end;
-                 parse_nested_types(def,isfowarddef,false,structdefstack);
+                 parse_nested_types(def,isfowarddef,true,structdefstack);
                  structdefstack.free;
                  result:=true;
                  exit;

@@ -2921,9 +2921,12 @@ implementation
            while (paraidx>=0) and (vo_is_hidden_para in tparavarsym(hp^.data.paras[paraidx]).varoptions) do
              dec(paraidx);
            pt:=tcallparanode(FParaNode);
-           while assigned(pt) and (paraidx>=0) do
+           while assigned(pt) and ((paraidx>=0) or (po_varargs in hp^.data.procoptions)) do
             begin
-              currpara:=tparavarsym(hp^.data.paras[paraidx]);
+              if paraidx<0 then
+                currpara:=nil
+              else
+                currpara:=tparavarsym(hp^.data.paras[paraidx]);
               { currpt can be changed from loadn to calln when a procvar
                 is passed. This is to prevent that the change is permanent }
               currpt:=pt;
@@ -2933,7 +2936,10 @@ implementation
               { retrieve current parameter definitions to compares }
               eq:=te_incompatible;
               def_from:=currpt.resultdef;
-              def_to:=currpara.vardef;
+              if assigned(currpara) then
+                def_to:=currpara.vardef
+              else
+                def_to:=nil;
               if not(assigned(def_from)) then
                internalerror(200212091);
               if not(
@@ -2944,7 +2950,8 @@ implementation
                internalerror(200212092);
 
               { Convert tp procvars when not expecting a procvar }
-             if (currpt.left.resultdef.typ=procvardef) and
+             if assigned(def_to) and
+                (currpt.left.resultdef.typ=procvardef) and
                 not(def_to.typ in [procvardef,formaldef]) and
                 { if it doesn't require any parameters }
                 (tprocvardef(currpt.left.resultdef).minparacount=0) and
@@ -2968,7 +2975,8 @@ implementation
                returns a procdef we need to find the correct overloaded
                procdef that matches the expected procvar. The loadnode
                temporary returned the first procdef (PFV) }
-             if (
+             if assigned(def_to) and
+                (
                    (def_to.typ=procvardef) or
                    is_funcref(def_to)
                 ) and
@@ -2989,7 +2997,8 @@ implementation
 
              { same as above, but for the case that we have a proc-2-procvar
                conversion together with a load }
-             if (
+             if assigned(def_to) and
+                (
                    (def_to.typ=procvardef) or
                    is_funcref(def_to)
                 ) and
@@ -3026,7 +3035,8 @@ implementation
               else
               { for value and const parameters check if a integer is constant or
                 included in other integer -> equal and calc ordinal_distance }
-               if not(currpara.varspez in [vs_var,vs_out]) and
+               if assigned(currpara) and
+                  not(currpara.varspez in [vs_var,vs_out]) and
                   is_integer(def_from) and
                   is_integer(def_to) and
                   is_in_limit(def_from,def_to) then
@@ -3043,7 +3053,8 @@ implementation
               else
               { for value and const parameters check precision of real, give
                 penalty for loosing of precision. var and out parameters must match exactly }
-               if not(currpara.varspez in [vs_var,vs_out]) and
+               if assigned(currpara) and
+                  not(currpara.varspez in [vs_var,vs_out]) and
                   is_real_or_cextended(def_from) and
                   is_real_or_cextended(def_to) then
                  begin
@@ -3057,7 +3068,9 @@ implementation
               else
               { related object parameters also need to determine the distance between the current
                 object and the object we are comparing with. var and out parameters must match exactly }
-               if not(currpara.varspez in [vs_var,vs_out]) and
+               if assigned(currpara) and
+                  assigned(def_to) and
+                  not(currpara.varspez in [vs_var,vs_out]) and
                   (def_from.typ=objectdef) and
                   (def_to.typ=objectdef) and
                   (tobjectdef(def_from).objecttype=tobjectdef(def_to).objecttype) and
@@ -3080,7 +3093,7 @@ implementation
                  it has too little information. So we do explicitly a detailed comparisation,
                  see also bug #11288 (FK)
                }
-               else if (def_to.typ=setdef) and is_array_constructor(currpt.left.resultdef) then
+               else if assigned(def_to) and (def_to.typ=setdef) and is_array_constructor(currpt.left.resultdef) then
                  begin
                    n:=currpt.left.getcopy;
                    arrayconstructor_to_set(n);
@@ -3160,8 +3173,8 @@ implementation
               if (pt<>currpt) and (eq=te_exact) then
                 eq:=te_equal;
               { if var or out parameter type but paranode not is_valid_for_var }
-              if check_valid_var and (currpara.varspez in [vs_var,vs_out]) and not valid_for_var(currpt.left,false)
-                 and (def_to.typ<>formaldef) and not is_open_array(def_to) then
+              if check_valid_var and assigned(currpara) and (currpara.varspez in [vs_var,vs_out]) and not valid_for_var(currpt.left,false)
+                 and assigned(def_to) and (def_to.typ<>formaldef) and not is_open_array(def_to) then
                 eq:=te_incompatible;
 
               { increase correct counter }
@@ -3182,7 +3195,8 @@ implementation
 
 {$ifdef EXTDEBUG}
               { store equal in node tree for dump }
-              currpara.eqval:=eq;
+              if assigned(currpara) then
+                currpara.eqval:=eq;
 {$endif EXTDEBUG}
 
               { maybe release temp currpt }

@@ -54,6 +54,7 @@ type
       ASubindex: Integer): String; virtual; abstract;
     function GetRelativePathToTop(AElement: TPasElement): String; virtual;
     function GetCSSFilename(ARelativeTo: TPasElement): DOMString; virtual;
+    function GetCSSFilename(ARelativeTo: TPasElement; const aFileName : DOMstring): DOMString; virtual;
     property SubPageNames: Boolean read FSubPageNames write FSubPageNames;
   end;
 
@@ -67,6 +68,9 @@ type
     property Extension: String read FExtension;
   end;
 
+  // Member Filter Callback type
+  TMemberFilter = function(AMember: TPasElement): Boolean;
+  TClassMemberType = (cmtMethod,cmtProperty,cmtEvent,cmtField);
 
   TWriterLogEvent = Procedure(Sender : TObject; Const Msg : String) of object;
   TWriterNoteEvent = Procedure(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean) of object;
@@ -95,6 +99,8 @@ type
     procedure Warning(AContext: TPasElement; const AMsg: String);
     procedure Warning(AContext: TPasElement; const AMsg: String;
       const Args: array of const);
+    procedure IndentLines(aLines: TStrings; aIndent: Word);
+    function IndentLines(aLines: String; aIndent: Word): String;
 
     // function FindShortDescr(const Name: String): TDOMElement;
 
@@ -104,16 +110,12 @@ type
     function ConvertShort(AContext: TPasElement; El: TDOMElement): Boolean;
     function ConvertNotes(AContext: TPasElement; El: TDOMElement): Boolean; virtual;
     function ConvertBaseShort(AContext: TPasElement; Node: TDOMNode): Boolean;
-    procedure ConvertBaseShortList(AContext: TPasElement; Node: TDOMNode;
-      MayBeEmpty: Boolean);
+    procedure ConvertBaseShortList(AContext: TPasElement; Node: TDOMNode;  MayBeEmpty: Boolean);
     procedure ConvertLink(AContext: TPasElement; El: TDOMElement);
     function ConvertExtShort(AContext: TPasElement; Node: TDOMNode): Boolean;
-    procedure ConvertDescr(AContext: TPasElement; El: TDOMElement;
-      AutoInsertBlock: Boolean);
-    function ConvertNonSectionBlock(AContext: TPasElement;
-      Node: TDOMNode): Boolean;
-    procedure ConvertExtShortOrNonSectionBlocks(AContext: TPasElement;
-      Node: TDOMNode);
+    procedure ConvertDescr(AContext: TPasElement; El: TDOMElement; AutoInsertBlock: Boolean);
+    function ConvertNonSectionBlock(AContext: TPasElement;  Node: TDOMNode): Boolean;
+    procedure ConvertExtShortOrNonSectionBlocks(AContext: TPasElement; Node: TDOMNode);
     function ConvertSimpleBlock(AContext: TPasElement; Node: TDOMNode): Boolean;
     Function FindTopicElement(Node : TDocNode): TTopicElement;
     Procedure ConvertImage(El : TDomElement);
@@ -197,6 +199,7 @@ type
     Procedure FPDocError(Fmt : String; Args : Array of Const);
     Function  ShowMember(M : TPasElement) : boolean;
     Procedure GetMethodList(ClassDecl: TPasClassType; List : TStringList);
+    function HasMembersToShow(AClass: TPasClassType; DeclaredOnly: Boolean; AFilter: TMemberFilter): boolean;
     Property EmitNotes : Boolean Read FEmitNotes Write FEmitNotes;
     Property BeforeEmitNote : TWriterNoteEvent Read FBeforeEmitNote Write FBeforeEmitNote;
   end;
@@ -225,6 +228,7 @@ const
   MethodsByNameSubindex = 14;
   EventsByInheritanceSubindex = 15;
   EventsByNameSubindex = 16;
+  FieldsByNameSubindex = 17;
 
 
 Type
@@ -260,11 +264,10 @@ Type
     function GetOutputPageNames: TStrings;
     function GetPageCount: Integer;
     function LinkFix(ALink:String):String;
+    procedure SetModule(AValue: TPasModule);
   Protected
     FAllocator: TFileAllocator;
     Procedure LinkUnresolvedInc();
-    // General resolving routine
-    function ResolveLinkID(const Name: String): DOMString;
     // Simplified resolving routine. Excluded last path after dot
     function ResolveLinkIDUnStrict(const Name: String): DOMString;
     function ResolveLinkIDInUnit(const Name,AUnitName: String): DOMString;
@@ -294,11 +297,13 @@ Type
   Public
     constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     Destructor Destroy; override;
+    // General resolving routine
+    function ResolveLinkID(const Name: String): DOMString;
     class procedure Usage(List: TStrings); override;
     function InterpretOption(const Cmd, Arg: String): boolean; override;
     property PageCount: Integer read GetPageCount;
     Property Allocator : TFileAllocator Read FAllocator;
-    Property Module: TPasModule  Read FModule Write FModule;
+    Property Module: TPasModule  Read FModule Write SetModule;
     Property CurDirectory: String Read FCurDirectory Write FCurDirectory;    // relative to curdir of process
     property BaseDirectory: String read FBaseDirectory Write FBaseDirectory; // relative path to package base directory
     Property OutputPageNames : TStrings Read GetOutputPageNames;
@@ -307,14 +312,17 @@ Type
   TFPDocWriterClass = Class of TFPDocWriter;
   EFPDocWriterError = Class(Exception);
 
-// Member Filter Callback type
-  TMemberFilter = function(AMember: TPasElement): Boolean;
 
 //  Filter Callbacks
 function PropertyFilter(AMember: TPasElement): Boolean;
 function MethodFilter(AMember: TPasElement): Boolean;
 function EventFilter(AMember: TPasElement): Boolean;
-
+function FieldFilter(AMember: TPasElement): Boolean;
+function GetMemberFilter(aMemberType : TClassMemberType) : TMemberFilter;
+Function GetMemberDocName(aMemberType : TClassMemberType) : String;
+Function GetAnchorName(aMemberType : TClassMemberType) : String;
+function GetMemberSubIndex(aMemberType : TClassMemberType) : Integer;
+Function GetMemberOverviewTitle(aMemberType : TClassMemberType) : String;
 
 // Register backend
 Procedure RegisterWriter(AClass : TFPDocWriterClass; Const AName,ADescr : String);
@@ -363,6 +371,63 @@ begin
   Result := (AMember.ClassType = TPasProperty) and
     (Copy(AMember.Name, 1, 2) = 'On');
 end;
+
+function FieldFilter(AMember: TPasElement): Boolean;
+begin
+  Result := (AMember.ClassType = TPasVariable);
+end;
+
+function GetMemberFilter(aMemberType: TClassMemberType): TMemberFilter;
+begin
+  case aMemberType of
+    cmtProperty : Result:=@PropertyFilter;
+    cmtMethod : Result:=@MethodFilter;
+    cmtEvent : Result:=@EventFilter;
+    cmtField : Result:=@FieldFilter;
+  end;
+
+end;
+
+function GetMemberDocName(aMemberType: TClassMemberType): String;
+begin
+  case aMemberType of
+    cmtProperty : Result:=SDocProperties;
+    cmtMethod : Result:=SDocMethods;
+    cmtEvent : Result:=SDocEvents;
+    cmtField : Result:=SDocFields;
+  end;
+
+end;
+
+function GetAnchorName(aMemberType: TClassMemberType): String;
+begin
+  case aMemberType of
+    cmtProperty : Result:='properties';
+    cmtMethod : Result:='methods';
+    cmtEvent : Result:='events';
+    cmtField : Result:='fields';
+  end;
+end;
+
+function GetMemberSubIndex(aMemberType: TClassMemberType): Integer;
+begin
+  case aMemberType of
+    cmtProperty : Result:=PropertiesByNameSubIndex;
+    cmtMethod : Result:=MethodsByNameSubIndex;
+    cmtEvent : Result:=EventsByNameSubIndex;
+    cmtField : Result:=FieldsByNameSubIndex;
+  end;
+end;
+Function GetMemberOverviewTitle(aMemberType : TClassMemberType) : String;
+begin
+  Case aMemberType of
+    cmtField : Result:='Fields of ';
+    cmtProperty : Result:='Properties of ';
+    cmtMethod : Result:='Properties of ';
+    cmtEvent : Result:='Events of ';
+  end;
+end;
+
 
 { ---------------------------------------------------------------------
   Writer registration
@@ -498,6 +563,12 @@ begin
   Result:= res;
 end;
 
+procedure TMultiFileDocWriter.SetModule(AValue: TPasModule);
+begin
+  if FModule=AValue then Exit;
+  FModule:=AValue;
+end;
+
 { Used for:
   - <link> elements in descriptions
   - "see also" entries
@@ -625,9 +696,8 @@ begin
              and Engine.ShowElement(FPEl) then
                begin
                DocNode := Engine.FindDocNode(FPEl);
-               if Assigned(DocNode) then
-                 AddPage(FPEl, 0);
-               end;
+               AddPage(FPEl, 0)
+               end
           end;
         end;
       end;
@@ -656,6 +726,7 @@ begin
     AddPage(ClassEl, MethodsByNameSubindex);
     AddPage(ClassEl, EventsByInheritanceSubindex);
     AddPage(ClassEl, EventsByNameSubindex);
+    AddPage(ClassEl, FieldsByNameSubindex);
     for j := 0 to ClassEl.Members.Count - 1 do
       begin
       FPEl := TPasElement(ClassEl.Members[j]);
@@ -1051,7 +1122,12 @@ end;
 
 function TFileAllocator.GetCSSFilename(ARelativeTo: TPasElement): DOMString;
 begin
-  Result := Utf8Decode(GetRelativePathToTop(ARelativeTo)) + 'fpdoc.css';
+  Result := GetCSSFilename(ARelativeTo,'fpdoc');
+end;
+
+function TFileAllocator.GetCSSFilename(ARelativeTo: TPasElement; const aFileName: DOMString): DOMString;
+begin
+  Result := Utf8Decode(GetRelativePathToTop(ARelativeTo)) + aFileName+'.css';
 end;
 
 { ---------------------------------------------------------------------
@@ -1290,6 +1366,33 @@ procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String;
 begin
   Warning(AContext, Format(AMsg, Args));
 end;
+
+procedure TFPDocWriter.IndentLines(aLines: TStrings; aIndent: Word);
+
+var
+  lIndent : string;
+  I : Integer;
+begin
+  lIndent:=StringOfChar(' ',aIndent);
+  For I:=0 to aLines.Count-1 do
+    aLines[i]:=lIndent+aLines[i];
+end;
+
+function TFPDocWriter.IndentLines(aLines: String; aIndent: Word): String;
+var
+  l : TStringList;
+begin
+  L:=TStringList.Create;
+  try
+    L.Text:=aLines;
+    L.TrailingLineBreak:=False;
+    IndentLines(L,aIndent);
+    Result:=L.Text;
+  finally
+    L.Free;
+  end;
+end;
+
 
 function TFPDocWriter.IsDescrNodeEmpty(Node: TDOMNode): Boolean;
 var
@@ -2113,6 +2216,31 @@ begin
   If Result then
     Result:=Not ((M.Visibility=visProtected) and Engine.HideProtected)
 end;
+
+function TFPDocWriter.HasMembersToShow(AClass: TPasClassType; DeclaredOnly : Boolean; AFilter: TMemberFilter) : boolean;
+var
+  ThisClass: TPasClassType;
+  I : Integer;
+  Member: TPasElement;
+
+begin
+  Result:=False;
+  ThisClass := AClass;
+  while Assigned(ThisClass) do
+    begin
+    for i := 0 to ThisClass.Members.Count - 1 do
+      begin
+      Member := TPasElement(ThisClass.Members[i]);
+      if Engine.ShowElement(Member) and AFilter(Member) then
+        Exit(True);
+      end;
+    if DeclaredOnly or (Assigned(ThisClass.AncestorType) and not (ThisClass.AncestorType.inheritsfrom(TPasClassType))) then
+      ThisClass:=Nil
+    else
+      ThisClass := TPasClassType(ThisClass.AncestorType);
+    end;
+end;
+
 
 procedure TFPDocWriter.GetMethodList ( ClassDecl: TPasClassType;
   List: TStringList ) ;

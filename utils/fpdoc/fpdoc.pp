@@ -32,6 +32,7 @@ uses
   dw_XML,    // XML writer
   dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
+  dw_newhtml,   // HTML writer
   dw_chm,    // CHM Writer
   dw_markdown, // Markdown writer
   dw_ipflin, // IPF writer (new linear output)

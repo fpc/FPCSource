@@ -4527,6 +4527,7 @@ implementation
 
            { Change loading of array of const to varargs }
            if assigned(left) and
+              (procdefinition.paras.count>0) and
               is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vardef) and
               (procdefinition.proccalloption in cdecl_pocalls) then
              convert_carg_array_of_const;

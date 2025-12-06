@@ -17,6 +17,15 @@ We have here a description
   <note>Unit note</note>
 </notes>
 
+<topic name="MyTopic">
+<short>A short topic</short>
+<descr>Longer text for the topic</descr>
+<seealso>
+<link id="AnIntegerConst"/>
+</seealso>
+</topic>
+
+
 <!-- constant Visibility: default -->
 <element name="AnIntegerConst">
 <short>Aha this is not me</short>
@@ -107,6 +116,7 @@ Appears in 2.0
 <element name="TAnEnumType">
 <short></short>
 <descr>
+Some longer description of the type.
 </descr>
 <version>
 Appears in 2.0
@@ -144,8 +154,9 @@ Appears in 2.0
 
 <!-- array type Visibility: default -->
 <element name="TAnArrayType">
-<short></short>
+<short>Short description</short>
 <descr>
+We have a longer description.
 </descr>
 <seealso>
 </seealso>

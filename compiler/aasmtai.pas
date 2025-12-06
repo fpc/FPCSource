@@ -308,11 +308,11 @@ interface
        ,top_asmlist
        ,top_callingconvention
 {$endif llvm}
-{$if defined(riscv32) or defined(riscv64)}
+{$if defined(riscv)}
        ,top_fenceflags
        ,top_roundingmode
        ,top_realconst
-{$endif defined(riscv32) or defined(riscv64)}
+{$endif defined(riscv)}
 {$ifdef wasm}
        ,top_functype
        ,top_single

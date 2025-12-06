@@ -18,6 +18,10 @@ Const
   ARecordConst : TMethod = (Code:Nil;Data:Nil);
   ASetConst = [true,false];
   ADeprecatedConst = 1 deprecated;
+
+resourcestring
+  String1 = 'Resource string 1';
+  String2 = 'Resource string 2';
    
 Type
   TAnEnumType         = (one,two,three);
@@ -48,6 +52,7 @@ Type
   
   Private
     Const aconst = 123;
+  private  
     X22 : Integer;
     Procedure SetX(AValue : Integer);
     Function GetX : Integer;
@@ -60,7 +65,8 @@ Type
   end;
   TAExtRecordType        = Record
     Const X = 100;
-    operator assign(Y : Integer) : TAExtRecordType;
+  public  
+    class operator assign(Y : Integer) : TAExtRecordType;
   end;
                         
 Var
@@ -125,6 +131,7 @@ Type
     Procedure AStringMessageProc(Var Msg); Message '123';
     Procedure ADeprecatedProc; deprecated;
     Procedure APlatformProc; Platform;
+    function MyFunc : Integer; 
     Property IntProp : Integer Read FI Write Fi;
     Property IntROProp : Integer Read FI;
     Property GetIntProp : Integer Read ReadI Write WriteI;

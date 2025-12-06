@@ -18,12 +18,23 @@ unit dw_basehtml;
 
 interface
 
-uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter;
+uses Classes, contnrs, DOM, DOM_HTML, dGlobals, PasTree, dWriter;
 
 
 type
 
-  { THTMLWriter }
+  { TLinkIdentifierMap }
+
+  TLinkIdentifierMap = class
+    Flist : TFPStringHashTable;
+    FWriter: TMultiFileDocWriter;
+  Public
+    constructor create(aWriter: TMultiFileDocWriter);
+    destructor destroy; override;
+    function GetLink(const aIdentifier : String) : String;
+    procedure AddLink(const aName, aLink : String);
+    procedure AddLink(const AElement : TPasElement);
+  end;
 
   { TBaseHTMLWriter }
 
@@ -38,6 +49,8 @@ type
     FCurOutputNode: TDOMNode;
     FDoPasHighlighting : Boolean;
     FHighlighterFlags: Byte;
+    FContentElementStack : Array of THTMLElement;
+    FContentElementCount : Integer;
   Protected
 
     Procedure SetContentElement(aElement : THTMLELement); virtual;
@@ -106,11 +119,14 @@ type
     procedure AppendKw(Parent: TDOMNode; const AText: AnsiString); virtual;
     procedure AppendKw(Parent: TDOMNode; const AText: DOMString); virtual;
     function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte): Byte; virtual;
+    function  AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte; aLinkIdentifierMap : TLinkIdentifierMap): Byte; virtual;
     procedure AppendFragment(aParentNode: TDOMElement; aStream: TStream); virtual;
     // FPDoc specifics
     procedure AppendSourceRef(aParent: TDOMElement; AElement: TPasElement);
     Procedure AppendSeeAlsoSection(AElement: TPasElement; DocNode: TDocNode); virtual;
+    Procedure AppendSeeAlsoSection(AElement: TPasElement; aParent : TDOMElement; DocNode: TDocNode); virtual;
     Procedure AppendExampleSection(AElement : TPasElement;DocNode : TDocNode); virtual;
+    Procedure AppendExampleSection(AElement : TPasElement;aParent : TDOMElement; DocNode : TDocNode); virtual;
     Procedure AppendShortDescr(Parent: TDOMNode; Element: TPasElement); virtual;
     procedure AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode: TDocNode); virtual;
     procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement); virtual;
@@ -121,7 +137,8 @@ type
 
     // Helper functions for creating DOM elements
 
-    function CreateEl(Parent: TDOMNode; const AName: DOMString): THTMLElement; virtual;
+    function CreateEl(Parent: TDOMNode; const AName: DOMString): THTMLElement; virtual; overload;
+    function CreateEl(Parent: TDOMNode; const AName, aClass: DOMString): THTMLElement; virtual; overload;
     function CreatePara(Parent: TDOMNode): THTMLElement; virtual;
     function CreateH1(Parent: TDOMNode): THTMLElement; virtual;
     function CreateH2(Parent: TDOMNode): THTMLElement; virtual;
@@ -136,6 +153,11 @@ type
     function CreateAnchor(Parent: TDOMNode; const AName: DOMString): THTMLElement; virtual;
     function CreateCode(Parent: TDOMNode): THTMLElement; virtual;
     function CreateWarning(Parent: TDOMNode): THTMLElement; virtual;
+
+    // Push new content element. Returns the old content element.
+    function PushContentElement(aElement: THTMLELement) : THTMLElement;
+    // Pop content element, returns the old content element.
+    function PopContentElement : THTMLElement;
 
 
     // Some info
@@ -158,12 +180,50 @@ Function FixHTMLpath(const S : String) : STring;
 
 implementation
 
-uses fpdocstrs, xmlread, sysutils, sh_pas;
+uses fpdocstrs, xmlread, sysutils, sh_pas ;
 
 Function FixHTMLpath(const S : String) : STring;
 
 begin
   Result:=StringReplace(S,'\','/',[rfReplaceAll]);
+end;
+
+{ TLinkIdentifierMap }
+
+constructor TLinkIdentifierMap.create(aWriter: TMultiFileDocWriter);
+begin
+  FList:=TFPStringHashTable.Create;
+  FWriter:=aWriter;
+end;
+
+destructor TLinkIdentifierMap.destroy;
+begin
+  Flist.Free;
+  inherited destroy;
+end;
+
+function TLinkIdentifierMap.GetLink(const aIdentifier: String): String;
+begin
+  Result:=FList.Items[Trim(LowerCase(aIdentifier))]
+end;
+
+procedure TLinkIdentifierMap.AddLink(const aName, aLink: String);
+begin
+  if (aName='') or (aLink='') then
+    exit;
+  FList.Add(LowerCase(aName),aLink);
+end;
+
+procedure TLinkIdentifierMap.AddLink(const AElement: TPasElement);
+var
+  lLink : String;
+begin
+  if aElement.Name<>'' then
+    begin
+    lLink:=FWriter.ResolveLinkID(aElement.FullName);
+    if lLink<>'' then
+      AddLink(aElement.Name,lLink);
+    end;
 end;
 
 constructor TBaseHTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
@@ -181,7 +241,7 @@ begin
   inherited Destroy;
 end;
 
-Procedure TBaseHTMLWriter.SetContentElement(aElement : THTMLELement);
+procedure TBaseHTMLWriter.SetContentElement(aElement: THTMLELement);
 
 begin
   FContentElement:=aElement;
@@ -192,6 +252,12 @@ function TBaseHTMLWriter.CreateEl(Parent: TDOMNode;
 begin
   Result := Doc.CreateElement(AName);
   Parent.AppendChild(Result);
+end;
+
+function TBaseHTMLWriter.CreateEl(Parent: TDOMNode; const AName, aClass: DOMString): THTMLElement;
+begin
+  Result:=CreateEl(Parent,aName);
+  Result['class']:=aClass;
 end;
 
 function TBaseHTMLWriter.CreatePara(Parent: TDOMNode): THTMLElement;
@@ -273,6 +339,26 @@ function TBaseHTMLWriter.CreateWarning(Parent: TDOMNode): THTMLElement;
 begin
   Result := CreateEl(Parent, 'span');
   Result['class'] := 'warning';
+end;
+
+function TBaseHTMLWriter.PushContentElement(aElement: THTMLELement): THTMLElement;
+begin
+  if FContentElementCount=Length(FContentElementStack) then
+    SetLength(FContentElementStack,FContentElementCount+10);
+  Result:=FContentElement;
+  FContentElementStack[FContentElementCount]:=Result;
+  FContentElement:=aElement;
+  Inc(FContentElementCount);
+end;
+
+function TBaseHTMLWriter.PopContentElement: THTMLElement;
+begin
+  if FContentElementCount=0 then
+    Raise EFPDocWriterError.Create('Cannot pop content element, at bottom of stack');
+  Result:=FContentElement;
+  FContentElement:=FContentElementStack[FContentElementCount-1];
+  FContentElementStack[FContentElementCount-1]:=Nil;
+  Dec(FContentElementCount);
 end;
 
 procedure TBaseHTMLWriter.DescrEmitNotesHeader(AContext: TPasElement);
@@ -405,8 +491,12 @@ begin
 end;
 
 procedure TBaseHTMLWriter.DescrWriteVarEl(const AText: DOMString);
+var
+  NewEl: TDOMElement;
 begin
-  AppendText(CreateEl(CurOutputNode, 'var'), AText);
+  NewEl := CreateEl(CurOutputNode, 'span');
+  NewEl['class'] := 'identifier';
+  AppendText(NewEl, AText);
 end;
 
 procedure TBaseHTMLWriter.DescrBeginLink(const AId: DOMString);
@@ -704,6 +794,12 @@ end;
 function TBaseHTMLWriter.AppendPasSHFragment(Parent: TDOMNode;
   const AText: String; AShFlags: Byte): Byte;
 
+begin
+  Result:=AppendPasSHFragment(Parent,aText,AShFlags,Nil);
+end;
+
+function TBaseHTMLWriter.AppendPasSHFragment(Parent: TDOMNode; const AText: String; AShFlags: Byte;
+  aLinkIdentifierMap: TLinkIdentifierMap): Byte;
 
 var
   Line, Last, p: PChar;
@@ -780,8 +876,13 @@ begin
 end;
 
 
-procedure TBaseHTMLWriter.AppendSeeAlsoSection ( AElement: TPasElement;
-  DocNode: TDocNode ) ;
+
+procedure TBaseHTMLWriter.AppendSeeAlsoSection (AElement: TPasElement; DocNode: TDocNode) ;
+begin
+  AppendSeeAlsoSection(aElement,ContentElement,DocNode);
+end;
+
+procedure TBaseHTMLWriter.AppendSeeAlsoSection(AElement: TPasElement; aParent: TDOMElement; DocNode: TDocNode);
 
 var
   Node: TDOMNode;
@@ -801,8 +902,8 @@ begin
        if IsFirstSeeAlso then
          begin
          IsFirstSeeAlso := False;
-         AppendText(CreateH2(ContentElement), SDocSeeAlso);
-         TableEl := CreateTable(ContentElement);
+         AppendText(CreateH2(aParent), SDocSeeAlso);
+         TableEl := CreateTable(aParent);
          end;
        El:=TDOMElement(Node);
        TREl:=CreateTR(TableEl);
@@ -861,6 +962,12 @@ end;
 
 procedure TBaseHTMLWriter.AppendExampleSection ( AElement: TPasElement; DocNode: TDocNode ) ;
 
+begin
+  AppendExampleSection(AElement,ContentElement,DocNode);
+end;
+
+Procedure TBaseHTMLWriter.AppendExampleSection(AElement : TPasElement;aParent : TDOMElement; DocNode : TDocNode);
+
 var
   Node: TDOMNode;
   fn,s: String;
@@ -877,12 +984,12 @@ begin
       fn:=Engine.GetExampleFilename(TDOMElement(Node));
       If (fn<>'') then
         begin
-        AppendText(CreateH2(ContentElement), SDocExample);
+        AppendText(CreateH2(aParent), SDocExample);
         try
           Assign(f, FN);
           Reset(f);
           try
-            PushOutputNode(ContentElement);
+            PushOutputNode(aParent);
             DescrBeginCode(False, UTF8Encode(TDOMElement(Node)['highlighter']));
             while not EOF(f) do
               begin
@@ -1005,8 +1112,8 @@ var
 begin
   if Not Assigned(Element) then
     begin
-    Result := nil;
-    AppendText(CreateWarning(Parent), '<NIL>');
+    Result := CreateWarning(Parent);
+    AppendText(Result, '<NIL>');
     exit;
     end
   else if Element.InheritsFrom(TPasUnresolvedTypeRef) then
@@ -1066,11 +1173,11 @@ begin
     end
   else
     begin
-    Result := nil;
+    Result := CreateEl(Parent,'span');
     if  Element is TPasAliasType then
-      AppendText(Parent, TPasAliasType(Element).DestType.Name)
+      AppendText(Result, TPasAliasType(Element).DestType.Name)
     else
-      AppendText(Parent, Element.Name); // unresolved items
+      AppendText(Result, Element.Name); // unresolved items
     end;
 end;
 
