@@ -943,6 +943,12 @@ endif
 ifeq ($(ARCH),i386)
 CPU_UNITS+=$(MMXUNIT)
 endif
+ifeq ($(ARCH),aarch64)
+CPU_UNITS+=$(INTRINSICSUNIT)
+endif
+ifeq ($(ARCH),arm)
+CPU_UNITS+=$(INTRINSICSUNIT)
+endif
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
@@ -2108,9 +2114,14 @@ ifdef INSTALL_CREATEPACKAGEFPC
 ifdef FPCMAKE
 ifdef PACKAGE_VERSION
 ifneq ($(wildcard Makefile.fpc),)
-	$(FPCMAKE) -o Package-$(TARGETSUFFIX).fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+ifdef FPCMAKENEW
 	$(MKDIR) $(INSTALL_UNITDIR)
-	$(INSTALL) Package-$(TARGETSUFFIX).fpc $(INSTALL_UNITDIR)/Package.fpc
+	$(FPCMAKENEW) -o $(INSTALL_UNITDIR)/Package.fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+else
+	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
 endif
 endif
 endif
@@ -2721,6 +2732,13 @@ mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
 System.CPU.MMX$(PPUEXT) : $(NSINC)/System.CPU.MMX.pp $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
+INTRINSICS_DEPS=$(PROCINC)/intrinsics.pp \
+	 $(SYSTEMUNIT)$(PPUEXT) \
+	 $(INTRINSICS_DEPS_OS) $(INTRINSICS_DEPS_CPU)
+intrinsics$(PPUEXT) : $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
+System.Intrinsics$(PPUEXT) : $(NSINC)/System.Intrinsics.pp $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   X86_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif

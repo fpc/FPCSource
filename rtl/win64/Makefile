@@ -934,6 +934,9 @@ LNFODWRF_DEPS_OS=buildrtl$(PPUEXT)
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=$(CPUUNIT) $(SIGNALSUNIT)
 endif
+ifeq ($(ARCH),aarch64)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 OBJPASDIR=$(RTL)/objpas
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 override FPC_SYSTEM_OPT += -Fi../win
@@ -2611,6 +2614,13 @@ mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
 System.CPU.MMX$(PPUEXT) : $(NSINC)/System.CPU.MMX.pp $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
+INTRINSICS_DEPS=$(PROCINC)/intrinsics.pp \
+	 $(SYSTEMUNIT)$(PPUEXT) \
+	 $(INTRINSICS_DEPS_OS) $(INTRINSICS_DEPS_CPU)
+intrinsics$(PPUEXT) : $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
+System.Intrinsics$(PPUEXT) : $(NSINC)/System.Intrinsics.pp $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   X86_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif

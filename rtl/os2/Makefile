@@ -2581,6 +2581,13 @@ mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
 System.CPU.MMX$(PPUEXT) : $(NSINC)/System.CPU.MMX.pp $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
+INTRINSICS_DEPS=$(PROCINC)/intrinsics.pp \
+	 $(SYSTEMUNIT)$(PPUEXT) \
+	 $(INTRINSICS_DEPS_OS) $(INTRINSICS_DEPS_CPU)
+intrinsics$(PPUEXT) : $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
+System.Intrinsics$(PPUEXT) : $(NSINC)/System.Intrinsics.pp $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   X86_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif
