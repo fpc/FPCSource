@@ -1,4 +1,4 @@
-{ %NORUN }
+{ %NORUN }
 
 program tw41503;
 {$mode objFPC}

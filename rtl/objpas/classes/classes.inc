@@ -909,15 +909,21 @@ begin
     as volatile, so the access won't be optimized away by the compiler. (KB) }
   for i:=1 to aIterations do
     begin
+    {$if FPC_FULLVERSION<30300}
+    Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
+    {$else}
     {$IF defined(CPUX86_64) or Defined(CPUI386)}
     fpc_x86_pause;
     {$ELSEIF defined(CPUARM)}
     fpc_arm_yield;
-    {$ELSEIF defined(CPUAARCH64}
+    {$ELSEIF defined(CPUAARCH64)}
     fpc_aarch64_yield;
+    {$ELSEIF defined(RISCV) and defined(CPURV_HAS_ZIHINTPAUSE)}
+    fpc_riscv_pause;
     {$ELSE}
     Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
     {$ENDIF}
+    {$ifend}
     end;
 end;
 
@@ -936,10 +942,10 @@ class function TThread.GetCPUUsage(var Previous: TSystemTimes): Integer;
 var
   Act : TSystemTimes;
   Load,Idle: QWord;
-  
+
 begin
   Result:=0;
-  if not GetSystemTimes(Act) then 
+  if not GetSystemTimes(Act) then
     exit;
   Load:=(Act.UserTime-Previous.UserTime) +
         (Act.KernelTime-Previous.KernelTime) +
@@ -1492,7 +1498,7 @@ function IsUniqueGlobalComponentName(const aName: string): Boolean;
 begin
   if Assigned(IsUniqueGlobalComponentNameProc) then
     Result:=IsUniqueGlobalComponentNameProc(aName)
-  else 
+  else
     Result:=Not Assigned(FindGlobalComponent(aName));
 end;
 
@@ -1534,7 +1540,7 @@ function CreateComponentfromRes(const res : string;Inst : THandle;var Component 
   var
     ResStream : TResourceStream;
     ResID : TFPResourceHandle;
-    
+
   begin
 
     if Inst=0 then
@@ -1575,7 +1581,7 @@ function DefaultInitHandler(Instance: TComponent; RootAncestor: TClass): Boolean
     try
 {$endif}
       result:=doinit(Instance.ClassType);
-      if Result then 
+      if Result then
         Instance.ReadDeltaState;
 {$ifdef FPC_HAS_FEATURE_THREADING}
     finally
@@ -1679,7 +1685,7 @@ var
   HInst: THandle;
   RootName, Delta, ResName: string;
   S: TStream;
-  
+
 begin
   S:=nil;
   if (Instance=Nil) or (Proc=Nil) then
@@ -2810,7 +2816,7 @@ var
   aPos: Int64;
   Sig: Packed Array[0..3] of byte;
   IntSig : Longint absolute sig;
-  
+
 begin
   Result:=sofUnknown;
   aPos:=Stream.Position;
