@@ -51,9 +51,9 @@ uses
   fgl,
 {$endif}
   typinfo,
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH) }  
+{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
   intrinsics,
-{$ENDIF}  
+{$ENDIF}
   windows;
 {$ENDIF FPC_DOTTEDUNITS}
 

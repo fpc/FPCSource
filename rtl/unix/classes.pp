@@ -49,9 +49,9 @@ uses
   fgl,
 {$endif}
   rtlconsts,
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH) }  
+{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
   intrinsics,
-{$ENDIF}  
+{$ENDIF}
   sortbase;
 {$ENDIF FPC_DOTTEDUNITS}
 
