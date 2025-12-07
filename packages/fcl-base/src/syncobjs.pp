@@ -13,6 +13,8 @@
  **********************************************************************}
 {$mode objfpc}
 {$modeswitch advancedrecords}
+{$modeswitch functionreferences}
+{$modeswitch anonymousfunctions}
 {$h+}
 
 {$IF DEFINED(WINCE) or DEFINED(AIX)}
@@ -41,6 +43,8 @@ uses
   {$IFDEF CPUWASM32}
   Wasm.Semaphore,
   {$ENDIF}
+  System.DateUtils,
+  System.Classes,
   System.SysUtils;
   
 {$ELSE FPC_DOTTEDUNITS}
@@ -53,6 +57,8 @@ uses
   {$IFDEF CPUWASM32}
   WasmSem,
   {$ENDIF}
+  DateUtils,
+  Classes, // TThread
   sysutils;
 {$ENDIF FPC_DOTTEDUNITS}
 
@@ -232,6 +238,30 @@ type
   end;
   TMutexGuard = specialize TLockGuard<TMutex>;
 {$ENDIF}
+
+  // Delphi compatible (hopefully) TSpinwait
+  // Uses exponential backoff for first 10 SpinCycles, uses sleep(1) every 20 and sleep(1) every 5 cycles afterwards.
+  TSpinFunction = reference to function : Boolean;
+
+  TSpinWait = record
+  private
+    FCount : Integer;
+    // Cache CPU count at program start, assuming it doesn't change
+    class var FCPUCount : LongWord;
+
+    class constructor Create;
+    function GetNextSpinCycleWillYield: Boolean;
+  public
+    procedure Reset;
+    procedure SpinCycle;
+
+    class procedure SpinUntil(const aCondition: TSpinFunction); overload; static;
+    class function SpinUntil(const aCondition: TSpinFunction; aTimeout: Cardinal): Boolean; overload; static;
+    class function SpinUntil(const aCondition: TSpinFunction; const aTimeout: TTimeSpan): Boolean; overload; static;
+    property Count: Integer read FCount;
+    property NextSpinCycleWillYield: Boolean read GetNextSpinCycleWillYield;
+  end;
+
 
 implementation
 
@@ -1082,5 +1112,98 @@ begin
   self.obj.Acquire();
 end;
 
+{ ---------------------------------------------------------------------
+  TSpinWait
+  ---------------------------------------------------------------------}
+
+class constructor TSpinWait.Create;
+begin
+  // Get the number of cores on the system once
+  FCPUCount := GetCPUCount; // Available in the System unit
+end;
+
+procedure TSpinWait.Reset;
+begin
+  FCount := 0;
+end;
+
+procedure TSpinWait.SpinCycle;
+var
+  i: Integer;
+  SpinCount: Integer;
+begin
+  // Increment cycle count
+  Inc(FCount);
+  if (FCPUCount > 1) and (FCount <= 10) then
+    begin
+    // Exponential backoff for first 10 cycles
+    // Base 2 exponentially increasing spin count starting at 4
+    SpinCount := 2 shl FCount;
+    TThread.SpinWait(SpinCount);
+    // Do not fallback to Single-CPU yet
+    exit;
+    end;
+  // Single-CPU behaviour, or large spin cycle counts:
+  // Sleep 1ms every 20 cycles
+  if (FCount mod 20) = 0 then
+    Sleep(1)
+  // Sleep 0ms every 5 cycles
+  else if (FCount mod 5) = 0 then
+    Sleep(0)
+  // All other cycles simply yield
+  else
+    TThread.Yield; // Yield execution to other threads
+end;
+
+
+function TSpinWait.GetNextSpinCycleWillYield: Boolean;
+begin
+  // If CPUCount > 1, the first 10 cycles are pure spin (no yield/sleep), so it will not yield.
+  if (FCPUCount > 1) and (FCount < 10) then
+    Exit(False);
+  // Single-CPU logic check (for FCPUCount = 1, or FCPUCount > 1 and FCount >= 10)
+  // The *next* count will be FCount + 1.
+  Result := (((FCount + 1) mod 20) <> 0) // Not a Sleep(1) cycle
+            and (((FCount + 1) mod 5) <> 0);  // Not a Sleep(0) cycle
+end;
+
+
+class procedure TSpinWait.SpinUntil(const aCondition: TSpinFunction); overload; static;
+var
+  lWait : TSpinWait;
+begin
+  // Spin indefinitely until aCondition returns True
+  lWait.Reset;
+  while not aCondition() do
+    lWait.SpinCycle;
+end;
+
+
+class function TSpinWait.SpinUntil(const aCondition: TSpinFunction; aTimeout: Cardinal): Boolean; overload;
+static;
+begin
+  SpinUntil(aCondition, TTimeSpan.FromMilliseconds(aTimeout));
+end;
+
+
+class function TSpinWait.SpinUntil(const aCondition: TSpinFunction; const aTimeout: TTimeSpan): Boolean; overload; static;
+var
+  lStartTime: TDateTime;
+  lWaitTime,lElapsedTime: Int64;
+  lWait: TSpinWait;
+begin
+  Result:=False;
+  if aCondition() then
+    Exit(True);
+  lWaitTime:=Round(aTimeout.TotalMilliseconds);
+  lWait.Reset;
+  lStartTime:=Now;
+  repeat
+    lWait.SpinCycle;
+    if aCondition() then
+      Exit(True);
+    lElapsedTime:=MilliSecondsBetween(Now,lStartTime);
+  until (lElapsedTime >= lWaitTime) or lWait.NextSpinCycleWillYield;
+end;
 
 end.
