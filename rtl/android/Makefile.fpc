@@ -81,6 +81,12 @@ endif
 ifeq ($(ARCH),i386)
 CPU_UNITS+=$(MMXUNIT)
 endif
+ifeq ($(ARCH),aarch64)
+CPU_UNITS+=$(INTRINSICSUNIT)
+endif
+ifeq ($(ARCH),arm)
+CPU_UNITS+=$(INTRINSICSUNIT)
+endif
 
 
 # Causes release PPU files not to be recompiled

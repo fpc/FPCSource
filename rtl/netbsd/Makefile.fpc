@@ -83,7 +83,9 @@ endif
 ifeq ($(ARCH),i386)
 CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT) $(MMXUNIT)
 endif
-
+ifeq ($(ARCH),arm)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 
 [rules]
 .NOTPARALLEL:

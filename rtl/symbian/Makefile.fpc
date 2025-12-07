@@ -48,7 +48,7 @@ CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
 endif
 
 ifeq ($(ARCH),arm)
-CPU_UNITS=$(CPUUNIT)
+CPU_UNITS=$(CPUUNIT) $(INTRINSICSUNIT)
 endif
 
 ifneq ($(findstring $(ARCH),i386),)

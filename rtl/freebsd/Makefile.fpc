@@ -84,6 +84,9 @@ ifeq ($(ARCH),x86_64)
 CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT)
 ASTARGET=--64
 endif
+ifeq ($(ARCH),aarch64)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas

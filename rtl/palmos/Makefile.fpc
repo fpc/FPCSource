@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal WinCE RTL
+#   Makefile.fpc for Free Pascal PalmOS RTL
 #
 
 [package]
@@ -55,6 +55,10 @@ PRT0=prt0
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
+
+ifeq ($(ARCH),arm)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 
 [rules]
 .NOTPARALLEL:
