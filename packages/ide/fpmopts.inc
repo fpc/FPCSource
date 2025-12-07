@@ -64,9 +64,41 @@ begin
   UpdateTarget;
 end;
 
+type
+ PCompilerOptDlg = ^TCompilerOptDlg;
+ TCompilerOptDlg = object(TFPVerticalResizeDialog)
+   ProcessorCount : Sw_Word;
+   FRB1,FRB2 : PScrollerRadioButtons;
+   FVScrollBar1,FVScrollBar2 : PScrollBar;
+   constructor Init(var Bounds: TRect; ATitle: TTitleStr);
+   procedure ChangeBounds (Var Bounds: TRect); virtual;
+   procedure SizeLimits (Var Min, Max: TPoint); virtual;
+ end;
+
+constructor TCompilerOptDlg.Init(var Bounds: TRect; ATitle: TTitleStr);
+begin
+  inherited Init(Bounds,ATitle);
+  ProcessorCount:=10;  {used to determine max height}
+end;
+
+procedure TCompilerOptDlg.ChangeBounds (Var Bounds: TRect);
+begin
+  inherited ChangeBounds(Bounds);
+  UpdateScrollBar( FRB1, FVScrollBar1 );
+  UpdateScrollBar( FRB2, FVScrollBar2 );
+end;
+
+procedure TCompilerOptDlg.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=76;
+  Min.Y:=24;
+  Max.X:=76;
+  Max.Y:=WUtils.Min(ProcessorCount+14,WUtils.Max(24,ScreenHeight-12));
+end;
+
 procedure TIDEApp.DoCompilerSwitch;
 var R,R2,R3,TabR,TabIR: TRect;
-    D: PCenterDialog;
+    D: PCompilerOptDlg;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
     RB1,RB1b: PScrollerRadioButtons;
     RB2,RB4,RB5,RB6: PRadioButtons;
@@ -83,6 +115,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     Label51,Label52,Label53: PLabel;
     TargetHeight,ProcessorHeight: sw_integer;
     OldCompilerMode: TCompilerMode;
+    V : PView;
 begin
   {decide height of dialog view}
   GetExtent(R);
@@ -101,6 +134,8 @@ begin
   with D^ do
   begin
     HelpCtx:=hcCompilerNoAltX;
+    GrowMode:=gfGrowAll+gfGrowRel;
+    ProcessorCount:=Count;
     GetExtent(R);
     R.Grow(-2,-1);
     Dec(R.B.Y,2);
@@ -132,7 +167,7 @@ begin
     R.Copy(TabIR);
     R2.Copy(R);
     R2.A.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-2;
-    R2.B.X:=R2.B.X-3;
+    R2.B.X:=R2.B.X-4;
 {    R2.B.Y:=R2.A.Y+((Count+1) div 2);}
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
@@ -188,7 +223,7 @@ begin
     Dec(R2.B.X,4);
     R2.B.Y:=R2.A.Y+ProcessorHeight;
     VScrollBar1:=nil;
-    if ProcessorHeight<>Count then
+    if Count>10 then
     begin
       R3.Copy(R2);R3.A.X:=R3.B.X; R3.B.X:=R3.B.X+1;
       VScrollBar1:=New(PScrollBar, Init(R3));
@@ -197,12 +232,15 @@ begin
     for I:=Count-1 downto 0 do
       Items:=NewSItem(ProcessorOptimizationSwitches^.ItemName(I), Items);
     New(RB1, Init(R2, Items, VScrollBar1));
+    RB1^.GrowMode:=gfGrowHiY;
     L:=ProcessorOptimizationSwitches^.GetCurrSel;
     RB1^.SetData(L);
     RB1^.CentreSelected;
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label23, Init(R2, label_compiler_opt_targetprocessor, RB1));
+    FRB1:=RB1;
+    FVScrollBar1:=VScrollBar1;
 
     Count:=ProcessorCodeGenerationSwitches^.ItemCount;
     ProcessorHeight:=Count;
@@ -210,11 +248,11 @@ begin
       ProcessorHeight:=ProcessorHeight-((ProcessorHeight+11) -TargetHeight);
     R.Copy(TabIR);
     R2.Copy(R);
-    R2.A.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+    R2.A.X:=R2.A.X+(R2.B.X-R2.A.X) div 2-1;
     R2.B.X:=R2.B.X-4;
     R2.B.Y:=R2.A.Y+ProcessorHeight;
     VScrollBar2:=nil;
-    if ProcessorHeight<>Count then
+    if Count>10 then
     begin
       Dec(R2.B.X);
       R3.Copy(R2);R3.A.X:=R3.B.X; R3.B.X:=R3.B.X+1;
@@ -224,12 +262,15 @@ begin
     for I:=Count-1 downto 0 do
       Items:=NewSItem(ProcessorCodeGenerationSwitches^.ItemName(I), Items);
     New(RB1b, Init(R2, Items, VScrollBar2));
+    RB1b^.GrowMode:=gfGrowHiY;
     L:=ProcessorCodeGenerationSwitches^.GetCurrSel;
     RB1b^.SetData(L);
     RB1b^.CentreSelected;
-    Dec(R2.A.Y);
-    R2.B.Y:=R2.A.Y+1;
+    Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
+    Inc(R2.B.X);
     New(Label23b, Init(R2, label_compiler_codegen_targetprocessor, RB1b));
+    FRB2:=RB1b;
+    FVScrollBar2:=VScrollBar2;
 
     { --- Sheet 4 --- }
     Count:=VerboseSwitches^.ItemCount;
@@ -376,6 +417,21 @@ begin
     Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
   end;
   InsertButtons(D);
+  { Set Grow modes after Ok and Cancel buttons have been added }
+  D^.First^.GrowMode:=gfGrowLoY+gfGrowHiY;         { Cancel button }
+  D^.First^.Next^.GrowMode:=gfGrowLoY+gfGrowHiY;   { Ok button }
+  Tab^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  IL^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX;
+  V:=IL^.Prev;                                     { History View of IL }
+  V^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowLoX+gfGrowHiX;
+  V:=V^.Prev;                                      { Lable View of IL }
+  V^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX;
+  IL2^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX;
+  V:=IL2^.Prev;                                    { History View of IL2 }
+  V^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowLoX+gfGrowHiX;
+  V:=V^.Prev;                                      { Lable View of IL2 }
+  V^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX;
+
   if Desktop^.ExecView(D)=cmOK then
   begin
     OldCompilerMode:= TCompilerMode(CompilerModeSwitches^.GetCurrSelParamID());
@@ -775,7 +831,40 @@ begin
 end;
 {$endif SUPPORT_REMOTE}
 
+type
+ PDirectoriesDlg = ^TDirectoriesDlg;
+ TDirectoriesDlg = object(TFPDlgWindow)//object(TCenterDialog)
+   constructor Init(var Bounds: TRect; ATitle: TTitleStr);
+   procedure ChangeBounds (Var Bounds: TRect); virtual;
+   procedure SizeLimits (Var Min, Max: TPoint); virtual;
+ end;
 
+constructor TDirectoriesDlg.Init(var Bounds: TRect; ATitle: TTitleStr);
+begin
+  inherited Init(Bounds,ATitle,0);
+  Options:=Options or ofCentered;
+  Flags:=Flags and not (wfGrow + wfZoom);
+end;
+
+procedure TDirectoriesDlg.ChangeBounds (Var Bounds: TRect);
+var I,O,D : Sw_Integer;
+begin
+  O:=Size.X div 2;
+  inherited ChangeBounds(Bounds);
+  I:=Size.X div 2;
+  D:=O-I;
+  {Assume that two last inserted Views are Buttons }
+  First^.Next^.Origin.X:=First^.Next^.Origin.X-(D div 2); {Ok button}
+  First^.Origin.X:=First^.Origin.X-D-(D div 2);           {Cancel button}
+end;
+
+procedure TDirectoriesDlg.SizeLimits (Var Min, Max: TPoint);
+begin
+  Min.X:=64;
+  Min.Y:=18;
+  Max.X:=WUtils.Max(64,ScreenWidth);
+  Max.Y:=WUtils.Max(18,ScreenHeight-2);
+end;
 
 procedure TIDEApp.directories;
 
@@ -784,10 +873,11 @@ procedure TIDEApp.directories;
 
 var tab:Ptab;
     tabR,R,R2:Trect;
-    D:PCenterDialog;
+    D:PDirectoriesDlg;
     s,misc_string:string;
     E_units,E_includes,E_libraries,E_objects,e:Pfpmemo;
     L_units,L_includes,L_libraries,L_objects:Plabel;
+    SB_units,SB_includes,SB_libraries,SB_objects:PScrollBar;
     c:PunsortedStringCollection;
     count,i,j:integer;
     IL:array[0..11] of PEditorInputLine;
@@ -798,33 +888,48 @@ var tab:Ptab;
 const LW=25;
 
 begin
-  R.assign(0,0,screenwidth*64 div 80,18);
+  R.assign(0,0,screenwidth*64 div 80,Max(18,12+(ScreenHeight-18) div 2));
   new(D,init(R,dialog_directories));
+  D^.GrowMode:=gfGrowAll+gfGrowRel;
   if d^.size.x<72 then
     misc_string:='~M~isc.'
   else
     misc_string:='~M~iscellaneous';
 
   {Create editors.}
-  R.assign(1,4,d^.size.x-4,d^.size.y-4);
-  new(E_units,init(R,nil,nil,nil));
-  R.assign(1,3,d^.size.x-4,4);
+  SB_units:=nil;
+  {
+  R.assign(d^.size.x-5,4,d^.size.x-4,d^.size.y-3);
+  new(SB_units,init(R));
+  SB_units^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
+  }
+  R.assign(1,4,d^.size.x-5,d^.size.y-3);
+  new(E_units,init(R,nil,SB_units,nil));
+  E_units^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  R.assign(1,3,d^.size.x-5,4);
   new(L_units,init(R,'Unit ~d~irectories:',E_units));
+  L_units^.GrowMode:=gfGrowHiX;
 
-  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  R.assign(1,4,d^.size.x-5,d^.size.y-3);
   new(E_includes,init(R,nil,nil,nil));
-  R.assign(1,3,d^.size.x-4,4);
+  E_includes^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  R.assign(1,3,d^.size.x-5,4);
   new(L_includes,init(R,'Include ~d~irectories:',E_includes));
+  L_includes^.GrowMode:=gfGrowHiX;
 
-  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  R.assign(1,4,d^.size.x-5,d^.size.y-3);
   new(E_libraries,init(R,nil,nil,nil));
-  R.assign(1,3,d^.size.x-4,4);
+  E_libraries^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  R.assign(1,3,d^.size.x-5,4);
   new(L_libraries,init(R,'Library ~d~irectories:',E_libraries));
+  L_libraries^.GrowMode:=gfGrowHiX;
 
-  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  R.assign(1,4,d^.size.x-5,d^.size.y-3);
   new(E_objects,init(R,nil,nil,nil));
-  R.assign(1,3,d^.size.x-4,4);
+  E_objects^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  R.assign(1,3,d^.size.x-5,4);
   new(L_objects,init(R,'Object file ~d~irectories:',E_objects));
+  L_objects^.GrowMode:=gfGrowHiX;
 
   {The switches that are put into the editors are of type multistring.
    We add multistrings to the editor. Other inputboxes are created on
@@ -858,6 +963,7 @@ begin
           R2.copy(R);
           R2.A.X:=LW;
           new(IL[i],init(R2,255));
+          IL[i]^.GrowMode:=gfGrowHiX;
           IL[i]^.data^:=DirectorySwitches^.GetStringItem(i);
           misc_items:=newTabItem(IL[i],misc_items);
           if misc_tabfocus=nil then
@@ -892,7 +998,8 @@ begin
     newtabdef('~U~nits',e_units,
       NewTabItem(L_units,
       NewTabItem(E_units,
-      nil)),
+      NewTabItem(SB_units,
+      nil))),
     NewTabDef('~I~nclude files',E_includes,
       NewTabItem(L_includes,
       NewTabItem(E_includes,
@@ -910,9 +1017,13 @@ begin
     nil)))))
   ));
 
-  tab^.growmode:=0;
+  tab^.GrowMode:=0;
   d^.insert(tab);
   insertbuttons(D);
+  D^.First^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  D^.First^.Next^.GrowMode:=gfGrowLoY+gfGrowHiY;
+  tab^.GrowMode:=gfGrowHiX+gfGrowHiY;
+
   if desktop^.execview(D)=cmOK then
     begin
       {Move the data from the window back into the switches.}

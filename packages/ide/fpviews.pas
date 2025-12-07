@@ -413,6 +413,10 @@ type
       TitleST : PStaticText;
     end;
 
+    TFPVerticalResizeDialog = object(TCenterDialog)
+      procedure   CalcBounds (Var Bounds: TRect; Delta: TPoint); virtual;
+    end;
+
     PFPASCIIChart = ^TFPASCIIChart;
     TFPASCIIChart = object(TASCIIChart)
       constructor Init;
@@ -500,6 +504,7 @@ function LocateSourceFile(const FileName: string; tryexts: boolean): string;
 function SearchWindow(const Title: string): PWindow;
 
 function StartEditor(Editor: PCodeEditor; FileName: string): boolean;
+procedure UpdateScrollBar(RB : PScrollerRadioButtons; VScrollBar : PScrollBar);
 
 {$ifdef VESA}
 procedure InitVESAScreenModes;
@@ -4877,6 +4882,84 @@ begin
   inherited HandleEvent(Event);
 end;
 
+procedure TFPVerticalResizeDialog.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+var R : TRect;
+   OptimalHeight : Sw_Integer;
+   DeltaWidth, DeltaHeight : Sw_Integer;
+   SizeY : Sw_Integer;
+   Mi,Ma : TPoint;
+begin
+  SizeLimits(Mi,Ma);
+  OptimalHeight:=Ma.Y;
+  GetBounds(R);
+  { relocate horizontally }
+  DeltaWidth:=CalcMiddleDelta(Owner^.Size.X, Delta.X, R.A.X, R.B.X);
+  Bounds.A.X:=R.A.X+DeltaWidth;
+  Bounds.B.X:=R.B.X+DeltaWidth;
+  { resize vertically }
+  SizeY:=Owner^.Size.Y;
+  if SizeY >= OptimalHeight then
+  begin
+    DeltaHeight:=R.B.Y-R.A.Y;
+    if DeltaHeight > (SizeY - Delta.Y) then {if over boundaries}
+    begin
+      R.A.Y:=0;      { simulate as if fit exatcly in boundaries}
+      R.B.Y:=SizeY-Delta.Y;   { full height  for better center }
+      DeltaHeight:=R.B.Y-R.A.Y;
+    end;
+    if DeltaHeight  <> OptimalHeight then
+    begin
+      {full height}
+      DeltaHeight:=OptimalHeight-DeltaHeight;
+      R.B.Y:=R.B.Y+DeltaHeight div 2;
+      DeltaHeight:=DeltaHeight-(DeltaHeight div 2);
+      R.A.Y:=R.A.Y-DeltaHeight;
+    end;
+  end else
+  begin
+    DeltaHeight:=R.B.Y-R.A.Y;
+    if ((SizeY >= Mi.Y) and (SizeY<> DeltaHeight))
+      or  ((SizeY < Mi.Y) and (Mi.Y<> DeltaHeight)) then
+    begin
+      { resize a notch }
+
+      if (( SizeY< Mi.Y) and (Mi.Y<> DeltaHeight)) then
+      begin
+        DeltaHeight:=Mi.Y-DeltaHeight;
+      end else
+      begin
+        DeltaHeight:=(SizeY)-DeltaHeight;
+      end;
+
+      if DeltaHeight > 0  then
+      begin
+        { enlarge }
+        R.A.Y:=R.A.Y-DeltaHeight div 2;
+        DeltaHeight:=DeltaHeight-(DeltaHeight div 2);
+        R.B.Y:=R.B.Y+DeltaHeight;
+
+        if R.A.Y<0 then
+        begin
+          R.B.Y:=R.B.Y-R.A.Y;
+          R.A.Y:=0;
+        end;
+
+      end else
+      begin
+        DeltaHeight:=abs(DeltaHeight);
+        { shrink }
+        R.A.Y:=R.A.Y+DeltaHeight div 2;
+        DeltaHeight:=DeltaHeight-(DeltaHeight div 2);
+        R.B.Y:=R.B.Y-DeltaHeight;
+      end;
+    end;
+  end;
+  { relocate vertically }
+  DeltaWidth:=CalcMiddleDelta(Owner^.Size.Y, Delta.Y, R.A.Y, R.B.Y);
+  Bounds.A.Y:=R.A.Y+DeltaWidth;
+  Bounds.B.Y:=R.B.Y+DeltaWidth;
+end;
+
 constructor TFPASCIIChart.Init;
 begin
   inherited Init;
@@ -5192,6 +5275,23 @@ end;
 function TFPCodeMemo.IsReservedWord(const S: string): boolean;
 begin
   IsReservedWord:=IsFPReservedWord(S);
+end;
+
+procedure UpdateScrollBar(RB : PScrollerRadioButtons; VScrollBar : PScrollBar);
+var Y, SizeY : Sw_Integer;
+begin
+  if assigned(RB) then
+  begin
+    if VScrollBar<> nil then
+      begin
+        Y:=RB^.Strings.count;
+        SizeY:=Min(Y,RB^.Size.Y);
+        if (Y>=SizeY) and (SizeY>0) then
+           VScrollBar^.SetParams(0, 0,Y-SizeY, SizeY-1, VScrollBar^.ArStep);     { Set vert scrollbar }
+        VScrollBar^.SetValue(RB^.Value);                                     { scroll to current item }
+        RB^.CentreSelected;
+      end;
+  end;
 end;
 
 
