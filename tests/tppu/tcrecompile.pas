@@ -61,6 +61,7 @@ begin
   UnitPath:='';
   OutDir:='';
   MainSrc:='';
+  Compiled:=TStringList.Create;
 end;
 
 procedure TTestRecompile.TearDown;
@@ -134,7 +135,6 @@ begin
     Fail('main src file not found "'+MainSrc+'", Step='+Step);
 
   Lines:=nil;
-  Compiled:=TStringList.Create;
   Params:=TStringList.Create;
   try
     Params.Add('-Fu'+UnitPath);
@@ -149,7 +149,7 @@ begin
       if LeftStr(Line,length('Compiling '))='Compiling ' then
       begin
         Filename:=copy(Line,length('Compiling ')+1,length(Line));
-        writeln('Compiling: ',Filename);
+        writeln('Compiling ',Filename);
         Filename:=ExtractFileName(Filename);
         if Compiled.IndexOf(Filename)<0 then
           Compiled.Add(Filename);
@@ -242,7 +242,7 @@ begin
   Step:='Second compile';
   UnitPath:='changeleaf1;changeleaf1'+PathDelim+'src2';
   Compile;
-  // the main src is always compiled, bird changed, so all ant must be recompiled as well
+  // the main src is always compiled, bird changed, so ant must be recompiled as well
   CheckCompiled(['changeleaf1_prg.pas','changeleaf1_ant.pas','changeleaf1_bird.pas']);
 end;
 
