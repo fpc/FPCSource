@@ -512,7 +512,7 @@ end;
 Destructor TComponent.Destroy;
 begin
   Destroying;
-  FreeAndNil(FObservers);
+  FreeAndNil(FDObservers);
   RemoveFreeNotifications;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
