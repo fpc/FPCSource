@@ -962,27 +962,18 @@ implementation
                        eq:=te_equal
                      else
                        begin
-                         { Delphi does not allow explicit type conversions for float types like:
-                             single_var:=single(double_var);
-                           But if such conversion is inserted by compiler (internal) for some purpose,
-                           it should be allowed even in Delphi mode. }
-                         if (fromtreetype=realconstn) or
-                            not((cdoptions*[cdo_explicit,cdo_internal]=[cdo_explicit]) and
-                                (m_delphi in current_settings.modeswitches)) then
+                         doconv:=tc_real_2_real;
+                         { do we lose precision? }
+                         if (def_to.size<def_from.size) or
+                           (is_currency(def_from) and (tfloatdef(def_to).floattype in [s32real,s64real])) then
                            begin
-                             doconv:=tc_real_2_real;
-                             { do we lose precision? }
-                             if (def_to.size<def_from.size) or
-                               (is_currency(def_from) and (tfloatdef(def_to).floattype in [s32real,s64real])) then
-                               begin
-                                 if is_currency(def_from) and (tfloatdef(def_to).floattype=s32real) then
-                                   eq:=te_convert_l3
-                                 else
-                                   eq:=te_convert_l2
-                               end
+                             if is_currency(def_from) and (tfloatdef(def_to).floattype=s32real) then
+                               eq:=te_convert_l3
                              else
-                               eq:=te_convert_l1;
-                           end;
+                               eq:=te_convert_l2
+                           end
+                         else
+                           eq:=te_convert_l1;
                        end;
                    end;
                  else
