@@ -701,7 +701,7 @@ begin
   Result := False;
   SetLastError(ERROR_SUCCESS);
   FN:=FileName;
-  if Not GetFileAttributesExW(PWideChar(FileName), GetFileExInfoStandard, @Data) then
+  if Not GetFileAttributesExW(PWideChar(FN), GetFileExInfoStandard, @Data) then
     exit;
   if ((Data.dwFileAttributes and faSymlink)=faSymlink) then
     begin
