@@ -112,6 +112,8 @@ type
     procedure AddURL(const URL:string);
     procedure AddType(const AType:string);
     procedure Sort(Compare: TListSortCompare);
+  public
+    property SubItem[ index :integer]:TChmSiteMapSubItem read getsubitem;
   published
     property Children: TChmSiteMapItems read FChildren write SetChildren;
     property Name: String read FName write FName;
@@ -126,7 +128,6 @@ type
     property FrameName: String read FFrameName write FFrameName;
     property WindowName: String read FWindowName write FWindowName;
     property Merge: String read FMerge write FMerge;
-    property SubItem[ index :integer]:TChmSiteMapSubItem read getsubitem;
     property SubItemcount  :integer read getsubitemcount;
   end;
 
