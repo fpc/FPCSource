@@ -738,14 +738,32 @@ end;
           ClassName := PVmt(Self)^.vClassName^;
         end;
 
+      {$if SIZEOF(CHAR)=2}
+      class function TObject.ClassNameIs(const name : AnsiString) : boolean;
+      var
+          SS : ShortString;
+      begin
+        SS:=Name;
+        ClassNameIs:=ClassNameIs(SS);
+      end;
+      {$ENDIF}
+      
+      class function TObject.ClassNameIs(const name : ShortString) : boolean;
+      begin
+        ClassNameIs:=ShortCompareText(PVmt(Self)^.vClassName^, name) = 0;      
+      end;
       class function TObject.ClassNameIs(const name : RTLString) : boolean;
 
         var
           SS : ShortString;
           
         begin
-           SS:=ShortString(Name);
-           ClassNameIs:=ShortCompareText(PVmt(Self)^.vClassName^, SS) = 0;
+           {$if SIZEOF(CHAR)=2}
+           SS:=UTF8Encode(Name);
+           {$ELSE}
+           SS:=Name;
+           {$ENDIF}
+           ClassNameIs:=ClassNameIs(SS);
         end;
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
