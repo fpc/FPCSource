@@ -40,6 +40,7 @@ type
     procedure TestTwoUnits; // 2 units
     procedure TestChangeLeaf1; // prog+2 units, change leaf
     procedure TestChangeInner1; // prog+2 units, change inner unit, keep leaf
+    procedure TestChangeInlineBody; // prog+1 unit plus a package of 2 units, change of inline body should change crc
 
     // inline modifier in implementation (not in interface)
     procedure TestImplInline1; // 2 units, cycle, impl inline
@@ -165,7 +166,7 @@ var
   i, j: Integer;
 begin
   for i:=0 to length(Expected)-1 do
-    if Compiled.IndexOf(Expected[i])<0 then
+    if (Compiled=nil) or (Compiled.IndexOf(Expected[i])<0) then
       Fail('missing compiling "'+Expected[i]+'", Step='+Step);
   for i:=0 to Compiled.Count-1 do
   begin
@@ -261,6 +262,53 @@ begin
   Compile;
   // the main src is always compiled, ant changed, bird is kept
   CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas']);
+end;
+
+procedure TTestRecompile.TestChangeInlineBody;
+var
+  ProgDir, PkgDir, PkgOutDir: String;
+begin
+  // unit testcib_elk uses an inline function of unit testcib_bird
+  // elk belongs to the program, bird to the package, so they are compiled separately
+  // when the inline body of bird changes, the elk.ppu must be rebuilt too
+
+  ProgDir:='changeinlinebody'+PathDelim;
+  PkgDir:=ProgDir+'pkg';
+  PkgOutDir:=PkgDir+PathDelim+'lib';
+
+  // compile package containing testcib_ant.pas and testcib_bird.pas
+  Step:='Compile original package';
+  UnitPath:=PkgDir+';'+ProgDir+'original';
+  OutDir:=PkgOutDir;
+  MainSrc:=PkgDir+PathDelim+'testcib_ant.pas';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['testcib_ant.pas','testcib_bird.pas']);
+
+  // compile program
+  Step:='Compile program with original package ppus';
+  UnitPath:=ProgDir+';'+PkgOutDir;
+  OutDir:=ProgDir+'lib';
+  MainSrc:=ProgDir+'testcib_prog.pas';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
+
+  // recompile package with changed testcib_bird.pas
+  Step:='Compile changed package';
+  UnitPath:=PkgDir+';'+ProgDir+'changed';
+  OutDir:=PkgOutDir;
+  MainSrc:=PkgDir+PathDelim+'testcib_ant.pas';
+  Compile;
+  CheckCompiled(['testcib_ant.pas','testcib_bird.pas']);
+
+  // recompile program
+  Step:='Compile program with changed package ppus';
+  UnitPath:=ProgDir+';'+PkgOutDir;
+  OutDir:=ProgDir+'lib';
+  MainSrc:=ProgDir+'testcib_prog.pas';
+  Compile;
+  CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
 end;
 
 procedure TTestRecompile.TestImplInline1;
