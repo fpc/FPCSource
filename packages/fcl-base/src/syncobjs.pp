@@ -262,6 +262,22 @@ type
     property NextSpinCycleWillYield: Boolean read GetNextSpinCycleWillYield;
   end;
 
+  // Guardian pattern. Use to see if an object was freed or not by adding a guardian instance to it.
+  
+  IGuardian = interface
+    function GetIsDismantled: Boolean;
+    procedure Dismantle;
+    property IsDismantled: Boolean read GetIsDismantled;
+  end;
+
+  TGuardian = class(TInterfacedObject, IGuardian)
+  private
+    FIsDismantled: Boolean;
+    function GetIsDismantled: Boolean;
+  public
+    procedure Dismantle;
+    property IsDismantled: Boolean read GetIsDismantled;
+  end;
 
 implementation
 
@@ -1205,5 +1221,21 @@ begin
     lElapsedTime:=MilliSecondsBetween(Now,lStartTime);
   until (lElapsedTime >= lWaitTime) or lWait.NextSpinCycleWillYield;
 end;
+
+{ ---------------------------------------------------------------------
+  TGuardian
+  ---------------------------------------------------------------------}
+
+
+procedure TGuardian.Dismantle;
+begin
+  FIsDismantled := True;
+end;
+
+function TGuardian.GetIsDismantled: Boolean;
+begin
+  Result := FIsDismantled;
+end;
+
 
 end.
