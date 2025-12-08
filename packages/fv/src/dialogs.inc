@@ -794,6 +794,9 @@ TYPE
       {#X FreeSubView IsSubView }
     function GetPalette: PPalette; virtual;
     procedure HandleEvent(var Event: TEvent); virtual;
+    procedure CalcBounds (Var Bounds: TRect; Delta: TPoint); virtual;
+      { On application resize CalcBounds calculates new window
+        position without resize of window itself as long GrowMode is 0. }
     function IsSubView (AView : PView) : Boolean; virtual;
       { IsSubView returns True if AView is non-nil and is a subview of the
         dialog. }
@@ -1226,6 +1229,47 @@ BEGIN
            End;
        End;
    End;
+END;
+
+{--TDialog------------------------------------------------------------------}
+{  CalcBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Dec2025 M        }
+{---------------------------------------------------------------------------}
+PROCEDURE TDialog.CalcBounds (Var Bounds: TRect; Delta: TPoint);
+VAR S, D: Sw_Integer; R: TRect;
+
+   PROCEDURE MoveRel (Var A,B: Sw_Integer; rA,rB: Sw_Integer);
+   VAR I,Z,K,N,M: Sw_Integer;
+   BEGIN
+     I:=S-D-rB;                                      { Far margin width }
+     K:=S-D-rB+rA;                                   { Total previos margin width }
+     M:=S-B+A;                                       { Total new margin width }
+     if (D=1) and (abs(rA-I)<=1) then                { Increase by one }
+     begin
+       N:=A;
+       if rA < I then
+         Inc(N);
+     end else
+     begin
+       If K<>0 Then N:=round((M*rA)/K) else N:=abs(M) shr 1;{ New A margin }
+     end;
+     Z:=N-A;                                         { Delta of A }
+     B:=B+Z;                                         { Move B }
+     A:=N;                                           { Move A }
+   END;
+
+BEGIN
+   If (GrowMode <> 0) Then                            { GrowMode is set }
+   Begin
+     Inherited CalcBounds(Bounds,Delta);              { Do default calculations }
+     Exit;                                            { We have bounds, exits }
+   End;
+   GetBounds(R);                                      { Get bounds }
+   Bounds:=R;                                         { Set to old bounds }
+   S := Owner^.Size.X;                                { Set initial size }
+   D := Delta.X;                                      { Set initial delta }
+   MoveRel(Bounds.A.X,Bounds.B.X,R.A.X,R.B.X);        { Move relative horizontally }
+   S := Owner^.Size.Y; D := Delta.Y;                  { Set initial values }
+   MoveRel(Bounds.A.Y,Bounds.B.Y,R.A.Y,R.B.Y);        { Move relative vertically }
 END;
 
 {****************************************************************************}
