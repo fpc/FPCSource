@@ -118,7 +118,7 @@ begin
     ChDir (FCurrentDirectory);
    end;
   try
-   FExitCode := ExecuteProcess (ExecName, Params);
+   FExitCode := Cardinal(ExecuteProcess (ExecName, Params));
   except
 (* Normalize the raised exception so that it is aligned to other platforms. *)
     On E: EOSError do

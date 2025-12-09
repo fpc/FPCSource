@@ -211,7 +211,7 @@ begin
       until not FileExists(TempName);
       //sysdebugln('TProcess start: "' + ExecName + ' ' + Params+'"  >' + TempName);
       cos := AmigaDos.DosOpen(PAnsiChar(TempName), MODE_READWRITE);
-      FExitCode := LongInt(amigados.Execute(PAnsiChar(ExecName + ' ' + Params), BPTR(0), cos));
+      FExitCode := Cardinal(amigados.Execute(PAnsiChar(ExecName + ' ' + Params), BPTR(0), cos));
       DosSeek(cos, 0, OFFSET_BEGINNING);
     end;
     //FExitCode := ExecuteProcess (ExecName, Params);
@@ -328,4 +328,5 @@ end;
 function TIODescriptor.SysPrepareCreatedHandleForProcess(aHandle: THandle): THandle;
 begin
   Result:=aHandle;
-end;   
+end;
+
