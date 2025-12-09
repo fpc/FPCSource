@@ -274,7 +274,9 @@
           {$IF SIZEOF(CHAR)=2}
           class function ClassNameIs(const name : AnsiString) : boolean; overload; {$ifdef SYSTEMINLINE}inline;{$endif}
           {$ENDIF}
-          class function ClassNameIs(const name : RTLString) : boolean; overload;  {$ifdef SYSTEMINLINE}inline;{$endif}
+          {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+	  class function ClassNameIs(const name : RTLString) : boolean; overload;  {$ifdef SYSTEMINLINE}inline;{$endif}
+          {$endif FPC_HAS_FEATURE_ANSISTRINGS}
           class function ClassNameIs(const name : ShortString) : boolean; 
           class function ClassParent : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InstanceSize : SizeInt;// {$ifdef SYSTEMINLINE}inline;{$endif}

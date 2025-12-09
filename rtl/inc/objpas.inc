@@ -752,6 +752,8 @@ end;
       begin
         ClassNameIs:=ShortCompareText(PVmt(Self)^.vClassName^, name) = 0;      
       end;
+
+      {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
       class function TObject.ClassNameIs(const name : RTLString) : boolean;
 
         var
@@ -765,6 +767,7 @@ end;
            {$ENDIF}
            ClassNameIs:=ClassNameIs(SS);
         end;
+      {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
       class function TObject.InheritsFrom(aclass : TClass) : Boolean;
 
