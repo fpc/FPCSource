@@ -671,6 +671,7 @@ implementation
                     addstatement(statements,ctempdeletenode.create_normal_temp(resulttemp));
                     addstatement(statements,ctemprefnode.create(resulttemp));
                     right.Free;
+                    right := nil;
                   end
                 else
                   begin

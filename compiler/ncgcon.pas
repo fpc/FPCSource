@@ -363,6 +363,7 @@ implementation
                         internalerror(2013120103);
                    end;
                    datatcb.free;
+                   datatcb := nil;
                    lab_str:=lastlabel.lab;
                    entry^.Data:=lastlabel.lab;
                 end;
@@ -420,6 +421,7 @@ implementation
         current_asmdata.asmlists[al_typedconsts].concatlist(tcb.get_final_asmlist(
           result,resultdef,sec_rodata_norel,result.name,const_align(8)));
         tcb.free;
+        tcb := nil;
       end;
 
 
@@ -515,6 +517,7 @@ implementation
                  current_asmdata.asmlists[al_typedconsts].concatList(
                    datatcb.get_final_asmlist(lastlabel,rec_tguid,sec_rodata_norel,lastlabel.name,const_align(16)));
                  datatcb.free;
+                 datatcb := nil;
                  lab_set:=lastlabel;
                  entry^.Data:=lastlabel;
                end;

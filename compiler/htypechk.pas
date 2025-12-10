@@ -26,7 +26,7 @@ unit htypechk;
 interface
 
     uses
-      cclasses,cmsgs,tokens,
+      sysutils,cclasses,cmsgs,tokens,
       node,globtype,compinnr,
       symconst,symtype,symdef,symsym,symbase,
       pgentype;
@@ -807,6 +807,7 @@ implementation
           begin
             candidates.done;
             ppn.free;
+            ppn := nil;
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
@@ -828,6 +829,7 @@ implementation
           begin
             candidates.done;
             ppn.free;
+            ppn := nil;
             if not (ocf_check_only in ocf) then
               begin
                 CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
@@ -853,6 +855,7 @@ implementation
         if ocf_check_only in ocf then
           begin
             ppn.free;
+            ppn := nil;
             result:=true;
             exit;
           end;
@@ -1005,6 +1008,7 @@ implementation
         if (cand_cnt=0) then
           begin
             ppn.free;
+            ppn := nil;
             if not (ocf_check_only in ocf) then
               t:=cnothingnode.create;
             exit;
@@ -1013,6 +1017,7 @@ implementation
         if ocf_check_only in ocf then
           begin
             ppn.free;
+            ppn := nil;
             result:=true;
             exit;
           end;
@@ -1431,6 +1436,7 @@ implementation
                   for i:=0 to typeconvs.Count-1 do
                     ttypeconvnode(typeconvs[i]).assignment_side:=false;
                 typeconvs.free;
+                typeconvs := nil;
               end;
           end;
 
@@ -2209,6 +2215,7 @@ implementation
         sym : tsym;
       begin
         FIgnoredCandidateProcs.free;
+        FIgnoredCandidateProcs := nil;
         { free any symbols for anonymous parameter types that we're used for
           specialization when no specialization was picked }
         TFPList.FreeAndNilObjects(FParaAnonSyms);
@@ -2229,7 +2236,7 @@ implementation
                        break;
                      end;
                  end;
-               hp^.data.free;
+               FreeAndNil(hp^.data);
              end;
            dispose(hp);
            hp:=hpnext;
@@ -2675,6 +2682,7 @@ implementation
                 if tprocsym(pd.procsym).procdeflist.extract(pd)<>pd then
                   internalerror(20150828);
                 pd.free;
+                pd := nil;
               end;
           end;
 {$ifndef DISABLE_FAST_OVERLOAD_PATCH}
@@ -2689,6 +2697,7 @@ implementation
         calc_distance(st,flags);
 
         ProcdefOverloadList.Free;
+        ProcdefOverloadList := nil;
       end;
 
 
@@ -3100,6 +3109,7 @@ implementation
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    check_valid_var:=false;
                    n.free;
+                   n := nil;
                  end
               else if is_open_array(def_to) and
                       is_class_or_interface_or_dispinterface_or_objc_or_java(tarraydef(def_to).elementdef) and
@@ -3201,7 +3211,10 @@ implementation
 
               { maybe release temp currpt }
               if releasecurrpt then
-                currpt.free;
+               begin
+                 currpt.free;
+                 currpt := nil;
+               end;
 
               { next parameter in the call tree }
               pt:=tcallparanode(pt.right);

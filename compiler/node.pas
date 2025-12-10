@@ -1094,6 +1094,7 @@ implementation
     destructor tunarynode.destroy;
       begin
         left.free;
+        left := nil;
         inherited destroy;
       end;
 
@@ -1201,6 +1202,7 @@ implementation
     destructor tbinarynode.destroy;
       begin
         right.free;
+        right := nil;
         inherited destroy;
       end;
 
@@ -1355,6 +1357,7 @@ implementation
     destructor ttertiarynode.destroy;
       begin
         third.free;
+        third := nil;
         inherited destroy;
       end;
 

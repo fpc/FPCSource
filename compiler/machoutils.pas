@@ -543,6 +543,7 @@ const
         begin
           if AllowFreeWriter then
             ARawWriter.Free;
+            ARawWriter := nil;
           Result:=nil;
         end;
       end;
@@ -587,6 +588,7 @@ const
     begin
       if fown then
         fwriter.Free;
+        fwriter := nil;
       inherited Destroy;
     end;
 

@@ -245,6 +245,7 @@ implementation
          tlocalvarsym(tloadnode(p).symtableentry).inparentfpstruct then
         begin
           p.free;
+          p := nil;
           result:=cnothingnode.create;
         end
       else
@@ -294,6 +295,7 @@ implementation
          tlocalvarsym(tloadnode(p).symtableentry).inparentfpstruct then
         begin
           p.free;
+          p := nil;
           result:=cnothingnode.create;
         end
       else
@@ -498,6 +500,7 @@ implementation
             end;
         end;
       structlist.free;
+      structlist := nil;
     end;
 
 
@@ -866,6 +869,7 @@ implementation
                       trash_large(stat,trashn,caddnode.create(addn,cinlinenode.create(in_high_x,false,trashn.getcopy),genintconstnode(1)),trashintval)
                     else
                       trashn.free;
+                      trashn := nil;
                   end;
                 1: trash_small(stat,
                   ctypeconvnode.create_internal(trashn,s8inttype),
@@ -898,6 +902,7 @@ implementation
         end
       else
         trashn.free;
+        trashn := nil;
     end;
 
 
@@ -1273,6 +1278,7 @@ implementation
       );
 
       unitinits.free;
+      unitinits := nil;
     end;
 
 
@@ -1342,6 +1348,7 @@ implementation
       { set the count at the start }
       placeholder.replace(tai_const.Create_sizeint(count),sizesinttype);
       placeholder.free;
+      placeholder := nil;
       { insert in data segment }
       tabledef:=tcb.end_anonymous_record;
       sym:=current_asmdata.DefineAsmSymbol('FPC_THREADVARTABLES',AB_GLOBAL,AT_DATA,tabledef);
@@ -1351,6 +1358,7 @@ implementation
         )
       );
       tcb.free;
+      tcb := nil;
     end;
 
 
@@ -1406,6 +1414,7 @@ implementation
            current_module.add_public_asmsym(sym);
          end;
        tcb.Free;
+       tcb := nil;
     end;
 
 
@@ -1447,6 +1456,7 @@ implementation
       { Insert TableCount at start }
       countplaceholder.replace(Tai_const.Create_sizeint(count),sizesinttype);
       countplaceholder.free;
+      countplaceholder := nil;
       { insert in data segment }
       tabledef:=tcb.end_anonymous_record;
       current_asmdata.asmlists[al_globals].concatlist(
@@ -1457,6 +1467,7 @@ implementation
         )
       );
       tcb.free;
+      tcb := nil;
     end;
 
 
@@ -1497,6 +1508,7 @@ implementation
           current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA,rawdatadef),
           rawdatadef,sec_data,s,const_align(sizeof(pint))));
       tcb.free;
+      tcb := nil;
       include(current_module.moduleflags,unitflag);
     end;
 
@@ -1558,6 +1570,7 @@ implementation
       { Insert TableCount at start }
       countplaceholder.replace(Tai_const.Create_sizeint(count),sizesinttype);
       countplaceholder.free;
+      countplaceholder := nil;
       { Add to data segment }
       tabledef:=tcb.end_anonymous_record;
       current_asmdata.AsmLists[al_globals].concatList(
@@ -1567,6 +1580,7 @@ implementation
         )
       );
       tcb.free;
+      tcb := nil;
     end;
 
 
@@ -1597,6 +1611,7 @@ implementation
           );
 
           tcb.free;
+          tcb := nil;
         end;
     end;
 
@@ -1640,6 +1655,7 @@ implementation
             tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__stklen',const_align(sizeof(pint)))
           );
           tcb.free;
+          tcb := nil;
         end;
 
       { allocate the stack on the ZX Spectrum system }
@@ -1672,6 +1688,7 @@ implementation
            tcb.get_final_asmlist(sym,def,sec_data,'__stack_cookie',sizeof(pint))
          );
          tcb.free;
+         tcb := nil;
        end;
 {$ENDIF POWERPC}
       { Initial heapsize }
@@ -1682,6 +1699,7 @@ implementation
         tcb.get_final_asmlist(sym,ptruinttype,sec_data,'__heapsize',const_align(sizeof(pint)))
       );
       tcb.free;
+      tcb := nil;
 
       { allocate an initial heap on embedded systems }
       if target_info.system in (systems_embedded+systems_freertos+[system_z80_zxspectrum,system_z80_msxdos]) then
@@ -1702,6 +1720,7 @@ implementation
         tcb.get_final_asmlist(sym,u8inttype,sec_data,'__fpc_valgrind',const_align(sizeof(pint)))
       );
       tcb.free;
+      tcb := nil;
     end;
 
 
@@ -1724,6 +1743,7 @@ implementation
             )
           );
           tcb.free;
+          tcb := nil;
         end;
     end;
 

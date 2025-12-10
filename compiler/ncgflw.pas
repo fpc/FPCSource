@@ -371,8 +371,10 @@ implementation
              { add all lists together }
              org_list.concatlist(then_list);
              then_list.free;
+             then_list := nil;
              org_list.concatlist(else_list);
              else_list.free;
+             else_list := nil;
              org_list.concatlist(current_asmdata.CurrAsmList);
              current_asmdata.CurrAsmList.free;
              current_asmdata.CurrAsmList := org_list;
@@ -1009,6 +1011,7 @@ implementation
 
              current_asmdata.CurrAsmList.concatList(tmplist);
              tmplist.free;
+             tmplist := nil;
            end
          else
            cexceptionstatehandler.emit_except_label(current_asmdata.CurrAsmList,exceptframekind,finallyexceptionstate,excepttemps);

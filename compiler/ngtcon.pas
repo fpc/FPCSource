@@ -188,6 +188,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
              inserttypeconv(n,def);
            tc_emit_orddef(def,n);
            n.free;
+           n := nil;
         end;
 
       procedure ttypedconstbuilder.parse_floatdef(def:tfloatdef);
@@ -197,6 +198,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           n:=comp_expr([ef_accept_equal]);
           tc_emit_floatdef(def,n);
           n.free;
+          n := nil;
         end;
 
       procedure ttypedconstbuilder.parse_classrefdef(def:tclassrefdef);
@@ -216,6 +218,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           end;
           tc_emit_classrefdef(def,n);
           n.free;
+          n := nil;
         end;
 
       procedure ttypedconstbuilder.parse_pointerdef(def:tpointerdef);
@@ -225,6 +228,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           p:=comp_expr([ef_accept_equal]);
           tc_emit_pointerdef(def,p);
           p.free;
+          p := nil;
         end;
 
       procedure ttypedconstbuilder.parse_setdef(def:tsetdef);
@@ -234,6 +238,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           p:=comp_expr([ef_accept_equal]);
           tc_emit_setdef(def,p);
           p.free;
+          p := nil;
         end;
 
       procedure ttypedconstbuilder.parse_enumdef(def:tenumdef);
@@ -243,6 +248,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           p:=comp_expr([ef_accept_equal]);
           tc_emit_enumdef(def,p);
           p.free;
+          p := nil;
         end;
 
       procedure ttypedconstbuilder.parse_stringdef(def:tstringdef);
@@ -252,6 +258,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           n:=comp_expr([ef_accept_equal]);
           tc_emit_stringdef(def,n);
           n.free;
+          n := nil;
         end;
 
     { ttypedconstbuilder }
@@ -479,7 +486,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
     destructor tasmlisttypedconstbuilder.Destroy;
       begin
         fdatalist.free;
+        fdatalist := nil;
         ftcb.free;
+        ftcb := nil;
         inherited Destroy;
       end;
 
@@ -1180,6 +1189,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             incompatibletypes(node.resultdef,def);
             node.free;
+            node := nil;
             consume_all_until(_SEMICOLON);
             result:=false;
             exit;
@@ -1191,6 +1201,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if (bp.curbitoffset>=AIntBits) then
           flush_packed_value(bp);
         node.free;
+        node := nil;
       end;
 
     procedure tasmlisttypedconstbuilder.get_final_asmlists(out reslist, datalist: tasmlist);
@@ -1466,6 +1477,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                end;
              ftcb.maybe_end_aggregate(def);
              n.free;
+             n := nil;
           end
         else
           begin
@@ -1505,6 +1517,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if codegenerror then
           begin
             n.free;
+            n := nil;
             exit;
           end;
         { let type conversion check everything needed }
@@ -1512,6 +1525,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if codegenerror then
           begin
             n.free;
+            n := nil;
             exit;
           end;
         { in case of a nested procdef initialised with a global routine }
@@ -1605,6 +1619,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           Message(parser_e_illegal_expression);
         ftcb.maybe_end_aggregate(def);
         n.free;
+        n := nil;
       end;
 
 
@@ -1655,6 +1670,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   Message(parser_e_illegal_expression);
               end;
             n.free;
+            n := nil;
             exit;
           end;
         if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
@@ -1666,6 +1682,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             else
               Message(parser_e_illegal_expression);
             n.free;
+            n := nil;
             exit;
           end;
         ftcb.maybe_begin_aggregate(def);
@@ -1861,6 +1878,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             else
               ftcb.emit_tai(Tai_const.Create_sym(nil),def);
             n.free;
+            n := nil;
             exit;
           end;
 
@@ -2062,6 +2080,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   Message(parser_e_illegal_expression);
               end;
             n.free;
+            n := nil;
             exit;
           end;
         if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
@@ -2073,6 +2092,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             else
               Message(parser_e_illegal_expression);
             n.free;
+            n := nil;
             exit;
           end;
         { bitpacked record? }
@@ -2186,6 +2206,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            ) then
           Message1(parser_w_skipped_fields_after,sorg);
         orgbasenode.free;
+        orgbasenode := nil;
         basenode:=nil;
 
         consume(_RKLAMMER);
@@ -2225,6 +2246,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 basenode:=nil;
               end;
             n.free;
+            n := nil;
             exit;
           end;
 

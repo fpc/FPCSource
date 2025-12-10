@@ -73,7 +73,9 @@ begin
      ([cs_link_nolink,cs_link_deffile]*current_settings.globalswitches=[]) then
     DeleteFile(FName);
   importlist.Free;
+  importlist := nil;
   exportlist.Free;
+  exportlist := nil;
 end;
 
 

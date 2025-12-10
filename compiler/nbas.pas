@@ -863,6 +863,7 @@ implementation
                                 Flags := Flags + (p.left.flags * [nf_usercode_entry]);
 
                                 p.Free;
+                                p := nil;
                                 Continue;
                               end;
                           else
@@ -1032,7 +1033,10 @@ implementation
     destructor tasmnode.destroy;
       begin
         if assigned(p_asm) then
-          p_asm.free;
+          begin
+            p_asm.free;
+            p_asm := nil;
+          end;
         inherited destroy;
       end;
 
@@ -1826,8 +1830,8 @@ implementation
 
     destructor ttempdeletenode.destroy;
       begin
-        tempinfo^.withnode.free;
-        tempinfo^.tempinitcode.free;
+        tempinfo^.withnode.free; // no nil needed
+        tempinfo^.tempinitcode.free; // no nil needed
         dispose(tempinfo);
         inherited destroy;
       end;
