@@ -26,7 +26,7 @@ unit nset;
 interface
 
     uses
-       cclasses,constexp,
+       sysutils,cclasses,constexp,
        node,globtype,globals,
        aasmbase,ncon,nflw,symtype;
 
@@ -539,8 +539,8 @@ implementation
            deletecaselabels(p^.less);
          if (p^.label_type = ltConstString) then
            begin
-             p^._low_str.Free;
-             p^._high_str.Free;
+             FreeAndNil(p^._low_str);
+             FreeAndNil(p^._high_str);
            end;
          dispose(p);
       end;
@@ -645,14 +645,16 @@ implementation
         hp : pcaseblock;
       begin
          elseblock.free;
+         elseblock := nil;
          deletecaselabels(flabels);
          for i:=0 to blocks.count-1 do
            begin
-             pcaseblock(blocks[i])^.statement.free;
+             FreeAndNil(pcaseblock(blocks[i])^.statement);
              hp:=pcaseblock(blocks[i]);
              dispose(hp);
            end;
          blocks.free;
+         blocks := nil;
          inherited destroy;
       end;
 
@@ -811,6 +813,7 @@ implementation
             end;
           { will free its elements too because of create(true) }
           blocklist.free;
+          blocklist := nil;
           typecheckpass(result);
         end;
 
@@ -1416,8 +1419,8 @@ implementation
               result := insertlabel(p^.greater)
           else
             begin
-              hcaselabel^._low_str.free;
-              hcaselabel^._high_str.free;
+              FreeAndNil(hcaselabel^._low_str);
+              FreeAndNil(hcaselabel^._high_str);
               dispose(hcaselabel);
               Message(parser_e_double_caselabel);
               result:=nil;
