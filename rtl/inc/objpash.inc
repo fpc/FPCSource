@@ -252,6 +252,15 @@
        protected
           function GetDisposed : Boolean; inline;
           Property Disposed : Boolean Read GetDisposed;
+      {$IFDEF ENABLE_OBJECTHOOK}
+       public
+          Type
+             TObjectHook = procedure(aObject : TObject);
+          class var
+             AllocateObjectHook : TObjectHook;
+             DestroyObjectHook : TObjectHook;
+       {$ENDIF}
+
        public
           { please don't change the order of virtual methods, because
             their vmt offsets are used by some assembler code which uses
