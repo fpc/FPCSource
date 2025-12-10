@@ -47,6 +47,10 @@ SYSINIT_UNITS=si_prc
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
+ifeq ($(ARCH),arm)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
+
 ifeq ($(ARCH),i386)
 CPU_UNITS=$(CPUUNIT) $(MMXUNIT) $(LINEINFOUNIT)
 endif

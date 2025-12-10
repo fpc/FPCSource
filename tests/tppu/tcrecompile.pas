@@ -26,6 +26,7 @@ type
     procedure CleanOutputDir(Dir: string); overload;
     procedure Compile;
     procedure CheckCompiled(const Expected: TStringArray);
+    procedure MakeDateDiffer(const File1, File2: string);
     property PP: string read FPP write FPP;
     property UnitPath: string read FUnitPath write FUnitPath;
     property OutDir: string read FOutDir write FOutDir;
@@ -40,6 +41,7 @@ type
     procedure TestTwoUnits; // 2 units
     procedure TestChangeLeaf1; // prog+2 units, change leaf
     procedure TestChangeInner1; // prog+2 units, change inner unit, keep leaf
+    procedure TestChangeInlineBodyBug; // Bug: prog+1 unit plus a package of 2 units, change of inline body should change crc, but does not
 
     // inline modifier in implementation (not in interface)
     procedure TestImplInline1; // 2 units, cycle, impl inline
@@ -60,6 +62,7 @@ begin
   UnitPath:='';
   OutDir:='';
   MainSrc:='';
+  Compiled:=TStringList.Create;
 end;
 
 procedure TTestRecompile.TearDown;
@@ -119,6 +122,7 @@ var
   i: Integer;
   Line, Filename: String;
 begin
+  Compiled.Clear;
   if UnitPath='' then
     Fail('missing UnitPath, Step='+Step);
 
@@ -133,7 +137,6 @@ begin
     Fail('main src file not found "'+MainSrc+'", Step='+Step);
 
   Lines:=nil;
-  Compiled:=TStringList.Create;
   Params:=TStringList.Create;
   try
     Params.Add('-Fu'+UnitPath);
@@ -148,7 +151,7 @@ begin
       if LeftStr(Line,length('Compiling '))='Compiling ' then
       begin
         Filename:=copy(Line,length('Compiling ')+1,length(Line));
-        writeln('Compiling: ',Filename);
+        writeln('Compiling ',Filename);
         Filename:=ExtractFileName(Filename);
         if Compiled.IndexOf(Filename)<0 then
           Compiled.Add(Filename);
@@ -165,7 +168,7 @@ var
   i, j: Integer;
 begin
   for i:=0 to length(Expected)-1 do
-    if Compiled.IndexOf(Expected[i])<0 then
+    if (Compiled=nil) or (Compiled.IndexOf(Expected[i])<0) then
       Fail('missing compiling "'+Expected[i]+'", Step='+Step);
   for i:=0 to Compiled.Count-1 do
   begin
@@ -174,6 +177,20 @@ begin
     if j<0 then
       Fail('unexpected compiling "'+Compiled[i]+'", Step='+Step);
   end;
+end;
+
+procedure TTestRecompile.MakeDateDiffer(const File1, File2: string);
+var
+  Age1, Age2: Int64;
+begin
+  Age1:=FileAge(File1);
+  if Age1<0 then
+    Fail('file not found "'+File1+'"');
+  Age2:=FileAge(File2);
+  if Age2<0 then
+    Fail('file not found "'+File2+'"');
+  if Age1<>Age2 then exit;
+  FileSetDate(File2,Age2-2);
 end;
 
 constructor TTestRecompile.Create;
@@ -228,10 +245,16 @@ begin
 end;
 
 procedure TTestRecompile.TestChangeLeaf1;
+var
+  Dir: String;
 begin
-  UnitPath:='changeleaf1;changeleaf1'+PathDelim+'src1';
-  OutDir:='changeleaf1'+PathDelim+'ppus';
-  MainSrc:='changeleaf1'+PathDelim+'changeleaf1_prg.pas';
+  Dir:='changeleaf1';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'changeleaf1_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'changeleaf1_bird.pas',
+    Dir+PathDelim+'src2'+PathDelim+'changeleaf1_bird.pas');
 
   Step:='First compile';
   CleanOutputDir;
@@ -239,17 +262,23 @@ begin
   CheckCompiled(['changeleaf1_prg.pas','changeleaf1_ant.pas','changeleaf1_bird.pas']);
 
   Step:='Second compile';
-  UnitPath:='changeleaf1;changeleaf1'+PathDelim+'src2';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
-  // the main src is always compiled, bird changed, so all ant must be recompiled as well
+  // the main src is always compiled, bird changed, so ant must be recompiled as well
   CheckCompiled(['changeleaf1_prg.pas','changeleaf1_ant.pas','changeleaf1_bird.pas']);
 end;
 
 procedure TTestRecompile.TestChangeInner1;
+var
+  Dir: String;
 begin
-  UnitPath:='changeinner1;changeinner1'+PathDelim+'src1';
-  OutDir:='changeinner1'+PathDelim+'ppus';
-  MainSrc:='changeinner1'+PathDelim+'changeinner1_prg.pas';
+  Dir:='changeinner1';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'changeinner1_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'changeinner1_ant.pas',
+    Dir+PathDelim+'src2'+PathDelim+'changeinner1_ant.pas');
 
   Step:='First compile';
   CleanOutputDir;
@@ -257,10 +286,63 @@ begin
   CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas','changeinner1_bird.pas']);
 
   Step:='Second compile';
-  UnitPath:='changeinner1;changeinner1'+PathDelim+'src2';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
   // the main src is always compiled, ant changed, bird is kept
   CheckCompiled(['changeinner1_prg.pas','changeinner1_ant.pas']);
+end;
+
+procedure TTestRecompile.TestChangeInlineBodyBug;
+var
+  ProgDir, PkgDir, PkgOutDir: String;
+begin
+  // unit testcib_elk uses an inline function of unit testcib_bird
+  // elk belongs to the program, bird to the package, so they are compiled separately
+  // when the inline body of bird changes, the elk.ppu must be rebuilt too
+
+  ProgDir:='changeinlinebody'+PathDelim;
+  PkgDir:=ProgDir+'pkg';
+  PkgOutDir:=PkgDir+PathDelim+'lib';
+  MakeDateDiffer(
+    ProgDir+'original'+PathDelim+'testcib_bird.pas',
+    ProgDir+'changed'+PathDelim+'testcib_bird.pas');
+
+  // compile package containing testcib_ant.pas and testcib_bird.pas
+  Step:='Compile original package';
+  UnitPath:=PkgDir+';'+ProgDir+'original';
+  OutDir:=PkgOutDir;
+  MainSrc:=PkgDir+PathDelim+'testcib_ant.pas';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['testcib_ant.pas','testcib_bird.pas']);
+
+  // compile program
+  Step:='Compile program with original package ppus';
+  UnitPath:=ProgDir+';'+PkgOutDir;
+  OutDir:=ProgDir+'lib';
+  MainSrc:=ProgDir+'testcib_prog.pas';
+  CleanOutputDir;
+  Compile;
+  CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
+
+  // recompile package with changed testcib_bird.pas
+  Step:='Compile changed package';
+  UnitPath:=PkgDir+';'+ProgDir+'changed';
+  OutDir:=PkgOutDir;
+  MainSrc:=PkgDir+PathDelim+'testcib_ant.pas';
+  Compile;
+  CheckCompiled(['testcib_ant.pas','testcib_bird.pas']);
+
+  // recompile program
+  Step:='Compile program with changed package ppus';
+  UnitPath:=ProgDir+';'+PkgOutDir;
+  OutDir:=ProgDir+'lib';
+  MainSrc:=ProgDir+'testcib_prog.pas';
+  Compile;
+  // fpc should compile elk:
+  //CheckCompiled(['testcib_prog.pas','testcib_elk.pas']);
+  // But it does not:
+  CheckCompiled(['testcib_prog.pas']);
 end;
 
 procedure TTestRecompile.TestImplInline1;
@@ -321,10 +403,19 @@ begin
 end;
 
 procedure TTestRecompile.TestImplInline3;
+var
+  Dir: String;
 begin
-  UnitPath:='implinline3;implinline3'+PathDelim+'src1';
-  OutDir:='implinline3'+PathDelim+'ppus';
-  MainSrc:='implinline3'+PathDelim+'implinline3_prg.pas';
+  Dir:='implinline3';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src1';
+  OutDir:=Dir+PathDelim+'ppus';
+  MainSrc:=Dir+PathDelim+'implinline3_prg.pas';
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'implinline3_ant.pas',
+    Dir+PathDelim+'src2'+PathDelim+'implinline3_ant.pas');
+  MakeDateDiffer(
+    Dir+PathDelim+'src1'+PathDelim+'implinline3_bird.pas',
+    Dir+PathDelim+'src2'+PathDelim+'implinline3_bird.pas');
 
   Step:='First compile';
   CleanOutputDir;
@@ -332,7 +423,7 @@ begin
   CheckCompiled(['implinline3_prg.pas','implinline3_ant.pas','implinline3_bird.pas']);
 
   Step:='Second compile';
-  UnitPath:='implinline3;implinline3'+PathDelim+'src2';
+  UnitPath:=Dir+';'+Dir+PathDelim+'src2';
   Compile;
   // the main src is always compiled, and the ant impl changed, so bird is also compiled
   CheckCompiled(['implinline3_prg.pas','implinline3_ant.pas','implinline3_bird.pas']);

@@ -14,6 +14,12 @@
 
  **********************************************************************}
 
+{$if defined(freebsd) and defined(cpupowerpc64)}
+{$linklib c}
+// Import FreeBSD's fpsetmask() from libc
+function fpsetmask(mask: LongInt): LongInt; cdecl; external 'c';
+{$endif cpupowerpc64}
+
 function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
     tmp,am1 : PtrUInt;
@@ -2473,6 +2479,11 @@ end;
 {$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
+
+{$if defined(freebsd) and defined(cpupowerpc64)}
+{ Initialize FPU/FP exception state for FreeBSD/powerpc64 }
+	fpsetmask(0);
+{$endif cpupowerpc64}
 
 {$ifndef FPUNONE}
 {$ifndef FPC_SYSTEM_HAS_SYSRESETFPU}

@@ -131,9 +131,7 @@ type sigset_t = array[0..3] of Longint;
 {$endif cpuaarch64}
 
 {$ifdef CPUPOWERPC64}
-    SigContextRec = record
-            _dummy : cint;
-       end;
+{$i sighndh.inc}
 {$endif}
 
   Sigval = Record
@@ -193,6 +191,7 @@ type sigset_t = array[0..3] of Longint;
   PSigActionRec = ^SigActionRec;
   
 
+{$ifndef CPUPOWERPC64}
   pstack_t = ^stack_t;
   stack_t = record
     ss_sp: PAnsiChar;                       {* signal stack base *}
@@ -201,6 +200,7 @@ type sigset_t = array[0..3] of Longint;
   end;
   TStack = stack_t;
   PStack = pstack_t;
+{$endif CPUPOWERPC64}
 
 {
   Change action of process upon receipt of a signal.

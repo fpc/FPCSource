@@ -47,6 +47,10 @@ endif
 OBJPASDIR=$(RTL)/objpas
 SYSUTILS_DEPS_OS=$(DOSUNIT)$(PPUEXT)
 
+ifeq ($(ARCH),arm)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
+
 [rules]
 .NOTPARALLEL:
 # Get the system independent include file names.

@@ -83,33 +83,33 @@ type
   end;
 {$endif cpuaarch64}
 
-{$ifdef powerpc64}
-  gpregs = record
-    { General-purpose registers r0..r31 }
-    gp_r: array[0..31] of NativeUInt;  { 64-bit each }
-
-    { Special registers saved in mcontext }
-    gp_nip: NativeUInt;  { Next instruction pointer (PC) }
-    gp_msr: NativeUInt;  { Machine state register }
-    gp_ctr: NativeUInt;  { Count register }
-    gp_lr:  NativeUInt;  { Link register }
-    gp_xer: NativeUInt;  { Integer exception register }
-    gp_cr:  NativeUInt;  { Condition register }
-  end;
-
-  fpregs = record
-    { 32 double-precision FP regs f0..f31 }
-    fp_f: array[0..31] of Double;  { each 64-bit IEEE754 }
-    fp_fpscr: QWord;               { Floating-point status/control reg }
-    fp_pad:  array[0..1] of QWord; { padding/reserved }
-  end;
-
+{$ifdef CPUPOWERPC64}
   mcontext_t = record
-    mc_gpregs: gpregs;
-    mc_fpregs: fpregs;
-    mc_flags: Int32;
-    mc_pad:   Int32;
-    mc_spare: array[0..7] of NativeInt;
+    { version & flags }
+    mc_vers    : cint;
+    mc_flags   : cint;
+    { saved sigstack flag and total size of this structure }
+    mc_onstack : cint;
+    mc_len     : cint;
+
+    { general-purpose CPU state (matches trapframe layout) }
+    mc_gpr     : array[0..31] of cuint64;  { r0..r31 }
+    mc_lr      : cuint64;                  { link register }
+    mc_cr      : cuint64;                  { condition register }
+    mc_xer     : cuint64;                  { fixed-point exception }
+    mc_ctr     : cuint64;                  { count register }
+    mc_srr0    : cuint64;                  { PC at signal (NIP) }
+    mc_srr1    : cuint64;                  { MSR }
+
+    { floating-point state }
+    mc_fpscr   : cdouble;                     { saved FPSCR as double }
+    mc_fpreg   : array[0..31] of cdouble;     { FPR0..FPR31 }
+
+    { Altivec / VSX state }
+    { 32 vector registers, stored as 2x64-bit words each }
+    mc_avec    : array[0..(32*2)-1] of cuint64;
+    { misc Altivec control: VSCR / VRSAVE (32-bit) }
+    mc_av      : array[0..1] of cuint32;
   end;
 {$endif}
 

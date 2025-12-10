@@ -2497,6 +2497,9 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
+ifneq ($(findstring $(ARCH),aarch64 arm),)
+CLASSES_DEPS_CPU:=$(CLASSES_DEPS_CPU) $(INTRINSICSUNIT)$(PPUEXT)
+endif
 CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
 	     $(SYSTEMUNIT)$(PPUEXT) $(OBJPASUNIT)$(PPUEXT) $(SORTBASEUNIT)$(PPUEXT) \
 	     $(SYSUTILSUNIT)$(PPUEXT) $(TYPINFOUNIT)$(PPUEXT) $(RTLCONSTSUNIT)$(PPUEXT) \
@@ -2580,6 +2583,13 @@ mmx$(PPUEXT) : $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
 System.CPU.MMX$(PPUEXT) : $(NSINC)/System.CPU.MMX.pp $(MMX_DEPS)
 	$(COMPILER) $(MMX_OPT) $<
+INTRINSICS_DEPS=$(PROCINC)/intrinsics.pp \
+	 $(SYSTEMUNIT)$(PPUEXT) \
+	 $(INTRINSICS_DEPS_OS) $(INTRINSICS_DEPS_CPU)
+intrinsics$(PPUEXT) : $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
+System.Intrinsics$(PPUEXT) : $(NSINC)/System.Intrinsics.pp $(INTRINSICS_DEPS)
+	$(COMPILER) $(INTRINSICS_OPT) $<
 ifeq ($(filter -dFPC_USE_LIBC,$(FPCOPT)),)
   X86_DEPS_OS+=$(SYSCALLUNIT)$(PPUEXT)
 endif

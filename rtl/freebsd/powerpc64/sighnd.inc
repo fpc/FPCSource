@@ -25,14 +25,13 @@ begin
     SIGFPE:
       begin
         case info^.si_code of
-          FPE_FLTDIV: res := 208;  { float divide fault }
-          FPE_INTDIV: res := 207;  { integer divide fault }
+          FPE_INTDIV: res := 200;  { integer divide fault }
           FPE_FLTOVF: res := 205;  { overflow trap }
           FPE_FLTUND: res := 206;  { underflow }
           FPE_FLTRES: res := 216;  { inexact result / device not available }
           FPE_FLTINV: res := 216;  { invalid floating point op }
         else
-          res := 207;              { generic coprocessor error }
+          res := 208;              { generic coprocessor error }
         end;
         sysResetFPU;               { reset FPSCR on PowerPC64 }
       end;

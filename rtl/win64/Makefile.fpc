@@ -73,6 +73,9 @@ ifeq ($(ARCH),x86_64)
 # signals unit is x86 specific for now
 CPU_UNITS=$(CPUUNIT) $(SIGNALSUNIT)
 endif
+ifeq ($(ARCH),aarch64)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
