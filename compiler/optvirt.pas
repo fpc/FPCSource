@@ -192,7 +192,9 @@ unit optvirt;
       begin
         { fchilds owns its members, so it will free them too }
         fchilds.free;
+        fchilds:=nil;
         fcalledvmtmethods.free;
+        fcalledvmtmethods:=nil;
         inherited destroy;
       end;
 
@@ -270,7 +272,9 @@ unit optvirt;
     destructor tinheritancetree.destroy;
       begin
         froots.free;
+        froots:=nil;
         classrefdefs.free;
+        classrefdefs:=nil;
         inherited destroy;
       end;
       
@@ -635,6 +639,7 @@ unit optvirt;
           if assigned(fstaticmethodnames[i]) then
             freemem(fstaticmethodnames[i]);
         fstaticmethodnames.free;
+        fstaticmethodnames:=nil;
         inherited destroy;
       end;
 
@@ -668,6 +673,7 @@ unit optvirt;
     destructor tunitdevirtinfo.destroy;
       begin
         fclasses.free;
+        fclasses:=nil;
         inherited destroy;
       end;
 
@@ -739,6 +745,7 @@ unit optvirt;
     destructor tprogdevirtinfo.destroy;
       begin
         funits.free;
+        funits:=nil;
         inherited destroy;
       end;
 
@@ -879,6 +886,7 @@ unit optvirt;
 {$endif DEBUG_DEVIRT}
          inheritancetree.foreachnode(@converttreenode,nil);
          inheritancetree.free;
+         inheritancetree:=nil;
       end;
 
 
