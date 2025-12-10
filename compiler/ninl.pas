@@ -1156,6 +1156,7 @@ implementation
                   { parameters coming after it                    }
                   para.right := nil;
                   para.free;
+                  para := nil;
                 end
               else
                 { read of non s/u-8/16bit, or a write }
@@ -1197,15 +1198,18 @@ implementation
               { free the parameter, since it isn't referenced anywhere anymore }
               para.right := nil;
               para.free;
+              para := nil;
               if assigned(lenpara) then
                 begin
                   lenpara.right := nil;
                   lenpara.free;
+                  lenpara := nil;
                 end;
               if assigned(fracpara) then
                 begin
                   fracpara.right := nil;
                   fracpara.free;
+                  fracpara := nil;
                 end;
             end;
 
@@ -1571,17 +1575,19 @@ implementation
 
         { free the file parameter (it's copied inside the handle_*_read_write methods) }
         filepara.free;
+        filepara := nil;
 
         { if we found an error, simply delete the generated blocknode }
         if found_error then
           begin
             { ensure that the tempinfo is freed correctly by destroying a
               delete node for it
-              Note: this might happen legitimately whe parsing a generic that
-                    passes a undefined type to Write/Read }
+              Note: this might happen legitimately when parsing a generic that
+                    passes an undefined type to Write/Read }
             if assigned(filetemp) then
               ctempdeletenode.create(filetemp).free;
-            newblock.free
+            newblock.free;
+            newblock := nil;
           end
         else
           begin
@@ -1832,6 +1838,7 @@ implementation
         destpara.left := nil;
         destpara.right := nil;
         destpara.free;
+        destpara := nil;
 
         { check if we used a temp for code and whether we have to store }
         { it to the real code parameter                                 }
@@ -5395,6 +5402,7 @@ implementation
 
             ppn.left:=nil;
             paras.free;
+            paras := nil;
           end
         else
           result:=ccallnode.createintern('fpc_shortstr_copy',paras);
@@ -5954,6 +5962,7 @@ implementation
            end;
 
          list.free;
+         list := nil;
        end;
 
 
