@@ -390,7 +390,7 @@ begin
          AddFormatParamInt(R.SClass);
          AddFormatParamInt(L);
          AddFormatParamInt(R.Size);
-         ErrorBox('Uknown help record tag %x encountered, '+
+         ErrorBox('Unknown help record tag %x encountered, '+
                   'offset %x, size %d',@FormatParams);
        {$else}
          {Skip};

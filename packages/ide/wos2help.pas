@@ -84,7 +84,7 @@ type
 
       TINFTOCEntry = packed record
         Size     : byte; { length of the entry including this byte    }
-        Flags    : byte; { flag byte, description folows (MSB first)  }
+        Flags    : byte; { flag byte, description follows (MSB first)  }
         NumSlots : byte; { number of "slots" occupied by the text for }
                          { this toc entry                             }
         Slots    : record end;

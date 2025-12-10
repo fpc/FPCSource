@@ -441,7 +441,7 @@ begin
   if (Code=165) or (Name='yen')    then E:=''   else { yen sign                      }
   if (Code=166) or (Name='brvbar') then E:='|'   else { broken vertical bar           }
   if (Code=167) or (Name='sect')   then E:=''   else { section sign                  }
-  if (Code=168) or (Name='uml')    then E:='"'   else { umlaut  (dieresis)            }
+  if (Code=168) or (Name='uml')    then E:='"'   else { umlaut  (diaeresis)           }
   if (Code=169) or (Name='copy')   then E:='(C)' else { copyright sign                }
 (*  if (Code=170) or (Name='ordf')   then E:=#255  else { ordinal indicator, feminine   }*)
   if (Code=171) or (Name='laquo')  then E:='"'   else { angle quotation mark -left    }
@@ -460,7 +460,7 @@ begin
 (*  if (Code=184) or (Name='cedil')  then E:='?'   else { cedilla                       }*)
   if (Code=185) or (Name='sup1')   then E:='^1'  else { superscript 1                 }
 (*  if (Code=186) or (Name='ordm')   then E:='?'   else { ordinal indicator, masculine  }*)
-  if (Code=187) or (Name='raquo')  then E:='"'   else { angle quoatation mark -right  }
+  if (Code=187) or (Name='raquo')  then E:='"'   else { angle quotation mark -right   }
   if (Code=188) or (Name='frac14') then E:='¬'   else { fraction one-quarter          }
   if (Code=189) or (Name='frac12') then E:='«'   else { fraction one-half             }
   if (Code=190) or (Name='frac34') then E:='3/4' else { fraction three-quarters       }
@@ -476,11 +476,11 @@ begin
   if (Code=200) or (Name='Egrave') then E:=''   else { capital E, grave accent       }
   if (Code=201) or (Name='Eacute') then E:=''   else { capital E, acute accent       }
   if (Code=202) or (Name='Ecirc')  then E:='E'   else { capital E, circumflex accent  }
-  if (Code=203) or (Name='Euml')   then E:='E'   else { capital E, dieresis or umlaut }
+  if (Code=203) or (Name='Euml')   then E:='E'   else { capital E, diaeresis or umlaut}
   if (Code=204) or (Name='Igrave') then E:='I'   else { capital I, grave accent       }
   if (Code=205) or (Name='Iacute') then E:='I'   else { capital I, acute accent       }
   if (Code=206) or (Name='Icirc')  then E:='I'   else { capital I, circumflex accent  }
-  if (Code=207) or (Name='Iuml')   then E:='I'   else { capital I, dieresis or umlaut }
+  if (Code=207) or (Name='Iuml')   then E:='I'   else { capital I, diaeresis or umlaut}
 (*  if (Code=208) or (Name='ETH')    then E:='?'   else { capital Eth, Icelandic        }*)
   if (Code=209) or (Name='Ntidle') then E:='¥'   else { capital N, tilde              }
   if (Code=210) or (Name='Ograve') then E:='O'   else { capital O, grave accent       }
@@ -525,10 +525,10 @@ begin
   if (Code=249) or (Name='ugrave') then E:='—'   else { small u, grave accent         }
   if (Code=250) or (Name='uacute') then E:='£'   else { small u, acute accent         }
   if (Code=251) or (Name='ucirc')  then E:='–'   else { small u, circumflex accent    }
-  if (Code=252) or (Name='uuml')   then E:=''   else { small u, dieresis or umlaut   }
+  if (Code=252) or (Name='uuml')   then E:=''   else { small u, diaeresis or umlaut   }
   if (Code=253) or (Name='yacute') then E:='y'   else { small y, acute accent         }
 (*  if (Code=254) or (Name='thorn')  then E:='?'   else { small thorn, Icelandic        }*)
-  if (Code=255) or (Name='yuml')   then E:='y'   else { small y, dieresis or umlaut   }
+  if (Code=255) or (Name='yuml')   then E:='y'   else { small y, diaeresis or umlaut  }
   { Special codes appearing in TeXH generated files }
   if (code=$2c6{710}) or (Name='circ')  then E:='^' else      { Modifier Letter Circumflex Accent }
   if (code=$2dc{732}) or (Name='tilde') then E:='~' else      { Small tilde }

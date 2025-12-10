@@ -368,10 +368,10 @@ Ignore:
         {    TODO: maybe show information to the user about the signal
           we have:
                GDB.ExecAsyncOutput.Parameters['signal-name'].AsString (e.g. 'SIGTERM')
-               GDB.ExecAsyncOutput.PArameters['signal-meaning'].AsString (e.g. 'Terminated')
+               GDB.ExecAsyncOutput.Parameters['signal-meaning'].AsString (e.g. 'Terminated')
           }
         LocalSignalName:=GDB.ExecAsyncOutput.Parameters['signal-name'].AsString;
-        LocalSignalString:=GDB.ExecAsyncOutput.PArameters['signal-meaning'].AsString;
+        LocalSignalString:=GDB.ExecAsyncOutput.Parameters['signal-meaning'].AsString;
         signal_name:=@LocalSignalName;
         signal_string:=@LocalSignalString;
         if (user_screen_shown) then
@@ -454,7 +454,7 @@ Ignore:
         {    TODO: maybe show information to the user about the signal
           we have:
                GDB.ExecAsyncOutput.Parameters['signal-name'].AsString (e.g. 'SIGTERM')
-               GDB.ExecAsyncOutput.PArameters['signal-meaning'].AsString (e.g. 'Terminated')
+               GDB.ExecAsyncOutput.Parameters['signal-meaning'].AsString (e.g. 'Terminated')
           }
         DoEndSession(1);
       end;

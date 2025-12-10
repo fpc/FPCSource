@@ -288,7 +288,7 @@ type
       function    GetMark(Index:Sw_integer):PEditorBookMark; virtual;
       procedure   AdjustMark(APosX,Adjustment:Sw_integer); virtual;
       { Syntax information is now generated separately for each editor instance.
-        This is not neccessary for a one-language IDE, but this unit contains
+        This is not necessary for a one-language IDE, but this unit contains
         a _generic_ editor object, which should be (and is) as flexible as
         possible.
         The overhead caused by generating the same syntax info for ex.
@@ -4189,7 +4189,7 @@ begin
       SetCursor(GetReservedColCount+CurPos.X-Delta.X,EditorToViewLine(CurPos.Y)-Delta.Y);
       InsertMode:=Overwrite;
       if IsFlagSet (efBlockInsCursor) then
-         InsertMode:=not InsertMode; {revers insert and overwrite mode cursor shapes}
+         InsertMode:=not InsertMode; {reverse insert and overwrite mode cursor shapes}
       SetState(sfCursorIns,InsertMode);
     end;
 end;
@@ -6426,7 +6426,7 @@ begin
   begin
     Lines:=GetLineCount;
     {Linecount can be 0, but in that case there still is a cursor blinking in top
-     of the window, which will become line 1 as soon as sometype hits a key.}
+     of the window, which will become line 1 as soon as somehow hits a key.}
     if lines=0 then
       lines:=1;
     if EditorDialog(edGotoLine, @GotoRec) <> cmCancel then
@@ -7008,7 +7008,7 @@ begin
   Lock;
 
   { here should be some kind or "mark" or "break" inserted in the Undo
-    information, so activating it "undoes" only the completition first and
+    information, so activating it "undoes" only the completion first and
     doesn't delete the complete word at once... - Gabor }
 
   FragLen:=Length(GetCodeCompleteFrag);

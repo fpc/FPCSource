@@ -887,7 +887,7 @@ begin
   begin
     if Y=R.A.Y then StartX:=R.A.X else StartX:=Margin;
     if Y=R.B.Y then EndX:=R.B.X else EndX:=High(S);
-    S:=S+copy(GetLineText(Y),StartX+1,EndX-StartX+1);   { Note: AnsiString to ShortString convertino}
+    S:=S+copy(GetLineText(Y),StartX+1,EndX-StartX+1);   { Note: AnsiString to ShortString convertion}
     Inc(Y);
   end;
   GetLinkText:=S;

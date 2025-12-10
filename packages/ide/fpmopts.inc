@@ -311,7 +311,7 @@ begin
     Tab^.GrowMode:=0;
     Insert(Tab);
 
-    { conditionnals }
+    { conditionals }
     R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1; Dec(R2.B.X,4);
     New(IL, Init(R2, 255));
     IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
@@ -868,7 +868,7 @@ begin
             c^.freeall;
             for j:=0 to e^.GetLineCount-1 do
               begin
-                s:=e^.GetLineText(j);   { Note: AnsiString to ShortString convertino}
+                s:=e^.GetLineText(j);   { Note: AnsiString to ShortString conversion}
                 s:=Trim(s);
                 if s<>'' then
                   c^.insert(newstr(s));
@@ -1070,7 +1070,7 @@ begin
       NewSItem(label_preferences_showheapmonitor,
       nil))));
     CB3^.Value:=DesktopPreferences;
-    if OverrideHeapMonitor then  { if heap motior state is set by fp parameter }
+    if OverrideHeapMonitor then  { if heap monitor state is set by fp parameter }
       CB3^.EnableMask:=CB3^.EnableMask and not(dpHeapMonitor); { disable heap monitor check box }
     Insert(New(PGroupView, Init(R, label_preferences_clockheap, CB3)));
     Insert(CB3);

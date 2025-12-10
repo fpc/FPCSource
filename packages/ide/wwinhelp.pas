@@ -1444,7 +1444,7 @@ begin
           {Column:=}ReadSHORT; {-1 = end of topic}
           {Unknown:=}ReadSHORT; {Always0:=}ReadCHAR;
         end;
-        {Unknown:=}ReadUCHAR; {Uknown:=}ReadCHAR;
+        {Unknown:=}ReadUCHAR; {Unknown:=}ReadCHAR;
         ID:=ReadUSHORT;
         Flags:=ReadUSHORT;
         if (Flags and 1)<>0 then

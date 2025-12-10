@@ -112,7 +112,7 @@ const INIFileName      : string = ININame;
                                    dfCodeCompleteWords+dfCodeTemplates;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
-      DesktopPreferences:longint = 0; { by default show no Clock, no Heap mointor }
+      DesktopPreferences:longint = 0; { by default show no Clock, no Heap monitor }
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
       EditorModified   : boolean = false;
       IniCenterDebuggerRow : tcentre = do_centre;

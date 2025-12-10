@@ -571,7 +571,7 @@ uses
      ag68kgas,
   {$endif}
 {$ifdef USE_EXTERNAL_COMPILER}
-   fpintf, { superseeds version_string of version unit }
+   fpintf, { supersedes version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
@@ -4342,11 +4342,11 @@ begin
    DInput := New(PEditorInputLine, Init(R, FileNameLen+4));
    DInput^.GrowMode:=gfGrowHiX;
    DInput^.SetData(S);
-   InsertBefore(DInput,DirInput); {insert before to preserv order as it was}
+   InsertBefore(DInput,DirInput); {insert before to preserve order as it was}
    Delete(DirInput);
    Dispose(DirInput,done);
    DirInput:=DInput;
-   Control:=DirInput^.Next; {here we make assumption that THistory control will folow}
+   Control:=DirInput^.Next; {here we make assumption that THistory control will follow}
    while (Control<> nil) do
    begin
      if TypeOf(Control^) = TypeOf(THistory) then

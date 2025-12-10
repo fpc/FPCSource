@@ -196,7 +196,7 @@ begin
             ShowReadme:=true;
           end else
         case Upcase(Param[1]) of
-          'C' : { custom config file (BP compatiblity) }
+          'C' : { custom config file (BP compatibility) }
            if BeforeINI then
             begin
               delete(param,1,1); // delete C
