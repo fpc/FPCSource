@@ -1008,6 +1008,7 @@ unit cg64f32;
 
              hlcg.g_rangecheck(list,temploc,hdef,todef);
              hdef.free;
+             hdef := nil;
 
              if from_signed and to_signed then
                begin
@@ -1041,6 +1042,7 @@ unit cg64f32;
                  temploc.size:=OS_32;
                  hlcg.g_rangecheck(list,temploc,hdef,todef);
                  hdef.free;
+                 hdef := nil;
                  cg.a_label(list,endlabel);
                end;
            end

@@ -244,6 +244,7 @@ destructor TWinLikeResourceFile.Destroy;
 begin
   if fResScript<>nil then
     fResScript.Free;
+    fResScript := nil;
   inherited;
 end;
 
@@ -450,7 +451,9 @@ begin
     end;
   dst.CopyFrom(src,src.Size);
   dst.Free;
+  dst := nil;
   src.Free;
+  src := nil;
   Result:=true;
 end;
  
@@ -486,6 +489,7 @@ begin
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
+          resourcefile := nil;
           if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath)), p) <> 0 then
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
@@ -510,6 +514,7 @@ begin
             end;
           resourcefile.compile(outfmt, current_module.outputpath+res.FPStr);
           resourcefile.free;
+          resourcefile := nil;
         end;
       res:=TCmdStrListItem(res.Next);
     end;
@@ -564,6 +569,7 @@ begin
   { Finish collection }
   resourcefile.EndCollect;
   resourcefile.free;
+  resourcefile := nil;
 end;
 
 procedure initglobals;

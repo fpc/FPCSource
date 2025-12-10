@@ -1059,7 +1059,7 @@ begin
     exit;
   Lp := Lst.FList;
   for I := 0 to Lst.Count-1 do
-    TObject(Lp[I]).Free;
+    TObject(Lp[I]).Free; // no nil needed
   Lst.Free;
   Lst := nil;
 end;
@@ -1112,7 +1112,7 @@ var
 begin
   if FFreeObjects then
     for i := 0 to FList.Count - 1 do
-      TObject(FList[i]).Free;
+      TObject(FList[i]).Free; // no nil needed
   FList.Clear;
 end;
 
@@ -1152,7 +1152,7 @@ end;
 procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject);
 begin
   if OwnsObjects then
-    TObject(FList[Index]).Free;
+    TObject(FList[Index]).Free; // no nil needed
   FList[index] := AObject;
 end;
 
@@ -1174,7 +1174,7 @@ end;
 procedure TFPObjectList.Delete(Index: Integer);
 begin
   if OwnsObjects then
-    TObject(FList[Index]).Free;
+    TObject(FList[Index]).Free; // no nil needed
   FList.Delete(Index);
 end;
 
@@ -1200,7 +1200,7 @@ begin
   if (Result <> -1) then
   begin
     if OwnsObjects then
-      TObject(FList[Result]).Free;
+      TObject(FList[Result]).Free; // no nil needed
     FList.Delete(Result);
   end;
 end;
@@ -1893,7 +1893,7 @@ var
 begin
   if FFreeObjects then
     for i := 0 to FHashList.Count - 1 do
-      TObject(FHashList[i]).Free;
+      TObject(FHashList[i]).Free; // no nil needed
   FHashList.Clear;
 end;
 
@@ -1921,7 +1921,7 @@ end;
 procedure TFPHashObjectList.SetItem(Index: Integer; AObject: TObject);
 begin
   if OwnsObjects then
-    TObject(FHashList[Index]).Free;
+    TObject(FHashList[Index]).Free; // no nil needed
   FHashList[index] := AObject;
 end;
 
@@ -1958,7 +1958,7 @@ end;
 procedure TFPHashObjectList.Delete(Index: Integer);
 begin
   if OwnsObjects then
-    TObject(FHashList[Index]).Free;
+    TObject(FHashList[Index]).Free; // no nil needed
   FHashList.Delete(Index);
 end;
 
@@ -1979,7 +1979,7 @@ begin
   if (Result <> -1) then
     begin
       if OwnsObjects then
-        TObject(FHashList[Result]).Free;
+        TObject(FHashList[Result]).Free; // no nil needed
       FHashList.Delete(Result);
     end;
 end;
@@ -2541,6 +2541,7 @@ end;
          begin
            inherited Remove(p);
            p.Free;
+           p := nil;
          end;
       end;
 
@@ -2556,6 +2557,7 @@ end;
           begin
             GetFirst:=p.FPStr;
             p.free;
+            p := nil;
           end;
       end;
 
@@ -2571,6 +2573,7 @@ end;
           begin
             Getlast:=p.FPStr;
             p.free;
+            p := nil;
           end;
       end;
 
@@ -2985,7 +2988,7 @@ end;
           begin
             next := item^.Next;
             if FOwnsObjects then
-              item^.Data.Free;
+              FreeAndNil(item^.Data);
             FreeItem(item);
             item := next;
           end;
@@ -3136,7 +3139,7 @@ end;
               begin
                 chain^ := Entry^.Next;
                 if FOwnsObjects then
-                  Entry^.Data.Free;
+                  FreeAndNil(Entry^.Data);
                 FreeItem(Entry);
                 Dec(FCount);
                 Result := True;

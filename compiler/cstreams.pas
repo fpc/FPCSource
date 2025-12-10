@@ -623,6 +623,7 @@ begin
     SaveToStream(S);
   finally
     S.free;
+    S := nil;
   end;
 end;
 
@@ -711,6 +712,7 @@ begin
     LoadFromStream(S);
   finally
     S.free;
+    S := nil;
   end;
 end;
 
