@@ -1422,7 +1422,7 @@ BEGIN
    If (Validator <> Nil) Then
      DSize := Validator^.Transfer(Data, Nil,
        vtDataSize);                                   { Add validator size }
-   If (DSize <> 0) Then DataSize := DSize             { Use validtor size }
+   If (DSize <> 0) Then DataSize := DSize             { Use validator size }
      Else DataSize := SizeOf(Sw_String);              { DataSize return the
                                                         actual size of the field
                                                         in record. Unlike
@@ -1436,7 +1436,7 @@ BEGIN
    If (Validator <> Nil) AND (Data <> Nil) Then
      DSize := Validator^.Transfer(Data^, Nil,
        vtDataSize);                                   { Add validator size }
-   If (DSize <> 0) Then DataSize := DSize             { Use validtor size }
+   If (DSize <> 0) Then DataSize := DSize             { Use validator size }
      Else DataSize := MaxLen + 1;                     { No validator use size }
 {$endif FV_UNICODE}
 END;
@@ -1679,7 +1679,7 @@ END;
 PROCEDURE TInputLine.Store (Var S: TStream);
 VAR w: Word;
 BEGIN
-   TView.Store(S);                                    { Implict TView.Store }
+   TView.Store(S);                                    { Implicit TView.Store }
    w:=MaxLen;S.Write(w, SizeOf(w));                   { Read max length }
    w:=CurPos;S.Write(w, SizeOf(w));                   { Read cursor position }
    w:=FirstPos;S.Write(w, SizeOf(w));                 { Read first position }
@@ -2353,7 +2353,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.Store (Var S: TStream);
 BEGIN
-   TView.Store(S);                                    { Implict TView.Store }
+   TView.Store(S);                                    { Implicit TView.Store }
 {$ifdef FV_UNICODE}
    S.WriteUnicodeString(Title);                       { Store title string }
 {$else FV_UNICODE}
@@ -2675,7 +2675,7 @@ BEGIN
          Options := Options OR ofSelectable;          { Set selectable option }
          Exit;                                        { Now exit }
        End;
-       M := M SHL 1;                                  { Create newbit mask }
+       M := M SHL 1;                                  { Create new bit mask }
      End;
      Options := Options AND NOT ofSelectable;         { Make not selectable }
    End;

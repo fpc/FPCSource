@@ -36,7 +36,7 @@
 {  Version  Date        Fix                                }
 {  -------  ---------   ---------------------------------  }
 {  1.00     06 Dec 96   First multi platform release.      }
-{  1.10     06 Jul 97   New functiions added.              }
+{  1.10     06 Jul 97   New functions added.               }
 {  1.20     22 Jul 97   FPC pascal compiler added.         }
 {  1.30     29 Aug 97   Platform.inc sort added.           }
 {  1.40     13 Oct 97   Delphi 2/3 32 bit code added.      }
@@ -274,7 +274,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE SetTime (Hour, Minute, Second, Sec100: Word);
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
+   {$IFDEF ASM_BP}                                    { BP COMPATIBLE ASM }
    ASSEMBLER;
    ASM
      MOV CH, BYTE PTR Hour;                           { Fetch hour }
@@ -287,7 +287,7 @@ PROCEDURE SetTime (Hour, Minute, Second, Sec100: Word);
      POP BP;                                          { Restore register }
    END;
    {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
+   {$IFDEF ASM_FPC}                                   { FPC COMPATIBLE ASM }
      {$IFDEF BIT_16}
      ASSEMBLER;
      ASM
@@ -354,8 +354,8 @@ PROCEDURE SetTime (Hour, Minute, Second, Sec100: Word);
      DT.wHour := Hour;                                { Transfer hour }
      DT.wMinute := Minute;                            { Transfer minute }
      DT.wSecond := Second;                            { Transfer seconds }
-     DT.wMilliseconds := Sec100 * 10;                 { Transfer millisecs }
-     SetLocalTime(DT);                               { Set the date/time }
+     DT.wMilliseconds := Sec100 * 10;                 { Transfer milliseconds }
+     SetLocalTime(DT);                                { Set the date/time }
    END;
    {$ENDIF}
 {$ENDIF}
@@ -392,7 +392,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
-   {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
+   {$IFDEF ASM_BP}                                    { BP COMPATIBLE ASM }
    ASSEMBLER;
    ASM
      MOV AX, $2C00;                                   { Set function id }
@@ -415,7 +415,7 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
      STOSW;                                           { Return hours }
    END;
    {$ENDIF}
-   {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
+   {$IFDEF ASM_FPC}                                   { FPC COMPATIBLE ASM }
      {$IFDEF BIT_16}
        {$IFDEF FPC_X86_DATA_NEAR}
        ASSEMBLER;

@@ -285,7 +285,7 @@ type
   TStatusDlg = Object(TDialog)
     { A TStatusDlg displays a status view and optional buttons.  It may be
       used to display any status message and optionally provide end user
-      cancelation or pausing of an ongoing operation, such as printing.
+      cancellation or pausing of an ongoing operation, such as printing.
 
       All status views that are to be inserted into a window or dialog should
       descend from #TStatus# for proper color mapping. }
@@ -320,7 +320,7 @@ type
       { All evStatus events are accepted by the dialog and sent to each
         subview in Z-order until cleared.
 
-        If the dialog recieves an evCommand or evBroadcast event with the
+        If the dialog receives an evCommand or evBroadcast event with the
         Command parameter set to cmCancel, HandleEvent sends an #evStatus#
         message to the Application variable with Event.Command set to the
         cmStatusCancel and Event.InfoPtr set to the #Status#.Command and
@@ -329,7 +329,7 @@ type
         When a pause button is included, a cmStatusPause broadcast event is
         associated with the button.  When the button is pressed a call to
         #TStatus.Pause# results.  The status view is inactivated until it
-        receives an evStatus event with a commond of cmStatusResume and
+        receives an evStatus event with a command of cmStatusResume and
         Event.InfoPtr set to the status view's Command value.  When a pause
         button is used, the application should respond to the evStatus event
         (with Event.Command of cmStatusPause) appropriately, then dispatch a
@@ -361,7 +361,7 @@ type
 
         The size of the dialog is determined by the size of the AStatus.  The
         dialog is anchored at AStatus^.Origin and is of at least
-        AStatus^.Size + 2 in heighth and width.  The exact width and heighth
+        AStatus^.Size + 2 in heighth and width.  The exact width and height
         are determined by AOptions.
 
         AFlags contains flags which determine the buttons to be displayed

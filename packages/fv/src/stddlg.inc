@@ -343,7 +343,7 @@ type
       action on the file named AFile.  If the user elects to perform the
       function FileConfirmFunc's return True, otherwise they return False.
 
-      Using FileConfirmFunc's allows routines to be coded independant of the
+      Using FileConfirmFunc's allows routines to be coded independent of the
       user interface implemented.  OWL and TurboVision are supported through
       conditional defines.  If you do not use either user interface you must
       compile this unit with the conditional define cdNoMessages and set all
@@ -405,7 +405,7 @@ function FileExists (AFile : FNameStr) : Boolean;
     other directories may be searched by prefacing a file name with a valid
     directory path.
 
-    There is no check for a vaild file name or drive.  Errrors are handled
+    There is no check for a valid file name or drive.  Errors are handled
     internally and not reported in DosError.  Critical errors are left to
     the system's critical error handler. }
   {#X OpenFile }
@@ -420,7 +420,7 @@ function GetCurDrive: AnsiChar;
     operating system. }
 
 function IsWild(const S: String): Boolean;
-  { IsWild returns True if S contains a question mark (?) or asterix (*). }
+  { IsWild returns True if S contains a question mark (?) or asterisk (*). }
 
 function IsList(const S: String): Boolean;
   { IsList returns True if S contains list separator (;) AnsiChar }
@@ -475,10 +475,10 @@ function SaveAs (var AFile : FNameStr; HistoryID : Word) : Boolean;
 function SelectDir (var ADir : DirStr; HistoryID : Byte) : Boolean;
   { SelectDir prompts the user to select a directory using ADir as the
     starting directory.  If a directory is selected, SelectDir returns True.
-    The directory returned is gauranteed to exist. }
+    The directory returned is guaranteed to exist. }
 
 function ShrinkPath (AFile : FNameStr; MaxLen : Byte) : FNameStr;
-  { ShrinkPath returns a file name with a maximu length of MaxLen.
+  { ShrinkPath returns a file name with a maximum length of MaxLen.
     Internal directories are removed and replaced with elipses as needed to
     make the file name fit in MaxLen.
 
@@ -1238,7 +1238,7 @@ begin
     begin
       if IsSelectedInner then
         Result := GetColor(3)
-      else 
+      else
         Result := GetColor(6);
       Exit;
     end;

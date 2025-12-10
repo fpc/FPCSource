@@ -239,7 +239,7 @@ Given two SmallInt values returns the lowest SmallInt of the two.
 ---------------------------------------------------------------------}
 FUNCTION MinIntegerOf (A, B: SmallInt): SmallInt;
 
-{-MaxIntegerof-------------------------------------------------------
+{-MaxIntegerOf-------------------------------------------------------
 Given two SmallInt values returns the biggest SmallInt of the two.
 04Oct99 LdB
 ---------------------------------------------------------------------}
@@ -263,7 +263,7 @@ FUNCTION MaxLongIntOf (A, B: LongInt): LongInt;
 
 { ******************************* REMARK ****************************** }
 {  Delphi 3+ does not define these standard routines so I have made     }
-{  some public functions here to complete compatability.                }
+{  some public functions here to complete compatibility.                }
 { ****************************** END REMARK *** Leon de Boer, 14Aug98 * }
 
 {-MemAvail-----------------------------------------------------------

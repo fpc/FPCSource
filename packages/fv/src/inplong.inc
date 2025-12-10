@@ -23,7 +23,7 @@ Unit InpLong;
 {$ENDIF FPC_DOTTEDUNITS}
 
 (*--
-TInputLong is a derivitave of TInputline designed to accept LongInt
+TInputLong is a derivative of TInputline designed to accept LongInt
 numeric input.  Since both the upper and lower limit of acceptable numeric
 input can be set, TInputLong may be used for SmallInt, Word, or Byte input
 as well.  Option flag bits allow optional hex input and display.  A blank

@@ -54,7 +54,7 @@ procedure DoneClip;
 {Actual clipboard content will be returned via event system, if terminal supports OSC 52}
 procedure GetGlobalClipboardData;
 
-{ Set clipboard content, if terminal supports OSC 52. Return true allways }
+{ Set clipboard content, if terminal supports OSC 52. Return true always }
 function SetGlobalClipboardData(P: PAnsiChar; ASize: longint): boolean;
 
 implementation
@@ -86,7 +86,7 @@ var cProgram : PProgram;
   PText : PAnsiChar;
 
 {Could not use unit base64 because of Sysutils and reasons }
-{Speed or reuseability here is not a concern               }
+{Speed or reusability here is not a concern                }
 const
   EncodingTable: PAnsiChar =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -225,7 +225,7 @@ begin
     begin
       inc(countemptines);
       if countemptines = 30 then break;
-      {we might be ahead for a shortwhile, wait a little bit longer}
+      {we might be ahead for a short while, wait a little bit longer}
       timewait.tv_sec := 0;
       timewait.tv_nsec := 2000000;
       ree:=fpNanoSleep(@timewait,@finalparsec);
@@ -233,7 +233,7 @@ begin
     end;
     countemptines:=0;
     if ch = ';' then
-      continue; {ment to eat very first ';', there shoud not be any other}
+      continue; {eat very first ';', there should not be any other}
     if inEsc then
       begin
         escSeq:=escSeq+ch;
@@ -287,7 +287,7 @@ begin
     begin
       inc(countemptines);
       if countemptines = 30 then break;
-      {we might be ahead for a shortwhile, wait a little bit longer}
+      {we might be ahead for a short while, wait a little bit longer}
       timewait.tv_sec := 0;
       timewait.tv_nsec := 2000000;
       ree:=fpNanoSleep(@timewait,@finalparsec);

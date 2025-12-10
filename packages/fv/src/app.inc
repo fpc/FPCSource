@@ -743,7 +743,7 @@ BEGIN
    Application := PApplication(@Self);                { Set application ptr }
    InitScreen;                                        { Initialize screen }
    State := sfVisible + sfSelected + sfFocused +
-      sfModal + sfExposed;                            { Deafult states }
+      sfModal + sfExposed;                            { Default states }
    Options := 0;                                      { No options set }
    Size.X := Min(ScreenWidth,MaxViewWidth);           { Set x size value }
    Size.Y := ScreenHeight;                            { Set y size value }
@@ -804,7 +804,7 @@ BEGIN
    ValidView := Nil;                                  { Preset failure }
    If (P <> Nil) Then Begin
 (*
-     If LowMemory Then Begin                          { Check memroy }
+     If LowMemory Then Begin                          { Check memory }
        Dispose(P, Done);                              { Dispose view }
        OutOfMemory;                                   { Call out of memory }
        Exit;                                          { Now exit }
@@ -878,10 +878,10 @@ END;
 PROCEDURE TProgram.InitScreen;
 
 {Initscreen is passive only, i.e. it detects the video size and capabilities
- after initalization. Active video initalization is the task of Tapplication.}
+ after initialization. Active video initialization is the task of Tapplication.}
 
 BEGIN
-  { the orginal code can't be used here because of the limited
+  { the original code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
 {$ifdef FV_UNICODE}
@@ -1054,7 +1054,7 @@ BEGIN
            If (Event.What = evNothing) Then
              begin
 {$IFNDEF HASAMIGA}
-               { due to isses with the event handling in FV itself,
+               { due to issues with the event handling in FV itself,
                  we skip this here, and let the IDE to handle it
                  directly on Amiga-like systems. The FV itself cannot
                  handle the System Events anyway. (KB) }
@@ -1195,7 +1195,7 @@ var PrevHeight,PrevWidth : Sw_Word;
 var s:string;
 {$endif}
 
-BEGIN                                                 { Compatability only }
+BEGIN                                                 { Compatibility only }
   {$ifdef unix}DoneClip;{$endif}
   DoneSysError;
   DoneEvents;

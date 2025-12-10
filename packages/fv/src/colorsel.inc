@@ -690,7 +690,7 @@ begin
       S.Write(R^.Index,Sizeof(R^.Index));
       R := R^.Next;
     end;
-    {write gropu}
+    {write group}
 {$ifdef FV_UNICODE}
     S.WriteUnicodeString(x^.Name);
 {$else FV_UNICODE}
@@ -800,7 +800,7 @@ begin
   x := Groups;
   inherited Done;
   Groups:=nil;
-  {Disopse PColorGroup linked list}
+  {Dispose PColorGroup linked list}
   while Assigned(x) do begin
     R:=x^.Items;
     while Assigned(R) do begin

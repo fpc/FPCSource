@@ -317,7 +317,7 @@ var position:sw_integer;
       begin
         if not lastchild then
           lines:=lines or (1 shl level);
-        {Iterate all childs.}
+        {Iterate all children}
         childcount:=getnumchildren(cur);
         for i:=0 to childcount-1 do
           begin
