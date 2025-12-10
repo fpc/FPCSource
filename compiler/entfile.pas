@@ -609,6 +609,7 @@ begin
 {$endif}
      if fisfile then
        f.Free;
+       f := nil;
      mode:=0;
      closed:=true;
    end;

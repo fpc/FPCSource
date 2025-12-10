@@ -75,6 +75,7 @@ end;
 destructor texportlibunix.destroy;
 begin
   fexportedsymnames.free;
+  fexportedsymnames := nil;
   inherited destroy;
 end;
 

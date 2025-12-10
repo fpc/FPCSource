@@ -1177,6 +1177,7 @@ implementation
         current_asmdata.asmlists[al_procedures].insertlistbefore(def.procstarttai,templist);
 
         templist.free;
+        templist := nil;
         current_procdef:=prev_procdef;
       end;
 
@@ -1749,7 +1750,9 @@ implementation
         deftowritelist:=nil;
 
         stabsvarlist.free;
+        stabsvarlist := nil;
         stabstypelist.free;
+        stabstypelist := nil;
         current_filepos:=storefilepos;
       end;
 
