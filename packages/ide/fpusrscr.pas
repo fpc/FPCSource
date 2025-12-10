@@ -440,7 +440,7 @@ end;
 procedure TDOSScreen.FreeGraphBuffer;
 begin
   { We don't want to restore the last user screen if
-    it was a grpahic screen, for example if we
+    it was a graphic screen, for example if we
     leave in the middle of the debugging of a
     graphic program, so we first
     dispose the graphic buffer, thus
@@ -999,7 +999,7 @@ begin
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
-  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top; // mants 15779 was 200
+  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top; // mantis 15779 was 200
   { Try to allow to store more info }
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,BigWin);
   if not res then
@@ -1017,7 +1017,7 @@ begin
   BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top;
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
      BigWin);
-// mants 15779 : was
+// mantis 15779 : was
 //  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
 //         ConsoleScreenBufferInfo.dwMaximumWindowSize);
   if not res then

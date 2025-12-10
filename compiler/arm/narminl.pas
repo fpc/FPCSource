@@ -66,7 +66,8 @@ implementation
     uses
       globtype,verbose,globals,
       procinfo,
-      compinnr,cpuinfo,defutil,symdef,aasmdata,aasmcpu,
+      compinnr,cpuinfo,defutil,symdef,
+      aasmdata,aasmcpu,aasmtai,
       cgbase,cgutils,pass_1,pass_2,
       cpubase,ncgutil,cgobj,cgcpu, hlcgobj,
       nutils,ncal;
@@ -106,7 +107,12 @@ implementation
        begin
          case inlinenumber of
            in_arm_yield:
-             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD));
+             if CPUARM_HAS_MP_INSTRUCTIONS in cpu_capabilities[current_settings.cputype] then
+               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
+             else
+               { while yield is a no op operation if not supported by the cpu, assemblers do not
+                 handle it, so encode it in hex if the cpu does not support it }
+               current_asmdata.CurrAsmList.concat(tai_const.Create_32bit(longint($e320f001)));
            else
              inherited pass_generate_code_cpu;
          end;

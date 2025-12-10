@@ -113,7 +113,7 @@ USES objects,                                 { Standard GFV units }
 {---------------------------------------------------------------------------}
 CONST
    mfWarning      = $0000;                            { Display a Warning box }
-   mfError        = $0001;                            { Dispaly a Error box }
+   mfError        = $0001;                            { Display a Error box }
    mfInformation  = $0002;                            { Display an Information Box }
    mfConfirmation = $0003;                            { Display a Confirmation Box }
 

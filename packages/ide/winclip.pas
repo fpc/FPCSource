@@ -218,7 +218,7 @@ var
   M : MemPtr;
 {$endif DOS}
 {$ifdef linux}
-  rez : boolean; {one variable needed to satifay compiler}
+  rez : boolean; {one variable needed to satisfy compiler}
 {$endif linux}
 {$ifdef Windows}
   h : HGlobal;

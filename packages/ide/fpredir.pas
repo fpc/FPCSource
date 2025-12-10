@@ -811,7 +811,7 @@ end;
     {We need to use fpsystem to get wildcard expansion and avoid being
      interrupted by ctrl+c (SIGINT).
      But used wifexited and wexitstatus functions
-     to correctly interpret fpsystem reutrn value }
+     to correctly interpret fpsystem return value }
      s:=fpsystem(MaybeQuoted(FixPath(Progname))+' '+Comline);
      if wifexited(s) then
        ExecuteResult:=wexitstatus(s)

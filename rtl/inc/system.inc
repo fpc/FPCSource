@@ -1132,6 +1132,9 @@ type
   TInitFinalRec=record
     InitProc,
     FinalProc : TProcedure;
+    {$IFDEF FPC_INITFINAL_HASUNITNAME}
+    unitname : ^shortstring;
+    {$ENDIF}
   end;
   TInitFinalTable = record
     TableCount,
@@ -1165,6 +1168,13 @@ begin
       begin
         if assigned(Procs[i].InitProc) then
          Procs[i].InitProc();
+        {$ifdef FPC_INITFINAL_HASUNITNAME}
+        {$ifdef ENABLE_UNIT_INIT_TRACKING}
+        if assigned(UnitInitTrackingProc) then
+          UnitInitTrackingProc(i,Procs[i].unitname^);
+        {$endif ENABLE_UNIT_INIT_TRACKING}
+        {$endif FPC_INITFINAL_HASUNITNAME}
+
         InitCount:=i;
       end;
    end;

@@ -1514,7 +1514,7 @@ begin
                OtherLinkerSwitches^.SetBooleanItem(0,true);
             end;
        end;
-       { set appriopriate default target }
+       { set appropriate default target }
        TargetSwitches^.SetCurrSelParam(target_info.shortname);
     end;
   SwitchesMode:=OldSwitchesMode;

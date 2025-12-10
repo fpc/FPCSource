@@ -305,7 +305,7 @@ type
     Length : Sw_Word;
 {$ifdef FV_UNICODE}
     Buffer : Sw_String;  { In Unicode version use UnicodeString for data transfer }
-                         { even thou internaly we use TEditBuffer as utf8 data buffer }
+                         { even thou internally we use TEditBuffer as utf8 data buffer }
 {$else}
     Buffer : TEditBuffer;
 {$endif}
@@ -326,6 +326,7 @@ type
   TFileEditor = object (TEditor)
     //FileName : FNameStr;
     FileName : Sw_String;
+    WriteBOM: Boolean;
     constructor Init (var Bounds : TRect; AHScrollBar, AVScrollBar : PScrollBar;
                           AIndicator : PIndicator; AFileName : FNameStr);
     constructor Load (var S : TStream);
@@ -518,7 +519,7 @@ resourcestring  sClipboard='Clipboard';
                 sReformatNotPossible='Paragraph reformat not possible while trying to wrap current line with current margins.';
                 sReformattingTheDocument='Reformatting the document:';
                 sReplaceNotPossible='Wordwrap on:  Replace not possible in current margins when at end of line.';
-                sReplaceThisOccurence='Replace this occurrence?';
+                sReplaceThisOccurrence='Replace this occurrence?';
                 sRightMargin='Right Margin';
                 sSearchStringNotFound='Search string not found.';
                 sSelectWhereToBegin='Please select where to begin.';
@@ -1022,7 +1023,7 @@ begin
         Inc(T.Y);
         if PPoint(Info)^.Y <= T.Y then
           R.Move(0, Desktop^.Size.Y - R.B.Y - 2);
-        StdEditorDialog := MessageBoxRect(R, sReplaceThisOccurence,
+        StdEditorDialog := MessageBoxRect(R, sReplaceThisOccurrence,
           nil, mfYesNoCancel + mfInformation);
       end;
     edJumpToLine:
@@ -2136,9 +2137,9 @@ begin
 end; { TEditor.Find }
 
 
-{ Functon have functionality only in unicode version of fv. }
+{ Function have functionality only in unicode version of fv. }
 { It mimic FormatLine but instead of drawing line gather }
-{ information on character posisionings }
+{ information on character positioning }
 const
   DelimiterChars: SET OF AnsiChar =
     [' ', '.', ',', ';', ':', '!', '?', '-', '_', '/', '\',
@@ -2206,7 +2207,7 @@ var idxpos : sw_word;
              if (len8=0) and  IsValidUtf8ContinuationByte(p^) and (utf8innerindex>0)  then
              begin    { into utf8 char }
                dec(utf8innerindex);
-               if utf8innerindex = 0 then    { we have complite utf8 char }
+               if utf8innerindex = 0 then    { we have complete utf8 char }
                begin
                  uLen:=Utf8ToUnicode(nil,15,@bStr[iUtf8Char],savLen8);
                  if uLen =3 then   {encoded as unicode pair}
@@ -2335,7 +2336,7 @@ begin
   fillchar(lookUpCharToPosX^,sizeof(lookUpCharToPosX^),0);
   fillchar(lookUpPosXToChar^,sizeof(lookUpPosXToChar^),0);
 {$endif FV_UNICODE}
-  SetLength(bStr,MaxLineLength*4); {  utf8 can have 4 bytes per charater... }
+  SetLength(bStr,MaxLineLength*4); {  utf8 can have 4 bytes per character... }
   bStr[1]:=#0;
   iB:=0;
   iU:=0;
@@ -2409,14 +2410,14 @@ var
     p:=PAnsiChar(Buffer)+idxpos;
 {$ifdef FV_UNICODE}
     { prepare string for drawing }
-    SetLength(bStr,MaxLineLength*4); {  utf8 can have 4 bytes per charater... }
+    SetLength(bStr,MaxLineLength*4); {  utf8 can have 4 bytes per character... }
     iB:=0;
     while endpos>idxpos do
      begin
        inc(iB);
        if p^ in [#10,#13] then
          begin
-           bStr[iB]:=#13; { line ending is line endig }
+           bStr[iB]:=#13; { line ending is line ending }
            break;
          end
        else
@@ -2424,9 +2425,9 @@ var
        inc(p);
        inc(idxpos);
      end;
-     if iB = 0 then exit; { no charatcters, leave early }
+     if iB = 0 then exit; { no characters, leave early }
      SetLength(bStr,iB);
-     if bStr = #13 then { empyt line }
+     if bStr = #13 then { empty line }
      begin
        FillSpace(Width-OutCnt+0);
        FormatUntil:=true;
@@ -3004,7 +3005,7 @@ VAR
 begin
   if EditorDialog (edJumpToLine, @Line_Number) <> cmCancel then
     begin
-      { Convert the Line_Number string to an interger. }
+      { Convert the Line_Number string to an integer.  }
       { Put it into Temp_Value.  If the number is not  }
       { in the range 1..9999 abort.  If the number is  }
       { our current Y position, abort.  Otherwise,     }
@@ -3411,7 +3412,7 @@ VAR
 begin
   { Check if Word_Wrap is toggled on.  If NOT on, check if programmer }
   { allows reformatting of document and if not show user dialog that  }
-  { says reformatting is not permissable.                             }
+  { says reformatting is not permissible.                             }
   if not Word_Wrap then
     begin
       if not Allow_Reformat then
@@ -3447,7 +3448,7 @@ end; { TEditor.Reformat_Document }
 function TEditor.Reformat_Paragraph (Select_Mode   : Byte;
                                      Center_Cursor : Boolean) : Boolean;
 { This procedure will do a reformat of the current paragraph if ^B pressed. }
-{ The feature works regardless if wordrap is on or off.  It also supports   }
+{ The feature works regardless if word wrap is on or off.  It also supports }
 { the AutoIndent feature.  Reformat is not possible if the CurPos exceeds   }
 { the Right_Margin.  Right_Margin is where the EOL is considered to be.     }
 CONST
@@ -3460,7 +3461,7 @@ begin
   Reformat_Paragraph := False;
   { Check if Word_Wrap is toggled on.  If NOT on, check if programmer }
   { allows reformatting of paragraph and if not show user dialog that }
-  { says reformatting is not permissable.                             }
+  { says reformatting is not permissible.                             }
   if not Word_Wrap then
     begin
       if not Allow_Reformat then
@@ -3514,7 +3515,7 @@ begin
           InsertText (@Space, 1, False);
         end;
         { Reset CurPtr to EOL.  While line length is > Right_Margin }
-        { go Do_Word_Wrap.  If wordrap failed, exit routine.        }
+        { go Do_Word_Wrap.  If word wrap failed, exit routine.      }
         SetCurPtr (LineEnd (CurPtr), Select_Mode);
         while LineEnd (CurPtr) - LineStart (CurPtr) > Right_Margin do
           if not Do_Word_Wrap (Select_Mode, Center_Cursor) then
@@ -3976,8 +3977,8 @@ end; { Editor.Store }
 
 
 procedure TEditor.Tab_Key (Select_Mode : Byte);
-{ This function determines if we are in overstrike or insert mode,   }
-{ and then moves the cursor if overstrike, or adds spaces if insert. }
+{ This function determines if we are in over strike or insert mode,   }
+{ and then moves the cursor if over strike, or adds spaces if insert. }
 VAR
   E        : Sw_Word;                { End of current line.                }
   Index    : Sw_Integer;             { Loop counter.                       }
@@ -4313,6 +4314,7 @@ begin
   S.Read (FileName[0], SizeOf (Byte));
   S.Read (Filename[1], Length (FileName));
 {$endif}
+  S.Read (WriteBOM, SizeOf (WriteBOM));
   if IsValid then
     IsValid := LoadFile;
   S.Read (SStart, SizeOf (SStart));
@@ -4389,6 +4391,14 @@ begin
             EditorDialog(edReadError, @FileName)
           else
             begin
+              if (FRead>=3)
+                and (Buffer^[BufSize-FSize+0]=#$EF)
+                and (Buffer^[BufSize-FSize+1]=#$BB)
+                and (Buffer^[BufSize-FSize+2]=#$BF) then { utf BOM detected }
+              begin
+                WriteBOM:=true; {write BOM back on save}
+                FRead:=FRead-3; {reduce size by BOM size}
+              end;
               LoadFile := True;
               Length := FRead;
             end;
@@ -4423,6 +4433,8 @@ end; { TFileEditor.SaveAs }
 
 
 function TFileEditor.SaveFile : Boolean;
+const
+  sbom : string[3] = #$EF#$BB#$BF;
 VAR
   F          : File;
   BackupName : FNameStr;
@@ -4447,6 +4459,8 @@ begin
     EditorDialog (edCreateError, @FileName)
   else
     begin
+      if WriteBOM then
+        BlockWrite (F, sbom[1], 3);
       BlockWrite (F, Buffer^, CurPtr);
       BlockWrite (F, Buffer^[CurPtr + GapLen], BufLen - CurPtr);
       if IOResult <> 0 then
@@ -4495,6 +4509,7 @@ begin
 {$else}
   S.Write (FileName, Length (FileName) + 1);
 {$endif}
+  S.Write (WriteBOM, SizeOf (WriteBOM));
   S.Write (SelStart, SizeOf (SelStart));
   S.Write (SelEnd, SizeOf (SelEnd));
   S.Write (CurPtr, SizeOf (CurPtr));

@@ -1261,7 +1261,7 @@ begin
                           I:=I+ReplacePart(LastWordStart,I-1,S)-1;
                   end;
                 end
-              else { just prompt for parms }
+              else { just prompt for parameters }
                 begin
                   I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                   if CheckOnly=false then

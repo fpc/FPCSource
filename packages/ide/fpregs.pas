@@ -513,7 +513,7 @@ const
            OK:=GetIntRegs(rs);
            LastOK:=OK;
            NewReg:=rs;
-           { get inital values }
+           { get initial values }
            if first then
              begin
                OldReg:=NewReg;
@@ -1083,7 +1083,7 @@ const
              );
            LastOK:=OK;
            NewReg:=rs;
-           { get inital values }
+           { get initial values }
            if first then
              begin
                OldReg:=NewReg;
@@ -1468,7 +1468,7 @@ const
              );
            LastOK:=OK;
            NewReg:=rs;
-           { get inital values }
+           { get initial values }
            if first then
              begin
                OldReg:=NewReg;

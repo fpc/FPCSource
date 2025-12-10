@@ -1166,10 +1166,10 @@ BEGIN
    W := 5 + W;                        { Longest text width }
    R.Copy(Bounds);                                    { Copy the bounds }
    If (R.A.X + W < R.B.X) Then R.B.X := R.A.X + W     { Shorten if possible }
-     Else R.A.X := R.B.X - W;                         { Insufficent space }
+     Else R.A.X := R.B.X - W;                         { Insufficient space }
    R.B.X := R.A.X + W;
    If (R.A.Y + H < R.B.Y) Then R.B.Y := R.A.Y + H     { Shorten if possible }
-     Else R.A.Y := R.B.Y - H;                         { Insufficent height }
+     Else R.A.Y := R.B.Y - H;                         { Insufficient height }
    Inherited Init(R);                                 { Call ancestor }
    State := State OR sfShadow;                        { Set shadow state }
    Options := Options OR ofFramed or ofPreProcess;                { View pre processes }
@@ -1397,7 +1397,7 @@ CONSTRUCTOR TStatusLine.Load (Var S: TStream);
 
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   Defs := DoLoadStatusDefs;                          { Retreive items }
+   Defs := DoLoadStatusDefs;                          { Retrieve items }
    FindItems;                                         { Find the items }
 END;
 

@@ -106,7 +106,7 @@ USES
 {---------------------------------------------------------------------------}
 CONST
    vsOk     = 0;                                      { Validator ok }
-   vsSyntax = 1;                                      { Validator sytax err }
+   vsSyntax = 1;                                      { Validator syntax err }
 
 {---------------------------------------------------------------------------}
 {                           VALIDATOR OPTION MASKS                          }
@@ -933,7 +933,7 @@ END;
 FUNCTION TRangeValidator.Transfer (Var S: Sw_String; Buffer: Pointer; Flag: TVTransfer): Word;
 VAR Value: LongInt; Code: Sw_Integer;
 BEGIN
-   If (Options AND voTransfer <> 0) Then Begin        { Tranfer mask set }
+   If (Options AND voTransfer <> 0) Then Begin        { Transfer mask set }
      Transfer := SizeOf(Value);                       { Transfer a longint }
      Case Flag Of
        vtGetData: Begin
@@ -1007,7 +1007,7 @@ END;
 CONSTRUCTOR TStringLookUpValidator.Load (Var S: TStream);
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
-   Strings := PStringCollection(S.Get);               { Fecth string list }
+   Strings := PStringCollection(S.Get);               { Fetch string list }
 END;
 
 {--TStringLookUpValidator---------------------------------------------------}
@@ -1015,7 +1015,7 @@ END;
 {---------------------------------------------------------------------------}
 DESTRUCTOR TStringLookUpValidator.Done;
 BEGIN
-   NewStringList(Nil);                                { Dispsoe string list }
+   NewStringList(Nil);                                { Dispose string list }
    Inherited Done;                                    { Call ancestor }
 END;
 

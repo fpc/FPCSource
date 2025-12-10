@@ -63,7 +63,7 @@ USES
      OS2Api.os2def, OS2Api.doscalls, OS2Api.pmwin,
    {$ENDIF}
 
-   System.Objects, 
+   System.Objects,
    {$ifdef FV_UNICODE}
    FreeVision.Ufvcommon,FreeVision.Udrivers,
    System.Unicode.Graphemebreakproperty,
@@ -71,7 +71,7 @@ USES
    FreeVision.Fvcommon,
    FreeVision.Drivers,
    {$endif}
-   FreeVision.Fvconsts, 
+   FreeVision.Fvconsts,
    { GFV standard units }
    System.Console.Video;
 {$ELSE FPC_DOTTEDUNITS}
@@ -170,7 +170,7 @@ CONST
 {                        >> NEW << VIEW DRAW MASKS                          }
 {---------------------------------------------------------------------------}
 CONST
-   vdBackGnd = $01;                                   { Draw backgound }
+   vdBackGnd = $01;                                   { Draw background }
    vdInner   = $02;                                   { Draw inner detail }
    vdCursor  = $04;                                   { Draw cursor }
    vdBorder  = $08;                                   { Draw view border }
@@ -2390,7 +2390,7 @@ END;
 PROCEDURE TGroup.EndModal (Command: Word);
 BEGIN
    If (State AND sfModal <> 0) Then                   { This view is modal }
-     EndState := Command Else                         { Set endstate }
+     EndState := Command Else                         { Set end state }
      Inherited EndModal(Command);                     { Call ancestor }
 END;
 
@@ -3230,7 +3230,7 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB             }
 {---------------------------------------------------------------------------}
-{  You can save data to the stream compatable with the old original TV by   }
+{  You can save data to the stream compatible with the old original TV by   }
 {  temporarily turning off the ofGrafVersion making the call to this store  }
 {  routine and resetting the ofGrafVersion flag after the call.             }
 {---------------------------------------------------------------------------}
@@ -3525,7 +3525,7 @@ END;
 {--TScroller----------------------------------------------------------------}
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB             }
 {---------------------------------------------------------------------------}
-{  The scroller is saved to the stream compatable with the old TV object.   }
+{  The scroller is saved to the stream compatible with the old TV object.   }
 {---------------------------------------------------------------------------}
 PROCEDURE TScroller.Store (Var S: TStream);
 VAR i: SmallInt;
@@ -3742,7 +3742,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.SetTopItem (Item: Sw_Integer);
 BEGIN
-   if Size.Y<> LastY then SetRange(Range);{ Reset range to ajdust to Size.Y}
+   if Size.Y<> LastY then SetRange(Range);{ Reset range to adjust to Size.Y}
    If (VScrollBar <> Nil) and (Item> VScrollBar^.Max) Then
        Item:=VScrollBar^.Max;           { Don't let overrun scrollbar limit }
    if Item>=Range then Item:=Range-1;             { Item has to be in range }
@@ -3998,7 +3998,7 @@ BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    State := State OR sfShadow;                        { View is shadowed }
    Options := Options OR (ofSelectable+ofTopSelect);  { Select options set }
-   GrowMode := gfGrowAll + gfGrowRel;                 { Set growmodes }
+   GrowMode := gfGrowAll + gfGrowRel;                 { Set growmode }
    Flags := wfMove + wfGrow + wfClose + wfZoom;       { Set flags }
 {$ifdef FV_UNICODE}
    Title := ATitle;                                   { Hold title }
@@ -4016,7 +4016,7 @@ END;
 {  Load -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB              }
 {---------------------------------------------------------------------------}
 {   This load method will read old original TV data from a stream however   }
-{   although a frame view is read for compatability it is disposed of.      }
+{   although a frame view is read for compatibility it is disposed of.      }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TWindow.Load (Var S: TStream);
 VAR I: SmallInt;
@@ -4156,7 +4156,7 @@ END;
 {--TWindow------------------------------------------------------------------}
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Mar98 LdB             }
 {---------------------------------------------------------------------------}
-{  You can save data to the stream compatable with the old original TV by   }
+{  You can save data to the stream compatible with the old original TV by   }
 {  temporarily turning off the ofGrafVersion making the call to this store  }
 {  routine and resetting the ofGrafVersion flag after the call.             }
 {---------------------------------------------------------------------------}

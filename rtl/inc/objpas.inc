@@ -438,6 +438,10 @@ end;
 
       destructor TObject.Destroy;
         begin
+          {$IFDEF ENABLE_OBJECTHOOK}
+          if assigned(DestroyObjectHook) then
+            DestroyObjectHook(Self);
+          {$ENDIF}
         end;
 
       procedure TObject.Free;
@@ -538,6 +542,10 @@ end;
 {$endif def FPC_HAS_FEATURE_RTTI}
 
            InitInstance:=TObject(Instance);
+           {$IFDEF ENABLE_OBJECTHOOK}
+           If Assigned(AllocateObjectHook) then
+             AllocateObjectHook(TObject(Instance));
+           {$ENDIF}
         end;
 
       class function TObject.ClassParent : tclass;

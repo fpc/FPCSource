@@ -1148,6 +1148,9 @@ implementation
       nameinit,namefini : TSymStr;
       tabledef: tdef;
       entry : pinitfinalentry;
+      unitnametcb : ttai_typedconstbuilder;
+      unitnamedef : tdef;
+      unitnamelbl : tasmlabel;
 
       procedure add_initfinal_import(symtable:tsymtable);
         var
@@ -1245,6 +1248,18 @@ implementation
               if entry^.module<>current_module then
                 add_initfinal_import(entry^.module.localsymtable);
             end;
+          { Add pointer to unit name }
+          if assigned(entry^.module.realmodulename) then
+            begin
+              { Create string constant and emit pointer to it }
+              unitinits.start_internal_data_builder(current_asmdata.asmlists[al_globals],sec_rodata,'',unitnametcb,unitnamelbl);
+              unitnamedef:=unitnametcb.emit_shortstring_const(entry^.module.realmodulename^);
+              unitinits.finish_internal_data_builder(unitnametcb,unitnamelbl,unitnamedef,sizeof(pint));
+              unitinits.queue_init(charpointertype);
+              unitinits.queue_emit_asmsym(unitnamelbl,unitnamedef);
+            end
+          else
+            unitinits.emit_tai(Tai_const.Create_nil_dataptr,charpointertype);
         end;
 
       { Add to data segment }

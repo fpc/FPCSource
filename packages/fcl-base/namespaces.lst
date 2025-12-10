@@ -22,6 +22,7 @@ src/pooledmm.pp=namespaced/System.Pooledmm.pp
 src/csvreadwrite.pp=namespaced/Fcl.Csv.ReadWrite.pp
 src/idea.pp=namespaced/System.Hash.Idea.pp
 src/whtml.pp=namespaced/Fcl.Whtml.pp
+src/wmarkdown.pp=namespaced/Fcl.WMarkDown.pp
 src/csvdocument.pp=namespaced/Fcl.Csv.Document.pp
 src/gettext.pp=namespaced/System.GetText.pp
 src/chainstream.pp=namespaced/Fcl.Streams.Chained.pp

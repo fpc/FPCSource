@@ -17,7 +17,7 @@ unit FPCompil;
 interface
 
 { don't redir under linux, because all stdout (also from the ide!) will
-  then be redired (PFV) }
+  then be redirected (PFV) }
 { this should work now correctly because
   RedirDisableAll and RedirEnableAll function are added in fpredir (PM) }
 
@@ -716,7 +716,7 @@ begin
        CompilerStatus:=true;
        exit;
     end;
-{ only display line info every 100 lines, ofcourse all other messages
+{ only display line info every 100 lines, of course all other messages
   will be displayed directly }
   if (getrealtime-lasttime>=CompilerStatusUpdateDelay) or (status.compiledlines=1) then
    begin
@@ -960,7 +960,7 @@ begin
     FileName:='"'+FileName+'"';
   if mode=cBuild then
     FileName:='-B '+FileName;
-  { tokens are created and distroed by compiler.compile !! PM }
+  { tokens are created and destroyed by compiler.compile !! PM }
   DoneTokens;
   PPasFile:='ppas'+source_info.scriptext;
   WUtils.DeleteFile(GetExePath+PpasFile);
@@ -992,7 +992,7 @@ begin
   else
     EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
   DefaultReplacements(ExeFile);
-  { tokens are created and distroyed by compiler.compile !! PM }
+  { tokens are created and destroyed by compiler.compile !! PM }
   InitTokens;
   if LinkAfter and
      ExistsFile(GetExePath+PpasFile) and

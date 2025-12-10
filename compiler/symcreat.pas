@@ -1884,7 +1884,11 @@ implementation
              (tprocdef(def).localst.symtabletype=localsymtable) then
             add_synthetic_method_implementations(tprocdef(def).localst)
           else if ((def.typ=objectdef) and
-                   not(oo_is_external in tobjectdef(def).objectoptions)) or
+                   not(oo_is_external in tobjectdef(def).objectoptions) and
+                   { we must not create duplicate synthetic methods for a unique
+                     type declaration as that simply shares the VMT of the aliased
+                     types }
+                   not(tobjectdef(def).is_unique_objpasdef)) or
                   (def.typ=recorddef) then
            begin
             { also complete nested types }

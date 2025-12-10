@@ -44,7 +44,7 @@ end;
 procedure TIDEApp.DoUserScreenWindow;
 begin
   {$ifdef HASAMIGA}
-  Exit; // Do not open the Userscreen on AMIGA systems, its not closeable
+  Exit; // Do not open the Userscreen on AMIGA systems, its not closable
   {$endif}
   if UserScreenWindow=nil then
     begin

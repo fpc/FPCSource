@@ -300,7 +300,7 @@ type
       function    GetMark(Index:Sw_integer):PEditorBookMark; virtual;
       procedure   AdjustMark(APosX,Adjustment:Sw_integer); virtual;
       { Syntax information is now generated separately for each editor instance.
-        This is not neccessary for a one-language IDE, but this unit contains
+        This is not necessary for a one-language IDE, but this unit contains
         a _generic_ editor object, which should be (and is) as flexible as
         possible.
         The overhead caused by generating the same syntax info for ex.
@@ -2395,7 +2395,7 @@ var
     tmpIs:=(MatchesAnySpecSymbol(ssCommentPrefix,pmLeft));
     if tmpIs
       and (CurrentCommentType=2) {bad, we are making assumption that this is comment opener (* }
-      and (LineText[X+1]=')') { looking into next char is bad aproach but it is working }
+      and (LineText[X+1]=')') { looking into next char is bad approach but it is working }
       then
         tmpIs:=false;  { in comment this "(*)" is not start of new nested comment but end }
     IsMatchingCommentPrefix:= tmpIs and (CurrentCommentType=SymbolIndex);
@@ -2698,7 +2698,7 @@ var
                 begin
                   inc(CurrentCommentDepth);
                   if LookForNestedComments then
-                  begin  { once per every nested comment test IsNestedCommments }
+                  begin  { once per every nested comment test IsNestedComments }
                     LookForNestedComments:=false;
                     NestedComments:=Editor^.IsNestedComments(X,CurLineNr);
                   end;
@@ -2786,7 +2786,7 @@ begin
     PrevLine:=GetLine(CurLineNr-1)
   else
     PrevLine:=nil;
-  CommentStartY:=CurLineNr-1; { use in detection for false positive commment: (*) }
+  CommentStartY:=CurLineNr-1; { use in detection for false positive comment: (*) }
   repeat
     Line:=GetLine(CurLineNr);
     if Assigned(PrevLine) then PrevLI:=PrevLine^.GetEditorInfo(Editor) else PrevLI:=nil;
@@ -4397,7 +4397,7 @@ begin
                 FreeFormat[X]:=false;
               end;
 
-            { redundant check, for loop condition is taking care of coorect range
+            { redundant check, for loop condition is taking care of correct range
             if (0<=LSX+X-1-Delta.X) and (LSX+X-1-Delta.X<MaxViewWidth) then  }
               MoveChar(B[LSX+X-1-Delta.X],C,Color,1);
           end; { for X:=1 to ... }
@@ -4425,7 +4425,7 @@ begin
       SetCursor(GetReservedColCount+CurPos.X-Delta.X,EditorToViewLine(CurPos.Y)-Delta.Y);
       InsertMode:=Overwrite;
       if IsFlagSet (efBlockInsCursor) then
-         InsertMode:=not InsertMode; {revers insert and overwrite mode cursor shapes}
+         InsertMode:=not InsertMode; {reverse insert and overwrite mode cursor shapes}
       SetState(sfCursorIns,InsertMode);
     end;
 end;
@@ -4847,7 +4847,7 @@ begin
   else
     SetCurPtr(CurPos.X,Delta.Y);
  end;
- 
+
  procedure TCustomCodeEditor.WindowEnd;
  begin
   if not NoSelect and ShouldExtend then
@@ -4903,7 +4903,7 @@ begin
     if Assigned(Line) then
       Line^.InsertMark(@Self,@Bookmarks[MarkIdx])
     else
-      Bookmarks[MarkIdx].Valid:=false; {this should not be ever reached, but safty first}
+      Bookmarks[MarkIdx].Valid:=false; {this should not be ever reached, but safety first}
   end;
 end;
 
@@ -6691,7 +6691,7 @@ begin
   begin
     Lines:=GetLineCount;
     {Linecount can be 0, but in that case there still is a cursor blinking in top
-     of the window, which will become line 1 as soon as sometype hits a key.}
+     of the window, which will become line 1 as soon as someone hits a key.}
     if lines=0 then
       lines:=1;
     if EditorDialog(edGotoLine, @GotoRec) <> cmCancel then
@@ -7273,7 +7273,7 @@ begin
   Lock;
 
   { here should be some kind or "mark" or "break" inserted in the Undo
-    information, so activating it "undoes" only the completition first and
+    information, so activating it "undoes" only the completion first and
     doesn't delete the complete word at once... - Gabor }
 
   FragLen:=Length(GetCodeCompleteFrag);
@@ -7354,7 +7354,7 @@ begin
       else if (SelStart.Y < SelEnd.Y) and ( ((SelStart.Y=CurPos.Y) and (SelStart.X<=CurPos.X)) or ((SelEnd.Y=CurPos.Y) and (SelEnd.X>=CurPos.X))) then
         InSelectionArea:=true  {in first line or last line}
       else if (SelStart.Y > SelEnd.Y) and ( ((SelStart.Y=CurPos.Y) and (SelStart.X>=CurPos.X)) or ((SelEnd.Y=CurPos.Y) and (SelEnd.X<=CurPos.X))) then
-        InSelectionArea:=true; {in first line or last line (selection Start and End revers)}
+        InSelectionArea:=true; {in first line or last line (selection Start and End reverse)}
     end;
 end;
 
@@ -7439,7 +7439,7 @@ begin
    dec(ey);
   S:='';
   { Find shortest white space of beginning of line from all lines
-    for simplisity reason Tab is not recognized as white space in this regard }
+    for simplicity reason Tab is not recognized as white space in this regard }
   LLen:=0;
   WhiteLen:=-1;
   WhiteLen:= WhiteLen shr 1; { logical SHR to get max sw_integer }
@@ -7694,7 +7694,7 @@ begin
   while OK and (Line<=EndP.Y) and (Line<GetLineCount) do
   begin
     S:=GetLineText(Line);
-    { Remove all traling spaces PM }
+    { Remove all trailing spaces PM }
     if not Editor^.IsFlagSet(efKeepTrailingSpaces) then
       s:=RTrim(S,False); // removes trailing #0 too
     { if FlagSet(efUseTabCharacters) then
@@ -7988,7 +7988,7 @@ begin
   DInput := New(PFPFileInputLine, Init(R, 79{FileNameLen+4}));
   DInput^.SetData(S);
   DInput^.GrowMode:=FileName^.GrowMode;
-  InsertBefore(DInput,FileName); {insert before to preserv order as it was}
+  InsertBefore(DInput,FileName); {insert before to preserve order as it was}
   Delete(FileName);
   Dispose(FileName,done);
   FileName:=DInput;

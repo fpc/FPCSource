@@ -327,7 +327,7 @@ CONST
 {***************************************************************************}
 
 { ******************************* REMARK ****************************** }
-{    The TEvent definition is completely compatable with all existing   }
+{    The TEvent definition is completely compatible with all existing   }
 {  code but adds two new fields ID and Data into the message record     }
 {  which helps with WIN/NT and OS2 message processing.                  }
 { ****************************** END REMARK *** Leon de Boer, 11Sep97 * }
@@ -615,13 +615,13 @@ Called automatically by TApplication.Done.
 PROCEDURE DoneVideo;
 
 {-ClearScreen--------------------------------------------------------
-Does nothing provided for compatability purposes only.
+Does nothing provided for compatibility purposes only.
 04Jan97 LdB
 ---------------------------------------------------------------------}
 PROCEDURE ClearScreen;
 
 {-SetVideoMode-------------------------------------------------------
-Does nothing provided for compatability purposes only.
+Does nothing provided for compatibility purposes only.
 04Jan97 LdB
 ---------------------------------------------------------------------}
 PROCEDURE SetVideoMode (Mode: Sw_Word);
@@ -655,7 +655,7 @@ FUNCTION SystemError (ErrorCode: Sw_Integer; Drive: Byte): Sw_Integer;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
 {-PrintStr-----------------------------------------------------------
-Does nothing provided for compatability purposes only.
+Does nothing provided for compatibility purposes only.
 30Jun98 LdB
 ---------------------------------------------------------------------}
 PROCEDURE PrintStr (CONST S: String);
@@ -698,14 +698,14 @@ PROCEDURE ShowMouseCursor;
 {                INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                  }
 {---------------------------------------------------------------------------}
 CONST
-   CheckSnow    : Boolean = False;                    { Compatability only }
+   CheckSnow    : Boolean = False;                    { Compatibility only }
    MouseEvents  : Boolean = False;                    { Mouse event state }
    MouseReverse : Boolean = False;                    { Mouse reversed }
-   HiResScreen  : Boolean = False;                    { Compatability only }
-   CtrlBreakHit : Boolean = False;                    { Compatability only }
-   SaveCtrlBreak: Boolean = False;                    { Compatability only }
-   SysErrActive : Boolean = False;                    { Compatability only }
-   FailSysErrors: Boolean = False;                    { Compatability only }
+   HiResScreen  : Boolean = False;                    { Compatibility only }
+   CtrlBreakHit : Boolean = False;                    { Compatibility only }
+   SaveCtrlBreak: Boolean = False;                    { Compatibility only }
+   SysErrActive : Boolean = False;                    { Compatibility only }
+   FailSysErrors: Boolean = False;                    { Compatibility only }
    ButtonCount  : Byte = 0;                           { Mouse button count }
    DoubleDelay  : Sw_Word = 8;                           { Double click delay }
    RepeatDelay  : Sw_Word = 8;                           { Auto mouse delay }
@@ -713,8 +713,8 @@ CONST
    SysMonoAttr  : Sw_Word = $7070;                       { System mono attr }
    StartupMode  : Sw_Word = $FFFF;                       { Compatability only }
    CursorLines  : Sw_Word = $FFFF;                       { Compatability only }
-   ScreenBuffer : Pointer = Nil;                      { Compatability only }
-   SaveInt09    : Pointer = Nil;                      { Compatability only }
+   ScreenBuffer : Pointer = Nil;                      { Compatibility only }
+   SaveInt09    : Pointer = Nil;                      { Compatibility only }
    SysErrorFunc : TSysErrorFunc = {$ifdef FPC}@{$endif}SystemError; { System error ptr }
 
 
@@ -983,7 +983,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE ExitDrivers; {$IFNDEF PPC_FPC}{$IFNDEF OS_UNIX} FAR; {$ENDIF}{$ENDIF}
 BEGIN
-   DoneSysError;                                      { Relase error trap }
+   DoneSysError;                                      { Release error trap }
    DoneEvents;                                        { Close event driver }
 {   DoneKeyboard;}
    DoneVideo;

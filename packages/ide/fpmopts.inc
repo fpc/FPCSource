@@ -90,7 +90,7 @@ begin
   Count:=max(Count,ProcessorCodeGenerationSwitches^.ItemCount); {lines we need to be able to show}
   if Count < 10 then Count:=10; {10 lines are needed in Assembler page}
   TargetHeight:=Count+11; {11 lines for rest (empty lines, borders, pages, conditions...)}
-  if TargetHeight> 31 then TargetHeight:=31; {don't go wild, limit ourselvs on 31 line}
+  if TargetHeight> 31 then TargetHeight:=31; {don't go wild, limit ourselves on 31 line}
   if (R.B.Y-R.A.Y) < (TargetHeight+5) then
     TargetHeight:= (R.B.Y-R.A.Y)-5; {screen allow exactly this much lines}
   if TargetHeight<21 then
@@ -355,7 +355,7 @@ begin
     Tab^.GrowMode:=0;
     Insert(Tab);
 
-    { conditionnals }
+    { conditionals }
     R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1; Dec(R2.B.X,4);
     New(IL, Init(R2, 255));
     IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
@@ -935,7 +935,7 @@ begin
             c^.freeall;
             for j:=0 to e^.GetLineCount-1 do
               begin
-                s:=e^.GetLineText(j);   { Note: AnsiString to ShortString convertino}
+                s:=e^.GetLineText(j);   { Note: AnsiString to ShortString convertion}
                 s:=Trim(s);
                 if s<>'' then
                   c^.insert(newstr(s));
@@ -1137,7 +1137,7 @@ begin
       NewSItem(label_preferences_showheapmonitor,
       nil))));
     CB3^.Value:=DesktopPreferences;
-    if OverrideHeapMonitor then  { if heap motior state is set by fp parameter }
+    if OverrideHeapMonitor then  { if heap monitor state is set by fp parameter }
       CB3^.EnableMask:=CB3^.EnableMask and not(dpHeapMonitor); { disable heap monitor check box }
     Insert(New(PGroupView, Init(R, label_preferences_clockheap, CB3)));
     Insert(CB3);
@@ -1374,7 +1374,7 @@ begin
   begin    { Default browser options }
     TitleS:=dialog_browseroptions;
     SymbolsFlags := DefaultSymbolFlags;
-    DisplayFlags := DefaultDispayFlags;
+    DisplayFlags := DefaultDisplayFlags;
     BrowserSub:=DefaultBrowserSub;
     BrowserPane:=DefaultBrowserPane;
     DialogWidth:=56;
@@ -1390,7 +1390,7 @@ begin
     DialogWidth:=56-20;
     SymbolsHight:=7;
     DisplayHight:=2;
-    RB1:=nil; {it is not suppoused to be valid}
+    RB1:=nil; {it is not supposed to be valid}
   end;
   R.Assign(0,0,DialogWidth,16);
   New(D, Init(R, TitleS));
@@ -1462,7 +1462,7 @@ begin
     begin
       {DefaultBrowserFlags:=BrowserFlags;}
       DefaultSymbolFlags:=SymbolsFlags;
-      DefaultDispayFlags:=DisplayFlags;
+      DefaultDisplayFlags:=DisplayFlags;
       DefaultBrowserSub:=RB1^.Value;
       DefaultBrowserPane:=RB2^.Value;
     end else

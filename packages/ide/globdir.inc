@@ -18,7 +18,7 @@
 {$ifdef Go32V2}
   { NOVESA conditional avoids use of
     vesa unit, it also disables USE_GRAPH_SWITCH
-    conditional, in order to obtain a go32v2 excutable that
+    conditional, in order to obtain a go32v2 executable that
     doesn't require full screen switching
     at startup on Windows OS }
   {$ifndef NOVESA}

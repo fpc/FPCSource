@@ -61,7 +61,7 @@ begin
   if Desktop^.ExecView(D)=cmOK then
     begin
        TargetSwitches^.SetCurrSel(RB^.Value);
-       { we allways need to recompile if we change
+       { we always need to recompile if we change
          the target OS PM }
        if L<>RB^.Value then
          PrevMainFile:='';

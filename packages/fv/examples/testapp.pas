@@ -27,7 +27,7 @@ PROGRAM testapp;
 {                                                                       }
 {                                                                       }
 {  Comments:                                                            }
-{    There is alot that may seem more complex than it needs to but      }
+{    There is a lot that may seem more complex than it needs to but     }
 {    I have much more elaborate objects operating such as bitmaps,      }
 {    bitmap buttons, percentage bars etc and they need these hooks.     }
 {    Basically the intention is to be able to port existing TV apps     }
@@ -70,7 +70,7 @@ CONST
 {$endif DEBUG}
 
 {---------------------------------------------------------------------------}
-{          TTestAppp OBJECT - STANDARD APPLICATION WITH MENU                }
+{          TTvDemo OBJECT - STANDARD APPLICATION WITH MENU                  }
 {---------------------------------------------------------------------------}
 TYPE
    PTVDemo = ^TTVDemo;

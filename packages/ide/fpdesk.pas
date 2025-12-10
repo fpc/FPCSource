@@ -551,7 +551,7 @@ begin
     if (W^.Flags and wfGrow)<>0 then
       WI.Bounds.B.Y:=Max(6,round(WI.Bounds.B.Y*(ScreenHeight-2)/(VM.row-2)));
   end;
-  {relocat and resize window as needed}
+  {relocate and resize window as needed}
   W^.GetBounds(R);
   if (R.A.X<>WI.Bounds.A.X) or (R.A.Y<>WI.Bounds.A.Y) then
     R.Move(WI.Bounds.A.X-R.A.X,WI.Bounds.A.Y-R.A.Y);
@@ -897,7 +897,7 @@ begin
       Setlength(Dir,Size);
       S^.Read(Dir[1], Size);                           { Read the directory }
       {$i-}ChDir(Dir);{$i+}
-      IOResult; {eat io result so it does not affect leater operations}
+      IOResult; {eat io result so it does not affect later operations}
       GetDir(0,StartUpDir);
     end;
   end;

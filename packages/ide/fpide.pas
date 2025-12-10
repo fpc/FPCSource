@@ -157,7 +157,7 @@ type
       procedure RemoveRecentFile(Index: integer);
     public
       procedure CurDirChanged;
-      procedure UpdateClockAndHeap; { update visiblity of ClockView and HeapView }
+      procedure UpdateClockAndHeap; { update visibility of ClockView and HeapView }
     private
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
@@ -318,7 +318,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_tools_msgprev     = 'Goto ~p~revious';
                 menu_tools_grep        = '~G~rep';
                 menu_tools_calculator  = '~C~alculator';
-                menu_tools_asciitable  = 'Ascii ~t~able';
+                menu_tools_asciitable  = 'ASCII ~T~able';
 
                 menu_options           = '~O~ptions';
                 menu_options_mode      = 'Mode~.~..';
@@ -1583,7 +1583,7 @@ begin
   UpdateScreen(true);
 {$endif go32v2}
 {$endif Windows}
-  CurDirChanged; {To avoid memory corruption, palce this call after screen resize has been done.}
+  CurDirChanged; {To avoid memory corruption, place this call after screen resize has been done.}
   displaymode:=dmIDE;
 end;
 
@@ -1601,7 +1601,7 @@ begin
       SOK:=SaveAll;
   if (AutoSaveOptions and asDesktop)<>0 then
     begin
-      { destory all help & browser windows - we don't want to store them }
+      { destroy all help & browser windows - we don't want to store them }
       { UserScreenWindow is also not registered PM }
       DoCloseUserScreenWindow;
       {$IFNDEF NODEBUG}
@@ -1777,9 +1777,9 @@ begin
 
   GetExtent(R);
   AdjustRecentCount :=0;
-  {calculate how much lines on screen for reacent files can be used }
+  {calculate how much lines on screen for recent files can be used }
   if r.b.y-r.a.y -19 > 0 then AdjustRecentCount:=r.b.y-r.a.y -19;
-  {only if there is enough space then show all reacent files }
+  {only if there is enough space then show all recent files }
   {else cut list shorter }
   if RecentFileCount < AdjustRecentCount then
      AdjustRecentCount:=RecentFileCount;
@@ -1982,7 +1982,7 @@ destructor TIDEApp.Done;
 begin
   InsideDone:=true;
   IsRunning:=false;
-  {manualy dispose ClockView and HeapView}
+  {manually dispose ClockView and HeapView}
   Delete(ClockView);
   Dispose(ClockView);
   Delete(HeapView);

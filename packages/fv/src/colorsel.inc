@@ -363,7 +363,7 @@ begin
     evKeyDown: Begin                                 { Key down event }
       NeedClear:=true;
       n15:=15; n11:=11; n16:=16;
-      if (SelType = csBackground) then
+      if Size.Y=2 then
       begin
         n15:=7; n11:=3; n16:=8;
       end;
@@ -397,8 +397,7 @@ begin
         MakeLocal(Event.Where, Mouse);               { Localize mouse }
         mx:=Mouse.X;
         if (mx>=0) and (mx<=12) then
-          if ((Mouse.Y >= 0) and (Mouse.Y <= 3) and (SelType = csForeground))
-          or ((Mouse.Y >= 0) and (Mouse.Y <= 1) and (SelType = csBackground)) then
+          if ((Mouse.Y >= 0) and (Mouse.Y <= Size.Y-1)) then
           begin
             mx:=mx div 3;
             newColor:=(Mouse.Y)*4+mx;
@@ -478,7 +477,7 @@ begin
   CurColor:=0;
   DrawColorLine(0);
   DrawColorLine(1);
-  if SelType = csForeground then
+  if Size.Y >= 4 then
   begin
     DrawColorLine(2);
     DrawColorLine(3);
@@ -691,7 +690,7 @@ begin
       S.Write(R^.Index,Sizeof(R^.Index));
       R := R^.Next;
     end;
-    {write gropu}
+    {write group}
 {$ifdef FV_UNICODE}
     S.WriteUnicodeString(x^.Name);
 {$else FV_UNICODE}
@@ -801,7 +800,7 @@ begin
   x := Groups;
   inherited Done;
   Groups:=nil;
-  {Disopse PColorGroup linked list}
+  {Dispose PColorGroup linked list}
   while Assigned(x) do begin
     R:=x^.Items;
     while Assigned(R) do begin
@@ -962,6 +961,8 @@ begin
   VScrollBar := New(PScrollBar, Init(R2));
   Insert(VScrollBar);
   Groups := New(PColorGroupList, Init(R, VScrollBar, AGroups));
+  Groups^.GrowMode:=gfGrowHiY;
+  VScrollBar^.GrowMode:=gfGrowHiY;
   Insert(Groups);
   R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
   Insert(New(PLabel, Init(R2, label_colorsel_group, Groups)));
@@ -976,6 +977,7 @@ begin
   VScrollBar := New(PScrollBar, Init(R2));
   Insert(VScrollBar);
   Items := New(PColorItemList, Init(R, VScrollBar,xItems));
+  Items^.GrowMode:=gfGrowHiY+gfGrowHiX;
   Insert(Items);
   R2.Copy(R); Dec(R2.A.Y); R2.B.Y:=R2.A.Y+1;
   Insert(New(PLabel, Init(R2, label_colorsel_item, Items)));
@@ -984,6 +986,8 @@ begin
   R2.Copy(R); R2.B.Y:=R2.A.Y; Dec(R2.A.Y);
   ForSel:=New(PColorSelector, Init(R, csForeground));
   ForLabel:=New(PLabel, Init(R2, label_colorsel_foreground, ForSel));
+  ForSel^.GrowMode:=gfGrowLoX+gfGrowHiX;
+  ForLabel^.GrowMode:=gfGrowLoX+gfGrowHiX;
   Insert(ForSel);
   Insert(ForLabel);
   {-- Color selector background --}
@@ -991,18 +995,23 @@ begin
   R2.Copy(R); R2.B.Y:=R2.A.Y; Dec(R2.A.Y);
   BakSel:=New(PColorSelector, Init(R, csBackground));
   BakLabel:=New(PLabel, Init(R2, label_colorsel_background, BakSel));
+  BakSel^.GrowMode:=gfGrowLoX+gfGrowHiX;
+  BakLabel^.GrowMode:=gfGrowLoX+gfGrowHiX;
   Insert(BakSel);
   Insert(BakLabel);
   {-- Color Display --}
   R.Assign(45, 12, 59, 15);
   Display:=New(PColorDisplay,Init(R,Sw_NewStr(label_colorsel_displaytext)));
+  Display^.GrowMode:=gfGrowLoX+gfGrowHiX;
   Insert(Display);
   {-- Buttons --}
   R.Assign(37, 16, 47, 18);
   OkButton := New(PButton, Init(R, slOk, cmOK, bfDefault));
+  OkButton^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowLoX+gfGrowHiX;
   Insert(OkButton);
   Inc(R.A.X,12); Inc(R.B.X,12);
-  CancelButton := New(PButton, Init(R, slCancel, cmCancel, bfDefault));
+  CancelButton := New(PButton, Init(R, slCancel, cmCancel, bfNormal));
+  CancelButton^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowLoX+gfGrowHiX;
   Insert(CancelButton);
   {--set focus--}
   Items^.FocusItem(0);

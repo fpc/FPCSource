@@ -127,7 +127,7 @@ type
       will work without problems.
 
       When using a string list in the same program as it is created, a
-      resource file is not required.  This allows language independant coding
+      resource file is not required.  This allows language independent coding
       of units without the need for conditional defines and recompiling. }
     constructor Init;
       { Creates an empty, in-memory string list that is not associated with a
@@ -218,7 +218,7 @@ var
       displayed at run-time using MessageBox or the status line hints.
 
       Using the Labels variable when creating views allows language
-      independant coding of views such as the MessageBox, StdDlg and Editors
+      independent coding of views such as the MessageBox, StdDlg and Editors
       units. }
 
   RezFile: PResourceFile;

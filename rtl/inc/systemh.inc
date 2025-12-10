@@ -1736,6 +1736,9 @@ Type
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
   TSafeCallErrorProc = Procedure(error : HResult;addr : pointer);
+  {$ifdef ENABLE_UNIT_INIT_TRACKING}
+  TUnitInitTrackProc = procedure(aSequence : SmallInt; const aUnitName : ShortString);
+  {$endif ENABLE_UNIT_INIT_TRACKING}
 
 
 const
@@ -1748,6 +1751,9 @@ const
   ExceptObjProc     : Pointer = nil; { Used to convert OS exceptions to FPC exceptions. }
   ExceptClsProc     : Pointer = nil;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
+{$ifdef ENABLE_UNIT_INIT_TRACKING}
+  UnitInitTrackingProc : TUnitInitTrackProc;
+{$endif ENABLE_UNIT_INIT_TRACKING}
 
 {*****************************************************************************
                           SetJmp/LongJmp

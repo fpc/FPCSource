@@ -180,7 +180,7 @@ const
 {
  The FVConsts unit contains all command constants used in the FreeVision
  library. They have been extracted from their original units and placed here
- for easier maintainence and modification to remove conflicts, such as Borland
+ for easier maintenance and modification to remove conflicts, such as Borland
  created with the cmChangeDir constant in the StdDlg and App units.
 }
 

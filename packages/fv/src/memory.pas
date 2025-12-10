@@ -171,14 +171,14 @@ PROCEDURE NewBuffer (Var P: Pointer; Size: Word);
 
 {-InitDosMem---------------------------------------------------------
 Initialize memory manager routine for a shell to launch a DOS window.
-Interface for compatability only under DPMI/WIN/NT/OS2 platforms.
+Interface for compatibility only under DPMI/WIN/NT/OS2 platforms.
 01Oct99 LdB
 ---------------------------------------------------------------------}
 PROCEDURE InitDosMem;
 
 {-DoneDosMem---------------------------------------------------------
 Finished shell to a DOS window so reset memory manager again.
-Interface for compatability only under DPMI/WIN/NT/OS2 platforms.
+Interface for compatibility only under DPMI/WIN/NT/OS2 platforms.
 01Oct99 LdB
 ---------------------------------------------------------------------}
 PROCEDURE DoneDosMem;
@@ -611,12 +611,12 @@ PROCEDURE NewCache (Var P: Pointer; Size: Word);
 {$IFDEF PROC_REAL}                                    { REAL MODE DOS CODE }
 ASSEMBLER;
 ASM
-   LES DI, P;                                         { Addres of var P }
+   LES DI, P;                                         { Address of var P }
    MOV AX, Size;
    ADD AX, (TYPE TCache)+15;                          { Add offset }
    MOV CL, 4;
    SHR AX, CL;
-   MOV DX, CachePtr.Word[2];                          { Reteive cache ptr }
+   MOV DX, CachePtr.Word[2];                          { Retrieve cache ptr }
    SUB DX, AX;
    JC @@1;
    CMP DX, HeapPtr.Word[2];                           { Heap ptr end }
@@ -810,7 +810,7 @@ PROCEDURE DisposeBuffer (P: Pointer);
 BEGIN
    If (P <> Nil) Then Begin
      {$IFDEF PROC_REAL}                               { REAL MODE DOS CODE }
-     Dec(PtrRec(P).Seg);                              { Prior segement }
+     Dec(PtrRec(P).Seg);                              { Prior segment }
      SetBufSize(P, 0);                                { Release memory }
      {$ELSE}                                          { DPMI/WIN/NT/OS2 CODE }
 {$ifdef fpc}
@@ -842,7 +842,7 @@ VAR BufSize: Word; Buffer: PBuffer;
 BEGIN
    {$IFDEF PROC_REAL}                                 { REAL MODE DOS CODE }
    BufSize := (Size + 15) SHR 4 + 1;                  { Paragraphs to alloc }
-   If (BufHeapPtr+BufSize > BufHeapEnd) Then P := Nil { Exceeeds heap }
+   If (BufHeapPtr+BufSize > BufHeapEnd) Then P := Nil { Exceeds heap }
    Else Begin
      Buffer := Ptr(BufHeapPtr, 0);                    { Current position }
      Buffer^.Size := Size;                            { Set size }
