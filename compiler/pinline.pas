@@ -166,8 +166,10 @@ implementation
             if not(assigned(sym)) then
               begin
                  p.free;
+                 p := nil;
                  if is_new then
                    p2.free;
+                   p2 := nil;
                  new_dispose_statement := cerrornode.create;
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
@@ -218,6 +220,7 @@ implementation
                  p.free;
                  p:=factor(false,[]);
                  p.free;
+                 p := nil;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cnothingnode.create;
                  exit;
@@ -229,6 +232,7 @@ implementation
                  p.free;
                  p:=factor(false,[]);
                  p.free;
+                 p := nil;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
                  exit;
@@ -238,6 +242,7 @@ implementation
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
+                 p := nil;
                  new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
@@ -268,6 +273,7 @@ implementation
                  else
                   Message(parser_e_expr_have_to_be_destructor_call);
                  p.free;
+                 p := nil;
                  new_dispose_statement:=cerrornode.create;
               end
             else
@@ -345,6 +351,7 @@ implementation
                  if is_typeparam(p.resultdef) then
                    begin
                       p.free;
+                      p := nil;
                       consume(_RKLAMMER);
                       new_dispose_statement:=cnothingnode.create;
                       exit;
@@ -452,6 +459,7 @@ implementation
            consume_all_until(_RKLAMMER);
            consume(_RKLAMMER);
            p1.free;
+           p1 := nil;
            new_function:=cerrornode.create;
            exit;
          end;
@@ -462,6 +470,7 @@ implementation
            consume_all_until(_RKLAMMER);
            consume(_RKLAMMER);
            p1.free;
+           p1 := nil;
            new_function:=cerrornode.create;
            exit;
          end;
@@ -486,6 +495,7 @@ implementation
                consume_all_until(_RKLAMMER);
                consume(_RKLAMMER);
                p1.free;
+               p1 := nil;
                new_function:=cerrornode.create;
                exit;
              end;
@@ -512,6 +522,7 @@ implementation
               the pointer to the object }
             p1.resultdef:=p2.resultdef;
             p2.free;
+            p2 := nil;
             consume(_RKLAMMER);
           end;
         new_function:=p1;
@@ -643,6 +654,7 @@ implementation
          end;
         ppn.left:=nil;
         paras.free;
+        paras := nil;
         result.free;
         result:=newblock;
       end;

@@ -1141,13 +1141,19 @@ uses
       TrailZeros;
 
       if not Assigned(strsec) then
-        symstr.Free;
+        begin
+          symstr.Free;
+          symstr := nil;
+        end;
 
       TrailZeros;
 
       mfile.Free;
+      mfile := nil;
       symList.Free;
+      symList := nil;
       IndirIndex.Free;
+      IndirIndex := nil;
     end;
 
 

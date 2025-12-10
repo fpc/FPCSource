@@ -26,7 +26,7 @@ interface
 
     uses
        { common }
-       cutils,compinnr,
+       sysutils,cutils,compinnr,
        { target }
        globtype,globals,widestr,constexp,
        { symtable }
@@ -736,6 +736,7 @@ implementation
     destructor tstoredsym.destroy;
       begin
         rtti_attribute_list.free;
+        rtti_attribute_list := nil;
         inherited destroy;
       end;
 
@@ -986,10 +987,13 @@ implementation
     destructor tprocsym.destroy;
       begin
         FProcdefList.Free;
-        if assigned(FProcdefDerefList) then
-          FProcdefDerefList.Free;
+        FProcdefList := nil;
+        FProcdefDerefList.Free;
+        FProcdefDerefList := nil;
         fgenprocsymovlds.free;
+        fgenprocsymovlds := nil;
         fgenprocsymovldsderefs.free;
+        fgenprocsymovldsderefs := nil;
         inherited destroy;
       end;
 
@@ -1637,8 +1641,9 @@ implementation
         pap : tpropaccesslisttypes;
       begin
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
-           propaccesslist[pap].free;
+           FreeAndNil(propaccesslist[pap]);
          parast.free;
+         parast := nil;
          inherited destroy;
       end;
 
@@ -2556,6 +2561,7 @@ implementation
       begin
         if assigned(ref) then
           ref.free;
+          ref := nil;
         inherited destroy;
       end;
 
@@ -3213,6 +3219,7 @@ implementation
     procedure done_symsym;
       begin
         syssym_list.free;
+        syssym_list := nil;
       end;
 
 

@@ -182,9 +182,13 @@ implementation
         if Errorcount=0 then
          writear;
         arData.Free;
+        arData := nil;
         symreloc.Free;
+        symreloc := nil;
         symstr.Free;
+        symstr := nil;
         lfnstr.Free;
+        lfnstr := nil;
       end;
 
 
@@ -320,6 +324,7 @@ implementation
          end;
         ardata.WriteStream(arf);
         Arf.Free;
+        Arf := nil;
       end;
 
 
@@ -354,6 +359,7 @@ implementation
       begin
         inherited closefile;
         ArSymbols.Free;
+        ArSymbols := nil;
         LFNStrs:=nil;
         inherited Destroy;
       end;

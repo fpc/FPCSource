@@ -151,6 +151,7 @@ begin
    writebuf;
   fn:=f.filename;
   f.free;
+  f := nil;
 { Remove if size is 0 }
   if size=0 then
    DeleteFile(fn);
@@ -282,6 +283,7 @@ begin
   setlength(buf,bufmax);
   f.read(buf[0],bufmax);
   f.free;
+  f := nil;
   bufidx:=0;
   opened:=true;
   openfile:=true;

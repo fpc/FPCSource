@@ -138,6 +138,7 @@ implementation
                 consume(_RECKKLAMMER);
               end;
              p.free;
+             p := nil;
            end
           else
             begin
@@ -424,6 +425,7 @@ implementation
                begin
                  Message(parser_e_class_id_expected);
                  p1.free;
+                 p1 := nil;
                  statement_syssym:=cerrornode.create;
                end;
             end;
@@ -482,6 +484,7 @@ implementation
                     include(statement_syssym.flags,nf_generic_para);
                  { p1 not needed !}
                  p1.free;
+                 p1 := nil;
                end;
             end;
 
@@ -605,6 +608,7 @@ implementation
               else
                begin
                  p1.free;
+                 p1 := nil;
                  p2:=cerrornode.create;
                end;
               consume(_RKLAMMER);
@@ -718,9 +722,9 @@ implementation
                   message(parser_e_illegal_slice);
                   consume(_LKLAMMER);
                   in_args:=true;
-                  comp_expr([ef_accept_equal]).free;
+                  comp_expr([ef_accept_equal]).free; // no nil needed
                   if try_to_consume(_COMMA) then
-                    comp_expr([ef_accept_equal]).free;
+                    comp_expr([ef_accept_equal]).free; // no nil needed
                   statement_syssym:=cerrornode.create;
                   consume(_RKLAMMER);
                 end
@@ -903,6 +907,7 @@ implementation
                   in_args:=true;
                   p1:=comp_expr([ef_accept_equal]);
                   p1.free;
+                  p1 := nil;
                   consume(_RKLAMMER);
                 end;
               statement_syssym:=geninlinenode(l,false,nil);
@@ -1108,6 +1113,7 @@ implementation
                  comment(v_error, 'Pointers to generics functions not implemented');
                  p1:=cerrornode.create;
                  spezcontext.free;
+                 spezcontext := nil;
                  exit;
                end;
 
@@ -1161,7 +1167,7 @@ implementation
                         this is a "objectprocvar:=@classname.method" expression }
                       tloadnode(p2).symtable:=tobjectdef(p1.resultdef).symtable
                     else
-                      p1.free;
+                      p1.free; // no nil needed
                   end;
               end;
              p1:=p2;
@@ -1254,6 +1260,7 @@ implementation
                  if (po_methodpointer in pv.procoptions) then
                    tloadnode(hp2).set_mp(tcallnode(hp).methodpointer.getcopy);
                  hp.free;
+                 hp := nil;
                  { replace the old callnode with the new loadnode }
                  hpp^:=hp2;
                end;
@@ -1293,6 +1300,7 @@ implementation
                begin
                  hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
                  hp.free;
+                 hp := nil;
                  { replace the old callnode with the new loadnode }
                  hpp^:=hp2;
                end;
@@ -1440,7 +1448,7 @@ implementation
            end;
         { release paras if not used }
         if assigned(paras) then
-         paras.free;
+          paras.free; // no nil needed
       end;
 
 
@@ -1461,6 +1469,7 @@ implementation
               p1:=cerrornode.create;
               { try to clean up }
               spezcontext.free;
+              spezcontext := nil;
               again:=false;
            end
          else
@@ -1793,8 +1802,10 @@ implementation
                    end;
                  if result.nodetype<>errorn then
                    do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[],spezcontext)
-                 else
+                 else begin
                    spezcontext.free;
+                   spezcontext := nil;
+                 end;
                end
              else
               begin
@@ -2028,6 +2039,7 @@ implementation
            end;
          countindices:=elements.count;
          elements.free;
+         elements := nil;
 
          consume(_RECKKLAMMER);
 
@@ -3130,6 +3142,7 @@ implementation
                          if not handle_specialize_inline_specialization(srsym,unit_found,srsymtable,spezcontext) or (srsym.typ=procsym) then
                            begin
                              spezcontext.free;
+                             spezcontext := nil;
                              result:=cerrornode.create;
                              if try_to_consume(_LKLAMMER) then
                               begin
@@ -3292,6 +3305,7 @@ implementation
               result.resultdef:=cundefineddef.create(true);
               { clean up previously created dummy symbol }
               srsym.free;
+              srsym := nil;
             end;
 
           errorsym :
@@ -3987,7 +4001,10 @@ implementation
                            do_member_read(hclassdef,getaddr,srsym,p1,again,callflags,spezcontext);
                          end;
                        if p1.nodetype=errorn then
+                       begin
                          spezcontext.free;
+                         spezcontext := nil;
+                       end;
                      end
                     else
                      begin
@@ -4645,6 +4662,7 @@ implementation
               result:=cerrornode.create;
 
           spezcontext.free;
+          spezcontext := nil;
         end;
 
       function maybe_handle_specialization(var p1,p2:tnode;filepos:tfileposinfo):boolean;
@@ -4687,6 +4705,7 @@ implementation
               { we don't need these nodes anymore }
               p1.free;
               p2.free;
+              p2 := nil;
 
               p1:=ptmp;
 
@@ -5073,6 +5092,7 @@ implementation
           result:=tordconstnode(p).value;
        end;
       p.free;
+      p := nil;
     end;
 
 
@@ -5110,6 +5130,7 @@ implementation
       else
         get_stringconst:=snode.asrawbytestring;
       p.free;
+      p := nil;
     end;
 
 end.

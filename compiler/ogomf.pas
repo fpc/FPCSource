@@ -882,6 +882,7 @@ implementation
     destructor TOmfRelocation.Destroy;
       begin
         FOmfFixup.Free;
+        FOmfFixup := nil;
         inherited Destroy;
       end;
 
@@ -1029,6 +1030,7 @@ implementation
     destructor TOmfObjSection.destroy;
       begin
         FLinNumEntries.Free;
+        FLinNumEntries := nil;
         inherited destroy;
       end;
 
@@ -1076,7 +1078,9 @@ implementation
     destructor TOmfObjData.destroy;
       begin
         FExportedSymbolList.Free;
+        FExportedSymbolList := nil;
         FImportLibraryList.Free;
+        FImportLibraryList := nil;
         inherited destroy;
       end;
 
@@ -1419,6 +1423,7 @@ implementation
               ChunkFixupStart:=ChunkFixupEnd+1;
             end;
             RawRecord.Free;
+            RawRecord := nil;
           end;
       end;
 
@@ -1448,7 +1453,9 @@ implementation
               end;
 
             LinNumRec.Free;
+            LinNumRec := nil;
             RawRecord.Free;
+            RawRecord := nil;
           end;
       end;
 
@@ -1512,11 +1519,13 @@ implementation
                   RawRecord.WriteTo(FWriter);
                 end;
               PubDefRec.Free;
+              PubDefRec := nil;
             end;
 
         for i:=0 to Data.ObjSectionList.Count-1 do
           FreeAndNil(PubNamesForSection[i]);
         RawRecord.Free;
+        RawRecord := nil;
       end;
 
     procedure TOmfObjOutput.WriteEXTDEFs(Data: TObjData);
@@ -1552,10 +1561,13 @@ implementation
                 RawRecord.WriteTo(FWriter);
               end;
             ExtDefRec.Free;
+            ExtDefRec := nil;
           end;
 
         ExtNames.Free;
+        ExtNames := nil;
         RawRecord.Free;
+        RawRecord := nil;
       end;
 
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
@@ -1595,6 +1607,7 @@ implementation
         Header.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Header.Free;
+        Header := nil;
 
         { write translator COMENT header }
         Translator_COMENT:=TOmfRecord_COMENT.Create;
@@ -1604,6 +1617,7 @@ implementation
         Translator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
+        Translator_COMENT := nil;
 
         if (target_dbg.id=dbg_codeview) or
            ((ds_dwarf_omf_linnum in current_settings.debugswitches) and
@@ -1615,6 +1629,7 @@ implementation
             DebugFormat_COMENT.EncodeTo(RawRecord);
             RawRecord.WriteTo(FWriter);
             DebugFormat_COMENT.Free;
+            DebugFormat_COMENT := nil;
           end;
 
         LNames.Clear;
@@ -1639,6 +1654,7 @@ implementation
             RawRecord.WriteTo(FWriter);
           end;
         LNamesRec.Free;
+        LNamesRec := nil;
 
         { write SEGDEF record(s) }
         for I:=1 to Segments.Count-1 do
@@ -1670,6 +1686,7 @@ implementation
         LinkPassSeparator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         LinkPassSeparator_COMENT.Free;
+        LinkPassSeparator_COMENT := nil;
 
         { write section content, interleaved with fixups }
         WriteSections(Data);
@@ -1679,8 +1696,10 @@ implementation
         ModEnd.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         ModEnd.Free;
+        ModEnd := nil;
 
         RawRecord.Free;
+        RawRecord := nil;
         result:=true;
       end;
 
@@ -1698,8 +1717,11 @@ implementation
     destructor TOmfObjOutput.Destroy;
       begin
         FGroups.Free;
+        FGroups := nil;
         FSegments.Free;
+        FSegments := nil;
         FLNames.Free;
+        FLNames := nil;
         inherited Destroy;
       end;
 
@@ -1718,6 +1740,7 @@ implementation
         Header.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Header.Free;
+        Header := nil;
 
         { write IMPDEF record }
         DllImport_COMENT_IMPDEF:=TOmfRecord_COMENT_IMPDEF.Create;
@@ -1746,8 +1769,10 @@ implementation
         ModEnd.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         ModEnd.Free;
+        ModEnd := nil;
 
         RawRecord.Free;
+        RawRecord := nil;
       end;
 
 {****************************************************************************
@@ -1777,6 +1802,7 @@ implementation
         LNamesRec.Names:=LNames;
         LNamesRec.DecodeFrom(RawRec);
         LNamesRec.Free;
+        LNamesRec := nil;
         Result:=True;
       end;
 
@@ -1795,6 +1821,7 @@ implementation
           begin
             InputError('Segment name index out of range');
             SegDefRec.Free;
+            SegDefRec := nil;
             exit;
           end;
         SegmentName:=LNames[SegDefRec.SegmentNameIndex];
@@ -1802,6 +1829,7 @@ implementation
           begin
             InputError('Segment class name index out of range');
             SegDefRec.Free;
+            SegDefRec := nil;
             exit;
           end;
         SegClassName:=LNames[SegDefRec.ClassNameIndex];
@@ -1809,6 +1837,7 @@ implementation
           begin
             InputError('Segment overlay name index out of range');
             SegDefRec.Free;
+            SegDefRec := nil;
             exit;
           end;
         OverlayName:=LNames[SegDefRec.OverlayNameIndex];
@@ -1830,12 +1859,14 @@ implementation
             begin
               InputError('Absolute segment alignment not supported');
               SegDefRec.Free;
+              SegDefRec := nil;
               exit;
             end;
           saNotDefined:
             begin
               InputError('Invalid (unsupported/undefined) OMF segment alignment');
               SegDefRec.Free;
+              SegDefRec := nil;
               exit;
             end;
         end;
@@ -1861,6 +1892,7 @@ implementation
           begin
             InputError('Segment too large');
             SegDefRec.Free;
+            SegDefRec := nil;
             exit;
           end;
         objsec.Size:=SegDefRec.SegmentLength;
@@ -1872,6 +1904,7 @@ implementation
            (SegmentName='FPC') then
           objsec.SecOptions:=objsec.SecOptions+[oso_keep];
         SegDefRec.Free;
+        SegDefRec := nil;
         Result:=True;
       end;
 
@@ -1889,6 +1922,7 @@ implementation
           begin
             InputError('Group name index out of range');
             GrpDefRec.Free;
+            GrpDefRec := nil;
             exit;
           end;
         GroupName:=LNames[GrpDefRec.GroupNameIndex];
@@ -1903,11 +1937,13 @@ implementation
               begin
                 InputError('Segment name index out of range in group definition');
                 GrpDefRec.Free;
+                GrpDefRec := nil;
                 exit;
               end;
             SecGroup.members[i]:=TOmfObjSection(objdata.ObjSectionList[SegIndex-1]);
           end;
         GrpDefRec.Free;
+        GrpDefRec := nil;
         Result:=True;
       end;
 
@@ -1939,6 +1975,7 @@ implementation
             objsym.size:=0;
           end;
         ExtDefRec.Free;
+        ExtDefRec := nil;
         Result:=True;
       end;
 
@@ -1962,6 +1999,7 @@ implementation
           begin
             InputError('Public symbol''s group name index out of range');
             PubDefRec.Free;
+            PubDefRec := nil;
             exit;
           end;
         if PubDefRec.BaseGroupIndex<>0 then
@@ -1972,12 +2010,14 @@ implementation
           begin
             InputError('Public symbol''s segment name index out of range');
             PubDefRec.Free;
+            PubDefRec := nil;
             exit;
           end;
         if PubDefRec.BaseSegmentIndex=0 then
           begin
             InputError('Public symbol uses absolute addressing, which is not supported by this linker');
             PubDefRec.Free;
+            PubDefRec := nil;
             exit;
           end;
         objsec:=TOmfObjSection(objdata.ObjSectionList[PubDefRec.BaseSegmentIndex-1]);
@@ -2001,6 +2041,7 @@ implementation
               objsec.FFirstSym:=objsym;
           end;
         PubDefRec.Free;
+        PubDefRec := nil;
         Result:=True;
       end;
 
@@ -2020,18 +2061,21 @@ implementation
               begin
                 InputError('Physical start address not supported');
                 ModEndRec.Free;
+                ModEndRec := nil;
                 exit;
               end;
             if not (ModEndRec.TargetMethod in [ftmSegmentIndex,ftmSegmentIndexNoDisp]) then
               begin
                 InputError('Target method for start address other than "Segment Index" is not supported');
                 ModEndRec.Free;
+                ModEndRec := nil;
                 exit;
               end;
             if (ModEndRec.TargetDatum<1) or (ModEndRec.TargetDatum>objdata.ObjSectionList.Count) then
               begin
                 InputError('Segment name index for start address out of range');
                 ModEndRec.Free;
+                ModEndRec := nil;
                 exit;
               end;
             case ModEndRec.FrameMethod of
@@ -2041,12 +2085,14 @@ implementation
                     begin
                       InputError('Frame segment name index for start address out of range');
                       ModEndRec.Free;
+                      ModEndRec := nil;
                       exit;
                     end;
                   if ModEndRec.FrameDatum<>ModEndRec.TargetDatum then
                     begin
                       InputError('Frame segment different than target segment is not supported supported for start address');
                       ModEndRec.Free;
+                      ModEndRec := nil;
                       exit;
                     end;
                   basegroup:=nil;
@@ -2057,6 +2103,7 @@ implementation
                     begin
                       InputError('Frame group name index for start address out of range');
                       ModEndRec.Free;
+                      ModEndRec := nil;
                       exit;
                     end;
                   basegroup:=TObjSectionGroup(objdata.GroupsList[ModEndRec.FrameDatum-1]);
@@ -2065,6 +2112,7 @@ implementation
                 begin
                   InputError('Frame method for start address other than "Segment Index" or "Group Index" is not supported');
                   ModEndRec.Free;
+                  ModEndRec := nil;
                   exit;
                 end;
             end;
@@ -2079,6 +2127,7 @@ implementation
             objsym.size:=0;
           end;
         ModEndRec.Free;
+        ModEndRec := nil;
         Result:=True;
       end;
 
@@ -2176,6 +2225,7 @@ implementation
                   begin
                     InputError('Invalid checksum in OMF record');
                     FixupRawRec.Free;
+                    FixupRawRec := nil;
                     exit;
                   end;
               end;
@@ -2193,9 +2243,14 @@ implementation
                       begin
                         InputError('FIXUP subrecord without previous LEDATA or LIDATA record');
                         Fixup.Free;
+                        Fixup := nil;
                         Thread.Free;
+                        Thread := nil;
                         if FixupRawRec<>RawRec then
-                          FixupRawRec.Free;
+                          begin
+                            FixupRawRec.Free;
+                            FixupRawRec := nil;
+                          end;
                         exit;
                       end;
                     NextOfs:=Fixup.ReadAt(FixupRawRec,NextOfs);
@@ -2210,7 +2265,9 @@ implementation
                   end;
               end;
             Fixup.Free;
+            Fixup := nil;
             Thread.Free;
+            Thread := nil;
             if FixupRawRec<>RawRec then
               FixupRawRec.Free;
             { always set it to null, so that we read the next record on the next }
@@ -2237,6 +2294,7 @@ implementation
           TOmfObjData(objdata).AddImportSymbol(MaybeAddDllExt(ImpDefRec.ModuleName),ImpDefRec.Name,SymName,0,false);
         Result:=True;
         ImpDefRec.Free;
+        ImpDefRec := nil;
       end;
 
     function TOmfObjInput.ReadExpDef(Rec: TOmfRecord_COMENT; objdata: TObjData): Boolean;
@@ -2259,6 +2317,7 @@ implementation
           ExpDefRec.ExportOrdinal);
         Result:=True;
         ExpDefRec.Free;
+        ExpDefRec := nil;
       end;
 
     function TOmfObjInput.ImportOmfFixup(objdata: TObjData; objsec: TOmfObjSection; Fixup: TOmfSubRecord_FIXUP): Boolean;
@@ -2571,11 +2630,17 @@ implementation
     destructor TOmfObjInput.destroy;
       begin
         FCOMENTRecord.Free;
+        FCOMENTRecord := nil;
         FRawRecord.Free;
+        FRawRecord := nil;
         FFixupThreads.Free;
+        FFixupThreads := nil;
         FPubDefs.Free;
+        FPubDefs := nil;
         FExtDefs.Free;
+        FExtDefs := nil;
         FLNames.Free;
+        FLNames := nil;
         inherited destroy;
       end;
 
@@ -2832,6 +2897,7 @@ implementation
     destructor TMZExeUnifiedLogicalSegment.destroy;
       begin
         FObjSectionList.Free;
+        FObjSectionList := nil;
         inherited destroy;
       end;
 
@@ -2885,6 +2951,7 @@ implementation
     destructor TMZExeUnifiedLogicalGroup.destroy;
       begin
         FSegmentList.Free;
+        FSegmentList := nil;
         inherited destroy;
       end;
 
@@ -3434,6 +3501,7 @@ implementation
         Result:=True;
 cleanup:
         shstrtabsect_data.Free;
+        shstrtabsect_data := nil;
       end;
 
     procedure TMZExeOutput.Load_Symbol(const aname: string);
@@ -3772,9 +3840,13 @@ cleanup:
     destructor TMZExeOutput.destroy;
       begin
         FHeader.Free;
+        FHeader := nil;
         FDwarfUnifiedLogicalSegments.Free;
+        FDwarfUnifiedLogicalSegments := nil;
         FExeUnifiedLogicalGroups.Free;
+        FExeUnifiedLogicalGroups := nil;
         FExeUnifiedLogicalSegments.Free;
+        FExeUnifiedLogicalSegments := nil;
         inherited destroy;
       end;
 
@@ -4270,6 +4342,7 @@ cleanup:
     destructor TNewExeRelocationList.Destroy;
       begin
         FInternalList.Free;
+        FInternalList := nil;
         inherited Destroy;
       end;
 
@@ -4322,6 +4395,7 @@ cleanup:
     destructor TNewExeSection.destroy;
       begin
         FRelocations.Free;
+        FRelocations := nil;
         inherited destroy;
       end;
 
@@ -4707,12 +4781,19 @@ cleanup:
     destructor TNewExeOutput.destroy;
       begin
         FEntryTable.Free;
+        FEntryTable := nil;
         FImportedNameTable.Free;
+        FImportedNameTable := nil;
         FModuleReferenceTable.Free;
+        FModuleReferenceTable := nil;
         FNonresidentNameTable.Free;
+        FNonresidentNameTable := nil;
         FResidentNameTable.Free;
+        FResidentNameTable := nil;
         FResourceTable.Free;
+        FResourceTable := nil;
         FHeader.Free;
+        FHeader := nil;
         inherited destroy;
       end;
 
@@ -4771,6 +4852,7 @@ cleanup:
             CurrExeSec.AddObjSection(objsec);
           end;
         TmpObjSectionList.Free;
+        TmpObjSectionList := nil;
       end;
 
     procedure TNewExeOutput.MemPos_Start;

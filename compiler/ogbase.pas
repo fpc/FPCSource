@@ -1075,10 +1075,15 @@ implementation
     destructor TObjSection.destroy;
       begin
         if assigned(Data) then
-          Data.Free;
+          begin
+            FData.Free;
+            FData := nil;
+          end;
         stringdispose(FCachedFullName);
         ObjRelocations.Free;
+        ObjRelocations := nil;
         VTRefList.Free;
+        VTRefList := nil;
         inherited destroy;
       end;
 
@@ -1432,17 +1437,21 @@ implementation
 {$endif}
         ResetCachedAsmSymbols;
         FCachedAsmSymbolList.free;
+        FCachedAsmSymbolList := nil;
         FObjSymbolList.free;
+        FObjSymbolList := nil;
 {$ifdef MEMDEBUG}
         MemObjSymbols.Stop;
 {$endif}
-        GroupsList.free;
+        FGroupsList.free;
+        FGroupsList := nil;
 
         { Sections }
 {$ifdef MEMDEBUG}
         MemObjSections.Start;
 {$endif}
         FObjSectionList.free;
+        FObjSectionList := nil;
 {$ifdef MEMDEBUG}
         MemObjSections.Stop;
 {$endif}
@@ -2125,6 +2134,7 @@ implementation
     destructor TExeVTable.Destroy;
       begin
         ChildList.Free;
+        ChildList := nil;
         if assigned(EntryArray) then
           Freemem(EntryArray);
       end;
@@ -2220,7 +2230,8 @@ implementation
 
     destructor TExeSection.destroy;
       begin
-        ObjSectionList.Free;
+        FObjSectionList.Free;
+        FObjSectionList := nil;
         inherited destroy;
       end;
 
@@ -2285,6 +2296,7 @@ implementation
     destructor TStaticLibrary.destroy;
       begin
         FPayload.Free;
+        FPayload := nil;
         inherited destroy;
       end;
 
@@ -2325,7 +2337,8 @@ implementation
 
     destructor TImportLibrary.destroy;
       begin
-        ImportSymbolList.Free;
+        FImportSymbolList.Free;
+        FImportSymbolList := nil;
         inherited destroy;
       end;
 
@@ -2394,16 +2407,27 @@ implementation
     destructor TExeOutput.destroy;
       begin
         FExeSymbolList.free;
-        UnresolvedExeSymbols.free;
-        ExternalObjSymbols.free;
+        FExeSymbolList := nil;
+        FUnresolvedExeSymbols.free;
+        FUnresolvedExeSymbols := nil;
+        FExternalObjSymbols.free;
+        FExternalObjSymbols := nil;
         FProvidedObjSymbols.free;
+        FProvidedObjSymbols := nil;
         FIndirectObjSymbols.free;
-        CommonObjSymbols.free;
-        ExeVTableList.free;
+        FIndirectObjSymbols := nil;
+        FCommonObjSymbols.free;
+        FCommonObjSymbols := nil;
+        FExeVTableList.free;
+        FExeVTableList := nil;
         FExeSectionList.free;
+        FExeSectionList := nil;
         ComdatGroups.free;
-        ObjDatalist.free;
+        ComdatGroups := nil;
+        FObjDatalist.free;
+        FObjDatalist := nil;
         FWriter.free;
+        FWriter := nil;
         inherited destroy;
       end;
 
@@ -2590,6 +2614,7 @@ implementation
             CurrExeSec.AddObjSection(objsec);
           end;
         TmpObjSectionList.Free;
+        TmpObjSectionList := nil;
       end;
 
 
@@ -3185,6 +3210,7 @@ implementation
                               objinput:=lib.ObjInputClass.Create;
                               objinput.ReadObjData(lib.ArReader,objdata);
                               objinput.free;
+                              objinput := nil;
                               AddObjData(objdata);
                               LoadObjDataSymbols(objdata);
                               lib.ArReader.CloseFile;
@@ -3313,7 +3339,9 @@ implementation
         if cs_link_opt_vtable in current_settings.globalswitches then
           BuildVTableTree(VTInheritList,VTEntryList);
         VTInheritList.Free;
+        VTInheritList := nil;
         VTEntryList.Free;
+        VTEntryList := nil;
       end;
 
 
@@ -3446,6 +3474,7 @@ implementation
               end;
           end;
         list.Free;
+        list := nil;
       end;
 
 
@@ -4149,6 +4178,8 @@ initialization
 
 finalization
   memobjsymbols.free;
+  memobjsymbols := nil;
   memobjsections.free;
+  memobjsections := nil;
 {$endif MEMDEBUG}
 end.

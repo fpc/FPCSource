@@ -626,8 +626,8 @@ implementation
     destructor  Tsym.destroy;
       begin
         stringdispose(deprecatedmsg);
-        if assigned(RefList) then
-          RefList.Free;
+        RefList.Free;
+        RefList := nil;
         inherited Destroy;
       end;
 
@@ -1344,10 +1344,15 @@ initialization
 
 finalization
   memmanglednames.free;
+  memmanglednames := nil;
   memprocpara.free;
+  memprocpara := nil;
   memprocparast.free;
+  memprocparast := nil;
   memproclocalst.free;
+  memproclocalst := nil;
   memprocnodetree.free;
+  memprocnodetree := nil;
 {$endif MEMDEBUG}
 
 end.

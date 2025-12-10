@@ -286,6 +286,7 @@ implementation
       if not inppu.openfile then
        begin
          inppu.free;
+         inppu := nil;
          Comment(V_Error,'Could not open : '+PPUFn);
          Exit;
        end;
@@ -293,6 +294,7 @@ implementation
       if not inppu.CheckPPUId then
        begin
          inppu.free;
+         inppu := nil;
          Comment(V_Error,'Not a PPU File : '+PPUFn);
          Exit;
        end;
@@ -300,6 +302,7 @@ implementation
       if ppuversion<>CurrentPPUVersion then
        begin
          inppu.free;
+         inppu := nil;
          Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
          Exit;
        end;
@@ -307,6 +310,7 @@ implementation
       if (inppu.header.common.flags and uf_in_library)<>0 then
        begin
          inppu.free;
+         inppu := nil;
          Comment(V_Error,'PPU is already in a library : '+PPUFn);
          Exit;
        end;
@@ -314,6 +318,7 @@ implementation
       if (inppu.header.common.flags and (uf_static_linked or uf_no_link))=0 then
        begin
          inppu.free;
+         inppu := nil;
          Comment(V_Error,'PPU is not static linked : '+PPUFn);
          Exit;
        end;
@@ -340,7 +345,9 @@ implementation
         if b in [ibendinterface,ibend] then
          begin
            inppu.free;
+           inppu := nil;
            outppu.free;
+           outppu := nil;
            Comment(V_Error,'No files to be linked found : '+PPUFn);
            Exit;
          end;
@@ -438,7 +445,9 @@ implementation
       outppu.flush;
       outppu.writeheader;
       outppu.free;
+      outppu := nil;
       inppu.free;
+      inppu := nil;
       Result:=True;
     end;
 
@@ -866,9 +875,11 @@ implementation
         end;
 
       alreadyloaded.free;
+      alreadyloaded := nil;
       for i:=0 to cache.count-1 do
         dispose(pcacheentry(cache[i]));
       cache.free;
+      cache := nil;
     end;
 
 

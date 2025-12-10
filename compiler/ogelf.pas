@@ -741,6 +741,7 @@ implementation
     destructor TElfDynamicObjData.destroy;
       begin
         FVersionDefs.free;
+        FVersionDefs := nil;
         inherited Destroy;
       end;
 
@@ -1832,10 +1833,15 @@ implementation
     destructor TElfExeOutput.Destroy;
       begin
         dyncopysyms.Free;
+        dyncopysyms := nil;
         neededlist.Free;
+        neededlist := nil;
         segmentlist.Free;
+        segmentlist := nil;
         dynsymlist.Free;
+        dynsymlist := nil;
         dynreloclist.Free;
+        dynreloclist := nil;
         if assigned(dynsymnames) then
           FreeMem(dynsymnames);
         stringdispose(FInterpreter);
@@ -2334,7 +2340,9 @@ implementation
         if (newsections.count<>0) then
           ReplaceExeSectionList(allsections);
         newsections.Free;
+        newsections := nil;
         allsections.Free;
+        allsections := nil;
       end;
 
 
@@ -3292,6 +3300,7 @@ implementation
     destructor TElfSegment.Destroy;
       begin
         FSectionList.Free;
+        FSectionList := nil;
         inherited Destroy;
       end;
 

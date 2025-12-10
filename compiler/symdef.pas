@@ -1598,6 +1598,7 @@ implementation
           targetinfos[target_info.system]^.alignment.recordalignmin);
         result.add_fields_from_deflist(fieldlist);
         fieldlist.free;
+        fieldlist := nil;
       end;
 
 
@@ -1648,6 +1649,7 @@ implementation
           arrdef:=nil;
         recdef.add_fields_from_deflist(fields);
         fields.free;
+        fields := nil;
       end;
 
     function make_mangledname(const typeprefix:TSymStr;st:TSymtable;const suffix:TSymStr):TSymStr;
@@ -1981,6 +1983,7 @@ implementation
       begin
         TFPList.FreeAndNilDisposing(interfacesderef,typeinfo(tderef));
         interfaces.free;
+        interfaces := nil;
         inherited destroy;
       end;
 
@@ -2113,9 +2116,12 @@ implementation
             generictokenbuf:=nil;
           end;
         rtti_attribute_list.free;
+        rtti_attribute_list := nil;
         genericparas.free;
+        genericparas := nil;
         TFPList.FreeAndNilDisposing(genericparaderefs,typeinfo(tderef));
         genconstraintdata.free;
+        genconstraintdata := nil;
 {$ifndef symansistr}
         stringdispose(_fullownerhierarchyname);
 {$endif not symansistr}
@@ -3295,8 +3301,10 @@ implementation
         n : tnode;
       begin
         constructorcall.free;
+        constructorcall := nil;
         for n in paras do
           n.free;
+          n := nil;
         inherited destroy;
       end;
 
@@ -3390,6 +3398,7 @@ implementation
     destructor trtti_attribute_list.destroy;
       begin
         rtti_attributes.Free;
+        rtti_attributes := nil;
         inherited destroy;
       end;
 
@@ -4831,6 +4840,7 @@ implementation
         stringdispose(objrealname);
         stringdispose(import_lib);
         tcinitcode.free;
+        tcinitcode := nil;
         inherited destroy;
       end;
 
@@ -6783,7 +6793,7 @@ implementation
 {$ifdef MEMDEBUG}
             memprocnodetree.start;
 {$endif MEMDEBUG}
-            tnode(inlininginfo^.code).free;
+            FreeAndNil(tnode(inlininginfo^.code));
 {$ifdef MEMDEBUG}
             memprocnodetree.start;
 {$endif MEMDEBUG}

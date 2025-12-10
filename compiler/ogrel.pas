@@ -1230,6 +1230,7 @@ implementation
                 end;
             end;
         instance.Free;
+        instance := nil;
       end;
 
 

@@ -240,6 +240,7 @@ unit optconstprop;
                     n:=tinlinenode(n).getaddsub_for_incdec;
                     Include(n.flags, nf_internal);
                     oldnode.free;
+                    oldnode := nil;
                     tree_modified:=true;
                     { do not continue, value changed, if further const. propagations are possible, this is done
                       by the next pass }

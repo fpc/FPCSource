@@ -210,6 +210,7 @@ implementation
           end;
         current_tokenpos:=storetokenpos;
         p.free;
+        p := nil;
         readconstant:=hp;
       end;
 
@@ -484,7 +485,7 @@ implementation
               if not is_system_custom_attribute_descendant(od) then
                 begin
                   incompatibletypes(od,class_tcustomattribute);
-                  read_attr_paras.free;
+                  read_attr_paras.free; // no nil needed
                   continue;
                 end;
 
@@ -555,8 +556,9 @@ implementation
                     begin
                       { cleanup }
                       pcalln.free;
+                      pcalln := nil;
                       for i:=0 to high(paras) do
-                        paras[i].free;
+                        FreeAndNil(paras[i]);
                     end;
                 end
               else begin
@@ -564,16 +566,18 @@ implementation
                 if errorcount=ecnt then
                   message(parser_e_illegal_expression);
                 pcalln.free;
+                pcalln := nil;
               end;
             end
           else
             begin
               Message(type_e_type_id_expected);
               { try to recover by nevertheless reading the parameters (if any) }
-              read_attr_paras.free;
+              read_attr_paras.free; // no nil needed
             end;
 
           p.free;
+          p := nil;
         until not try_to_consume(_COMMA);
 
         consume(_RECKKLAMMER);
@@ -949,6 +953,7 @@ implementation
                                   tstringdef(hdef).encoding:=int64(tordconstnode(p).value);
                                 end;
                               p.free;
+                              p := nil;
                             end;
                           if (hdef.typ in [pointerdef,classrefdef]) and
                              (tabstractpointerdef(hdef).pointeddef.typ=forwarddef) then
@@ -1205,11 +1210,12 @@ implementation
                  begin
                    if (tstoredsym(generictypelist[i]).typ=typesym) and
                        not ttypesym(generictypelist[i]).typedef.is_registered then
-                     ttypesym(generictypelist[i]).typedef.free;
+                     FreeAndNil(ttypesym(generictypelist[i]).typedef);
                    if not tstoredsym(generictypelist[i]).is_registered then
-                     tstoredsym(generictypelist[i]).free;
+                     tstoredsym(generictypelist[i]).free; // no nil needed
                  end;
                generictypelist.free;
+               generictypelist := nil;
              end;
 
            if not (m_delphi in current_settings.modeswitches) and
@@ -1254,6 +1260,7 @@ implementation
         rtti_attrs_def := nil;
         types_dec(false,had_generic,rtti_attrs_def);
         rtti_attrs_def.free;
+        rtti_attrs_def := nil;
       end;
 
 
@@ -1402,6 +1409,7 @@ implementation
                      stringdispose(deprecatedmsg);
                    consume(_SEMICOLON);
                    p.free;
+                   p := nil;
                 end;
               else
                 if not first and isgeneric and

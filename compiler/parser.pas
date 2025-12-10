@@ -101,6 +101,7 @@ implementation
               begin
                 loaded_units.remove(hp);
                 hp.free;
+                hp := nil;
               end;
             hp:=hp2;
           end;
@@ -294,22 +295,25 @@ implementation
            still assinged }
          if assigned(current_scanner) then
           begin
-            current_scanner.free;
+            current_scanner.free; // no nil needed
             set_current_scanner(nil);
-
           end;
 
          { close scanner }
          DoneScanner;
 
          RTTIWriter.free;
+         RTTIWriter := nil;
 
          { close ppas,deffile }
          asmres.free;
+         asmres := nil;
          deffile.free;
+         deffile := nil;
 
          { free list of .o files }
          SmartLinkOFiles.Free;
+         SmartLinkOFiles := nil;
       end;
 
 
@@ -388,9 +392,11 @@ implementation
          until false;
        { free scanner }
          current_scanner.free;
+         current_scanner := nil;
          set_current_scanner(nil);
        { close }
          preprocfile.free;
+         preprocfile := nil;
       end;
 {$endif PREPROCWRITE}
 

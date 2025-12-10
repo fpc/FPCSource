@@ -82,6 +82,7 @@ implementation
                KeepShared.Concat(s);
             end;
            DLLscanner.Free;
+           DLLscanner := nil;
            { Recreate import section }
            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
@@ -98,6 +99,7 @@ implementation
               curr.linkOtherSharedLibs.add(s,link_always);
             end;
            KeepShared.Free;
+           KeepShared := nil;
          end;
 
         { allow a target-specific pass over all assembler code (used by LLVM
@@ -311,6 +313,7 @@ implementation
               internalerror(2024020701);
             curr.used_units.Remove(uu);
             uu.Free;
+            uu := nil;
            { remove the module }
             loaded_units.Remove(hp);
             unloaded_units.Concat(hp);
@@ -711,6 +714,7 @@ implementation
                 current_scanner.tempopeninputfile;
               end;
            state.free;
+           state := nil;
          end;
 
       begin
@@ -2164,6 +2168,7 @@ type
              Message1(unit_f_errors_in_unit,tostr(Errorcount));
              status.skip_error:=true;
              pkg.free;
+             pkg := nil;
              exit;
            end;
 
@@ -2245,6 +2250,7 @@ type
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
             pkg.free;
+            pkg := nil;
             exit;
           end;
 
@@ -2304,6 +2310,7 @@ type
                       begin
                         loaded_units.remove(hp);
                         hp.free;
+                        hp := nil;
                       end;
                     hp:=hp2;
                   end;
@@ -2321,6 +2328,7 @@ type
               end;
 
              pkg.free;
+             pkg := nil;
           end;
       end;
 
@@ -2362,6 +2370,7 @@ type
                  begin
                    loaded_units.remove(hp);
                    hp.free;
+                   hp := nil;
                  end;
                hp:=hp2;
              end;
@@ -2616,6 +2625,7 @@ type
                call_through_new_name(main_procinfo.procdef,target_info.cprefix+'FPC_LIBMAIN');
                initpd:=main_procinfo.procdef;
                main_procinfo.free;
+               main_procinfo := nil;
              end;
 
            main_procinfo:=create_main_proc(make_mangledname('',curr.localsymtable,mainaliasname),potype_proginit,curr.localsymtable);

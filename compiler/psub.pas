@@ -688,6 +688,7 @@ implementation
        begin
          TFPList.FreeAndNilDisposing(tempinfo_flags_map,TypeInfo(ttempinfo_flags_entry));
          code.free;
+         code := nil;
          inherited destroy;
        end;
 
@@ -1412,6 +1413,7 @@ implementation
         nodeset:=THashSet.Create(32,false,false);
         foreachnode(code,@store_node_tempflags,nodeset);
         nodeset.free;
+        nodeset := nil;
       end;
 
 
@@ -1869,6 +1871,7 @@ implementation
                 begin
                   aktproccode.remove(ai);
                   ai.free;
+                  ai := nil;
                   anode.currenttai:=nil;
                 end;
             end;
@@ -2343,12 +2346,14 @@ implementation
           end;
 
         dfabuilder.free;
+        dfabuilder := nil;
 
         { restore symtablestack }
         remove_from_symtablestack;
 
         { restore }
         templist.free;
+        templist := nil;
         current_settings.maxfpuregisters:=oldmaxfpuregisters;
         current_filepos:=oldfilepos;
         current_structdef:=old_current_structdef;

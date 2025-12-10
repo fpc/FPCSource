@@ -180,7 +180,7 @@ implementation
     begin
       if sstate.valid then
         begin
-          sstate.new_scanner.free;
+          sstate.new_scanner.free; // no nil needed
           set_current_scanner(sstate.old_scanner);
           current_filepos:=sstate.old_filepos;
           token:=sstate.old_token;
@@ -724,6 +724,7 @@ implementation
             str:=str+'__fpc_ord2enum.put(JLInteger.valueOf('+tostr(enumsym.value)+'),'+enumname+');';
         end;
       orderedenums.free;
+      orderedenums := nil;
       str:=str+' end;';
       str_parse_method_impl(str,pd,true);
     end;

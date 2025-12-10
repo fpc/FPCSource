@@ -190,6 +190,7 @@ implementation
             pstate:=pstate^.next;
           end;
         msgset.free;
+        msgset := nil;
       end;
 
     procedure FreeLocalVerbosity(var fstate : pmessagestaterecord);

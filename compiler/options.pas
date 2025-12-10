@@ -2355,14 +2355,23 @@ end;
 destructor TOption.Destroy;
 begin
   ParaIncludeCfgPath.Free;
+  ParaIncludeCfgPath := nil;
   ParaIncludePath.Free;
+  ParaIncludePath := nil;
   ParaObjectPath.Free;
+  ParaObjectPath := nil;
   ParaUnitPath.Free;
+  ParaUnitPath := nil;
   ParaLibraryPath.Free;
+  ParaLibraryPath := nil;
   ParaFrameworkPath.Free;
+  ParaFrameworkPath := nil;
   parapackagepath.Free;
+  parapackagepath := nil;
   ParaPackages.Free;
+  ParaPackages := nil;
   paranamespaces.free;
+  paranamespaces := nil;
 end;
 
 procedure TOption.Interpret_A_l(opt, more: TCmdStr);
@@ -5156,6 +5165,7 @@ begin
       cmditem:=TCmdStrListItem(cmditem.Next);
     end;
   tmplist.Free;
+  tmplist := nil;
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then
@@ -6012,4 +6022,5 @@ initialization
 finalization
   if assigned(option) then
    option.free;
+   option := nil;
 end.

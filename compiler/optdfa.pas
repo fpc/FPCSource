@@ -672,7 +672,9 @@ unit optdfa;
     destructor TDFABuilder.Destroy;
       begin
         Resultnode.free;
+        Resultnode := nil;
         nodemap.free;
+        nodemap := nil;
         inherited destroy;
       end;
 

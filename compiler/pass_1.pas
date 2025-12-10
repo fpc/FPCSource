@@ -246,6 +246,7 @@ implementation
         aktstate:=Tstate_storage.create;
         p.track_state_pass(true);
             aktstate.free;
+            aktstate := nil;
      end;
 {$endif}
 

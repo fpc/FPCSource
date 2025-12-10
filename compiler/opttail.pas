@@ -217,6 +217,7 @@ unit opttail;
                       end;
 
                     oldnodetree.free;
+                    oldnodetree := nil;
 
                     do_firstpass(n);
                     result:=true;
@@ -298,6 +299,7 @@ unit opttail;
           end
         else
           labelnode.free;
+          labelnode := nil;
       end;
 
 end.

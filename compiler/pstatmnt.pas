@@ -259,8 +259,11 @@ implementation
                    end;
                end;
              p.free;
+             p := nil;
              sl1.free;
+             sl1 := nil;
              sl2.free;
+             sl2 := nil;
 
              if token=_COMMA then
                consume(_COMMA)
@@ -548,6 +551,7 @@ implementation
               result:=create_for_in_loop(hloopvar,hloopbody,expr);
 
               expr.free;
+              expr := nil;
             end;
 
 
@@ -791,6 +795,7 @@ implementation
             for i:=withsymtablelist.count-1 downto 0 do
               symtablestack.pop(TSymtable(withsymtablelist[i]));
             withsymtablelist.free;
+            withsymtablelist := nil;
 
             { Finalize complex withnode with destroy of temp }
             if assigned(newblock) then
@@ -807,6 +812,7 @@ implementation
          else
           begin
             p.free;
+            p := nil;
             Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
             { try to recover from error }
             if try_to_consume(_COMMA) then
@@ -1031,7 +1037,10 @@ implementation
                        begin
                          symtablestack.pop(excepTSymtable);
                          if last.nodetype <> onn then
-                           excepTSymtable.free;
+                           begin
+                             excepTSymtable.free;
+                             excepTSymtable := nil;
+                           end;
                        end;
                      if not try_to_consume(_SEMICOLON) then
                         break;
@@ -1087,6 +1096,7 @@ implementation
              asmstat:=casmnode.create(hl);
              asmstat.fileinfo:=entrypos;
              asmreader.free;
+             asmreader := nil;
            end
          else
            Message(parser_f_assembler_reader_not_supported);
@@ -1310,6 +1320,7 @@ implementation
             consume(_RKLAMMER); {error}
         until nesting<0;
         tokenbuf.free;
+        tokenbuf := nil;
         { mark boundaries of assembler block, this is necessary for optimizer }
         hl.insert(tai_marker.create(mark_asmblockstart));
         hl.concat(tai_marker.create(mark_asmblockend));
@@ -1473,6 +1484,7 @@ implementation
                 else
                   searchsym(s,srsym,srsymtable);
                 p.free;
+                p := nil;
 
                 if assigned(srsym) and
                    (srsym.typ=labelsym) then

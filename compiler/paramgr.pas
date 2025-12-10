@@ -868,4 +868,5 @@ initialization
   ;
 finalization
   paramanager.free;
+  paramanager := nil;
 end.

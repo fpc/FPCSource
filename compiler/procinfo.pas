@@ -264,10 +264,15 @@ implementation
     destructor tprocinfo.destroy;
       begin
          nestedprocs.free;
+         nestedprocs := nil;
          aktproccode.free;
+         aktproccode := nil;
          aktlocaldata.free;
+         aktlocaldata := nil;
          localrefsyms.free;
+         localrefsyms := nil;
          localrefdefs.free;
+         localrefdefs := nil;
       end;
 
     procedure tprocinfo.destroy_tree;
@@ -278,6 +283,7 @@ implementation
         while Assigned(hp.parent) do
           hp:=hp.parent;
         hp.Free;
+        hp := nil;
       end;
 
     procedure tprocinfo.addnestedproc(child: tprocinfo);

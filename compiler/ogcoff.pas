@@ -1797,7 +1797,9 @@ const pemagic : array[0..3] of byte = (
     destructor TCoffObjOutput.destroy;
       begin
         FCoffSyms.free;
+        FCoffSyms := nil;
         FCoffStrs.free;
+        FCoffStrs := nil;
         inherited destroy;
       end;
 
@@ -2271,6 +2273,7 @@ const pemagic : array[0..3] of byte = (
     destructor TCoffObjInput.destroy;
       begin
         FCoffSyms.free;
+        FCoffSyms := nil;
         FCoffStrs:=nil;
         FSymTbl:=nil;
         FSecTbl:=nil;
@@ -3404,6 +3407,7 @@ const pemagic : array[0..3] of byte = (
           end;
         { Release }
         FCoffStrs.Free;
+        FCoffStrs := nil;
         result:=true;
       end;
 
@@ -3951,6 +3955,7 @@ const pemagic : array[0..3] of byte = (
             readdllproc(DLLName,FuncName);
           end;
         DLLReader.Free;
+        DLLReader := nil;
       end;
 
 {$ifdef arm}

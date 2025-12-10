@@ -334,7 +334,7 @@ implementation
             if assigned(vs.owner) then
              sc.add(vs)
             else
-             vs.free;
+             vs.free; // no nil needed
             consume(_ID);
           until not try_to_consume(_COMMA);
           locationstr:='';
@@ -528,6 +528,7 @@ implementation
 
         { remove parasymtable from stack }
         sc.free;
+        sc := nil;
         { reset object options }
         block_type:=old_block_type;
         consume(_RKLAMMER);
@@ -647,6 +648,7 @@ implementation
                       sym.typedef:=nil;
                     end;
                   sym.free;
+                  sym := nil;
                 end;
             genericparams.free;
             genericparams:=nil;
@@ -2091,6 +2093,7 @@ begin
   else
     message(parser_e_dispid_must_be_ord_const);
   pt.free;
+  pt := nil;
 end;
 
 
@@ -2201,6 +2204,7 @@ begin
      not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
     Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
+  pt := nil;
 end;
 
 
