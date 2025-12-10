@@ -27,6 +27,7 @@ unit omfbase;
 interface
 {$H+}
   uses
+    sysutils,
     cclasses,
     aasmbase,
     owbase;
