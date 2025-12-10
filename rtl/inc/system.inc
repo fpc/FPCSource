@@ -1132,6 +1132,9 @@ type
   TInitFinalRec=record
     InitProc,
     FinalProc : TProcedure;
+    {$IFDEF FPC_INITFINAL_HASUNITNAME}
+    unitname : ^shortstring;
+    {$ENDIF}
   end;
   TInitFinalTable = record
     TableCount,
