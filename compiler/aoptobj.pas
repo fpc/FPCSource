@@ -38,7 +38,7 @@ Unit AoptObj;
   Interface
 
     uses
-      globtype,
+      sysutils,globtype,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       cclasses,
       cgbase,cgutils,
@@ -1227,7 +1227,7 @@ Unit AoptObj;
           i : TRegisterType;
       begin
         for i:=low(TRegisterType) to high(TRegisterType) do
-          regs[i].Free;
+          regs[i].free; // no nil needed
       end;
 
 
@@ -1671,7 +1671,7 @@ Unit AoptObj;
     procedure TAOptObj.RemoveInstruction(const hp: tai); inline;
       begin
         AsmL.Remove(hp);
-        hp.Free;
+        hp.Free; // no nil needed
       end;
 
 
@@ -1761,6 +1761,7 @@ Unit AoptObj;
           begin
             asml.remove(hp2);
             hp2.free;
+            hp2 := nil;
           end;
         { Anything except A_NOP must be left in place: these instructions
           execute before branch, so code stays correct if branch is removed. }
@@ -1871,6 +1872,7 @@ Unit AoptObj;
                     end;
                   asml.remove(hp1);
                   hp1.free;
+                  hp1 := nil;
                 end
               else
                 p:=hp1;
@@ -2090,6 +2092,7 @@ Unit AoptObj;
 {$endif EXTDEBUG}
                 asml.Remove(hp);
                 hp.Free;
+                hp := nil;
                 Exit;
               end;
             else

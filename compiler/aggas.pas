@@ -177,6 +177,7 @@ implementation
     destructor TGNUAssembler.Destroy;
       begin
         InstrWriter.free;
+        InstrWriter := nil;
         inherited destroy;
       end;
 

@@ -32,7 +32,7 @@ unit aasmdata;
 interface
 
     uses
-       cutils,cclasses,
+       sysutils,cutils,cclasses,
        globtype,systems,
        cgbase,
        symtype,
@@ -556,7 +556,9 @@ implementation
         memasmsymbols.start;
 {$endif}
         FAltSymbolList.free;
+        FAltSymbolList := nil;
         FAsmSymbolDict.free;
+        FAsmSymbolDict := nil;
 {$ifdef MEMDEBUG}
         memasmsymbols.stop;
 {$endif}
@@ -565,6 +567,7 @@ implementation
         memasmcfi.start;
 {$endif}
         FAsmCFI.free;
+        FAsmCFI := nil;
 {$ifdef MEMDEBUG}
         memasmcfi.stop;
 {$endif}
@@ -573,15 +576,18 @@ implementation
          memasmlists.start;
 {$endif}
         ResStrInits.free;
+        ResStrInits := nil;
         WideInits.free;
+        WideInits := nil;
          for hal:=low(TAsmListType) to high(TAsmListType) do
-           AsmLists[hal].free;
+           FreeAndNil(AsmLists[hal]);
          CurrAsmList.free;
+         CurrAsmList := nil;
 {$ifdef MEMDEBUG}
          memasmlists.stop;
 {$endif}
          for hp := low(TConstPoolType) to high(TConstPoolType) do
-           FConstPools[hp].Free;
+           FreeAndNil(FConstPools[hp]);
       end;
 
     function TAsmData.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s: TSymStr; _bind: TAsmSymBind; _typ: Tasmsymtype; def: tdef): TAsmSymbol;
@@ -763,8 +769,11 @@ initialization
 finalization
 {$ifdef MEMDEBUG}
   memasmsymbols.free;
+  memasmsymbols := nil;
   memasmcfi.free;
+  memasmcfi := nil;
   memasmlists.free;
+  memasmlists := nil;
 {$endif MEMDEBUG}
 
 end.

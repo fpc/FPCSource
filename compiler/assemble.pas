@@ -1403,7 +1403,7 @@ Implementation
     destructor TExternalAssembler.Destroy;
       begin
         if ffreewriter then
-          writer.Free;
+          writer.Free; // no nil needed
         inherited;
       end;
 
@@ -1428,8 +1428,10 @@ Implementation
       begin
         if assigned(ObjData) then
           ObjData.free;
+          ObjData := nil;
         if assigned(ObjOutput) then
           ObjOutput.free;
+          ObjOutput := nil;
       end;
 
 
@@ -2766,6 +2768,7 @@ Implementation
         ObjData.free;
         ObjData:=nil;
         ObjWriter.free;
+        ObjWriter := nil;
       end;
 
 
@@ -2881,6 +2884,7 @@ Implementation
         ObjData.free;
         ObjData:=nil;
         ObjWriter.free;
+        ObjWriter := nil;
       end;
 
 
@@ -2926,6 +2930,7 @@ Implementation
         a:=CAssembler[target_asm.id].Create(@target_asm,smart);
         a.MakeObject;
         a.Free;
+        a := nil;
       end;
 
 

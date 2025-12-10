@@ -1585,7 +1585,7 @@ implementation
               Note: this might happen legitimately when parsing a generic that
                     passes an undefined type to Write/Read }
             if assigned(filetemp) then
-              ctempdeletenode.create(filetemp).free;
+              ctempdeletenode.create(filetemp).free; // no nil needed
             newblock.free;
             newblock := nil;
           end
