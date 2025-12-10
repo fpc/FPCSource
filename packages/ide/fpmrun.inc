@@ -240,9 +240,9 @@ begin
               else
                 Debugger^.Run;
               RunDirect:=false;
-              {we are about to run debuger, AutoSave first}
+              {we are about to run debugger, AutoSave first}
               SaveCancelled:=false;
-              AutoSave; {ignore result, ignore if canceled}
+              AutoSave; {ignore result, ignore if cancelled}
             end;
         end;
 {$endif ndef NODEBUG}

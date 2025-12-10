@@ -734,7 +734,7 @@ begin
  CanonicalizeURL:=CompleteURL(Base,relative);
 end;
 
-procedure THTMLTopicRenderer.Resolve( href: ansistring; var AFileId,ALinkId : sw_integer); 
+procedure THTMLTopicRenderer.Resolve( href: ansistring; var AFileId,ALinkId : sw_integer);
 begin
 {$IFDEF WDEBUG}
               DebugMessageS({$i %file%},' htmlresolve "'+HRef+'"',{$i %line%},'1',0,0);
@@ -792,7 +792,7 @@ begin
         begin
 {$IFDEF WDEBUG}
           DebugMessage(GetFileName,' Found '+SuppressUntil+'comment "'
-            +Comment+'" SuppressOuput reset to false',Line,1);
+            +Comment+'" SuppressOutput reset to false',Line,1);
 {$endif WDEBUG}
           SuppressOutput:=false;
           SuppressUntil:='';
@@ -1362,14 +1362,14 @@ begin
    CanonicalizeUrl:=relative;
 end;
 
-procedure TCHMTopicRenderer.Resolve( href: ansistring; var AFileId,ALinkId : sw_integer); 
+procedure TCHMTopicRenderer.Resolve( href: ansistring; var AFileId,ALinkId : sw_integer);
 var resolved:boolean;
 begin
 {$IFDEF WDEBUG}
   DebugMessageS({$i %file%},' chmresolve "'+HRef+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
   resolved:=false; AFileID:=0; ALinkID:=0;	
-  href:=stringreplace(href,'%20',' '); 
+  href:=stringreplace(href,'%20',' ');
   if copy(href,1,7)='ms-its:' then
     resolved:=CHMResolve(Href,AFileId,ALinkID);
   if not resolved then

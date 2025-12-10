@@ -127,7 +127,7 @@ const
   ieBrowserSymbols   = 'SymbolFlags';
   ieBrowserDisplay   = 'DisplayFlags';
   ieBrowserSub       = 'SubBrowsing';
-  ieBrowserPane      = 'PreferrdPane';
+  ieBrowserPane      = 'PreferredPane';
   ieOpenExts         = 'OpenExts';
   ieHighlightExts    = 'Exts';
   ieTabsPattern      = 'NeedsTabs';
@@ -486,7 +486,7 @@ begin
   DefaultSaveExt:=INIFile^.GetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
   { Browser }
   DefaultSymbolFlags:=INIFile^.GetIntEntry(secBrowser,ieBrowserSymbols,DefaultSymbolFlags);
-  DefaultDispayFlags:=INIFile^.GetIntEntry(secBrowser,ieBrowserDisplay,DefaultDispayFlags);
+  DefaultDisplayFlags:=INIFile^.GetIntEntry(secBrowser,ieBrowserDisplay,DefaultDisplayFlags);
   DefaultBrowserSub:=INIFile^.GetIntEntry(secBrowser,ieBrowserSub,DefaultBrowserSub);
   DefaultBrowserPane:=INIFile^.GetIntEntry(secBrowser,ieBrowserPane,DefaultBrowserPane);
   { Highlight }
@@ -580,7 +580,7 @@ begin
         TryToOpenFile(@R,S1,X,Y,false)
       else
         TryToOpenFile(nil,S1,X,Y,false);
-      { remove it because otherwise we allways keep old files }
+      { remove it because otherwise we always keep old files }
       INIFile^.DeleteEntry(secFiles,ieOpenFile+IntToStr(I));
     end;
 *)
@@ -712,7 +712,7 @@ begin
   INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
   { Browser }
   INIFile^.SetIntEntry(secBrowser,ieBrowserSymbols,DefaultSymbolFlags);
-  INIFile^.SetIntEntry(secBrowser,ieBrowserDisplay,DefaultDispayFlags);
+  INIFile^.SetIntEntry(secBrowser,ieBrowserDisplay,DefaultDisplayFlags);
   INIFile^.SetIntEntry(secBrowser,ieBrowserSub,DefaultBrowserSub);
   INIFile^.SetIntEntry(secBrowser,ieBrowserPane,DefaultBrowserPane);
   { Highlight }

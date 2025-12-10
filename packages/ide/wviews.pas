@@ -151,7 +151,7 @@ type
     end;
 
     { Dialog that broadcasts empty space mouse clicks }
-    { Needed for dialogs that contines TDropDownListBox }
+    { Needed for dialogs that contains TDropDownListBox }
     PDialogEmptyClick = ^TDialogEmptyClick;
     TDialogEmptyClick = object(TCenterDialog)
       procedure HandleEvent(var Event: TEvent); virtual;
@@ -2279,7 +2279,7 @@ begin
 {          ListBox^.List:=nil;}
           InDel:=true;
           LB:=ListBox; ListBox:=nil; { this prevents GPFs while deleting }
-          Owner^.Delete(LB);  { GPFs have been resoved by not calling this rotine from ListBox itself  M }
+          Owner^.Delete(LB);  { GPFs have been resolved by not calling this routine from ListBox itself  M }
           Dispose(LB, Done);
         end;
       if SB<>nil then

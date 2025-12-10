@@ -201,7 +201,7 @@ const
       hint_browser           = 'Specify global browser settings';
       hint_reloadmodifiedfile= 'Reload file modified on disk';
       hint_tools             = 'Create or change tools';
-      hint_environmentmenu   = 'Specify environment settins';
+      hint_environmentmenu   = 'Specify environment settings';
       hint_preferences       = 'Specify preferences settings';
       hint_editoroptions     = 'Specify default editor settings';
       hint_codecomplete      = 'Specify CodeComplete keywords';
@@ -218,7 +218,7 @@ const
       hint_cascade           = 'Arrange windows on desktop by cascading';
       hint_stepped           = 'Arrange windows on desktop by stepping';
       hint_closeall          = 'Close all windows on the desktop';
-      hint_resize            = 'Change the size/postion of the active window';
+      hint_resize            = 'Change the size/position of the active window';
       hint_zoom              = 'Enlarge or restore the size of the active window';
       hint_next              = 'Make the next window active';
       hint_prev              = 'Make the previous window active';

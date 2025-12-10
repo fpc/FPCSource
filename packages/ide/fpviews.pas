@@ -139,7 +139,7 @@ type
     TSourceEditor = object(TFileEditor)
       CompileStamp : longint;
       CodeCompleteTip: PFPToolTip;
-      {for nested comments managment}
+      {for nested comments management}
       SwitchesNestedComments : boolean;
       NestedComments : boolean;
       FixedNestedComments : TPoint;
@@ -581,7 +581,7 @@ uses
      ag68kgas,
   {$endif}
 {$ifdef USE_EXTERNAL_COMPILER}
-   fpintf, { superseeds version_string of version unit }
+   fpintf, { supersedes version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
   {$ifdef VESA}Vesa,{$endif}
   FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
@@ -1457,7 +1457,7 @@ begin
   ResultIsSet:=false;
   RegisterNestnessPoint(0,0);
   if (not IsFlagSet(efSyntaxHighlight)) then
-  begin {not ment to be syntax highlighted }
+  begin { not meant to be syntax highlighted }
     FixedNestedComments.Y:=0;
     FixedNestedComments.X:=0;
     exit;
@@ -4660,11 +4660,11 @@ begin
    DInput := New(PEditorInputLine, Init(R, FileNameLen+4));
    DInput^.GrowMode:=gfGrowHiX;
    DInput^.SetData(S);
-   InsertBefore(DInput,DirInput); {insert before to preserv order as it was}
+   InsertBefore(DInput,DirInput); {insert before to preserve order as it was}
    Delete(DirInput);
    Dispose(DirInput,done);
    DirInput:=DInput;
-   Control:=DirInput^.Next; {here we make assumption that THistory control will folow}
+   Control:=DirInput^.Next; {here we make assumption that THistory control will follow}
    while (Control<> nil) do
    begin
      if TypeOf(Control^) = TypeOf(THistory) then

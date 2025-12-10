@@ -49,9 +49,9 @@ const
 const
       DefaultSymbolFlags : longint = bfUnits or
          bfLabels or bfConstants or bfTypes or bfVariables or bfProcedures;
-      DefaultDispayFlags : longint = (bfQualifiedSymbols) shr 30;
+      DefaultDisplayFlags : longint = (bfQualifiedSymbols) shr 30;
       { Note: default browser flags will be created with formula:
-        BrowserFlags:=DefaultDispayFlags shl 30 or DefaultSymbolFlags;
+        BrowserFlags:=DefaultDisplayFlags shl 30 or DefaultSymbolFlags;
       }
       DefaultBrowserSub  : longint = 0;
       DefaultBrowserPane : longint = 0;
@@ -82,7 +82,7 @@ type
       {Shell of TSymbol used to filter inherited and to display qualified symbols }
     PHollowSymbol = ^THollowSymbol;
     THollowSymbol = object(TSymbol)
-        Sym        : PSymbol; { orginal symbol, need for unit info save}
+        Sym        : PSymbol; { original symbol, need for unit info save}
         Parent     : PSymbol; { to get object name from }
         NeedPrefix : Boolean; { GetName will add object prefix if needed }
         constructor Init(ASymbol,AParent:PSymbol);
@@ -301,7 +301,7 @@ type
     end;
 
     { Tree to go to previous browser windows }
-    { Holds all parametrs to recreate closed previous window if needed to be}
+    { Holds all parameters to recreate closed previous window if needed to be}
     TBrowserLinked = Object(TObject)
         BrowserWindow : PBrowserWindow;
         Previous : PBrowserLinked;
@@ -1182,7 +1182,7 @@ begin
       if Idx<>-1 then
         begin
           { Have found, but get filtered list index first
-            Some entries might be missing if need then look up agin }
+            Some entries might be missing if need then look up again }
           Idx:=GetFilteredLookUpIdx(Idx);
           if Idx<>-1 then
           begin
@@ -1337,7 +1337,7 @@ begin
         {----------  only selected ones  ----------}
         S^.NeedPrefix:=bQua;
         if Inh then  { we are in object scope view }
-          if not bInh then  { Inherite checkbox is not selected }
+          if not bInh then  { Inherited checkbox is not selected }
             if S^.Parent <> ObjSymbol then continue;
         case S^.typ of
           labelsym: if not bLab then continue;
@@ -2208,7 +2208,7 @@ begin
   HelpCtx:=hcBrowserWindow;
   Sym:=ASym;
   Prefix:=NewStr(APrefix);
-  BrowserFlags:=DefaultDispayFlags shl 30 or DefaultSymbolFlags;
+  BrowserFlags:=DefaultDisplayFlags shl 30 or DefaultSymbolFlags;
 
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
 {$ifndef NODEBUG}
@@ -2399,7 +2399,7 @@ begin
   PageTab^.GrowMode:=gfGrowHiX;
   Insert(PageTab);
 
-  if assigned(ScopeView) {Scope assinged and chosen to be selected by default}
+  if assigned(ScopeView) {Scope assigned and chosen to be selected by default}
     and ((DefaultBrowserPane=0) or not assigned(ReferenceView)) then
     SelectTab(btScope)
   else if assigned(ReferenceView) then
@@ -2638,7 +2638,7 @@ var Y, uL,dL,tL: sw_integer;
 begin
   if (PrevSize.Y<>Size.Y) then
   begin
-    {-- unit info page resize manualy --}
+    {-- unit info page resize manually --}
     if assigned(UnitInfo) then
     begin
       { get number of lines everyone needs }
