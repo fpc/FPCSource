@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TCustomField = Class;
   TCustomFieldDef = Class;
@@ -60,11 +60,11 @@ type
   TLocationListResponseTypeitemsArray = Array of TLocationRecord;
   TTeamListResponseTypeitemsArray = Array of TTeam;
   TWorkerListResponseTypeitemsArray = Array of TWorker;
-  
+
   { --------------------------------------------------------------------
     TCustomField
     --------------------------------------------------------------------}
-  
+
   TCustomField = Class(TGoogleBaseObject)
   Private
     FcustomFieldId : String;
@@ -82,11 +82,11 @@ type
     Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TCustomFieldClass = Class of TCustomField;
-  
+
   { --------------------------------------------------------------------
     TCustomFieldDef
     --------------------------------------------------------------------}
-  
+
   TCustomFieldDef = Class(TGoogleBaseObject)
   Private
     Fenabled : boolean;
@@ -121,11 +121,11 @@ type
     Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TCustomFieldDefClass = Class of TCustomFieldDef;
-  
+
   { --------------------------------------------------------------------
     TCustomFieldDefListResponse
     --------------------------------------------------------------------}
-  
+
   TCustomFieldDefListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TCustomFieldDefListResponseTypeitemsArray;
@@ -144,11 +144,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TCustomFieldDefListResponseClass = Class of TCustomFieldDefListResponse;
-  
+
   { --------------------------------------------------------------------
     TCustomFields
     --------------------------------------------------------------------}
-  
+
   TCustomFields = Class(TGoogleBaseObject)
   Private
     FcustomField : TCustomFieldsTypecustomFieldArray;
@@ -167,11 +167,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TCustomFieldsClass = Class of TCustomFields;
-  
+
   { --------------------------------------------------------------------
     TEnumItemDef
     --------------------------------------------------------------------}
-  
+
   TEnumItemDef = Class(TGoogleBaseObject)
   Private
     Factive : boolean;
@@ -189,11 +189,11 @@ type
     Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TEnumItemDefClass = Class of TEnumItemDef;
-  
+
   { --------------------------------------------------------------------
     TJob
     --------------------------------------------------------------------}
-  
+
   TJob = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -218,11 +218,11 @@ type
     Property state : TJobState Index 24 Read Fstate Write Setstate;
   end;
   TJobClass = Class of TJob;
-  
+
   { --------------------------------------------------------------------
     TJobChange
     --------------------------------------------------------------------}
-  
+
   TJobChange = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -240,11 +240,11 @@ type
     Property timestamp : String Index 16 Read Ftimestamp Write Settimestamp;
   end;
   TJobChangeClass = Class of TJobChange;
-  
+
   { --------------------------------------------------------------------
     TJobListResponse
     --------------------------------------------------------------------}
-  
+
   TJobListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TJobListResponseTypeitemsArray;
@@ -266,11 +266,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TJobListResponseClass = Class of TJobListResponse;
-  
+
   { --------------------------------------------------------------------
     TJobState
     --------------------------------------------------------------------}
-  
+
   TJobState = Class(TGoogleBaseObject)
   Private
     Fassignee : String;
@@ -310,11 +310,11 @@ type
     Property title : String Index 64 Read Ftitle Write Settitle;
   end;
   TJobStateClass = Class of TJobState;
-  
+
   { --------------------------------------------------------------------
     TLocation
     --------------------------------------------------------------------}
-  
+
   TLocation = Class(TGoogleBaseObject)
   Private
     FaddressLine : TStringArray;
@@ -339,11 +339,11 @@ type
     Property lng : double Index 24 Read Flng Write Setlng;
   end;
   TLocationClass = Class of TLocation;
-  
+
   { --------------------------------------------------------------------
     TLocationListResponse
     --------------------------------------------------------------------}
-  
+
   TLocationListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TLocationListResponseTypeitemsArray;
@@ -368,11 +368,11 @@ type
     Property tokenPagination : TTokenPagination Index 24 Read FtokenPagination Write SettokenPagination;
   end;
   TLocationListResponseClass = Class of TLocationListResponse;
-  
+
   { --------------------------------------------------------------------
     TLocationRecord
     --------------------------------------------------------------------}
-  
+
   TLocationRecord = Class(TGoogleBaseObject)
   Private
     FcollectionTime : String;
@@ -396,11 +396,11 @@ type
     Property longitude : double Index 32 Read Flongitude Write Setlongitude;
   end;
   TLocationRecordClass = Class of TLocationRecord;
-  
+
   { --------------------------------------------------------------------
     TSchedule
     --------------------------------------------------------------------}
-  
+
   TSchedule = Class(TGoogleBaseObject)
   Private
     FallDay : boolean;
@@ -424,11 +424,11 @@ type
     Property startTime : String Index 32 Read FstartTime Write SetstartTime;
   end;
   TScheduleClass = Class of TSchedule;
-  
+
   { --------------------------------------------------------------------
     TTeam
     --------------------------------------------------------------------}
-  
+
   TTeam = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -446,11 +446,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TTeamClass = Class of TTeam;
-  
+
   { --------------------------------------------------------------------
     TTeamListResponse
     --------------------------------------------------------------------}
-  
+
   TTeamListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TTeamListResponseTypeitemsArray;
@@ -469,11 +469,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTeamListResponseClass = Class of TTeamListResponse;
-  
+
   { --------------------------------------------------------------------
     TTokenPagination
     --------------------------------------------------------------------}
-  
+
   TTokenPagination = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -491,11 +491,11 @@ type
     Property previousPageToken : String Index 16 Read FpreviousPageToken Write SetpreviousPageToken;
   end;
   TTokenPaginationClass = Class of TTokenPagination;
-  
+
   { --------------------------------------------------------------------
     TWorker
     --------------------------------------------------------------------}
-  
+
   TWorker = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -510,11 +510,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TWorkerClass = Class of TWorker;
-  
+
   { --------------------------------------------------------------------
     TWorkerListResponse
     --------------------------------------------------------------------}
-  
+
   TWorkerListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TWorkerListResponseTypeitemsArray;
@@ -533,26 +533,26 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TWorkerListResponseClass = Class of TWorkerListResponse;
-  
+
   { --------------------------------------------------------------------
     TCustomFieldDefResource
     --------------------------------------------------------------------}
-  
+
   TCustomFieldDefResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(teamId: string) : TCustomFieldDefListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TJobsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TJobsResource, method Insert
-  
+
   TJobsInsertOptions = Record
     address : String;
     assignee : String;
@@ -564,20 +564,20 @@ type
     note : String;
     title : String;
   end;
-  
-  
+
+
   //Optional query Options for TJobsResource, method List
-  
+
   TJobsListOptions = Record
     maxResults : integer;
     minModifiedTimestampMs : String;
     omitJobChanges : boolean;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TJobsResource, method Patch
-  
+
   TJobsPatchOptions = Record
     address : String;
     assignee : String;
@@ -590,10 +590,10 @@ type
     progress : String;
     title : String;
   end;
-  
-  
+
+
   //Optional query Options for TJobsResource, method Update
-  
+
   TJobsUpdateOptions = Record
     address : String;
     assignee : String;
@@ -606,7 +606,7 @@ type
     progress : String;
     title : String;
   end;
-  
+
   TJobsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -621,21 +621,21 @@ type
     Function Update(jobId: string; teamId: string; aJob : TJob; AQuery : string  = '') : TJob;
     Function Update(jobId: string; teamId: string; aJob : TJob; AQuery : TJobsupdateOptions) : TJob;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLocationResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLocationResource, method List
-  
+
   TLocationListOptions = Record
     maxResults : integer;
     pageToken : String;
     startTimestampMs : String;
   end;
-  
+
   TLocationResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -643,32 +643,32 @@ type
     Function List(teamId: string; workerEmail: string; AQuery : string  = '') : TLocationListResponse;
     Function List(teamId: string; workerEmail: string; AQuery : TLocationlistOptions) : TLocationListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TScheduleResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TScheduleResource, method Patch
-  
+
   TSchedulePatchOptions = Record
     allDay : boolean;
     duration : String;
     endTime : String;
     startTime : String;
   end;
-  
-  
+
+
   //Optional query Options for TScheduleResource, method Update
-  
+
   TScheduleUpdateOptions = Record
     allDay : boolean;
     duration : String;
     endTime : String;
     startTime : String;
   end;
-  
+
   TScheduleResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -679,21 +679,21 @@ type
     Function Update(jobId: string; teamId: string; aSchedule : TSchedule; AQuery : string  = '') : TSchedule;
     Function Update(jobId: string; teamId: string; aSchedule : TSchedule; AQuery : TScheduleupdateOptions) : TSchedule;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTeamResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTeamResource, method List
-  
+
   TTeamListOptions = Record
     admin : boolean;
     dispatcher : boolean;
     worker : boolean;
   end;
-  
+
   TTeamResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -701,24 +701,24 @@ type
     Function List(AQuery : string  = '') : TTeamListResponse;
     Function List(AQuery : TTeamlistOptions) : TTeamListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TWorkerResource
     --------------------------------------------------------------------}
-  
+
   TWorkerResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(teamId: string) : TWorkerListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCoordinateAPI
     --------------------------------------------------------------------}
-  
+
   TCoordinateAPI = Class(TGoogleAPI)
   Private
     FCustomFieldDefInstance : TCustomFieldDefResource;
@@ -785,7 +785,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCustomField.SetcustomFieldId(AIndex : Integer; const AValue : String); 
+Procedure TCustomField.SetcustomFieldId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomFieldId=AValue) then exit;
@@ -795,7 +795,7 @@ end;
 
 
 
-Procedure TCustomField.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomField.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -805,7 +805,7 @@ end;
 
 
 
-Procedure TCustomField.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TCustomField.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -822,7 +822,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFieldDef.Setenabled(AIndex : Integer; const AValue : boolean); 
+Procedure TCustomFieldDef.Setenabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fenabled=AValue) then exit;
@@ -832,7 +832,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setenumitems(AIndex : Integer; const AValue : TCustomFieldDefTypeenumitemsArray); 
+Procedure TCustomFieldDef.Setenumitems(AIndex : Integer; const AValue : TCustomFieldDefTypeenumitemsArray);
 
 begin
   If (Fenumitems=AValue) then exit;
@@ -842,7 +842,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCustomFieldDef.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -852,7 +852,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomFieldDef.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -862,7 +862,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCustomFieldDef.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -872,7 +872,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.SetrequiredForCheckout(AIndex : Integer; const AValue : boolean); 
+Procedure TCustomFieldDef.SetrequiredForCheckout(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FrequiredForCheckout=AValue) then exit;
@@ -882,7 +882,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCustomFieldDef.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -904,7 +904,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCustomFieldDef.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCustomFieldDef.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -923,7 +923,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFieldDefListResponse.Setitems(AIndex : Integer; const AValue : TCustomFieldDefListResponseTypeitemsArray); 
+Procedure TCustomFieldDefListResponse.Setitems(AIndex : Integer; const AValue : TCustomFieldDefListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -933,7 +933,7 @@ end;
 
 
 
-Procedure TCustomFieldDefListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomFieldDefListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -944,7 +944,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCustomFieldDefListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCustomFieldDefListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -963,7 +963,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFields.SetcustomField(AIndex : Integer; const AValue : TCustomFieldsTypecustomFieldArray); 
+Procedure TCustomFields.SetcustomField(AIndex : Integer; const AValue : TCustomFieldsTypecustomFieldArray);
 
 begin
   If (FcustomField=AValue) then exit;
@@ -973,7 +973,7 @@ end;
 
 
 
-Procedure TCustomFields.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomFields.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -984,7 +984,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCustomFields.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCustomFields.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1003,7 +1003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnumItemDef.Setactive(AIndex : Integer; const AValue : boolean); 
+Procedure TEnumItemDef.Setactive(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Factive=AValue) then exit;
@@ -1013,7 +1013,7 @@ end;
 
 
 
-Procedure TEnumItemDef.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEnumItemDef.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1023,7 +1023,7 @@ end;
 
 
 
-Procedure TEnumItemDef.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TEnumItemDef.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1040,7 +1040,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJob.Setid(AIndex : Integer; const AValue : String); 
+Procedure TJob.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1050,7 +1050,7 @@ end;
 
 
 
-Procedure TJob.SetjobChange(AIndex : Integer; const AValue : TJobTypejobChangeArray); 
+Procedure TJob.SetjobChange(AIndex : Integer; const AValue : TJobTypejobChangeArray);
 
 begin
   If (FjobChange=AValue) then exit;
@@ -1060,7 +1060,7 @@ end;
 
 
 
-Procedure TJob.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TJob.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1070,7 +1070,7 @@ end;
 
 
 
-Procedure TJob.Setstate(AIndex : Integer; const AValue : TJobState); 
+Procedure TJob.Setstate(AIndex : Integer; const AValue : TJobState);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1081,7 +1081,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1100,7 +1100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobChange.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TJobChange.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1110,7 +1110,7 @@ end;
 
 
 
-Procedure TJobChange.Setstate(AIndex : Integer; const AValue : TJobState); 
+Procedure TJobChange.Setstate(AIndex : Integer; const AValue : TJobState);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1120,7 +1120,7 @@ end;
 
 
 
-Procedure TJobChange.Settimestamp(AIndex : Integer; const AValue : String); 
+Procedure TJobChange.Settimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -1137,7 +1137,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobListResponse.Setitems(AIndex : Integer; const AValue : TJobListResponseTypeitemsArray); 
+Procedure TJobListResponse.Setitems(AIndex : Integer; const AValue : TJobListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1147,7 +1147,7 @@ end;
 
 
 
-Procedure TJobListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TJobListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1157,7 +1157,7 @@ end;
 
 
 
-Procedure TJobListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TJobListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1168,7 +1168,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJobListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJobListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1187,7 +1187,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobState.Setassignee(AIndex : Integer; const AValue : String); 
+Procedure TJobState.Setassignee(AIndex : Integer; const AValue : String);
 
 begin
   If (Fassignee=AValue) then exit;
@@ -1197,7 +1197,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomFields(AIndex : Integer; const AValue : TCustomFields); 
+Procedure TJobState.SetcustomFields(AIndex : Integer; const AValue : TCustomFields);
 
 begin
   If (FcustomFields=AValue) then exit;
@@ -1207,7 +1207,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomerName(AIndex : Integer; const AValue : String); 
+Procedure TJobState.SetcustomerName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerName=AValue) then exit;
@@ -1217,7 +1217,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomerPhoneNumber(AIndex : Integer; const AValue : String); 
+Procedure TJobState.SetcustomerPhoneNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerPhoneNumber=AValue) then exit;
@@ -1227,7 +1227,7 @@ end;
 
 
 
-Procedure TJobState.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TJobState.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1237,7 +1237,7 @@ end;
 
 
 
-Procedure TJobState.Setlocation(AIndex : Integer; const AValue : TLocation); 
+Procedure TJobState.Setlocation(AIndex : Integer; const AValue : TLocation);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1247,7 +1247,7 @@ end;
 
 
 
-Procedure TJobState.Setnote(AIndex : Integer; const AValue : TStringArray); 
+Procedure TJobState.Setnote(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fnote=AValue) then exit;
@@ -1257,7 +1257,7 @@ end;
 
 
 
-Procedure TJobState.Setprogress(AIndex : Integer; const AValue : String); 
+Procedure TJobState.Setprogress(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
 
 
 
-Procedure TJobState.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TJobState.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1278,7 +1278,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJobState.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJobState.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1297,7 +1297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocation.SetaddressLine(AIndex : Integer; const AValue : TStringArray); 
+Procedure TLocation.SetaddressLine(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FaddressLine=AValue) then exit;
@@ -1307,7 +1307,7 @@ end;
 
 
 
-Procedure TLocation.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocation.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1317,7 +1317,7 @@ end;
 
 
 
-Procedure TLocation.Setlat(AIndex : Integer; const AValue : double); 
+Procedure TLocation.Setlat(AIndex : Integer; const AValue : double);
 
 begin
   If (Flat=AValue) then exit;
@@ -1327,7 +1327,7 @@ end;
 
 
 
-Procedure TLocation.Setlng(AIndex : Integer; const AValue : double); 
+Procedure TLocation.Setlng(AIndex : Integer; const AValue : double);
 
 begin
   If (Flng=AValue) then exit;
@@ -1338,7 +1338,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLocation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLocation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1357,7 +1357,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationListResponse.Setitems(AIndex : Integer; const AValue : TLocationListResponseTypeitemsArray); 
+Procedure TLocationListResponse.Setitems(AIndex : Integer; const AValue : TLocationListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1367,7 +1367,7 @@ end;
 
 
 
-Procedure TLocationListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocationListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1377,7 +1377,7 @@ end;
 
 
 
-Procedure TLocationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLocationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1387,7 +1387,7 @@ end;
 
 
 
-Procedure TLocationListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
+Procedure TLocationListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination);
 
 begin
   If (FtokenPagination=AValue) then exit;
@@ -1398,7 +1398,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLocationListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLocationListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1417,7 +1417,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationRecord.SetcollectionTime(AIndex : Integer; const AValue : String); 
+Procedure TLocationRecord.SetcollectionTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcollectionTime=AValue) then exit;
@@ -1427,7 +1427,7 @@ end;
 
 
 
-Procedure TLocationRecord.SetconfidenceRadius(AIndex : Integer; const AValue : double); 
+Procedure TLocationRecord.SetconfidenceRadius(AIndex : Integer; const AValue : double);
 
 begin
   If (FconfidenceRadius=AValue) then exit;
@@ -1437,7 +1437,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocationRecord.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1447,7 +1447,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setlatitude(AIndex : Integer; const AValue : double); 
+Procedure TLocationRecord.Setlatitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1457,7 +1457,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setlongitude(AIndex : Integer; const AValue : double); 
+Procedure TLocationRecord.Setlongitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1474,7 +1474,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSchedule.SetallDay(AIndex : Integer; const AValue : boolean); 
+Procedure TSchedule.SetallDay(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FallDay=AValue) then exit;
@@ -1484,7 +1484,7 @@ end;
 
 
 
-Procedure TSchedule.Setduration(AIndex : Integer; const AValue : String); 
+Procedure TSchedule.Setduration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fduration=AValue) then exit;
@@ -1494,7 +1494,7 @@ end;
 
 
 
-Procedure TSchedule.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TSchedule.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1504,7 +1504,7 @@ end;
 
 
 
-Procedure TSchedule.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSchedule.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1514,7 +1514,7 @@ end;
 
 
 
-Procedure TSchedule.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TSchedule.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1531,7 +1531,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeam.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTeam.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1541,7 +1541,7 @@ end;
 
 
 
-Procedure TTeam.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTeam.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1551,7 +1551,7 @@ end;
 
 
 
-Procedure TTeam.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTeam.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1568,7 +1568,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeamListResponse.Setitems(AIndex : Integer; const AValue : TTeamListResponseTypeitemsArray); 
+Procedure TTeamListResponse.Setitems(AIndex : Integer; const AValue : TTeamListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1578,7 +1578,7 @@ end;
 
 
 
-Procedure TTeamListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTeamListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1589,7 +1589,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTeamListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTeamListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1608,7 +1608,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokenPagination.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTokenPagination.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1618,7 +1618,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1628,7 +1628,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpreviousPageToken=AValue) then exit;
@@ -1645,7 +1645,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorker.Setid(AIndex : Integer; const AValue : String); 
+Procedure TWorker.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1655,7 +1655,7 @@ end;
 
 
 
-Procedure TWorker.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TWorker.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1672,7 +1672,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorkerListResponse.Setitems(AIndex : Integer; const AValue : TWorkerListResponseTypeitemsArray); 
+Procedure TWorkerListResponse.Setitems(AIndex : Integer; const AValue : TWorkerListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1682,7 +1682,7 @@ end;
 
 
 
-Procedure TWorkerListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TWorkerListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TWorkerListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TWorkerListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2246,7 +2246,7 @@ begin
   Result[0].Description:='View and manage your Google Maps Coordinate jobs';
   Result[1].Name:='https://www.googleapis.com/auth/coordinate.readonly';
   Result[1].Description:='View your Google Coordinate jobs';
-  
+
 end;
 
 Class Function TCoordinateAPI.APINeedsAuth : Boolean;

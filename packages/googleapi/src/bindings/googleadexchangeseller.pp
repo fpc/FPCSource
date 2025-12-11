@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAccount = Class;
   TAccounts = Class;
@@ -62,11 +62,11 @@ type
   TReportTyperowsArray = Array of TStringArray;
   TSavedReportsTypeitemsArray = Array of TSavedReport;
   TUrlChannelsTypeitemsArray = Array of TUrlChannel;
-  
+
   { --------------------------------------------------------------------
     TAccount
     --------------------------------------------------------------------}
-  
+
   TAccount = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -84,11 +84,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TAccountClass = Class of TAccount;
-  
+
   { --------------------------------------------------------------------
     TAccounts
     --------------------------------------------------------------------}
-  
+
   TAccounts = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -113,11 +113,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAccountsClass = Class of TAccounts;
-  
+
   { --------------------------------------------------------------------
     TAdClient
     --------------------------------------------------------------------}
-  
+
   TAdClient = Class(TGoogleBaseObject)
   Private
     FarcOptIn : boolean;
@@ -141,11 +141,11 @@ type
     Property supportsReporting : boolean Index 32 Read FsupportsReporting Write SetsupportsReporting;
   end;
   TAdClientClass = Class of TAdClient;
-  
+
   { --------------------------------------------------------------------
     TAdClients
     --------------------------------------------------------------------}
-  
+
   TAdClients = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -170,11 +170,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAdClientsClass = Class of TAdClients;
-  
+
   { --------------------------------------------------------------------
     TAlert
     --------------------------------------------------------------------}
-  
+
   TAlert = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -199,11 +199,11 @@ type
     Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TAlertClass = Class of TAlert;
-  
+
   { --------------------------------------------------------------------
     TAlerts
     --------------------------------------------------------------------}
-  
+
   TAlerts = Class(TGoogleBaseObject)
   Private
     Fitems : TAlertsTypeitemsArray;
@@ -222,11 +222,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAlertsClass = Class of TAlerts;
-  
+
   { --------------------------------------------------------------------
     TCustomChannelTypetargetingInfo
     --------------------------------------------------------------------}
-  
+
   TCustomChannelTypetargetingInfo = Class(TGoogleBaseObject)
   Private
     FadsAppearOn : String;
@@ -247,11 +247,11 @@ type
     Property siteLanguage : String Index 24 Read FsiteLanguage Write SetsiteLanguage;
   end;
   TCustomChannelTypetargetingInfoClass = Class of TCustomChannelTypetargetingInfo;
-  
+
   { --------------------------------------------------------------------
     TCustomChannel
     --------------------------------------------------------------------}
-  
+
   TCustomChannel = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -275,11 +275,11 @@ type
     Property targetingInfo : TCustomChannelTypetargetingInfo Index 32 Read FtargetingInfo Write SettargetingInfo;
   end;
   TCustomChannelClass = Class of TCustomChannel;
-  
+
   { --------------------------------------------------------------------
     TCustomChannels
     --------------------------------------------------------------------}
-  
+
   TCustomChannels = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -304,11 +304,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TCustomChannelsClass = Class of TCustomChannels;
-  
+
   { --------------------------------------------------------------------
     TMetadata
     --------------------------------------------------------------------}
-  
+
   TMetadata = Class(TGoogleBaseObject)
   Private
     Fitems : TMetadataTypeitemsArray;
@@ -327,11 +327,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TMetadataClass = Class of TMetadata;
-  
+
   { --------------------------------------------------------------------
     TPreferredDeal
     --------------------------------------------------------------------}
-  
+
   TPreferredDeal = Class(TGoogleBaseObject)
   Private
     FadvertiserName : String;
@@ -364,11 +364,11 @@ type
     Property startTime : String Index 56 Read FstartTime Write SetstartTime;
   end;
   TPreferredDealClass = Class of TPreferredDeal;
-  
+
   { --------------------------------------------------------------------
     TPreferredDeals
     --------------------------------------------------------------------}
-  
+
   TPreferredDeals = Class(TGoogleBaseObject)
   Private
     Fitems : TPreferredDealsTypeitemsArray;
@@ -387,11 +387,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TPreferredDealsClass = Class of TPreferredDeals;
-  
+
   { --------------------------------------------------------------------
     TReportTypeheadersItem
     --------------------------------------------------------------------}
-  
+
   TReportTypeheadersItem = Class(TGoogleBaseObject)
   Private
     Fcurrency : String;
@@ -410,11 +410,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TReportTypeheadersItemClass = Class of TReportTypeheadersItem;
-  
+
   { --------------------------------------------------------------------
     TReport
     --------------------------------------------------------------------}
-  
+
   TReport = Class(TGoogleBaseObject)
   Private
     Faverages : TStringArray;
@@ -448,11 +448,11 @@ type
     Property warnings : TStringArray Index 48 Read Fwarnings Write Setwarnings;
   end;
   TReportClass = Class of TReport;
-  
+
   { --------------------------------------------------------------------
     TReportingMetadataEntry
     --------------------------------------------------------------------}
-  
+
   TReportingMetadataEntry = Class(TGoogleBaseObject)
   Private
     FcompatibleDimensions : TStringArray;
@@ -486,11 +486,11 @@ type
     Property supportedProducts : TStringArray Index 48 Read FsupportedProducts Write SetsupportedProducts;
   end;
   TReportingMetadataEntryClass = Class of TReportingMetadataEntry;
-  
+
   { --------------------------------------------------------------------
     TSavedReport
     --------------------------------------------------------------------}
-  
+
   TSavedReport = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -508,11 +508,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TSavedReportClass = Class of TSavedReport;
-  
+
   { --------------------------------------------------------------------
     TSavedReports
     --------------------------------------------------------------------}
-  
+
   TSavedReports = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -537,11 +537,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TSavedReportsClass = Class of TSavedReports;
-  
+
   { --------------------------------------------------------------------
     TUrlChannel
     --------------------------------------------------------------------}
-  
+
   TUrlChannel = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -559,11 +559,11 @@ type
     Property urlPattern : String Index 16 Read FurlPattern Write SeturlPattern;
   end;
   TUrlChannelClass = Class of TUrlChannel;
-  
+
   { --------------------------------------------------------------------
     TUrlChannels
     --------------------------------------------------------------------}
-  
+
   TUrlChannels = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -588,19 +588,19 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TUrlChannelsClass = Class of TUrlChannels;
-  
+
   { --------------------------------------------------------------------
     TAccountsAdclientsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsAdclientsResource, method List
-  
+
   TAccountsAdclientsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAccountsAdclientsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -608,19 +608,19 @@ type
     Function List(accountId: string; AQuery : string  = '') : TAdClients;
     Function List(accountId: string; AQuery : TAccountsAdclientslistOptions) : TAdClients;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsAlertsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsAlertsResource, method List
-  
+
   TAccountsAlertsListOptions = Record
     locale : String;
   end;
-  
+
   TAccountsAlertsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -628,20 +628,20 @@ type
     Function List(accountId: string; AQuery : string  = '') : TAlerts;
     Function List(accountId: string; AQuery : TAccountsAlertslistOptions) : TAlerts;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsCustomchannelsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsCustomchannelsResource, method List
-  
+
   TAccountsCustomchannelsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAccountsCustomchannelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -650,36 +650,36 @@ type
     Function List(accountId: string; adClientId: string; AQuery : string  = '') : TCustomChannels;
     Function List(accountId: string; adClientId: string; AQuery : TAccountsCustomchannelslistOptions) : TCustomChannels;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsMetadataDimensionsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsMetadataDimensionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(accountId: string) : TMetadata;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsMetadataMetricsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsMetadataMetricsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(accountId: string) : TMetadata;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsMetadataResource
     --------------------------------------------------------------------}
-  
+
   TAccountsMetadataResource = Class(TGoogleResource)
   Private
     FDimensionsInstance : TAccountsMetadataDimensionsResource;
@@ -696,12 +696,12 @@ type
     Property DimensionsResource : TAccountsMetadataDimensionsResource Read GetDimensionsInstance;
     Property MetricsResource : TAccountsMetadataMetricsResource Read GetMetricsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsPreferreddealsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsPreferreddealsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -709,29 +709,29 @@ type
     Function Get(accountId: string; dealId: string) : TPreferredDeal;
     Function List(accountId: string) : TPreferredDeals;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsReportsSavedResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsReportsSavedResource, method Generate
-  
+
   TAccountsReportsSavedGenerateOptions = Record
     locale : String;
     maxResults : integer;
     startIndex : integer;
   end;
-  
-  
+
+
   //Optional query Options for TAccountsReportsSavedResource, method List
-  
+
   TAccountsReportsSavedListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAccountsReportsSavedResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -741,15 +741,15 @@ type
     Function List(accountId: string; AQuery : string  = '') : TSavedReports;
     Function List(accountId: string; AQuery : TAccountsReportsSavedlistOptions) : TSavedReports;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsReportsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsReportsResource, method Generate
-  
+
   TAccountsReportsGenerateOptions = Record
     dimension : String;
     endDate : String;
@@ -761,7 +761,7 @@ type
     startDate : String;
     startIndex : integer;
   end;
-  
+
   TAccountsReportsResource = Class(TGoogleResource)
   Private
     FSavedInstance : TAccountsReportsSavedResource;
@@ -775,20 +775,20 @@ type
     Function CreateSavedResource : TAccountsReportsSavedResource;virtual;overload;
     Property SavedResource : TAccountsReportsSavedResource Read GetSavedInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsUrlchannelsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsUrlchannelsResource, method List
-  
+
   TAccountsUrlchannelsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAccountsUrlchannelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -796,20 +796,20 @@ type
     Function List(accountId: string; adClientId: string; AQuery : string  = '') : TUrlChannels;
     Function List(accountId: string; adClientId: string; AQuery : TAccountsUrlchannelslistOptions) : TUrlChannels;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsResource, method List
-  
+
   TAccountsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAccountsResource = Class(TGoogleResource)
   Private
     FAdclientsInstance : TAccountsAdclientsResource;
@@ -869,12 +869,12 @@ type
     Property ReportsResource : TAccountsReportsResource Read GetReportsInstance;
     Property UrlchannelsResource : TAccountsUrlchannelsResource Read GetUrlchannelsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAdexchangesellerAPI
     --------------------------------------------------------------------}
-  
+
   TAdexchangesellerAPI = Class(TGoogleAPI)
   Private
     FAccountsAdclientsInstance : TAccountsAdclientsResource;
@@ -966,7 +966,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -976,7 +976,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -986,7 +986,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1003,7 +1003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounts.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAccounts.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1013,7 +1013,7 @@ end;
 
 
 
-Procedure TAccounts.Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray); 
+Procedure TAccounts.Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1023,7 +1023,7 @@ end;
 
 
 
-Procedure TAccounts.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAccounts.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1033,7 +1033,7 @@ end;
 
 
 
-Procedure TAccounts.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAccounts.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1044,7 +1044,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAccounts.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAccounts.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1063,7 +1063,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClient.SetarcOptIn(AIndex : Integer; const AValue : boolean); 
+Procedure TAdClient.SetarcOptIn(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FarcOptIn=AValue) then exit;
@@ -1073,7 +1073,7 @@ end;
 
 
 
-Procedure TAdClient.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAdClient.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1083,7 +1083,7 @@ end;
 
 
 
-Procedure TAdClient.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdClient.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1093,7 +1093,7 @@ end;
 
 
 
-Procedure TAdClient.SetproductCode(AIndex : Integer; const AValue : String); 
+Procedure TAdClient.SetproductCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductCode=AValue) then exit;
@@ -1103,7 +1103,7 @@ end;
 
 
 
-Procedure TAdClient.SetsupportsReporting(AIndex : Integer; const AValue : boolean); 
+Procedure TAdClient.SetsupportsReporting(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportsReporting=AValue) then exit;
@@ -1120,7 +1120,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClients.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAdClients.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1130,7 +1130,7 @@ end;
 
 
 
-Procedure TAdClients.Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray); 
+Procedure TAdClients.Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1140,7 +1140,7 @@ end;
 
 
 
-Procedure TAdClients.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdClients.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
 
 
 
-Procedure TAdClients.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAdClients.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1161,7 +1161,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAdClients.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAdClients.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1180,7 +1180,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlert.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAlert.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1190,7 +1190,7 @@ end;
 
 
 
-Procedure TAlert.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAlert.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1200,7 +1200,7 @@ end;
 
 
 
-Procedure TAlert.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TAlert.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1210,7 +1210,7 @@ end;
 
 
 
-Procedure TAlert.Setseverity(AIndex : Integer; const AValue : String); 
+Procedure TAlert.Setseverity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fseverity=AValue) then exit;
@@ -1220,7 +1220,7 @@ end;
 
 
 
-Procedure TAlert.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAlert.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1248,7 +1248,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlerts.Setitems(AIndex : Integer; const AValue : TAlertsTypeitemsArray); 
+Procedure TAlerts.Setitems(AIndex : Integer; const AValue : TAlertsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1258,7 +1258,7 @@ end;
 
 
 
-Procedure TAlerts.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAlerts.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1269,7 +1269,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAlerts.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAlerts.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1288,7 +1288,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannelTypetargetingInfo.SetadsAppearOn(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.SetadsAppearOn(AIndex : Integer; const AValue : String);
 
 begin
   If (FadsAppearOn=AValue) then exit;
@@ -1298,7 +1298,7 @@ end;
 
 
 
-Procedure TCustomChannelTypetargetingInfo.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1308,7 +1308,7 @@ end;
 
 
 
-Procedure TCustomChannelTypetargetingInfo.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1318,7 +1318,7 @@ end;
 
 
 
-Procedure TCustomChannelTypetargetingInfo.SetsiteLanguage(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.SetsiteLanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (FsiteLanguage=AValue) then exit;
@@ -1335,7 +1335,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannel.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1345,7 +1345,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1355,7 +1355,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1365,7 +1365,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1375,7 +1375,7 @@ end;
 
 
 
-Procedure TCustomChannel.SettargetingInfo(AIndex : Integer; const AValue : TCustomChannelTypetargetingInfo); 
+Procedure TCustomChannel.SettargetingInfo(AIndex : Integer; const AValue : TCustomChannelTypetargetingInfo);
 
 begin
   If (FtargetingInfo=AValue) then exit;
@@ -1392,7 +1392,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannels.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannels.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1402,7 +1402,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray); 
+Procedure TCustomChannels.Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1412,7 +1412,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannels.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1422,7 +1422,7 @@ end;
 
 
 
-Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCustomChannels.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCustomChannels.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1452,7 +1452,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.Setitems(AIndex : Integer; const AValue : TMetadataTypeitemsArray); 
+Procedure TMetadata.Setitems(AIndex : Integer; const AValue : TMetadataTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
 
 
 
-Procedure TMetadata.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TMetadata.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1473,7 +1473,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1492,7 +1492,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPreferredDeal.SetadvertiserName(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.SetadvertiserName(AIndex : Integer; const AValue : String);
 
 begin
   If (FadvertiserName=AValue) then exit;
@@ -1502,7 +1502,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetbuyerNetworkName(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.SetbuyerNetworkName(AIndex : Integer; const AValue : String);
 
 begin
   If (FbuyerNetworkName=AValue) then exit;
@@ -1512,7 +1512,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -1522,7 +1522,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1532,7 +1532,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetfixedCpm(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.SetfixedCpm(AIndex : Integer; const AValue : String);
 
 begin
   If (FfixedCpm=AValue) then exit;
@@ -1542,7 +1542,7 @@ end;
 
 
 
-Procedure TPreferredDeal.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1552,7 +1552,7 @@ end;
 
 
 
-Procedure TPreferredDeal.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1562,7 +1562,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeal.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1579,7 +1579,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPreferredDeals.Setitems(AIndex : Integer; const AValue : TPreferredDealsTypeitemsArray); 
+Procedure TPreferredDeals.Setitems(AIndex : Integer; const AValue : TPreferredDealsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1589,7 +1589,7 @@ end;
 
 
 
-Procedure TPreferredDeals.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPreferredDeals.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1600,7 +1600,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPreferredDeals.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPreferredDeals.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1619,7 +1619,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportTypeheadersItem.Setcurrency(AIndex : Integer; const AValue : String); 
+Procedure TReportTypeheadersItem.Setcurrency(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -1629,7 +1629,7 @@ end;
 
 
 
-Procedure TReportTypeheadersItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TReportTypeheadersItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1639,7 +1639,7 @@ end;
 
 
 
-Procedure TReportTypeheadersItem.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TReportTypeheadersItem.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1667,7 +1667,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setaverages(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReport.Setaverages(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Faverages=AValue) then exit;
@@ -1677,7 +1677,7 @@ end;
 
 
 
-Procedure TReport.Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray); 
+Procedure TReport.Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray);
 
 begin
   If (Fheaders=AValue) then exit;
@@ -1687,7 +1687,7 @@ end;
 
 
 
-Procedure TReport.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TReport.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1697,7 +1697,7 @@ end;
 
 
 
-Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); 
+Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -1707,7 +1707,7 @@ end;
 
 
 
-Procedure TReport.SettotalMatchedRows(AIndex : Integer; const AValue : String); 
+Procedure TReport.SettotalMatchedRows(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalMatchedRows=AValue) then exit;
@@ -1717,7 +1717,7 @@ end;
 
 
 
-Procedure TReport.Settotals(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReport.Settotals(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ftotals=AValue) then exit;
@@ -1727,7 +1727,7 @@ end;
 
 
 
-Procedure TReport.Setwarnings(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReport.Setwarnings(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1738,7 +1738,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1761,7 +1761,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportingMetadataEntry.SetcompatibleDimensions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetcompatibleDimensions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcompatibleDimensions=AValue) then exit;
@@ -1771,7 +1771,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetcompatibleMetrics(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetcompatibleMetrics(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcompatibleMetrics=AValue) then exit;
@@ -1781,7 +1781,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.Setid(AIndex : Integer; const AValue : String); 
+Procedure TReportingMetadataEntry.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1791,7 +1791,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TReportingMetadataEntry.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1801,7 +1801,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetrequiredDimensions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetrequiredDimensions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FrequiredDimensions=AValue) then exit;
@@ -1811,7 +1811,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetrequiredMetrics(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetrequiredMetrics(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FrequiredMetrics=AValue) then exit;
@@ -1821,7 +1821,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.SetsupportedProducts(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReportingMetadataEntry.SetsupportedProducts(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsupportedProducts=AValue) then exit;
@@ -1832,7 +1832,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReportingMetadataEntry.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReportingMetadataEntry.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1855,7 +1855,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedReport.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSavedReport.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1865,7 +1865,7 @@ end;
 
 
 
-Procedure TSavedReport.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSavedReport.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1875,7 +1875,7 @@ end;
 
 
 
-Procedure TSavedReport.Setname(AIndex : Integer; const AValue : String); 
+Procedure TSavedReport.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1892,7 +1892,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedReports.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TSavedReports.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1902,7 +1902,7 @@ end;
 
 
 
-Procedure TSavedReports.Setitems(AIndex : Integer; const AValue : TSavedReportsTypeitemsArray); 
+Procedure TSavedReports.Setitems(AIndex : Integer; const AValue : TSavedReportsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1912,7 +1912,7 @@ end;
 
 
 
-Procedure TSavedReports.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSavedReports.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1922,7 +1922,7 @@ end;
 
 
 
-Procedure TSavedReports.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSavedReports.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1933,7 +1933,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSavedReports.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSavedReports.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1952,7 +1952,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1962,7 +1962,7 @@ end;
 
 
 
-Procedure TUrlChannel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1972,7 +1972,7 @@ end;
 
 
 
-Procedure TUrlChannel.SeturlPattern(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannel.SeturlPattern(AIndex : Integer; const AValue : String);
 
 begin
   If (FurlPattern=AValue) then exit;
@@ -1989,7 +1989,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannels.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannels.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1999,7 +1999,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray); 
+Procedure TUrlChannels.Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2009,7 +2009,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannels.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2019,7 +2019,7 @@ end;
 
 
 
-Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2030,7 +2030,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUrlChannels.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUrlChannels.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2996,7 +2996,7 @@ begin
   Result[0].Description:='View and manage your Ad Exchange data';
   Result[1].Name:='https://www.googleapis.com/auth/adexchange.seller.readonly';
   Result[1].Description:='View your Ad Exchange data';
-  
+
 end;
 
 Class Function TAdexchangesellerAPI.APINeedsAuth : Boolean;

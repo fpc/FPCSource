@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TProject = Class;
   TResourceId = Class;
@@ -41,11 +41,11 @@ type
   TProjectTypelabels = Class;
   TListProjectsResponseTypeprojectsArray = Array of TProject;
   TPolicyTypebindingsArray = Array of TBinding;
-  
+
   { --------------------------------------------------------------------
     TProjectTypelabels
     --------------------------------------------------------------------}
-  
+
   TProjectTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -55,11 +55,11 @@ type
   Published
   end;
   TProjectTypelabelsClass = Class of TProjectTypelabels;
-  
+
   { --------------------------------------------------------------------
     TProject
     --------------------------------------------------------------------}
-  
+
   TProject = Class(TGoogleBaseObject)
   Private
     FprojectNumber : String;
@@ -89,11 +89,11 @@ type
     Property parent : TResourceId Index 48 Read Fparent Write Setparent;
   end;
   TProjectClass = Class of TProject;
-  
+
   { --------------------------------------------------------------------
     TResourceId
     --------------------------------------------------------------------}
-  
+
   TResourceId = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -109,11 +109,11 @@ type
     Property id : String Index 8 Read Fid Write Setid;
   end;
   TResourceIdClass = Class of TResourceId;
-  
+
   { --------------------------------------------------------------------
     TListProjectsResponse
     --------------------------------------------------------------------}
-  
+
   TListProjectsResponse = Class(TGoogleBaseObject)
   Private
     Fprojects : TListProjectsResponseTypeprojectsArray;
@@ -132,11 +132,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListProjectsResponseClass = Class of TListProjectsResponse;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -145,11 +145,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TUndeleteProjectRequest
     --------------------------------------------------------------------}
-  
+
   TUndeleteProjectRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -158,11 +158,11 @@ type
   Published
   end;
   TUndeleteProjectRequestClass = Class of TUndeleteProjectRequest;
-  
+
   { --------------------------------------------------------------------
     TGetIamPolicyRequest
     --------------------------------------------------------------------}
-  
+
   TGetIamPolicyRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -171,11 +171,11 @@ type
   Published
   end;
   TGetIamPolicyRequestClass = Class of TGetIamPolicyRequest;
-  
+
   { --------------------------------------------------------------------
     TPolicy
     --------------------------------------------------------------------}
-  
+
   TPolicy = Class(TGoogleBaseObject)
   Private
     Fversion : integer;
@@ -197,11 +197,11 @@ type
     Property etag : String Index 16 Read Fetag Write Setetag;
   end;
   TPolicyClass = Class of TPolicy;
-  
+
   { --------------------------------------------------------------------
     TBinding
     --------------------------------------------------------------------}
-  
+
   TBinding = Class(TGoogleBaseObject)
   Private
     Frole : String;
@@ -220,11 +220,11 @@ type
     Property members : TStringArray Index 8 Read Fmembers Write Setmembers;
   end;
   TBindingClass = Class of TBinding;
-  
+
   { --------------------------------------------------------------------
     TSetIamPolicyRequest
     --------------------------------------------------------------------}
-  
+
   TSetIamPolicyRequest = Class(TGoogleBaseObject)
   Private
     Fpolicy : TPolicy;
@@ -236,11 +236,11 @@ type
     Property policy : TPolicy Index 0 Read Fpolicy Write Setpolicy;
   end;
   TSetIamPolicyRequestClass = Class of TSetIamPolicyRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsRequest
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsRequest = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -256,11 +256,11 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsRequestClass = Class of TTestIamPermissionsRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsResponse
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsResponse = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -276,20 +276,20 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsResponseClass = Class of TTestIamPermissionsResponse;
-  
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsResource, method List
-  
+
   TProjectsListOptions = Record
     pageToken : String;
     pageSize : integer;
     filter : String;
   end;
-  
+
   TProjectsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -304,12 +304,12 @@ type
     Function SetIamPolicy(resource: string; aSetIamPolicyRequest : TSetIamPolicyRequest) : TPolicy;
     Function TestIamPermissions(resource: string; aTestIamPermissionsRequest : TTestIamPermissionsRequest) : TTestIamPermissionsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCloudresourcemanagerAPI
     --------------------------------------------------------------------}
-  
+
   TCloudresourcemanagerAPI = Class(TGoogleAPI)
   Private
     FProjectsInstance : TProjectsResource;
@@ -364,7 +364,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProject.SetprojectNumber(AIndex : Integer; const AValue : String); 
+Procedure TProject.SetprojectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -374,7 +374,7 @@ end;
 
 
 
-Procedure TProject.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TProject.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -384,7 +384,7 @@ end;
 
 
 
-Procedure TProject.SetlifecycleState(AIndex : Integer; const AValue : String); 
+Procedure TProject.SetlifecycleState(AIndex : Integer; const AValue : String);
 
 begin
   If (FlifecycleState=AValue) then exit;
@@ -394,7 +394,7 @@ end;
 
 
 
-Procedure TProject.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProject.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -404,7 +404,7 @@ end;
 
 
 
-Procedure TProject.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TProject.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -414,7 +414,7 @@ end;
 
 
 
-Procedure TProject.Setlabels(AIndex : Integer; const AValue : TProjectTypelabels); 
+Procedure TProject.Setlabels(AIndex : Integer; const AValue : TProjectTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -424,7 +424,7 @@ end;
 
 
 
-Procedure TProject.Setparent(AIndex : Integer; const AValue : TResourceId); 
+Procedure TProject.Setparent(AIndex : Integer; const AValue : TResourceId);
 
 begin
   If (Fparent=AValue) then exit;
@@ -441,7 +441,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceId.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TResourceId.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -451,7 +451,7 @@ end;
 
 
 
-Procedure TResourceId.Setid(AIndex : Integer; const AValue : String); 
+Procedure TResourceId.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -479,7 +479,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListProjectsResponse.Setprojects(AIndex : Integer; const AValue : TListProjectsResponseTypeprojectsArray); 
+Procedure TListProjectsResponse.Setprojects(AIndex : Integer; const AValue : TListProjectsResponseTypeprojectsArray);
 
 begin
   If (Fprojects=AValue) then exit;
@@ -489,7 +489,7 @@ end;
 
 
 
-Procedure TListProjectsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListProjectsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -500,7 +500,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListProjectsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListProjectsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -540,7 +540,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer); 
+Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fversion=AValue) then exit;
@@ -550,7 +550,7 @@ end;
 
 
 
-Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray); 
+Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray);
 
 begin
   If (Fbindings=AValue) then exit;
@@ -560,7 +560,7 @@ end;
 
 
 
-Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -571,7 +571,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -590,7 +590,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBinding.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TBinding.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -600,7 +600,7 @@ end;
 
 
 
-Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -611,7 +611,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -630,7 +630,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy); 
+Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy);
 
 begin
   If (Fpolicy=AValue) then exit;
@@ -647,7 +647,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -658,7 +658,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -677,7 +677,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -688,7 +688,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -965,7 +965,7 @@ begin
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
   Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
   Result[1].Description:='View your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TCloudresourcemanagerAPI.APINeedsAuth : Boolean;

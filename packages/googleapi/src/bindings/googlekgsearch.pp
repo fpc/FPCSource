@@ -13,16 +13,16 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TSearchResponse = Class;
   TSearchResponseArray = Array of TSearchResponse;
   //Anonymous types, using auto-generated names
-  
+
   { --------------------------------------------------------------------
     TSearchResponse
     --------------------------------------------------------------------}
-  
+
   TSearchResponse = Class(TGoogleBaseObject)
   Private
     Fcontext : TJSONSchema;
@@ -45,14 +45,14 @@ type
     Property itemListElement : TTJSONSchemaArray Index 16 Read FitemListElement Write SetitemListElement;
   end;
   TSearchResponseClass = Class of TSearchResponse;
-  
+
   { --------------------------------------------------------------------
     TEntitiesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TEntitiesResource, method Search
-  
+
   TEntitiesSearchOptions = Record
     query : String;
     ids : String;
@@ -62,7 +62,7 @@ type
     prefix : boolean;
     limit : integer;
   end;
-  
+
   TEntitiesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -70,12 +70,12 @@ type
     Function Search(AQuery : string  = '') : TSearchResponse;
     Function Search(AQuery : TEntitiessearchOptions) : TSearchResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TKgsearchAPI
     --------------------------------------------------------------------}
-  
+
   TKgsearchAPI = Class(TGoogleAPI)
   Private
     FEntitiesInstance : TEntitiesResource;
@@ -117,7 +117,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TSearchResponse.Setcontext(AIndex : Integer; const AValue : TJSONSchema); 
+Procedure TSearchResponse.Setcontext(AIndex : Integer; const AValue : TJSONSchema);
 
 begin
   If (Fcontext=AValue) then exit;
@@ -127,7 +127,7 @@ end;
 
 
 
-Procedure TSearchResponse.Set_type(AIndex : Integer; const AValue : TJSONSchema); 
+Procedure TSearchResponse.Set_type(AIndex : Integer; const AValue : TJSONSchema);
 
 begin
   If (F_type=AValue) then exit;
@@ -137,7 +137,7 @@ end;
 
 
 
-Procedure TSearchResponse.SetitemListElement(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TSearchResponse.SetitemListElement(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (FitemListElement=AValue) then exit;
@@ -159,7 +159,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -331,7 +331,7 @@ Class Function TKgsearchAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TKgsearchAPI.APINeedsAuth : Boolean;

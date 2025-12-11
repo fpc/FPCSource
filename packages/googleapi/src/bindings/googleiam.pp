@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TListServiceAccountsResponse = Class;
   TServiceAccount = Class;
@@ -62,11 +62,11 @@ type
   TPolicyTyperulesArray = Array of TRule;
   TRuleTypeconditionsArray = Array of TCondition;
   TRuleTypelogConfigArray = Array of TLogConfig;
-  
+
   { --------------------------------------------------------------------
     TListServiceAccountsResponse
     --------------------------------------------------------------------}
-  
+
   TListServiceAccountsResponse = Class(TGoogleBaseObject)
   Private
     Faccounts : TListServiceAccountsResponseTypeaccountsArray;
@@ -85,11 +85,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListServiceAccountsResponseClass = Class of TListServiceAccountsResponse;
-  
+
   { --------------------------------------------------------------------
     TServiceAccount
     --------------------------------------------------------------------}
-  
+
   TServiceAccount = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -119,11 +119,11 @@ type
     Property oauth2ClientId : String Index 48 Read Foauth2ClientId Write Setoauth2ClientId;
   end;
   TServiceAccountClass = Class of TServiceAccount;
-  
+
   { --------------------------------------------------------------------
     TCreateServiceAccountRequest
     --------------------------------------------------------------------}
-  
+
   TCreateServiceAccountRequest = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -138,11 +138,11 @@ type
     Property serviceAccount : TServiceAccount Index 8 Read FserviceAccount Write SetserviceAccount;
   end;
   TCreateServiceAccountRequestClass = Class of TCreateServiceAccountRequest;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -151,11 +151,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TListServiceAccountKeysResponse
     --------------------------------------------------------------------}
-  
+
   TListServiceAccountKeysResponse = Class(TGoogleBaseObject)
   Private
     Fkeys : TListServiceAccountKeysResponseTypekeysArray;
@@ -171,11 +171,11 @@ type
     Property keys : TListServiceAccountKeysResponseTypekeysArray Index 0 Read Fkeys Write Setkeys;
   end;
   TListServiceAccountKeysResponseClass = Class of TListServiceAccountKeysResponse;
-  
+
   { --------------------------------------------------------------------
     TServiceAccountKey
     --------------------------------------------------------------------}
-  
+
   TServiceAccountKey = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -199,11 +199,11 @@ type
     Property validBeforeTime : String Index 32 Read FvalidBeforeTime Write SetvalidBeforeTime;
   end;
   TServiceAccountKeyClass = Class of TServiceAccountKey;
-  
+
   { --------------------------------------------------------------------
     TCreateServiceAccountKeyRequest
     --------------------------------------------------------------------}
-  
+
   TCreateServiceAccountKeyRequest = Class(TGoogleBaseObject)
   Private
     FprivateKeyType : String;
@@ -215,11 +215,11 @@ type
     Property privateKeyType : String Index 0 Read FprivateKeyType Write SetprivateKeyType;
   end;
   TCreateServiceAccountKeyRequestClass = Class of TCreateServiceAccountKeyRequest;
-  
+
   { --------------------------------------------------------------------
     TSignBlobRequest
     --------------------------------------------------------------------}
-  
+
   TSignBlobRequest = Class(TGoogleBaseObject)
   Private
     FbytesToSign : String;
@@ -231,11 +231,11 @@ type
     Property bytesToSign : String Index 0 Read FbytesToSign Write SetbytesToSign;
   end;
   TSignBlobRequestClass = Class of TSignBlobRequest;
-  
+
   { --------------------------------------------------------------------
     TSignBlobResponse
     --------------------------------------------------------------------}
-  
+
   TSignBlobResponse = Class(TGoogleBaseObject)
   Private
     FkeyId : String;
@@ -250,11 +250,11 @@ type
     Property signature : String Index 8 Read Fsignature Write Setsignature;
   end;
   TSignBlobResponseClass = Class of TSignBlobResponse;
-  
+
   { --------------------------------------------------------------------
     TPolicy
     --------------------------------------------------------------------}
-  
+
   TPolicy = Class(TGoogleBaseObject)
   Private
     Fversion : integer;
@@ -279,11 +279,11 @@ type
     Property etag : String Index 24 Read Fetag Write Setetag;
   end;
   TPolicyClass = Class of TPolicy;
-  
+
   { --------------------------------------------------------------------
     TBinding
     --------------------------------------------------------------------}
-  
+
   TBinding = Class(TGoogleBaseObject)
   Private
     Frole : String;
@@ -302,11 +302,11 @@ type
     Property members : TStringArray Index 8 Read Fmembers Write Setmembers;
   end;
   TBindingClass = Class of TBinding;
-  
+
   { --------------------------------------------------------------------
     TRule
     --------------------------------------------------------------------}
-  
+
   TRule = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -341,11 +341,11 @@ type
     Property logConfig : TRuleTypelogConfigArray Index 48 Read FlogConfig Write SetlogConfig;
   end;
   TRuleClass = Class of TRule;
-  
+
   { --------------------------------------------------------------------
     TCondition
     --------------------------------------------------------------------}
-  
+
   TCondition = Class(TGoogleBaseObject)
   Private
     Fiam : String;
@@ -376,11 +376,11 @@ type
     Property values : TStringArray Index 40 Read Fvalues Write Setvalues;
   end;
   TConditionClass = Class of TCondition;
-  
+
   { --------------------------------------------------------------------
     TLogConfig
     --------------------------------------------------------------------}
-  
+
   TLogConfig = Class(TGoogleBaseObject)
   Private
     Fcounter : TCounterOptions;
@@ -398,11 +398,11 @@ type
     Property cloudAudit : TCloudAuditOptions Index 16 Read FcloudAudit Write SetcloudAudit;
   end;
   TLogConfigClass = Class of TLogConfig;
-  
+
   { --------------------------------------------------------------------
     TCounterOptions
     --------------------------------------------------------------------}
-  
+
   TCounterOptions = Class(TGoogleBaseObject)
   Private
     Fmetric : String;
@@ -417,11 +417,11 @@ type
     Property field : String Index 8 Read Ffield Write Setfield;
   end;
   TCounterOptionsClass = Class of TCounterOptions;
-  
+
   { --------------------------------------------------------------------
     TDataAccessOptions
     --------------------------------------------------------------------}
-  
+
   TDataAccessOptions = Class(TGoogleBaseObject)
   Private
   Protected
@@ -430,11 +430,11 @@ type
   Published
   end;
   TDataAccessOptionsClass = Class of TDataAccessOptions;
-  
+
   { --------------------------------------------------------------------
     TCloudAuditOptions
     --------------------------------------------------------------------}
-  
+
   TCloudAuditOptions = Class(TGoogleBaseObject)
   Private
   Protected
@@ -443,11 +443,11 @@ type
   Published
   end;
   TCloudAuditOptionsClass = Class of TCloudAuditOptions;
-  
+
   { --------------------------------------------------------------------
     TSetIamPolicyRequest
     --------------------------------------------------------------------}
-  
+
   TSetIamPolicyRequest = Class(TGoogleBaseObject)
   Private
     Fpolicy : TPolicy;
@@ -459,11 +459,11 @@ type
     Property policy : TPolicy Index 0 Read Fpolicy Write Setpolicy;
   end;
   TSetIamPolicyRequestClass = Class of TSetIamPolicyRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsRequest
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsRequest = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -479,11 +479,11 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsRequestClass = Class of TTestIamPermissionsRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsResponse
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsResponse = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -499,18 +499,18 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsResponseClass = Class of TTestIamPermissionsResponse;
-  
+
   { --------------------------------------------------------------------
     TProjectsServiceAccountsKeysResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsServiceAccountsKeysResource, method List
-  
+
   TProjectsServiceAccountsKeysListOptions = Record
     keyTypes : String;
   end;
-  
+
   TProjectsServiceAccountsKeysResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -521,20 +521,20 @@ type
     Function Create(_name: string; aCreateServiceAccountKeyRequest : TCreateServiceAccountKeyRequest) : TServiceAccountKey;overload;
     Function Delete(_name: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsServiceAccountsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsServiceAccountsResource, method List
-  
+
   TProjectsServiceAccountsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsServiceAccountsResource = Class(TGoogleResource)
   Private
     FKeysInstance : TProjectsServiceAccountsKeysResource;
@@ -556,12 +556,12 @@ type
     Function CreateKeysResource : TProjectsServiceAccountsKeysResource;virtual;overload;
     Property KeysResource : TProjectsServiceAccountsKeysResource Read GetKeysInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FServiceAccountsKeysInstance : TProjectsServiceAccountsKeysResource;
@@ -578,12 +578,12 @@ type
     Property ServiceAccountsKeysResource : TProjectsServiceAccountsKeysResource Read GetServiceAccountsKeysInstance;
     Property ServiceAccountsResource : TProjectsServiceAccountsResource Read GetServiceAccountsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TIamAPI
     --------------------------------------------------------------------}
-  
+
   TIamAPI = Class(TGoogleAPI)
   Private
     FProjectsServiceAccountsKeysInstance : TProjectsServiceAccountsKeysResource;
@@ -635,7 +635,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TListServiceAccountsResponse.Setaccounts(AIndex : Integer; const AValue : TListServiceAccountsResponseTypeaccountsArray); 
+Procedure TListServiceAccountsResponse.Setaccounts(AIndex : Integer; const AValue : TListServiceAccountsResponseTypeaccountsArray);
 
 begin
   If (Faccounts=AValue) then exit;
@@ -645,7 +645,7 @@ end;
 
 
 
-Procedure TListServiceAccountsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListServiceAccountsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -656,7 +656,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListServiceAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListServiceAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -675,7 +675,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccount.Setname(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -685,7 +685,7 @@ end;
 
 
 
-Procedure TServiceAccount.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -695,7 +695,7 @@ end;
 
 
 
-Procedure TServiceAccount.SetuniqueId(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.SetuniqueId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuniqueId=AValue) then exit;
@@ -705,7 +705,7 @@ end;
 
 
 
-Procedure TServiceAccount.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -715,7 +715,7 @@ end;
 
 
 
-Procedure TServiceAccount.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -725,7 +725,7 @@ end;
 
 
 
-Procedure TServiceAccount.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -735,7 +735,7 @@ end;
 
 
 
-Procedure TServiceAccount.Setoauth2ClientId(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccount.Setoauth2ClientId(AIndex : Integer; const AValue : String);
 
 begin
   If (Foauth2ClientId=AValue) then exit;
@@ -752,7 +752,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateServiceAccountRequest.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TCreateServiceAccountRequest.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -762,7 +762,7 @@ end;
 
 
 
-Procedure TCreateServiceAccountRequest.SetserviceAccount(AIndex : Integer; const AValue : TServiceAccount); 
+Procedure TCreateServiceAccountRequest.SetserviceAccount(AIndex : Integer; const AValue : TServiceAccount);
 
 begin
   If (FserviceAccount=AValue) then exit;
@@ -786,7 +786,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListServiceAccountKeysResponse.Setkeys(AIndex : Integer; const AValue : TListServiceAccountKeysResponseTypekeysArray); 
+Procedure TListServiceAccountKeysResponse.Setkeys(AIndex : Integer; const AValue : TListServiceAccountKeysResponseTypekeysArray);
 
 begin
   If (Fkeys=AValue) then exit;
@@ -797,7 +797,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListServiceAccountKeysResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListServiceAccountKeysResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -816,7 +816,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccountKey.Setname(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccountKey.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -826,7 +826,7 @@ end;
 
 
 
-Procedure TServiceAccountKey.SetprivateKeyType(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccountKey.SetprivateKeyType(AIndex : Integer; const AValue : String);
 
 begin
   If (FprivateKeyType=AValue) then exit;
@@ -836,7 +836,7 @@ end;
 
 
 
-Procedure TServiceAccountKey.SetprivateKeyData(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccountKey.SetprivateKeyData(AIndex : Integer; const AValue : String);
 
 begin
   If (FprivateKeyData=AValue) then exit;
@@ -846,7 +846,7 @@ end;
 
 
 
-Procedure TServiceAccountKey.SetvalidAfterTime(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccountKey.SetvalidAfterTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalidAfterTime=AValue) then exit;
@@ -856,7 +856,7 @@ end;
 
 
 
-Procedure TServiceAccountKey.SetvalidBeforeTime(AIndex : Integer; const AValue : String); 
+Procedure TServiceAccountKey.SetvalidBeforeTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalidBeforeTime=AValue) then exit;
@@ -873,7 +873,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateServiceAccountKeyRequest.SetprivateKeyType(AIndex : Integer; const AValue : String); 
+Procedure TCreateServiceAccountKeyRequest.SetprivateKeyType(AIndex : Integer; const AValue : String);
 
 begin
   If (FprivateKeyType=AValue) then exit;
@@ -890,7 +890,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSignBlobRequest.SetbytesToSign(AIndex : Integer; const AValue : String); 
+Procedure TSignBlobRequest.SetbytesToSign(AIndex : Integer; const AValue : String);
 
 begin
   If (FbytesToSign=AValue) then exit;
@@ -907,7 +907,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSignBlobResponse.SetkeyId(AIndex : Integer; const AValue : String); 
+Procedure TSignBlobResponse.SetkeyId(AIndex : Integer; const AValue : String);
 
 begin
   If (FkeyId=AValue) then exit;
@@ -917,7 +917,7 @@ end;
 
 
 
-Procedure TSignBlobResponse.Setsignature(AIndex : Integer; const AValue : String); 
+Procedure TSignBlobResponse.Setsignature(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsignature=AValue) then exit;
@@ -934,7 +934,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer); 
+Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fversion=AValue) then exit;
@@ -944,7 +944,7 @@ end;
 
 
 
-Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray); 
+Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray);
 
 begin
   If (Fbindings=AValue) then exit;
@@ -954,7 +954,7 @@ end;
 
 
 
-Procedure TPolicy.Setrules(AIndex : Integer; const AValue : TPolicyTyperulesArray); 
+Procedure TPolicy.Setrules(AIndex : Integer; const AValue : TPolicyTyperulesArray);
 
 begin
   If (Frules=AValue) then exit;
@@ -964,7 +964,7 @@ end;
 
 
 
-Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -975,7 +975,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -995,7 +995,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBinding.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TBinding.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -1005,7 +1005,7 @@ end;
 
 
 
-Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -1016,7 +1016,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1035,7 +1035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRule.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRule.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1045,7 +1045,7 @@ end;
 
 
 
-Procedure TRule.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRule.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -1055,7 +1055,7 @@ end;
 
 
 
-Procedure TRule.Setaction(AIndex : Integer; const AValue : String); 
+Procedure TRule.Setaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Faction=AValue) then exit;
@@ -1065,7 +1065,7 @@ end;
 
 
 
-Procedure TRule.Set_in(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRule.Set_in(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (F_in=AValue) then exit;
@@ -1075,7 +1075,7 @@ end;
 
 
 
-Procedure TRule.SetnotIn(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRule.SetnotIn(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FnotIn=AValue) then exit;
@@ -1085,7 +1085,7 @@ end;
 
 
 
-Procedure TRule.Setconditions(AIndex : Integer; const AValue : TRuleTypeconditionsArray); 
+Procedure TRule.Setconditions(AIndex : Integer; const AValue : TRuleTypeconditionsArray);
 
 begin
   If (Fconditions=AValue) then exit;
@@ -1095,7 +1095,7 @@ end;
 
 
 
-Procedure TRule.SetlogConfig(AIndex : Integer; const AValue : TRuleTypelogConfigArray); 
+Procedure TRule.SetlogConfig(AIndex : Integer; const AValue : TRuleTypelogConfigArray);
 
 begin
   If (FlogConfig=AValue) then exit;
@@ -1117,7 +1117,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRule.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRule.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1140,7 +1140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCondition.Setiam(AIndex : Integer; const AValue : String); 
+Procedure TCondition.Setiam(AIndex : Integer; const AValue : String);
 
 begin
   If (Fiam=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
 
 
 
-Procedure TCondition.Setsys(AIndex : Integer; const AValue : String); 
+Procedure TCondition.Setsys(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsys=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 
 
-Procedure TCondition.Setsvc(AIndex : Integer; const AValue : String); 
+Procedure TCondition.Setsvc(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsvc=AValue) then exit;
@@ -1170,7 +1170,7 @@ end;
 
 
 
-Procedure TCondition.Setop(AIndex : Integer; const AValue : String); 
+Procedure TCondition.Setop(AIndex : Integer; const AValue : String);
 
 begin
   If (Fop=AValue) then exit;
@@ -1180,7 +1180,7 @@ end;
 
 
 
-Procedure TCondition.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TCondition.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1190,7 +1190,7 @@ end;
 
 
 
-Procedure TCondition.Setvalues(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCondition.Setvalues(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1201,7 +1201,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCondition.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCondition.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1220,7 +1220,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogConfig.Setcounter(AIndex : Integer; const AValue : TCounterOptions); 
+Procedure TLogConfig.Setcounter(AIndex : Integer; const AValue : TCounterOptions);
 
 begin
   If (Fcounter=AValue) then exit;
@@ -1230,7 +1230,7 @@ end;
 
 
 
-Procedure TLogConfig.SetdataAccess(AIndex : Integer; const AValue : TDataAccessOptions); 
+Procedure TLogConfig.SetdataAccess(AIndex : Integer; const AValue : TDataAccessOptions);
 
 begin
   If (FdataAccess=AValue) then exit;
@@ -1240,7 +1240,7 @@ end;
 
 
 
-Procedure TLogConfig.SetcloudAudit(AIndex : Integer; const AValue : TCloudAuditOptions); 
+Procedure TLogConfig.SetcloudAudit(AIndex : Integer; const AValue : TCloudAuditOptions);
 
 begin
   If (FcloudAudit=AValue) then exit;
@@ -1257,7 +1257,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCounterOptions.Setmetric(AIndex : Integer; const AValue : String); 
+Procedure TCounterOptions.Setmetric(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmetric=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
 
 
 
-Procedure TCounterOptions.Setfield(AIndex : Integer; const AValue : String); 
+Procedure TCounterOptions.Setfield(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffield=AValue) then exit;
@@ -1298,7 +1298,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy); 
+Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy);
 
 begin
   If (Fpolicy=AValue) then exit;
@@ -1315,7 +1315,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -1326,7 +1326,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1345,7 +1345,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -1356,7 +1356,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1831,7 +1831,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TIamAPI.APINeedsAuth : Boolean;

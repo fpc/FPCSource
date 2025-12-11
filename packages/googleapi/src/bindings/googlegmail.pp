@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TBatchDeleteMessagesRequest = Class;
   TDraft = Class;
@@ -75,11 +75,11 @@ type
   TMessagePartTypeheadersArray = Array of TMessagePartHeader;
   TMessagePartTypepartsArray = Array of TMessagePart;
   TThreadTypemessagesArray = Array of TMessage;
-  
+
   { --------------------------------------------------------------------
     TBatchDeleteMessagesRequest
     --------------------------------------------------------------------}
-  
+
   TBatchDeleteMessagesRequest = Class(TGoogleBaseObject)
   Private
     Fids : TStringArray;
@@ -95,11 +95,11 @@ type
     Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TBatchDeleteMessagesRequestClass = Class of TBatchDeleteMessagesRequest;
-  
+
   { --------------------------------------------------------------------
     TDraft
     --------------------------------------------------------------------}
-  
+
   TDraft = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -114,11 +114,11 @@ type
     Property message : TMessage Index 8 Read Fmessage Write Setmessage;
   end;
   TDraftClass = Class of TDraft;
-  
+
   { --------------------------------------------------------------------
     THistory
     --------------------------------------------------------------------}
-  
+
   THistory = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -149,11 +149,11 @@ type
     Property messagesDeleted : THistoryTypemessagesDeletedArray Index 40 Read FmessagesDeleted Write SetmessagesDeleted;
   end;
   THistoryClass = Class of THistory;
-  
+
   { --------------------------------------------------------------------
     THistoryLabelAdded
     --------------------------------------------------------------------}
-  
+
   THistoryLabelAdded = Class(TGoogleBaseObject)
   Private
     FlabelIds : TStringArray;
@@ -172,11 +172,11 @@ type
     Property message : TMessage Index 8 Read Fmessage Write Setmessage;
   end;
   THistoryLabelAddedClass = Class of THistoryLabelAdded;
-  
+
   { --------------------------------------------------------------------
     THistoryLabelRemoved
     --------------------------------------------------------------------}
-  
+
   THistoryLabelRemoved = Class(TGoogleBaseObject)
   Private
     FlabelIds : TStringArray;
@@ -195,11 +195,11 @@ type
     Property message : TMessage Index 8 Read Fmessage Write Setmessage;
   end;
   THistoryLabelRemovedClass = Class of THistoryLabelRemoved;
-  
+
   { --------------------------------------------------------------------
     THistoryMessageAdded
     --------------------------------------------------------------------}
-  
+
   THistoryMessageAdded = Class(TGoogleBaseObject)
   Private
     Fmessage : TMessage;
@@ -211,11 +211,11 @@ type
     Property message : TMessage Index 0 Read Fmessage Write Setmessage;
   end;
   THistoryMessageAddedClass = Class of THistoryMessageAdded;
-  
+
   { --------------------------------------------------------------------
     THistoryMessageDeleted
     --------------------------------------------------------------------}
-  
+
   THistoryMessageDeleted = Class(TGoogleBaseObject)
   Private
     Fmessage : TMessage;
@@ -227,11 +227,11 @@ type
     Property message : TMessage Index 0 Read Fmessage Write Setmessage;
   end;
   THistoryMessageDeletedClass = Class of THistoryMessageDeleted;
-  
+
   { --------------------------------------------------------------------
     TLabel
     --------------------------------------------------------------------}
-  
+
   TLabel = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -268,11 +268,11 @@ type
     Property _type : String Index 64 Read F_type Write Set_type;
   end;
   TLabelClass = Class of TLabel;
-  
+
   { --------------------------------------------------------------------
     TListDraftsResponse
     --------------------------------------------------------------------}
-  
+
   TListDraftsResponse = Class(TGoogleBaseObject)
   Private
     Fdrafts : TListDraftsResponseTypedraftsArray;
@@ -294,11 +294,11 @@ type
     Property resultSizeEstimate : integer Index 16 Read FresultSizeEstimate Write SetresultSizeEstimate;
   end;
   TListDraftsResponseClass = Class of TListDraftsResponse;
-  
+
   { --------------------------------------------------------------------
     TListHistoryResponse
     --------------------------------------------------------------------}
-  
+
   TListHistoryResponse = Class(TGoogleBaseObject)
   Private
     Fhistory : TListHistoryResponseTypehistoryArray;
@@ -320,11 +320,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListHistoryResponseClass = Class of TListHistoryResponse;
-  
+
   { --------------------------------------------------------------------
     TListLabelsResponse
     --------------------------------------------------------------------}
-  
+
   TListLabelsResponse = Class(TGoogleBaseObject)
   Private
     Flabels : TListLabelsResponseTypelabelsArray;
@@ -340,11 +340,11 @@ type
     Property labels : TListLabelsResponseTypelabelsArray Index 0 Read Flabels Write Setlabels;
   end;
   TListLabelsResponseClass = Class of TListLabelsResponse;
-  
+
   { --------------------------------------------------------------------
     TListMessagesResponse
     --------------------------------------------------------------------}
-  
+
   TListMessagesResponse = Class(TGoogleBaseObject)
   Private
     Fmessages : TListMessagesResponseTypemessagesArray;
@@ -366,11 +366,11 @@ type
     Property resultSizeEstimate : integer Index 16 Read FresultSizeEstimate Write SetresultSizeEstimate;
   end;
   TListMessagesResponseClass = Class of TListMessagesResponse;
-  
+
   { --------------------------------------------------------------------
     TListThreadsResponse
     --------------------------------------------------------------------}
-  
+
   TListThreadsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -392,11 +392,11 @@ type
     Property threads : TListThreadsResponseTypethreadsArray Index 16 Read Fthreads Write Setthreads;
   end;
   TListThreadsResponseClass = Class of TListThreadsResponse;
-  
+
   { --------------------------------------------------------------------
     TMessage
     --------------------------------------------------------------------}
-  
+
   TMessage = Class(TGoogleBaseObject)
   Private
     FhistoryId : String;
@@ -436,11 +436,11 @@ type
     Property threadId : String Index 64 Read FthreadId Write SetthreadId;
   end;
   TMessageClass = Class of TMessage;
-  
+
   { --------------------------------------------------------------------
     TMessagePart
     --------------------------------------------------------------------}
-  
+
   TMessagePart = Class(TGoogleBaseObject)
   Private
     Fbody : TMessagePartBody;
@@ -471,11 +471,11 @@ type
     Property parts : TMessagePartTypepartsArray Index 40 Read Fparts Write Setparts;
   end;
   TMessagePartClass = Class of TMessagePart;
-  
+
   { --------------------------------------------------------------------
     TMessagePartBody
     --------------------------------------------------------------------}
-  
+
   TMessagePartBody = Class(TGoogleBaseObject)
   Private
     FattachmentId : String;
@@ -493,11 +493,11 @@ type
     Property size : integer Index 16 Read Fsize Write Setsize;
   end;
   TMessagePartBodyClass = Class of TMessagePartBody;
-  
+
   { --------------------------------------------------------------------
     TMessagePartHeader
     --------------------------------------------------------------------}
-  
+
   TMessagePartHeader = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -512,11 +512,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TMessagePartHeaderClass = Class of TMessagePartHeader;
-  
+
   { --------------------------------------------------------------------
     TModifyMessageRequest
     --------------------------------------------------------------------}
-  
+
   TModifyMessageRequest = Class(TGoogleBaseObject)
   Private
     FaddLabelIds : TStringArray;
@@ -535,11 +535,11 @@ type
     Property removeLabelIds : TStringArray Index 8 Read FremoveLabelIds Write SetremoveLabelIds;
   end;
   TModifyMessageRequestClass = Class of TModifyMessageRequest;
-  
+
   { --------------------------------------------------------------------
     TModifyThreadRequest
     --------------------------------------------------------------------}
-  
+
   TModifyThreadRequest = Class(TGoogleBaseObject)
   Private
     FaddLabelIds : TStringArray;
@@ -558,11 +558,11 @@ type
     Property removeLabelIds : TStringArray Index 8 Read FremoveLabelIds Write SetremoveLabelIds;
   end;
   TModifyThreadRequestClass = Class of TModifyThreadRequest;
-  
+
   { --------------------------------------------------------------------
     TProfile
     --------------------------------------------------------------------}
-  
+
   TProfile = Class(TGoogleBaseObject)
   Private
     FemailAddress : String;
@@ -583,11 +583,11 @@ type
     Property threadsTotal : integer Index 24 Read FthreadsTotal Write SetthreadsTotal;
   end;
   TProfileClass = Class of TProfile;
-  
+
   { --------------------------------------------------------------------
     TThread
     --------------------------------------------------------------------}
-  
+
   TThread = Class(TGoogleBaseObject)
   Private
     FhistoryId : String;
@@ -612,11 +612,11 @@ type
     Property snippet : String Index 24 Read Fsnippet Write Setsnippet;
   end;
   TThreadClass = Class of TThread;
-  
+
   { --------------------------------------------------------------------
     TWatchRequest
     --------------------------------------------------------------------}
-  
+
   TWatchRequest = Class(TGoogleBaseObject)
   Private
     FlabelFilterAction : String;
@@ -638,11 +638,11 @@ type
     Property topicName : String Index 16 Read FtopicName Write SettopicName;
   end;
   TWatchRequestClass = Class of TWatchRequest;
-  
+
   { --------------------------------------------------------------------
     TWatchResponse
     --------------------------------------------------------------------}
-  
+
   TWatchResponse = Class(TGoogleBaseObject)
   Private
     Fexpiration : String;
@@ -657,27 +657,27 @@ type
     Property historyId : String Index 8 Read FhistoryId Write SethistoryId;
   end;
   TWatchResponseClass = Class of TWatchResponse;
-  
+
   { --------------------------------------------------------------------
     TUsersDraftsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersDraftsResource, method Get
-  
+
   TUsersDraftsGetOptions = Record
     format : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersDraftsResource, method List
-  
+
   TUsersDraftsListOptions = Record
     includeSpamTrash : boolean;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TUsersDraftsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -691,22 +691,22 @@ type
     Function Send(userId: string; aDraft : TDraft) : TMessage;
     Function Update(id: string; userId: string; aDraft : TDraft) : TDraft;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersHistoryResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersHistoryResource, method List
-  
+
   TUsersHistoryListOptions = Record
     labelId : String;
     maxResults : integer;
     pageToken : String;
     startHistoryId : String;
   end;
-  
+
   TUsersHistoryResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -714,12 +714,12 @@ type
     Function List(userId: string; AQuery : string  = '') : TListHistoryResponse;
     Function List(userId: string; AQuery : TUsersHistorylistOptions) : TListHistoryResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersLabelsResource
     --------------------------------------------------------------------}
-  
+
   TUsersLabelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -731,53 +731,53 @@ type
     Function Patch(id: string; userId: string; aLabel : TLabel) : TLabel;
     Function Update(id: string; userId: string; aLabel : TLabel) : TLabel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersMessagesAttachmentsResource
     --------------------------------------------------------------------}
-  
+
   TUsersMessagesAttachmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(id: string; messageId: string; userId: string) : TMessagePartBody;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersMessagesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersMessagesResource, method Get
-  
+
   TUsersMessagesGetOptions = Record
     format : String;
     metadataHeaders : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersMessagesResource, method Import
-  
+
   TUsersMessagesImportOptions = Record
     deleted : boolean;
     internalDateSource : String;
     neverMarkSpam : boolean;
     processForCalendar : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TUsersMessagesResource, method Insert
-  
+
   TUsersMessagesInsertOptions = Record
     deleted : boolean;
     internalDateSource : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersMessagesResource, method List
-  
+
   TUsersMessagesListOptions = Record
     includeSpamTrash : boolean;
     labelIds : String;
@@ -785,7 +785,7 @@ type
     pageToken : String;
     q : String;
   end;
-  
+
   TUsersMessagesResource = Class(TGoogleResource)
   Private
     FAttachmentsInstance : TUsersMessagesAttachmentsResource;
@@ -811,23 +811,23 @@ type
     Function CreateAttachmentsResource : TUsersMessagesAttachmentsResource;virtual;overload;
     Property AttachmentsResource : TUsersMessagesAttachmentsResource Read GetAttachmentsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersThreadsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersThreadsResource, method Get
-  
+
   TUsersThreadsGetOptions = Record
     format : String;
     metadataHeaders : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersThreadsResource, method List
-  
+
   TUsersThreadsListOptions = Record
     includeSpamTrash : boolean;
     labelIds : String;
@@ -835,7 +835,7 @@ type
     pageToken : String;
     q : String;
   end;
-  
+
   TUsersThreadsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -849,12 +849,12 @@ type
     Function Trash(id: string; userId: string) : TThread;
     Function Untrash(id: string; userId: string) : TThread;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersResource
     --------------------------------------------------------------------}
-  
+
   TUsersResource = Class(TGoogleResource)
   Private
     FDraftsInstance : TUsersDraftsResource;
@@ -894,12 +894,12 @@ type
     Property MessagesResource : TUsersMessagesResource Read GetMessagesInstance;
     Property ThreadsResource : TUsersThreadsResource Read GetThreadsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGmailAPI
     --------------------------------------------------------------------}
-  
+
   TGmailAPI = Class(TGoogleAPI)
   Private
     FUsersDraftsInstance : TUsersDraftsResource;
@@ -971,7 +971,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBatchDeleteMessagesRequest.Setids(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBatchDeleteMessagesRequest.Setids(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fids=AValue) then exit;
@@ -982,7 +982,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchDeleteMessagesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchDeleteMessagesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1001,7 +1001,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDraft.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDraft.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1011,7 +1011,7 @@ end;
 
 
 
-Procedure TDraft.Setmessage(AIndex : Integer; const AValue : TMessage); 
+Procedure TDraft.Setmessage(AIndex : Integer; const AValue : TMessage);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1028,7 +1028,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistory.Setid(AIndex : Integer; const AValue : String); 
+Procedure THistory.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1038,7 +1038,7 @@ end;
 
 
 
-Procedure THistory.SetlabelsAdded(AIndex : Integer; const AValue : THistoryTypelabelsAddedArray); 
+Procedure THistory.SetlabelsAdded(AIndex : Integer; const AValue : THistoryTypelabelsAddedArray);
 
 begin
   If (FlabelsAdded=AValue) then exit;
@@ -1048,7 +1048,7 @@ end;
 
 
 
-Procedure THistory.SetlabelsRemoved(AIndex : Integer; const AValue : THistoryTypelabelsRemovedArray); 
+Procedure THistory.SetlabelsRemoved(AIndex : Integer; const AValue : THistoryTypelabelsRemovedArray);
 
 begin
   If (FlabelsRemoved=AValue) then exit;
@@ -1058,7 +1058,7 @@ end;
 
 
 
-Procedure THistory.Setmessages(AIndex : Integer; const AValue : THistoryTypemessagesArray); 
+Procedure THistory.Setmessages(AIndex : Integer; const AValue : THistoryTypemessagesArray);
 
 begin
   If (Fmessages=AValue) then exit;
@@ -1068,7 +1068,7 @@ end;
 
 
 
-Procedure THistory.SetmessagesAdded(AIndex : Integer; const AValue : THistoryTypemessagesAddedArray); 
+Procedure THistory.SetmessagesAdded(AIndex : Integer; const AValue : THistoryTypemessagesAddedArray);
 
 begin
   If (FmessagesAdded=AValue) then exit;
@@ -1078,7 +1078,7 @@ end;
 
 
 
-Procedure THistory.SetmessagesDeleted(AIndex : Integer; const AValue : THistoryTypemessagesDeletedArray); 
+Procedure THistory.SetmessagesDeleted(AIndex : Integer; const AValue : THistoryTypemessagesDeletedArray);
 
 begin
   If (FmessagesDeleted=AValue) then exit;
@@ -1089,7 +1089,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure THistory.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure THistory.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1112,7 +1112,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistoryLabelAdded.SetlabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure THistoryLabelAdded.SetlabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -1122,7 +1122,7 @@ end;
 
 
 
-Procedure THistoryLabelAdded.Setmessage(AIndex : Integer; const AValue : TMessage); 
+Procedure THistoryLabelAdded.Setmessage(AIndex : Integer; const AValue : TMessage);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1133,7 +1133,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure THistoryLabelAdded.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure THistoryLabelAdded.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1152,7 +1152,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistoryLabelRemoved.SetlabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure THistoryLabelRemoved.SetlabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -1162,7 +1162,7 @@ end;
 
 
 
-Procedure THistoryLabelRemoved.Setmessage(AIndex : Integer; const AValue : TMessage); 
+Procedure THistoryLabelRemoved.Setmessage(AIndex : Integer; const AValue : TMessage);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1173,7 +1173,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure THistoryLabelRemoved.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure THistoryLabelRemoved.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1192,7 +1192,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistoryMessageAdded.Setmessage(AIndex : Integer; const AValue : TMessage); 
+Procedure THistoryMessageAdded.Setmessage(AIndex : Integer; const AValue : TMessage);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1209,7 +1209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistoryMessageDeleted.Setmessage(AIndex : Integer; const AValue : TMessage); 
+Procedure THistoryMessageDeleted.Setmessage(AIndex : Integer; const AValue : TMessage);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1226,7 +1226,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLabel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1236,7 +1236,7 @@ end;
 
 
 
-Procedure TLabel.SetlabelListVisibility(AIndex : Integer; const AValue : String); 
+Procedure TLabel.SetlabelListVisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (FlabelListVisibility=AValue) then exit;
@@ -1246,7 +1246,7 @@ end;
 
 
 
-Procedure TLabel.SetmessageListVisibility(AIndex : Integer; const AValue : String); 
+Procedure TLabel.SetmessageListVisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (FmessageListVisibility=AValue) then exit;
@@ -1256,7 +1256,7 @@ end;
 
 
 
-Procedure TLabel.SetmessagesTotal(AIndex : Integer; const AValue : integer); 
+Procedure TLabel.SetmessagesTotal(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmessagesTotal=AValue) then exit;
@@ -1266,7 +1266,7 @@ end;
 
 
 
-Procedure TLabel.SetmessagesUnread(AIndex : Integer; const AValue : integer); 
+Procedure TLabel.SetmessagesUnread(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmessagesUnread=AValue) then exit;
@@ -1276,7 +1276,7 @@ end;
 
 
 
-Procedure TLabel.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLabel.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1286,7 +1286,7 @@ end;
 
 
 
-Procedure TLabel.SetthreadsTotal(AIndex : Integer; const AValue : integer); 
+Procedure TLabel.SetthreadsTotal(AIndex : Integer; const AValue : integer);
 
 begin
   If (FthreadsTotal=AValue) then exit;
@@ -1296,7 +1296,7 @@ end;
 
 
 
-Procedure TLabel.SetthreadsUnread(AIndex : Integer; const AValue : integer); 
+Procedure TLabel.SetthreadsUnread(AIndex : Integer; const AValue : integer);
 
 begin
   If (FthreadsUnread=AValue) then exit;
@@ -1306,7 +1306,7 @@ end;
 
 
 
-Procedure TLabel.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TLabel.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1334,7 +1334,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDraftsResponse.Setdrafts(AIndex : Integer; const AValue : TListDraftsResponseTypedraftsArray); 
+Procedure TListDraftsResponse.Setdrafts(AIndex : Integer; const AValue : TListDraftsResponseTypedraftsArray);
 
 begin
   If (Fdrafts=AValue) then exit;
@@ -1344,7 +1344,7 @@ end;
 
 
 
-Procedure TListDraftsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListDraftsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1354,7 +1354,7 @@ end;
 
 
 
-Procedure TListDraftsResponse.SetresultSizeEstimate(AIndex : Integer; const AValue : integer); 
+Procedure TListDraftsResponse.SetresultSizeEstimate(AIndex : Integer; const AValue : integer);
 
 begin
   If (FresultSizeEstimate=AValue) then exit;
@@ -1365,7 +1365,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListDraftsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListDraftsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1384,7 +1384,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListHistoryResponse.Sethistory(AIndex : Integer; const AValue : TListHistoryResponseTypehistoryArray); 
+Procedure TListHistoryResponse.Sethistory(AIndex : Integer; const AValue : TListHistoryResponseTypehistoryArray);
 
 begin
   If (Fhistory=AValue) then exit;
@@ -1394,7 +1394,7 @@ end;
 
 
 
-Procedure TListHistoryResponse.SethistoryId(AIndex : Integer; const AValue : String); 
+Procedure TListHistoryResponse.SethistoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1404,7 +1404,7 @@ end;
 
 
 
-Procedure TListHistoryResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListHistoryResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1415,7 +1415,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListHistoryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListHistoryResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1434,7 +1434,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListLabelsResponse.Setlabels(AIndex : Integer; const AValue : TListLabelsResponseTypelabelsArray); 
+Procedure TListLabelsResponse.Setlabels(AIndex : Integer; const AValue : TListLabelsResponseTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1445,7 +1445,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListLabelsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListLabelsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1464,7 +1464,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMessagesResponse.Setmessages(AIndex : Integer; const AValue : TListMessagesResponseTypemessagesArray); 
+Procedure TListMessagesResponse.Setmessages(AIndex : Integer; const AValue : TListMessagesResponseTypemessagesArray);
 
 begin
   If (Fmessages=AValue) then exit;
@@ -1474,7 +1474,7 @@ end;
 
 
 
-Procedure TListMessagesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListMessagesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1484,7 +1484,7 @@ end;
 
 
 
-Procedure TListMessagesResponse.SetresultSizeEstimate(AIndex : Integer; const AValue : integer); 
+Procedure TListMessagesResponse.SetresultSizeEstimate(AIndex : Integer; const AValue : integer);
 
 begin
   If (FresultSizeEstimate=AValue) then exit;
@@ -1495,7 +1495,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListMessagesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListMessagesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1514,7 +1514,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListThreadsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListThreadsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1524,7 +1524,7 @@ end;
 
 
 
-Procedure TListThreadsResponse.SetresultSizeEstimate(AIndex : Integer; const AValue : integer); 
+Procedure TListThreadsResponse.SetresultSizeEstimate(AIndex : Integer; const AValue : integer);
 
 begin
   If (FresultSizeEstimate=AValue) then exit;
@@ -1534,7 +1534,7 @@ end;
 
 
 
-Procedure TListThreadsResponse.Setthreads(AIndex : Integer; const AValue : TListThreadsResponseTypethreadsArray); 
+Procedure TListThreadsResponse.Setthreads(AIndex : Integer; const AValue : TListThreadsResponseTypethreadsArray);
 
 begin
   If (Fthreads=AValue) then exit;
@@ -1545,7 +1545,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListThreadsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListThreadsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1564,7 +1564,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessage.SethistoryId(AIndex : Integer; const AValue : String); 
+Procedure TMessage.SethistoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1574,7 +1574,7 @@ end;
 
 
 
-Procedure TMessage.Setid(AIndex : Integer; const AValue : String); 
+Procedure TMessage.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1584,7 +1584,7 @@ end;
 
 
 
-Procedure TMessage.SetinternalDate(AIndex : Integer; const AValue : String); 
+Procedure TMessage.SetinternalDate(AIndex : Integer; const AValue : String);
 
 begin
   If (FinternalDate=AValue) then exit;
@@ -1594,7 +1594,7 @@ end;
 
 
 
-Procedure TMessage.SetlabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TMessage.SetlabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -1604,7 +1604,7 @@ end;
 
 
 
-Procedure TMessage.Setpayload(AIndex : Integer; const AValue : TMessagePart); 
+Procedure TMessage.Setpayload(AIndex : Integer; const AValue : TMessagePart);
 
 begin
   If (Fpayload=AValue) then exit;
@@ -1614,7 +1614,7 @@ end;
 
 
 
-Procedure TMessage.Setraw(AIndex : Integer; const AValue : String); 
+Procedure TMessage.Setraw(AIndex : Integer; const AValue : String);
 
 begin
   If (Fraw=AValue) then exit;
@@ -1624,7 +1624,7 @@ end;
 
 
 
-Procedure TMessage.SetsizeEstimate(AIndex : Integer; const AValue : integer); 
+Procedure TMessage.SetsizeEstimate(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsizeEstimate=AValue) then exit;
@@ -1634,7 +1634,7 @@ end;
 
 
 
-Procedure TMessage.Setsnippet(AIndex : Integer; const AValue : String); 
+Procedure TMessage.Setsnippet(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1644,7 +1644,7 @@ end;
 
 
 
-Procedure TMessage.SetthreadId(AIndex : Integer; const AValue : String); 
+Procedure TMessage.SetthreadId(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreadId=AValue) then exit;
@@ -1655,7 +1655,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMessage.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMessage.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1674,7 +1674,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePart.Setbody(AIndex : Integer; const AValue : TMessagePartBody); 
+Procedure TMessagePart.Setbody(AIndex : Integer; const AValue : TMessagePartBody);
 
 begin
   If (Fbody=AValue) then exit;
@@ -1684,7 +1684,7 @@ end;
 
 
 
-Procedure TMessagePart.Setfilename(AIndex : Integer; const AValue : String); 
+Procedure TMessagePart.Setfilename(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilename=AValue) then exit;
@@ -1694,7 +1694,7 @@ end;
 
 
 
-Procedure TMessagePart.Setheaders(AIndex : Integer; const AValue : TMessagePartTypeheadersArray); 
+Procedure TMessagePart.Setheaders(AIndex : Integer; const AValue : TMessagePartTypeheadersArray);
 
 begin
   If (Fheaders=AValue) then exit;
@@ -1704,7 +1704,7 @@ end;
 
 
 
-Procedure TMessagePart.SetmimeType(AIndex : Integer; const AValue : String); 
+Procedure TMessagePart.SetmimeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmimeType=AValue) then exit;
@@ -1714,7 +1714,7 @@ end;
 
 
 
-Procedure TMessagePart.SetpartId(AIndex : Integer; const AValue : String); 
+Procedure TMessagePart.SetpartId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpartId=AValue) then exit;
@@ -1724,7 +1724,7 @@ end;
 
 
 
-Procedure TMessagePart.Setparts(AIndex : Integer; const AValue : TMessagePartTypepartsArray); 
+Procedure TMessagePart.Setparts(AIndex : Integer; const AValue : TMessagePartTypepartsArray);
 
 begin
   If (Fparts=AValue) then exit;
@@ -1735,7 +1735,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMessagePart.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMessagePart.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1755,7 +1755,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePartBody.SetattachmentId(AIndex : Integer; const AValue : String); 
+Procedure TMessagePartBody.SetattachmentId(AIndex : Integer; const AValue : String);
 
 begin
   If (FattachmentId=AValue) then exit;
@@ -1765,7 +1765,7 @@ end;
 
 
 
-Procedure TMessagePartBody.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TMessagePartBody.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1775,7 +1775,7 @@ end;
 
 
 
-Procedure TMessagePartBody.Setsize(AIndex : Integer; const AValue : integer); 
+Procedure TMessagePartBody.Setsize(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fsize=AValue) then exit;
@@ -1792,7 +1792,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePartHeader.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMessagePartHeader.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1802,7 +1802,7 @@ end;
 
 
 
-Procedure TMessagePartHeader.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TMessagePartHeader.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1819,7 +1819,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyMessageRequest.SetaddLabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TModifyMessageRequest.SetaddLabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FaddLabelIds=AValue) then exit;
@@ -1829,7 +1829,7 @@ end;
 
 
 
-Procedure TModifyMessageRequest.SetremoveLabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TModifyMessageRequest.SetremoveLabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FremoveLabelIds=AValue) then exit;
@@ -1840,7 +1840,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TModifyMessageRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TModifyMessageRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1860,7 +1860,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyThreadRequest.SetaddLabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TModifyThreadRequest.SetaddLabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FaddLabelIds=AValue) then exit;
@@ -1870,7 +1870,7 @@ end;
 
 
 
-Procedure TModifyThreadRequest.SetremoveLabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TModifyThreadRequest.SetremoveLabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FremoveLabelIds=AValue) then exit;
@@ -1881,7 +1881,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TModifyThreadRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TModifyThreadRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1901,7 +1901,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfile.SetemailAddress(AIndex : Integer; const AValue : String); 
+Procedure TProfile.SetemailAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -1911,7 +1911,7 @@ end;
 
 
 
-Procedure TProfile.SethistoryId(AIndex : Integer; const AValue : String); 
+Procedure TProfile.SethistoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1921,7 +1921,7 @@ end;
 
 
 
-Procedure TProfile.SetmessagesTotal(AIndex : Integer; const AValue : integer); 
+Procedure TProfile.SetmessagesTotal(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmessagesTotal=AValue) then exit;
@@ -1931,7 +1931,7 @@ end;
 
 
 
-Procedure TProfile.SetthreadsTotal(AIndex : Integer; const AValue : integer); 
+Procedure TProfile.SetthreadsTotal(AIndex : Integer; const AValue : integer);
 
 begin
   If (FthreadsTotal=AValue) then exit;
@@ -1948,7 +1948,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThread.SethistoryId(AIndex : Integer; const AValue : String); 
+Procedure TThread.SethistoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1958,7 +1958,7 @@ end;
 
 
 
-Procedure TThread.Setid(AIndex : Integer; const AValue : String); 
+Procedure TThread.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1968,7 +1968,7 @@ end;
 
 
 
-Procedure TThread.Setmessages(AIndex : Integer; const AValue : TThreadTypemessagesArray); 
+Procedure TThread.Setmessages(AIndex : Integer; const AValue : TThreadTypemessagesArray);
 
 begin
   If (Fmessages=AValue) then exit;
@@ -1978,7 +1978,7 @@ end;
 
 
 
-Procedure TThread.Setsnippet(AIndex : Integer; const AValue : String); 
+Procedure TThread.Setsnippet(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1989,7 +1989,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TThread.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TThread.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2008,7 +2008,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWatchRequest.SetlabelFilterAction(AIndex : Integer; const AValue : String); 
+Procedure TWatchRequest.SetlabelFilterAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FlabelFilterAction=AValue) then exit;
@@ -2018,7 +2018,7 @@ end;
 
 
 
-Procedure TWatchRequest.SetlabelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TWatchRequest.SetlabelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FlabelIds=AValue) then exit;
@@ -2028,7 +2028,7 @@ end;
 
 
 
-Procedure TWatchRequest.SettopicName(AIndex : Integer; const AValue : String); 
+Procedure TWatchRequest.SettopicName(AIndex : Integer; const AValue : String);
 
 begin
   If (FtopicName=AValue) then exit;
@@ -2039,7 +2039,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TWatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TWatchRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2058,7 +2058,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWatchResponse.Setexpiration(AIndex : Integer; const AValue : String); 
+Procedure TWatchResponse.Setexpiration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -2068,7 +2068,7 @@ end;
 
 
 
-Procedure TWatchResponse.SethistoryId(AIndex : Integer; const AValue : String); 
+Procedure TWatchResponse.SethistoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -3127,7 +3127,7 @@ begin
   Result[5].Description:='View your emails messages and settings';
   Result[6].Name:='https://www.googleapis.com/auth/gmail.send';
   Result[6].Description:='Send email on your behalf';
-  
+
 end;
 
 Class Function TGmailAPI.APINeedsAuth : Boolean;

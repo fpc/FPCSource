@@ -27,8 +27,8 @@ following units:
 TGoogleClient - unit googleclient
 ---------------------------------
 
-This is a simple component that handles the transport and authorization, 
-it needs a TFPWebClient descendent (such as TFPHTTPWebClient) and a 
+This is a simple component that handles the transport and authorization,
+it needs a TFPWebClient descendent (such as TFPHTTPWebClient) and a
 TFPOauth2Handler descendent to communicate with Google servers.
 These 2 classes are part of fcl-web, a synapse-based TFPWebclient descendant is
 available separately.
@@ -36,9 +36,9 @@ available separately.
 TGoogleAPI - unit googleservice
 -------------------------------
 
-There is a descendent of this component for each Google service API, which 
-handles all calls to the service. It uses a TGoogleClient component to handle 
-actual communication. 
+There is a descendent of this component for each Google service API, which
+handles all calls to the service. It uses a TGoogleClient component to handle
+actual communication.
 
 This class contains a method called ServiceCall which is used by all
 resources in the API to execute service requests. It will use the client to
@@ -50,11 +50,11 @@ descends from the TGoogleAPI component.
 TGoogleResource - unit googleservice
 ------------------------------------
 
-For each resource exposed by the service, a descendent of this class is generated 
+For each resource exposed by the service, a descendent of this class is generated
 that has all the methods for that resource, as described in the REST service description.
 
-TGoogleResource uses an instance of the TGoogleAPI class to handle all calls to 
-the service. 
+TGoogleResource uses an instance of the TGoogleAPI class to handle all calls to
+the service.
 
 Each API unit google*.pp in this package contains one or more TGoogleResource
 descendents, used in the API of that unit.
@@ -62,7 +62,7 @@ descendents, used in the API of that unit.
 TGoogleBaseObject - unit googlebase
 -----------------------------------
 
-For each data type used in the API, a descendent of this class is used: it is a 
+For each data type used in the API, a descendent of this class is used: it is a
 descendent of TBaseObject (unit restbase, part of fcl-web) and handles
 loading from and saving to JSON.
 

@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAcl = Class;
   TAclRule = Class;
@@ -94,11 +94,11 @@ type
   TFreeBusyGroupTypeerrorsArray = Array of TError;
   TFreeBusyRequestTypeitemsArray = Array of TFreeBusyRequestItem;
   TSettingsTypeitemsArray = Array of TSetting;
-  
+
   { --------------------------------------------------------------------
     TAcl
     --------------------------------------------------------------------}
-  
+
   TAcl = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -126,11 +126,11 @@ type
     Property nextSyncToken : String Index 32 Read FnextSyncToken Write SetnextSyncToken;
   end;
   TAclClass = Class of TAcl;
-  
+
   { --------------------------------------------------------------------
     TAclRuleTypescope
     --------------------------------------------------------------------}
-  
+
   TAclRuleTypescope = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -146,11 +146,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TAclRuleTypescopeClass = Class of TAclRuleTypescope;
-  
+
   { --------------------------------------------------------------------
     TAclRule
     --------------------------------------------------------------------}
-  
+
   TAclRule = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -174,11 +174,11 @@ type
     Property scope : TAclRuleTypescope Index 32 Read Fscope Write Setscope;
   end;
   TAclRuleClass = Class of TAclRule;
-  
+
   { --------------------------------------------------------------------
     TCalendar
     --------------------------------------------------------------------}
-  
+
   TCalendar = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -208,11 +208,11 @@ type
     Property timeZone : String Index 48 Read FtimeZone Write SettimeZone;
   end;
   TCalendarClass = Class of TCalendar;
-  
+
   { --------------------------------------------------------------------
     TCalendarList
     --------------------------------------------------------------------}
-  
+
   TCalendarList = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -240,11 +240,11 @@ type
     Property nextSyncToken : String Index 32 Read FnextSyncToken Write SetnextSyncToken;
   end;
   TCalendarListClass = Class of TCalendarList;
-  
+
   { --------------------------------------------------------------------
     TCalendarListEntryTypenotificationSettings
     --------------------------------------------------------------------}
-  
+
   TCalendarListEntryTypenotificationSettings = Class(TGoogleBaseObject)
   Private
     Fnotifications : TCalendarListEntryTypenotificationSettingsTypenotificationsArray;
@@ -260,11 +260,11 @@ type
     Property notifications : TCalendarListEntryTypenotificationSettingsTypenotificationsArray Index 0 Read Fnotifications Write Setnotifications;
   end;
   TCalendarListEntryTypenotificationSettingsClass = Class of TCalendarListEntryTypenotificationSettings;
-  
+
   { --------------------------------------------------------------------
     TCalendarListEntry
     --------------------------------------------------------------------}
-  
+
   TCalendarListEntry = Class(TGoogleBaseObject)
   Private
     FaccessRole : String;
@@ -331,11 +331,11 @@ type
     Property timeZone : String Index 136 Read FtimeZone Write SettimeZone;
   end;
   TCalendarListEntryClass = Class of TCalendarListEntry;
-  
+
   { --------------------------------------------------------------------
     TCalendarNotification
     --------------------------------------------------------------------}
-  
+
   TCalendarNotification = Class(TGoogleBaseObject)
   Private
     Fmethod : String;
@@ -351,11 +351,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TCalendarNotificationClass = Class of TCalendarNotification;
-  
+
   { --------------------------------------------------------------------
     TChannelTypeparams
     --------------------------------------------------------------------}
-  
+
   TChannelTypeparams = Class(TGoogleBaseObject)
   Private
   Protected
@@ -365,11 +365,11 @@ type
   Published
   end;
   TChannelTypeparamsClass = Class of TChannelTypeparams;
-  
+
   { --------------------------------------------------------------------
     TChannel
     --------------------------------------------------------------------}
-  
+
   TChannel = Class(TGoogleBaseObject)
   Private
     Faddress : String;
@@ -409,11 +409,11 @@ type
     Property _type : String Index 72 Read F_type Write Set_type;
   end;
   TChannelClass = Class of TChannel;
-  
+
   { --------------------------------------------------------------------
     TColorDefinition
     --------------------------------------------------------------------}
-  
+
   TColorDefinition = Class(TGoogleBaseObject)
   Private
     Fbackground : String;
@@ -428,11 +428,11 @@ type
     Property foreground : String Index 8 Read Fforeground Write Setforeground;
   end;
   TColorDefinitionClass = Class of TColorDefinition;
-  
+
   { --------------------------------------------------------------------
     TColorsTypecalendar
     --------------------------------------------------------------------}
-  
+
   TColorsTypecalendar = Class(TGoogleBaseObject)
   Private
   Protected
@@ -442,11 +442,11 @@ type
   Published
   end;
   TColorsTypecalendarClass = Class of TColorsTypecalendar;
-  
+
   { --------------------------------------------------------------------
     TColorsTypeevent
     --------------------------------------------------------------------}
-  
+
   TColorsTypeevent = Class(TGoogleBaseObject)
   Private
   Protected
@@ -456,11 +456,11 @@ type
   Published
   end;
   TColorsTypeeventClass = Class of TColorsTypeevent;
-  
+
   { --------------------------------------------------------------------
     TColors
     --------------------------------------------------------------------}
-  
+
   TColors = Class(TGoogleBaseObject)
   Private
     Fcalendar : TColorsTypecalendar;
@@ -481,11 +481,11 @@ type
     Property updated : TDatetime Index 24 Read Fupdated Write Setupdated;
   end;
   TColorsClass = Class of TColors;
-  
+
   { --------------------------------------------------------------------
     TError
     --------------------------------------------------------------------}
-  
+
   TError = Class(TGoogleBaseObject)
   Private
     Fdomain : String;
@@ -500,11 +500,11 @@ type
     Property reason : String Index 8 Read Freason Write Setreason;
   end;
   TErrorClass = Class of TError;
-  
+
   { --------------------------------------------------------------------
     TEventTypecreator
     --------------------------------------------------------------------}
-  
+
   TEventTypecreator = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -526,11 +526,11 @@ type
     Property _self : boolean Index 24 Read F_self Write Set_self;
   end;
   TEventTypecreatorClass = Class of TEventTypecreator;
-  
+
   { --------------------------------------------------------------------
     TEventTypeextendedPropertiesTypeprivate
     --------------------------------------------------------------------}
-  
+
   TEventTypeextendedPropertiesTypeprivate = Class(TGoogleBaseObject)
   Private
   Protected
@@ -540,11 +540,11 @@ type
   Published
   end;
   TEventTypeextendedPropertiesTypeprivateClass = Class of TEventTypeextendedPropertiesTypeprivate;
-  
+
   { --------------------------------------------------------------------
     TEventTypeextendedPropertiesTypeshared
     --------------------------------------------------------------------}
-  
+
   TEventTypeextendedPropertiesTypeshared = Class(TGoogleBaseObject)
   Private
   Protected
@@ -554,11 +554,11 @@ type
   Published
   end;
   TEventTypeextendedPropertiesTypesharedClass = Class of TEventTypeextendedPropertiesTypeshared;
-  
+
   { --------------------------------------------------------------------
     TEventTypeextendedProperties
     --------------------------------------------------------------------}
-  
+
   TEventTypeextendedProperties = Class(TGoogleBaseObject)
   Private
     F_private : TEventTypeextendedPropertiesTypeprivate;
@@ -574,11 +574,11 @@ type
     Property shared : TEventTypeextendedPropertiesTypeshared Index 8 Read Fshared Write Setshared;
   end;
   TEventTypeextendedPropertiesClass = Class of TEventTypeextendedProperties;
-  
+
   { --------------------------------------------------------------------
     TEventTypegadgetTypepreferences
     --------------------------------------------------------------------}
-  
+
   TEventTypegadgetTypepreferences = Class(TGoogleBaseObject)
   Private
   Protected
@@ -588,11 +588,11 @@ type
   Published
   end;
   TEventTypegadgetTypepreferencesClass = Class of TEventTypegadgetTypepreferences;
-  
+
   { --------------------------------------------------------------------
     TEventTypegadget
     --------------------------------------------------------------------}
-  
+
   TEventTypegadget = Class(TGoogleBaseObject)
   Private
     Fdisplay : String;
@@ -626,11 +626,11 @@ type
     Property width : integer Index 56 Read Fwidth Write Setwidth;
   end;
   TEventTypegadgetClass = Class of TEventTypegadget;
-  
+
   { --------------------------------------------------------------------
     TEventTypeorganizer
     --------------------------------------------------------------------}
-  
+
   TEventTypeorganizer = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -652,11 +652,11 @@ type
     Property _self : boolean Index 24 Read F_self Write Set_self;
   end;
   TEventTypeorganizerClass = Class of TEventTypeorganizer;
-  
+
   { --------------------------------------------------------------------
     TEventTypereminders
     --------------------------------------------------------------------}
-  
+
   TEventTypereminders = Class(TGoogleBaseObject)
   Private
     Foverrides : TEventTyperemindersTypeoverridesArray;
@@ -675,11 +675,11 @@ type
     Property useDefault : boolean Index 8 Read FuseDefault Write SetuseDefault;
   end;
   TEventTyperemindersClass = Class of TEventTypereminders;
-  
+
   { --------------------------------------------------------------------
     TEventTypesource
     --------------------------------------------------------------------}
-  
+
   TEventTypesource = Class(TGoogleBaseObject)
   Private
     Ftitle : String;
@@ -694,11 +694,11 @@ type
     Property url : String Index 8 Read Furl Write Seturl;
   end;
   TEventTypesourceClass = Class of TEventTypesource;
-  
+
   { --------------------------------------------------------------------
     TEvent
     --------------------------------------------------------------------}
-  
+
   TEvent = Class(TGoogleBaseObject)
   Private
     FanyoneCanAddSelf : boolean;
@@ -823,11 +823,11 @@ type
     Property visibility : String Index 288 Read Fvisibility Write Setvisibility;
   end;
   TEventClass = Class of TEvent;
-  
+
   { --------------------------------------------------------------------
     TEventAttachment
     --------------------------------------------------------------------}
-  
+
   TEventAttachment = Class(TGoogleBaseObject)
   Private
     FfileId : String;
@@ -851,11 +851,11 @@ type
     Property title : String Index 32 Read Ftitle Write Settitle;
   end;
   TEventAttachmentClass = Class of TEventAttachment;
-  
+
   { --------------------------------------------------------------------
     TEventAttendee
     --------------------------------------------------------------------}
-  
+
   TEventAttendee = Class(TGoogleBaseObject)
   Private
     FadditionalGuests : integer;
@@ -895,11 +895,11 @@ type
     Property _self : boolean Index 72 Read F_self Write Set_self;
   end;
   TEventAttendeeClass = Class of TEventAttendee;
-  
+
   { --------------------------------------------------------------------
     TEventDateTime
     --------------------------------------------------------------------}
-  
+
   TEventDateTime = Class(TGoogleBaseObject)
   Private
     Fdate : TDate;
@@ -917,11 +917,11 @@ type
     Property timeZone : String Index 16 Read FtimeZone Write SettimeZone;
   end;
   TEventDateTimeClass = Class of TEventDateTime;
-  
+
   { --------------------------------------------------------------------
     TEventReminder
     --------------------------------------------------------------------}
-  
+
   TEventReminder = Class(TGoogleBaseObject)
   Private
     Fmethod : String;
@@ -936,11 +936,11 @@ type
     Property minutes : integer Index 8 Read Fminutes Write Setminutes;
   end;
   TEventReminderClass = Class of TEventReminder;
-  
+
   { --------------------------------------------------------------------
     TEvents
     --------------------------------------------------------------------}
-  
+
   TEvents = Class(TGoogleBaseObject)
   Private
     FaccessRole : String;
@@ -986,11 +986,11 @@ type
     Property updated : TDatetime Index 80 Read Fupdated Write Setupdated;
   end;
   TEventsClass = Class of TEvents;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyCalendar
     --------------------------------------------------------------------}
-  
+
   TFreeBusyCalendar = Class(TGoogleBaseObject)
   Private
     Fbusy : TFreeBusyCalendarTypebusyArray;
@@ -1009,11 +1009,11 @@ type
     Property errors : TFreeBusyCalendarTypeerrorsArray Index 8 Read Ferrors Write Seterrors;
   end;
   TFreeBusyCalendarClass = Class of TFreeBusyCalendar;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyGroup
     --------------------------------------------------------------------}
-  
+
   TFreeBusyGroup = Class(TGoogleBaseObject)
   Private
     Fcalendars : TStringArray;
@@ -1032,11 +1032,11 @@ type
     Property errors : TFreeBusyGroupTypeerrorsArray Index 8 Read Ferrors Write Seterrors;
   end;
   TFreeBusyGroupClass = Class of TFreeBusyGroup;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyRequest
     --------------------------------------------------------------------}
-  
+
   TFreeBusyRequest = Class(TGoogleBaseObject)
   Private
     FcalendarExpansionMax : integer;
@@ -1067,11 +1067,11 @@ type
     Property timeZone : String Index 40 Read FtimeZone Write SettimeZone;
   end;
   TFreeBusyRequestClass = Class of TFreeBusyRequest;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyRequestItem
     --------------------------------------------------------------------}
-  
+
   TFreeBusyRequestItem = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1083,11 +1083,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TFreeBusyRequestItemClass = Class of TFreeBusyRequestItem;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyResponseTypecalendars
     --------------------------------------------------------------------}
-  
+
   TFreeBusyResponseTypecalendars = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1097,11 +1097,11 @@ type
   Published
   end;
   TFreeBusyResponseTypecalendarsClass = Class of TFreeBusyResponseTypecalendars;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyResponseTypegroups
     --------------------------------------------------------------------}
-  
+
   TFreeBusyResponseTypegroups = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1111,11 +1111,11 @@ type
   Published
   end;
   TFreeBusyResponseTypegroupsClass = Class of TFreeBusyResponseTypegroups;
-  
+
   { --------------------------------------------------------------------
     TFreeBusyResponse
     --------------------------------------------------------------------}
-  
+
   TFreeBusyResponse = Class(TGoogleBaseObject)
   Private
     Fcalendars : TFreeBusyResponseTypecalendars;
@@ -1139,11 +1139,11 @@ type
     Property timeMin : TDatetime Index 32 Read FtimeMin Write SettimeMin;
   end;
   TFreeBusyResponseClass = Class of TFreeBusyResponse;
-  
+
   { --------------------------------------------------------------------
     TSetting
     --------------------------------------------------------------------}
-  
+
   TSetting = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -1164,11 +1164,11 @@ type
     Property value : String Index 24 Read Fvalue Write Setvalue;
   end;
   TSettingClass = Class of TSetting;
-  
+
   { --------------------------------------------------------------------
     TSettings
     --------------------------------------------------------------------}
-  
+
   TSettings = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -1196,11 +1196,11 @@ type
     Property nextSyncToken : String Index 32 Read FnextSyncToken Write SetnextSyncToken;
   end;
   TSettingsClass = Class of TSettings;
-  
+
   { --------------------------------------------------------------------
     TTimePeriod
     --------------------------------------------------------------------}
-  
+
   TTimePeriod = Class(TGoogleBaseObject)
   Private
     F_end : TDatetime;
@@ -1216,31 +1216,31 @@ type
     Property start : TDatetime Index 8 Read Fstart Write Setstart;
   end;
   TTimePeriodClass = Class of TTimePeriod;
-  
+
   { --------------------------------------------------------------------
     TAclResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAclResource, method List
-  
+
   TAclListOptions = Record
     maxResults : integer;
     pageToken : String;
     showDeleted : boolean;
     syncToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TAclResource, method Watch
-  
+
   TAclWatchOptions = Record
     maxResults : integer;
     pageToken : String;
     showDeleted : boolean;
     syncToken : String;
   end;
-  
+
   TAclResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1255,22 +1255,22 @@ type
     Function Watch(calendarId: string; aChannel : TChannel; AQuery : string  = '') : TChannel;
     Function Watch(calendarId: string; aChannel : TChannel; AQuery : TAclwatchOptions) : TChannel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCalendarListResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCalendarListResource, method Insert
-  
+
   TCalendarListInsertOptions = Record
     colorRgbFormat : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TCalendarListResource, method List
-  
+
   TCalendarListListOptions = Record
     maxResults : integer;
     minAccessRole : String;
@@ -1279,24 +1279,24 @@ type
     showHidden : boolean;
     syncToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TCalendarListResource, method Patch
-  
+
   TCalendarListPatchOptions = Record
     colorRgbFormat : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TCalendarListResource, method Update
-  
+
   TCalendarListUpdateOptions = Record
     colorRgbFormat : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TCalendarListResource, method Watch
-  
+
   TCalendarListWatchOptions = Record
     maxResults : integer;
     minAccessRole : String;
@@ -1305,7 +1305,7 @@ type
     showHidden : boolean;
     syncToken : String;
   end;
-  
+
   TCalendarListResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1323,12 +1323,12 @@ type
     Function Watch(aChannel : TChannel; AQuery : string  = '') : TChannel;
     Function Watch(aChannel : TChannel; AQuery : TCalendarListwatchOptions) : TChannel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCalendarsResource
     --------------------------------------------------------------------}
-  
+
   TCalendarsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1340,71 +1340,71 @@ type
     Function Patch(calendarId: string; aCalendar : TCalendar) : TCalendar;
     Function Update(calendarId: string; aCalendar : TCalendar) : TCalendar;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TChannelsResource
     --------------------------------------------------------------------}
-  
+
   TChannelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Procedure Stop(aChannel : TChannel);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TColorsResource
     --------------------------------------------------------------------}
-  
+
   TColorsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get : TColors;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TEventsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TEventsResource, method Delete
-  
+
   TEventsDeleteOptions = Record
     sendNotifications : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Get
-  
+
   TEventsGetOptions = Record
     alwaysIncludeEmail : boolean;
     maxAttendees : integer;
     timeZone : String;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Import
-  
+
   TEventsImportOptions = Record
     supportsAttachments : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Insert
-  
+
   TEventsInsertOptions = Record
     maxAttendees : integer;
     sendNotifications : boolean;
     supportsAttachments : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Instances
-  
+
   TEventsInstancesOptions = Record
     alwaysIncludeEmail : boolean;
     maxAttendees : integer;
@@ -1416,10 +1416,10 @@ type
     timeMin : TDatetime;
     timeZone : String;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method List
-  
+
   TEventsListOptions = Record
     alwaysIncludeEmail : boolean;
     iCalUID : String;
@@ -1439,46 +1439,46 @@ type
     timeZone : String;
     updatedMin : TDatetime;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Move
-  
+
   TEventsMoveOptions = Record
     destination : String;
     sendNotifications : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Patch
-  
+
   TEventsPatchOptions = Record
     alwaysIncludeEmail : boolean;
     maxAttendees : integer;
     sendNotifications : boolean;
     supportsAttachments : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method QuickAdd
-  
+
   TEventsQuickAddOptions = Record
     sendNotifications : boolean;
     text : String;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Update
-  
+
   TEventsUpdateOptions = Record
     alwaysIncludeEmail : boolean;
     maxAttendees : integer;
     sendNotifications : boolean;
     supportsAttachments : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Watch
-  
+
   TEventsWatchOptions = Record
     alwaysIncludeEmail : boolean;
     iCalUID : String;
@@ -1498,7 +1498,7 @@ type
     timeZone : String;
     updatedMin : TDatetime;
   end;
-  
+
   TEventsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1526,42 +1526,42 @@ type
     Function Watch(calendarId: string; aChannel : TChannel; AQuery : string  = '') : TChannel;
     Function Watch(calendarId: string; aChannel : TChannel; AQuery : TEventswatchOptions) : TChannel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TFreebusyResource
     --------------------------------------------------------------------}
-  
+
   TFreebusyResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Query(aFreeBusyRequest : TFreeBusyRequest) : TFreeBusyResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSettingsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TSettingsResource, method List
-  
+
   TSettingsListOptions = Record
     maxResults : integer;
     pageToken : String;
     syncToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TSettingsResource, method Watch
-  
+
   TSettingsWatchOptions = Record
     maxResults : integer;
     pageToken : String;
     syncToken : String;
   end;
-  
+
   TSettingsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1572,12 +1572,12 @@ type
     Function Watch(aChannel : TChannel; AQuery : string  = '') : TChannel;
     Function Watch(aChannel : TChannel; AQuery : TSettingswatchOptions) : TChannel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCalendarAPI
     --------------------------------------------------------------------}
-  
+
   TCalendarAPI = Class(TGoogleAPI)
   Private
     FAclInstance : TAclResource;
@@ -1654,7 +1654,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAcl.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAcl.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1664,7 +1664,7 @@ end;
 
 
 
-Procedure TAcl.Setitems(AIndex : Integer; const AValue : TAclTypeitemsArray); 
+Procedure TAcl.Setitems(AIndex : Integer; const AValue : TAclTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1674,7 +1674,7 @@ end;
 
 
 
-Procedure TAcl.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAcl.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1684,7 +1684,7 @@ end;
 
 
 
-Procedure TAcl.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAcl.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1694,7 +1694,7 @@ end;
 
 
 
-Procedure TAcl.SetnextSyncToken(AIndex : Integer; const AValue : String); 
+Procedure TAcl.SetnextSyncToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -1705,7 +1705,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAcl.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAcl.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1724,7 +1724,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAclRuleTypescope.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAclRuleTypescope.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1734,7 +1734,7 @@ end;
 
 
 
-Procedure TAclRuleTypescope.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TAclRuleTypescope.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1762,7 +1762,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAclRule.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAclRule.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1772,7 +1772,7 @@ end;
 
 
 
-Procedure TAclRule.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAclRule.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1782,7 +1782,7 @@ end;
 
 
 
-Procedure TAclRule.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAclRule.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1792,7 +1792,7 @@ end;
 
 
 
-Procedure TAclRule.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TAclRule.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -1802,7 +1802,7 @@ end;
 
 
 
-Procedure TAclRule.Setscope(AIndex : Integer; const AValue : TAclRuleTypescope); 
+Procedure TAclRule.Setscope(AIndex : Integer; const AValue : TAclRuleTypescope);
 
 begin
   If (Fscope=AValue) then exit;
@@ -1819,7 +1819,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendar.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1829,7 +1829,7 @@ end;
 
 
 
-Procedure TCalendar.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1839,7 +1839,7 @@ end;
 
 
 
-Procedure TCalendar.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1849,7 +1849,7 @@ end;
 
 
 
-Procedure TCalendar.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1859,7 +1859,7 @@ end;
 
 
 
-Procedure TCalendar.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1869,7 +1869,7 @@ end;
 
 
 
-Procedure TCalendar.Setsummary(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.Setsummary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsummary=AValue) then exit;
@@ -1879,7 +1879,7 @@ end;
 
 
 
-Procedure TCalendar.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TCalendar.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -1896,7 +1896,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarList.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TCalendarList.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1906,7 +1906,7 @@ end;
 
 
 
-Procedure TCalendarList.Setitems(AIndex : Integer; const AValue : TCalendarListTypeitemsArray); 
+Procedure TCalendarList.Setitems(AIndex : Integer; const AValue : TCalendarListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1916,7 +1916,7 @@ end;
 
 
 
-Procedure TCalendarList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCalendarList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1926,7 +1926,7 @@ end;
 
 
 
-Procedure TCalendarList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCalendarList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1936,7 +1936,7 @@ end;
 
 
 
-Procedure TCalendarList.SetnextSyncToken(AIndex : Integer; const AValue : String); 
+Procedure TCalendarList.SetnextSyncToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -1947,7 +1947,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCalendarList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCalendarList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1966,7 +1966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarListEntryTypenotificationSettings.Setnotifications(AIndex : Integer; const AValue : TCalendarListEntryTypenotificationSettingsTypenotificationsArray); 
+Procedure TCalendarListEntryTypenotificationSettings.Setnotifications(AIndex : Integer; const AValue : TCalendarListEntryTypenotificationSettingsTypenotificationsArray);
 
 begin
   If (Fnotifications=AValue) then exit;
@@ -1977,7 +1977,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCalendarListEntryTypenotificationSettings.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCalendarListEntryTypenotificationSettings.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1996,7 +1996,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarListEntry.SetaccessRole(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.SetaccessRole(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccessRole=AValue) then exit;
@@ -2006,7 +2006,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetbackgroundColor(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.SetbackgroundColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FbackgroundColor=AValue) then exit;
@@ -2016,7 +2016,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetcolorId(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.SetcolorId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcolorId=AValue) then exit;
@@ -2026,7 +2026,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetdefaultReminders(AIndex : Integer; const AValue : TCalendarListEntryTypedefaultRemindersArray); 
+Procedure TCalendarListEntry.SetdefaultReminders(AIndex : Integer; const AValue : TCalendarListEntryTypedefaultRemindersArray);
 
 begin
   If (FdefaultReminders=AValue) then exit;
@@ -2036,7 +2036,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setdeleted(AIndex : Integer; const AValue : boolean); 
+Procedure TCalendarListEntry.Setdeleted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -2046,7 +2046,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2056,7 +2056,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2066,7 +2066,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetforegroundColor(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.SetforegroundColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FforegroundColor=AValue) then exit;
@@ -2076,7 +2076,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Sethidden(AIndex : Integer; const AValue : boolean); 
+Procedure TCalendarListEntry.Sethidden(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fhidden=AValue) then exit;
@@ -2086,7 +2086,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2096,7 +2096,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2106,7 +2106,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -2116,7 +2116,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetnotificationSettings(AIndex : Integer; const AValue : TCalendarListEntryTypenotificationSettings); 
+Procedure TCalendarListEntry.SetnotificationSettings(AIndex : Integer; const AValue : TCalendarListEntryTypenotificationSettings);
 
 begin
   If (FnotificationSettings=AValue) then exit;
@@ -2126,7 +2126,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setprimary(AIndex : Integer; const AValue : boolean); 
+Procedure TCalendarListEntry.Setprimary(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fprimary=AValue) then exit;
@@ -2136,7 +2136,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setselected(AIndex : Integer; const AValue : boolean); 
+Procedure TCalendarListEntry.Setselected(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fselected=AValue) then exit;
@@ -2146,7 +2146,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setsummary(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.Setsummary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsummary=AValue) then exit;
@@ -2156,7 +2156,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetsummaryOverride(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.SetsummaryOverride(AIndex : Integer; const AValue : String);
 
 begin
   If (FsummaryOverride=AValue) then exit;
@@ -2166,7 +2166,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TCalendarListEntry.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -2177,7 +2177,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCalendarListEntry.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCalendarListEntry.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2196,7 +2196,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarNotification.Setmethod(AIndex : Integer; const AValue : String); 
+Procedure TCalendarNotification.Setmethod(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -2206,7 +2206,7 @@ end;
 
 
 
-Procedure TCalendarNotification.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCalendarNotification.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2247,7 +2247,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String);
 
 begin
   If (Faddress=AValue) then exit;
@@ -2257,7 +2257,7 @@ end;
 
 
 
-Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -2267,7 +2267,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2277,7 +2277,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2287,7 +2287,7 @@ end;
 
 
 
-Procedure TChannel.Setparams(AIndex : Integer; const AValue : TChannelTypeparams); 
+Procedure TChannel.Setparams(AIndex : Integer; const AValue : TChannelTypeparams);
 
 begin
   If (Fparams=AValue) then exit;
@@ -2297,7 +2297,7 @@ end;
 
 
 
-Procedure TChannel.Setpayload(AIndex : Integer; const AValue : boolean); 
+Procedure TChannel.Setpayload(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fpayload=AValue) then exit;
@@ -2307,7 +2307,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String); 
+Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceId=AValue) then exit;
@@ -2317,7 +2317,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String); 
+Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceUri=AValue) then exit;
@@ -2327,7 +2327,7 @@ end;
 
 
 
-Procedure TChannel.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2337,7 +2337,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2365,7 +2365,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColorDefinition.Setbackground(AIndex : Integer; const AValue : String); 
+Procedure TColorDefinition.Setbackground(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbackground=AValue) then exit;
@@ -2375,7 +2375,7 @@ end;
 
 
 
-Procedure TColorDefinition.Setforeground(AIndex : Integer; const AValue : String); 
+Procedure TColorDefinition.Setforeground(AIndex : Integer; const AValue : String);
 
 begin
   If (Fforeground=AValue) then exit;
@@ -2418,7 +2418,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColors.Setcalendar(AIndex : Integer; const AValue : TColorsTypecalendar); 
+Procedure TColors.Setcalendar(AIndex : Integer; const AValue : TColorsTypecalendar);
 
 begin
   If (Fcalendar=AValue) then exit;
@@ -2428,7 +2428,7 @@ end;
 
 
 
-Procedure TColors.Setevent(AIndex : Integer; const AValue : TColorsTypeevent); 
+Procedure TColors.Setevent(AIndex : Integer; const AValue : TColorsTypeevent);
 
 begin
   If (Fevent=AValue) then exit;
@@ -2438,7 +2438,7 @@ end;
 
 
 
-Procedure TColors.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TColors.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2448,7 +2448,7 @@ end;
 
 
 
-Procedure TColors.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TColors.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2465,7 +2465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TError.Setdomain(AIndex : Integer; const AValue : String); 
+Procedure TError.Setdomain(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -2475,7 +2475,7 @@ end;
 
 
 
-Procedure TError.Setreason(AIndex : Integer; const AValue : String); 
+Procedure TError.Setreason(AIndex : Integer; const AValue : String);
 
 begin
   If (Freason=AValue) then exit;
@@ -2492,7 +2492,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypecreator.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TEventTypecreator.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2502,7 +2502,7 @@ end;
 
 
 
-Procedure TEventTypecreator.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TEventTypecreator.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2512,7 +2512,7 @@ end;
 
 
 
-Procedure TEventTypecreator.Setid(AIndex : Integer; const AValue : String); 
+Procedure TEventTypecreator.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2522,7 +2522,7 @@ end;
 
 
 
-Procedure TEventTypecreator.Set_self(AIndex : Integer; const AValue : boolean); 
+Procedure TEventTypecreator.Set_self(AIndex : Integer; const AValue : boolean);
 
 begin
   If (F_self=AValue) then exit;
@@ -2576,7 +2576,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypeextendedProperties.Set_private(AIndex : Integer; const AValue : TEventTypeextendedPropertiesTypeprivate); 
+Procedure TEventTypeextendedProperties.Set_private(AIndex : Integer; const AValue : TEventTypeextendedPropertiesTypeprivate);
 
 begin
   If (F_private=AValue) then exit;
@@ -2586,7 +2586,7 @@ end;
 
 
 
-Procedure TEventTypeextendedProperties.Setshared(AIndex : Integer; const AValue : TEventTypeextendedPropertiesTypeshared); 
+Procedure TEventTypeextendedProperties.Setshared(AIndex : Integer; const AValue : TEventTypeextendedPropertiesTypeshared);
 
 begin
   If (Fshared=AValue) then exit;
@@ -2627,7 +2627,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypegadget.Setdisplay(AIndex : Integer; const AValue : String); 
+Procedure TEventTypegadget.Setdisplay(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdisplay=AValue) then exit;
@@ -2637,7 +2637,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TEventTypegadget.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -2647,7 +2647,7 @@ end;
 
 
 
-Procedure TEventTypegadget.SeticonLink(AIndex : Integer; const AValue : String); 
+Procedure TEventTypegadget.SeticonLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconLink=AValue) then exit;
@@ -2657,7 +2657,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Setlink(AIndex : Integer; const AValue : String); 
+Procedure TEventTypegadget.Setlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Flink=AValue) then exit;
@@ -2667,7 +2667,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Setpreferences(AIndex : Integer; const AValue : TEventTypegadgetTypepreferences); 
+Procedure TEventTypegadget.Setpreferences(AIndex : Integer; const AValue : TEventTypegadgetTypepreferences);
 
 begin
   If (Fpreferences=AValue) then exit;
@@ -2677,7 +2677,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TEventTypegadget.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2687,7 +2687,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TEventTypegadget.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2697,7 +2697,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TEventTypegadget.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -2725,7 +2725,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypeorganizer.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeorganizer.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2735,7 +2735,7 @@ end;
 
 
 
-Procedure TEventTypeorganizer.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeorganizer.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2745,7 +2745,7 @@ end;
 
 
 
-Procedure TEventTypeorganizer.Setid(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeorganizer.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2755,7 +2755,7 @@ end;
 
 
 
-Procedure TEventTypeorganizer.Set_self(AIndex : Integer; const AValue : boolean); 
+Procedure TEventTypeorganizer.Set_self(AIndex : Integer; const AValue : boolean);
 
 begin
   If (F_self=AValue) then exit;
@@ -2783,7 +2783,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypereminders.Setoverrides(AIndex : Integer; const AValue : TEventTyperemindersTypeoverridesArray); 
+Procedure TEventTypereminders.Setoverrides(AIndex : Integer; const AValue : TEventTyperemindersTypeoverridesArray);
 
 begin
   If (Foverrides=AValue) then exit;
@@ -2793,7 +2793,7 @@ end;
 
 
 
-Procedure TEventTypereminders.SetuseDefault(AIndex : Integer; const AValue : boolean); 
+Procedure TEventTypereminders.SetuseDefault(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FuseDefault=AValue) then exit;
@@ -2804,7 +2804,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventTypereminders.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventTypereminders.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2823,7 +2823,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypesource.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TEventTypesource.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2833,7 +2833,7 @@ end;
 
 
 
-Procedure TEventTypesource.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TEventTypesource.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2850,7 +2850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvent.SetanyoneCanAddSelf(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetanyoneCanAddSelf(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FanyoneCanAddSelf=AValue) then exit;
@@ -2860,7 +2860,7 @@ end;
 
 
 
-Procedure TEvent.Setattachments(AIndex : Integer; const AValue : TEventTypeattachmentsArray); 
+Procedure TEvent.Setattachments(AIndex : Integer; const AValue : TEventTypeattachmentsArray);
 
 begin
   If (Fattachments=AValue) then exit;
@@ -2870,7 +2870,7 @@ end;
 
 
 
-Procedure TEvent.Setattendees(AIndex : Integer; const AValue : TEventTypeattendeesArray); 
+Procedure TEvent.Setattendees(AIndex : Integer; const AValue : TEventTypeattendeesArray);
 
 begin
   If (Fattendees=AValue) then exit;
@@ -2880,7 +2880,7 @@ end;
 
 
 
-Procedure TEvent.SetattendeesOmitted(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetattendeesOmitted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FattendeesOmitted=AValue) then exit;
@@ -2890,7 +2890,7 @@ end;
 
 
 
-Procedure TEvent.SetcolorId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetcolorId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcolorId=AValue) then exit;
@@ -2900,7 +2900,7 @@ end;
 
 
 
-Procedure TEvent.Setcreated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TEvent.Setcreated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fcreated=AValue) then exit;
@@ -2910,7 +2910,7 @@ end;
 
 
 
-Procedure TEvent.Setcreator(AIndex : Integer; const AValue : TEventTypecreator); 
+Procedure TEvent.Setcreator(AIndex : Integer; const AValue : TEventTypecreator);
 
 begin
   If (Fcreator=AValue) then exit;
@@ -2920,7 +2920,7 @@ end;
 
 
 
-Procedure TEvent.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2930,7 +2930,7 @@ end;
 
 
 
-Procedure TEvent.Set_end(AIndex : Integer; const AValue : TEventDateTime); 
+Procedure TEvent.Set_end(AIndex : Integer; const AValue : TEventDateTime);
 
 begin
   If (F_end=AValue) then exit;
@@ -2940,7 +2940,7 @@ end;
 
 
 
-Procedure TEvent.SetendTimeUnspecified(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetendTimeUnspecified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FendTimeUnspecified=AValue) then exit;
@@ -2950,7 +2950,7 @@ end;
 
 
 
-Procedure TEvent.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2960,7 +2960,7 @@ end;
 
 
 
-Procedure TEvent.SetextendedProperties(AIndex : Integer; const AValue : TEventTypeextendedProperties); 
+Procedure TEvent.SetextendedProperties(AIndex : Integer; const AValue : TEventTypeextendedProperties);
 
 begin
   If (FextendedProperties=AValue) then exit;
@@ -2970,7 +2970,7 @@ end;
 
 
 
-Procedure TEvent.Setgadget(AIndex : Integer; const AValue : TEventTypegadget); 
+Procedure TEvent.Setgadget(AIndex : Integer; const AValue : TEventTypegadget);
 
 begin
   If (Fgadget=AValue) then exit;
@@ -2980,7 +2980,7 @@ end;
 
 
 
-Procedure TEvent.SetguestsCanInviteOthers(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetguestsCanInviteOthers(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FguestsCanInviteOthers=AValue) then exit;
@@ -2990,7 +2990,7 @@ end;
 
 
 
-Procedure TEvent.SetguestsCanModify(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetguestsCanModify(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FguestsCanModify=AValue) then exit;
@@ -3000,7 +3000,7 @@ end;
 
 
 
-Procedure TEvent.SetguestsCanSeeOtherGuests(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetguestsCanSeeOtherGuests(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FguestsCanSeeOtherGuests=AValue) then exit;
@@ -3010,7 +3010,7 @@ end;
 
 
 
-Procedure TEvent.SethangoutLink(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SethangoutLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FhangoutLink=AValue) then exit;
@@ -3020,7 +3020,7 @@ end;
 
 
 
-Procedure TEvent.SethtmlLink(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SethtmlLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlLink=AValue) then exit;
@@ -3030,7 +3030,7 @@ end;
 
 
 
-Procedure TEvent.SetiCalUID(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetiCalUID(AIndex : Integer; const AValue : String);
 
 begin
   If (FiCalUID=AValue) then exit;
@@ -3040,7 +3040,7 @@ end;
 
 
 
-Procedure TEvent.Setid(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3050,7 +3050,7 @@ end;
 
 
 
-Procedure TEvent.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3060,7 +3060,7 @@ end;
 
 
 
-Procedure TEvent.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -3070,7 +3070,7 @@ end;
 
 
 
-Procedure TEvent.Setlocked(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.Setlocked(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Flocked=AValue) then exit;
@@ -3080,7 +3080,7 @@ end;
 
 
 
-Procedure TEvent.Setorganizer(AIndex : Integer; const AValue : TEventTypeorganizer); 
+Procedure TEvent.Setorganizer(AIndex : Integer; const AValue : TEventTypeorganizer);
 
 begin
   If (Forganizer=AValue) then exit;
@@ -3090,7 +3090,7 @@ end;
 
 
 
-Procedure TEvent.SetoriginalStartTime(AIndex : Integer; const AValue : TEventDateTime); 
+Procedure TEvent.SetoriginalStartTime(AIndex : Integer; const AValue : TEventDateTime);
 
 begin
   If (ForiginalStartTime=AValue) then exit;
@@ -3100,7 +3100,7 @@ end;
 
 
 
-Procedure TEvent.SetprivateCopy(AIndex : Integer; const AValue : boolean); 
+Procedure TEvent.SetprivateCopy(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FprivateCopy=AValue) then exit;
@@ -3110,7 +3110,7 @@ end;
 
 
 
-Procedure TEvent.Setrecurrence(AIndex : Integer; const AValue : TStringArray); 
+Procedure TEvent.Setrecurrence(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Frecurrence=AValue) then exit;
@@ -3120,7 +3120,7 @@ end;
 
 
 
-Procedure TEvent.SetrecurringEventId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetrecurringEventId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrecurringEventId=AValue) then exit;
@@ -3130,7 +3130,7 @@ end;
 
 
 
-Procedure TEvent.Setreminders(AIndex : Integer; const AValue : TEventTypereminders); 
+Procedure TEvent.Setreminders(AIndex : Integer; const AValue : TEventTypereminders);
 
 begin
   If (Freminders=AValue) then exit;
@@ -3140,7 +3140,7 @@ end;
 
 
 
-Procedure TEvent.Setsequence(AIndex : Integer; const AValue : integer); 
+Procedure TEvent.Setsequence(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fsequence=AValue) then exit;
@@ -3150,7 +3150,7 @@ end;
 
 
 
-Procedure TEvent.Setsource(AIndex : Integer; const AValue : TEventTypesource); 
+Procedure TEvent.Setsource(AIndex : Integer; const AValue : TEventTypesource);
 
 begin
   If (Fsource=AValue) then exit;
@@ -3160,7 +3160,7 @@ end;
 
 
 
-Procedure TEvent.Setstart(AIndex : Integer; const AValue : TEventDateTime); 
+Procedure TEvent.Setstart(AIndex : Integer; const AValue : TEventDateTime);
 
 begin
   If (Fstart=AValue) then exit;
@@ -3170,7 +3170,7 @@ end;
 
 
 
-Procedure TEvent.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3180,7 +3180,7 @@ end;
 
 
 
-Procedure TEvent.Setsummary(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setsummary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsummary=AValue) then exit;
@@ -3190,7 +3190,7 @@ end;
 
 
 
-Procedure TEvent.Settransparency(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Settransparency(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftransparency=AValue) then exit;
@@ -3200,7 +3200,7 @@ end;
 
 
 
-Procedure TEvent.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TEvent.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -3210,7 +3210,7 @@ end;
 
 
 
-Procedure TEvent.Setvisibility(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setvisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -3232,7 +3232,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3253,7 +3253,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventAttachment.SetfileId(AIndex : Integer; const AValue : String); 
+Procedure TEventAttachment.SetfileId(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileId=AValue) then exit;
@@ -3263,7 +3263,7 @@ end;
 
 
 
-Procedure TEventAttachment.SetfileUrl(AIndex : Integer; const AValue : String); 
+Procedure TEventAttachment.SetfileUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileUrl=AValue) then exit;
@@ -3273,7 +3273,7 @@ end;
 
 
 
-Procedure TEventAttachment.SeticonLink(AIndex : Integer; const AValue : String); 
+Procedure TEventAttachment.SeticonLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconLink=AValue) then exit;
@@ -3283,7 +3283,7 @@ end;
 
 
 
-Procedure TEventAttachment.SetmimeType(AIndex : Integer; const AValue : String); 
+Procedure TEventAttachment.SetmimeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmimeType=AValue) then exit;
@@ -3293,7 +3293,7 @@ end;
 
 
 
-Procedure TEventAttachment.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TEventAttachment.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -3310,7 +3310,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventAttendee.SetadditionalGuests(AIndex : Integer; const AValue : integer); 
+Procedure TEventAttendee.SetadditionalGuests(AIndex : Integer; const AValue : integer);
 
 begin
   If (FadditionalGuests=AValue) then exit;
@@ -3320,7 +3320,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setcomment(AIndex : Integer; const AValue : String); 
+Procedure TEventAttendee.Setcomment(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcomment=AValue) then exit;
@@ -3330,7 +3330,7 @@ end;
 
 
 
-Procedure TEventAttendee.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TEventAttendee.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3340,7 +3340,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TEventAttendee.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3350,7 +3350,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setid(AIndex : Integer; const AValue : String); 
+Procedure TEventAttendee.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3360,7 +3360,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setoptional(AIndex : Integer; const AValue : boolean); 
+Procedure TEventAttendee.Setoptional(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Foptional=AValue) then exit;
@@ -3370,7 +3370,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setorganizer(AIndex : Integer; const AValue : boolean); 
+Procedure TEventAttendee.Setorganizer(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Forganizer=AValue) then exit;
@@ -3380,7 +3380,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setresource(AIndex : Integer; const AValue : boolean); 
+Procedure TEventAttendee.Setresource(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fresource=AValue) then exit;
@@ -3390,7 +3390,7 @@ end;
 
 
 
-Procedure TEventAttendee.SetresponseStatus(AIndex : Integer; const AValue : String); 
+Procedure TEventAttendee.SetresponseStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FresponseStatus=AValue) then exit;
@@ -3400,7 +3400,7 @@ end;
 
 
 
-Procedure TEventAttendee.Set_self(AIndex : Integer; const AValue : boolean); 
+Procedure TEventAttendee.Set_self(AIndex : Integer; const AValue : boolean);
 
 begin
   If (F_self=AValue) then exit;
@@ -3428,7 +3428,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventDateTime.Setdate(AIndex : Integer; const AValue : TDate); 
+Procedure TEventDateTime.Setdate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (Fdate=AValue) then exit;
@@ -3438,7 +3438,7 @@ end;
 
 
 
-Procedure TEventDateTime.SetdateTime(AIndex : Integer; const AValue : TDatetime); 
+Procedure TEventDateTime.SetdateTime(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FdateTime=AValue) then exit;
@@ -3448,7 +3448,7 @@ end;
 
 
 
-Procedure TEventDateTime.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TEventDateTime.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3465,7 +3465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventReminder.Setmethod(AIndex : Integer; const AValue : String); 
+Procedure TEventReminder.Setmethod(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -3475,7 +3475,7 @@ end;
 
 
 
-Procedure TEventReminder.Setminutes(AIndex : Integer; const AValue : integer); 
+Procedure TEventReminder.Setminutes(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fminutes=AValue) then exit;
@@ -3492,7 +3492,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvents.SetaccessRole(AIndex : Integer; const AValue : String); 
+Procedure TEvents.SetaccessRole(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccessRole=AValue) then exit;
@@ -3502,7 +3502,7 @@ end;
 
 
 
-Procedure TEvents.SetdefaultReminders(AIndex : Integer; const AValue : TEventsTypedefaultRemindersArray); 
+Procedure TEvents.SetdefaultReminders(AIndex : Integer; const AValue : TEventsTypedefaultRemindersArray);
 
 begin
   If (FdefaultReminders=AValue) then exit;
@@ -3512,7 +3512,7 @@ end;
 
 
 
-Procedure TEvents.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TEvents.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3522,7 +3522,7 @@ end;
 
 
 
-Procedure TEvents.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TEvents.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -3532,7 +3532,7 @@ end;
 
 
 
-Procedure TEvents.Setitems(AIndex : Integer; const AValue : TEventsTypeitemsArray); 
+Procedure TEvents.Setitems(AIndex : Integer; const AValue : TEventsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -3542,7 +3542,7 @@ end;
 
 
 
-Procedure TEvents.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEvents.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3552,7 +3552,7 @@ end;
 
 
 
-Procedure TEvents.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TEvents.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3562,7 +3562,7 @@ end;
 
 
 
-Procedure TEvents.SetnextSyncToken(AIndex : Integer; const AValue : String); 
+Procedure TEvents.SetnextSyncToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -3572,7 +3572,7 @@ end;
 
 
 
-Procedure TEvents.Setsummary(AIndex : Integer; const AValue : String); 
+Procedure TEvents.Setsummary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsummary=AValue) then exit;
@@ -3582,7 +3582,7 @@ end;
 
 
 
-Procedure TEvents.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TEvents.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3592,7 +3592,7 @@ end;
 
 
 
-Procedure TEvents.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TEvents.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -3603,7 +3603,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEvents.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEvents.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3623,7 +3623,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBusyCalendar.Setbusy(AIndex : Integer; const AValue : TFreeBusyCalendarTypebusyArray); 
+Procedure TFreeBusyCalendar.Setbusy(AIndex : Integer; const AValue : TFreeBusyCalendarTypebusyArray);
 
 begin
   If (Fbusy=AValue) then exit;
@@ -3633,7 +3633,7 @@ end;
 
 
 
-Procedure TFreeBusyCalendar.Seterrors(AIndex : Integer; const AValue : TFreeBusyCalendarTypeerrorsArray); 
+Procedure TFreeBusyCalendar.Seterrors(AIndex : Integer; const AValue : TFreeBusyCalendarTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -3644,7 +3644,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFreeBusyCalendar.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFreeBusyCalendar.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3664,7 +3664,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBusyGroup.Setcalendars(AIndex : Integer; const AValue : TStringArray); 
+Procedure TFreeBusyGroup.Setcalendars(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fcalendars=AValue) then exit;
@@ -3674,7 +3674,7 @@ end;
 
 
 
-Procedure TFreeBusyGroup.Seterrors(AIndex : Integer; const AValue : TFreeBusyGroupTypeerrorsArray); 
+Procedure TFreeBusyGroup.Seterrors(AIndex : Integer; const AValue : TFreeBusyGroupTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -3685,7 +3685,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFreeBusyGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFreeBusyGroup.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3705,7 +3705,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBusyRequest.SetcalendarExpansionMax(AIndex : Integer; const AValue : integer); 
+Procedure TFreeBusyRequest.SetcalendarExpansionMax(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcalendarExpansionMax=AValue) then exit;
@@ -3715,7 +3715,7 @@ end;
 
 
 
-Procedure TFreeBusyRequest.SetgroupExpansionMax(AIndex : Integer; const AValue : integer); 
+Procedure TFreeBusyRequest.SetgroupExpansionMax(AIndex : Integer; const AValue : integer);
 
 begin
   If (FgroupExpansionMax=AValue) then exit;
@@ -3725,7 +3725,7 @@ end;
 
 
 
-Procedure TFreeBusyRequest.Setitems(AIndex : Integer; const AValue : TFreeBusyRequestTypeitemsArray); 
+Procedure TFreeBusyRequest.Setitems(AIndex : Integer; const AValue : TFreeBusyRequestTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -3735,7 +3735,7 @@ end;
 
 
 
-Procedure TFreeBusyRequest.SettimeMax(AIndex : Integer; const AValue : TDatetime); 
+Procedure TFreeBusyRequest.SettimeMax(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeMax=AValue) then exit;
@@ -3745,7 +3745,7 @@ end;
 
 
 
-Procedure TFreeBusyRequest.SettimeMin(AIndex : Integer; const AValue : TDatetime); 
+Procedure TFreeBusyRequest.SettimeMin(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeMin=AValue) then exit;
@@ -3755,7 +3755,7 @@ end;
 
 
 
-Procedure TFreeBusyRequest.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TFreeBusyRequest.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3766,7 +3766,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFreeBusyRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFreeBusyRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3785,7 +3785,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBusyRequestItem.Setid(AIndex : Integer; const AValue : String); 
+Procedure TFreeBusyRequestItem.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3828,7 +3828,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBusyResponse.Setcalendars(AIndex : Integer; const AValue : TFreeBusyResponseTypecalendars); 
+Procedure TFreeBusyResponse.Setcalendars(AIndex : Integer; const AValue : TFreeBusyResponseTypecalendars);
 
 begin
   If (Fcalendars=AValue) then exit;
@@ -3838,7 +3838,7 @@ end;
 
 
 
-Procedure TFreeBusyResponse.Setgroups(AIndex : Integer; const AValue : TFreeBusyResponseTypegroups); 
+Procedure TFreeBusyResponse.Setgroups(AIndex : Integer; const AValue : TFreeBusyResponseTypegroups);
 
 begin
   If (Fgroups=AValue) then exit;
@@ -3848,7 +3848,7 @@ end;
 
 
 
-Procedure TFreeBusyResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TFreeBusyResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3858,7 +3858,7 @@ end;
 
 
 
-Procedure TFreeBusyResponse.SettimeMax(AIndex : Integer; const AValue : TDatetime); 
+Procedure TFreeBusyResponse.SettimeMax(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeMax=AValue) then exit;
@@ -3868,7 +3868,7 @@ end;
 
 
 
-Procedure TFreeBusyResponse.SettimeMin(AIndex : Integer; const AValue : TDatetime); 
+Procedure TFreeBusyResponse.SettimeMin(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeMin=AValue) then exit;
@@ -3885,7 +3885,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetting.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -3895,7 +3895,7 @@ end;
 
 
 
-Procedure TSetting.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3905,7 +3905,7 @@ end;
 
 
 
-Procedure TSetting.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3915,7 +3915,7 @@ end;
 
 
 
-Procedure TSetting.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -3932,7 +3932,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSettings.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TSettings.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -3942,7 +3942,7 @@ end;
 
 
 
-Procedure TSettings.Setitems(AIndex : Integer; const AValue : TSettingsTypeitemsArray); 
+Procedure TSettings.Setitems(AIndex : Integer; const AValue : TSettingsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -3952,7 +3952,7 @@ end;
 
 
 
-Procedure TSettings.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSettings.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3962,7 +3962,7 @@ end;
 
 
 
-Procedure TSettings.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSettings.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3972,7 +3972,7 @@ end;
 
 
 
-Procedure TSettings.SetnextSyncToken(AIndex : Integer; const AValue : String); 
+Procedure TSettings.SetnextSyncToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -3983,7 +3983,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSettings.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSettings.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4002,7 +4002,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimePeriod.Set_end(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTimePeriod.Set_end(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (F_end=AValue) then exit;
@@ -4012,7 +4012,7 @@ end;
 
 
 
-Procedure TTimePeriod.Setstart(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTimePeriod.Setstart(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fstart=AValue) then exit;
@@ -5132,7 +5132,7 @@ begin
   Result[0].Description:='Manage your calendars';
   Result[1].Name:='https://www.googleapis.com/auth/calendar.readonly';
   Result[1].Description:='View your calendars';
-  
+
 end;
 
 Class Function TCalendarAPI.APINeedsAuth : Boolean;

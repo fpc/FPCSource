@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAddress = Class;
   TChangePlanRequest = Class;
@@ -35,11 +35,11 @@ type
   TSubscriptionTypetransferInfo = Class;
   TSubscriptionTypetrialSettings = Class;
   TSubscriptionsTypesubscriptionsArray = Array of TSubscription;
-  
+
   { --------------------------------------------------------------------
     TAddress
     --------------------------------------------------------------------}
-  
+
   TAddress = Class(TGoogleBaseObject)
   Private
     FaddressLine1 : String;
@@ -78,11 +78,11 @@ type
     Property region : String Index 72 Read Fregion Write Setregion;
   end;
   TAddressClass = Class of TAddress;
-  
+
   { --------------------------------------------------------------------
     TChangePlanRequest
     --------------------------------------------------------------------}
-  
+
   TChangePlanRequest = Class(TGoogleBaseObject)
   Private
     FdealCode : String;
@@ -106,11 +106,11 @@ type
     Property seats : TSeats Index 32 Read Fseats Write Setseats;
   end;
   TChangePlanRequestClass = Class of TChangePlanRequest;
-  
+
   { --------------------------------------------------------------------
     TCustomer
     --------------------------------------------------------------------}
-  
+
   TCustomer = Class(TGoogleBaseObject)
   Private
     FalternateEmail : String;
@@ -143,11 +143,11 @@ type
     Property resourceUiUrl : String Index 56 Read FresourceUiUrl Write SetresourceUiUrl;
   end;
   TCustomerClass = Class of TCustomer;
-  
+
   { --------------------------------------------------------------------
     TRenewalSettings
     --------------------------------------------------------------------}
-  
+
   TRenewalSettings = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -162,11 +162,11 @@ type
     Property renewalType : String Index 8 Read FrenewalType Write SetrenewalType;
   end;
   TRenewalSettingsClass = Class of TRenewalSettings;
-  
+
   { --------------------------------------------------------------------
     TSeats
     --------------------------------------------------------------------}
-  
+
   TSeats = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -187,11 +187,11 @@ type
     Property numberOfSeats : integer Index 24 Read FnumberOfSeats Write SetnumberOfSeats;
   end;
   TSeatsClass = Class of TSeats;
-  
+
   { --------------------------------------------------------------------
     TSubscriptionTypeplanTypecommitmentInterval
     --------------------------------------------------------------------}
-  
+
   TSubscriptionTypeplanTypecommitmentInterval = Class(TGoogleBaseObject)
   Private
     FendTime : String;
@@ -206,11 +206,11 @@ type
     Property startTime : String Index 8 Read FstartTime Write SetstartTime;
   end;
   TSubscriptionTypeplanTypecommitmentIntervalClass = Class of TSubscriptionTypeplanTypecommitmentInterval;
-  
+
   { --------------------------------------------------------------------
     TSubscriptionTypeplan
     --------------------------------------------------------------------}
-  
+
   TSubscriptionTypeplan = Class(TGoogleBaseObject)
   Private
     FcommitmentInterval : TSubscriptionTypeplanTypecommitmentInterval;
@@ -228,11 +228,11 @@ type
     Property planName : String Index 16 Read FplanName Write SetplanName;
   end;
   TSubscriptionTypeplanClass = Class of TSubscriptionTypeplan;
-  
+
   { --------------------------------------------------------------------
     TSubscriptionTypetransferInfo
     --------------------------------------------------------------------}
-  
+
   TSubscriptionTypetransferInfo = Class(TGoogleBaseObject)
   Private
     FminimumTransferableSeats : integer;
@@ -247,11 +247,11 @@ type
     Property transferabilityExpirationTime : String Index 8 Read FtransferabilityExpirationTime Write SettransferabilityExpirationTime;
   end;
   TSubscriptionTypetransferInfoClass = Class of TSubscriptionTypetransferInfo;
-  
+
   { --------------------------------------------------------------------
     TSubscriptionTypetrialSettings
     --------------------------------------------------------------------}
-  
+
   TSubscriptionTypetrialSettings = Class(TGoogleBaseObject)
   Private
     FisInTrial : boolean;
@@ -266,11 +266,11 @@ type
     Property trialEndTime : String Index 8 Read FtrialEndTime Write SettrialEndTime;
   end;
   TSubscriptionTypetrialSettingsClass = Class of TSubscriptionTypetrialSettings;
-  
+
   { --------------------------------------------------------------------
     TSubscription
     --------------------------------------------------------------------}
-  
+
   TSubscription = Class(TGoogleBaseObject)
   Private
     FbillingMethod : String;
@@ -334,11 +334,11 @@ type
     Property trialSettings : TSubscriptionTypetrialSettings Index 128 Read FtrialSettings Write SettrialSettings;
   end;
   TSubscriptionClass = Class of TSubscription;
-  
+
   { --------------------------------------------------------------------
     TSubscriptions
     --------------------------------------------------------------------}
-  
+
   TSubscriptions = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -360,18 +360,18 @@ type
     Property subscriptions : TSubscriptionsTypesubscriptionsArray Index 16 Read Fsubscriptions Write Setsubscriptions;
   end;
   TSubscriptionsClass = Class of TSubscriptions;
-  
+
   { --------------------------------------------------------------------
     TCustomersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCustomersResource, method Insert
-  
+
   TCustomersInsertOptions = Record
     customerAuthToken : String;
   end;
-  
+
   TCustomersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -382,29 +382,29 @@ type
     Function Patch(customerId: string; aCustomer : TCustomer) : TCustomer;
     Function Update(customerId: string; aCustomer : TCustomer) : TCustomer;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSubscriptionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TSubscriptionsResource, method Delete
-  
+
   TSubscriptionsDeleteOptions = Record
     deletionType : String;
   end;
-  
-  
+
+
   //Optional query Options for TSubscriptionsResource, method Insert
-  
+
   TSubscriptionsInsertOptions = Record
     customerAuthToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TSubscriptionsResource, method List
-  
+
   TSubscriptionsListOptions = Record
     customerAuthToken : String;
     customerId : String;
@@ -412,7 +412,7 @@ type
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TSubscriptionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -431,12 +431,12 @@ type
     Function StartPaidService(customerId: string; subscriptionId: string) : TSubscription;
     Function Suspend(customerId: string; subscriptionId: string) : TSubscription;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TResellerAPI
     --------------------------------------------------------------------}
-  
+
   TResellerAPI = Class(TGoogleAPI)
   Private
     FCustomersInstance : TCustomersResource;
@@ -483,7 +483,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAddress.SetaddressLine1(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetaddressLine1(AIndex : Integer; const AValue : String);
 
 begin
   If (FaddressLine1=AValue) then exit;
@@ -493,7 +493,7 @@ end;
 
 
 
-Procedure TAddress.SetaddressLine2(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetaddressLine2(AIndex : Integer; const AValue : String);
 
 begin
   If (FaddressLine2=AValue) then exit;
@@ -503,7 +503,7 @@ end;
 
 
 
-Procedure TAddress.SetaddressLine3(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetaddressLine3(AIndex : Integer; const AValue : String);
 
 begin
   If (FaddressLine3=AValue) then exit;
@@ -513,7 +513,7 @@ end;
 
 
 
-Procedure TAddress.SetcontactName(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetcontactName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontactName=AValue) then exit;
@@ -523,7 +523,7 @@ end;
 
 
 
-Procedure TAddress.SetcountryCode(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetcountryCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcountryCode=AValue) then exit;
@@ -533,7 +533,7 @@ end;
 
 
 
-Procedure TAddress.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -543,7 +543,7 @@ end;
 
 
 
-Procedure TAddress.Setlocality(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Setlocality(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocality=AValue) then exit;
@@ -553,7 +553,7 @@ end;
 
 
 
-Procedure TAddress.SetorganizationName(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetorganizationName(AIndex : Integer; const AValue : String);
 
 begin
   If (ForganizationName=AValue) then exit;
@@ -563,7 +563,7 @@ end;
 
 
 
-Procedure TAddress.SetpostalCode(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetpostalCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -573,7 +573,7 @@ end;
 
 
 
-Procedure TAddress.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -590,7 +590,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChangePlanRequest.SetdealCode(AIndex : Integer; const AValue : String); 
+Procedure TChangePlanRequest.SetdealCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FdealCode=AValue) then exit;
@@ -600,7 +600,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TChangePlanRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -610,7 +610,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.SetplanName(AIndex : Integer; const AValue : String); 
+Procedure TChangePlanRequest.SetplanName(AIndex : Integer; const AValue : String);
 
 begin
   If (FplanName=AValue) then exit;
@@ -620,7 +620,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.SetpurchaseOrderId(AIndex : Integer; const AValue : String); 
+Procedure TChangePlanRequest.SetpurchaseOrderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpurchaseOrderId=AValue) then exit;
@@ -630,7 +630,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.Setseats(AIndex : Integer; const AValue : TSeats); 
+Procedure TChangePlanRequest.Setseats(AIndex : Integer; const AValue : TSeats);
 
 begin
   If (Fseats=AValue) then exit;
@@ -647,7 +647,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomer.SetalternateEmail(AIndex : Integer; const AValue : String); 
+Procedure TCustomer.SetalternateEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateEmail=AValue) then exit;
@@ -657,7 +657,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerDomain(AIndex : Integer; const AValue : String); 
+Procedure TCustomer.SetcustomerDomain(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerDomain=AValue) then exit;
@@ -667,7 +667,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerDomainVerified(AIndex : Integer; const AValue : boolean); 
+Procedure TCustomer.SetcustomerDomainVerified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcustomerDomainVerified=AValue) then exit;
@@ -677,7 +677,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerId(AIndex : Integer; const AValue : String); 
+Procedure TCustomer.SetcustomerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -687,7 +687,7 @@ end;
 
 
 
-Procedure TCustomer.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomer.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -697,7 +697,7 @@ end;
 
 
 
-Procedure TCustomer.SetphoneNumber(AIndex : Integer; const AValue : String); 
+Procedure TCustomer.SetphoneNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneNumber=AValue) then exit;
@@ -707,7 +707,7 @@ end;
 
 
 
-Procedure TCustomer.SetpostalAddress(AIndex : Integer; const AValue : TAddress); 
+Procedure TCustomer.SetpostalAddress(AIndex : Integer; const AValue : TAddress);
 
 begin
   If (FpostalAddress=AValue) then exit;
@@ -717,7 +717,7 @@ end;
 
 
 
-Procedure TCustomer.SetresourceUiUrl(AIndex : Integer; const AValue : String); 
+Procedure TCustomer.SetresourceUiUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceUiUrl=AValue) then exit;
@@ -734,7 +734,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRenewalSettings.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRenewalSettings.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -744,7 +744,7 @@ end;
 
 
 
-Procedure TRenewalSettings.SetrenewalType(AIndex : Integer; const AValue : String); 
+Procedure TRenewalSettings.SetrenewalType(AIndex : Integer; const AValue : String);
 
 begin
   If (FrenewalType=AValue) then exit;
@@ -761,7 +761,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSeats.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSeats.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -771,7 +771,7 @@ end;
 
 
 
-Procedure TSeats.SetlicensedNumberOfSeats(AIndex : Integer; const AValue : integer); 
+Procedure TSeats.SetlicensedNumberOfSeats(AIndex : Integer; const AValue : integer);
 
 begin
   If (FlicensedNumberOfSeats=AValue) then exit;
@@ -781,7 +781,7 @@ end;
 
 
 
-Procedure TSeats.SetmaximumNumberOfSeats(AIndex : Integer; const AValue : integer); 
+Procedure TSeats.SetmaximumNumberOfSeats(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaximumNumberOfSeats=AValue) then exit;
@@ -791,7 +791,7 @@ end;
 
 
 
-Procedure TSeats.SetnumberOfSeats(AIndex : Integer; const AValue : integer); 
+Procedure TSeats.SetnumberOfSeats(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumberOfSeats=AValue) then exit;
@@ -808,7 +808,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypeplanTypecommitmentInterval.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptionTypeplanTypecommitmentInterval.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -818,7 +818,7 @@ end;
 
 
 
-Procedure TSubscriptionTypeplanTypecommitmentInterval.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptionTypeplanTypecommitmentInterval.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -835,7 +835,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypeplan.SetcommitmentInterval(AIndex : Integer; const AValue : TSubscriptionTypeplanTypecommitmentInterval); 
+Procedure TSubscriptionTypeplan.SetcommitmentInterval(AIndex : Integer; const AValue : TSubscriptionTypeplanTypecommitmentInterval);
 
 begin
   If (FcommitmentInterval=AValue) then exit;
@@ -845,7 +845,7 @@ end;
 
 
 
-Procedure TSubscriptionTypeplan.SetisCommitmentPlan(AIndex : Integer; const AValue : boolean); 
+Procedure TSubscriptionTypeplan.SetisCommitmentPlan(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisCommitmentPlan=AValue) then exit;
@@ -855,7 +855,7 @@ end;
 
 
 
-Procedure TSubscriptionTypeplan.SetplanName(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptionTypeplan.SetplanName(AIndex : Integer; const AValue : String);
 
 begin
   If (FplanName=AValue) then exit;
@@ -872,7 +872,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypetransferInfo.SetminimumTransferableSeats(AIndex : Integer; const AValue : integer); 
+Procedure TSubscriptionTypetransferInfo.SetminimumTransferableSeats(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminimumTransferableSeats=AValue) then exit;
@@ -882,7 +882,7 @@ end;
 
 
 
-Procedure TSubscriptionTypetransferInfo.SettransferabilityExpirationTime(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptionTypetransferInfo.SettransferabilityExpirationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FtransferabilityExpirationTime=AValue) then exit;
@@ -899,7 +899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypetrialSettings.SetisInTrial(AIndex : Integer; const AValue : boolean); 
+Procedure TSubscriptionTypetrialSettings.SetisInTrial(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisInTrial=AValue) then exit;
@@ -909,7 +909,7 @@ end;
 
 
 
-Procedure TSubscriptionTypetrialSettings.SettrialEndTime(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptionTypetrialSettings.SettrialEndTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FtrialEndTime=AValue) then exit;
@@ -926,7 +926,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscription.SetbillingMethod(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetbillingMethod(AIndex : Integer; const AValue : String);
 
 begin
   If (FbillingMethod=AValue) then exit;
@@ -936,7 +936,7 @@ end;
 
 
 
-Procedure TSubscription.SetcreationTime(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetcreationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -946,7 +946,7 @@ end;
 
 
 
-Procedure TSubscription.SetcustomerDomain(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetcustomerDomain(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerDomain=AValue) then exit;
@@ -956,7 +956,7 @@ end;
 
 
 
-Procedure TSubscription.SetcustomerId(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetcustomerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -966,7 +966,7 @@ end;
 
 
 
-Procedure TSubscription.SetdealCode(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetdealCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FdealCode=AValue) then exit;
@@ -976,7 +976,7 @@ end;
 
 
 
-Procedure TSubscription.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -986,7 +986,7 @@ end;
 
 
 
-Procedure TSubscription.Setplan(AIndex : Integer; const AValue : TSubscriptionTypeplan); 
+Procedure TSubscription.Setplan(AIndex : Integer; const AValue : TSubscriptionTypeplan);
 
 begin
   If (Fplan=AValue) then exit;
@@ -996,7 +996,7 @@ end;
 
 
 
-Procedure TSubscription.SetpurchaseOrderId(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetpurchaseOrderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpurchaseOrderId=AValue) then exit;
@@ -1006,7 +1006,7 @@ end;
 
 
 
-Procedure TSubscription.SetrenewalSettings(AIndex : Integer; const AValue : TRenewalSettings); 
+Procedure TSubscription.SetrenewalSettings(AIndex : Integer; const AValue : TRenewalSettings);
 
 begin
   If (FrenewalSettings=AValue) then exit;
@@ -1016,7 +1016,7 @@ end;
 
 
 
-Procedure TSubscription.SetresourceUiUrl(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetresourceUiUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceUiUrl=AValue) then exit;
@@ -1026,7 +1026,7 @@ end;
 
 
 
-Procedure TSubscription.Setseats(AIndex : Integer; const AValue : TSeats); 
+Procedure TSubscription.Setseats(AIndex : Integer; const AValue : TSeats);
 
 begin
   If (Fseats=AValue) then exit;
@@ -1036,7 +1036,7 @@ end;
 
 
 
-Procedure TSubscription.SetskuId(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetskuId(AIndex : Integer; const AValue : String);
 
 begin
   If (FskuId=AValue) then exit;
@@ -1046,7 +1046,7 @@ end;
 
 
 
-Procedure TSubscription.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1056,7 +1056,7 @@ end;
 
 
 
-Procedure TSubscription.SetsubscriptionId(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetsubscriptionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsubscriptionId=AValue) then exit;
@@ -1066,7 +1066,7 @@ end;
 
 
 
-Procedure TSubscription.SetsuspensionReasons(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSubscription.SetsuspensionReasons(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsuspensionReasons=AValue) then exit;
@@ -1076,7 +1076,7 @@ end;
 
 
 
-Procedure TSubscription.SettransferInfo(AIndex : Integer; const AValue : TSubscriptionTypetransferInfo); 
+Procedure TSubscription.SettransferInfo(AIndex : Integer; const AValue : TSubscriptionTypetransferInfo);
 
 begin
   If (FtransferInfo=AValue) then exit;
@@ -1086,7 +1086,7 @@ end;
 
 
 
-Procedure TSubscription.SettrialSettings(AIndex : Integer; const AValue : TSubscriptionTypetrialSettings); 
+Procedure TSubscription.SettrialSettings(AIndex : Integer; const AValue : TSubscriptionTypetrialSettings);
 
 begin
   If (FtrialSettings=AValue) then exit;
@@ -1097,7 +1097,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSubscription.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSubscription.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1116,7 +1116,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptions.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptions.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1126,7 +1126,7 @@ end;
 
 
 
-Procedure TSubscriptions.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptions.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1136,7 +1136,7 @@ end;
 
 
 
-Procedure TSubscriptions.Setsubscriptions(AIndex : Integer; const AValue : TSubscriptionsTypesubscriptionsArray); 
+Procedure TSubscriptions.Setsubscriptions(AIndex : Integer; const AValue : TSubscriptionsTypesubscriptionsArray);
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -1147,7 +1147,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSubscriptions.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSubscriptions.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1567,7 +1567,7 @@ begin
   Result[0].Description:='Manage users on your domain';
   Result[1].Name:='https://www.googleapis.com/auth/apps.order.readonly';
   Result[1].Description:='Manage users on your domain';
-  
+
 end;
 
 Class Function TResellerAPI.APINeedsAuth : Boolean;

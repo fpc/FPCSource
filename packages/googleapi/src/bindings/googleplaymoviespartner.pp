@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAvail = Class;
   TListAvailsResponse = Class;
@@ -41,11 +41,11 @@ type
   TListExperienceLocalesResponseTypeexperienceLocalesArray = Array of TExperienceLocale;
   TListComponentsResponseTypecomponentsArray = Array of T_Component;
   TListStoreInfosResponseTypestoreInfosArray = Array of TStoreInfo;
-  
+
   { --------------------------------------------------------------------
     TAvail
     --------------------------------------------------------------------}
-  
+
   TAvail = Class(TGoogleBaseObject)
   Private
     FavailId : String;
@@ -158,11 +158,11 @@ type
     Property pphNames : TStringArray Index 256 Read FpphNames Write SetpphNames;
   end;
   TAvailClass = Class of TAvail;
-  
+
   { --------------------------------------------------------------------
     TListAvailsResponse
     --------------------------------------------------------------------}
-  
+
   TListAvailsResponse = Class(TGoogleBaseObject)
   Private
     Favails : TListAvailsResponseTypeavailsArray;
@@ -184,11 +184,11 @@ type
     Property totalSize : integer Index 16 Read FtotalSize Write SettotalSize;
   end;
   TListAvailsResponseClass = Class of TListAvailsResponse;
-  
+
   { --------------------------------------------------------------------
     TOrder
     --------------------------------------------------------------------}
-  
+
   TOrder = Class(TGoogleBaseObject)
   Private
     ForderId : String;
@@ -271,11 +271,11 @@ type
     Property normalizedPriority : String Index 176 Read FnormalizedPriority Write SetnormalizedPriority;
   end;
   TOrderClass = Class of TOrder;
-  
+
   { --------------------------------------------------------------------
     TListOrdersResponse
     --------------------------------------------------------------------}
-  
+
   TListOrdersResponse = Class(TGoogleBaseObject)
   Private
     Forders : TListOrdersResponseTypeordersArray;
@@ -297,11 +297,11 @@ type
     Property totalSize : integer Index 16 Read FtotalSize Write SettotalSize;
   end;
   TListOrdersResponseClass = Class of TListOrdersResponse;
-  
+
   { --------------------------------------------------------------------
     TExperienceLocale
     --------------------------------------------------------------------}
-  
+
   TExperienceLocale = Class(TGoogleBaseObject)
   Private
     FelId : String;
@@ -384,11 +384,11 @@ type
     Property normalizedPriority : String Index 176 Read FnormalizedPriority Write SetnormalizedPriority;
   end;
   TExperienceLocaleClass = Class of TExperienceLocale;
-  
+
   { --------------------------------------------------------------------
     TListExperienceLocalesResponse
     --------------------------------------------------------------------}
-  
+
   TListExperienceLocalesResponse = Class(TGoogleBaseObject)
   Private
     FexperienceLocales : TListExperienceLocalesResponseTypeexperienceLocalesArray;
@@ -410,11 +410,11 @@ type
     Property totalSize : integer Index 16 Read FtotalSize Write SettotalSize;
   end;
   TListExperienceLocalesResponseClass = Class of TListExperienceLocalesResponse;
-  
+
   { --------------------------------------------------------------------
     T_Component
     --------------------------------------------------------------------}
-  
+
   T_Component = Class(TGoogleBaseObject)
   Private
     FcomponentId : String;
@@ -494,11 +494,11 @@ type
     Property normalizedPriority : String Index 168 Read FnormalizedPriority Write SetnormalizedPriority;
   end;
   T_ComponentClass = Class of T_Component;
-  
+
   { --------------------------------------------------------------------
     TListComponentsResponse
     --------------------------------------------------------------------}
-  
+
   TListComponentsResponse = Class(TGoogleBaseObject)
   Private
     Fcomponents : TListComponentsResponseTypecomponentsArray;
@@ -520,11 +520,11 @@ type
     Property totalSize : integer Index 16 Read FtotalSize Write SettotalSize;
   end;
   TListComponentsResponseClass = Class of TListComponentsResponse;
-  
+
   { --------------------------------------------------------------------
     TStoreInfo
     --------------------------------------------------------------------}
-  
+
   TStoreInfo = Class(TGoogleBaseObject)
   Private
     FvideoId : String;
@@ -613,11 +613,11 @@ type
     Property pphNames : TStringArray Index 192 Read FpphNames Write SetpphNames;
   end;
   TStoreInfoClass = Class of TStoreInfo;
-  
+
   { --------------------------------------------------------------------
     TListStoreInfosResponse
     --------------------------------------------------------------------}
-  
+
   TListStoreInfosResponse = Class(TGoogleBaseObject)
   Private
     FstoreInfos : TListStoreInfosResponseTypestoreInfosArray;
@@ -639,14 +639,14 @@ type
     Property totalSize : integer Index 16 Read FtotalSize Write SettotalSize;
   end;
   TListStoreInfosResponseClass = Class of TListStoreInfosResponse;
-  
+
   { --------------------------------------------------------------------
     TAccountsAvailsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsAvailsResource, method List
-  
+
   TAccountsAvailsListOptions = Record
     pageSize : integer;
     pageToken : String;
@@ -658,7 +658,7 @@ type
     videoIds : String;
     altIds : String;
   end;
-  
+
   TAccountsAvailsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -667,15 +667,15 @@ type
     Function List(accountId: string; AQuery : string  = '') : TListAvailsResponse;
     Function List(accountId: string; AQuery : TAccountsAvailslistOptions) : TListAvailsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsOrdersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsOrdersResource, method List
-  
+
   TAccountsOrdersListOptions = Record
     pageSize : integer;
     pageToken : String;
@@ -686,7 +686,7 @@ type
     customId : String;
     videoIds : String;
   end;
-  
+
   TAccountsOrdersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -695,15 +695,15 @@ type
     Function List(accountId: string; AQuery : string  = '') : TListOrdersResponse;
     Function List(accountId: string; AQuery : TAccountsOrderslistOptions) : TListOrdersResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsExperienceLocalesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsExperienceLocalesResource, method List
-  
+
   TAccountsExperienceLocalesListOptions = Record
     pageSize : integer;
     pageToken : String;
@@ -715,7 +715,7 @@ type
     customId : String;
     altCutId : String;
   end;
-  
+
   TAccountsExperienceLocalesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -724,27 +724,27 @@ type
     Function List(accountId: string; AQuery : string  = '') : TListExperienceLocalesResponse;
     Function List(accountId: string; AQuery : TAccountsExperienceLocaleslistOptions) : TListExperienceLocalesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsComponentsTypeResource
     --------------------------------------------------------------------}
-  
+
   TAccountsComponentsTypeResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(accountId: string; componentId: string; _type: string) : T_Component;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsComponentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsComponentsResource, method List
-  
+
   TAccountsComponentsListOptions = Record
     pageSize : integer;
     pageToken : String;
@@ -761,7 +761,7 @@ type
     altCutId : String;
     filename : String;
   end;
-  
+
   TAccountsComponentsResource = Class(TGoogleResource)
   Private
     FTypeInstance : TAccountsComponentsTypeResource;
@@ -775,27 +775,27 @@ type
     Function CreateTypeResource : TAccountsComponentsTypeResource;virtual;overload;
     Property TypeResource : TAccountsComponentsTypeResource Read GetTypeInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsStoreInfosCountryResource
     --------------------------------------------------------------------}
-  
+
   TAccountsStoreInfosCountryResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(accountId: string; videoId: string; country: string) : TStoreInfo;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsStoreInfosResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsStoreInfosResource, method List
-  
+
   TAccountsStoreInfosListOptions = Record
     pageSize : integer;
     pageToken : String;
@@ -808,7 +808,7 @@ type
     mids : String;
     seasonIds : String;
   end;
-  
+
   TAccountsStoreInfosResource = Class(TGoogleResource)
   Private
     FCountryInstance : TAccountsStoreInfosCountryResource;
@@ -822,12 +822,12 @@ type
     Function CreateCountryResource : TAccountsStoreInfosCountryResource;virtual;overload;
     Property CountryResource : TAccountsStoreInfosCountryResource Read GetCountryInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsResource = Class(TGoogleResource)
   Private
     FAvailsInstance : TAccountsAvailsResource;
@@ -869,12 +869,12 @@ type
     Property StoreInfosCountryResource : TAccountsStoreInfosCountryResource Read GetStoreInfosCountryInstance;
     Property StoreInfosResource : TAccountsStoreInfosResource Read GetStoreInfosInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPlaymoviespartnerAPI
     --------------------------------------------------------------------}
-  
+
   TPlaymoviespartnerAPI = Class(TGoogleAPI)
   Private
     FAccountsAvailsInstance : TAccountsAvailsResource;
@@ -951,7 +951,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAvail.SetavailId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetavailId(AIndex : Integer; const AValue : String);
 
 begin
   If (FavailId=AValue) then exit;
@@ -961,7 +961,7 @@ end;
 
 
 
-Procedure TAvail.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -971,7 +971,7 @@ end;
 
 
 
-Procedure TAvail.SetstoreLanguage(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetstoreLanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstoreLanguage=AValue) then exit;
@@ -981,7 +981,7 @@ end;
 
 
 
-Procedure TAvail.Setterritory(AIndex : Integer; const AValue : String); 
+Procedure TAvail.Setterritory(AIndex : Integer; const AValue : String);
 
 begin
   If (Fterritory=AValue) then exit;
@@ -991,7 +991,7 @@ end;
 
 
 
-Procedure TAvail.SetworkType(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetworkType(AIndex : Integer; const AValue : String);
 
 begin
   If (FworkType=AValue) then exit;
@@ -1001,7 +1001,7 @@ end;
 
 
 
-Procedure TAvail.SetseriesTitleInternalAlias(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetseriesTitleInternalAlias(AIndex : Integer; const AValue : String);
 
 begin
   If (FseriesTitleInternalAlias=AValue) then exit;
@@ -1011,7 +1011,7 @@ end;
 
 
 
-Procedure TAvail.SetseasonNumber(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetseasonNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonNumber=AValue) then exit;
@@ -1021,7 +1021,7 @@ end;
 
 
 
-Procedure TAvail.SetepisodeNumber(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetepisodeNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FepisodeNumber=AValue) then exit;
@@ -1031,7 +1031,7 @@ end;
 
 
 
-Procedure TAvail.SetseasonTitleInternalAlias(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetseasonTitleInternalAlias(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonTitleInternalAlias=AValue) then exit;
@@ -1041,7 +1041,7 @@ end;
 
 
 
-Procedure TAvail.SetepisodeTitleInternalAlias(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetepisodeTitleInternalAlias(AIndex : Integer; const AValue : String);
 
 begin
   If (FepisodeTitleInternalAlias=AValue) then exit;
@@ -1051,7 +1051,7 @@ end;
 
 
 
-Procedure TAvail.SettitleInternalAlias(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SettitleInternalAlias(AIndex : Integer; const AValue : String);
 
 begin
   If (FtitleInternalAlias=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
 
 
 
-Procedure TAvail.SetlicenseType(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetlicenseType(AIndex : Integer; const AValue : String);
 
 begin
   If (FlicenseType=AValue) then exit;
@@ -1071,7 +1071,7 @@ end;
 
 
 
-Procedure TAvail.SetformatProfile(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetformatProfile(AIndex : Integer; const AValue : String);
 
 begin
   If (FformatProfile=AValue) then exit;
@@ -1081,7 +1081,7 @@ end;
 
 
 
-Procedure TAvail.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TAvail.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -1091,7 +1091,7 @@ end;
 
 
 
-Procedure TAvail.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TAvail.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -1101,7 +1101,7 @@ end;
 
 
 
-Procedure TAvail.SetpriceType(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetpriceType(AIndex : Integer; const AValue : String);
 
 begin
   If (FpriceType=AValue) then exit;
@@ -1111,7 +1111,7 @@ end;
 
 
 
-Procedure TAvail.SetpriceValue(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetpriceValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FpriceValue=AValue) then exit;
@@ -1121,7 +1121,7 @@ end;
 
 
 
-Procedure TAvail.SetcontentId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetcontentId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentId=AValue) then exit;
@@ -1131,7 +1131,7 @@ end;
 
 
 
-Procedure TAvail.SetproductId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetproductId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductId=AValue) then exit;
@@ -1141,7 +1141,7 @@ end;
 
 
 
-Procedure TAvail.SetencodeId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetencodeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FencodeId=AValue) then exit;
@@ -1151,7 +1151,7 @@ end;
 
 
 
-Procedure TAvail.SetseriesAltId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetseriesAltId(AIndex : Integer; const AValue : String);
 
 begin
   If (FseriesAltId=AValue) then exit;
@@ -1161,7 +1161,7 @@ end;
 
 
 
-Procedure TAvail.SetseasonAltId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetseasonAltId(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonAltId=AValue) then exit;
@@ -1171,7 +1171,7 @@ end;
 
 
 
-Procedure TAvail.SetepisodeAltId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetepisodeAltId(AIndex : Integer; const AValue : String);
 
 begin
   If (FepisodeAltId=AValue) then exit;
@@ -1181,7 +1181,7 @@ end;
 
 
 
-Procedure TAvail.SetaltId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetaltId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaltId=AValue) then exit;
@@ -1191,7 +1191,7 @@ end;
 
 
 
-Procedure TAvail.SetsuppressionLiftDate(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetsuppressionLiftDate(AIndex : Integer; const AValue : String);
 
 begin
   If (FsuppressionLiftDate=AValue) then exit;
@@ -1201,7 +1201,7 @@ end;
 
 
 
-Procedure TAvail.SetreleaseDate(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetreleaseDate(AIndex : Integer; const AValue : String);
 
 begin
   If (FreleaseDate=AValue) then exit;
@@ -1211,7 +1211,7 @@ end;
 
 
 
-Procedure TAvail.SetratingSystem(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetratingSystem(AIndex : Integer; const AValue : String);
 
 begin
   If (FratingSystem=AValue) then exit;
@@ -1221,7 +1221,7 @@ end;
 
 
 
-Procedure TAvail.SetratingValue(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetratingValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FratingValue=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
 
 
 
-Procedure TAvail.SetratingReason(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetratingReason(AIndex : Integer; const AValue : String);
 
 begin
   If (FratingReason=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TAvail.SetcaptionIncluded(AIndex : Integer; const AValue : boolean); 
+Procedure TAvail.SetcaptionIncluded(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcaptionIncluded=AValue) then exit;
@@ -1251,7 +1251,7 @@ end;
 
 
 
-Procedure TAvail.SetcaptionExemption(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetcaptionExemption(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptionExemption=AValue) then exit;
@@ -1261,7 +1261,7 @@ end;
 
 
 
-Procedure TAvail.SetvideoId(AIndex : Integer; const AValue : String); 
+Procedure TAvail.SetvideoId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvideoId=AValue) then exit;
@@ -1271,7 +1271,7 @@ end;
 
 
 
-Procedure TAvail.SetpphNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TAvail.SetpphNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FpphNames=AValue) then exit;
@@ -1293,7 +1293,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAvail.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAvail.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1312,7 +1312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAvailsResponse.Setavails(AIndex : Integer; const AValue : TListAvailsResponseTypeavailsArray); 
+Procedure TListAvailsResponse.Setavails(AIndex : Integer; const AValue : TListAvailsResponseTypeavailsArray);
 
 begin
   If (Favails=AValue) then exit;
@@ -1322,7 +1322,7 @@ end;
 
 
 
-Procedure TListAvailsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListAvailsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1332,7 +1332,7 @@ end;
 
 
 
-Procedure TListAvailsResponse.SettotalSize(AIndex : Integer; const AValue : integer); 
+Procedure TListAvailsResponse.SettotalSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSize=AValue) then exit;
@@ -1343,7 +1343,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListAvailsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListAvailsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1362,7 +1362,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOrder.SetorderId(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetorderId(AIndex : Integer; const AValue : String);
 
 begin
   If (ForderId=AValue) then exit;
@@ -1372,7 +1372,7 @@ end;
 
 
 
-Procedure TOrder.SetcustomId(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetcustomId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomId=AValue) then exit;
@@ -1382,7 +1382,7 @@ end;
 
 
 
-Procedure TOrder.SetvideoId(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetvideoId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvideoId=AValue) then exit;
@@ -1392,7 +1392,7 @@ end;
 
 
 
-Procedure TOrder.Setcountries(AIndex : Integer; const AValue : TStringArray); 
+Procedure TOrder.Setcountries(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fcountries=AValue) then exit;
@@ -1402,7 +1402,7 @@ end;
 
 
 
-Procedure TOrder.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TOrder.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1412,7 +1412,7 @@ end;
 
 
 
-Procedure TOrder.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOrder.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1422,7 +1422,7 @@ end;
 
 
 
-Procedure TOrder.SetepisodeName(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetepisodeName(AIndex : Integer; const AValue : String);
 
 begin
   If (FepisodeName=AValue) then exit;
@@ -1432,7 +1432,7 @@ end;
 
 
 
-Procedure TOrder.SetseasonName(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetseasonName(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonName=AValue) then exit;
@@ -1442,7 +1442,7 @@ end;
 
 
 
-Procedure TOrder.SetshowName(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetshowName(AIndex : Integer; const AValue : String);
 
 begin
   If (FshowName=AValue) then exit;
@@ -1452,7 +1452,7 @@ end;
 
 
 
-Procedure TOrder.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TOrder.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
 
 
 
-Procedure TOrder.SetstatusDetail(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetstatusDetail(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusDetail=AValue) then exit;
@@ -1472,7 +1472,7 @@ end;
 
 
 
-Procedure TOrder.SetrejectionNote(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetrejectionNote(AIndex : Integer; const AValue : String);
 
 begin
   If (FrejectionNote=AValue) then exit;
@@ -1482,7 +1482,7 @@ end;
 
 
 
-Procedure TOrder.SetorderedTime(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetorderedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (ForderedTime=AValue) then exit;
@@ -1492,7 +1492,7 @@ end;
 
 
 
-Procedure TOrder.SetapprovedTime(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetapprovedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FapprovedTime=AValue) then exit;
@@ -1502,7 +1502,7 @@ end;
 
 
 
-Procedure TOrder.SetreceivedTime(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetreceivedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FreceivedTime=AValue) then exit;
@@ -1512,7 +1512,7 @@ end;
 
 
 
-Procedure TOrder.SetearliestAvailStartTime(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetearliestAvailStartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FearliestAvailStartTime=AValue) then exit;
@@ -1522,7 +1522,7 @@ end;
 
 
 
-Procedure TOrder.Setpriority(AIndex : Integer; const AValue : double); 
+Procedure TOrder.Setpriority(AIndex : Integer; const AValue : double);
 
 begin
   If (Fpriority=AValue) then exit;
@@ -1532,7 +1532,7 @@ end;
 
 
 
-Procedure TOrder.SetlegacyPriority(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetlegacyPriority(AIndex : Integer; const AValue : String);
 
 begin
   If (FlegacyPriority=AValue) then exit;
@@ -1542,7 +1542,7 @@ end;
 
 
 
-Procedure TOrder.SetchannelId(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetchannelId(AIndex : Integer; const AValue : String);
 
 begin
   If (FchannelId=AValue) then exit;
@@ -1552,7 +1552,7 @@ end;
 
 
 
-Procedure TOrder.SetchannelName(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetchannelName(AIndex : Integer; const AValue : String);
 
 begin
   If (FchannelName=AValue) then exit;
@@ -1562,7 +1562,7 @@ end;
 
 
 
-Procedure TOrder.SetstudioName(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetstudioName(AIndex : Integer; const AValue : String);
 
 begin
   If (FstudioName=AValue) then exit;
@@ -1572,7 +1572,7 @@ end;
 
 
 
-Procedure TOrder.SetpphName(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetpphName(AIndex : Integer; const AValue : String);
 
 begin
   If (FpphName=AValue) then exit;
@@ -1582,7 +1582,7 @@ end;
 
 
 
-Procedure TOrder.SetnormalizedPriority(AIndex : Integer; const AValue : String); 
+Procedure TOrder.SetnormalizedPriority(AIndex : Integer; const AValue : String);
 
 begin
   If (FnormalizedPriority=AValue) then exit;
@@ -1604,7 +1604,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOrder.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOrder.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1623,7 +1623,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListOrdersResponse.Setorders(AIndex : Integer; const AValue : TListOrdersResponseTypeordersArray); 
+Procedure TListOrdersResponse.Setorders(AIndex : Integer; const AValue : TListOrdersResponseTypeordersArray);
 
 begin
   If (Forders=AValue) then exit;
@@ -1633,7 +1633,7 @@ end;
 
 
 
-Procedure TListOrdersResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListOrdersResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1643,7 +1643,7 @@ end;
 
 
 
-Procedure TListOrdersResponse.SettotalSize(AIndex : Integer; const AValue : integer); 
+Procedure TListOrdersResponse.SettotalSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSize=AValue) then exit;
@@ -1654,7 +1654,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListOrdersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOrdersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1673,7 +1673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExperienceLocale.SetelId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetelId(AIndex : Integer; const AValue : String);
 
 begin
   If (FelId=AValue) then exit;
@@ -1683,7 +1683,7 @@ end;
 
 
 
-Procedure TExperienceLocale.Setcountry(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.Setcountry(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcountry=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
 
 
 
-Procedure TExperienceLocale.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -1703,7 +1703,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetvideoId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetvideoId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvideoId=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SettrailerId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SettrailerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtrailerId=AValue) then exit;
@@ -1723,7 +1723,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SettitleLevelEidr(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SettitleLevelEidr(AIndex : Integer; const AValue : String);
 
 begin
   If (FtitleLevelEidr=AValue) then exit;
@@ -1733,7 +1733,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SeteditLevelEidr(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SeteditLevelEidr(AIndex : Integer; const AValue : String);
 
 begin
   If (FeditLevelEidr=AValue) then exit;
@@ -1743,7 +1743,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetaltCutId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetaltCutId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaltCutId=AValue) then exit;
@@ -1753,7 +1753,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetcustomIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TExperienceLocale.SetcustomIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcustomIds=AValue) then exit;
@@ -1763,7 +1763,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetpresentationId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetpresentationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpresentationId=AValue) then exit;
@@ -1773,7 +1773,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetinventoryId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetinventoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinventoryId=AValue) then exit;
@@ -1783,7 +1783,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetplayableSequenceId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetplayableSequenceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FplayableSequenceId=AValue) then exit;
@@ -1793,7 +1793,7 @@ end;
 
 
 
-Procedure TExperienceLocale.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1803,7 +1803,7 @@ end;
 
 
 
-Procedure TExperienceLocale.Setname(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1813,7 +1813,7 @@ end;
 
 
 
-Procedure TExperienceLocale.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1823,7 +1823,7 @@ end;
 
 
 
-Procedure TExperienceLocale.Setpriority(AIndex : Integer; const AValue : double); 
+Procedure TExperienceLocale.Setpriority(AIndex : Integer; const AValue : double);
 
 begin
   If (Fpriority=AValue) then exit;
@@ -1833,7 +1833,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetcreatedTime(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetcreatedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatedTime=AValue) then exit;
@@ -1843,7 +1843,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetapprovedTime(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetapprovedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FapprovedTime=AValue) then exit;
@@ -1853,7 +1853,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetearliestAvailStartTime(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetearliestAvailStartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FearliestAvailStartTime=AValue) then exit;
@@ -1863,7 +1863,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetchannelId(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetchannelId(AIndex : Integer; const AValue : String);
 
 begin
   If (FchannelId=AValue) then exit;
@@ -1873,7 +1873,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetstudioName(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetstudioName(AIndex : Integer; const AValue : String);
 
 begin
   If (FstudioName=AValue) then exit;
@@ -1883,7 +1883,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetpphNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TExperienceLocale.SetpphNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FpphNames=AValue) then exit;
@@ -1893,7 +1893,7 @@ end;
 
 
 
-Procedure TExperienceLocale.SetnormalizedPriority(AIndex : Integer; const AValue : String); 
+Procedure TExperienceLocale.SetnormalizedPriority(AIndex : Integer; const AValue : String);
 
 begin
   If (FnormalizedPriority=AValue) then exit;
@@ -1915,7 +1915,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TExperienceLocale.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TExperienceLocale.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1935,7 +1935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListExperienceLocalesResponse.SetexperienceLocales(AIndex : Integer; const AValue : TListExperienceLocalesResponseTypeexperienceLocalesArray); 
+Procedure TListExperienceLocalesResponse.SetexperienceLocales(AIndex : Integer; const AValue : TListExperienceLocalesResponseTypeexperienceLocalesArray);
 
 begin
   If (FexperienceLocales=AValue) then exit;
@@ -1945,7 +1945,7 @@ end;
 
 
 
-Procedure TListExperienceLocalesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListExperienceLocalesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1955,7 +1955,7 @@ end;
 
 
 
-Procedure TListExperienceLocalesResponse.SettotalSize(AIndex : Integer; const AValue : integer); 
+Procedure TListExperienceLocalesResponse.SettotalSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSize=AValue) then exit;
@@ -1966,7 +1966,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListExperienceLocalesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListExperienceLocalesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1985,7 +1985,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure T_Component.SetcomponentId(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetcomponentId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcomponentId=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
 
 
 
-Procedure T_Component.Set_type(AIndex : Integer; const AValue : String); 
+Procedure T_Component.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
 
 
 
-Procedure T_Component.SetelIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure T_Component.SetelIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FelIds=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure T_Component.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure T_Component.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -2025,7 +2025,7 @@ end;
 
 
 
-Procedure T_Component.SettitleLevelEidrs(AIndex : Integer; const AValue : TStringArray); 
+Procedure T_Component.SettitleLevelEidrs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FtitleLevelEidrs=AValue) then exit;
@@ -2035,7 +2035,7 @@ end;
 
 
 
-Procedure T_Component.SeteditLevelEidrs(AIndex : Integer; const AValue : TStringArray); 
+Procedure T_Component.SeteditLevelEidrs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FeditLevelEidrs=AValue) then exit;
@@ -2045,7 +2045,7 @@ end;
 
 
 
-Procedure T_Component.SetaltCutIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure T_Component.SetaltCutIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FaltCutIds=AValue) then exit;
@@ -2055,7 +2055,7 @@ end;
 
 
 
-Procedure T_Component.SetcustomIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure T_Component.SetcustomIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcustomIds=AValue) then exit;
@@ -2065,7 +2065,7 @@ end;
 
 
 
-Procedure T_Component.SetcomponentDetailType(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetcomponentDetailType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcomponentDetailType=AValue) then exit;
@@ -2075,7 +2075,7 @@ end;
 
 
 
-Procedure T_Component.SetplayableUnitType(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetplayableUnitType(AIndex : Integer; const AValue : String);
 
 begin
   If (FplayableUnitType=AValue) then exit;
@@ -2085,7 +2085,7 @@ end;
 
 
 
-Procedure T_Component.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure T_Component.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2095,7 +2095,7 @@ end;
 
 
 
-Procedure T_Component.SetstatusDetail(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetstatusDetail(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusDetail=AValue) then exit;
@@ -2105,7 +2105,7 @@ end;
 
 
 
-Procedure T_Component.SetrejectionNote(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetrejectionNote(AIndex : Integer; const AValue : String);
 
 begin
   If (FrejectionNote=AValue) then exit;
@@ -2115,7 +2115,7 @@ end;
 
 
 
-Procedure T_Component.SetapprovedTime(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetapprovedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FapprovedTime=AValue) then exit;
@@ -2125,7 +2125,7 @@ end;
 
 
 
-Procedure T_Component.Setname(AIndex : Integer; const AValue : String); 
+Procedure T_Component.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2135,7 +2135,7 @@ end;
 
 
 
-Procedure T_Component.SetprocessingErrors(AIndex : Integer; const AValue : TStringArray); 
+Procedure T_Component.SetprocessingErrors(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FprocessingErrors=AValue) then exit;
@@ -2145,7 +2145,7 @@ end;
 
 
 
-Procedure T_Component.Setpriority(AIndex : Integer; const AValue : double); 
+Procedure T_Component.Setpriority(AIndex : Integer; const AValue : double);
 
 begin
   If (Fpriority=AValue) then exit;
@@ -2155,7 +2155,7 @@ end;
 
 
 
-Procedure T_Component.SetreceivedTime(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetreceivedTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FreceivedTime=AValue) then exit;
@@ -2165,7 +2165,7 @@ end;
 
 
 
-Procedure T_Component.Setfilename(AIndex : Integer; const AValue : String); 
+Procedure T_Component.Setfilename(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilename=AValue) then exit;
@@ -2175,7 +2175,7 @@ end;
 
 
 
-Procedure T_Component.SetstudioName(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetstudioName(AIndex : Integer; const AValue : String);
 
 begin
   If (FstudioName=AValue) then exit;
@@ -2185,7 +2185,7 @@ end;
 
 
 
-Procedure T_Component.SetpphName(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetpphName(AIndex : Integer; const AValue : String);
 
 begin
   If (FpphName=AValue) then exit;
@@ -2195,7 +2195,7 @@ end;
 
 
 
-Procedure T_Component.SetnormalizedPriority(AIndex : Integer; const AValue : String); 
+Procedure T_Component.SetnormalizedPriority(AIndex : Integer; const AValue : String);
 
 begin
   If (FnormalizedPriority=AValue) then exit;
@@ -2217,7 +2217,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure T_Component.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure T_Component.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2241,7 +2241,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListComponentsResponse.Setcomponents(AIndex : Integer; const AValue : TListComponentsResponseTypecomponentsArray); 
+Procedure TListComponentsResponse.Setcomponents(AIndex : Integer; const AValue : TListComponentsResponseTypecomponentsArray);
 
 begin
   If (Fcomponents=AValue) then exit;
@@ -2251,7 +2251,7 @@ end;
 
 
 
-Procedure TListComponentsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListComponentsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2261,7 +2261,7 @@ end;
 
 
 
-Procedure TListComponentsResponse.SettotalSize(AIndex : Integer; const AValue : integer); 
+Procedure TListComponentsResponse.SettotalSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSize=AValue) then exit;
@@ -2272,7 +2272,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListComponentsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListComponentsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2291,7 +2291,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStoreInfo.SetvideoId(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetvideoId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvideoId=AValue) then exit;
@@ -2301,7 +2301,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetseasonId(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetseasonId(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonId=AValue) then exit;
@@ -2311,7 +2311,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetshowId(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetshowId(AIndex : Integer; const AValue : String);
 
 begin
   If (FshowId=AValue) then exit;
@@ -2321,7 +2321,7 @@ end;
 
 
 
-Procedure TStoreInfo.Setcountry(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.Setcountry(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcountry=AValue) then exit;
@@ -2331,7 +2331,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetliveTime(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetliveTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FliveTime=AValue) then exit;
@@ -2341,7 +2341,7 @@ end;
 
 
 
-Procedure TStoreInfo.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2351,7 +2351,7 @@ end;
 
 
 
-Procedure TStoreInfo.Setname(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2361,7 +2361,7 @@ end;
 
 
 
-Procedure TStoreInfo.SettitleLevelEidr(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SettitleLevelEidr(AIndex : Integer; const AValue : String);
 
 begin
   If (FtitleLevelEidr=AValue) then exit;
@@ -2371,7 +2371,7 @@ end;
 
 
 
-Procedure TStoreInfo.SeteditLevelEidr(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SeteditLevelEidr(AIndex : Integer; const AValue : String);
 
 begin
   If (FeditLevelEidr=AValue) then exit;
@@ -2381,7 +2381,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetseasonName(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetseasonName(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonName=AValue) then exit;
@@ -2391,7 +2391,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetshowName(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetshowName(AIndex : Integer; const AValue : String);
 
 begin
   If (FshowName=AValue) then exit;
@@ -2401,7 +2401,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetseasonNumber(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetseasonNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FseasonNumber=AValue) then exit;
@@ -2411,7 +2411,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetepisodeNumber(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetepisodeNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FepisodeNumber=AValue) then exit;
@@ -2421,7 +2421,7 @@ end;
 
 
 
-Procedure TStoreInfo.SethasSdOffer(AIndex : Integer; const AValue : boolean); 
+Procedure TStoreInfo.SethasSdOffer(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasSdOffer=AValue) then exit;
@@ -2431,7 +2431,7 @@ end;
 
 
 
-Procedure TStoreInfo.SethasHdOffer(AIndex : Integer; const AValue : boolean); 
+Procedure TStoreInfo.SethasHdOffer(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasHdOffer=AValue) then exit;
@@ -2441,7 +2441,7 @@ end;
 
 
 
-Procedure TStoreInfo.SethasVodOffer(AIndex : Integer; const AValue : boolean); 
+Procedure TStoreInfo.SethasVodOffer(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasVodOffer=AValue) then exit;
@@ -2451,7 +2451,7 @@ end;
 
 
 
-Procedure TStoreInfo.SethasEstOffer(AIndex : Integer; const AValue : boolean); 
+Procedure TStoreInfo.SethasEstOffer(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasEstOffer=AValue) then exit;
@@ -2461,7 +2461,7 @@ end;
 
 
 
-Procedure TStoreInfo.SethasAudio51(AIndex : Integer; const AValue : boolean); 
+Procedure TStoreInfo.SethasAudio51(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasAudio51=AValue) then exit;
@@ -2471,7 +2471,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetaudioTracks(AIndex : Integer; const AValue : TStringArray); 
+Procedure TStoreInfo.SetaudioTracks(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FaudioTracks=AValue) then exit;
@@ -2481,7 +2481,7 @@ end;
 
 
 
-Procedure TStoreInfo.Setsubtitles(AIndex : Integer; const AValue : TStringArray); 
+Procedure TStoreInfo.Setsubtitles(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fsubtitles=AValue) then exit;
@@ -2491,7 +2491,7 @@ end;
 
 
 
-Procedure TStoreInfo.SethasInfoCards(AIndex : Integer; const AValue : boolean); 
+Procedure TStoreInfo.SethasInfoCards(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasInfoCards=AValue) then exit;
@@ -2501,7 +2501,7 @@ end;
 
 
 
-Procedure TStoreInfo.Setmid(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.Setmid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmid=AValue) then exit;
@@ -2511,7 +2511,7 @@ end;
 
 
 
-Procedure TStoreInfo.SettrailerId(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SettrailerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtrailerId=AValue) then exit;
@@ -2521,7 +2521,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetstudioName(AIndex : Integer; const AValue : String); 
+Procedure TStoreInfo.SetstudioName(AIndex : Integer; const AValue : String);
 
 begin
   If (FstudioName=AValue) then exit;
@@ -2531,7 +2531,7 @@ end;
 
 
 
-Procedure TStoreInfo.SetpphNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TStoreInfo.SetpphNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FpphNames=AValue) then exit;
@@ -2553,7 +2553,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStoreInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStoreInfo.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2574,7 +2574,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListStoreInfosResponse.SetstoreInfos(AIndex : Integer; const AValue : TListStoreInfosResponseTypestoreInfosArray); 
+Procedure TListStoreInfosResponse.SetstoreInfos(AIndex : Integer; const AValue : TListStoreInfosResponseTypestoreInfosArray);
 
 begin
   If (FstoreInfos=AValue) then exit;
@@ -2584,7 +2584,7 @@ end;
 
 
 
-Procedure TListStoreInfosResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListStoreInfosResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2594,7 +2594,7 @@ end;
 
 
 
-Procedure TListStoreInfosResponse.SettotalSize(AIndex : Integer; const AValue : integer); 
+Procedure TListStoreInfosResponse.SettotalSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSize=AValue) then exit;
@@ -2605,7 +2605,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListStoreInfosResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListStoreInfosResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3354,7 +3354,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/playmovies_partner.readonly';
   Result[0].Description:='View the digital assets you publish on Google Play Movies and TV';
-  
+
 end;
 
 Class Function TPlaymoviespartnerAPI.APINeedsAuth : Boolean;

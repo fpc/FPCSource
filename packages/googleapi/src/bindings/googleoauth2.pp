@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TJwk = Class;
   TTokeninfo = Class;
@@ -24,11 +24,11 @@ type
   //Anonymous types, using auto-generated names
   TJwkTypekeysItem = Class;
   TJwkTypekeysArray = Array of TJwkTypekeysItem;
-  
+
   { --------------------------------------------------------------------
     TJwkTypekeysItem
     --------------------------------------------------------------------}
-  
+
   TJwkTypekeysItem = Class(TGoogleBaseObject)
   Private
     Falg : String;
@@ -55,11 +55,11 @@ type
     Property use : String Index 40 Read Fuse Write Setuse;
   end;
   TJwkTypekeysItemClass = Class of TJwkTypekeysItem;
-  
+
   { --------------------------------------------------------------------
     TJwk
     --------------------------------------------------------------------}
-  
+
   TJwk = Class(TGoogleBaseObject)
   Private
     Fkeys : TJwkTypekeysArray;
@@ -75,11 +75,11 @@ type
     Property keys : TJwkTypekeysArray Index 0 Read Fkeys Write Setkeys;
   end;
   TJwkClass = Class of TJwk;
-  
+
   { --------------------------------------------------------------------
     TTokeninfo
     --------------------------------------------------------------------}
-  
+
   TTokeninfo = Class(TGoogleBaseObject)
   Private
     Faccess_type : String;
@@ -115,11 +115,11 @@ type
     Property verified_email : boolean Index 64 Read Fverified_email Write Setverified_email;
   end;
   TTokeninfoClass = Class of TTokeninfo;
-  
+
   { --------------------------------------------------------------------
     TUserinfoplus
     --------------------------------------------------------------------}
-  
+
   TUserinfoplus = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -161,23 +161,23 @@ type
     Property verified_email : boolean Index 80 Read Fverified_email Write Setverified_email;
   end;
   TUserinfoplusClass = Class of TUserinfoplus;
-  
+
   { --------------------------------------------------------------------
     TUserinfoV2MeResource
     --------------------------------------------------------------------}
-  
+
   TUserinfoV2MeResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get : TUserinfoplus;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUserinfoV2Resource
     --------------------------------------------------------------------}
-  
+
   TUserinfoV2Resource = Class(TGoogleResource)
   Private
     FMeInstance : TUserinfoV2MeResource;
@@ -189,12 +189,12 @@ type
     Function CreateMeResource : TUserinfoV2MeResource;virtual;overload;
     Property MeResource : TUserinfoV2MeResource Read GetMeInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUserinfoResource
     --------------------------------------------------------------------}
-  
+
   TUserinfoResource = Class(TGoogleResource)
   Private
     FV2MeInstance : TUserinfoV2MeResource;
@@ -212,12 +212,12 @@ type
     Property V2MeResource : TUserinfoV2MeResource Read GetV2MeInstance;
     Property V2Resource : TUserinfoV2Resource Read GetV2Instance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TOauth2API
     --------------------------------------------------------------------}
-  
+
   TOauth2API = Class(TGoogleAPI)
   Private
     FUserinfoV2MeInstance : TUserinfoV2MeResource;
@@ -269,7 +269,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TJwkTypekeysItem.Setalg(AIndex : Integer; const AValue : String); 
+Procedure TJwkTypekeysItem.Setalg(AIndex : Integer; const AValue : String);
 
 begin
   If (Falg=AValue) then exit;
@@ -279,7 +279,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Sete(AIndex : Integer; const AValue : String); 
+Procedure TJwkTypekeysItem.Sete(AIndex : Integer; const AValue : String);
 
 begin
   If (Fe=AValue) then exit;
@@ -289,7 +289,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setkid(AIndex : Integer; const AValue : String); 
+Procedure TJwkTypekeysItem.Setkid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkid=AValue) then exit;
@@ -299,7 +299,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setkty(AIndex : Integer; const AValue : String); 
+Procedure TJwkTypekeysItem.Setkty(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkty=AValue) then exit;
@@ -309,7 +309,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setn(AIndex : Integer; const AValue : String); 
+Procedure TJwkTypekeysItem.Setn(AIndex : Integer; const AValue : String);
 
 begin
   If (Fn=AValue) then exit;
@@ -319,7 +319,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setuse(AIndex : Integer; const AValue : String); 
+Procedure TJwkTypekeysItem.Setuse(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuse=AValue) then exit;
@@ -336,7 +336,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJwk.Setkeys(AIndex : Integer; const AValue : TJwkTypekeysArray); 
+Procedure TJwk.Setkeys(AIndex : Integer; const AValue : TJwkTypekeysArray);
 
 begin
   If (Fkeys=AValue) then exit;
@@ -347,7 +347,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJwk.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJwk.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -366,7 +366,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokeninfo.Setaccess_type(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Setaccess_type(AIndex : Integer; const AValue : String);
 
 begin
   If (Faccess_type=AValue) then exit;
@@ -376,7 +376,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setaudience(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Setaudience(AIndex : Integer; const AValue : String);
 
 begin
   If (Faudience=AValue) then exit;
@@ -386,7 +386,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -396,7 +396,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setexpires_in(AIndex : Integer; const AValue : integer); 
+Procedure TTokeninfo.Setexpires_in(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fexpires_in=AValue) then exit;
@@ -406,7 +406,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setissued_to(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Setissued_to(AIndex : Integer; const AValue : String);
 
 begin
   If (Fissued_to=AValue) then exit;
@@ -416,7 +416,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setscope(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Setscope(AIndex : Integer; const AValue : String);
 
 begin
   If (Fscope=AValue) then exit;
@@ -426,7 +426,7 @@ end;
 
 
 
-Procedure TTokeninfo.Settoken_handle(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Settoken_handle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken_handle=AValue) then exit;
@@ -436,7 +436,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setuser_id(AIndex : Integer; const AValue : String); 
+Procedure TTokeninfo.Setuser_id(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser_id=AValue) then exit;
@@ -446,7 +446,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setverified_email(AIndex : Integer; const AValue : boolean); 
+Procedure TTokeninfo.Setverified_email(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fverified_email=AValue) then exit;
@@ -463,7 +463,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserinfoplus.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -473,7 +473,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setfamily_name(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setfamily_name(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffamily_name=AValue) then exit;
@@ -483,7 +483,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setgender(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setgender(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgender=AValue) then exit;
@@ -493,7 +493,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setgiven_name(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setgiven_name(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgiven_name=AValue) then exit;
@@ -503,7 +503,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Sethd(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Sethd(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhd=AValue) then exit;
@@ -513,7 +513,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -523,7 +523,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setlink(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Flink=AValue) then exit;
@@ -533,7 +533,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setlocale(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setlocale(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocale=AValue) then exit;
@@ -543,7 +543,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setname(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -553,7 +553,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setpicture(AIndex : Integer; const AValue : String); 
+Procedure TUserinfoplus.Setpicture(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpicture=AValue) then exit;
@@ -563,7 +563,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setverified_email(AIndex : Integer; const AValue : boolean); 
+Procedure TUserinfoplus.Setverified_email(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fverified_email=AValue) then exit;
@@ -844,7 +844,7 @@ begin
   Result[2].Description:='View your email address';
   Result[3].Name:='https://www.googleapis.com/auth/userinfo.profile';
   Result[3].Description:='View your basic profile info';
-  
+
 end;
 
 Class Function TOauth2API.APINeedsAuth : Boolean;

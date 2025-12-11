@@ -5,14 +5,14 @@ unit googleaudit;
    **********************************************************************
       This file is part of the Free Component Library (FCL)
       Copyright (c) 2015 The free pascal team.
-  
+
       See the file COPYING.FPC, included in this distribution,
       for details about the copyright.
-  
+
       This program is distributed in the hope that it will be useful,
       but WITHOUT ANY WARRANTY; without even the implied warranty of
       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
+
    **********************************************************************
 }
 //Generated on: 16-5-15 08:52:58
@@ -28,7 +28,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TActivities = Class;
   TActivity = Class;
@@ -42,11 +42,11 @@ type
   TActivitiesTypeitemsArray = Array of TActivity;
   TActivityTypeeventsItemTypeparametersArray = Array of TActivityTypeeventsItemTypeparametersItem;
   TActivityTypeeventsArray = Array of TActivityTypeeventsItem;
-  
+
   { --------------------------------------------------------------------
     TActivities
     --------------------------------------------------------------------}
-  
+
   TActivities = Class(TGoogleBaseObject)
   Private
     Fitems : TActivitiesTypeitemsArray;
@@ -68,11 +68,11 @@ type
     Property next : String Index 16 Read Fnext Write Setnext;
   end;
   TActivitiesClass = Class of TActivities;
-  
+
   { --------------------------------------------------------------------
     TActivityTypeactor
     --------------------------------------------------------------------}
-  
+
   TActivityTypeactor = Class(TGoogleBaseObject)
   Private
     FapplicationId : String;
@@ -93,11 +93,11 @@ type
     Property key : String Index 24 Read Fkey Write Setkey;
   end;
   TActivityTypeactorClass = Class of TActivityTypeactor;
-  
+
   { --------------------------------------------------------------------
     TActivityTypeeventsItemTypeparametersItem
     --------------------------------------------------------------------}
-  
+
   TActivityTypeeventsItemTypeparametersItem = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -112,11 +112,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TActivityTypeeventsItemTypeparametersItemClass = Class of TActivityTypeeventsItemTypeparametersItem;
-  
+
   { --------------------------------------------------------------------
     TActivityTypeeventsItem
     --------------------------------------------------------------------}
-  
+
   TActivityTypeeventsItem = Class(TGoogleBaseObject)
   Private
     FeventType : String;
@@ -138,11 +138,11 @@ type
     Property parameters : TActivityTypeeventsItemTypeparametersArray Index 16 Read Fparameters Write Setparameters;
   end;
   TActivityTypeeventsItemClass = Class of TActivityTypeeventsItem;
-  
+
   { --------------------------------------------------------------------
     TActivityTypeid
     --------------------------------------------------------------------}
-  
+
   TActivityTypeid = Class(TGoogleBaseObject)
   Private
     FapplicationId : String;
@@ -163,11 +163,11 @@ type
     Property uniqQualifier : String Index 24 Read FuniqQualifier Write SetuniqQualifier;
   end;
   TActivityTypeidClass = Class of TActivityTypeid;
-  
+
   { --------------------------------------------------------------------
     TActivity
     --------------------------------------------------------------------}
-  
+
   TActivity = Class(TGoogleBaseObject)
   Private
     Factor : TActivityTypeactor;
@@ -198,14 +198,14 @@ type
     Property ownerDomain : String Index 40 Read FownerDomain Write SetownerDomain;
   end;
   TActivityClass = Class of TActivity;
-  
+
   { --------------------------------------------------------------------
     TActivitiesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TActivitiesResource, method List
-  
+
   TActivitiesListOptions = Record
     actorApplicationId : int64;
     actorEmail : String;
@@ -217,7 +217,7 @@ type
     maxResults : integer;
     startTime : String;
   end;
-  
+
   TActivitiesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -225,12 +225,12 @@ type
     Function List(applicationId: string; customerId: string; AQuery : string  = '') : TActivities;
     Function List(applicationId: string; customerId: string; AQuery : TActivitieslistOptions) : TActivities;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAuditAPI
     --------------------------------------------------------------------}
-  
+
   TAuditAPI = Class(TGoogleAPI)
   Private
     FActivitiesInstance : TActivitiesResource;
@@ -272,7 +272,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TActivities.Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); 
+Procedure TActivities.Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -282,7 +282,7 @@ end;
 
 
 
-Procedure TActivities.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TActivities.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -292,7 +292,7 @@ end;
 
 
 
-Procedure TActivities.Setnext(AIndex : Integer; const AValue : String); 
+Procedure TActivities.Setnext(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnext=AValue) then exit;
@@ -303,7 +303,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TActivities.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TActivities.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -322,7 +322,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeactor.SetapplicationId(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeactor.SetapplicationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -332,7 +332,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcallerType=AValue) then exit;
@@ -342,7 +342,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeactor.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -352,7 +352,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeactor.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -369,7 +369,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -379,7 +379,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -396,7 +396,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeeventsItem.SeteventType(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeeventsItem.SeteventType(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventType=AValue) then exit;
@@ -406,7 +406,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -416,7 +416,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItem.Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); 
+Procedure TActivityTypeeventsItem.Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray);
 
 begin
   If (Fparameters=AValue) then exit;
@@ -427,7 +427,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TActivityTypeeventsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TActivityTypeeventsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -446,7 +446,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeid.SetapplicationId(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeid.SetapplicationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -456,7 +456,7 @@ end;
 
 
 
-Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -466,7 +466,7 @@ end;
 
 
 
-Procedure TActivityTypeid.Settime(AIndex : Integer; AValue : TDatetime); 
+Procedure TActivityTypeid.Settime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (Ftime=AValue) then exit;
@@ -476,7 +476,7 @@ end;
 
 
 
-Procedure TActivityTypeid.SetuniqQualifier(AIndex : Integer; const AValue : String); 
+Procedure TActivityTypeid.SetuniqQualifier(AIndex : Integer; const AValue : String);
 
 begin
   If (FuniqQualifier=AValue) then exit;
@@ -493,7 +493,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivity.Setactor(AIndex : Integer; AValue : TActivityTypeactor); 
+Procedure TActivity.Setactor(AIndex : Integer; AValue : TActivityTypeactor);
 
 begin
   If (Factor=AValue) then exit;
@@ -503,7 +503,7 @@ end;
 
 
 
-Procedure TActivity.Setevents(AIndex : Integer; AValue : TActivityTypeeventsArray); 
+Procedure TActivity.Setevents(AIndex : Integer; AValue : TActivityTypeeventsArray);
 
 begin
   If (Fevents=AValue) then exit;
@@ -513,7 +513,7 @@ end;
 
 
 
-Procedure TActivity.Setid(AIndex : Integer; AValue : TActivityTypeid); 
+Procedure TActivity.Setid(AIndex : Integer; AValue : TActivityTypeid);
 
 begin
   If (Fid=AValue) then exit;
@@ -523,7 +523,7 @@ end;
 
 
 
-Procedure TActivity.SetipAddress(AIndex : Integer; const AValue : String); 
+Procedure TActivity.SetipAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FipAddress=AValue) then exit;
@@ -533,7 +533,7 @@ end;
 
 
 
-Procedure TActivity.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TActivity.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -543,7 +543,7 @@ end;
 
 
 
-Procedure TActivity.SetownerDomain(AIndex : Integer; const AValue : String); 
+Procedure TActivity.SetownerDomain(AIndex : Integer; const AValue : String);
 
 begin
   If (FownerDomain=AValue) then exit;
@@ -554,7 +554,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TActivity.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TActivity.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -732,7 +732,7 @@ Class Function TAuditAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TAuditAPI.APINeedsAuth : Boolean;

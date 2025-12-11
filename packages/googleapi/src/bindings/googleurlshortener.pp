@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAnalyticsSnapshot = Class;
   TAnalyticsSummary = Class;
@@ -31,11 +31,11 @@ type
   TAnalyticsSnapshotTypeplatformsArray = Array of TStringCount;
   TAnalyticsSnapshotTypereferrersArray = Array of TStringCount;
   TUrlHistoryTypeitemsArray = Array of TUrl;
-  
+
   { --------------------------------------------------------------------
     TAnalyticsSnapshot
     --------------------------------------------------------------------}
-  
+
   TAnalyticsSnapshot = Class(TGoogleBaseObject)
   Private
     Fbrowsers : TAnalyticsSnapshotTypebrowsersArray;
@@ -66,11 +66,11 @@ type
     Property shortUrlClicks : String Index 40 Read FshortUrlClicks Write SetshortUrlClicks;
   end;
   TAnalyticsSnapshotClass = Class of TAnalyticsSnapshot;
-  
+
   { --------------------------------------------------------------------
     TAnalyticsSummary
     --------------------------------------------------------------------}
-  
+
   TAnalyticsSummary = Class(TGoogleBaseObject)
   Private
     FallTime : TAnalyticsSnapshot;
@@ -94,11 +94,11 @@ type
     Property week : TAnalyticsSnapshot Index 32 Read Fweek Write Setweek;
   end;
   TAnalyticsSummaryClass = Class of TAnalyticsSummary;
-  
+
   { --------------------------------------------------------------------
     TStringCount
     --------------------------------------------------------------------}
-  
+
   TStringCount = Class(TGoogleBaseObject)
   Private
     Fcount : String;
@@ -113,11 +113,11 @@ type
     Property id : String Index 8 Read Fid Write Setid;
   end;
   TStringCountClass = Class of TStringCount;
-  
+
   { --------------------------------------------------------------------
     TUrl
     --------------------------------------------------------------------}
-  
+
   TUrl = Class(TGoogleBaseObject)
   Private
     Fanalytics : TAnalyticsSummary;
@@ -144,11 +144,11 @@ type
     Property status : String Index 40 Read Fstatus Write Setstatus;
   end;
   TUrlClass = Class of TUrl;
-  
+
   { --------------------------------------------------------------------
     TUrlHistory
     --------------------------------------------------------------------}
-  
+
   TUrlHistory = Class(TGoogleBaseObject)
   Private
     Fitems : TUrlHistoryTypeitemsArray;
@@ -176,27 +176,27 @@ type
     Property totalItems : integer Index 32 Read FtotalItems Write SettotalItems;
   end;
   TUrlHistoryClass = Class of TUrlHistory;
-  
+
   { --------------------------------------------------------------------
     TUrlResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUrlResource, method Get
-  
+
   TUrlGetOptions = Record
     projection : String;
     shortUrl : String;
   end;
-  
-  
+
+
   //Optional query Options for TUrlResource, method List
-  
+
   TUrlListOptions = Record
     projection : String;
     starttoken : String;
   end;
-  
+
   TUrlResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -207,12 +207,12 @@ type
     Function List(AQuery : string  = '') : TUrlHistory;
     Function List(AQuery : TUrllistOptions) : TUrlHistory;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUrlshortenerAPI
     --------------------------------------------------------------------}
-  
+
   TUrlshortenerAPI = Class(TGoogleAPI)
   Private
     FUrlInstance : TUrlResource;
@@ -254,7 +254,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyticsSnapshot.Setbrowsers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypebrowsersArray); 
+Procedure TAnalyticsSnapshot.Setbrowsers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypebrowsersArray);
 
 begin
   If (Fbrowsers=AValue) then exit;
@@ -264,7 +264,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setcountries(AIndex : Integer; const AValue : TAnalyticsSnapshotTypecountriesArray); 
+Procedure TAnalyticsSnapshot.Setcountries(AIndex : Integer; const AValue : TAnalyticsSnapshotTypecountriesArray);
 
 begin
   If (Fcountries=AValue) then exit;
@@ -274,7 +274,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.SetlongUrlClicks(AIndex : Integer; const AValue : String); 
+Procedure TAnalyticsSnapshot.SetlongUrlClicks(AIndex : Integer; const AValue : String);
 
 begin
   If (FlongUrlClicks=AValue) then exit;
@@ -284,7 +284,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setplatforms(AIndex : Integer; const AValue : TAnalyticsSnapshotTypeplatformsArray); 
+Procedure TAnalyticsSnapshot.Setplatforms(AIndex : Integer; const AValue : TAnalyticsSnapshotTypeplatformsArray);
 
 begin
   If (Fplatforms=AValue) then exit;
@@ -294,7 +294,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.Setreferrers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypereferrersArray); 
+Procedure TAnalyticsSnapshot.Setreferrers(AIndex : Integer; const AValue : TAnalyticsSnapshotTypereferrersArray);
 
 begin
   If (Freferrers=AValue) then exit;
@@ -304,7 +304,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.SetshortUrlClicks(AIndex : Integer; const AValue : String); 
+Procedure TAnalyticsSnapshot.SetshortUrlClicks(AIndex : Integer; const AValue : String);
 
 begin
   If (FshortUrlClicks=AValue) then exit;
@@ -315,7 +315,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAnalyticsSnapshot.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAnalyticsSnapshot.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -337,7 +337,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyticsSummary.SetallTime(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.SetallTime(AIndex : Integer; const AValue : TAnalyticsSnapshot);
 
 begin
   If (FallTime=AValue) then exit;
@@ -347,7 +347,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.Setday(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.Setday(AIndex : Integer; const AValue : TAnalyticsSnapshot);
 
 begin
   If (Fday=AValue) then exit;
@@ -357,7 +357,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.Setmonth(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.Setmonth(AIndex : Integer; const AValue : TAnalyticsSnapshot);
 
 begin
   If (Fmonth=AValue) then exit;
@@ -367,7 +367,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.SettwoHours(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.SettwoHours(AIndex : Integer; const AValue : TAnalyticsSnapshot);
 
 begin
   If (FtwoHours=AValue) then exit;
@@ -377,7 +377,7 @@ end;
 
 
 
-Procedure TAnalyticsSummary.Setweek(AIndex : Integer; const AValue : TAnalyticsSnapshot); 
+Procedure TAnalyticsSummary.Setweek(AIndex : Integer; const AValue : TAnalyticsSnapshot);
 
 begin
   If (Fweek=AValue) then exit;
@@ -394,7 +394,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStringCount.Setcount(AIndex : Integer; const AValue : String); 
+Procedure TStringCount.Setcount(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcount=AValue) then exit;
@@ -404,7 +404,7 @@ end;
 
 
 
-Procedure TStringCount.Setid(AIndex : Integer; const AValue : String); 
+Procedure TStringCount.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -421,7 +421,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrl.Setanalytics(AIndex : Integer; const AValue : TAnalyticsSummary); 
+Procedure TUrl.Setanalytics(AIndex : Integer; const AValue : TAnalyticsSummary);
 
 begin
   If (Fanalytics=AValue) then exit;
@@ -431,7 +431,7 @@ end;
 
 
 
-Procedure TUrl.Setcreated(AIndex : Integer; const AValue : String); 
+Procedure TUrl.Setcreated(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcreated=AValue) then exit;
@@ -441,7 +441,7 @@ end;
 
 
 
-Procedure TUrl.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUrl.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -451,7 +451,7 @@ end;
 
 
 
-Procedure TUrl.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUrl.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -461,7 +461,7 @@ end;
 
 
 
-Procedure TUrl.SetlongUrl(AIndex : Integer; const AValue : String); 
+Procedure TUrl.SetlongUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FlongUrl=AValue) then exit;
@@ -471,7 +471,7 @@ end;
 
 
 
-Procedure TUrl.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TUrl.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -488,7 +488,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlHistory.Setitems(AIndex : Integer; const AValue : TUrlHistoryTypeitemsArray); 
+Procedure TUrlHistory.Setitems(AIndex : Integer; const AValue : TUrlHistoryTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -498,7 +498,7 @@ end;
 
 
 
-Procedure TUrlHistory.SetitemsPerPage(AIndex : Integer; const AValue : integer); 
+Procedure TUrlHistory.SetitemsPerPage(AIndex : Integer; const AValue : integer);
 
 begin
   If (FitemsPerPage=AValue) then exit;
@@ -508,7 +508,7 @@ end;
 
 
 
-Procedure TUrlHistory.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUrlHistory.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -518,7 +518,7 @@ end;
 
 
 
-Procedure TUrlHistory.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TUrlHistory.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -528,7 +528,7 @@ end;
 
 
 
-Procedure TUrlHistory.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TUrlHistory.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -539,7 +539,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUrlHistory.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUrlHistory.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -743,7 +743,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/urlshortener';
   Result[0].Description:='Manage your goo.gl short URLs';
-  
+
 end;
 
 Class Function TUrlshortenerAPI.APINeedsAuth : Boolean;

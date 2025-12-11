@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TCluster = Class;
   TClusterConfig = Class;
@@ -112,11 +112,11 @@ type
   TListOperationsResponseTypeoperationsArray = Array of TOperation;
   TClusterOperationMetadataTypestatusHistoryArray = Array of TClusterOperationStatus;
   TOperationMetadataTypestatusHistoryArray = Array of TOperationStatus;
-  
+
   { --------------------------------------------------------------------
     TCluster
     --------------------------------------------------------------------}
-  
+
   TCluster = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -147,11 +147,11 @@ type
     Property clusterUuid : String Index 40 Read FclusterUuid Write SetclusterUuid;
   end;
   TClusterClass = Class of TCluster;
-  
+
   { --------------------------------------------------------------------
     TClusterConfig
     --------------------------------------------------------------------}
-  
+
   TClusterConfig = Class(TGoogleBaseObject)
   Private
     FconfigBucket : String;
@@ -185,11 +185,11 @@ type
     Property initializationActions : TClusterConfigTypeinitializationActionsArray Index 48 Read FinitializationActions Write SetinitializationActions;
   end;
   TClusterConfigClass = Class of TClusterConfig;
-  
+
   { --------------------------------------------------------------------
     TGceClusterConfigTypemetadata
     --------------------------------------------------------------------}
-  
+
   TGceClusterConfigTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -199,11 +199,11 @@ type
   Published
   end;
   TGceClusterConfigTypemetadataClass = Class of TGceClusterConfigTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TGceClusterConfig
     --------------------------------------------------------------------}
-  
+
   TGceClusterConfig = Class(TGoogleBaseObject)
   Private
     FzoneUri : String;
@@ -234,11 +234,11 @@ type
     Property metadata : TGceClusterConfigTypemetadata Index 40 Read Fmetadata Write Setmetadata;
   end;
   TGceClusterConfigClass = Class of TGceClusterConfig;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupConfig
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupConfig = Class(TGoogleBaseObject)
   Private
     FnumInstances : integer;
@@ -272,11 +272,11 @@ type
     Property managedGroupConfig : TManagedGroupConfig Index 48 Read FmanagedGroupConfig Write SetmanagedGroupConfig;
   end;
   TInstanceGroupConfigClass = Class of TInstanceGroupConfig;
-  
+
   { --------------------------------------------------------------------
     TDiskConfig
     --------------------------------------------------------------------}
-  
+
   TDiskConfig = Class(TGoogleBaseObject)
   Private
     FbootDiskSizeGb : integer;
@@ -291,11 +291,11 @@ type
     Property numLocalSsds : integer Index 8 Read FnumLocalSsds Write SetnumLocalSsds;
   end;
   TDiskConfigClass = Class of TDiskConfig;
-  
+
   { --------------------------------------------------------------------
     TManagedGroupConfig
     --------------------------------------------------------------------}
-  
+
   TManagedGroupConfig = Class(TGoogleBaseObject)
   Private
     FinstanceTemplateName : String;
@@ -310,11 +310,11 @@ type
     Property instanceGroupManagerName : String Index 8 Read FinstanceGroupManagerName Write SetinstanceGroupManagerName;
   end;
   TManagedGroupConfigClass = Class of TManagedGroupConfig;
-  
+
   { --------------------------------------------------------------------
     TSoftwareConfigTypeproperties
     --------------------------------------------------------------------}
-  
+
   TSoftwareConfigTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -324,11 +324,11 @@ type
   Published
   end;
   TSoftwareConfigTypepropertiesClass = Class of TSoftwareConfigTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TSoftwareConfig
     --------------------------------------------------------------------}
-  
+
   TSoftwareConfig = Class(TGoogleBaseObject)
   Private
     FimageVersion : String;
@@ -343,11 +343,11 @@ type
     Property properties : TSoftwareConfigTypeproperties Index 8 Read Fproperties Write Setproperties;
   end;
   TSoftwareConfigClass = Class of TSoftwareConfig;
-  
+
   { --------------------------------------------------------------------
     TNodeInitializationAction
     --------------------------------------------------------------------}
-  
+
   TNodeInitializationAction = Class(TGoogleBaseObject)
   Private
     FexecutableFile : String;
@@ -362,11 +362,11 @@ type
     Property executionTimeout : String Index 8 Read FexecutionTimeout Write SetexecutionTimeout;
   end;
   TNodeInitializationActionClass = Class of TNodeInitializationAction;
-  
+
   { --------------------------------------------------------------------
     TClusterStatus
     --------------------------------------------------------------------}
-  
+
   TClusterStatus = Class(TGoogleBaseObject)
   Private
     Fstate : String;
@@ -384,11 +384,11 @@ type
     Property stateStartTime : String Index 16 Read FstateStartTime Write SetstateStartTime;
   end;
   TClusterStatusClass = Class of TClusterStatus;
-  
+
   { --------------------------------------------------------------------
     TOperationTypemetadata
     --------------------------------------------------------------------}
-  
+
   TOperationTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -398,11 +398,11 @@ type
   Published
   end;
   TOperationTypemetadataClass = Class of TOperationTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationTyperesponse
     --------------------------------------------------------------------}
-  
+
   TOperationTyperesponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -412,11 +412,11 @@ type
   Published
   end;
   TOperationTyperesponseClass = Class of TOperationTyperesponse;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -440,11 +440,11 @@ type
     Property response : TOperationTyperesponse Index 32 Read Fresponse Write Setresponse;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -454,11 +454,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -480,11 +480,11 @@ type
     Property details : TStatusTypedetailsArray Index 16 Read Fdetails Write Setdetails;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TListClustersResponse
     --------------------------------------------------------------------}
-  
+
   TListClustersResponse = Class(TGoogleBaseObject)
   Private
     Fclusters : TListClustersResponseTypeclustersArray;
@@ -503,11 +503,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListClustersResponseClass = Class of TListClustersResponse;
-  
+
   { --------------------------------------------------------------------
     TDiagnoseClusterRequest
     --------------------------------------------------------------------}
-  
+
   TDiagnoseClusterRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -516,11 +516,11 @@ type
   Published
   end;
   TDiagnoseClusterRequestClass = Class of TDiagnoseClusterRequest;
-  
+
   { --------------------------------------------------------------------
     TSubmitJobRequest
     --------------------------------------------------------------------}
-  
+
   TSubmitJobRequest = Class(TGoogleBaseObject)
   Private
     Fjob : TJob;
@@ -532,11 +532,11 @@ type
     Property job : TJob Index 0 Read Fjob Write Setjob;
   end;
   TSubmitJobRequestClass = Class of TSubmitJobRequest;
-  
+
   { --------------------------------------------------------------------
     TJob
     --------------------------------------------------------------------}
-  
+
   TJob = Class(TGoogleBaseObject)
   Private
     Freference : TJobReference;
@@ -585,11 +585,11 @@ type
     Property driverControlFilesUri : String Index 88 Read FdriverControlFilesUri Write SetdriverControlFilesUri;
   end;
   TJobClass = Class of TJob;
-  
+
   { --------------------------------------------------------------------
     TJobReference
     --------------------------------------------------------------------}
-  
+
   TJobReference = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -604,11 +604,11 @@ type
     Property jobId : String Index 8 Read FjobId Write SetjobId;
   end;
   TJobReferenceClass = Class of TJobReference;
-  
+
   { --------------------------------------------------------------------
     TJobPlacement
     --------------------------------------------------------------------}
-  
+
   TJobPlacement = Class(TGoogleBaseObject)
   Private
     FclusterName : String;
@@ -623,11 +623,11 @@ type
     Property clusterUuid : String Index 8 Read FclusterUuid Write SetclusterUuid;
   end;
   TJobPlacementClass = Class of TJobPlacement;
-  
+
   { --------------------------------------------------------------------
     THadoopJobTypeproperties
     --------------------------------------------------------------------}
-  
+
   THadoopJobTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -637,11 +637,11 @@ type
   Published
   end;
   THadoopJobTypepropertiesClass = Class of THadoopJobTypeproperties;
-  
+
   { --------------------------------------------------------------------
     THadoopJob
     --------------------------------------------------------------------}
-  
+
   THadoopJob = Class(TGoogleBaseObject)
   Private
     FmainJarFileUri : String;
@@ -678,11 +678,11 @@ type
     Property loggingConfig : TLoggingConfig Index 56 Read FloggingConfig Write SetloggingConfig;
   end;
   THadoopJobClass = Class of THadoopJob;
-  
+
   { --------------------------------------------------------------------
     TLoggingConfigTypedriverLogLevels
     --------------------------------------------------------------------}
-  
+
   TLoggingConfigTypedriverLogLevels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -692,11 +692,11 @@ type
   Published
   end;
   TLoggingConfigTypedriverLogLevelsClass = Class of TLoggingConfigTypedriverLogLevels;
-  
+
   { --------------------------------------------------------------------
     TLoggingConfig
     --------------------------------------------------------------------}
-  
+
   TLoggingConfig = Class(TGoogleBaseObject)
   Private
     FdriverLogLevels : TLoggingConfigTypedriverLogLevels;
@@ -708,11 +708,11 @@ type
     Property driverLogLevels : TLoggingConfigTypedriverLogLevels Index 0 Read FdriverLogLevels Write SetdriverLogLevels;
   end;
   TLoggingConfigClass = Class of TLoggingConfig;
-  
+
   { --------------------------------------------------------------------
     TSparkJobTypeproperties
     --------------------------------------------------------------------}
-  
+
   TSparkJobTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -722,11 +722,11 @@ type
   Published
   end;
   TSparkJobTypepropertiesClass = Class of TSparkJobTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TSparkJob
     --------------------------------------------------------------------}
-  
+
   TSparkJob = Class(TGoogleBaseObject)
   Private
     FmainJarFileUri : String;
@@ -763,11 +763,11 @@ type
     Property loggingConfig : TLoggingConfig Index 56 Read FloggingConfig Write SetloggingConfig;
   end;
   TSparkJobClass = Class of TSparkJob;
-  
+
   { --------------------------------------------------------------------
     TPySparkJobTypeproperties
     --------------------------------------------------------------------}
-  
+
   TPySparkJobTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -777,11 +777,11 @@ type
   Published
   end;
   TPySparkJobTypepropertiesClass = Class of TPySparkJobTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TPySparkJob
     --------------------------------------------------------------------}
-  
+
   TPySparkJob = Class(TGoogleBaseObject)
   Private
     FmainPythonFileUri : String;
@@ -818,11 +818,11 @@ type
     Property loggingConfig : TLoggingConfig Index 56 Read FloggingConfig Write SetloggingConfig;
   end;
   TPySparkJobClass = Class of TPySparkJob;
-  
+
   { --------------------------------------------------------------------
     THiveJobTypescriptVariables
     --------------------------------------------------------------------}
-  
+
   THiveJobTypescriptVariables = Class(TGoogleBaseObject)
   Private
   Protected
@@ -832,11 +832,11 @@ type
   Published
   end;
   THiveJobTypescriptVariablesClass = Class of THiveJobTypescriptVariables;
-  
+
   { --------------------------------------------------------------------
     THiveJobTypeproperties
     --------------------------------------------------------------------}
-  
+
   THiveJobTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -846,11 +846,11 @@ type
   Published
   end;
   THiveJobTypepropertiesClass = Class of THiveJobTypeproperties;
-  
+
   { --------------------------------------------------------------------
     THiveJob
     --------------------------------------------------------------------}
-  
+
   THiveJob = Class(TGoogleBaseObject)
   Private
     FqueryFileUri : String;
@@ -881,11 +881,11 @@ type
     Property jarFileUris : TStringArray Index 40 Read FjarFileUris Write SetjarFileUris;
   end;
   THiveJobClass = Class of THiveJob;
-  
+
   { --------------------------------------------------------------------
     TQueryList
     --------------------------------------------------------------------}
-  
+
   TQueryList = Class(TGoogleBaseObject)
   Private
     Fqueries : TStringArray;
@@ -901,11 +901,11 @@ type
     Property queries : TStringArray Index 0 Read Fqueries Write Setqueries;
   end;
   TQueryListClass = Class of TQueryList;
-  
+
   { --------------------------------------------------------------------
     TPigJobTypescriptVariables
     --------------------------------------------------------------------}
-  
+
   TPigJobTypescriptVariables = Class(TGoogleBaseObject)
   Private
   Protected
@@ -915,11 +915,11 @@ type
   Published
   end;
   TPigJobTypescriptVariablesClass = Class of TPigJobTypescriptVariables;
-  
+
   { --------------------------------------------------------------------
     TPigJobTypeproperties
     --------------------------------------------------------------------}
-  
+
   TPigJobTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -929,11 +929,11 @@ type
   Published
   end;
   TPigJobTypepropertiesClass = Class of TPigJobTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TPigJob
     --------------------------------------------------------------------}
-  
+
   TPigJob = Class(TGoogleBaseObject)
   Private
     FqueryFileUri : String;
@@ -967,11 +967,11 @@ type
     Property loggingConfig : TLoggingConfig Index 48 Read FloggingConfig Write SetloggingConfig;
   end;
   TPigJobClass = Class of TPigJob;
-  
+
   { --------------------------------------------------------------------
     TSparkSqlJobTypescriptVariables
     --------------------------------------------------------------------}
-  
+
   TSparkSqlJobTypescriptVariables = Class(TGoogleBaseObject)
   Private
   Protected
@@ -981,11 +981,11 @@ type
   Published
   end;
   TSparkSqlJobTypescriptVariablesClass = Class of TSparkSqlJobTypescriptVariables;
-  
+
   { --------------------------------------------------------------------
     TSparkSqlJobTypeproperties
     --------------------------------------------------------------------}
-  
+
   TSparkSqlJobTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -995,11 +995,11 @@ type
   Published
   end;
   TSparkSqlJobTypepropertiesClass = Class of TSparkSqlJobTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TSparkSqlJob
     --------------------------------------------------------------------}
-  
+
   TSparkSqlJob = Class(TGoogleBaseObject)
   Private
     FqueryFileUri : String;
@@ -1030,11 +1030,11 @@ type
     Property loggingConfig : TLoggingConfig Index 40 Read FloggingConfig Write SetloggingConfig;
   end;
   TSparkSqlJobClass = Class of TSparkSqlJob;
-  
+
   { --------------------------------------------------------------------
     TJobStatus
     --------------------------------------------------------------------}
-  
+
   TJobStatus = Class(TGoogleBaseObject)
   Private
     Fstate : String;
@@ -1052,11 +1052,11 @@ type
     Property stateStartTime : String Index 16 Read FstateStartTime Write SetstateStartTime;
   end;
   TJobStatusClass = Class of TJobStatus;
-  
+
   { --------------------------------------------------------------------
     TListJobsResponse
     --------------------------------------------------------------------}
-  
+
   TListJobsResponse = Class(TGoogleBaseObject)
   Private
     Fjobs : TListJobsResponseTypejobsArray;
@@ -1075,11 +1075,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListJobsResponseClass = Class of TListJobsResponse;
-  
+
   { --------------------------------------------------------------------
     TCancelJobRequest
     --------------------------------------------------------------------}
-  
+
   TCancelJobRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1088,11 +1088,11 @@ type
   Published
   end;
   TCancelJobRequestClass = Class of TCancelJobRequest;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1101,11 +1101,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TListOperationsResponse
     --------------------------------------------------------------------}
-  
+
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
     Foperations : TListOperationsResponseTypeoperationsArray;
@@ -1124,11 +1124,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
-  
+
   { --------------------------------------------------------------------
     TDiagnoseClusterResults
     --------------------------------------------------------------------}
-  
+
   TDiagnoseClusterResults = Class(TGoogleBaseObject)
   Private
     FoutputUri : String;
@@ -1140,11 +1140,11 @@ type
     Property outputUri : String Index 0 Read FoutputUri Write SetoutputUri;
   end;
   TDiagnoseClusterResultsClass = Class of TDiagnoseClusterResults;
-  
+
   { --------------------------------------------------------------------
     TClusterOperationMetadata
     --------------------------------------------------------------------}
-  
+
   TClusterOperationMetadata = Class(TGoogleBaseObject)
   Private
     FclusterName : String;
@@ -1175,11 +1175,11 @@ type
     Property description : String Index 40 Read Fdescription Write Setdescription;
   end;
   TClusterOperationMetadataClass = Class of TClusterOperationMetadata;
-  
+
   { --------------------------------------------------------------------
     TClusterOperationStatus
     --------------------------------------------------------------------}
-  
+
   TClusterOperationStatus = Class(TGoogleBaseObject)
   Private
     Fstate : String;
@@ -1200,11 +1200,11 @@ type
     Property stateStartTime : String Index 24 Read FstateStartTime Write SetstateStartTime;
   end;
   TClusterOperationStatusClass = Class of TClusterOperationStatus;
-  
+
   { --------------------------------------------------------------------
     TDiagnoseClusterOutputLocation
     --------------------------------------------------------------------}
-  
+
   TDiagnoseClusterOutputLocation = Class(TGoogleBaseObject)
   Private
     FoutputUri : String;
@@ -1216,11 +1216,11 @@ type
     Property outputUri : String Index 0 Read FoutputUri Write SetoutputUri;
   end;
   TDiagnoseClusterOutputLocationClass = Class of TDiagnoseClusterOutputLocation;
-  
+
   { --------------------------------------------------------------------
     TOperationMetadata
     --------------------------------------------------------------------}
-  
+
   TOperationMetadata = Class(TGoogleBaseObject)
   Private
     Fstate : String;
@@ -1269,11 +1269,11 @@ type
     Property description : String Index 88 Read Fdescription Write Setdescription;
   end;
   TOperationMetadataClass = Class of TOperationMetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationStatus
     --------------------------------------------------------------------}
-  
+
   TOperationStatus = Class(TGoogleBaseObject)
   Private
     Fstate : String;
@@ -1294,26 +1294,26 @@ type
     Property stateStartTime : String Index 24 Read FstateStartTime Write SetstateStartTime;
   end;
   TOperationStatusClass = Class of TOperationStatus;
-  
+
   { --------------------------------------------------------------------
     TProjectsRegionsClustersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsRegionsClustersResource, method Patch
-  
+
   TProjectsRegionsClustersPatchOptions = Record
     updateMask : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsRegionsClustersResource, method List
-  
+
   TProjectsRegionsClustersListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsRegionsClustersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1327,22 +1327,22 @@ type
     Function List(projectId: string; region: string; AQuery : TProjectsRegionsClusterslistOptions) : TListClustersResponse;
     Function Diagnose(projectId: string; region: string; clusterName: string; aDiagnoseClusterRequest : TDiagnoseClusterRequest) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsRegionsJobsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsRegionsJobsResource, method List
-  
+
   TProjectsRegionsJobsListOptions = Record
     pageSize : integer;
     pageToken : String;
     clusterName : String;
     jobStateMatcher : String;
   end;
-  
+
   TProjectsRegionsJobsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1354,21 +1354,21 @@ type
     Function Cancel(projectId: string; region: string; jobId: string; aCancelJobRequest : TCancelJobRequest) : TJob;
     Function Delete(projectId: string; region: string; jobId: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsRegionsOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsRegionsOperationsResource, method List
-  
+
   TProjectsRegionsOperationsListOptions = Record
     filter : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsRegionsOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1379,12 +1379,12 @@ type
     Function Cancel(_name: string) : TEmpty;
     Function Delete(_name: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsRegionsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsRegionsResource = Class(TGoogleResource)
   Private
     FClustersInstance : TProjectsRegionsClustersResource;
@@ -1406,12 +1406,12 @@ type
     Property JobsResource : TProjectsRegionsJobsResource Read GetJobsInstance;
     Property OperationsResource : TProjectsRegionsOperationsResource Read GetOperationsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FRegionsClustersInstance : TProjectsRegionsClustersResource;
@@ -1438,12 +1438,12 @@ type
     Property RegionsOperationsResource : TProjectsRegionsOperationsResource Read GetRegionsOperationsInstance;
     Property RegionsResource : TProjectsRegionsResource Read GetRegionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDataprocAPI
     --------------------------------------------------------------------}
-  
+
   TDataprocAPI = Class(TGoogleAPI)
   Private
     FProjectsRegionsClustersInstance : TProjectsRegionsClustersResource;
@@ -1505,7 +1505,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCluster.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -1515,7 +1515,7 @@ end;
 
 
 
-Procedure TCluster.SetclusterName(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetclusterName(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterName=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TCluster.Setconfig(AIndex : Integer; const AValue : TClusterConfig); 
+Procedure TCluster.Setconfig(AIndex : Integer; const AValue : TClusterConfig);
 
 begin
   If (Fconfig=AValue) then exit;
@@ -1535,7 +1535,7 @@ end;
 
 
 
-Procedure TCluster.Setstatus(AIndex : Integer; const AValue : TClusterStatus); 
+Procedure TCluster.Setstatus(AIndex : Integer; const AValue : TClusterStatus);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1545,7 +1545,7 @@ end;
 
 
 
-Procedure TCluster.SetstatusHistory(AIndex : Integer; const AValue : TClusterTypestatusHistoryArray); 
+Procedure TCluster.SetstatusHistory(AIndex : Integer; const AValue : TClusterTypestatusHistoryArray);
 
 begin
   If (FstatusHistory=AValue) then exit;
@@ -1555,7 +1555,7 @@ end;
 
 
 
-Procedure TCluster.SetclusterUuid(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetclusterUuid(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterUuid=AValue) then exit;
@@ -1566,7 +1566,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCluster.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCluster.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1585,7 +1585,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClusterConfig.SetconfigBucket(AIndex : Integer; const AValue : String); 
+Procedure TClusterConfig.SetconfigBucket(AIndex : Integer; const AValue : String);
 
 begin
   If (FconfigBucket=AValue) then exit;
@@ -1595,7 +1595,7 @@ end;
 
 
 
-Procedure TClusterConfig.SetgceClusterConfig(AIndex : Integer; const AValue : TGceClusterConfig); 
+Procedure TClusterConfig.SetgceClusterConfig(AIndex : Integer; const AValue : TGceClusterConfig);
 
 begin
   If (FgceClusterConfig=AValue) then exit;
@@ -1605,7 +1605,7 @@ end;
 
 
 
-Procedure TClusterConfig.SetmasterConfig(AIndex : Integer; const AValue : TInstanceGroupConfig); 
+Procedure TClusterConfig.SetmasterConfig(AIndex : Integer; const AValue : TInstanceGroupConfig);
 
 begin
   If (FmasterConfig=AValue) then exit;
@@ -1615,7 +1615,7 @@ end;
 
 
 
-Procedure TClusterConfig.SetworkerConfig(AIndex : Integer; const AValue : TInstanceGroupConfig); 
+Procedure TClusterConfig.SetworkerConfig(AIndex : Integer; const AValue : TInstanceGroupConfig);
 
 begin
   If (FworkerConfig=AValue) then exit;
@@ -1625,7 +1625,7 @@ end;
 
 
 
-Procedure TClusterConfig.SetsecondaryWorkerConfig(AIndex : Integer; const AValue : TInstanceGroupConfig); 
+Procedure TClusterConfig.SetsecondaryWorkerConfig(AIndex : Integer; const AValue : TInstanceGroupConfig);
 
 begin
   If (FsecondaryWorkerConfig=AValue) then exit;
@@ -1635,7 +1635,7 @@ end;
 
 
 
-Procedure TClusterConfig.SetsoftwareConfig(AIndex : Integer; const AValue : TSoftwareConfig); 
+Procedure TClusterConfig.SetsoftwareConfig(AIndex : Integer; const AValue : TSoftwareConfig);
 
 begin
   If (FsoftwareConfig=AValue) then exit;
@@ -1645,7 +1645,7 @@ end;
 
 
 
-Procedure TClusterConfig.SetinitializationActions(AIndex : Integer; const AValue : TClusterConfigTypeinitializationActionsArray); 
+Procedure TClusterConfig.SetinitializationActions(AIndex : Integer; const AValue : TClusterConfigTypeinitializationActionsArray);
 
 begin
   If (FinitializationActions=AValue) then exit;
@@ -1656,7 +1656,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TClusterConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TClusterConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1688,7 +1688,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGceClusterConfig.SetzoneUri(AIndex : Integer; const AValue : String); 
+Procedure TGceClusterConfig.SetzoneUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FzoneUri=AValue) then exit;
@@ -1698,7 +1698,7 @@ end;
 
 
 
-Procedure TGceClusterConfig.SetnetworkUri(AIndex : Integer; const AValue : String); 
+Procedure TGceClusterConfig.SetnetworkUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FnetworkUri=AValue) then exit;
@@ -1708,7 +1708,7 @@ end;
 
 
 
-Procedure TGceClusterConfig.SetsubnetworkUri(AIndex : Integer; const AValue : String); 
+Procedure TGceClusterConfig.SetsubnetworkUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FsubnetworkUri=AValue) then exit;
@@ -1718,7 +1718,7 @@ end;
 
 
 
-Procedure TGceClusterConfig.SetserviceAccountScopes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TGceClusterConfig.SetserviceAccountScopes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FserviceAccountScopes=AValue) then exit;
@@ -1728,7 +1728,7 @@ end;
 
 
 
-Procedure TGceClusterConfig.Settags(AIndex : Integer; const AValue : TStringArray); 
+Procedure TGceClusterConfig.Settags(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ftags=AValue) then exit;
@@ -1738,7 +1738,7 @@ end;
 
 
 
-Procedure TGceClusterConfig.Setmetadata(AIndex : Integer; const AValue : TGceClusterConfigTypemetadata); 
+Procedure TGceClusterConfig.Setmetadata(AIndex : Integer; const AValue : TGceClusterConfigTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1749,7 +1749,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGceClusterConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGceClusterConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1769,7 +1769,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupConfig.SetnumInstances(AIndex : Integer; const AValue : integer); 
+Procedure TInstanceGroupConfig.SetnumInstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumInstances=AValue) then exit;
@@ -1779,7 +1779,7 @@ end;
 
 
 
-Procedure TInstanceGroupConfig.SetinstanceNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TInstanceGroupConfig.SetinstanceNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FinstanceNames=AValue) then exit;
@@ -1789,7 +1789,7 @@ end;
 
 
 
-Procedure TInstanceGroupConfig.SetimageUri(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupConfig.SetimageUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FimageUri=AValue) then exit;
@@ -1799,7 +1799,7 @@ end;
 
 
 
-Procedure TInstanceGroupConfig.SetmachineTypeUri(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupConfig.SetmachineTypeUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FmachineTypeUri=AValue) then exit;
@@ -1809,7 +1809,7 @@ end;
 
 
 
-Procedure TInstanceGroupConfig.SetdiskConfig(AIndex : Integer; const AValue : TDiskConfig); 
+Procedure TInstanceGroupConfig.SetdiskConfig(AIndex : Integer; const AValue : TDiskConfig);
 
 begin
   If (FdiskConfig=AValue) then exit;
@@ -1819,7 +1819,7 @@ end;
 
 
 
-Procedure TInstanceGroupConfig.SetisPreemptible(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceGroupConfig.SetisPreemptible(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisPreemptible=AValue) then exit;
@@ -1829,7 +1829,7 @@ end;
 
 
 
-Procedure TInstanceGroupConfig.SetmanagedGroupConfig(AIndex : Integer; const AValue : TManagedGroupConfig); 
+Procedure TInstanceGroupConfig.SetmanagedGroupConfig(AIndex : Integer; const AValue : TManagedGroupConfig);
 
 begin
   If (FmanagedGroupConfig=AValue) then exit;
@@ -1840,7 +1840,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1859,7 +1859,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiskConfig.SetbootDiskSizeGb(AIndex : Integer; const AValue : integer); 
+Procedure TDiskConfig.SetbootDiskSizeGb(AIndex : Integer; const AValue : integer);
 
 begin
   If (FbootDiskSizeGb=AValue) then exit;
@@ -1869,7 +1869,7 @@ end;
 
 
 
-Procedure TDiskConfig.SetnumLocalSsds(AIndex : Integer; const AValue : integer); 
+Procedure TDiskConfig.SetnumLocalSsds(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumLocalSsds=AValue) then exit;
@@ -1886,7 +1886,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManagedGroupConfig.SetinstanceTemplateName(AIndex : Integer; const AValue : String); 
+Procedure TManagedGroupConfig.SetinstanceTemplateName(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceTemplateName=AValue) then exit;
@@ -1896,7 +1896,7 @@ end;
 
 
 
-Procedure TManagedGroupConfig.SetinstanceGroupManagerName(AIndex : Integer; const AValue : String); 
+Procedure TManagedGroupConfig.SetinstanceGroupManagerName(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceGroupManagerName=AValue) then exit;
@@ -1926,7 +1926,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSoftwareConfig.SetimageVersion(AIndex : Integer; const AValue : String); 
+Procedure TSoftwareConfig.SetimageVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FimageVersion=AValue) then exit;
@@ -1936,7 +1936,7 @@ end;
 
 
 
-Procedure TSoftwareConfig.Setproperties(AIndex : Integer; const AValue : TSoftwareConfigTypeproperties); 
+Procedure TSoftwareConfig.Setproperties(AIndex : Integer; const AValue : TSoftwareConfigTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -1953,7 +1953,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNodeInitializationAction.SetexecutableFile(AIndex : Integer; const AValue : String); 
+Procedure TNodeInitializationAction.SetexecutableFile(AIndex : Integer; const AValue : String);
 
 begin
   If (FexecutableFile=AValue) then exit;
@@ -1963,7 +1963,7 @@ end;
 
 
 
-Procedure TNodeInitializationAction.SetexecutionTimeout(AIndex : Integer; const AValue : String); 
+Procedure TNodeInitializationAction.SetexecutionTimeout(AIndex : Integer; const AValue : String);
 
 begin
   If (FexecutionTimeout=AValue) then exit;
@@ -1980,7 +1980,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClusterStatus.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TClusterStatus.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1990,7 +1990,7 @@ end;
 
 
 
-Procedure TClusterStatus.Setdetail(AIndex : Integer; const AValue : String); 
+Procedure TClusterStatus.Setdetail(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetail=AValue) then exit;
@@ -2000,7 +2000,7 @@ end;
 
 
 
-Procedure TClusterStatus.SetstateStartTime(AIndex : Integer; const AValue : String); 
+Procedure TClusterStatus.SetstateStartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstateStartTime=AValue) then exit;
@@ -2043,7 +2043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2053,7 +2053,7 @@ end;
 
 
 
-Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata); 
+Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2063,7 +2063,7 @@ end;
 
 
 
-Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean); 
+Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdone=AValue) then exit;
@@ -2073,7 +2073,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -2083,7 +2083,7 @@ end;
 
 
 
-Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse); 
+Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -2113,7 +2113,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -2123,7 +2123,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -2133,7 +2133,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -2144,7 +2144,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2163,7 +2163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListClustersResponse.Setclusters(AIndex : Integer; const AValue : TListClustersResponseTypeclustersArray); 
+Procedure TListClustersResponse.Setclusters(AIndex : Integer; const AValue : TListClustersResponseTypeclustersArray);
 
 begin
   If (Fclusters=AValue) then exit;
@@ -2173,7 +2173,7 @@ end;
 
 
 
-Procedure TListClustersResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListClustersResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2184,7 +2184,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2210,7 +2210,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubmitJobRequest.Setjob(AIndex : Integer; const AValue : TJob); 
+Procedure TSubmitJobRequest.Setjob(AIndex : Integer; const AValue : TJob);
 
 begin
   If (Fjob=AValue) then exit;
@@ -2227,7 +2227,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJob.Setreference(AIndex : Integer; const AValue : TJobReference); 
+Procedure TJob.Setreference(AIndex : Integer; const AValue : TJobReference);
 
 begin
   If (Freference=AValue) then exit;
@@ -2237,7 +2237,7 @@ end;
 
 
 
-Procedure TJob.Setplacement(AIndex : Integer; const AValue : TJobPlacement); 
+Procedure TJob.Setplacement(AIndex : Integer; const AValue : TJobPlacement);
 
 begin
   If (Fplacement=AValue) then exit;
@@ -2247,7 +2247,7 @@ end;
 
 
 
-Procedure TJob.SethadoopJob(AIndex : Integer; const AValue : THadoopJob); 
+Procedure TJob.SethadoopJob(AIndex : Integer; const AValue : THadoopJob);
 
 begin
   If (FhadoopJob=AValue) then exit;
@@ -2257,7 +2257,7 @@ end;
 
 
 
-Procedure TJob.SetsparkJob(AIndex : Integer; const AValue : TSparkJob); 
+Procedure TJob.SetsparkJob(AIndex : Integer; const AValue : TSparkJob);
 
 begin
   If (FsparkJob=AValue) then exit;
@@ -2267,7 +2267,7 @@ end;
 
 
 
-Procedure TJob.SetpysparkJob(AIndex : Integer; const AValue : TPySparkJob); 
+Procedure TJob.SetpysparkJob(AIndex : Integer; const AValue : TPySparkJob);
 
 begin
   If (FpysparkJob=AValue) then exit;
@@ -2277,7 +2277,7 @@ end;
 
 
 
-Procedure TJob.SethiveJob(AIndex : Integer; const AValue : THiveJob); 
+Procedure TJob.SethiveJob(AIndex : Integer; const AValue : THiveJob);
 
 begin
   If (FhiveJob=AValue) then exit;
@@ -2287,7 +2287,7 @@ end;
 
 
 
-Procedure TJob.SetpigJob(AIndex : Integer; const AValue : TPigJob); 
+Procedure TJob.SetpigJob(AIndex : Integer; const AValue : TPigJob);
 
 begin
   If (FpigJob=AValue) then exit;
@@ -2297,7 +2297,7 @@ end;
 
 
 
-Procedure TJob.SetsparkSqlJob(AIndex : Integer; const AValue : TSparkSqlJob); 
+Procedure TJob.SetsparkSqlJob(AIndex : Integer; const AValue : TSparkSqlJob);
 
 begin
   If (FsparkSqlJob=AValue) then exit;
@@ -2307,7 +2307,7 @@ end;
 
 
 
-Procedure TJob.Setstatus(AIndex : Integer; const AValue : TJobStatus); 
+Procedure TJob.Setstatus(AIndex : Integer; const AValue : TJobStatus);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2317,7 +2317,7 @@ end;
 
 
 
-Procedure TJob.SetstatusHistory(AIndex : Integer; const AValue : TJobTypestatusHistoryArray); 
+Procedure TJob.SetstatusHistory(AIndex : Integer; const AValue : TJobTypestatusHistoryArray);
 
 begin
   If (FstatusHistory=AValue) then exit;
@@ -2327,7 +2327,7 @@ end;
 
 
 
-Procedure TJob.SetdriverOutputResourceUri(AIndex : Integer; const AValue : String); 
+Procedure TJob.SetdriverOutputResourceUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FdriverOutputResourceUri=AValue) then exit;
@@ -2337,7 +2337,7 @@ end;
 
 
 
-Procedure TJob.SetdriverControlFilesUri(AIndex : Integer; const AValue : String); 
+Procedure TJob.SetdriverControlFilesUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FdriverControlFilesUri=AValue) then exit;
@@ -2348,7 +2348,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2367,7 +2367,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobReference.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TJobReference.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -2377,7 +2377,7 @@ end;
 
 
 
-Procedure TJobReference.SetjobId(AIndex : Integer; const AValue : String); 
+Procedure TJobReference.SetjobId(AIndex : Integer; const AValue : String);
 
 begin
   If (FjobId=AValue) then exit;
@@ -2394,7 +2394,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobPlacement.SetclusterName(AIndex : Integer; const AValue : String); 
+Procedure TJobPlacement.SetclusterName(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterName=AValue) then exit;
@@ -2404,7 +2404,7 @@ end;
 
 
 
-Procedure TJobPlacement.SetclusterUuid(AIndex : Integer; const AValue : String); 
+Procedure TJobPlacement.SetclusterUuid(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterUuid=AValue) then exit;
@@ -2434,7 +2434,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THadoopJob.SetmainJarFileUri(AIndex : Integer; const AValue : String); 
+Procedure THadoopJob.SetmainJarFileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FmainJarFileUri=AValue) then exit;
@@ -2444,7 +2444,7 @@ end;
 
 
 
-Procedure THadoopJob.SetmainClass(AIndex : Integer; const AValue : String); 
+Procedure THadoopJob.SetmainClass(AIndex : Integer; const AValue : String);
 
 begin
   If (FmainClass=AValue) then exit;
@@ -2454,7 +2454,7 @@ end;
 
 
 
-Procedure THadoopJob.Setargs(AIndex : Integer; const AValue : TStringArray); 
+Procedure THadoopJob.Setargs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fargs=AValue) then exit;
@@ -2464,7 +2464,7 @@ end;
 
 
 
-Procedure THadoopJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure THadoopJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FjarFileUris=AValue) then exit;
@@ -2474,7 +2474,7 @@ end;
 
 
 
-Procedure THadoopJob.SetfileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure THadoopJob.SetfileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FfileUris=AValue) then exit;
@@ -2484,7 +2484,7 @@ end;
 
 
 
-Procedure THadoopJob.SetarchiveUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure THadoopJob.SetarchiveUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FarchiveUris=AValue) then exit;
@@ -2494,7 +2494,7 @@ end;
 
 
 
-Procedure THadoopJob.Setproperties(AIndex : Integer; const AValue : THadoopJobTypeproperties); 
+Procedure THadoopJob.Setproperties(AIndex : Integer; const AValue : THadoopJobTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -2504,7 +2504,7 @@ end;
 
 
 
-Procedure THadoopJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig); 
+Procedure THadoopJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig);
 
 begin
   If (FloggingConfig=AValue) then exit;
@@ -2515,7 +2515,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure THadoopJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure THadoopJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2550,7 +2550,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLoggingConfig.SetdriverLogLevels(AIndex : Integer; const AValue : TLoggingConfigTypedriverLogLevels); 
+Procedure TLoggingConfig.SetdriverLogLevels(AIndex : Integer; const AValue : TLoggingConfigTypedriverLogLevels);
 
 begin
   If (FdriverLogLevels=AValue) then exit;
@@ -2580,7 +2580,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSparkJob.SetmainJarFileUri(AIndex : Integer; const AValue : String); 
+Procedure TSparkJob.SetmainJarFileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FmainJarFileUri=AValue) then exit;
@@ -2590,7 +2590,7 @@ end;
 
 
 
-Procedure TSparkJob.SetmainClass(AIndex : Integer; const AValue : String); 
+Procedure TSparkJob.SetmainClass(AIndex : Integer; const AValue : String);
 
 begin
   If (FmainClass=AValue) then exit;
@@ -2600,7 +2600,7 @@ end;
 
 
 
-Procedure TSparkJob.Setargs(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSparkJob.Setargs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fargs=AValue) then exit;
@@ -2610,7 +2610,7 @@ end;
 
 
 
-Procedure TSparkJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSparkJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FjarFileUris=AValue) then exit;
@@ -2620,7 +2620,7 @@ end;
 
 
 
-Procedure TSparkJob.SetfileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSparkJob.SetfileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FfileUris=AValue) then exit;
@@ -2630,7 +2630,7 @@ end;
 
 
 
-Procedure TSparkJob.SetarchiveUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSparkJob.SetarchiveUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FarchiveUris=AValue) then exit;
@@ -2640,7 +2640,7 @@ end;
 
 
 
-Procedure TSparkJob.Setproperties(AIndex : Integer; const AValue : TSparkJobTypeproperties); 
+Procedure TSparkJob.Setproperties(AIndex : Integer; const AValue : TSparkJobTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -2650,7 +2650,7 @@ end;
 
 
 
-Procedure TSparkJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig); 
+Procedure TSparkJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig);
 
 begin
   If (FloggingConfig=AValue) then exit;
@@ -2661,7 +2661,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSparkJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSparkJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2696,7 +2696,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPySparkJob.SetmainPythonFileUri(AIndex : Integer; const AValue : String); 
+Procedure TPySparkJob.SetmainPythonFileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FmainPythonFileUri=AValue) then exit;
@@ -2706,7 +2706,7 @@ end;
 
 
 
-Procedure TPySparkJob.Setargs(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPySparkJob.Setargs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fargs=AValue) then exit;
@@ -2716,7 +2716,7 @@ end;
 
 
 
-Procedure TPySparkJob.SetpythonFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPySparkJob.SetpythonFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FpythonFileUris=AValue) then exit;
@@ -2726,7 +2726,7 @@ end;
 
 
 
-Procedure TPySparkJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPySparkJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FjarFileUris=AValue) then exit;
@@ -2736,7 +2736,7 @@ end;
 
 
 
-Procedure TPySparkJob.SetfileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPySparkJob.SetfileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FfileUris=AValue) then exit;
@@ -2746,7 +2746,7 @@ end;
 
 
 
-Procedure TPySparkJob.SetarchiveUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPySparkJob.SetarchiveUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FarchiveUris=AValue) then exit;
@@ -2756,7 +2756,7 @@ end;
 
 
 
-Procedure TPySparkJob.Setproperties(AIndex : Integer; const AValue : TPySparkJobTypeproperties); 
+Procedure TPySparkJob.Setproperties(AIndex : Integer; const AValue : TPySparkJobTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -2766,7 +2766,7 @@ end;
 
 
 
-Procedure TPySparkJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig); 
+Procedure TPySparkJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig);
 
 begin
   If (FloggingConfig=AValue) then exit;
@@ -2777,7 +2777,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPySparkJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPySparkJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2826,7 +2826,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THiveJob.SetqueryFileUri(AIndex : Integer; const AValue : String); 
+Procedure THiveJob.SetqueryFileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FqueryFileUri=AValue) then exit;
@@ -2836,7 +2836,7 @@ end;
 
 
 
-Procedure THiveJob.SetqueryList(AIndex : Integer; const AValue : TQueryList); 
+Procedure THiveJob.SetqueryList(AIndex : Integer; const AValue : TQueryList);
 
 begin
   If (FqueryList=AValue) then exit;
@@ -2846,7 +2846,7 @@ end;
 
 
 
-Procedure THiveJob.SetcontinueOnFailure(AIndex : Integer; const AValue : boolean); 
+Procedure THiveJob.SetcontinueOnFailure(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcontinueOnFailure=AValue) then exit;
@@ -2856,7 +2856,7 @@ end;
 
 
 
-Procedure THiveJob.SetscriptVariables(AIndex : Integer; const AValue : THiveJobTypescriptVariables); 
+Procedure THiveJob.SetscriptVariables(AIndex : Integer; const AValue : THiveJobTypescriptVariables);
 
 begin
   If (FscriptVariables=AValue) then exit;
@@ -2866,7 +2866,7 @@ end;
 
 
 
-Procedure THiveJob.Setproperties(AIndex : Integer; const AValue : THiveJobTypeproperties); 
+Procedure THiveJob.Setproperties(AIndex : Integer; const AValue : THiveJobTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -2876,7 +2876,7 @@ end;
 
 
 
-Procedure THiveJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure THiveJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FjarFileUris=AValue) then exit;
@@ -2887,7 +2887,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure THiveJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure THiveJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2906,7 +2906,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryList.Setqueries(AIndex : Integer; const AValue : TStringArray); 
+Procedure TQueryList.Setqueries(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fqueries=AValue) then exit;
@@ -2917,7 +2917,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TQueryList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TQueryList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2962,7 +2962,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPigJob.SetqueryFileUri(AIndex : Integer; const AValue : String); 
+Procedure TPigJob.SetqueryFileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FqueryFileUri=AValue) then exit;
@@ -2972,7 +2972,7 @@ end;
 
 
 
-Procedure TPigJob.SetqueryList(AIndex : Integer; const AValue : TQueryList); 
+Procedure TPigJob.SetqueryList(AIndex : Integer; const AValue : TQueryList);
 
 begin
   If (FqueryList=AValue) then exit;
@@ -2982,7 +2982,7 @@ end;
 
 
 
-Procedure TPigJob.SetcontinueOnFailure(AIndex : Integer; const AValue : boolean); 
+Procedure TPigJob.SetcontinueOnFailure(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcontinueOnFailure=AValue) then exit;
@@ -2992,7 +2992,7 @@ end;
 
 
 
-Procedure TPigJob.SetscriptVariables(AIndex : Integer; const AValue : TPigJobTypescriptVariables); 
+Procedure TPigJob.SetscriptVariables(AIndex : Integer; const AValue : TPigJobTypescriptVariables);
 
 begin
   If (FscriptVariables=AValue) then exit;
@@ -3002,7 +3002,7 @@ end;
 
 
 
-Procedure TPigJob.Setproperties(AIndex : Integer; const AValue : TPigJobTypeproperties); 
+Procedure TPigJob.Setproperties(AIndex : Integer; const AValue : TPigJobTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -3012,7 +3012,7 @@ end;
 
 
 
-Procedure TPigJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPigJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FjarFileUris=AValue) then exit;
@@ -3022,7 +3022,7 @@ end;
 
 
 
-Procedure TPigJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig); 
+Procedure TPigJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig);
 
 begin
   If (FloggingConfig=AValue) then exit;
@@ -3033,7 +3033,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPigJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPigJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3078,7 +3078,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSparkSqlJob.SetqueryFileUri(AIndex : Integer; const AValue : String); 
+Procedure TSparkSqlJob.SetqueryFileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FqueryFileUri=AValue) then exit;
@@ -3088,7 +3088,7 @@ end;
 
 
 
-Procedure TSparkSqlJob.SetqueryList(AIndex : Integer; const AValue : TQueryList); 
+Procedure TSparkSqlJob.SetqueryList(AIndex : Integer; const AValue : TQueryList);
 
 begin
   If (FqueryList=AValue) then exit;
@@ -3098,7 +3098,7 @@ end;
 
 
 
-Procedure TSparkSqlJob.SetscriptVariables(AIndex : Integer; const AValue : TSparkSqlJobTypescriptVariables); 
+Procedure TSparkSqlJob.SetscriptVariables(AIndex : Integer; const AValue : TSparkSqlJobTypescriptVariables);
 
 begin
   If (FscriptVariables=AValue) then exit;
@@ -3108,7 +3108,7 @@ end;
 
 
 
-Procedure TSparkSqlJob.Setproperties(AIndex : Integer; const AValue : TSparkSqlJobTypeproperties); 
+Procedure TSparkSqlJob.Setproperties(AIndex : Integer; const AValue : TSparkSqlJobTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -3118,7 +3118,7 @@ end;
 
 
 
-Procedure TSparkSqlJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSparkSqlJob.SetjarFileUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FjarFileUris=AValue) then exit;
@@ -3128,7 +3128,7 @@ end;
 
 
 
-Procedure TSparkSqlJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig); 
+Procedure TSparkSqlJob.SetloggingConfig(AIndex : Integer; const AValue : TLoggingConfig);
 
 begin
   If (FloggingConfig=AValue) then exit;
@@ -3139,7 +3139,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSparkSqlJob.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSparkSqlJob.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3158,7 +3158,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobStatus.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TJobStatus.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -3168,7 +3168,7 @@ end;
 
 
 
-Procedure TJobStatus.Setdetails(AIndex : Integer; const AValue : String); 
+Procedure TJobStatus.Setdetails(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3178,7 +3178,7 @@ end;
 
 
 
-Procedure TJobStatus.SetstateStartTime(AIndex : Integer; const AValue : String); 
+Procedure TJobStatus.SetstateStartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstateStartTime=AValue) then exit;
@@ -3195,7 +3195,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListJobsResponse.Setjobs(AIndex : Integer; const AValue : TListJobsResponseTypejobsArray); 
+Procedure TListJobsResponse.Setjobs(AIndex : Integer; const AValue : TListJobsResponseTypejobsArray);
 
 begin
   If (Fjobs=AValue) then exit;
@@ -3205,7 +3205,7 @@ end;
 
 
 
-Procedure TListJobsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListJobsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3216,7 +3216,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListJobsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListJobsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3249,7 +3249,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); 
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray);
 
 begin
   If (Foperations=AValue) then exit;
@@ -3259,7 +3259,7 @@ end;
 
 
 
-Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3270,7 +3270,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3289,7 +3289,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiagnoseClusterResults.SetoutputUri(AIndex : Integer; const AValue : String); 
+Procedure TDiagnoseClusterResults.SetoutputUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FoutputUri=AValue) then exit;
@@ -3306,7 +3306,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClusterOperationMetadata.SetclusterName(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationMetadata.SetclusterName(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterName=AValue) then exit;
@@ -3316,7 +3316,7 @@ end;
 
 
 
-Procedure TClusterOperationMetadata.SetclusterUuid(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationMetadata.SetclusterUuid(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterUuid=AValue) then exit;
@@ -3326,7 +3326,7 @@ end;
 
 
 
-Procedure TClusterOperationMetadata.Setstatus(AIndex : Integer; const AValue : TClusterOperationStatus); 
+Procedure TClusterOperationMetadata.Setstatus(AIndex : Integer; const AValue : TClusterOperationStatus);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3336,7 +3336,7 @@ end;
 
 
 
-Procedure TClusterOperationMetadata.SetstatusHistory(AIndex : Integer; const AValue : TClusterOperationMetadataTypestatusHistoryArray); 
+Procedure TClusterOperationMetadata.SetstatusHistory(AIndex : Integer; const AValue : TClusterOperationMetadataTypestatusHistoryArray);
 
 begin
   If (FstatusHistory=AValue) then exit;
@@ -3346,7 +3346,7 @@ end;
 
 
 
-Procedure TClusterOperationMetadata.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationMetadata.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -3356,7 +3356,7 @@ end;
 
 
 
-Procedure TClusterOperationMetadata.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationMetadata.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3367,7 +3367,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TClusterOperationMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TClusterOperationMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3386,7 +3386,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClusterOperationStatus.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationStatus.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -3396,7 +3396,7 @@ end;
 
 
 
-Procedure TClusterOperationStatus.SetinnerState(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationStatus.SetinnerState(AIndex : Integer; const AValue : String);
 
 begin
   If (FinnerState=AValue) then exit;
@@ -3406,7 +3406,7 @@ end;
 
 
 
-Procedure TClusterOperationStatus.Setdetails(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationStatus.Setdetails(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3416,7 +3416,7 @@ end;
 
 
 
-Procedure TClusterOperationStatus.SetstateStartTime(AIndex : Integer; const AValue : String); 
+Procedure TClusterOperationStatus.SetstateStartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstateStartTime=AValue) then exit;
@@ -3433,7 +3433,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiagnoseClusterOutputLocation.SetoutputUri(AIndex : Integer; const AValue : String); 
+Procedure TDiagnoseClusterOutputLocation.SetoutputUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FoutputUri=AValue) then exit;
@@ -3450,7 +3450,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationMetadata.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -3460,7 +3460,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetinnerState(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetinnerState(AIndex : Integer; const AValue : String);
 
 begin
   If (FinnerState=AValue) then exit;
@@ -3470,7 +3470,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setdetails(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.Setdetails(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3480,7 +3480,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -3490,7 +3490,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -3500,7 +3500,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -3510,7 +3510,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetclusterName(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetclusterName(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterName=AValue) then exit;
@@ -3520,7 +3520,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetclusterUuid(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetclusterUuid(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterUuid=AValue) then exit;
@@ -3530,7 +3530,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setstatus(AIndex : Integer; const AValue : TOperationStatus); 
+Procedure TOperationMetadata.Setstatus(AIndex : Integer; const AValue : TOperationStatus);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3540,7 +3540,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetstatusHistory(AIndex : Integer; const AValue : TOperationMetadataTypestatusHistoryArray); 
+Procedure TOperationMetadata.SetstatusHistory(AIndex : Integer; const AValue : TOperationMetadataTypestatusHistoryArray);
 
 begin
   If (FstatusHistory=AValue) then exit;
@@ -3550,7 +3550,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -3560,7 +3560,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3571,7 +3571,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3590,7 +3590,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationStatus.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TOperationStatus.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -3600,7 +3600,7 @@ end;
 
 
 
-Procedure TOperationStatus.SetinnerState(AIndex : Integer; const AValue : String); 
+Procedure TOperationStatus.SetinnerState(AIndex : Integer; const AValue : String);
 
 begin
   If (FinnerState=AValue) then exit;
@@ -3610,7 +3610,7 @@ end;
 
 
 
-Procedure TOperationStatus.Setdetails(AIndex : Integer; const AValue : String); 
+Procedure TOperationStatus.Setdetails(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3620,7 +3620,7 @@ end;
 
 
 
-Procedure TOperationStatus.SetstateStartTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationStatus.SetstateStartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstateStartTime=AValue) then exit;
@@ -4286,7 +4286,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TDataprocAPI.APINeedsAuth : Boolean;

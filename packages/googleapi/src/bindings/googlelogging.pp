@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TEmpty = Class;
   TWriteLogEntriesRequest = Class;
@@ -74,11 +74,11 @@ type
   TListLogMetricsResponseTypemetricsArray = Array of TLogMetric;
   TRequestLogTypelineArray = Array of TLogLine;
   TRequestLogTypesourceReferenceArray = Array of TSourceReference;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -87,11 +87,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TWriteLogEntriesRequestTypelabels
     --------------------------------------------------------------------}
-  
+
   TWriteLogEntriesRequestTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -101,11 +101,11 @@ type
   Published
   end;
   TWriteLogEntriesRequestTypelabelsClass = Class of TWriteLogEntriesRequestTypelabels;
-  
+
   { --------------------------------------------------------------------
     TWriteLogEntriesRequest
     --------------------------------------------------------------------}
-  
+
   TWriteLogEntriesRequest = Class(TGoogleBaseObject)
   Private
     FlogName : String;
@@ -133,11 +133,11 @@ type
     Property partialSuccess : boolean Index 32 Read FpartialSuccess Write SetpartialSuccess;
   end;
   TWriteLogEntriesRequestClass = Class of TWriteLogEntriesRequest;
-  
+
   { --------------------------------------------------------------------
     TMonitoredResourceTypelabels
     --------------------------------------------------------------------}
-  
+
   TMonitoredResourceTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -147,11 +147,11 @@ type
   Published
   end;
   TMonitoredResourceTypelabelsClass = Class of TMonitoredResourceTypelabels;
-  
+
   { --------------------------------------------------------------------
     TMonitoredResource
     --------------------------------------------------------------------}
-  
+
   TMonitoredResource = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -167,11 +167,11 @@ type
     Property labels : TMonitoredResourceTypelabels Index 8 Read Flabels Write Setlabels;
   end;
   TMonitoredResourceClass = Class of TMonitoredResource;
-  
+
   { --------------------------------------------------------------------
     TLogEntryTypeprotoPayload
     --------------------------------------------------------------------}
-  
+
   TLogEntryTypeprotoPayload = Class(TGoogleBaseObject)
   Private
   Protected
@@ -181,11 +181,11 @@ type
   Published
   end;
   TLogEntryTypeprotoPayloadClass = Class of TLogEntryTypeprotoPayload;
-  
+
   { --------------------------------------------------------------------
     TLogEntryTypejsonPayload
     --------------------------------------------------------------------}
-  
+
   TLogEntryTypejsonPayload = Class(TGoogleBaseObject)
   Private
   Protected
@@ -195,11 +195,11 @@ type
   Published
   end;
   TLogEntryTypejsonPayloadClass = Class of TLogEntryTypejsonPayload;
-  
+
   { --------------------------------------------------------------------
     TLogEntryTypelabels
     --------------------------------------------------------------------}
-  
+
   TLogEntryTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -209,11 +209,11 @@ type
   Published
   end;
   TLogEntryTypelabelsClass = Class of TLogEntryTypelabels;
-  
+
   { --------------------------------------------------------------------
     TLogEntry
     --------------------------------------------------------------------}
-  
+
   TLogEntry = Class(TGoogleBaseObject)
   Private
     FlogName : String;
@@ -255,11 +255,11 @@ type
     Property operation : TLogEntryOperation Index 80 Read Foperation Write Setoperation;
   end;
   TLogEntryClass = Class of TLogEntry;
-  
+
   { --------------------------------------------------------------------
     THttpRequest
     --------------------------------------------------------------------}
-  
+
   THttpRequest = Class(TGoogleBaseObject)
   Private
     FrequestMethod : String;
@@ -304,11 +304,11 @@ type
     Property cacheFillBytes : String Index 88 Read FcacheFillBytes Write SetcacheFillBytes;
   end;
   THttpRequestClass = Class of THttpRequest;
-  
+
   { --------------------------------------------------------------------
     TLogEntryOperation
     --------------------------------------------------------------------}
-  
+
   TLogEntryOperation = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -329,11 +329,11 @@ type
     Property last : boolean Index 24 Read Flast Write Setlast;
   end;
   TLogEntryOperationClass = Class of TLogEntryOperation;
-  
+
   { --------------------------------------------------------------------
     TWriteLogEntriesResponse
     --------------------------------------------------------------------}
-  
+
   TWriteLogEntriesResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -342,11 +342,11 @@ type
   Published
   end;
   TWriteLogEntriesResponseClass = Class of TWriteLogEntriesResponse;
-  
+
   { --------------------------------------------------------------------
     TListLogEntriesRequest
     --------------------------------------------------------------------}
-  
+
   TListLogEntriesRequest = Class(TGoogleBaseObject)
   Private
     FprojectIds : TStringArray;
@@ -377,11 +377,11 @@ type
     Property partialSuccess : boolean Index 40 Read FpartialSuccess Write SetpartialSuccess;
   end;
   TListLogEntriesRequestClass = Class of TListLogEntriesRequest;
-  
+
   { --------------------------------------------------------------------
     TListLogEntriesResponseTypeprojectIdErrors
     --------------------------------------------------------------------}
-  
+
   TListLogEntriesResponseTypeprojectIdErrors = Class(TGoogleBaseObject)
   Private
   Protected
@@ -391,11 +391,11 @@ type
   Published
   end;
   TListLogEntriesResponseTypeprojectIdErrorsClass = Class of TListLogEntriesResponseTypeprojectIdErrors;
-  
+
   { --------------------------------------------------------------------
     TListLogEntriesResponse
     --------------------------------------------------------------------}
-  
+
   TListLogEntriesResponse = Class(TGoogleBaseObject)
   Private
     Fentries : TListLogEntriesResponseTypeentriesArray;
@@ -417,11 +417,11 @@ type
     Property projectIdErrors : TListLogEntriesResponseTypeprojectIdErrors Index 16 Read FprojectIdErrors Write SetprojectIdErrors;
   end;
   TListLogEntriesResponseClass = Class of TListLogEntriesResponse;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -431,11 +431,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -457,11 +457,11 @@ type
     Property details : TStatusTypedetailsArray Index 16 Read Fdetails Write Setdetails;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TListMonitoredResourceDescriptorsResponse
     --------------------------------------------------------------------}
-  
+
   TListMonitoredResourceDescriptorsResponse = Class(TGoogleBaseObject)
   Private
     FresourceDescriptors : TListMonitoredResourceDescriptorsResponseTyperesourceDescriptorsArray;
@@ -480,11 +480,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListMonitoredResourceDescriptorsResponseClass = Class of TListMonitoredResourceDescriptorsResponse;
-  
+
   { --------------------------------------------------------------------
     TMonitoredResourceDescriptor
     --------------------------------------------------------------------}
-  
+
   TMonitoredResourceDescriptor = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -513,11 +513,11 @@ type
     Property labels : TMonitoredResourceDescriptorTypelabelsArray Index 32 Read Flabels Write Setlabels;
   end;
   TMonitoredResourceDescriptorClass = Class of TMonitoredResourceDescriptor;
-  
+
   { --------------------------------------------------------------------
     TLabelDescriptor
     --------------------------------------------------------------------}
-  
+
   TLabelDescriptor = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -535,11 +535,11 @@ type
     Property description : String Index 16 Read Fdescription Write Setdescription;
   end;
   TLabelDescriptorClass = Class of TLabelDescriptor;
-  
+
   { --------------------------------------------------------------------
     TListSinksResponse
     --------------------------------------------------------------------}
-  
+
   TListSinksResponse = Class(TGoogleBaseObject)
   Private
     Fsinks : TListSinksResponseTypesinksArray;
@@ -558,11 +558,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListSinksResponseClass = Class of TListSinksResponse;
-  
+
   { --------------------------------------------------------------------
     TLogSink
     --------------------------------------------------------------------}
-  
+
   TLogSink = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -583,11 +583,11 @@ type
     Property outputVersionFormat : String Index 24 Read FoutputVersionFormat Write SetoutputVersionFormat;
   end;
   TLogSinkClass = Class of TLogSink;
-  
+
   { --------------------------------------------------------------------
     TListLogMetricsResponse
     --------------------------------------------------------------------}
-  
+
   TListLogMetricsResponse = Class(TGoogleBaseObject)
   Private
     Fmetrics : TListLogMetricsResponseTypemetricsArray;
@@ -606,11 +606,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListLogMetricsResponseClass = Class of TListLogMetricsResponse;
-  
+
   { --------------------------------------------------------------------
     TLogMetric
     --------------------------------------------------------------------}
-  
+
   TLogMetric = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -628,11 +628,11 @@ type
     Property filter : String Index 16 Read Ffilter Write Setfilter;
   end;
   TLogMetricClass = Class of TLogMetric;
-  
+
   { --------------------------------------------------------------------
     TRequestLog
     --------------------------------------------------------------------}
-  
+
   TRequestLog = Class(TGoogleBaseObject)
   Private
     FappId : String;
@@ -741,11 +741,11 @@ type
     Property sourceReference : TRequestLogTypesourceReferenceArray Index 248 Read FsourceReference Write SetsourceReference;
   end;
   TRequestLogClass = Class of TRequestLog;
-  
+
   { --------------------------------------------------------------------
     TLogLine
     --------------------------------------------------------------------}
-  
+
   TLogLine = Class(TGoogleBaseObject)
   Private
     Ftime : String;
@@ -766,11 +766,11 @@ type
     Property sourceLocation : TSourceLocation Index 24 Read FsourceLocation Write SetsourceLocation;
   end;
   TLogLineClass = Class of TLogLine;
-  
+
   { --------------------------------------------------------------------
     TSourceLocation
     --------------------------------------------------------------------}
-  
+
   TSourceLocation = Class(TGoogleBaseObject)
   Private
     F_file : String;
@@ -789,11 +789,11 @@ type
     Property functionName : String Index 16 Read FfunctionName Write SetfunctionName;
   end;
   TSourceLocationClass = Class of TSourceLocation;
-  
+
   { --------------------------------------------------------------------
     TSourceReference
     --------------------------------------------------------------------}
-  
+
   TSourceReference = Class(TGoogleBaseObject)
   Private
     Frepository : String;
@@ -808,31 +808,31 @@ type
     Property revisionId : String Index 8 Read FrevisionId Write SetrevisionId;
   end;
   TSourceReferenceClass = Class of TSourceReference;
-  
+
   { --------------------------------------------------------------------
     TProjectsLogsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsLogsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Delete(logName: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsSinksResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsSinksResource, method List
-  
+
   TProjectsSinksListOptions = Record
     pageToken : String;
     pageSize : integer;
   end;
-  
+
   TProjectsSinksResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -844,20 +844,20 @@ type
     Function Update(sinkName: string; aLogSink : TLogSink) : TLogSink;
     Function Delete(sinkName: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsMetricsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsMetricsResource, method List
-  
+
   TProjectsMetricsListOptions = Record
     pageToken : String;
     pageSize : integer;
   end;
-  
+
   TProjectsMetricsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -869,12 +869,12 @@ type
     Function Update(metricName: string; aLogMetric : TLogMetric) : TLogMetric;
     Function Delete(metricName: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FLogsInstance : TProjectsLogsResource;
@@ -896,12 +896,12 @@ type
     Property SinksResource : TProjectsSinksResource Read GetSinksInstance;
     Property MetricsResource : TProjectsMetricsResource Read GetMetricsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TEntriesResource
     --------------------------------------------------------------------}
-  
+
   TEntriesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -909,20 +909,20 @@ type
     Function Write(aWriteLogEntriesRequest : TWriteLogEntriesRequest) : TWriteLogEntriesResponse;
     Function List(aListLogEntriesRequest : TListLogEntriesRequest) : TListLogEntriesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMonitoredResourceDescriptorsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TMonitoredResourceDescriptorsResource, method List
-  
+
   TMonitoredResourceDescriptorsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TMonitoredResourceDescriptorsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -930,12 +930,12 @@ type
     Function List(AQuery : string  = '') : TListMonitoredResourceDescriptorsResponse;
     Function List(AQuery : TMonitoredResourceDescriptorslistOptions) : TListMonitoredResourceDescriptorsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLoggingAPI
     --------------------------------------------------------------------}
-  
+
   TLoggingAPI = Class(TGoogleAPI)
   Private
     FProjectsLogsInstance : TProjectsLogsResource;
@@ -1022,7 +1022,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteLogEntriesRequest.SetlogName(AIndex : Integer; const AValue : String); 
+Procedure TWriteLogEntriesRequest.SetlogName(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogName=AValue) then exit;
@@ -1032,7 +1032,7 @@ end;
 
 
 
-Procedure TWriteLogEntriesRequest.Setresource(AIndex : Integer; const AValue : TMonitoredResource); 
+Procedure TWriteLogEntriesRequest.Setresource(AIndex : Integer; const AValue : TMonitoredResource);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1042,7 +1042,7 @@ end;
 
 
 
-Procedure TWriteLogEntriesRequest.Setlabels(AIndex : Integer; const AValue : TWriteLogEntriesRequestTypelabels); 
+Procedure TWriteLogEntriesRequest.Setlabels(AIndex : Integer; const AValue : TWriteLogEntriesRequestTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1052,7 +1052,7 @@ end;
 
 
 
-Procedure TWriteLogEntriesRequest.Setentries(AIndex : Integer; const AValue : TWriteLogEntriesRequestTypeentriesArray); 
+Procedure TWriteLogEntriesRequest.Setentries(AIndex : Integer; const AValue : TWriteLogEntriesRequestTypeentriesArray);
 
 begin
   If (Fentries=AValue) then exit;
@@ -1062,7 +1062,7 @@ end;
 
 
 
-Procedure TWriteLogEntriesRequest.SetpartialSuccess(AIndex : Integer; const AValue : boolean); 
+Procedure TWriteLogEntriesRequest.SetpartialSuccess(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FpartialSuccess=AValue) then exit;
@@ -1073,7 +1073,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TWriteLogEntriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TWriteLogEntriesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1105,7 +1105,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMonitoredResource.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResource.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1115,7 +1115,7 @@ end;
 
 
 
-Procedure TMonitoredResource.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceTypelabels); 
+Procedure TMonitoredResource.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1182,7 +1182,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogEntry.SetlogName(AIndex : Integer; const AValue : String); 
+Procedure TLogEntry.SetlogName(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogName=AValue) then exit;
@@ -1192,7 +1192,7 @@ end;
 
 
 
-Procedure TLogEntry.Setresource(AIndex : Integer; const AValue : TMonitoredResource); 
+Procedure TLogEntry.Setresource(AIndex : Integer; const AValue : TMonitoredResource);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1202,7 +1202,7 @@ end;
 
 
 
-Procedure TLogEntry.SetprotoPayload(AIndex : Integer; const AValue : TLogEntryTypeprotoPayload); 
+Procedure TLogEntry.SetprotoPayload(AIndex : Integer; const AValue : TLogEntryTypeprotoPayload);
 
 begin
   If (FprotoPayload=AValue) then exit;
@@ -1212,7 +1212,7 @@ end;
 
 
 
-Procedure TLogEntry.SettextPayload(AIndex : Integer; const AValue : String); 
+Procedure TLogEntry.SettextPayload(AIndex : Integer; const AValue : String);
 
 begin
   If (FtextPayload=AValue) then exit;
@@ -1222,7 +1222,7 @@ end;
 
 
 
-Procedure TLogEntry.SetjsonPayload(AIndex : Integer; const AValue : TLogEntryTypejsonPayload); 
+Procedure TLogEntry.SetjsonPayload(AIndex : Integer; const AValue : TLogEntryTypejsonPayload);
 
 begin
   If (FjsonPayload=AValue) then exit;
@@ -1232,7 +1232,7 @@ end;
 
 
 
-Procedure TLogEntry.Settimestamp(AIndex : Integer; const AValue : String); 
+Procedure TLogEntry.Settimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -1242,7 +1242,7 @@ end;
 
 
 
-Procedure TLogEntry.Setseverity(AIndex : Integer; const AValue : String); 
+Procedure TLogEntry.Setseverity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fseverity=AValue) then exit;
@@ -1252,7 +1252,7 @@ end;
 
 
 
-Procedure TLogEntry.SetinsertId(AIndex : Integer; const AValue : String); 
+Procedure TLogEntry.SetinsertId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertId=AValue) then exit;
@@ -1262,7 +1262,7 @@ end;
 
 
 
-Procedure TLogEntry.SethttpRequest(AIndex : Integer; const AValue : THttpRequest); 
+Procedure TLogEntry.SethttpRequest(AIndex : Integer; const AValue : THttpRequest);
 
 begin
   If (FhttpRequest=AValue) then exit;
@@ -1272,7 +1272,7 @@ end;
 
 
 
-Procedure TLogEntry.Setlabels(AIndex : Integer; const AValue : TLogEntryTypelabels); 
+Procedure TLogEntry.Setlabels(AIndex : Integer; const AValue : TLogEntryTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1282,7 +1282,7 @@ end;
 
 
 
-Procedure TLogEntry.Setoperation(AIndex : Integer; const AValue : TLogEntryOperation); 
+Procedure TLogEntry.Setoperation(AIndex : Integer; const AValue : TLogEntryOperation);
 
 begin
   If (Foperation=AValue) then exit;
@@ -1299,7 +1299,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THttpRequest.SetrequestMethod(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetrequestMethod(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestMethod=AValue) then exit;
@@ -1309,7 +1309,7 @@ end;
 
 
 
-Procedure THttpRequest.SetrequestUrl(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetrequestUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestUrl=AValue) then exit;
@@ -1319,7 +1319,7 @@ end;
 
 
 
-Procedure THttpRequest.SetrequestSize(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetrequestSize(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestSize=AValue) then exit;
@@ -1329,7 +1329,7 @@ end;
 
 
 
-Procedure THttpRequest.Setstatus(AIndex : Integer; const AValue : integer); 
+Procedure THttpRequest.Setstatus(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1339,7 +1339,7 @@ end;
 
 
 
-Procedure THttpRequest.SetresponseSize(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetresponseSize(AIndex : Integer; const AValue : String);
 
 begin
   If (FresponseSize=AValue) then exit;
@@ -1349,7 +1349,7 @@ end;
 
 
 
-Procedure THttpRequest.SetuserAgent(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetuserAgent(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserAgent=AValue) then exit;
@@ -1359,7 +1359,7 @@ end;
 
 
 
-Procedure THttpRequest.SetremoteIp(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetremoteIp(AIndex : Integer; const AValue : String);
 
 begin
   If (FremoteIp=AValue) then exit;
@@ -1369,7 +1369,7 @@ end;
 
 
 
-Procedure THttpRequest.Setreferer(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.Setreferer(AIndex : Integer; const AValue : String);
 
 begin
   If (Freferer=AValue) then exit;
@@ -1379,7 +1379,7 @@ end;
 
 
 
-Procedure THttpRequest.SetcacheLookup(AIndex : Integer; const AValue : boolean); 
+Procedure THttpRequest.SetcacheLookup(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcacheLookup=AValue) then exit;
@@ -1389,7 +1389,7 @@ end;
 
 
 
-Procedure THttpRequest.SetcacheHit(AIndex : Integer; const AValue : boolean); 
+Procedure THttpRequest.SetcacheHit(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcacheHit=AValue) then exit;
@@ -1399,7 +1399,7 @@ end;
 
 
 
-Procedure THttpRequest.SetcacheValidatedWithOriginServer(AIndex : Integer; const AValue : boolean); 
+Procedure THttpRequest.SetcacheValidatedWithOriginServer(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcacheValidatedWithOriginServer=AValue) then exit;
@@ -1409,7 +1409,7 @@ end;
 
 
 
-Procedure THttpRequest.SetcacheFillBytes(AIndex : Integer; const AValue : String); 
+Procedure THttpRequest.SetcacheFillBytes(AIndex : Integer; const AValue : String);
 
 begin
   If (FcacheFillBytes=AValue) then exit;
@@ -1426,7 +1426,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogEntryOperation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLogEntryOperation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1436,7 +1436,7 @@ end;
 
 
 
-Procedure TLogEntryOperation.Setproducer(AIndex : Integer; const AValue : String); 
+Procedure TLogEntryOperation.Setproducer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fproducer=AValue) then exit;
@@ -1446,7 +1446,7 @@ end;
 
 
 
-Procedure TLogEntryOperation.Setfirst(AIndex : Integer; const AValue : boolean); 
+Procedure TLogEntryOperation.Setfirst(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Ffirst=AValue) then exit;
@@ -1456,7 +1456,7 @@ end;
 
 
 
-Procedure TLogEntryOperation.Setlast(AIndex : Integer; const AValue : boolean); 
+Procedure TLogEntryOperation.Setlast(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Flast=AValue) then exit;
@@ -1480,7 +1480,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListLogEntriesRequest.SetprojectIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TListLogEntriesRequest.SetprojectIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FprojectIds=AValue) then exit;
@@ -1490,7 +1490,7 @@ end;
 
 
 
-Procedure TListLogEntriesRequest.Setfilter(AIndex : Integer; const AValue : String); 
+Procedure TListLogEntriesRequest.Setfilter(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -1500,7 +1500,7 @@ end;
 
 
 
-Procedure TListLogEntriesRequest.SetorderBy(AIndex : Integer; const AValue : String); 
+Procedure TListLogEntriesRequest.SetorderBy(AIndex : Integer; const AValue : String);
 
 begin
   If (ForderBy=AValue) then exit;
@@ -1510,7 +1510,7 @@ end;
 
 
 
-Procedure TListLogEntriesRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TListLogEntriesRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -1520,7 +1520,7 @@ end;
 
 
 
-Procedure TListLogEntriesRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TListLogEntriesRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -1530,7 +1530,7 @@ end;
 
 
 
-Procedure TListLogEntriesRequest.SetpartialSuccess(AIndex : Integer; const AValue : boolean); 
+Procedure TListLogEntriesRequest.SetpartialSuccess(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FpartialSuccess=AValue) then exit;
@@ -1541,7 +1541,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListLogEntriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListLogEntriesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1573,7 +1573,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListLogEntriesResponse.Setentries(AIndex : Integer; const AValue : TListLogEntriesResponseTypeentriesArray); 
+Procedure TListLogEntriesResponse.Setentries(AIndex : Integer; const AValue : TListLogEntriesResponseTypeentriesArray);
 
 begin
   If (Fentries=AValue) then exit;
@@ -1583,7 +1583,7 @@ end;
 
 
 
-Procedure TListLogEntriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListLogEntriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1593,7 +1593,7 @@ end;
 
 
 
-Procedure TListLogEntriesResponse.SetprojectIdErrors(AIndex : Integer; const AValue : TListLogEntriesResponseTypeprojectIdErrors); 
+Procedure TListLogEntriesResponse.SetprojectIdErrors(AIndex : Integer; const AValue : TListLogEntriesResponseTypeprojectIdErrors);
 
 begin
   If (FprojectIdErrors=AValue) then exit;
@@ -1604,7 +1604,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListLogEntriesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListLogEntriesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1636,7 +1636,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1646,7 +1646,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1656,7 +1656,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1667,7 +1667,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1686,7 +1686,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMonitoredResourceDescriptorsResponse.SetresourceDescriptors(AIndex : Integer; const AValue : TListMonitoredResourceDescriptorsResponseTyperesourceDescriptorsArray); 
+Procedure TListMonitoredResourceDescriptorsResponse.SetresourceDescriptors(AIndex : Integer; const AValue : TListMonitoredResourceDescriptorsResponseTyperesourceDescriptorsArray);
 
 begin
   If (FresourceDescriptors=AValue) then exit;
@@ -1696,7 +1696,7 @@ end;
 
 
 
-Procedure TListMonitoredResourceDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListMonitoredResourceDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1707,7 +1707,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListMonitoredResourceDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListMonitoredResourceDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1726,7 +1726,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMonitoredResourceDescriptor.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1736,7 +1736,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1746,7 +1746,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1756,7 +1756,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1766,7 +1766,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceDescriptorTypelabelsArray); 
+Procedure TMonitoredResourceDescriptor.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceDescriptorTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1788,7 +1788,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMonitoredResourceDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMonitoredResourceDescriptor.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1807,7 +1807,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabelDescriptor.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TLabelDescriptor.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1817,7 +1817,7 @@ end;
 
 
 
-Procedure TLabelDescriptor.SetvalueType(AIndex : Integer; const AValue : String); 
+Procedure TLabelDescriptor.SetvalueType(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalueType=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
 
 
 
-Procedure TLabelDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TLabelDescriptor.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1844,7 +1844,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListSinksResponse.Setsinks(AIndex : Integer; const AValue : TListSinksResponseTypesinksArray); 
+Procedure TListSinksResponse.Setsinks(AIndex : Integer; const AValue : TListSinksResponseTypesinksArray);
 
 begin
   If (Fsinks=AValue) then exit;
@@ -1854,7 +1854,7 @@ end;
 
 
 
-Procedure TListSinksResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListSinksResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1865,7 +1865,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListSinksResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListSinksResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1884,7 +1884,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogSink.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLogSink.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1894,7 +1894,7 @@ end;
 
 
 
-Procedure TLogSink.Setdestination(AIndex : Integer; const AValue : String); 
+Procedure TLogSink.Setdestination(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1904,7 +1904,7 @@ end;
 
 
 
-Procedure TLogSink.Setfilter(AIndex : Integer; const AValue : String); 
+Procedure TLogSink.Setfilter(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -1914,7 +1914,7 @@ end;
 
 
 
-Procedure TLogSink.SetoutputVersionFormat(AIndex : Integer; const AValue : String); 
+Procedure TLogSink.SetoutputVersionFormat(AIndex : Integer; const AValue : String);
 
 begin
   If (FoutputVersionFormat=AValue) then exit;
@@ -1931,7 +1931,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListLogMetricsResponse.Setmetrics(AIndex : Integer; const AValue : TListLogMetricsResponseTypemetricsArray); 
+Procedure TListLogMetricsResponse.Setmetrics(AIndex : Integer; const AValue : TListLogMetricsResponseTypemetricsArray);
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -1941,7 +1941,7 @@ end;
 
 
 
-Procedure TListLogMetricsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListLogMetricsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1952,7 +1952,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListLogMetricsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListLogMetricsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1971,7 +1971,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogMetric.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLogMetric.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1981,7 +1981,7 @@ end;
 
 
 
-Procedure TLogMetric.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TLogMetric.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1991,7 +1991,7 @@ end;
 
 
 
-Procedure TLogMetric.Setfilter(AIndex : Integer; const AValue : String); 
+Procedure TLogMetric.Setfilter(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -2008,7 +2008,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRequestLog.SetappId(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetappId(AIndex : Integer; const AValue : String);
 
 begin
   If (FappId=AValue) then exit;
@@ -2018,7 +2018,7 @@ end;
 
 
 
-Procedure TRequestLog.SetmoduleId(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetmoduleId(AIndex : Integer; const AValue : String);
 
 begin
   If (FmoduleId=AValue) then exit;
@@ -2028,7 +2028,7 @@ end;
 
 
 
-Procedure TRequestLog.SetversionId(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetversionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FversionId=AValue) then exit;
@@ -2038,7 +2038,7 @@ end;
 
 
 
-Procedure TRequestLog.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -2048,7 +2048,7 @@ end;
 
 
 
-Procedure TRequestLog.Setip(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Setip(AIndex : Integer; const AValue : String);
 
 begin
   If (Fip=AValue) then exit;
@@ -2058,7 +2058,7 @@ end;
 
 
 
-Procedure TRequestLog.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -2068,7 +2068,7 @@ end;
 
 
 
-Procedure TRequestLog.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -2078,7 +2078,7 @@ end;
 
 
 
-Procedure TRequestLog.Setlatency(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Setlatency(AIndex : Integer; const AValue : String);
 
 begin
   If (Flatency=AValue) then exit;
@@ -2088,7 +2088,7 @@ end;
 
 
 
-Procedure TRequestLog.SetmegaCycles(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetmegaCycles(AIndex : Integer; const AValue : String);
 
 begin
   If (FmegaCycles=AValue) then exit;
@@ -2098,7 +2098,7 @@ end;
 
 
 
-Procedure TRequestLog.Setmethod(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Setmethod(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -2108,7 +2108,7 @@ end;
 
 
 
-Procedure TRequestLog.Setresource(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Setresource(AIndex : Integer; const AValue : String);
 
 begin
   If (Fresource=AValue) then exit;
@@ -2118,7 +2118,7 @@ end;
 
 
 
-Procedure TRequestLog.SethttpVersion(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SethttpVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FhttpVersion=AValue) then exit;
@@ -2128,7 +2128,7 @@ end;
 
 
 
-Procedure TRequestLog.Setstatus(AIndex : Integer; const AValue : integer); 
+Procedure TRequestLog.Setstatus(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2138,7 +2138,7 @@ end;
 
 
 
-Procedure TRequestLog.SetresponseSize(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetresponseSize(AIndex : Integer; const AValue : String);
 
 begin
   If (FresponseSize=AValue) then exit;
@@ -2148,7 +2148,7 @@ end;
 
 
 
-Procedure TRequestLog.Setreferrer(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Setreferrer(AIndex : Integer; const AValue : String);
 
 begin
   If (Freferrer=AValue) then exit;
@@ -2158,7 +2158,7 @@ end;
 
 
 
-Procedure TRequestLog.SetuserAgent(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetuserAgent(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserAgent=AValue) then exit;
@@ -2168,7 +2168,7 @@ end;
 
 
 
-Procedure TRequestLog.Setnickname(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Setnickname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnickname=AValue) then exit;
@@ -2178,7 +2178,7 @@ end;
 
 
 
-Procedure TRequestLog.SeturlMapEntry(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SeturlMapEntry(AIndex : Integer; const AValue : String);
 
 begin
   If (FurlMapEntry=AValue) then exit;
@@ -2188,7 +2188,7 @@ end;
 
 
 
-Procedure TRequestLog.Sethost(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.Sethost(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhost=AValue) then exit;
@@ -2198,7 +2198,7 @@ end;
 
 
 
-Procedure TRequestLog.Setcost(AIndex : Integer; const AValue : double); 
+Procedure TRequestLog.Setcost(AIndex : Integer; const AValue : double);
 
 begin
   If (Fcost=AValue) then exit;
@@ -2208,7 +2208,7 @@ end;
 
 
 
-Procedure TRequestLog.SettaskQueueName(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SettaskQueueName(AIndex : Integer; const AValue : String);
 
 begin
   If (FtaskQueueName=AValue) then exit;
@@ -2218,7 +2218,7 @@ end;
 
 
 
-Procedure TRequestLog.SettaskName(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SettaskName(AIndex : Integer; const AValue : String);
 
 begin
   If (FtaskName=AValue) then exit;
@@ -2228,7 +2228,7 @@ end;
 
 
 
-Procedure TRequestLog.SetwasLoadingRequest(AIndex : Integer; const AValue : boolean); 
+Procedure TRequestLog.SetwasLoadingRequest(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FwasLoadingRequest=AValue) then exit;
@@ -2238,7 +2238,7 @@ end;
 
 
 
-Procedure TRequestLog.SetpendingTime(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetpendingTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FpendingTime=AValue) then exit;
@@ -2248,7 +2248,7 @@ end;
 
 
 
-Procedure TRequestLog.SetinstanceIndex(AIndex : Integer; const AValue : integer); 
+Procedure TRequestLog.SetinstanceIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FinstanceIndex=AValue) then exit;
@@ -2258,7 +2258,7 @@ end;
 
 
 
-Procedure TRequestLog.Setfinished(AIndex : Integer; const AValue : boolean); 
+Procedure TRequestLog.Setfinished(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Ffinished=AValue) then exit;
@@ -2268,7 +2268,7 @@ end;
 
 
 
-Procedure TRequestLog.Setfirst(AIndex : Integer; const AValue : boolean); 
+Procedure TRequestLog.Setfirst(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Ffirst=AValue) then exit;
@@ -2278,7 +2278,7 @@ end;
 
 
 
-Procedure TRequestLog.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2288,7 +2288,7 @@ end;
 
 
 
-Procedure TRequestLog.Setline(AIndex : Integer; const AValue : TRequestLogTypelineArray); 
+Procedure TRequestLog.Setline(AIndex : Integer; const AValue : TRequestLogTypelineArray);
 
 begin
   If (Fline=AValue) then exit;
@@ -2298,7 +2298,7 @@ end;
 
 
 
-Procedure TRequestLog.SetappEngineRelease(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SetappEngineRelease(AIndex : Integer; const AValue : String);
 
 begin
   If (FappEngineRelease=AValue) then exit;
@@ -2308,7 +2308,7 @@ end;
 
 
 
-Procedure TRequestLog.SettraceId(AIndex : Integer; const AValue : String); 
+Procedure TRequestLog.SettraceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtraceId=AValue) then exit;
@@ -2318,7 +2318,7 @@ end;
 
 
 
-Procedure TRequestLog.SetsourceReference(AIndex : Integer; const AValue : TRequestLogTypesourceReferenceArray); 
+Procedure TRequestLog.SetsourceReference(AIndex : Integer; const AValue : TRequestLogTypesourceReferenceArray);
 
 begin
   If (FsourceReference=AValue) then exit;
@@ -2329,7 +2329,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRequestLog.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRequestLog.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2349,7 +2349,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogLine.Settime(AIndex : Integer; const AValue : String); 
+Procedure TLogLine.Settime(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftime=AValue) then exit;
@@ -2359,7 +2359,7 @@ end;
 
 
 
-Procedure TLogLine.Setseverity(AIndex : Integer; const AValue : String); 
+Procedure TLogLine.Setseverity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fseverity=AValue) then exit;
@@ -2369,7 +2369,7 @@ end;
 
 
 
-Procedure TLogLine.SetlogMessage(AIndex : Integer; const AValue : String); 
+Procedure TLogLine.SetlogMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogMessage=AValue) then exit;
@@ -2379,7 +2379,7 @@ end;
 
 
 
-Procedure TLogLine.SetsourceLocation(AIndex : Integer; const AValue : TSourceLocation); 
+Procedure TLogLine.SetsourceLocation(AIndex : Integer; const AValue : TSourceLocation);
 
 begin
   If (FsourceLocation=AValue) then exit;
@@ -2396,7 +2396,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceLocation.Set_file(AIndex : Integer; const AValue : String); 
+Procedure TSourceLocation.Set_file(AIndex : Integer; const AValue : String);
 
 begin
   If (F_file=AValue) then exit;
@@ -2406,7 +2406,7 @@ end;
 
 
 
-Procedure TSourceLocation.Setline(AIndex : Integer; const AValue : String); 
+Procedure TSourceLocation.Setline(AIndex : Integer; const AValue : String);
 
 begin
   If (Fline=AValue) then exit;
@@ -2416,7 +2416,7 @@ end;
 
 
 
-Procedure TSourceLocation.SetfunctionName(AIndex : Integer; const AValue : String); 
+Procedure TSourceLocation.SetfunctionName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfunctionName=AValue) then exit;
@@ -2444,7 +2444,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceReference.Setrepository(AIndex : Integer; const AValue : String); 
+Procedure TSourceReference.Setrepository(AIndex : Integer; const AValue : String);
 
 begin
   If (Frepository=AValue) then exit;
@@ -2454,7 +2454,7 @@ end;
 
 
 
-Procedure TSourceReference.SetrevisionId(AIndex : Integer; const AValue : String); 
+Procedure TSourceReference.SetrevisionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionId=AValue) then exit;
@@ -3009,7 +3009,7 @@ begin
   Result[3].Description:='View log data for your projects';
   Result[4].Name:='https://www.googleapis.com/auth/logging.write';
   Result[4].Description:='Submit log data for your projects';
-  
+
 end;
 
 Class Function TLoggingAPI.APINeedsAuth : Boolean;

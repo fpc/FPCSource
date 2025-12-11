@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TDirectoryList = Class;
   TJsonSchema = Class;
@@ -51,11 +51,11 @@ type
   TRestResourceTyperesources = Class;
   TDirectoryListTypeitemsArray = Array of TDirectoryListTypeitemsItem;
   TJsonSchemaTypevariantTypemapArray = Array of TJsonSchemaTypevariantTypemapItem;
-  
+
   { --------------------------------------------------------------------
     TDirectoryListTypeitemsItemTypeicons
     --------------------------------------------------------------------}
-  
+
   TDirectoryListTypeitemsItemTypeicons = Class(TGoogleBaseObject)
   Private
     Fx16 : String;
@@ -70,11 +70,11 @@ type
     Property x32 : String Index 8 Read Fx32 Write Setx32;
   end;
   TDirectoryListTypeitemsItemTypeiconsClass = Class of TDirectoryListTypeitemsItemTypeicons;
-  
+
   { --------------------------------------------------------------------
     TDirectoryListTypeitemsItem
     --------------------------------------------------------------------}
-  
+
   TDirectoryListTypeitemsItem = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -123,11 +123,11 @@ type
     Property version : String Index 88 Read Fversion Write Setversion;
   end;
   TDirectoryListTypeitemsItemClass = Class of TDirectoryListTypeitemsItem;
-  
+
   { --------------------------------------------------------------------
     TDirectoryList
     --------------------------------------------------------------------}
-  
+
   TDirectoryList = Class(TGoogleBaseObject)
   Private
     FdiscoveryVersion : String;
@@ -149,11 +149,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TDirectoryListClass = Class of TDirectoryList;
-  
+
   { --------------------------------------------------------------------
     TJsonSchemaTypeannotations
     --------------------------------------------------------------------}
-  
+
   TJsonSchemaTypeannotations = Class(TGoogleBaseObject)
   Private
     Frequired : TStringArray;
@@ -169,11 +169,11 @@ type
     Property required : TStringArray Index 0 Read Frequired Write Setrequired;
   end;
   TJsonSchemaTypeannotationsClass = Class of TJsonSchemaTypeannotations;
-  
+
   { --------------------------------------------------------------------
     TJsonSchemaTypeproperties
     --------------------------------------------------------------------}
-  
+
   TJsonSchemaTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -183,11 +183,11 @@ type
   Published
   end;
   TJsonSchemaTypepropertiesClass = Class of TJsonSchemaTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TJsonSchemaTypevariantTypemapItem
     --------------------------------------------------------------------}
-  
+
   TJsonSchemaTypevariantTypemapItem = Class(TGoogleBaseObject)
   Private
     Fref : String;
@@ -203,11 +203,11 @@ type
     Property type_value : String Index 8 Read Ftype_value Write Settype_value;
   end;
   TJsonSchemaTypevariantTypemapItemClass = Class of TJsonSchemaTypevariantTypemapItem;
-  
+
   { --------------------------------------------------------------------
     TJsonSchemaTypevariant
     --------------------------------------------------------------------}
-  
+
   TJsonSchemaTypevariant = Class(TGoogleBaseObject)
   Private
     Fdiscriminant : String;
@@ -226,11 +226,11 @@ type
     Property map : TJsonSchemaTypevariantTypemapArray Index 8 Read Fmap Write Setmap;
   end;
   TJsonSchemaTypevariantClass = Class of TJsonSchemaTypevariant;
-  
+
   { --------------------------------------------------------------------
     TJsonSchema
     --------------------------------------------------------------------}
-  
+
   TJsonSchema = Class(TGoogleBaseObject)
   Private
     Fref : String;
@@ -304,11 +304,11 @@ type
     Property variant : TJsonSchemaTypevariant Index 152 Read Fvariant Write Setvariant;
   end;
   TJsonSchemaClass = Class of TJsonSchema;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypeauthTypeoauth2Typescopes
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypeauthTypeoauth2Typescopes = Class(TGoogleBaseObject)
   Private
   Protected
@@ -318,11 +318,11 @@ type
   Published
   end;
   TRestDescriptionTypeauthTypeoauth2TypescopesClass = Class of TRestDescriptionTypeauthTypeoauth2Typescopes;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypeauthTypeoauth2
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypeauthTypeoauth2 = Class(TGoogleBaseObject)
   Private
     Fscopes : TRestDescriptionTypeauthTypeoauth2Typescopes;
@@ -334,11 +334,11 @@ type
     Property scopes : TRestDescriptionTypeauthTypeoauth2Typescopes Index 0 Read Fscopes Write Setscopes;
   end;
   TRestDescriptionTypeauthTypeoauth2Class = Class of TRestDescriptionTypeauthTypeoauth2;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypeauth
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypeauth = Class(TGoogleBaseObject)
   Private
     Foauth2 : TRestDescriptionTypeauthTypeoauth2;
@@ -350,11 +350,11 @@ type
     Property oauth2 : TRestDescriptionTypeauthTypeoauth2 Index 0 Read Foauth2 Write Setoauth2;
   end;
   TRestDescriptionTypeauthClass = Class of TRestDescriptionTypeauth;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypeicons
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypeicons = Class(TGoogleBaseObject)
   Private
     Fx16 : String;
@@ -369,11 +369,11 @@ type
     Property x32 : String Index 8 Read Fx32 Write Setx32;
   end;
   TRestDescriptionTypeiconsClass = Class of TRestDescriptionTypeicons;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypemethods
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypemethods = Class(TGoogleBaseObject)
   Private
   Protected
@@ -383,11 +383,11 @@ type
   Published
   end;
   TRestDescriptionTypemethodsClass = Class of TRestDescriptionTypemethods;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypeparameters
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypeparameters = Class(TGoogleBaseObject)
   Private
   Protected
@@ -397,11 +397,11 @@ type
   Published
   end;
   TRestDescriptionTypeparametersClass = Class of TRestDescriptionTypeparameters;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTyperesources
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTyperesources = Class(TGoogleBaseObject)
   Private
   Protected
@@ -411,11 +411,11 @@ type
   Published
   end;
   TRestDescriptionTyperesourcesClass = Class of TRestDescriptionTyperesources;
-  
+
   { --------------------------------------------------------------------
     TRestDescriptionTypeschemas
     --------------------------------------------------------------------}
-  
+
   TRestDescriptionTypeschemas = Class(TGoogleBaseObject)
   Private
   Protected
@@ -425,11 +425,11 @@ type
   Published
   end;
   TRestDescriptionTypeschemasClass = Class of TRestDescriptionTypeschemas;
-  
+
   { --------------------------------------------------------------------
     TRestDescription
     --------------------------------------------------------------------}
-  
+
   TRestDescription = Class(TGoogleBaseObject)
   Private
     Fauth : TRestDescriptionTypeauth;
@@ -532,11 +532,11 @@ type
     Property version_module : boolean Index 232 Read Fversion_module Write Setversion_module;
   end;
   TRestDescriptionClass = Class of TRestDescription;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTypemediaUploadTypeprotocolsTyperesumable
     --------------------------------------------------------------------}
-  
+
   TRestMethodTypemediaUploadTypeprotocolsTyperesumable = Class(TGoogleBaseObject)
   Private
     Fmultipart : boolean;
@@ -551,11 +551,11 @@ type
     Property path : String Index 8 Read Fpath Write Setpath;
   end;
   TRestMethodTypemediaUploadTypeprotocolsTyperesumableClass = Class of TRestMethodTypemediaUploadTypeprotocolsTyperesumable;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTypemediaUploadTypeprotocolsTypesimple
     --------------------------------------------------------------------}
-  
+
   TRestMethodTypemediaUploadTypeprotocolsTypesimple = Class(TGoogleBaseObject)
   Private
     Fmultipart : boolean;
@@ -570,11 +570,11 @@ type
     Property path : String Index 8 Read Fpath Write Setpath;
   end;
   TRestMethodTypemediaUploadTypeprotocolsTypesimpleClass = Class of TRestMethodTypemediaUploadTypeprotocolsTypesimple;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTypemediaUploadTypeprotocols
     --------------------------------------------------------------------}
-  
+
   TRestMethodTypemediaUploadTypeprotocols = Class(TGoogleBaseObject)
   Private
     Fresumable : TRestMethodTypemediaUploadTypeprotocolsTyperesumable;
@@ -589,11 +589,11 @@ type
     Property simple : TRestMethodTypemediaUploadTypeprotocolsTypesimple Index 8 Read Fsimple Write Setsimple;
   end;
   TRestMethodTypemediaUploadTypeprotocolsClass = Class of TRestMethodTypemediaUploadTypeprotocols;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTypemediaUpload
     --------------------------------------------------------------------}
-  
+
   TRestMethodTypemediaUpload = Class(TGoogleBaseObject)
   Private
     Faccept : TStringArray;
@@ -615,11 +615,11 @@ type
     Property protocols : TRestMethodTypemediaUploadTypeprotocols Index 16 Read Fprotocols Write Setprotocols;
   end;
   TRestMethodTypemediaUploadClass = Class of TRestMethodTypemediaUpload;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTypeparameters
     --------------------------------------------------------------------}
-  
+
   TRestMethodTypeparameters = Class(TGoogleBaseObject)
   Private
   Protected
@@ -629,11 +629,11 @@ type
   Published
   end;
   TRestMethodTypeparametersClass = Class of TRestMethodTypeparameters;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTyperequest
     --------------------------------------------------------------------}
-  
+
   TRestMethodTyperequest = Class(TGoogleBaseObject)
   Private
     Fref : String;
@@ -649,11 +649,11 @@ type
     Property parameterName : String Index 8 Read FparameterName Write SetparameterName;
   end;
   TRestMethodTyperequestClass = Class of TRestMethodTyperequest;
-  
+
   { --------------------------------------------------------------------
     TRestMethodTyperesponse
     --------------------------------------------------------------------}
-  
+
   TRestMethodTyperesponse = Class(TGoogleBaseObject)
   Private
     Fref : String;
@@ -666,11 +666,11 @@ type
     Property ref : String Index 0 Read Fref Write Setref;
   end;
   TRestMethodTyperesponseClass = Class of TRestMethodTyperesponse;
-  
+
   { --------------------------------------------------------------------
     TRestMethod
     --------------------------------------------------------------------}
-  
+
   TRestMethod = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -728,11 +728,11 @@ type
     Property useMediaDownloadService : boolean Index 112 Read FuseMediaDownloadService Write SetuseMediaDownloadService;
   end;
   TRestMethodClass = Class of TRestMethod;
-  
+
   { --------------------------------------------------------------------
     TRestResourceTypemethods
     --------------------------------------------------------------------}
-  
+
   TRestResourceTypemethods = Class(TGoogleBaseObject)
   Private
   Protected
@@ -742,11 +742,11 @@ type
   Published
   end;
   TRestResourceTypemethodsClass = Class of TRestResourceTypemethods;
-  
+
   { --------------------------------------------------------------------
     TRestResourceTyperesources
     --------------------------------------------------------------------}
-  
+
   TRestResourceTyperesources = Class(TGoogleBaseObject)
   Private
   Protected
@@ -756,11 +756,11 @@ type
   Published
   end;
   TRestResourceTyperesourcesClass = Class of TRestResourceTyperesources;
-  
+
   { --------------------------------------------------------------------
     TRestResource
     --------------------------------------------------------------------}
-  
+
   TRestResource = Class(TGoogleBaseObject)
   Private
     Fmethods : TRestResourceTypemethods;
@@ -775,19 +775,19 @@ type
     Property resources : TRestResourceTyperesources Index 8 Read Fresources Write Setresources;
   end;
   TRestResourceClass = Class of TRestResource;
-  
+
   { --------------------------------------------------------------------
     TApisResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TApisResource, method List
-  
+
   TApisListOptions = Record
     _name : String;
     preferred : boolean;
   end;
-  
+
   TApisResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -796,12 +796,12 @@ type
     Function List(AQuery : string  = '') : TDirectoryList;
     Function List(AQuery : TApislistOptions) : TDirectoryList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDiscoveryAPI
     --------------------------------------------------------------------}
-  
+
   TDiscoveryAPI = Class(TGoogleAPI)
   Private
     FApisInstance : TApisResource;
@@ -843,7 +843,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDirectoryListTypeitemsItemTypeicons.Setx16(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItemTypeicons.Setx16(AIndex : Integer; const AValue : String);
 
 begin
   If (Fx16=AValue) then exit;
@@ -853,7 +853,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItemTypeicons.Setx32(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItemTypeicons.Setx32(AIndex : Integer; const AValue : String);
 
 begin
   If (Fx32=AValue) then exit;
@@ -870,7 +870,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDirectoryListTypeitemsItem.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.SetdiscoveryLink(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.SetdiscoveryLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FdiscoveryLink=AValue) then exit;
@@ -890,7 +890,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.SetdiscoveryRestUrl(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.SetdiscoveryRestUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FdiscoveryRestUrl=AValue) then exit;
@@ -900,7 +900,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.SetdocumentationLink(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.SetdocumentationLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FdocumentationLink=AValue) then exit;
@@ -910,7 +910,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Seticons(AIndex : Integer; const AValue : TDirectoryListTypeitemsItemTypeicons); 
+Procedure TDirectoryListTypeitemsItem.Seticons(AIndex : Integer; const AValue : TDirectoryListTypeitemsItemTypeicons);
 
 begin
   If (Ficons=AValue) then exit;
@@ -920,7 +920,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -930,7 +930,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -940,7 +940,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setlabels(AIndex : Integer; const AValue : TStringArray); 
+Procedure TDirectoryListTypeitemsItem.Setlabels(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -950,7 +950,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -960,7 +960,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setpreferred(AIndex : Integer; const AValue : boolean); 
+Procedure TDirectoryListTypeitemsItem.Setpreferred(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fpreferred=AValue) then exit;
@@ -970,7 +970,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -980,7 +980,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -991,7 +991,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDirectoryListTypeitemsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDirectoryListTypeitemsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1010,7 +1010,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDirectoryList.SetdiscoveryVersion(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryList.SetdiscoveryVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FdiscoveryVersion=AValue) then exit;
@@ -1020,7 +1020,7 @@ end;
 
 
 
-Procedure TDirectoryList.Setitems(AIndex : Integer; const AValue : TDirectoryListTypeitemsArray); 
+Procedure TDirectoryList.Setitems(AIndex : Integer; const AValue : TDirectoryListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1030,7 +1030,7 @@ end;
 
 
 
-Procedure TDirectoryList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TDirectoryList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1041,7 +1041,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDirectoryList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDirectoryList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1060,7 +1060,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchemaTypeannotations.Setrequired(AIndex : Integer; const AValue : TStringArray); 
+Procedure TJsonSchemaTypeannotations.Setrequired(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Frequired=AValue) then exit;
@@ -1071,7 +1071,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJsonSchemaTypeannotations.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJsonSchemaTypeannotations.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1103,7 +1103,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchemaTypevariantTypemapItem.Setref(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchemaTypevariantTypemapItem.Setref(AIndex : Integer; const AValue : String);
 
 begin
   If (Fref=AValue) then exit;
@@ -1113,7 +1113,7 @@ end;
 
 
 
-Procedure TJsonSchemaTypevariantTypemapItem.Settype_value(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchemaTypevariantTypemapItem.Settype_value(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftype_value=AValue) then exit;
@@ -1141,7 +1141,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchemaTypevariant.Setdiscriminant(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchemaTypevariant.Setdiscriminant(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdiscriminant=AValue) then exit;
@@ -1151,7 +1151,7 @@ end;
 
 
 
-Procedure TJsonSchemaTypevariant.Setmap(AIndex : Integer; const AValue : TJsonSchemaTypevariantTypemapArray); 
+Procedure TJsonSchemaTypevariant.Setmap(AIndex : Integer; const AValue : TJsonSchemaTypevariantTypemapArray);
 
 begin
   If (Fmap=AValue) then exit;
@@ -1162,7 +1162,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJsonSchemaTypevariant.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJsonSchemaTypevariant.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1181,7 +1181,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchema.Setref(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setref(AIndex : Integer; const AValue : String);
 
 begin
   If (Fref=AValue) then exit;
@@ -1191,7 +1191,7 @@ end;
 
 
 
-Procedure TJsonSchema.SetadditionalProperties(AIndex : Integer; const AValue : TJsonSchema); 
+Procedure TJsonSchema.SetadditionalProperties(AIndex : Integer; const AValue : TJsonSchema);
 
 begin
   If (FadditionalProperties=AValue) then exit;
@@ -1201,7 +1201,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setannotations(AIndex : Integer; const AValue : TJsonSchemaTypeannotations); 
+Procedure TJsonSchema.Setannotations(AIndex : Integer; const AValue : TJsonSchemaTypeannotations);
 
 begin
   If (Fannotations=AValue) then exit;
@@ -1211,7 +1211,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setdefault(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setdefault(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdefault=AValue) then exit;
@@ -1221,7 +1221,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setenum(AIndex : Integer; const AValue : TStringArray); 
+Procedure TJsonSchema.Setenum(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fenum=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TJsonSchema.SetenumDescriptions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TJsonSchema.SetenumDescriptions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FenumDescriptions=AValue) then exit;
@@ -1251,7 +1251,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setformat(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setformat(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformat=AValue) then exit;
@@ -1261,7 +1261,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setid(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1271,7 +1271,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setitems(AIndex : Integer; const AValue : TJsonSchema); 
+Procedure TJsonSchema.Setitems(AIndex : Integer; const AValue : TJsonSchema);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1281,7 +1281,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1291,7 +1291,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setmaximum(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setmaximum(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmaximum=AValue) then exit;
@@ -1301,7 +1301,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setminimum(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setminimum(AIndex : Integer; const AValue : String);
 
 begin
   If (Fminimum=AValue) then exit;
@@ -1311,7 +1311,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setpattern(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Setpattern(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpattern=AValue) then exit;
@@ -1321,7 +1321,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setproperties(AIndex : Integer; const AValue : TJsonSchemaTypeproperties); 
+Procedure TJsonSchema.Setproperties(AIndex : Integer; const AValue : TJsonSchemaTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -1331,7 +1331,7 @@ end;
 
 
 
-Procedure TJsonSchema.SetreadOnly(AIndex : Integer; const AValue : boolean); 
+Procedure TJsonSchema.SetreadOnly(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreadOnly=AValue) then exit;
@@ -1341,7 +1341,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setrepeated(AIndex : Integer; const AValue : boolean); 
+Procedure TJsonSchema.Setrepeated(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Frepeated=AValue) then exit;
@@ -1351,7 +1351,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setrequired(AIndex : Integer; const AValue : boolean); 
+Procedure TJsonSchema.Setrequired(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Frequired=AValue) then exit;
@@ -1361,7 +1361,7 @@ end;
 
 
 
-Procedure TJsonSchema.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TJsonSchema.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1371,7 +1371,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setvariant(AIndex : Integer; const AValue : TJsonSchemaTypevariant); 
+Procedure TJsonSchema.Setvariant(AIndex : Integer; const AValue : TJsonSchemaTypevariant);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -1394,7 +1394,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TJsonSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TJsonSchema.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1427,7 +1427,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestDescriptionTypeauthTypeoauth2.Setscopes(AIndex : Integer; const AValue : TRestDescriptionTypeauthTypeoauth2Typescopes); 
+Procedure TRestDescriptionTypeauthTypeoauth2.Setscopes(AIndex : Integer; const AValue : TRestDescriptionTypeauthTypeoauth2Typescopes);
 
 begin
   If (Fscopes=AValue) then exit;
@@ -1444,7 +1444,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestDescriptionTypeauth.Setoauth2(AIndex : Integer; const AValue : TRestDescriptionTypeauthTypeoauth2); 
+Procedure TRestDescriptionTypeauth.Setoauth2(AIndex : Integer; const AValue : TRestDescriptionTypeauthTypeoauth2);
 
 begin
   If (Foauth2=AValue) then exit;
@@ -1461,7 +1461,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestDescriptionTypeicons.Setx16(AIndex : Integer; const AValue : String); 
+Procedure TRestDescriptionTypeicons.Setx16(AIndex : Integer; const AValue : String);
 
 begin
   If (Fx16=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 
 
-Procedure TRestDescriptionTypeicons.Setx32(AIndex : Integer; const AValue : String); 
+Procedure TRestDescriptionTypeicons.Setx32(AIndex : Integer; const AValue : String);
 
 begin
   If (Fx32=AValue) then exit;
@@ -1540,7 +1540,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestDescription.Setauth(AIndex : Integer; const AValue : TRestDescriptionTypeauth); 
+Procedure TRestDescription.Setauth(AIndex : Integer; const AValue : TRestDescriptionTypeauth);
 
 begin
   If (Fauth=AValue) then exit;
@@ -1550,7 +1550,7 @@ end;
 
 
 
-Procedure TRestDescription.SetbasePath(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetbasePath(AIndex : Integer; const AValue : String);
 
 begin
   If (FbasePath=AValue) then exit;
@@ -1560,7 +1560,7 @@ end;
 
 
 
-Procedure TRestDescription.SetbaseUrl(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetbaseUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FbaseUrl=AValue) then exit;
@@ -1570,7 +1570,7 @@ end;
 
 
 
-Procedure TRestDescription.SetbatchPath(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetbatchPath(AIndex : Integer; const AValue : String);
 
 begin
   If (FbatchPath=AValue) then exit;
@@ -1580,7 +1580,7 @@ end;
 
 
 
-Procedure TRestDescription.SetcanonicalName(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetcanonicalName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcanonicalName=AValue) then exit;
@@ -1590,7 +1590,7 @@ end;
 
 
 
-Procedure TRestDescription.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1600,7 +1600,7 @@ end;
 
 
 
-Procedure TRestDescription.SetdiscoveryVersion(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetdiscoveryVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FdiscoveryVersion=AValue) then exit;
@@ -1610,7 +1610,7 @@ end;
 
 
 
-Procedure TRestDescription.SetdocumentationLink(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetdocumentationLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FdocumentationLink=AValue) then exit;
@@ -1620,7 +1620,7 @@ end;
 
 
 
-Procedure TRestDescription.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1630,7 +1630,7 @@ end;
 
 
 
-Procedure TRestDescription.SetexponentialBackoffDefault(AIndex : Integer; const AValue : boolean); 
+Procedure TRestDescription.SetexponentialBackoffDefault(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FexponentialBackoffDefault=AValue) then exit;
@@ -1640,7 +1640,7 @@ end;
 
 
 
-Procedure TRestDescription.Setfeatures(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRestDescription.Setfeatures(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -1650,7 +1650,7 @@ end;
 
 
 
-Procedure TRestDescription.Seticons(AIndex : Integer; const AValue : TRestDescriptionTypeicons); 
+Procedure TRestDescription.Seticons(AIndex : Integer; const AValue : TRestDescriptionTypeicons);
 
 begin
   If (Ficons=AValue) then exit;
@@ -1660,7 +1660,7 @@ end;
 
 
 
-Procedure TRestDescription.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1670,7 +1670,7 @@ end;
 
 
 
-Procedure TRestDescription.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1680,7 +1680,7 @@ end;
 
 
 
-Procedure TRestDescription.Setlabels(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRestDescription.Setlabels(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1690,7 +1690,7 @@ end;
 
 
 
-Procedure TRestDescription.Setmethods(AIndex : Integer; const AValue : TRestDescriptionTypemethods); 
+Procedure TRestDescription.Setmethods(AIndex : Integer; const AValue : TRestDescriptionTypemethods);
 
 begin
   If (Fmethods=AValue) then exit;
@@ -1700,7 +1700,7 @@ end;
 
 
 
-Procedure TRestDescription.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1710,7 +1710,7 @@ end;
 
 
 
-Procedure TRestDescription.SetownerDomain(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetownerDomain(AIndex : Integer; const AValue : String);
 
 begin
   If (FownerDomain=AValue) then exit;
@@ -1720,7 +1720,7 @@ end;
 
 
 
-Procedure TRestDescription.SetownerName(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetownerName(AIndex : Integer; const AValue : String);
 
 begin
   If (FownerName=AValue) then exit;
@@ -1730,7 +1730,7 @@ end;
 
 
 
-Procedure TRestDescription.SetpackagePath(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetpackagePath(AIndex : Integer; const AValue : String);
 
 begin
   If (FpackagePath=AValue) then exit;
@@ -1740,7 +1740,7 @@ end;
 
 
 
-Procedure TRestDescription.Setparameters(AIndex : Integer; const AValue : TRestDescriptionTypeparameters); 
+Procedure TRestDescription.Setparameters(AIndex : Integer; const AValue : TRestDescriptionTypeparameters);
 
 begin
   If (Fparameters=AValue) then exit;
@@ -1750,7 +1750,7 @@ end;
 
 
 
-Procedure TRestDescription.Setprotocol(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setprotocol(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprotocol=AValue) then exit;
@@ -1760,7 +1760,7 @@ end;
 
 
 
-Procedure TRestDescription.Setresources(AIndex : Integer; const AValue : TRestDescriptionTyperesources); 
+Procedure TRestDescription.Setresources(AIndex : Integer; const AValue : TRestDescriptionTyperesources);
 
 begin
   If (Fresources=AValue) then exit;
@@ -1770,7 +1770,7 @@ end;
 
 
 
-Procedure TRestDescription.Setrevision(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setrevision(AIndex : Integer; const AValue : String);
 
 begin
   If (Frevision=AValue) then exit;
@@ -1780,7 +1780,7 @@ end;
 
 
 
-Procedure TRestDescription.SetrootUrl(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetrootUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FrootUrl=AValue) then exit;
@@ -1790,7 +1790,7 @@ end;
 
 
 
-Procedure TRestDescription.Setschemas(AIndex : Integer; const AValue : TRestDescriptionTypeschemas); 
+Procedure TRestDescription.Setschemas(AIndex : Integer; const AValue : TRestDescriptionTypeschemas);
 
 begin
   If (Fschemas=AValue) then exit;
@@ -1800,7 +1800,7 @@ end;
 
 
 
-Procedure TRestDescription.SetservicePath(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.SetservicePath(AIndex : Integer; const AValue : String);
 
 begin
   If (FservicePath=AValue) then exit;
@@ -1810,7 +1810,7 @@ end;
 
 
 
-Procedure TRestDescription.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1820,7 +1820,7 @@ end;
 
 
 
-Procedure TRestDescription.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TRestDescription.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -1830,7 +1830,7 @@ end;
 
 
 
-Procedure TRestDescription.Setversion_module(AIndex : Integer; const AValue : boolean); 
+Procedure TRestDescription.Setversion_module(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fversion_module=AValue) then exit;
@@ -1841,7 +1841,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRestDescription.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRestDescription.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1861,7 +1861,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocolsTyperesumable.Setmultipart(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethodTypemediaUploadTypeprotocolsTyperesumable.Setmultipart(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fmultipart=AValue) then exit;
@@ -1871,7 +1871,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocolsTyperesumable.Setpath(AIndex : Integer; const AValue : String); 
+Procedure TRestMethodTypemediaUploadTypeprotocolsTyperesumable.Setpath(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpath=AValue) then exit;
@@ -1888,7 +1888,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocolsTypesimple.Setmultipart(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethodTypemediaUploadTypeprotocolsTypesimple.Setmultipart(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fmultipart=AValue) then exit;
@@ -1898,7 +1898,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocolsTypesimple.Setpath(AIndex : Integer; const AValue : String); 
+Procedure TRestMethodTypemediaUploadTypeprotocolsTypesimple.Setpath(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpath=AValue) then exit;
@@ -1915,7 +1915,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocols.Setresumable(AIndex : Integer; const AValue : TRestMethodTypemediaUploadTypeprotocolsTyperesumable); 
+Procedure TRestMethodTypemediaUploadTypeprotocols.Setresumable(AIndex : Integer; const AValue : TRestMethodTypemediaUploadTypeprotocolsTyperesumable);
 
 begin
   If (Fresumable=AValue) then exit;
@@ -1925,7 +1925,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocols.Setsimple(AIndex : Integer; const AValue : TRestMethodTypemediaUploadTypeprotocolsTypesimple); 
+Procedure TRestMethodTypemediaUploadTypeprotocols.Setsimple(AIndex : Integer; const AValue : TRestMethodTypemediaUploadTypeprotocolsTypesimple);
 
 begin
   If (Fsimple=AValue) then exit;
@@ -1942,7 +1942,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTypemediaUpload.Setaccept(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRestMethodTypemediaUpload.Setaccept(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Faccept=AValue) then exit;
@@ -1952,7 +1952,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUpload.SetmaxSize(AIndex : Integer; const AValue : String); 
+Procedure TRestMethodTypemediaUpload.SetmaxSize(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaxSize=AValue) then exit;
@@ -1962,7 +1962,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUpload.Setprotocols(AIndex : Integer; const AValue : TRestMethodTypemediaUploadTypeprotocols); 
+Procedure TRestMethodTypemediaUpload.Setprotocols(AIndex : Integer; const AValue : TRestMethodTypemediaUploadTypeprotocols);
 
 begin
   If (Fprotocols=AValue) then exit;
@@ -1973,7 +1973,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRestMethodTypemediaUpload.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRestMethodTypemediaUpload.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2005,7 +2005,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTyperequest.Setref(AIndex : Integer; const AValue : String); 
+Procedure TRestMethodTyperequest.Setref(AIndex : Integer; const AValue : String);
 
 begin
   If (Fref=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure TRestMethodTyperequest.SetparameterName(AIndex : Integer; const AValue : String); 
+Procedure TRestMethodTyperequest.SetparameterName(AIndex : Integer; const AValue : String);
 
 begin
   If (FparameterName=AValue) then exit;
@@ -2043,7 +2043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTyperesponse.Setref(AIndex : Integer; const AValue : String); 
+Procedure TRestMethodTyperesponse.Setref(AIndex : Integer; const AValue : String);
 
 begin
   If (Fref=AValue) then exit;
@@ -2071,7 +2071,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethod.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRestMethod.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2081,7 +2081,7 @@ end;
 
 
 
-Procedure TRestMethod.SetetagRequired(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethod.SetetagRequired(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FetagRequired=AValue) then exit;
@@ -2091,7 +2091,7 @@ end;
 
 
 
-Procedure TRestMethod.SethttpMethod(AIndex : Integer; const AValue : String); 
+Procedure TRestMethod.SethttpMethod(AIndex : Integer; const AValue : String);
 
 begin
   If (FhttpMethod=AValue) then exit;
@@ -2101,7 +2101,7 @@ end;
 
 
 
-Procedure TRestMethod.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRestMethod.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2111,7 +2111,7 @@ end;
 
 
 
-Procedure TRestMethod.SetmediaUpload(AIndex : Integer; const AValue : TRestMethodTypemediaUpload); 
+Procedure TRestMethod.SetmediaUpload(AIndex : Integer; const AValue : TRestMethodTypemediaUpload);
 
 begin
   If (FmediaUpload=AValue) then exit;
@@ -2121,7 +2121,7 @@ end;
 
 
 
-Procedure TRestMethod.SetparameterOrder(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRestMethod.SetparameterOrder(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FparameterOrder=AValue) then exit;
@@ -2131,7 +2131,7 @@ end;
 
 
 
-Procedure TRestMethod.Setparameters(AIndex : Integer; const AValue : TRestMethodTypeparameters); 
+Procedure TRestMethod.Setparameters(AIndex : Integer; const AValue : TRestMethodTypeparameters);
 
 begin
   If (Fparameters=AValue) then exit;
@@ -2141,7 +2141,7 @@ end;
 
 
 
-Procedure TRestMethod.Setpath(AIndex : Integer; const AValue : String); 
+Procedure TRestMethod.Setpath(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpath=AValue) then exit;
@@ -2151,7 +2151,7 @@ end;
 
 
 
-Procedure TRestMethod.Setrequest(AIndex : Integer; const AValue : TRestMethodTyperequest); 
+Procedure TRestMethod.Setrequest(AIndex : Integer; const AValue : TRestMethodTyperequest);
 
 begin
   If (Frequest=AValue) then exit;
@@ -2161,7 +2161,7 @@ end;
 
 
 
-Procedure TRestMethod.Setresponse(AIndex : Integer; const AValue : TRestMethodTyperesponse); 
+Procedure TRestMethod.Setresponse(AIndex : Integer; const AValue : TRestMethodTyperesponse);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -2171,7 +2171,7 @@ end;
 
 
 
-Procedure TRestMethod.Setscopes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRestMethod.Setscopes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fscopes=AValue) then exit;
@@ -2181,7 +2181,7 @@ end;
 
 
 
-Procedure TRestMethod.SetsupportsMediaDownload(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethod.SetsupportsMediaDownload(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportsMediaDownload=AValue) then exit;
@@ -2191,7 +2191,7 @@ end;
 
 
 
-Procedure TRestMethod.SetsupportsMediaUpload(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethod.SetsupportsMediaUpload(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportsMediaUpload=AValue) then exit;
@@ -2201,7 +2201,7 @@ end;
 
 
 
-Procedure TRestMethod.SetsupportsSubscription(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethod.SetsupportsSubscription(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportsSubscription=AValue) then exit;
@@ -2211,7 +2211,7 @@ end;
 
 
 
-Procedure TRestMethod.SetuseMediaDownloadService(AIndex : Integer; const AValue : boolean); 
+Procedure TRestMethod.SetuseMediaDownloadService(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FuseMediaDownloadService=AValue) then exit;
@@ -2222,7 +2222,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRestMethod.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRestMethod.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2268,7 +2268,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestResource.Setmethods(AIndex : Integer; const AValue : TRestResourceTypemethods); 
+Procedure TRestResource.Setmethods(AIndex : Integer; const AValue : TRestResourceTypemethods);
 
 begin
   If (Fmethods=AValue) then exit;
@@ -2278,7 +2278,7 @@ end;
 
 
 
-Procedure TRestResource.Setresources(AIndex : Integer; const AValue : TRestResourceTyperesources); 
+Procedure TRestResource.Setresources(AIndex : Integer; const AValue : TRestResourceTyperesources);
 
 begin
   If (Fresources=AValue) then exit;
@@ -2458,7 +2458,7 @@ Class Function TDiscoveryAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TDiscoveryAPI.APINeedsAuth : Boolean;

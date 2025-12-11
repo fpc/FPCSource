@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAccount = Class;
   TAccountsList = Class;
@@ -194,11 +194,11 @@ type
   TSharedTargetingTypeinclusionsArray = Array of TTargetingValue;
   TTargetingValueCreativeSizeTypecompanionSizesArray = Array of TTargetingValueSize;
   TTargetingValueDayPartTargetingTypedayPartsArray = Array of TTargetingValueDayPartTargetingDayPart;
-  
+
   { --------------------------------------------------------------------
     TAccountTypebidderLocationItem
     --------------------------------------------------------------------}
-  
+
   TAccountTypebidderLocationItem = Class(TGoogleBaseObject)
   Private
     FbidProtocol : String;
@@ -219,11 +219,11 @@ type
     Property url : String Index 24 Read Furl Write Seturl;
   end;
   TAccountTypebidderLocationItemClass = Class of TAccountTypebidderLocationItem;
-  
+
   { --------------------------------------------------------------------
     TAccount
     --------------------------------------------------------------------}
-  
+
   TAccount = Class(TGoogleBaseObject)
   Private
     FbidderLocation : TAccountTypebidderLocationArray;
@@ -260,11 +260,11 @@ type
     Property numberActiveCreatives : integer Index 56 Read FnumberActiveCreatives Write SetnumberActiveCreatives;
   end;
   TAccountClass = Class of TAccount;
-  
+
   { --------------------------------------------------------------------
     TAccountsList
     --------------------------------------------------------------------}
-  
+
   TAccountsList = Class(TGoogleBaseObject)
   Private
     Fitems : TAccountsListTypeitemsArray;
@@ -283,11 +283,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAccountsListClass = Class of TAccountsList;
-  
+
   { --------------------------------------------------------------------
     TAddOrderDealsRequest
     --------------------------------------------------------------------}
-  
+
   TAddOrderDealsRequest = Class(TGoogleBaseObject)
   Private
     Fdeals : TAddOrderDealsRequestTypedealsArray;
@@ -309,11 +309,11 @@ type
     Property updateAction : String Index 16 Read FupdateAction Write SetupdateAction;
   end;
   TAddOrderDealsRequestClass = Class of TAddOrderDealsRequest;
-  
+
   { --------------------------------------------------------------------
     TAddOrderDealsResponse
     --------------------------------------------------------------------}
-  
+
   TAddOrderDealsResponse = Class(TGoogleBaseObject)
   Private
     Fdeals : TAddOrderDealsResponseTypedealsArray;
@@ -332,11 +332,11 @@ type
     Property proposalRevisionNumber : String Index 8 Read FproposalRevisionNumber Write SetproposalRevisionNumber;
   end;
   TAddOrderDealsResponseClass = Class of TAddOrderDealsResponse;
-  
+
   { --------------------------------------------------------------------
     TAddOrderNotesRequest
     --------------------------------------------------------------------}
-  
+
   TAddOrderNotesRequest = Class(TGoogleBaseObject)
   Private
     Fnotes : TAddOrderNotesRequestTypenotesArray;
@@ -352,11 +352,11 @@ type
     Property notes : TAddOrderNotesRequestTypenotesArray Index 0 Read Fnotes Write Setnotes;
   end;
   TAddOrderNotesRequestClass = Class of TAddOrderNotesRequest;
-  
+
   { --------------------------------------------------------------------
     TAddOrderNotesResponse
     --------------------------------------------------------------------}
-  
+
   TAddOrderNotesResponse = Class(TGoogleBaseObject)
   Private
     Fnotes : TAddOrderNotesResponseTypenotesArray;
@@ -372,11 +372,11 @@ type
     Property notes : TAddOrderNotesResponseTypenotesArray Index 0 Read Fnotes Write Setnotes;
   end;
   TAddOrderNotesResponseClass = Class of TAddOrderNotesResponse;
-  
+
   { --------------------------------------------------------------------
     TBillingInfo
     --------------------------------------------------------------------}
-  
+
   TBillingInfo = Class(TGoogleBaseObject)
   Private
     FaccountId : integer;
@@ -401,11 +401,11 @@ type
     Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TBillingInfoClass = Class of TBillingInfo;
-  
+
   { --------------------------------------------------------------------
     TBillingInfoList
     --------------------------------------------------------------------}
-  
+
   TBillingInfoList = Class(TGoogleBaseObject)
   Private
     Fitems : TBillingInfoListTypeitemsArray;
@@ -424,11 +424,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBillingInfoListClass = Class of TBillingInfoList;
-  
+
   { --------------------------------------------------------------------
     TBudget
     --------------------------------------------------------------------}
-  
+
   TBudget = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -455,11 +455,11 @@ type
     Property kind : String Index 40 Read Fkind Write Setkind;
   end;
   TBudgetClass = Class of TBudget;
-  
+
   { --------------------------------------------------------------------
     TBuyer
     --------------------------------------------------------------------}
-  
+
   TBuyer = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -471,11 +471,11 @@ type
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
   end;
   TBuyerClass = Class of TBuyer;
-  
+
   { --------------------------------------------------------------------
     TContactInformation
     --------------------------------------------------------------------}
-  
+
   TContactInformation = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -490,11 +490,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TContactInformationClass = Class of TContactInformation;
-  
+
   { --------------------------------------------------------------------
     TCreateOrdersRequest
     --------------------------------------------------------------------}
-  
+
   TCreateOrdersRequest = Class(TGoogleBaseObject)
   Private
     Fproposals : TCreateOrdersRequestTypeproposalsArray;
@@ -513,11 +513,11 @@ type
     Property webPropertyCode : String Index 8 Read FwebPropertyCode Write SetwebPropertyCode;
   end;
   TCreateOrdersRequestClass = Class of TCreateOrdersRequest;
-  
+
   { --------------------------------------------------------------------
     TCreateOrdersResponse
     --------------------------------------------------------------------}
-  
+
   TCreateOrdersResponse = Class(TGoogleBaseObject)
   Private
     Fproposals : TCreateOrdersResponseTypeproposalsArray;
@@ -533,11 +533,11 @@ type
     Property proposals : TCreateOrdersResponseTypeproposalsArray Index 0 Read Fproposals Write Setproposals;
   end;
   TCreateOrdersResponseClass = Class of TCreateOrdersResponse;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypecorrectionsItem
     --------------------------------------------------------------------}
-  
+
   TCreativeTypecorrectionsItem = Class(TGoogleBaseObject)
   Private
     Fdetails : TStringArray;
@@ -556,11 +556,11 @@ type
     Property reason : String Index 8 Read Freason Write Setreason;
   end;
   TCreativeTypecorrectionsItemClass = Class of TCreativeTypecorrectionsItem;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypefilteringReasonsTypereasonsItem
     --------------------------------------------------------------------}
-  
+
   TCreativeTypefilteringReasonsTypereasonsItem = Class(TGoogleBaseObject)
   Private
     FfilteringCount : String;
@@ -575,11 +575,11 @@ type
     Property filteringStatus : integer Index 8 Read FfilteringStatus Write SetfilteringStatus;
   end;
   TCreativeTypefilteringReasonsTypereasonsItemClass = Class of TCreativeTypefilteringReasonsTypereasonsItem;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypefilteringReasons
     --------------------------------------------------------------------}
-  
+
   TCreativeTypefilteringReasons = Class(TGoogleBaseObject)
   Private
     Fdate : String;
@@ -598,11 +598,11 @@ type
     Property reasons : TCreativeTypefilteringReasonsTypereasonsArray Index 8 Read Freasons Write Setreasons;
   end;
   TCreativeTypefilteringReasonsClass = Class of TCreativeTypefilteringReasons;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypenativeAdTypeappIcon
     --------------------------------------------------------------------}
-  
+
   TCreativeTypenativeAdTypeappIcon = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -620,11 +620,11 @@ type
     Property width : integer Index 16 Read Fwidth Write Setwidth;
   end;
   TCreativeTypenativeAdTypeappIconClass = Class of TCreativeTypenativeAdTypeappIcon;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypenativeAdTypeimage
     --------------------------------------------------------------------}
-  
+
   TCreativeTypenativeAdTypeimage = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -642,11 +642,11 @@ type
     Property width : integer Index 16 Read Fwidth Write Setwidth;
   end;
   TCreativeTypenativeAdTypeimageClass = Class of TCreativeTypenativeAdTypeimage;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypenativeAdTypelogo
     --------------------------------------------------------------------}
-  
+
   TCreativeTypenativeAdTypelogo = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -664,11 +664,11 @@ type
     Property width : integer Index 16 Read Fwidth Write Setwidth;
   end;
   TCreativeTypenativeAdTypelogoClass = Class of TCreativeTypenativeAdTypelogo;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypenativeAd
     --------------------------------------------------------------------}
-  
+
   TCreativeTypenativeAd = Class(TGoogleBaseObject)
   Private
     Fadvertiser : String;
@@ -717,11 +717,11 @@ type
     Property store : String Index 88 Read Fstore Write Setstore;
   end;
   TCreativeTypenativeAdClass = Class of TCreativeTypenativeAd;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypeservingRestrictionsItemTypecontextsItem
     --------------------------------------------------------------------}
-  
+
   TCreativeTypeservingRestrictionsItemTypecontextsItem = Class(TGoogleBaseObject)
   Private
     FauctionType : TStringArray;
@@ -746,11 +746,11 @@ type
     Property platform : TStringArray Index 24 Read Fplatform Write Setplatform;
   end;
   TCreativeTypeservingRestrictionsItemTypecontextsItemClass = Class of TCreativeTypeservingRestrictionsItemTypecontextsItem;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem
     --------------------------------------------------------------------}
-  
+
   TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem = Class(TGoogleBaseObject)
   Private
     Fdetails : TStringArray;
@@ -769,11 +769,11 @@ type
     Property reason : String Index 8 Read Freason Write Setreason;
   end;
   TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItemClass = Class of TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem;
-  
+
   { --------------------------------------------------------------------
     TCreativeTypeservingRestrictionsItem
     --------------------------------------------------------------------}
-  
+
   TCreativeTypeservingRestrictionsItem = Class(TGoogleBaseObject)
   Private
     Fcontexts : TCreativeTypeservingRestrictionsItemTypecontextsArray;
@@ -795,11 +795,11 @@ type
     Property reason : String Index 16 Read Freason Write Setreason;
   end;
   TCreativeTypeservingRestrictionsItemClass = Class of TCreativeTypeservingRestrictionsItem;
-  
+
   { --------------------------------------------------------------------
     TCreative
     --------------------------------------------------------------------}
-  
+
   TCreative = Class(TGoogleBaseObject)
   Private
     FHTMLSnippet : String;
@@ -890,11 +890,11 @@ type
     Property width : integer Index 200 Read Fwidth Write Setwidth;
   end;
   TCreativeClass = Class of TCreative;
-  
+
   { --------------------------------------------------------------------
     TCreativesList
     --------------------------------------------------------------------}
-  
+
   TCreativesList = Class(TGoogleBaseObject)
   Private
     Fitems : TCreativesListTypeitemsArray;
@@ -916,11 +916,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TCreativesListClass = Class of TCreativesList;
-  
+
   { --------------------------------------------------------------------
     TDealServingMetadata
     --------------------------------------------------------------------}
-  
+
   TDealServingMetadata = Class(TGoogleBaseObject)
   Private
     FdealPauseStatus : TDealServingMetadataDealPauseStatus;
@@ -932,11 +932,11 @@ type
     Property dealPauseStatus : TDealServingMetadataDealPauseStatus Index 0 Read FdealPauseStatus Write SetdealPauseStatus;
   end;
   TDealServingMetadataClass = Class of TDealServingMetadata;
-  
+
   { --------------------------------------------------------------------
     TDealServingMetadataDealPauseStatus
     --------------------------------------------------------------------}
-  
+
   TDealServingMetadataDealPauseStatus = Class(TGoogleBaseObject)
   Private
     FfirstPausedBy : String;
@@ -954,11 +954,11 @@ type
     Property hasSellerPaused : boolean Index 16 Read FhasSellerPaused Write SethasSellerPaused;
   end;
   TDealServingMetadataDealPauseStatusClass = Class of TDealServingMetadataDealPauseStatus;
-  
+
   { --------------------------------------------------------------------
     TDealTerms
     --------------------------------------------------------------------}
-  
+
   TDealTerms = Class(TGoogleBaseObject)
   Private
     FbrandingType : String;
@@ -991,11 +991,11 @@ type
     Property sellerTimeZone : String Index 56 Read FsellerTimeZone Write SetsellerTimeZone;
   end;
   TDealTermsClass = Class of TDealTerms;
-  
+
   { --------------------------------------------------------------------
     TDealTermsGuaranteedFixedPriceTerms
     --------------------------------------------------------------------}
-  
+
   TDealTermsGuaranteedFixedPriceTerms = Class(TGoogleBaseObject)
   Private
     FbillingInfo : TDealTermsGuaranteedFixedPriceTermsBillingInfo;
@@ -1020,11 +1020,11 @@ type
     Property guaranteedLooks : String Index 24 Read FguaranteedLooks Write SetguaranteedLooks;
   end;
   TDealTermsGuaranteedFixedPriceTermsClass = Class of TDealTermsGuaranteedFixedPriceTerms;
-  
+
   { --------------------------------------------------------------------
     TDealTermsGuaranteedFixedPriceTermsBillingInfo
     --------------------------------------------------------------------}
-  
+
   TDealTermsGuaranteedFixedPriceTermsBillingInfo = Class(TGoogleBaseObject)
   Private
     FcurrencyConversionTimeMs : String;
@@ -1042,11 +1042,11 @@ type
     Property price : TPrice Index 16 Read Fprice Write Setprice;
   end;
   TDealTermsGuaranteedFixedPriceTermsBillingInfoClass = Class of TDealTermsGuaranteedFixedPriceTermsBillingInfo;
-  
+
   { --------------------------------------------------------------------
     TDealTermsNonGuaranteedAuctionTerms
     --------------------------------------------------------------------}
-  
+
   TDealTermsNonGuaranteedAuctionTerms = Class(TGoogleBaseObject)
   Private
     FautoOptimizePrivateAuction : boolean;
@@ -1065,11 +1065,11 @@ type
     Property reservePricePerBuyers : TDealTermsNonGuaranteedAuctionTermsTypereservePricePerBuyersArray Index 8 Read FreservePricePerBuyers Write SetreservePricePerBuyers;
   end;
   TDealTermsNonGuaranteedAuctionTermsClass = Class of TDealTermsNonGuaranteedAuctionTerms;
-  
+
   { --------------------------------------------------------------------
     TDealTermsNonGuaranteedFixedPriceTerms
     --------------------------------------------------------------------}
-  
+
   TDealTermsNonGuaranteedFixedPriceTerms = Class(TGoogleBaseObject)
   Private
     FfixedPrices : TDealTermsNonGuaranteedFixedPriceTermsTypefixedPricesArray;
@@ -1085,11 +1085,11 @@ type
     Property fixedPrices : TDealTermsNonGuaranteedFixedPriceTermsTypefixedPricesArray Index 0 Read FfixedPrices Write SetfixedPrices;
   end;
   TDealTermsNonGuaranteedFixedPriceTermsClass = Class of TDealTermsNonGuaranteedFixedPriceTerms;
-  
+
   { --------------------------------------------------------------------
     TDeleteOrderDealsRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteOrderDealsRequest = Class(TGoogleBaseObject)
   Private
     FdealIds : TStringArray;
@@ -1111,11 +1111,11 @@ type
     Property updateAction : String Index 16 Read FupdateAction Write SetupdateAction;
   end;
   TDeleteOrderDealsRequestClass = Class of TDeleteOrderDealsRequest;
-  
+
   { --------------------------------------------------------------------
     TDeleteOrderDealsResponse
     --------------------------------------------------------------------}
-  
+
   TDeleteOrderDealsResponse = Class(TGoogleBaseObject)
   Private
     Fdeals : TDeleteOrderDealsResponseTypedealsArray;
@@ -1134,11 +1134,11 @@ type
     Property proposalRevisionNumber : String Index 8 Read FproposalRevisionNumber Write SetproposalRevisionNumber;
   end;
   TDeleteOrderDealsResponseClass = Class of TDeleteOrderDealsResponse;
-  
+
   { --------------------------------------------------------------------
     TDeliveryControl
     --------------------------------------------------------------------}
-  
+
   TDeliveryControl = Class(TGoogleBaseObject)
   Private
     FcreativeBlockingLevel : String;
@@ -1160,11 +1160,11 @@ type
     Property frequencyCaps : TDeliveryControlTypefrequencyCapsArray Index 16 Read FfrequencyCaps Write SetfrequencyCaps;
   end;
   TDeliveryControlClass = Class of TDeliveryControl;
-  
+
   { --------------------------------------------------------------------
     TDeliveryControlFrequencyCap
     --------------------------------------------------------------------}
-  
+
   TDeliveryControlFrequencyCap = Class(TGoogleBaseObject)
   Private
     FmaxImpressions : integer;
@@ -1182,11 +1182,11 @@ type
     Property timeUnitType : String Index 16 Read FtimeUnitType Write SettimeUnitType;
   end;
   TDeliveryControlFrequencyCapClass = Class of TDeliveryControlFrequencyCap;
-  
+
   { --------------------------------------------------------------------
     TDimension
     --------------------------------------------------------------------}
-  
+
   TDimension = Class(TGoogleBaseObject)
   Private
     FdimensionType : String;
@@ -1205,11 +1205,11 @@ type
     Property dimensionValues : TDimensionTypedimensionValuesArray Index 8 Read FdimensionValues Write SetdimensionValues;
   end;
   TDimensionClass = Class of TDimension;
-  
+
   { --------------------------------------------------------------------
     TDimensionDimensionValue
     --------------------------------------------------------------------}
-  
+
   TDimensionDimensionValue = Class(TGoogleBaseObject)
   Private
     Fid : integer;
@@ -1224,11 +1224,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TDimensionDimensionValueClass = Class of TDimensionDimensionValue;
-  
+
   { --------------------------------------------------------------------
     TEditAllOrderDealsRequest
     --------------------------------------------------------------------}
-  
+
   TEditAllOrderDealsRequest = Class(TGoogleBaseObject)
   Private
     Fdeals : TEditAllOrderDealsRequestTypedealsArray;
@@ -1253,11 +1253,11 @@ type
     Property updateAction : String Index 24 Read FupdateAction Write SetupdateAction;
   end;
   TEditAllOrderDealsRequestClass = Class of TEditAllOrderDealsRequest;
-  
+
   { --------------------------------------------------------------------
     TEditAllOrderDealsResponse
     --------------------------------------------------------------------}
-  
+
   TEditAllOrderDealsResponse = Class(TGoogleBaseObject)
   Private
     Fdeals : TEditAllOrderDealsResponseTypedealsArray;
@@ -1276,11 +1276,11 @@ type
     Property orderRevisionNumber : String Index 8 Read ForderRevisionNumber Write SetorderRevisionNumber;
   end;
   TEditAllOrderDealsResponseClass = Class of TEditAllOrderDealsResponse;
-  
+
   { --------------------------------------------------------------------
     TGetOffersResponse
     --------------------------------------------------------------------}
-  
+
   TGetOffersResponse = Class(TGoogleBaseObject)
   Private
     Fproducts : TGetOffersResponseTypeproductsArray;
@@ -1296,11 +1296,11 @@ type
     Property products : TGetOffersResponseTypeproductsArray Index 0 Read Fproducts Write Setproducts;
   end;
   TGetOffersResponseClass = Class of TGetOffersResponse;
-  
+
   { --------------------------------------------------------------------
     TGetOrderDealsResponse
     --------------------------------------------------------------------}
-  
+
   TGetOrderDealsResponse = Class(TGoogleBaseObject)
   Private
     Fdeals : TGetOrderDealsResponseTypedealsArray;
@@ -1316,11 +1316,11 @@ type
     Property deals : TGetOrderDealsResponseTypedealsArray Index 0 Read Fdeals Write Setdeals;
   end;
   TGetOrderDealsResponseClass = Class of TGetOrderDealsResponse;
-  
+
   { --------------------------------------------------------------------
     TGetOrderNotesResponse
     --------------------------------------------------------------------}
-  
+
   TGetOrderNotesResponse = Class(TGoogleBaseObject)
   Private
     Fnotes : TGetOrderNotesResponseTypenotesArray;
@@ -1336,11 +1336,11 @@ type
     Property notes : TGetOrderNotesResponseTypenotesArray Index 0 Read Fnotes Write Setnotes;
   end;
   TGetOrderNotesResponseClass = Class of TGetOrderNotesResponse;
-  
+
   { --------------------------------------------------------------------
     TGetOrdersResponse
     --------------------------------------------------------------------}
-  
+
   TGetOrdersResponse = Class(TGoogleBaseObject)
   Private
     Fproposals : TGetOrdersResponseTypeproposalsArray;
@@ -1356,11 +1356,11 @@ type
     Property proposals : TGetOrdersResponseTypeproposalsArray Index 0 Read Fproposals Write Setproposals;
   end;
   TGetOrdersResponseClass = Class of TGetOrdersResponse;
-  
+
   { --------------------------------------------------------------------
     TGetPublisherProfilesByAccountIdResponse
     --------------------------------------------------------------------}
-  
+
   TGetPublisherProfilesByAccountIdResponse = Class(TGoogleBaseObject)
   Private
     Fprofiles : TGetPublisherProfilesByAccountIdResponseTypeprofilesArray;
@@ -1376,11 +1376,11 @@ type
     Property profiles : TGetPublisherProfilesByAccountIdResponseTypeprofilesArray Index 0 Read Fprofiles Write Setprofiles;
   end;
   TGetPublisherProfilesByAccountIdResponseClass = Class of TGetPublisherProfilesByAccountIdResponse;
-  
+
   { --------------------------------------------------------------------
     TMarketplaceDeal
     --------------------------------------------------------------------}
-  
+
   TMarketplaceDeal = Class(TGoogleBaseObject)
   Private
     FbuyerPrivateData : TPrivateData;
@@ -1462,11 +1462,11 @@ type
     Property webPropertyCode : String Index 176 Read FwebPropertyCode Write SetwebPropertyCode;
   end;
   TMarketplaceDealClass = Class of TMarketplaceDeal;
-  
+
   { --------------------------------------------------------------------
     TMarketplaceDealParty
     --------------------------------------------------------------------}
-  
+
   TMarketplaceDealParty = Class(TGoogleBaseObject)
   Private
     Fbuyer : TBuyer;
@@ -1481,11 +1481,11 @@ type
     Property seller : TSeller Index 8 Read Fseller Write Setseller;
   end;
   TMarketplaceDealPartyClass = Class of TMarketplaceDealParty;
-  
+
   { --------------------------------------------------------------------
     TMarketplaceLabel
     --------------------------------------------------------------------}
-  
+
   TMarketplaceLabel = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -1507,11 +1507,11 @@ type
     Property _label : String Index 24 Read F_label Write Set_label;
   end;
   TMarketplaceLabelClass = Class of TMarketplaceLabel;
-  
+
   { --------------------------------------------------------------------
     TMarketplaceNote
     --------------------------------------------------------------------}
-  
+
   TMarketplaceNote = Class(TGoogleBaseObject)
   Private
     FcreatorRole : String;
@@ -1544,11 +1544,11 @@ type
     Property timestampMs : String Index 56 Read FtimestampMs Write SettimestampMs;
   end;
   TMarketplaceNoteClass = Class of TMarketplaceNote;
-  
+
   { --------------------------------------------------------------------
     TPerformanceReport
     --------------------------------------------------------------------}
-  
+
   TPerformanceReport = Class(TGoogleBaseObject)
   Private
     FbidRate : double;
@@ -1627,11 +1627,11 @@ type
     Property unsuccessfulRequestRate : double Index 168 Read FunsuccessfulRequestRate Write SetunsuccessfulRequestRate;
   end;
   TPerformanceReportClass = Class of TPerformanceReport;
-  
+
   { --------------------------------------------------------------------
     TPerformanceReportList
     --------------------------------------------------------------------}
-  
+
   TPerformanceReportList = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1650,11 +1650,11 @@ type
     Property performanceReport : TPerformanceReportListTypeperformanceReportArray Index 8 Read FperformanceReport Write SetperformanceReport;
   end;
   TPerformanceReportListClass = Class of TPerformanceReportList;
-  
+
   { --------------------------------------------------------------------
     TPretargetingConfigTypedimensionsItem
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfigTypedimensionsItem = Class(TGoogleBaseObject)
   Private
     Fheight : String;
@@ -1669,11 +1669,11 @@ type
     Property width : String Index 8 Read Fwidth Write Setwidth;
   end;
   TPretargetingConfigTypedimensionsItemClass = Class of TPretargetingConfigTypedimensionsItem;
-  
+
   { --------------------------------------------------------------------
     TPretargetingConfigTypeexcludedPlacementsItem
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfigTypeexcludedPlacementsItem = Class(TGoogleBaseObject)
   Private
     Ftoken : String;
@@ -1689,11 +1689,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TPretargetingConfigTypeexcludedPlacementsItemClass = Class of TPretargetingConfigTypeexcludedPlacementsItem;
-  
+
   { --------------------------------------------------------------------
     TPretargetingConfigTypeplacementsItem
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfigTypeplacementsItem = Class(TGoogleBaseObject)
   Private
     Ftoken : String;
@@ -1709,11 +1709,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TPretargetingConfigTypeplacementsItemClass = Class of TPretargetingConfigTypeplacementsItem;
-  
+
   { --------------------------------------------------------------------
     TPretargetingConfigTypevideoPlayerSizesItem
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfigTypevideoPlayerSizesItem = Class(TGoogleBaseObject)
   Private
     FaspectRatio : String;
@@ -1731,11 +1731,11 @@ type
     Property minWidth : String Index 16 Read FminWidth Write SetminWidth;
   end;
   TPretargetingConfigTypevideoPlayerSizesItemClass = Class of TPretargetingConfigTypevideoPlayerSizesItem;
-  
+
   { --------------------------------------------------------------------
     TPretargetingConfig
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfig = Class(TGoogleBaseObject)
   Private
     FbillingId : String;
@@ -1820,11 +1820,11 @@ type
     Property videoPlayerSizes : TPretargetingConfigTypevideoPlayerSizesArray Index 184 Read FvideoPlayerSizes Write SetvideoPlayerSizes;
   end;
   TPretargetingConfigClass = Class of TPretargetingConfig;
-  
+
   { --------------------------------------------------------------------
     TPretargetingConfigList
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfigList = Class(TGoogleBaseObject)
   Private
     Fitems : TPretargetingConfigListTypeitemsArray;
@@ -1843,11 +1843,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TPretargetingConfigListClass = Class of TPretargetingConfigList;
-  
+
   { --------------------------------------------------------------------
     TPrice
     --------------------------------------------------------------------}
-  
+
   TPrice = Class(TGoogleBaseObject)
   Private
     FamountMicros : double;
@@ -1865,11 +1865,11 @@ type
     Property pricingType : String Index 16 Read FpricingType Write SetpricingType;
   end;
   TPriceClass = Class of TPrice;
-  
+
   { --------------------------------------------------------------------
     TPricePerBuyer
     --------------------------------------------------------------------}
-  
+
   TPricePerBuyer = Class(TGoogleBaseObject)
   Private
     FauctionTier : String;
@@ -1887,11 +1887,11 @@ type
     Property price : TPrice Index 16 Read Fprice Write Setprice;
   end;
   TPricePerBuyerClass = Class of TPricePerBuyer;
-  
+
   { --------------------------------------------------------------------
     TPrivateData
     --------------------------------------------------------------------}
-  
+
   TPrivateData = Class(TGoogleBaseObject)
   Private
     FreferenceId : String;
@@ -1906,11 +1906,11 @@ type
     Property referencePayload : String Index 8 Read FreferencePayload Write SetreferencePayload;
   end;
   TPrivateDataClass = Class of TPrivateData;
-  
+
   { --------------------------------------------------------------------
     TProduct
     --------------------------------------------------------------------}
-  
+
   TProduct = Class(TGoogleBaseObject)
   Private
     FcreationTimeMs : String;
@@ -1992,11 +1992,11 @@ type
     Property webPropertyCode : String Index 176 Read FwebPropertyCode Write SetwebPropertyCode;
   end;
   TProductClass = Class of TProduct;
-  
+
   { --------------------------------------------------------------------
     TProposal
     --------------------------------------------------------------------}
-  
+
   TProposal = Class(TGoogleBaseObject)
   Private
     FbilledBuyer : TBuyer;
@@ -2075,11 +2075,11 @@ type
     Property sellerContacts : TProposalTypesellerContactsArray Index 168 Read FsellerContacts Write SetsellerContacts;
   end;
   TProposalClass = Class of TProposal;
-  
+
   { --------------------------------------------------------------------
     TPublisherProfileApiProto
     --------------------------------------------------------------------}
-  
+
   TPublisherProfileApiProto = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -2161,11 +2161,11 @@ type
     Property topHeadlines : TStringArray Index 176 Read FtopHeadlines Write SettopHeadlines;
   end;
   TPublisherProfileApiProtoClass = Class of TPublisherProfileApiProto;
-  
+
   { --------------------------------------------------------------------
     TPublisherProvidedForecast
     --------------------------------------------------------------------}
-  
+
   TPublisherProvidedForecast = Class(TGoogleBaseObject)
   Private
     Fdimensions : TPublisherProvidedForecastTypedimensionsArray;
@@ -2187,11 +2187,11 @@ type
     Property weeklyUniques : String Index 16 Read FweeklyUniques Write SetweeklyUniques;
   end;
   TPublisherProvidedForecastClass = Class of TPublisherProvidedForecast;
-  
+
   { --------------------------------------------------------------------
     TSeller
     --------------------------------------------------------------------}
-  
+
   TSeller = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -2206,11 +2206,11 @@ type
     Property subAccountId : String Index 8 Read FsubAccountId Write SetsubAccountId;
   end;
   TSellerClass = Class of TSeller;
-  
+
   { --------------------------------------------------------------------
     TSharedTargeting
     --------------------------------------------------------------------}
-  
+
   TSharedTargeting = Class(TGoogleBaseObject)
   Private
     Fexclusions : TSharedTargetingTypeexclusionsArray;
@@ -2232,11 +2232,11 @@ type
     Property key : String Index 16 Read Fkey Write Setkey;
   end;
   TSharedTargetingClass = Class of TSharedTargeting;
-  
+
   { --------------------------------------------------------------------
     TTargetingValue
     --------------------------------------------------------------------}
-  
+
   TTargetingValue = Class(TGoogleBaseObject)
   Private
     FcreativeSizeValue : TTargetingValueCreativeSize;
@@ -2257,11 +2257,11 @@ type
     Property stringValue : String Index 24 Read FstringValue Write SetstringValue;
   end;
   TTargetingValueClass = Class of TTargetingValue;
-  
+
   { --------------------------------------------------------------------
     TTargetingValueCreativeSize
     --------------------------------------------------------------------}
-  
+
   TTargetingValueCreativeSize = Class(TGoogleBaseObject)
   Private
     FcompanionSizes : TTargetingValueCreativeSizeTypecompanionSizesArray;
@@ -2283,11 +2283,11 @@ type
     Property size : TTargetingValueSize Index 16 Read Fsize Write Setsize;
   end;
   TTargetingValueCreativeSizeClass = Class of TTargetingValueCreativeSize;
-  
+
   { --------------------------------------------------------------------
     TTargetingValueDayPartTargeting
     --------------------------------------------------------------------}
-  
+
   TTargetingValueDayPartTargeting = Class(TGoogleBaseObject)
   Private
     FdayParts : TTargetingValueDayPartTargetingTypedayPartsArray;
@@ -2306,11 +2306,11 @@ type
     Property timeZoneType : String Index 8 Read FtimeZoneType Write SettimeZoneType;
   end;
   TTargetingValueDayPartTargetingClass = Class of TTargetingValueDayPartTargeting;
-  
+
   { --------------------------------------------------------------------
     TTargetingValueDayPartTargetingDayPart
     --------------------------------------------------------------------}
-  
+
   TTargetingValueDayPartTargetingDayPart = Class(TGoogleBaseObject)
   Private
     FdayOfWeek : String;
@@ -2334,11 +2334,11 @@ type
     Property startMinute : integer Index 32 Read FstartMinute Write SetstartMinute;
   end;
   TTargetingValueDayPartTargetingDayPartClass = Class of TTargetingValueDayPartTargetingDayPart;
-  
+
   { --------------------------------------------------------------------
     TTargetingValueSize
     --------------------------------------------------------------------}
-  
+
   TTargetingValueSize = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -2353,11 +2353,11 @@ type
     Property width : integer Index 8 Read Fwidth Write Setwidth;
   end;
   TTargetingValueSizeClass = Class of TTargetingValueSize;
-  
+
   { --------------------------------------------------------------------
     TUpdatePrivateAuctionProposalRequest
     --------------------------------------------------------------------}
-  
+
   TUpdatePrivateAuctionProposalRequest = Class(TGoogleBaseObject)
   Private
     FexternalDealId : String;
@@ -2378,11 +2378,11 @@ type
     Property updateAction : String Index 24 Read FupdateAction Write SetupdateAction;
   end;
   TUpdatePrivateAuctionProposalRequestClass = Class of TUpdatePrivateAuctionProposalRequest;
-  
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2392,12 +2392,12 @@ type
     Function Patch(id: integer; aAccount : TAccount) : TAccount;
     Function Update(id: integer; aAccount : TAccount) : TAccount;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBillingInfoResource
     --------------------------------------------------------------------}
-  
+
   TBillingInfoResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2405,12 +2405,12 @@ type
     Function Get(accountId: integer) : TBillingInfo;
     Function List : TBillingInfoList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBudgetResource
     --------------------------------------------------------------------}
-  
+
   TBudgetResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2419,15 +2419,15 @@ type
     Function Patch(accountId: string; billingId: string; aBudget : TBudget) : TBudget;
     Function Update(accountId: string; billingId: string; aBudget : TBudget) : TBudget;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCreativesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCreativesResource, method List
-  
+
   TCreativesListOptions = Record
     accountId : integer;
     buyerCreativeId : String;
@@ -2436,7 +2436,7 @@ type
     openAuctionStatusFilter : String;
     pageToken : String;
   end;
-  
+
   TCreativesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2448,19 +2448,19 @@ type
     Function List(AQuery : TCreativeslistOptions) : TCreativesList;
     Procedure RemoveDeal(accountId: integer; buyerCreativeId: string; dealId: string);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMarketplacedealsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TMarketplacedealsResource, method List
-  
+
   TMarketplacedealsListOptions = Record
     pqlQuery : String;
   end;
-  
+
   TMarketplacedealsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2471,12 +2471,12 @@ type
     Function List(proposalId: string; AQuery : TMarketplacedealslistOptions) : TGetOrderDealsResponse;
     Function Update(proposalId: string; aEditAllOrderDealsRequest : TEditAllOrderDealsRequest) : TEditAllOrderDealsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMarketplacenotesResource
     --------------------------------------------------------------------}
-  
+
   TMarketplacenotesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2484,27 +2484,27 @@ type
     Function Insert(proposalId: string; aAddOrderNotesRequest : TAddOrderNotesRequest) : TAddOrderNotesResponse;
     Function List(proposalId: string) : TGetOrderNotesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMarketplaceprivateauctionResource
     --------------------------------------------------------------------}
-  
+
   TMarketplaceprivateauctionResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Procedure Updateproposal(privateAuctionId: string; aUpdatePrivateAuctionProposalRequest : TUpdatePrivateAuctionProposalRequest);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPerformanceReportResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPerformanceReportResource, method List
-  
+
   TPerformanceReportListOptions = Record
     accountId : int64;
     endDateTime : String;
@@ -2512,7 +2512,7 @@ type
     pageToken : String;
     startDateTime : String;
   end;
-  
+
   TPerformanceReportResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2520,12 +2520,12 @@ type
     Function List(AQuery : string  = '') : TPerformanceReportList;
     Function List(AQuery : TPerformanceReportlistOptions) : TPerformanceReportList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPretargetingConfigResource
     --------------------------------------------------------------------}
-  
+
   TPretargetingConfigResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2537,19 +2537,19 @@ type
     Function Patch(accountId: string; configId: string; aPretargetingConfig : TPretargetingConfig) : TPretargetingConfig;
     Function Update(accountId: string; configId: string; aPretargetingConfig : TPretargetingConfig) : TPretargetingConfig;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProductsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProductsResource, method Search
-  
+
   TProductsSearchOptions = Record
     pqlQuery : String;
   end;
-  
+
   TProductsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2558,19 +2558,19 @@ type
     Function Search(AQuery : string  = '') : TGetOffersResponse;
     Function Search(AQuery : TProductssearchOptions) : TGetOffersResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProposalsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProposalsResource, method Search
-  
+
   TProposalsSearchOptions = Record
     pqlQuery : String;
   end;
-  
+
   TProposalsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2583,24 +2583,24 @@ type
     Procedure Setupcomplete(proposalId: string);
     Function Update(proposalId: string; revisionNumber: string; _updateAction: string; aProposal : TProposal) : TProposal;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPubprofilesResource
     --------------------------------------------------------------------}
-  
+
   TPubprofilesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(accountId: integer) : TGetPublisherProfilesByAccountIdResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAdexchangebuyerAPI
     --------------------------------------------------------------------}
-  
+
   TAdexchangebuyerAPI = Class(TGoogleAPI)
   Private
     FAccountsInstance : TAccountsResource;
@@ -2697,7 +2697,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccountTypebidderLocationItem.SetbidProtocol(AIndex : Integer; const AValue : String); 
+Procedure TAccountTypebidderLocationItem.SetbidProtocol(AIndex : Integer; const AValue : String);
 
 begin
   If (FbidProtocol=AValue) then exit;
@@ -2707,7 +2707,7 @@ end;
 
 
 
-Procedure TAccountTypebidderLocationItem.SetmaximumQps(AIndex : Integer; const AValue : integer); 
+Procedure TAccountTypebidderLocationItem.SetmaximumQps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaximumQps=AValue) then exit;
@@ -2717,7 +2717,7 @@ end;
 
 
 
-Procedure TAccountTypebidderLocationItem.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TAccountTypebidderLocationItem.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -2727,7 +2727,7 @@ end;
 
 
 
-Procedure TAccountTypebidderLocationItem.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TAccountTypebidderLocationItem.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2744,7 +2744,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetbidderLocation(AIndex : Integer; const AValue : TAccountTypebidderLocationArray); 
+Procedure TAccount.SetbidderLocation(AIndex : Integer; const AValue : TAccountTypebidderLocationArray);
 
 begin
   If (FbidderLocation=AValue) then exit;
@@ -2754,7 +2754,7 @@ end;
 
 
 
-Procedure TAccount.SetcookieMatchingNid(AIndex : Integer; const AValue : String); 
+Procedure TAccount.SetcookieMatchingNid(AIndex : Integer; const AValue : String);
 
 begin
   If (FcookieMatchingNid=AValue) then exit;
@@ -2764,7 +2764,7 @@ end;
 
 
 
-Procedure TAccount.SetcookieMatchingUrl(AIndex : Integer; const AValue : String); 
+Procedure TAccount.SetcookieMatchingUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FcookieMatchingUrl=AValue) then exit;
@@ -2774,7 +2774,7 @@ end;
 
 
 
-Procedure TAccount.Setid(AIndex : Integer; const AValue : integer); 
+Procedure TAccount.Setid(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fid=AValue) then exit;
@@ -2784,7 +2784,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2794,7 +2794,7 @@ end;
 
 
 
-Procedure TAccount.SetmaximumActiveCreatives(AIndex : Integer; const AValue : integer); 
+Procedure TAccount.SetmaximumActiveCreatives(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaximumActiveCreatives=AValue) then exit;
@@ -2804,7 +2804,7 @@ end;
 
 
 
-Procedure TAccount.SetmaximumTotalQps(AIndex : Integer; const AValue : integer); 
+Procedure TAccount.SetmaximumTotalQps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaximumTotalQps=AValue) then exit;
@@ -2814,7 +2814,7 @@ end;
 
 
 
-Procedure TAccount.SetnumberActiveCreatives(AIndex : Integer; const AValue : integer); 
+Procedure TAccount.SetnumberActiveCreatives(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumberActiveCreatives=AValue) then exit;
@@ -2825,7 +2825,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2844,7 +2844,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsList.Setitems(AIndex : Integer; const AValue : TAccountsListTypeitemsArray); 
+Procedure TAccountsList.Setitems(AIndex : Integer; const AValue : TAccountsListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2854,7 +2854,7 @@ end;
 
 
 
-Procedure TAccountsList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAccountsList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2865,7 +2865,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAccountsList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAccountsList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2884,7 +2884,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddOrderDealsRequest.Setdeals(AIndex : Integer; const AValue : TAddOrderDealsRequestTypedealsArray); 
+Procedure TAddOrderDealsRequest.Setdeals(AIndex : Integer; const AValue : TAddOrderDealsRequestTypedealsArray);
 
 begin
   If (Fdeals=AValue) then exit;
@@ -2894,7 +2894,7 @@ end;
 
 
 
-Procedure TAddOrderDealsRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TAddOrderDealsRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -2904,7 +2904,7 @@ end;
 
 
 
-Procedure TAddOrderDealsRequest.SetupdateAction(AIndex : Integer; const AValue : String); 
+Procedure TAddOrderDealsRequest.SetupdateAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateAction=AValue) then exit;
@@ -2915,7 +2915,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAddOrderDealsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAddOrderDealsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2934,7 +2934,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TAddOrderDealsResponseTypedealsArray); 
+Procedure TAddOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TAddOrderDealsResponseTypedealsArray);
 
 begin
   If (Fdeals=AValue) then exit;
@@ -2944,7 +2944,7 @@ end;
 
 
 
-Procedure TAddOrderDealsResponse.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TAddOrderDealsResponse.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -2955,7 +2955,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAddOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAddOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2974,7 +2974,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddOrderNotesRequest.Setnotes(AIndex : Integer; const AValue : TAddOrderNotesRequestTypenotesArray); 
+Procedure TAddOrderNotesRequest.Setnotes(AIndex : Integer; const AValue : TAddOrderNotesRequestTypenotesArray);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2985,7 +2985,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAddOrderNotesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAddOrderNotesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3004,7 +3004,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddOrderNotesResponse.Setnotes(AIndex : Integer; const AValue : TAddOrderNotesResponseTypenotesArray); 
+Procedure TAddOrderNotesResponse.Setnotes(AIndex : Integer; const AValue : TAddOrderNotesResponseTypenotesArray);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -3015,7 +3015,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAddOrderNotesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAddOrderNotesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3034,7 +3034,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBillingInfo.SetaccountId(AIndex : Integer; const AValue : integer); 
+Procedure TBillingInfo.SetaccountId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3044,7 +3044,7 @@ end;
 
 
 
-Procedure TBillingInfo.SetaccountName(AIndex : Integer; const AValue : String); 
+Procedure TBillingInfo.SetaccountName(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountName=AValue) then exit;
@@ -3054,7 +3054,7 @@ end;
 
 
 
-Procedure TBillingInfo.SetbillingId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBillingInfo.SetbillingId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FbillingId=AValue) then exit;
@@ -3064,7 +3064,7 @@ end;
 
 
 
-Procedure TBillingInfo.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBillingInfo.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3075,7 +3075,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBillingInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBillingInfo.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3094,7 +3094,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBillingInfoList.Setitems(AIndex : Integer; const AValue : TBillingInfoListTypeitemsArray); 
+Procedure TBillingInfoList.Setitems(AIndex : Integer; const AValue : TBillingInfoListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -3104,7 +3104,7 @@ end;
 
 
 
-Procedure TBillingInfoList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBillingInfoList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3115,7 +3115,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBillingInfoList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBillingInfoList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3134,7 +3134,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBudget.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TBudget.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3144,7 +3144,7 @@ end;
 
 
 
-Procedure TBudget.SetbillingId(AIndex : Integer; const AValue : String); 
+Procedure TBudget.SetbillingId(AIndex : Integer; const AValue : String);
 
 begin
   If (FbillingId=AValue) then exit;
@@ -3154,7 +3154,7 @@ end;
 
 
 
-Procedure TBudget.SetbudgetAmount(AIndex : Integer; const AValue : String); 
+Procedure TBudget.SetbudgetAmount(AIndex : Integer; const AValue : String);
 
 begin
   If (FbudgetAmount=AValue) then exit;
@@ -3164,7 +3164,7 @@ end;
 
 
 
-Procedure TBudget.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TBudget.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -3174,7 +3174,7 @@ end;
 
 
 
-Procedure TBudget.Setid(AIndex : Integer; const AValue : String); 
+Procedure TBudget.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3184,7 +3184,7 @@ end;
 
 
 
-Procedure TBudget.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBudget.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3201,7 +3201,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuyer.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TBuyer.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3218,7 +3218,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContactInformation.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TContactInformation.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3228,7 +3228,7 @@ end;
 
 
 
-Procedure TContactInformation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TContactInformation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3245,7 +3245,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateOrdersRequest.Setproposals(AIndex : Integer; const AValue : TCreateOrdersRequestTypeproposalsArray); 
+Procedure TCreateOrdersRequest.Setproposals(AIndex : Integer; const AValue : TCreateOrdersRequestTypeproposalsArray);
 
 begin
   If (Fproposals=AValue) then exit;
@@ -3255,7 +3255,7 @@ end;
 
 
 
-Procedure TCreateOrdersRequest.SetwebPropertyCode(AIndex : Integer; const AValue : String); 
+Procedure TCreateOrdersRequest.SetwebPropertyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebPropertyCode=AValue) then exit;
@@ -3266,7 +3266,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreateOrdersRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreateOrdersRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3285,7 +3285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateOrdersResponse.Setproposals(AIndex : Integer; const AValue : TCreateOrdersResponseTypeproposalsArray); 
+Procedure TCreateOrdersResponse.Setproposals(AIndex : Integer; const AValue : TCreateOrdersResponseTypeproposalsArray);
 
 begin
   If (Fproposals=AValue) then exit;
@@ -3296,7 +3296,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreateOrdersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreateOrdersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3315,7 +3315,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypecorrectionsItem.Setdetails(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreativeTypecorrectionsItem.Setdetails(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3325,7 +3325,7 @@ end;
 
 
 
-Procedure TCreativeTypecorrectionsItem.Setreason(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypecorrectionsItem.Setreason(AIndex : Integer; const AValue : String);
 
 begin
   If (Freason=AValue) then exit;
@@ -3336,7 +3336,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativeTypecorrectionsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativeTypecorrectionsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3355,7 +3355,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypefilteringReasonsTypereasonsItem.SetfilteringCount(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypefilteringReasonsTypereasonsItem.SetfilteringCount(AIndex : Integer; const AValue : String);
 
 begin
   If (FfilteringCount=AValue) then exit;
@@ -3365,7 +3365,7 @@ end;
 
 
 
-Procedure TCreativeTypefilteringReasonsTypereasonsItem.SetfilteringStatus(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypefilteringReasonsTypereasonsItem.SetfilteringStatus(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfilteringStatus=AValue) then exit;
@@ -3382,7 +3382,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypefilteringReasons.Setdate(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypefilteringReasons.Setdate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdate=AValue) then exit;
@@ -3392,7 +3392,7 @@ end;
 
 
 
-Procedure TCreativeTypefilteringReasons.Setreasons(AIndex : Integer; const AValue : TCreativeTypefilteringReasonsTypereasonsArray); 
+Procedure TCreativeTypefilteringReasons.Setreasons(AIndex : Integer; const AValue : TCreativeTypefilteringReasonsTypereasonsArray);
 
 begin
   If (Freasons=AValue) then exit;
@@ -3403,7 +3403,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativeTypefilteringReasons.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativeTypefilteringReasons.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3422,7 +3422,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypenativeAdTypeappIcon.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypenativeAdTypeappIcon.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -3432,7 +3432,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAdTypeappIcon.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAdTypeappIcon.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -3442,7 +3442,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAdTypeappIcon.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypenativeAdTypeappIcon.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -3459,7 +3459,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypenativeAdTypeimage.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypenativeAdTypeimage.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -3469,7 +3469,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAdTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAdTypeimage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -3479,7 +3479,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAdTypeimage.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypenativeAdTypeimage.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -3496,7 +3496,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypenativeAdTypelogo.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypenativeAdTypelogo.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -3506,7 +3506,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAdTypelogo.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAdTypelogo.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -3516,7 +3516,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAdTypelogo.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TCreativeTypenativeAdTypelogo.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -3533,7 +3533,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypenativeAd.Setadvertiser(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.Setadvertiser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fadvertiser=AValue) then exit;
@@ -3543,7 +3543,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.SetappIcon(AIndex : Integer; const AValue : TCreativeTypenativeAdTypeappIcon); 
+Procedure TCreativeTypenativeAd.SetappIcon(AIndex : Integer; const AValue : TCreativeTypenativeAdTypeappIcon);
 
 begin
   If (FappIcon=AValue) then exit;
@@ -3553,7 +3553,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.Setbody(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.Setbody(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbody=AValue) then exit;
@@ -3563,7 +3563,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.SetcallToAction(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.SetcallToAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FcallToAction=AValue) then exit;
@@ -3573,7 +3573,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.SetclickTrackingUrl(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.SetclickTrackingUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FclickTrackingUrl=AValue) then exit;
@@ -3583,7 +3583,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.Setheadline(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.Setheadline(AIndex : Integer; const AValue : String);
 
 begin
   If (Fheadline=AValue) then exit;
@@ -3593,7 +3593,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.Setimage(AIndex : Integer; const AValue : TCreativeTypenativeAdTypeimage); 
+Procedure TCreativeTypenativeAd.Setimage(AIndex : Integer; const AValue : TCreativeTypenativeAdTypeimage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -3603,7 +3603,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.SetimpressionTrackingUrl(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreativeTypenativeAd.SetimpressionTrackingUrl(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FimpressionTrackingUrl=AValue) then exit;
@@ -3613,7 +3613,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.Setlogo(AIndex : Integer; const AValue : TCreativeTypenativeAdTypelogo); 
+Procedure TCreativeTypenativeAd.Setlogo(AIndex : Integer; const AValue : TCreativeTypenativeAdTypelogo);
 
 begin
   If (Flogo=AValue) then exit;
@@ -3623,7 +3623,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.Setprice(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.Setprice(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprice=AValue) then exit;
@@ -3633,7 +3633,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.SetstarRating(AIndex : Integer; const AValue : double); 
+Procedure TCreativeTypenativeAd.SetstarRating(AIndex : Integer; const AValue : double);
 
 begin
   If (FstarRating=AValue) then exit;
@@ -3643,7 +3643,7 @@ end;
 
 
 
-Procedure TCreativeTypenativeAd.Setstore(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypenativeAd.Setstore(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstore=AValue) then exit;
@@ -3654,7 +3654,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativeTypenativeAd.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativeTypenativeAd.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3673,7 +3673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetauctionType(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetauctionType(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FauctionType=AValue) then exit;
@@ -3683,7 +3683,7 @@ end;
 
 
 
-Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetcontextType(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetcontextType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontextType=AValue) then exit;
@@ -3693,7 +3693,7 @@ end;
 
 
 
-Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetgeoCriteriaId(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetgeoCriteriaId(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (FgeoCriteriaId=AValue) then exit;
@@ -3703,7 +3703,7 @@ end;
 
 
 
-Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.Setplatform(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.Setplatform(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fplatform=AValue) then exit;
@@ -3714,7 +3714,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativeTypeservingRestrictionsItemTypecontextsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3735,7 +3735,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem.Setdetails(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem.Setdetails(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3745,7 +3745,7 @@ end;
 
 
 
-Procedure TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem.Setreason(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem.Setreason(AIndex : Integer; const AValue : String);
 
 begin
   If (Freason=AValue) then exit;
@@ -3756,7 +3756,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3775,7 +3775,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativeTypeservingRestrictionsItem.Setcontexts(AIndex : Integer; const AValue : TCreativeTypeservingRestrictionsItemTypecontextsArray); 
+Procedure TCreativeTypeservingRestrictionsItem.Setcontexts(AIndex : Integer; const AValue : TCreativeTypeservingRestrictionsItemTypecontextsArray);
 
 begin
   If (Fcontexts=AValue) then exit;
@@ -3785,7 +3785,7 @@ end;
 
 
 
-Procedure TCreativeTypeservingRestrictionsItem.SetdisapprovalReasons(AIndex : Integer; const AValue : TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsArray); 
+Procedure TCreativeTypeservingRestrictionsItem.SetdisapprovalReasons(AIndex : Integer; const AValue : TCreativeTypeservingRestrictionsItemTypedisapprovalReasonsArray);
 
 begin
   If (FdisapprovalReasons=AValue) then exit;
@@ -3795,7 +3795,7 @@ end;
 
 
 
-Procedure TCreativeTypeservingRestrictionsItem.Setreason(AIndex : Integer; const AValue : String); 
+Procedure TCreativeTypeservingRestrictionsItem.Setreason(AIndex : Integer; const AValue : String);
 
 begin
   If (Freason=AValue) then exit;
@@ -3806,7 +3806,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativeTypeservingRestrictionsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativeTypeservingRestrictionsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3826,7 +3826,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreative.SetHTMLSnippet(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetHTMLSnippet(AIndex : Integer; const AValue : String);
 
 begin
   If (FHTMLSnippet=AValue) then exit;
@@ -3836,7 +3836,7 @@ end;
 
 
 
-Procedure TCreative.SetaccountId(AIndex : Integer; const AValue : integer); 
+Procedure TCreative.SetaccountId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3846,7 +3846,7 @@ end;
 
 
 
-Procedure TCreative.SetadChoicesDestinationUrl(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetadChoicesDestinationUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FadChoicesDestinationUrl=AValue) then exit;
@@ -3856,7 +3856,7 @@ end;
 
 
 
-Procedure TCreative.SetadvertiserId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreative.SetadvertiserId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -3866,7 +3866,7 @@ end;
 
 
 
-Procedure TCreative.SetadvertiserName(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetadvertiserName(AIndex : Integer; const AValue : String);
 
 begin
   If (FadvertiserName=AValue) then exit;
@@ -3876,7 +3876,7 @@ end;
 
 
 
-Procedure TCreative.SetagencyId(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetagencyId(AIndex : Integer; const AValue : String);
 
 begin
   If (FagencyId=AValue) then exit;
@@ -3886,7 +3886,7 @@ end;
 
 
 
-Procedure TCreative.SetapiUploadTimestamp(AIndex : Integer; const AValue : TDatetime); 
+Procedure TCreative.SetapiUploadTimestamp(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FapiUploadTimestamp=AValue) then exit;
@@ -3896,7 +3896,7 @@ end;
 
 
 
-Procedure TCreative.Setattribute(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TCreative.Setattribute(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (Fattribute=AValue) then exit;
@@ -3906,7 +3906,7 @@ end;
 
 
 
-Procedure TCreative.SetbuyerCreativeId(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetbuyerCreativeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FbuyerCreativeId=AValue) then exit;
@@ -3916,7 +3916,7 @@ end;
 
 
 
-Procedure TCreative.SetclickThroughUrl(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreative.SetclickThroughUrl(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FclickThroughUrl=AValue) then exit;
@@ -3926,7 +3926,7 @@ end;
 
 
 
-Procedure TCreative.Setcorrections(AIndex : Integer; const AValue : TCreativeTypecorrectionsArray); 
+Procedure TCreative.Setcorrections(AIndex : Integer; const AValue : TCreativeTypecorrectionsArray);
 
 begin
   If (Fcorrections=AValue) then exit;
@@ -3936,7 +3936,7 @@ end;
 
 
 
-Procedure TCreative.SetdealsStatus(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetdealsStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FdealsStatus=AValue) then exit;
@@ -3946,7 +3946,7 @@ end;
 
 
 
-Procedure TCreative.SetfilteringReasons(AIndex : Integer; const AValue : TCreativeTypefilteringReasons); 
+Procedure TCreative.SetfilteringReasons(AIndex : Integer; const AValue : TCreativeTypefilteringReasons);
 
 begin
   If (FfilteringReasons=AValue) then exit;
@@ -3956,7 +3956,7 @@ end;
 
 
 
-Procedure TCreative.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TCreative.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -3966,7 +3966,7 @@ end;
 
 
 
-Procedure TCreative.SetimpressionTrackingUrl(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreative.SetimpressionTrackingUrl(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FimpressionTrackingUrl=AValue) then exit;
@@ -3976,7 +3976,7 @@ end;
 
 
 
-Procedure TCreative.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCreative.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3986,7 +3986,7 @@ end;
 
 
 
-Procedure TCreative.SetnativeAd(AIndex : Integer; const AValue : TCreativeTypenativeAd); 
+Procedure TCreative.SetnativeAd(AIndex : Integer; const AValue : TCreativeTypenativeAd);
 
 begin
   If (FnativeAd=AValue) then exit;
@@ -3996,7 +3996,7 @@ end;
 
 
 
-Procedure TCreative.SetopenAuctionStatus(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetopenAuctionStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FopenAuctionStatus=AValue) then exit;
@@ -4006,7 +4006,7 @@ end;
 
 
 
-Procedure TCreative.SetproductCategories(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TCreative.SetproductCategories(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (FproductCategories=AValue) then exit;
@@ -4016,7 +4016,7 @@ end;
 
 
 
-Procedure TCreative.SetrestrictedCategories(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TCreative.SetrestrictedCategories(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (FrestrictedCategories=AValue) then exit;
@@ -4026,7 +4026,7 @@ end;
 
 
 
-Procedure TCreative.SetsensitiveCategories(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TCreative.SetsensitiveCategories(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (FsensitiveCategories=AValue) then exit;
@@ -4036,7 +4036,7 @@ end;
 
 
 
-Procedure TCreative.SetservingRestrictions(AIndex : Integer; const AValue : TCreativeTypeservingRestrictionsArray); 
+Procedure TCreative.SetservingRestrictions(AIndex : Integer; const AValue : TCreativeTypeservingRestrictionsArray);
 
 begin
   If (FservingRestrictions=AValue) then exit;
@@ -4046,7 +4046,7 @@ end;
 
 
 
-Procedure TCreative.SetvendorType(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TCreative.SetvendorType(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (FvendorType=AValue) then exit;
@@ -4056,7 +4056,7 @@ end;
 
 
 
-Procedure TCreative.Setversion(AIndex : Integer; const AValue : integer); 
+Procedure TCreative.Setversion(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fversion=AValue) then exit;
@@ -4066,7 +4066,7 @@ end;
 
 
 
-Procedure TCreative.SetvideoURL(AIndex : Integer; const AValue : String); 
+Procedure TCreative.SetvideoURL(AIndex : Integer; const AValue : String);
 
 begin
   If (FvideoURL=AValue) then exit;
@@ -4076,7 +4076,7 @@ end;
 
 
 
-Procedure TCreative.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TCreative.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -4087,7 +4087,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreative.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreative.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4115,7 +4115,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreativesList.Setitems(AIndex : Integer; const AValue : TCreativesListTypeitemsArray); 
+Procedure TCreativesList.Setitems(AIndex : Integer; const AValue : TCreativesListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -4125,7 +4125,7 @@ end;
 
 
 
-Procedure TCreativesList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCreativesList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4135,7 +4135,7 @@ end;
 
 
 
-Procedure TCreativesList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCreativesList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4146,7 +4146,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreativesList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreativesList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4165,7 +4165,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealServingMetadata.SetdealPauseStatus(AIndex : Integer; const AValue : TDealServingMetadataDealPauseStatus); 
+Procedure TDealServingMetadata.SetdealPauseStatus(AIndex : Integer; const AValue : TDealServingMetadataDealPauseStatus);
 
 begin
   If (FdealPauseStatus=AValue) then exit;
@@ -4182,7 +4182,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealServingMetadataDealPauseStatus.SetfirstPausedBy(AIndex : Integer; const AValue : String); 
+Procedure TDealServingMetadataDealPauseStatus.SetfirstPausedBy(AIndex : Integer; const AValue : String);
 
 begin
   If (FfirstPausedBy=AValue) then exit;
@@ -4192,7 +4192,7 @@ end;
 
 
 
-Procedure TDealServingMetadataDealPauseStatus.SethasBuyerPaused(AIndex : Integer; const AValue : boolean); 
+Procedure TDealServingMetadataDealPauseStatus.SethasBuyerPaused(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasBuyerPaused=AValue) then exit;
@@ -4202,7 +4202,7 @@ end;
 
 
 
-Procedure TDealServingMetadataDealPauseStatus.SethasSellerPaused(AIndex : Integer; const AValue : boolean); 
+Procedure TDealServingMetadataDealPauseStatus.SethasSellerPaused(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasSellerPaused=AValue) then exit;
@@ -4219,7 +4219,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealTerms.SetbrandingType(AIndex : Integer; const AValue : String); 
+Procedure TDealTerms.SetbrandingType(AIndex : Integer; const AValue : String);
 
 begin
   If (FbrandingType=AValue) then exit;
@@ -4229,7 +4229,7 @@ end;
 
 
 
-Procedure TDealTerms.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TDealTerms.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4239,7 +4239,7 @@ end;
 
 
 
-Procedure TDealTerms.SetestimatedGrossSpend(AIndex : Integer; const AValue : TPrice); 
+Procedure TDealTerms.SetestimatedGrossSpend(AIndex : Integer; const AValue : TPrice);
 
 begin
   If (FestimatedGrossSpend=AValue) then exit;
@@ -4249,7 +4249,7 @@ end;
 
 
 
-Procedure TDealTerms.SetestimatedImpressionsPerDay(AIndex : Integer; const AValue : String); 
+Procedure TDealTerms.SetestimatedImpressionsPerDay(AIndex : Integer; const AValue : String);
 
 begin
   If (FestimatedImpressionsPerDay=AValue) then exit;
@@ -4259,7 +4259,7 @@ end;
 
 
 
-Procedure TDealTerms.SetguaranteedFixedPriceTerms(AIndex : Integer; const AValue : TDealTermsGuaranteedFixedPriceTerms); 
+Procedure TDealTerms.SetguaranteedFixedPriceTerms(AIndex : Integer; const AValue : TDealTermsGuaranteedFixedPriceTerms);
 
 begin
   If (FguaranteedFixedPriceTerms=AValue) then exit;
@@ -4269,7 +4269,7 @@ end;
 
 
 
-Procedure TDealTerms.SetnonGuaranteedAuctionTerms(AIndex : Integer; const AValue : TDealTermsNonGuaranteedAuctionTerms); 
+Procedure TDealTerms.SetnonGuaranteedAuctionTerms(AIndex : Integer; const AValue : TDealTermsNonGuaranteedAuctionTerms);
 
 begin
   If (FnonGuaranteedAuctionTerms=AValue) then exit;
@@ -4279,7 +4279,7 @@ end;
 
 
 
-Procedure TDealTerms.SetnonGuaranteedFixedPriceTerms(AIndex : Integer; const AValue : TDealTermsNonGuaranteedFixedPriceTerms); 
+Procedure TDealTerms.SetnonGuaranteedFixedPriceTerms(AIndex : Integer; const AValue : TDealTermsNonGuaranteedFixedPriceTerms);
 
 begin
   If (FnonGuaranteedFixedPriceTerms=AValue) then exit;
@@ -4289,7 +4289,7 @@ end;
 
 
 
-Procedure TDealTerms.SetsellerTimeZone(AIndex : Integer; const AValue : String); 
+Procedure TDealTerms.SetsellerTimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FsellerTimeZone=AValue) then exit;
@@ -4306,7 +4306,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealTermsGuaranteedFixedPriceTerms.SetbillingInfo(AIndex : Integer; const AValue : TDealTermsGuaranteedFixedPriceTermsBillingInfo); 
+Procedure TDealTermsGuaranteedFixedPriceTerms.SetbillingInfo(AIndex : Integer; const AValue : TDealTermsGuaranteedFixedPriceTermsBillingInfo);
 
 begin
   If (FbillingInfo=AValue) then exit;
@@ -4316,7 +4316,7 @@ end;
 
 
 
-Procedure TDealTermsGuaranteedFixedPriceTerms.SetfixedPrices(AIndex : Integer; const AValue : TDealTermsGuaranteedFixedPriceTermsTypefixedPricesArray); 
+Procedure TDealTermsGuaranteedFixedPriceTerms.SetfixedPrices(AIndex : Integer; const AValue : TDealTermsGuaranteedFixedPriceTermsTypefixedPricesArray);
 
 begin
   If (FfixedPrices=AValue) then exit;
@@ -4326,7 +4326,7 @@ end;
 
 
 
-Procedure TDealTermsGuaranteedFixedPriceTerms.SetguaranteedImpressions(AIndex : Integer; const AValue : String); 
+Procedure TDealTermsGuaranteedFixedPriceTerms.SetguaranteedImpressions(AIndex : Integer; const AValue : String);
 
 begin
   If (FguaranteedImpressions=AValue) then exit;
@@ -4336,7 +4336,7 @@ end;
 
 
 
-Procedure TDealTermsGuaranteedFixedPriceTerms.SetguaranteedLooks(AIndex : Integer; const AValue : String); 
+Procedure TDealTermsGuaranteedFixedPriceTerms.SetguaranteedLooks(AIndex : Integer; const AValue : String);
 
 begin
   If (FguaranteedLooks=AValue) then exit;
@@ -4347,7 +4347,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDealTermsGuaranteedFixedPriceTerms.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDealTermsGuaranteedFixedPriceTerms.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4366,7 +4366,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealTermsGuaranteedFixedPriceTermsBillingInfo.SetcurrencyConversionTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TDealTermsGuaranteedFixedPriceTermsBillingInfo.SetcurrencyConversionTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyConversionTimeMs=AValue) then exit;
@@ -4376,7 +4376,7 @@ end;
 
 
 
-Procedure TDealTermsGuaranteedFixedPriceTermsBillingInfo.SetoriginalContractedQuantity(AIndex : Integer; const AValue : String); 
+Procedure TDealTermsGuaranteedFixedPriceTermsBillingInfo.SetoriginalContractedQuantity(AIndex : Integer; const AValue : String);
 
 begin
   If (ForiginalContractedQuantity=AValue) then exit;
@@ -4386,7 +4386,7 @@ end;
 
 
 
-Procedure TDealTermsGuaranteedFixedPriceTermsBillingInfo.Setprice(AIndex : Integer; const AValue : TPrice); 
+Procedure TDealTermsGuaranteedFixedPriceTermsBillingInfo.Setprice(AIndex : Integer; const AValue : TPrice);
 
 begin
   If (Fprice=AValue) then exit;
@@ -4403,7 +4403,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealTermsNonGuaranteedAuctionTerms.SetautoOptimizePrivateAuction(AIndex : Integer; const AValue : boolean); 
+Procedure TDealTermsNonGuaranteedAuctionTerms.SetautoOptimizePrivateAuction(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FautoOptimizePrivateAuction=AValue) then exit;
@@ -4413,7 +4413,7 @@ end;
 
 
 
-Procedure TDealTermsNonGuaranteedAuctionTerms.SetreservePricePerBuyers(AIndex : Integer; const AValue : TDealTermsNonGuaranteedAuctionTermsTypereservePricePerBuyersArray); 
+Procedure TDealTermsNonGuaranteedAuctionTerms.SetreservePricePerBuyers(AIndex : Integer; const AValue : TDealTermsNonGuaranteedAuctionTermsTypereservePricePerBuyersArray);
 
 begin
   If (FreservePricePerBuyers=AValue) then exit;
@@ -4424,7 +4424,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDealTermsNonGuaranteedAuctionTerms.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDealTermsNonGuaranteedAuctionTerms.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4443,7 +4443,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDealTermsNonGuaranteedFixedPriceTerms.SetfixedPrices(AIndex : Integer; const AValue : TDealTermsNonGuaranteedFixedPriceTermsTypefixedPricesArray); 
+Procedure TDealTermsNonGuaranteedFixedPriceTerms.SetfixedPrices(AIndex : Integer; const AValue : TDealTermsNonGuaranteedFixedPriceTermsTypefixedPricesArray);
 
 begin
   If (FfixedPrices=AValue) then exit;
@@ -4454,7 +4454,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDealTermsNonGuaranteedFixedPriceTerms.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDealTermsNonGuaranteedFixedPriceTerms.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4473,7 +4473,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteOrderDealsRequest.SetdealIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TDeleteOrderDealsRequest.SetdealIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdealIds=AValue) then exit;
@@ -4483,7 +4483,7 @@ end;
 
 
 
-Procedure TDeleteOrderDealsRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TDeleteOrderDealsRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -4493,7 +4493,7 @@ end;
 
 
 
-Procedure TDeleteOrderDealsRequest.SetupdateAction(AIndex : Integer; const AValue : String); 
+Procedure TDeleteOrderDealsRequest.SetupdateAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateAction=AValue) then exit;
@@ -4504,7 +4504,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeleteOrderDealsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeleteOrderDealsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4523,7 +4523,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TDeleteOrderDealsResponseTypedealsArray); 
+Procedure TDeleteOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TDeleteOrderDealsResponseTypedealsArray);
 
 begin
   If (Fdeals=AValue) then exit;
@@ -4533,7 +4533,7 @@ end;
 
 
 
-Procedure TDeleteOrderDealsResponse.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TDeleteOrderDealsResponse.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -4544,7 +4544,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeleteOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeleteOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4563,7 +4563,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeliveryControl.SetcreativeBlockingLevel(AIndex : Integer; const AValue : String); 
+Procedure TDeliveryControl.SetcreativeBlockingLevel(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreativeBlockingLevel=AValue) then exit;
@@ -4573,7 +4573,7 @@ end;
 
 
 
-Procedure TDeliveryControl.SetdeliveryRateType(AIndex : Integer; const AValue : String); 
+Procedure TDeliveryControl.SetdeliveryRateType(AIndex : Integer; const AValue : String);
 
 begin
   If (FdeliveryRateType=AValue) then exit;
@@ -4583,7 +4583,7 @@ end;
 
 
 
-Procedure TDeliveryControl.SetfrequencyCaps(AIndex : Integer; const AValue : TDeliveryControlTypefrequencyCapsArray); 
+Procedure TDeliveryControl.SetfrequencyCaps(AIndex : Integer; const AValue : TDeliveryControlTypefrequencyCapsArray);
 
 begin
   If (FfrequencyCaps=AValue) then exit;
@@ -4594,7 +4594,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeliveryControl.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeliveryControl.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4613,7 +4613,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeliveryControlFrequencyCap.SetmaxImpressions(AIndex : Integer; const AValue : integer); 
+Procedure TDeliveryControlFrequencyCap.SetmaxImpressions(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxImpressions=AValue) then exit;
@@ -4623,7 +4623,7 @@ end;
 
 
 
-Procedure TDeliveryControlFrequencyCap.SetnumTimeUnits(AIndex : Integer; const AValue : integer); 
+Procedure TDeliveryControlFrequencyCap.SetnumTimeUnits(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumTimeUnits=AValue) then exit;
@@ -4633,7 +4633,7 @@ end;
 
 
 
-Procedure TDeliveryControlFrequencyCap.SettimeUnitType(AIndex : Integer; const AValue : String); 
+Procedure TDeliveryControlFrequencyCap.SettimeUnitType(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeUnitType=AValue) then exit;
@@ -4650,7 +4650,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDimension.SetdimensionType(AIndex : Integer; const AValue : String); 
+Procedure TDimension.SetdimensionType(AIndex : Integer; const AValue : String);
 
 begin
   If (FdimensionType=AValue) then exit;
@@ -4660,7 +4660,7 @@ end;
 
 
 
-Procedure TDimension.SetdimensionValues(AIndex : Integer; const AValue : TDimensionTypedimensionValuesArray); 
+Procedure TDimension.SetdimensionValues(AIndex : Integer; const AValue : TDimensionTypedimensionValuesArray);
 
 begin
   If (FdimensionValues=AValue) then exit;
@@ -4671,7 +4671,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDimension.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDimension.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4690,7 +4690,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDimensionDimensionValue.Setid(AIndex : Integer; const AValue : integer); 
+Procedure TDimensionDimensionValue.Setid(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fid=AValue) then exit;
@@ -4700,7 +4700,7 @@ end;
 
 
 
-Procedure TDimensionDimensionValue.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDimensionDimensionValue.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4717,7 +4717,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEditAllOrderDealsRequest.Setdeals(AIndex : Integer; const AValue : TEditAllOrderDealsRequestTypedealsArray); 
+Procedure TEditAllOrderDealsRequest.Setdeals(AIndex : Integer; const AValue : TEditAllOrderDealsRequestTypedealsArray);
 
 begin
   If (Fdeals=AValue) then exit;
@@ -4727,7 +4727,7 @@ end;
 
 
 
-Procedure TEditAllOrderDealsRequest.Setproposal(AIndex : Integer; const AValue : TProposal); 
+Procedure TEditAllOrderDealsRequest.Setproposal(AIndex : Integer; const AValue : TProposal);
 
 begin
   If (Fproposal=AValue) then exit;
@@ -4737,7 +4737,7 @@ end;
 
 
 
-Procedure TEditAllOrderDealsRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TEditAllOrderDealsRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -4747,7 +4747,7 @@ end;
 
 
 
-Procedure TEditAllOrderDealsRequest.SetupdateAction(AIndex : Integer; const AValue : String); 
+Procedure TEditAllOrderDealsRequest.SetupdateAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateAction=AValue) then exit;
@@ -4758,7 +4758,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEditAllOrderDealsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEditAllOrderDealsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4777,7 +4777,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEditAllOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TEditAllOrderDealsResponseTypedealsArray); 
+Procedure TEditAllOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TEditAllOrderDealsResponseTypedealsArray);
 
 begin
   If (Fdeals=AValue) then exit;
@@ -4787,7 +4787,7 @@ end;
 
 
 
-Procedure TEditAllOrderDealsResponse.SetorderRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TEditAllOrderDealsResponse.SetorderRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (ForderRevisionNumber=AValue) then exit;
@@ -4798,7 +4798,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEditAllOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEditAllOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4817,7 +4817,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetOffersResponse.Setproducts(AIndex : Integer; const AValue : TGetOffersResponseTypeproductsArray); 
+Procedure TGetOffersResponse.Setproducts(AIndex : Integer; const AValue : TGetOffersResponseTypeproductsArray);
 
 begin
   If (Fproducts=AValue) then exit;
@@ -4828,7 +4828,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetOffersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetOffersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4847,7 +4847,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TGetOrderDealsResponseTypedealsArray); 
+Procedure TGetOrderDealsResponse.Setdeals(AIndex : Integer; const AValue : TGetOrderDealsResponseTypedealsArray);
 
 begin
   If (Fdeals=AValue) then exit;
@@ -4858,7 +4858,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetOrderDealsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4877,7 +4877,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetOrderNotesResponse.Setnotes(AIndex : Integer; const AValue : TGetOrderNotesResponseTypenotesArray); 
+Procedure TGetOrderNotesResponse.Setnotes(AIndex : Integer; const AValue : TGetOrderNotesResponseTypenotesArray);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -4888,7 +4888,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetOrderNotesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetOrderNotesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4907,7 +4907,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetOrdersResponse.Setproposals(AIndex : Integer; const AValue : TGetOrdersResponseTypeproposalsArray); 
+Procedure TGetOrdersResponse.Setproposals(AIndex : Integer; const AValue : TGetOrdersResponseTypeproposalsArray);
 
 begin
   If (Fproposals=AValue) then exit;
@@ -4918,7 +4918,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetOrdersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetOrdersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4937,7 +4937,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetPublisherProfilesByAccountIdResponse.Setprofiles(AIndex : Integer; const AValue : TGetPublisherProfilesByAccountIdResponseTypeprofilesArray); 
+Procedure TGetPublisherProfilesByAccountIdResponse.Setprofiles(AIndex : Integer; const AValue : TGetPublisherProfilesByAccountIdResponseTypeprofilesArray);
 
 begin
   If (Fprofiles=AValue) then exit;
@@ -4948,7 +4948,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetPublisherProfilesByAccountIdResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetPublisherProfilesByAccountIdResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4967,7 +4967,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMarketplaceDeal.SetbuyerPrivateData(AIndex : Integer; const AValue : TPrivateData); 
+Procedure TMarketplaceDeal.SetbuyerPrivateData(AIndex : Integer; const AValue : TPrivateData);
 
 begin
   If (FbuyerPrivateData=AValue) then exit;
@@ -4977,7 +4977,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetcreationTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetcreationTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimeMs=AValue) then exit;
@@ -4987,7 +4987,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetcreativePreApprovalPolicy(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetcreativePreApprovalPolicy(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreativePreApprovalPolicy=AValue) then exit;
@@ -4997,7 +4997,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetcreativeSafeFrameCompatibility(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetcreativeSafeFrameCompatibility(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreativeSafeFrameCompatibility=AValue) then exit;
@@ -5007,7 +5007,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetdealId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetdealId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdealId=AValue) then exit;
@@ -5017,7 +5017,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetdealServingMetadata(AIndex : Integer; const AValue : TDealServingMetadata); 
+Procedure TMarketplaceDeal.SetdealServingMetadata(AIndex : Integer; const AValue : TDealServingMetadata);
 
 begin
   If (FdealServingMetadata=AValue) then exit;
@@ -5027,7 +5027,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetdeliveryControl(AIndex : Integer; const AValue : TDeliveryControl); 
+Procedure TMarketplaceDeal.SetdeliveryControl(AIndex : Integer; const AValue : TDeliveryControl);
 
 begin
   If (FdeliveryControl=AValue) then exit;
@@ -5037,7 +5037,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetexternalDealId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetexternalDealId(AIndex : Integer; const AValue : String);
 
 begin
   If (FexternalDealId=AValue) then exit;
@@ -5047,7 +5047,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetflightEndTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetflightEndTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FflightEndTimeMs=AValue) then exit;
@@ -5057,7 +5057,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetflightStartTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetflightStartTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FflightStartTimeMs=AValue) then exit;
@@ -5067,7 +5067,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetinventoryDescription(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetinventoryDescription(AIndex : Integer; const AValue : String);
 
 begin
   If (FinventoryDescription=AValue) then exit;
@@ -5077,7 +5077,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5087,7 +5087,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetlastUpdateTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetlastUpdateTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastUpdateTimeMs=AValue) then exit;
@@ -5097,7 +5097,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5107,7 +5107,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetproductId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetproductId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductId=AValue) then exit;
@@ -5117,7 +5117,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetproductRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetproductRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductRevisionNumber=AValue) then exit;
@@ -5127,7 +5127,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetprogrammaticCreativeSource(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetprogrammaticCreativeSource(AIndex : Integer; const AValue : String);
 
 begin
   If (FprogrammaticCreativeSource=AValue) then exit;
@@ -5137,7 +5137,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetproposalId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetproposalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalId=AValue) then exit;
@@ -5147,7 +5147,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetsellerContacts(AIndex : Integer; const AValue : TMarketplaceDealTypesellerContactsArray); 
+Procedure TMarketplaceDeal.SetsellerContacts(AIndex : Integer; const AValue : TMarketplaceDealTypesellerContactsArray);
 
 begin
   If (FsellerContacts=AValue) then exit;
@@ -5157,7 +5157,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetsharedTargetings(AIndex : Integer; const AValue : TMarketplaceDealTypesharedTargetingsArray); 
+Procedure TMarketplaceDeal.SetsharedTargetings(AIndex : Integer; const AValue : TMarketplaceDealTypesharedTargetingsArray);
 
 begin
   If (FsharedTargetings=AValue) then exit;
@@ -5167,7 +5167,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetsyndicationProduct(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetsyndicationProduct(AIndex : Integer; const AValue : String);
 
 begin
   If (FsyndicationProduct=AValue) then exit;
@@ -5177,7 +5177,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.Setterms(AIndex : Integer; const AValue : TDealTerms); 
+Procedure TMarketplaceDeal.Setterms(AIndex : Integer; const AValue : TDealTerms);
 
 begin
   If (Fterms=AValue) then exit;
@@ -5187,7 +5187,7 @@ end;
 
 
 
-Procedure TMarketplaceDeal.SetwebPropertyCode(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceDeal.SetwebPropertyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebPropertyCode=AValue) then exit;
@@ -5198,7 +5198,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMarketplaceDeal.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMarketplaceDeal.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5218,7 +5218,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMarketplaceDealParty.Setbuyer(AIndex : Integer; const AValue : TBuyer); 
+Procedure TMarketplaceDealParty.Setbuyer(AIndex : Integer; const AValue : TBuyer);
 
 begin
   If (Fbuyer=AValue) then exit;
@@ -5228,7 +5228,7 @@ end;
 
 
 
-Procedure TMarketplaceDealParty.Setseller(AIndex : Integer; const AValue : TSeller); 
+Procedure TMarketplaceDealParty.Setseller(AIndex : Integer; const AValue : TSeller);
 
 begin
   If (Fseller=AValue) then exit;
@@ -5245,7 +5245,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMarketplaceLabel.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceLabel.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5255,7 +5255,7 @@ end;
 
 
 
-Procedure TMarketplaceLabel.SetcreateTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceLabel.SetcreateTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTimeMs=AValue) then exit;
@@ -5265,7 +5265,7 @@ end;
 
 
 
-Procedure TMarketplaceLabel.SetdeprecatedMarketplaceDealParty(AIndex : Integer; const AValue : TMarketplaceDealParty); 
+Procedure TMarketplaceLabel.SetdeprecatedMarketplaceDealParty(AIndex : Integer; const AValue : TMarketplaceDealParty);
 
 begin
   If (FdeprecatedMarketplaceDealParty=AValue) then exit;
@@ -5275,7 +5275,7 @@ end;
 
 
 
-Procedure TMarketplaceLabel.Set_label(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceLabel.Set_label(AIndex : Integer; const AValue : String);
 
 begin
   If (F_label=AValue) then exit;
@@ -5303,7 +5303,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMarketplaceNote.SetcreatorRole(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.SetcreatorRole(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorRole=AValue) then exit;
@@ -5313,7 +5313,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.SetdealId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.SetdealId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdealId=AValue) then exit;
@@ -5323,7 +5323,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5333,7 +5333,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.Setnote(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.Setnote(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnote=AValue) then exit;
@@ -5343,7 +5343,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.SetnoteId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.SetnoteId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnoteId=AValue) then exit;
@@ -5353,7 +5353,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.SetproposalId(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.SetproposalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalId=AValue) then exit;
@@ -5363,7 +5363,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -5373,7 +5373,7 @@ end;
 
 
 
-Procedure TMarketplaceNote.SettimestampMs(AIndex : Integer; const AValue : String); 
+Procedure TMarketplaceNote.SettimestampMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimestampMs=AValue) then exit;
@@ -5390,7 +5390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPerformanceReport.SetbidRate(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetbidRate(AIndex : Integer; const AValue : double);
 
 begin
   If (FbidRate=AValue) then exit;
@@ -5400,7 +5400,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetbidRequestRate(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetbidRequestRate(AIndex : Integer; const AValue : double);
 
 begin
   If (FbidRequestRate=AValue) then exit;
@@ -5410,7 +5410,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetcalloutStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TPerformanceReport.SetcalloutStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (FcalloutStatusRate=AValue) then exit;
@@ -5420,7 +5420,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetcookieMatcherStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TPerformanceReport.SetcookieMatcherStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (FcookieMatcherStatusRate=AValue) then exit;
@@ -5430,7 +5430,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetcreativeStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TPerformanceReport.SetcreativeStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (FcreativeStatusRate=AValue) then exit;
@@ -5440,7 +5440,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetfilteredBidRate(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetfilteredBidRate(AIndex : Integer; const AValue : double);
 
 begin
   If (FfilteredBidRate=AValue) then exit;
@@ -5450,7 +5450,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SethostedMatchStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TPerformanceReport.SethostedMatchStatusRate(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (FhostedMatchStatusRate=AValue) then exit;
@@ -5460,7 +5460,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetinventoryMatchRate(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetinventoryMatchRate(AIndex : Integer; const AValue : double);
 
 begin
   If (FinventoryMatchRate=AValue) then exit;
@@ -5470,7 +5470,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPerformanceReport.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5480,7 +5480,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setlatency50thPercentile(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.Setlatency50thPercentile(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatency50thPercentile=AValue) then exit;
@@ -5490,7 +5490,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setlatency85thPercentile(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.Setlatency85thPercentile(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatency85thPercentile=AValue) then exit;
@@ -5500,7 +5500,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setlatency95thPercentile(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.Setlatency95thPercentile(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatency95thPercentile=AValue) then exit;
@@ -5510,7 +5510,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetnoQuotaInRegion(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetnoQuotaInRegion(AIndex : Integer; const AValue : double);
 
 begin
   If (FnoQuotaInRegion=AValue) then exit;
@@ -5520,7 +5520,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetoutOfQuota(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetoutOfQuota(AIndex : Integer; const AValue : double);
 
 begin
   If (FoutOfQuota=AValue) then exit;
@@ -5530,7 +5530,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetpixelMatchRequests(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetpixelMatchRequests(AIndex : Integer; const AValue : double);
 
 begin
   If (FpixelMatchRequests=AValue) then exit;
@@ -5540,7 +5540,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetpixelMatchResponses(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetpixelMatchResponses(AIndex : Integer; const AValue : double);
 
 begin
   If (FpixelMatchResponses=AValue) then exit;
@@ -5550,7 +5550,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetquotaConfiguredLimit(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetquotaConfiguredLimit(AIndex : Integer; const AValue : double);
 
 begin
   If (FquotaConfiguredLimit=AValue) then exit;
@@ -5560,7 +5560,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetquotaThrottledLimit(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetquotaThrottledLimit(AIndex : Integer; const AValue : double);
 
 begin
   If (FquotaThrottledLimit=AValue) then exit;
@@ -5570,7 +5570,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TPerformanceReport.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -5580,7 +5580,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetsuccessfulRequestRate(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetsuccessfulRequestRate(AIndex : Integer; const AValue : double);
 
 begin
   If (FsuccessfulRequestRate=AValue) then exit;
@@ -5590,7 +5590,7 @@ end;
 
 
 
-Procedure TPerformanceReport.Settimestamp(AIndex : Integer; const AValue : String); 
+Procedure TPerformanceReport.Settimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -5600,7 +5600,7 @@ end;
 
 
 
-Procedure TPerformanceReport.SetunsuccessfulRequestRate(AIndex : Integer; const AValue : double); 
+Procedure TPerformanceReport.SetunsuccessfulRequestRate(AIndex : Integer; const AValue : double);
 
 begin
   If (FunsuccessfulRequestRate=AValue) then exit;
@@ -5611,7 +5611,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPerformanceReport.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPerformanceReport.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5633,7 +5633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPerformanceReportList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPerformanceReportList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5643,7 +5643,7 @@ end;
 
 
 
-Procedure TPerformanceReportList.SetperformanceReport(AIndex : Integer; const AValue : TPerformanceReportListTypeperformanceReportArray); 
+Procedure TPerformanceReportList.SetperformanceReport(AIndex : Integer; const AValue : TPerformanceReportListTypeperformanceReportArray);
 
 begin
   If (FperformanceReport=AValue) then exit;
@@ -5654,7 +5654,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPerformanceReportList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPerformanceReportList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5673,7 +5673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfigTypedimensionsItem.Setheight(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypedimensionsItem.Setheight(AIndex : Integer; const AValue : String);
 
 begin
   If (Fheight=AValue) then exit;
@@ -5683,7 +5683,7 @@ end;
 
 
 
-Procedure TPretargetingConfigTypedimensionsItem.Setwidth(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypedimensionsItem.Setwidth(AIndex : Integer; const AValue : String);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -5700,7 +5700,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfigTypeexcludedPlacementsItem.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypeexcludedPlacementsItem.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -5710,7 +5710,7 @@ end;
 
 
 
-Procedure TPretargetingConfigTypeexcludedPlacementsItem.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypeexcludedPlacementsItem.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5738,7 +5738,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfigTypeplacementsItem.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypeplacementsItem.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -5748,7 +5748,7 @@ end;
 
 
 
-Procedure TPretargetingConfigTypeplacementsItem.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypeplacementsItem.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5776,7 +5776,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfigTypevideoPlayerSizesItem.SetaspectRatio(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypevideoPlayerSizesItem.SetaspectRatio(AIndex : Integer; const AValue : String);
 
 begin
   If (FaspectRatio=AValue) then exit;
@@ -5786,7 +5786,7 @@ end;
 
 
 
-Procedure TPretargetingConfigTypevideoPlayerSizesItem.SetminHeight(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypevideoPlayerSizesItem.SetminHeight(AIndex : Integer; const AValue : String);
 
 begin
   If (FminHeight=AValue) then exit;
@@ -5796,7 +5796,7 @@ end;
 
 
 
-Procedure TPretargetingConfigTypevideoPlayerSizesItem.SetminWidth(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigTypevideoPlayerSizesItem.SetminWidth(AIndex : Integer; const AValue : String);
 
 begin
   If (FminWidth=AValue) then exit;
@@ -5813,7 +5813,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfig.SetbillingId(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfig.SetbillingId(AIndex : Integer; const AValue : String);
 
 begin
   If (FbillingId=AValue) then exit;
@@ -5823,7 +5823,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetconfigId(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfig.SetconfigId(AIndex : Integer; const AValue : String);
 
 begin
   If (FconfigId=AValue) then exit;
@@ -5833,7 +5833,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetconfigName(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfig.SetconfigName(AIndex : Integer; const AValue : String);
 
 begin
   If (FconfigName=AValue) then exit;
@@ -5843,7 +5843,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetcreativeType(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetcreativeType(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcreativeType=AValue) then exit;
@@ -5853,7 +5853,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setdimensions(AIndex : Integer; const AValue : TPretargetingConfigTypedimensionsArray); 
+Procedure TPretargetingConfig.Setdimensions(AIndex : Integer; const AValue : TPretargetingConfigTypedimensionsArray);
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -5863,7 +5863,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedContentLabels(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetexcludedContentLabels(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FexcludedContentLabels=AValue) then exit;
@@ -5873,7 +5873,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedGeoCriteriaIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetexcludedGeoCriteriaIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FexcludedGeoCriteriaIds=AValue) then exit;
@@ -5883,7 +5883,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedPlacements(AIndex : Integer; const AValue : TPretargetingConfigTypeexcludedPlacementsArray); 
+Procedure TPretargetingConfig.SetexcludedPlacements(AIndex : Integer; const AValue : TPretargetingConfigTypeexcludedPlacementsArray);
 
 begin
   If (FexcludedPlacements=AValue) then exit;
@@ -5893,7 +5893,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedUserLists(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetexcludedUserLists(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FexcludedUserLists=AValue) then exit;
@@ -5903,7 +5903,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetexcludedVerticals(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetexcludedVerticals(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FexcludedVerticals=AValue) then exit;
@@ -5913,7 +5913,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetgeoCriteriaIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetgeoCriteriaIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FgeoCriteriaIds=AValue) then exit;
@@ -5923,7 +5923,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetisActive(AIndex : Integer; const AValue : boolean); 
+Procedure TPretargetingConfig.SetisActive(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisActive=AValue) then exit;
@@ -5933,7 +5933,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfig.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5943,7 +5943,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setlanguages(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.Setlanguages(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Flanguages=AValue) then exit;
@@ -5953,7 +5953,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetmobileCarriers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetmobileCarriers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FmobileCarriers=AValue) then exit;
@@ -5963,7 +5963,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetmobileDevices(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetmobileDevices(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FmobileDevices=AValue) then exit;
@@ -5973,7 +5973,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetmobileOperatingSystemVersions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetmobileOperatingSystemVersions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FmobileOperatingSystemVersions=AValue) then exit;
@@ -5983,7 +5983,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setplacements(AIndex : Integer; const AValue : TPretargetingConfigTypeplacementsArray); 
+Procedure TPretargetingConfig.Setplacements(AIndex : Integer; const AValue : TPretargetingConfigTypeplacementsArray);
 
 begin
   If (Fplacements=AValue) then exit;
@@ -5993,7 +5993,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setplatforms(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.Setplatforms(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fplatforms=AValue) then exit;
@@ -6003,7 +6003,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetsupportedCreativeAttributes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetsupportedCreativeAttributes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsupportedCreativeAttributes=AValue) then exit;
@@ -6013,7 +6013,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetuserLists(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetuserLists(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FuserLists=AValue) then exit;
@@ -6023,7 +6023,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetvendorTypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.SetvendorTypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvendorTypes=AValue) then exit;
@@ -6033,7 +6033,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.Setverticals(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPretargetingConfig.Setverticals(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fverticals=AValue) then exit;
@@ -6043,7 +6043,7 @@ end;
 
 
 
-Procedure TPretargetingConfig.SetvideoPlayerSizes(AIndex : Integer; const AValue : TPretargetingConfigTypevideoPlayerSizesArray); 
+Procedure TPretargetingConfig.SetvideoPlayerSizes(AIndex : Integer; const AValue : TPretargetingConfigTypevideoPlayerSizesArray);
 
 begin
   If (FvideoPlayerSizes=AValue) then exit;
@@ -6054,7 +6054,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPretargetingConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPretargetingConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6091,7 +6091,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPretargetingConfigList.Setitems(AIndex : Integer; const AValue : TPretargetingConfigListTypeitemsArray); 
+Procedure TPretargetingConfigList.Setitems(AIndex : Integer; const AValue : TPretargetingConfigListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -6101,7 +6101,7 @@ end;
 
 
 
-Procedure TPretargetingConfigList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPretargetingConfigList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6112,7 +6112,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPretargetingConfigList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPretargetingConfigList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6131,7 +6131,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPrice.SetamountMicros(AIndex : Integer; const AValue : double); 
+Procedure TPrice.SetamountMicros(AIndex : Integer; const AValue : double);
 
 begin
   If (FamountMicros=AValue) then exit;
@@ -6141,7 +6141,7 @@ end;
 
 
 
-Procedure TPrice.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TPrice.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -6151,7 +6151,7 @@ end;
 
 
 
-Procedure TPrice.SetpricingType(AIndex : Integer; const AValue : String); 
+Procedure TPrice.SetpricingType(AIndex : Integer; const AValue : String);
 
 begin
   If (FpricingType=AValue) then exit;
@@ -6168,7 +6168,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPricePerBuyer.SetauctionTier(AIndex : Integer; const AValue : String); 
+Procedure TPricePerBuyer.SetauctionTier(AIndex : Integer; const AValue : String);
 
 begin
   If (FauctionTier=AValue) then exit;
@@ -6178,7 +6178,7 @@ end;
 
 
 
-Procedure TPricePerBuyer.Setbuyer(AIndex : Integer; const AValue : TBuyer); 
+Procedure TPricePerBuyer.Setbuyer(AIndex : Integer; const AValue : TBuyer);
 
 begin
   If (Fbuyer=AValue) then exit;
@@ -6188,7 +6188,7 @@ end;
 
 
 
-Procedure TPricePerBuyer.Setprice(AIndex : Integer; const AValue : TPrice); 
+Procedure TPricePerBuyer.Setprice(AIndex : Integer; const AValue : TPrice);
 
 begin
   If (Fprice=AValue) then exit;
@@ -6205,7 +6205,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPrivateData.SetreferenceId(AIndex : Integer; const AValue : String); 
+Procedure TPrivateData.SetreferenceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -6215,7 +6215,7 @@ end;
 
 
 
-Procedure TPrivateData.SetreferencePayload(AIndex : Integer; const AValue : String); 
+Procedure TPrivateData.SetreferencePayload(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferencePayload=AValue) then exit;
@@ -6232,7 +6232,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProduct.SetcreationTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetcreationTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimeMs=AValue) then exit;
@@ -6242,7 +6242,7 @@ end;
 
 
 
-Procedure TProduct.SetcreatorContacts(AIndex : Integer; const AValue : TProductTypecreatorContactsArray); 
+Procedure TProduct.SetcreatorContacts(AIndex : Integer; const AValue : TProductTypecreatorContactsArray);
 
 begin
   If (FcreatorContacts=AValue) then exit;
@@ -6252,7 +6252,7 @@ end;
 
 
 
-Procedure TProduct.SetdeliveryControl(AIndex : Integer; const AValue : TDeliveryControl); 
+Procedure TProduct.SetdeliveryControl(AIndex : Integer; const AValue : TDeliveryControl);
 
 begin
   If (FdeliveryControl=AValue) then exit;
@@ -6262,7 +6262,7 @@ end;
 
 
 
-Procedure TProduct.SetflightEndTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetflightEndTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FflightEndTimeMs=AValue) then exit;
@@ -6272,7 +6272,7 @@ end;
 
 
 
-Procedure TProduct.SetflightStartTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetflightStartTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FflightStartTimeMs=AValue) then exit;
@@ -6282,7 +6282,7 @@ end;
 
 
 
-Procedure TProduct.SethasCreatorSignedOff(AIndex : Integer; const AValue : boolean); 
+Procedure TProduct.SethasCreatorSignedOff(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasCreatorSignedOff=AValue) then exit;
@@ -6292,7 +6292,7 @@ end;
 
 
 
-Procedure TProduct.SetinventorySource(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetinventorySource(AIndex : Integer; const AValue : String);
 
 begin
   If (FinventorySource=AValue) then exit;
@@ -6302,7 +6302,7 @@ end;
 
 
 
-Procedure TProduct.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TProduct.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6312,7 +6312,7 @@ end;
 
 
 
-Procedure TProduct.Setlabels(AIndex : Integer; const AValue : TProductTypelabelsArray); 
+Procedure TProduct.Setlabels(AIndex : Integer; const AValue : TProductTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -6322,7 +6322,7 @@ end;
 
 
 
-Procedure TProduct.SetlastUpdateTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetlastUpdateTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastUpdateTimeMs=AValue) then exit;
@@ -6332,7 +6332,7 @@ end;
 
 
 
-Procedure TProduct.SetlegacyOfferId(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetlegacyOfferId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlegacyOfferId=AValue) then exit;
@@ -6342,7 +6342,7 @@ end;
 
 
 
-Procedure TProduct.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProduct.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6352,7 +6352,7 @@ end;
 
 
 
-Procedure TProduct.SetprivateAuctionId(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetprivateAuctionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprivateAuctionId=AValue) then exit;
@@ -6362,7 +6362,7 @@ end;
 
 
 
-Procedure TProduct.SetproductId(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetproductId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductId=AValue) then exit;
@@ -6372,7 +6372,7 @@ end;
 
 
 
-Procedure TProduct.SetpublisherProfileId(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetpublisherProfileId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublisherProfileId=AValue) then exit;
@@ -6382,7 +6382,7 @@ end;
 
 
 
-Procedure TProduct.SetpublisherProvidedForecast(AIndex : Integer; const AValue : TPublisherProvidedForecast); 
+Procedure TProduct.SetpublisherProvidedForecast(AIndex : Integer; const AValue : TPublisherProvidedForecast);
 
 begin
   If (FpublisherProvidedForecast=AValue) then exit;
@@ -6392,7 +6392,7 @@ end;
 
 
 
-Procedure TProduct.SetrevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetrevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionNumber=AValue) then exit;
@@ -6402,7 +6402,7 @@ end;
 
 
 
-Procedure TProduct.Setseller(AIndex : Integer; const AValue : TSeller); 
+Procedure TProduct.Setseller(AIndex : Integer; const AValue : TSeller);
 
 begin
   If (Fseller=AValue) then exit;
@@ -6412,7 +6412,7 @@ end;
 
 
 
-Procedure TProduct.SetsharedTargetings(AIndex : Integer; const AValue : TProductTypesharedTargetingsArray); 
+Procedure TProduct.SetsharedTargetings(AIndex : Integer; const AValue : TProductTypesharedTargetingsArray);
 
 begin
   If (FsharedTargetings=AValue) then exit;
@@ -6422,7 +6422,7 @@ end;
 
 
 
-Procedure TProduct.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TProduct.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -6432,7 +6432,7 @@ end;
 
 
 
-Procedure TProduct.SetsyndicationProduct(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetsyndicationProduct(AIndex : Integer; const AValue : String);
 
 begin
   If (FsyndicationProduct=AValue) then exit;
@@ -6442,7 +6442,7 @@ end;
 
 
 
-Procedure TProduct.Setterms(AIndex : Integer; const AValue : TDealTerms); 
+Procedure TProduct.Setterms(AIndex : Integer; const AValue : TDealTerms);
 
 begin
   If (Fterms=AValue) then exit;
@@ -6452,7 +6452,7 @@ end;
 
 
 
-Procedure TProduct.SetwebPropertyCode(AIndex : Integer; const AValue : String); 
+Procedure TProduct.SetwebPropertyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebPropertyCode=AValue) then exit;
@@ -6463,7 +6463,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TProduct.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TProduct.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6484,7 +6484,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProposal.SetbilledBuyer(AIndex : Integer; const AValue : TBuyer); 
+Procedure TProposal.SetbilledBuyer(AIndex : Integer; const AValue : TBuyer);
 
 begin
   If (FbilledBuyer=AValue) then exit;
@@ -6494,7 +6494,7 @@ end;
 
 
 
-Procedure TProposal.Setbuyer(AIndex : Integer; const AValue : TBuyer); 
+Procedure TProposal.Setbuyer(AIndex : Integer; const AValue : TBuyer);
 
 begin
   If (Fbuyer=AValue) then exit;
@@ -6504,7 +6504,7 @@ end;
 
 
 
-Procedure TProposal.SetbuyerContacts(AIndex : Integer; const AValue : TProposalTypebuyerContactsArray); 
+Procedure TProposal.SetbuyerContacts(AIndex : Integer; const AValue : TProposalTypebuyerContactsArray);
 
 begin
   If (FbuyerContacts=AValue) then exit;
@@ -6514,7 +6514,7 @@ end;
 
 
 
-Procedure TProposal.SetbuyerPrivateData(AIndex : Integer; const AValue : TPrivateData); 
+Procedure TProposal.SetbuyerPrivateData(AIndex : Integer; const AValue : TPrivateData);
 
 begin
   If (FbuyerPrivateData=AValue) then exit;
@@ -6524,7 +6524,7 @@ end;
 
 
 
-Procedure TProposal.SethasBuyerSignedOff(AIndex : Integer; const AValue : boolean); 
+Procedure TProposal.SethasBuyerSignedOff(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasBuyerSignedOff=AValue) then exit;
@@ -6534,7 +6534,7 @@ end;
 
 
 
-Procedure TProposal.SethasSellerSignedOff(AIndex : Integer; const AValue : boolean); 
+Procedure TProposal.SethasSellerSignedOff(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasSellerSignedOff=AValue) then exit;
@@ -6544,7 +6544,7 @@ end;
 
 
 
-Procedure TProposal.SetinventorySource(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetinventorySource(AIndex : Integer; const AValue : String);
 
 begin
   If (FinventorySource=AValue) then exit;
@@ -6554,7 +6554,7 @@ end;
 
 
 
-Procedure TProposal.SetisRenegotiating(AIndex : Integer; const AValue : boolean); 
+Procedure TProposal.SetisRenegotiating(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisRenegotiating=AValue) then exit;
@@ -6564,7 +6564,7 @@ end;
 
 
 
-Procedure TProposal.SetisSetupComplete(AIndex : Integer; const AValue : boolean); 
+Procedure TProposal.SetisSetupComplete(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisSetupComplete=AValue) then exit;
@@ -6574,7 +6574,7 @@ end;
 
 
 
-Procedure TProposal.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TProposal.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6584,7 +6584,7 @@ end;
 
 
 
-Procedure TProposal.Setlabels(AIndex : Integer; const AValue : TProposalTypelabelsArray); 
+Procedure TProposal.Setlabels(AIndex : Integer; const AValue : TProposalTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -6594,7 +6594,7 @@ end;
 
 
 
-Procedure TProposal.SetlastUpdaterOrCommentorRole(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetlastUpdaterOrCommentorRole(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastUpdaterOrCommentorRole=AValue) then exit;
@@ -6604,7 +6604,7 @@ end;
 
 
 
-Procedure TProposal.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProposal.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6614,7 +6614,7 @@ end;
 
 
 
-Procedure TProposal.SetnegotiationId(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetnegotiationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnegotiationId=AValue) then exit;
@@ -6624,7 +6624,7 @@ end;
 
 
 
-Procedure TProposal.SetoriginatorRole(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetoriginatorRole(AIndex : Integer; const AValue : String);
 
 begin
   If (ForiginatorRole=AValue) then exit;
@@ -6634,7 +6634,7 @@ end;
 
 
 
-Procedure TProposal.SetprivateAuctionId(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetprivateAuctionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprivateAuctionId=AValue) then exit;
@@ -6644,7 +6644,7 @@ end;
 
 
 
-Procedure TProposal.SetproposalId(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetproposalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalId=AValue) then exit;
@@ -6654,7 +6654,7 @@ end;
 
 
 
-Procedure TProposal.SetproposalState(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetproposalState(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalState=AValue) then exit;
@@ -6664,7 +6664,7 @@ end;
 
 
 
-Procedure TProposal.SetrevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetrevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionNumber=AValue) then exit;
@@ -6674,7 +6674,7 @@ end;
 
 
 
-Procedure TProposal.SetrevisionTimeMs(AIndex : Integer; const AValue : String); 
+Procedure TProposal.SetrevisionTimeMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionTimeMs=AValue) then exit;
@@ -6684,7 +6684,7 @@ end;
 
 
 
-Procedure TProposal.Setseller(AIndex : Integer; const AValue : TSeller); 
+Procedure TProposal.Setseller(AIndex : Integer; const AValue : TSeller);
 
 begin
   If (Fseller=AValue) then exit;
@@ -6694,7 +6694,7 @@ end;
 
 
 
-Procedure TProposal.SetsellerContacts(AIndex : Integer; const AValue : TProposalTypesellerContactsArray); 
+Procedure TProposal.SetsellerContacts(AIndex : Integer; const AValue : TProposalTypesellerContactsArray);
 
 begin
   If (FsellerContacts=AValue) then exit;
@@ -6705,7 +6705,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TProposal.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TProposal.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6726,7 +6726,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublisherProfileApiProto.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -6736,7 +6736,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setaudience(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.Setaudience(AIndex : Integer; const AValue : String);
 
 begin
   If (Faudience=AValue) then exit;
@@ -6746,7 +6746,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetbuyerPitchStatement(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetbuyerPitchStatement(AIndex : Integer; const AValue : String);
 
 begin
   If (FbuyerPitchStatement=AValue) then exit;
@@ -6756,7 +6756,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetdirectContact(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetdirectContact(AIndex : Integer; const AValue : String);
 
 begin
   If (FdirectContact=AValue) then exit;
@@ -6766,7 +6766,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setexchange(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.Setexchange(AIndex : Integer; const AValue : String);
 
 begin
   If (Fexchange=AValue) then exit;
@@ -6776,7 +6776,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetgooglePlusLink(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetgooglePlusLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FgooglePlusLink=AValue) then exit;
@@ -6786,7 +6786,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetisParent(AIndex : Integer; const AValue : boolean); 
+Procedure TPublisherProfileApiProto.SetisParent(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisParent=AValue) then exit;
@@ -6796,7 +6796,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetisPublished(AIndex : Integer; const AValue : boolean); 
+Procedure TPublisherProfileApiProto.SetisPublished(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisPublished=AValue) then exit;
@@ -6806,7 +6806,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6816,7 +6816,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetlogoUrl(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetlogoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogoUrl=AValue) then exit;
@@ -6826,7 +6826,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetmediaKitLink(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetmediaKitLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FmediaKitLink=AValue) then exit;
@@ -6836,7 +6836,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6846,7 +6846,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setoverview(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.Setoverview(AIndex : Integer; const AValue : String);
 
 begin
   If (Foverview=AValue) then exit;
@@ -6856,7 +6856,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetprofileId(AIndex : Integer; const AValue : integer); 
+Procedure TPublisherProfileApiProto.SetprofileId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FprofileId=AValue) then exit;
@@ -6866,7 +6866,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetprogrammaticContact(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetprogrammaticContact(AIndex : Integer; const AValue : String);
 
 begin
   If (FprogrammaticContact=AValue) then exit;
@@ -6876,7 +6876,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetpublisherDomains(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPublisherProfileApiProto.SetpublisherDomains(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FpublisherDomains=AValue) then exit;
@@ -6886,7 +6886,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetpublisherProfileId(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetpublisherProfileId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublisherProfileId=AValue) then exit;
@@ -6896,7 +6896,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetpublisherProvidedForecast(AIndex : Integer; const AValue : TPublisherProvidedForecast); 
+Procedure TPublisherProfileApiProto.SetpublisherProvidedForecast(AIndex : Integer; const AValue : TPublisherProvidedForecast);
 
 begin
   If (FpublisherProvidedForecast=AValue) then exit;
@@ -6906,7 +6906,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetrateCardInfoLink(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetrateCardInfoLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FrateCardInfoLink=AValue) then exit;
@@ -6916,7 +6916,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SetsamplePageLink(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.SetsamplePageLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FsamplePageLink=AValue) then exit;
@@ -6926,7 +6926,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setseller(AIndex : Integer; const AValue : TSeller); 
+Procedure TPublisherProfileApiProto.Setseller(AIndex : Integer; const AValue : TSeller);
 
 begin
   If (Fseller=AValue) then exit;
@@ -6936,7 +6936,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProfileApiProto.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -6946,7 +6946,7 @@ end;
 
 
 
-Procedure TPublisherProfileApiProto.SettopHeadlines(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPublisherProfileApiProto.SettopHeadlines(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FtopHeadlines=AValue) then exit;
@@ -6957,7 +6957,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublisherProfileApiProto.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublisherProfileApiProto.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6977,7 +6977,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublisherProvidedForecast.Setdimensions(AIndex : Integer; const AValue : TPublisherProvidedForecastTypedimensionsArray); 
+Procedure TPublisherProvidedForecast.Setdimensions(AIndex : Integer; const AValue : TPublisherProvidedForecastTypedimensionsArray);
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -6987,7 +6987,7 @@ end;
 
 
 
-Procedure TPublisherProvidedForecast.SetweeklyImpressions(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProvidedForecast.SetweeklyImpressions(AIndex : Integer; const AValue : String);
 
 begin
   If (FweeklyImpressions=AValue) then exit;
@@ -6997,7 +6997,7 @@ end;
 
 
 
-Procedure TPublisherProvidedForecast.SetweeklyUniques(AIndex : Integer; const AValue : String); 
+Procedure TPublisherProvidedForecast.SetweeklyUniques(AIndex : Integer; const AValue : String);
 
 begin
   If (FweeklyUniques=AValue) then exit;
@@ -7008,7 +7008,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublisherProvidedForecast.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublisherProvidedForecast.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7027,7 +7027,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSeller.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TSeller.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -7037,7 +7037,7 @@ end;
 
 
 
-Procedure TSeller.SetsubAccountId(AIndex : Integer; const AValue : String); 
+Procedure TSeller.SetsubAccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsubAccountId=AValue) then exit;
@@ -7054,7 +7054,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSharedTargeting.Setexclusions(AIndex : Integer; const AValue : TSharedTargetingTypeexclusionsArray); 
+Procedure TSharedTargeting.Setexclusions(AIndex : Integer; const AValue : TSharedTargetingTypeexclusionsArray);
 
 begin
   If (Fexclusions=AValue) then exit;
@@ -7064,7 +7064,7 @@ end;
 
 
 
-Procedure TSharedTargeting.Setinclusions(AIndex : Integer; const AValue : TSharedTargetingTypeinclusionsArray); 
+Procedure TSharedTargeting.Setinclusions(AIndex : Integer; const AValue : TSharedTargetingTypeinclusionsArray);
 
 begin
   If (Finclusions=AValue) then exit;
@@ -7074,7 +7074,7 @@ end;
 
 
 
-Procedure TSharedTargeting.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TSharedTargeting.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -7085,7 +7085,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSharedTargeting.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSharedTargeting.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7105,7 +7105,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetingValue.SetcreativeSizeValue(AIndex : Integer; const AValue : TTargetingValueCreativeSize); 
+Procedure TTargetingValue.SetcreativeSizeValue(AIndex : Integer; const AValue : TTargetingValueCreativeSize);
 
 begin
   If (FcreativeSizeValue=AValue) then exit;
@@ -7115,7 +7115,7 @@ end;
 
 
 
-Procedure TTargetingValue.SetdayPartTargetingValue(AIndex : Integer; const AValue : TTargetingValueDayPartTargeting); 
+Procedure TTargetingValue.SetdayPartTargetingValue(AIndex : Integer; const AValue : TTargetingValueDayPartTargeting);
 
 begin
   If (FdayPartTargetingValue=AValue) then exit;
@@ -7125,7 +7125,7 @@ end;
 
 
 
-Procedure TTargetingValue.SetlongValue(AIndex : Integer; const AValue : String); 
+Procedure TTargetingValue.SetlongValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FlongValue=AValue) then exit;
@@ -7135,7 +7135,7 @@ end;
 
 
 
-Procedure TTargetingValue.SetstringValue(AIndex : Integer; const AValue : String); 
+Procedure TTargetingValue.SetstringValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FstringValue=AValue) then exit;
@@ -7152,7 +7152,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetingValueCreativeSize.SetcompanionSizes(AIndex : Integer; const AValue : TTargetingValueCreativeSizeTypecompanionSizesArray); 
+Procedure TTargetingValueCreativeSize.SetcompanionSizes(AIndex : Integer; const AValue : TTargetingValueCreativeSizeTypecompanionSizesArray);
 
 begin
   If (FcompanionSizes=AValue) then exit;
@@ -7162,7 +7162,7 @@ end;
 
 
 
-Procedure TTargetingValueCreativeSize.SetcreativeSizeType(AIndex : Integer; const AValue : String); 
+Procedure TTargetingValueCreativeSize.SetcreativeSizeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreativeSizeType=AValue) then exit;
@@ -7172,7 +7172,7 @@ end;
 
 
 
-Procedure TTargetingValueCreativeSize.Setsize(AIndex : Integer; const AValue : TTargetingValueSize); 
+Procedure TTargetingValueCreativeSize.Setsize(AIndex : Integer; const AValue : TTargetingValueSize);
 
 begin
   If (Fsize=AValue) then exit;
@@ -7183,7 +7183,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTargetingValueCreativeSize.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTargetingValueCreativeSize.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7202,7 +7202,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetingValueDayPartTargeting.SetdayParts(AIndex : Integer; const AValue : TTargetingValueDayPartTargetingTypedayPartsArray); 
+Procedure TTargetingValueDayPartTargeting.SetdayParts(AIndex : Integer; const AValue : TTargetingValueDayPartTargetingTypedayPartsArray);
 
 begin
   If (FdayParts=AValue) then exit;
@@ -7212,7 +7212,7 @@ end;
 
 
 
-Procedure TTargetingValueDayPartTargeting.SettimeZoneType(AIndex : Integer; const AValue : String); 
+Procedure TTargetingValueDayPartTargeting.SettimeZoneType(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZoneType=AValue) then exit;
@@ -7223,7 +7223,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTargetingValueDayPartTargeting.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTargetingValueDayPartTargeting.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7242,7 +7242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetingValueDayPartTargetingDayPart.SetdayOfWeek(AIndex : Integer; const AValue : String); 
+Procedure TTargetingValueDayPartTargetingDayPart.SetdayOfWeek(AIndex : Integer; const AValue : String);
 
 begin
   If (FdayOfWeek=AValue) then exit;
@@ -7252,7 +7252,7 @@ end;
 
 
 
-Procedure TTargetingValueDayPartTargetingDayPart.SetendHour(AIndex : Integer; const AValue : integer); 
+Procedure TTargetingValueDayPartTargetingDayPart.SetendHour(AIndex : Integer; const AValue : integer);
 
 begin
   If (FendHour=AValue) then exit;
@@ -7262,7 +7262,7 @@ end;
 
 
 
-Procedure TTargetingValueDayPartTargetingDayPart.SetendMinute(AIndex : Integer; const AValue : integer); 
+Procedure TTargetingValueDayPartTargetingDayPart.SetendMinute(AIndex : Integer; const AValue : integer);
 
 begin
   If (FendMinute=AValue) then exit;
@@ -7272,7 +7272,7 @@ end;
 
 
 
-Procedure TTargetingValueDayPartTargetingDayPart.SetstartHour(AIndex : Integer; const AValue : integer); 
+Procedure TTargetingValueDayPartTargetingDayPart.SetstartHour(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartHour=AValue) then exit;
@@ -7282,7 +7282,7 @@ end;
 
 
 
-Procedure TTargetingValueDayPartTargetingDayPart.SetstartMinute(AIndex : Integer; const AValue : integer); 
+Procedure TTargetingValueDayPartTargetingDayPart.SetstartMinute(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartMinute=AValue) then exit;
@@ -7299,7 +7299,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetingValueSize.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TTargetingValueSize.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -7309,7 +7309,7 @@ end;
 
 
 
-Procedure TTargetingValueSize.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TTargetingValueSize.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -7326,7 +7326,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdatePrivateAuctionProposalRequest.SetexternalDealId(AIndex : Integer; const AValue : String); 
+Procedure TUpdatePrivateAuctionProposalRequest.SetexternalDealId(AIndex : Integer; const AValue : String);
 
 begin
   If (FexternalDealId=AValue) then exit;
@@ -7336,7 +7336,7 @@ end;
 
 
 
-Procedure TUpdatePrivateAuctionProposalRequest.Setnote(AIndex : Integer; const AValue : TMarketplaceNote); 
+Procedure TUpdatePrivateAuctionProposalRequest.Setnote(AIndex : Integer; const AValue : TMarketplaceNote);
 
 begin
   If (Fnote=AValue) then exit;
@@ -7346,7 +7346,7 @@ end;
 
 
 
-Procedure TUpdatePrivateAuctionProposalRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String); 
+Procedure TUpdatePrivateAuctionProposalRequest.SetproposalRevisionNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FproposalRevisionNumber=AValue) then exit;
@@ -7356,7 +7356,7 @@ end;
 
 
 
-Procedure TUpdatePrivateAuctionProposalRequest.SetupdateAction(AIndex : Integer; const AValue : String); 
+Procedure TUpdatePrivateAuctionProposalRequest.SetupdateAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateAction=AValue) then exit;
@@ -8300,7 +8300,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/adexchange.buyer';
   Result[0].Description:='Manage your Ad Exchange buyer account configuration';
-  
+
 end;
 
 Class Function TAdexchangebuyerAPI.APINeedsAuth : Boolean;

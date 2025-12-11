@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAutoscaler = Class;
   TAutoscalerListResponse = Class;
@@ -49,11 +49,11 @@ type
   TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
   TOperationListTypeitemsArray = Array of TOperation;
   TZoneListTypeitemsArray = Array of TZone;
-  
+
   { --------------------------------------------------------------------
     TAutoscaler
     --------------------------------------------------------------------}
-  
+
   TAutoscaler = Class(TGoogleBaseObject)
   Private
     FautoscalingPolicy : TAutoscalingPolicy;
@@ -86,11 +86,11 @@ type
     Property target : String Index 56 Read Ftarget Write Settarget;
   end;
   TAutoscalerClass = Class of TAutoscaler;
-  
+
   { --------------------------------------------------------------------
     TAutoscalerListResponse
     --------------------------------------------------------------------}
-  
+
   TAutoscalerListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TAutoscalerListResponseTypeitemsArray;
@@ -112,11 +112,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TAutoscalerListResponseClass = Class of TAutoscalerListResponse;
-  
+
   { --------------------------------------------------------------------
     TAutoscalingPolicy
     --------------------------------------------------------------------}
-  
+
   TAutoscalingPolicy = Class(TGoogleBaseObject)
   Private
     FcoolDownPeriodSec : integer;
@@ -147,11 +147,11 @@ type
     Property minNumReplicas : integer Index 40 Read FminNumReplicas Write SetminNumReplicas;
   end;
   TAutoscalingPolicyClass = Class of TAutoscalingPolicy;
-  
+
   { --------------------------------------------------------------------
     TAutoscalingPolicyCpuUtilization
     --------------------------------------------------------------------}
-  
+
   TAutoscalingPolicyCpuUtilization = Class(TGoogleBaseObject)
   Private
     FutilizationTarget : double;
@@ -163,11 +163,11 @@ type
     Property utilizationTarget : double Index 0 Read FutilizationTarget Write SetutilizationTarget;
   end;
   TAutoscalingPolicyCpuUtilizationClass = Class of TAutoscalingPolicyCpuUtilization;
-  
+
   { --------------------------------------------------------------------
     TAutoscalingPolicyCustomMetricUtilization
     --------------------------------------------------------------------}
-  
+
   TAutoscalingPolicyCustomMetricUtilization = Class(TGoogleBaseObject)
   Private
     Fmetric : String;
@@ -185,11 +185,11 @@ type
     Property utilizationTargetType : String Index 16 Read FutilizationTargetType Write SetutilizationTargetType;
   end;
   TAutoscalingPolicyCustomMetricUtilizationClass = Class of TAutoscalingPolicyCustomMetricUtilization;
-  
+
   { --------------------------------------------------------------------
     TAutoscalingPolicyLoadBalancingUtilization
     --------------------------------------------------------------------}
-  
+
   TAutoscalingPolicyLoadBalancingUtilization = Class(TGoogleBaseObject)
   Private
     FutilizationTarget : double;
@@ -201,11 +201,11 @@ type
     Property utilizationTarget : double Index 0 Read FutilizationTarget Write SetutilizationTarget;
   end;
   TAutoscalingPolicyLoadBalancingUtilizationClass = Class of TAutoscalingPolicyLoadBalancingUtilization;
-  
+
   { --------------------------------------------------------------------
     TDeprecationStatus
     --------------------------------------------------------------------}
-  
+
   TDeprecationStatus = Class(TGoogleBaseObject)
   Private
     Fdeleted : String;
@@ -229,11 +229,11 @@ type
     Property state : String Index 32 Read Fstate Write Setstate;
   end;
   TDeprecationStatusClass = Class of TDeprecationStatus;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -251,11 +251,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerror
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerror = Class(TGoogleBaseObject)
   Private
     Ferrors : TOperationTypeerrorTypeerrorsArray;
@@ -271,11 +271,11 @@ type
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
   TOperationTypeerrorClass = Class of TOperationTypeerror;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItemTypedataItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -290,11 +290,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -316,11 +316,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     FclientOperationId : String;
@@ -402,11 +402,11 @@ type
     Property zone : String Index 176 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TOperationList
     --------------------------------------------------------------------}
-  
+
   TOperationList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -434,11 +434,11 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TOperationListClass = Class of TOperationList;
-  
+
   { --------------------------------------------------------------------
     TZone
     --------------------------------------------------------------------}
-  
+
   TZone = Class(TGoogleBaseObject)
   Private
     FcreationTimestamp : String;
@@ -474,11 +474,11 @@ type
     Property status : String Index 64 Read Fstatus Write Setstatus;
   end;
   TZoneClass = Class of TZone;
-  
+
   { --------------------------------------------------------------------
     TZoneList
     --------------------------------------------------------------------}
-  
+
   TZoneList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -506,20 +506,20 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TZoneListClass = Class of TZoneList;
-  
+
   { --------------------------------------------------------------------
     TAutoscalersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAutoscalersResource, method List
-  
+
   TAutoscalersListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAutoscalersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -532,21 +532,21 @@ type
     Function Patch(autoscaler: string; project: string; zone: string; aAutoscaler : TAutoscaler) : TOperation;
     Function Update(autoscaler: string; project: string; zone: string; aAutoscaler : TAutoscaler) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TZoneOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TZoneOperationsResource, method List
-  
+
   TZoneOperationsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TZoneOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -556,22 +556,22 @@ type
     Function List(project: string; zone: string; AQuery : string  = '') : TOperationList;
     Function List(project: string; zone: string; AQuery : TZoneOperationslistOptions) : TOperationList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TZonesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TZonesResource, method List
-  
+
   TZonesListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
     project : String;
   end;
-  
+
   TZonesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -579,12 +579,12 @@ type
     Function List(AQuery : string  = '') : TZoneList;
     Function List(AQuery : TZoneslistOptions) : TZoneList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAutoscalerAPI
     --------------------------------------------------------------------}
-  
+
   TAutoscalerAPI = Class(TGoogleAPI)
   Private
     FAutoscalersInstance : TAutoscalersResource;
@@ -636,7 +636,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscaler.SetautoscalingPolicy(AIndex : Integer; const AValue : TAutoscalingPolicy); 
+Procedure TAutoscaler.SetautoscalingPolicy(AIndex : Integer; const AValue : TAutoscalingPolicy);
 
 begin
   If (FautoscalingPolicy=AValue) then exit;
@@ -646,7 +646,7 @@ end;
 
 
 
-Procedure TAutoscaler.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -656,7 +656,7 @@ end;
 
 
 
-Procedure TAutoscaler.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -666,7 +666,7 @@ end;
 
 
 
-Procedure TAutoscaler.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -676,7 +676,7 @@ end;
 
 
 
-Procedure TAutoscaler.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -686,7 +686,7 @@ end;
 
 
 
-Procedure TAutoscaler.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -696,7 +696,7 @@ end;
 
 
 
-Procedure TAutoscaler.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -706,7 +706,7 @@ end;
 
 
 
-Procedure TAutoscaler.Settarget(AIndex : Integer; const AValue : String); 
+Procedure TAutoscaler.Settarget(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftarget=AValue) then exit;
@@ -723,7 +723,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalerListResponse.Setitems(AIndex : Integer; const AValue : TAutoscalerListResponseTypeitemsArray); 
+Procedure TAutoscalerListResponse.Setitems(AIndex : Integer; const AValue : TAutoscalerListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -733,7 +733,7 @@ end;
 
 
 
-Procedure TAutoscalerListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAutoscalerListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -743,7 +743,7 @@ end;
 
 
 
-Procedure TAutoscalerListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAutoscalerListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -754,7 +754,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAutoscalerListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAutoscalerListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -773,7 +773,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicy.SetcoolDownPeriodSec(AIndex : Integer; const AValue : integer); 
+Procedure TAutoscalingPolicy.SetcoolDownPeriodSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcoolDownPeriodSec=AValue) then exit;
@@ -783,7 +783,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetcpuUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyCpuUtilization); 
+Procedure TAutoscalingPolicy.SetcpuUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyCpuUtilization);
 
 begin
   If (FcpuUtilization=AValue) then exit;
@@ -793,7 +793,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetcustomMetricUtilizations(AIndex : Integer; const AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray); 
+Procedure TAutoscalingPolicy.SetcustomMetricUtilizations(AIndex : Integer; const AValue : TAutoscalingPolicyTypecustomMetricUtilizationsArray);
 
 begin
   If (FcustomMetricUtilizations=AValue) then exit;
@@ -803,7 +803,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetloadBalancingUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyLoadBalancingUtilization); 
+Procedure TAutoscalingPolicy.SetloadBalancingUtilization(AIndex : Integer; const AValue : TAutoscalingPolicyLoadBalancingUtilization);
 
 begin
   If (FloadBalancingUtilization=AValue) then exit;
@@ -813,7 +813,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetmaxNumReplicas(AIndex : Integer; const AValue : integer); 
+Procedure TAutoscalingPolicy.SetmaxNumReplicas(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxNumReplicas=AValue) then exit;
@@ -823,7 +823,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicy.SetminNumReplicas(AIndex : Integer; const AValue : integer); 
+Procedure TAutoscalingPolicy.SetminNumReplicas(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminNumReplicas=AValue) then exit;
@@ -834,7 +834,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAutoscalingPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAutoscalingPolicy.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -853,7 +853,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicyCpuUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
+Procedure TAutoscalingPolicyCpuUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double);
 
 begin
   If (FutilizationTarget=AValue) then exit;
@@ -870,7 +870,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicyCustomMetricUtilization.Setmetric(AIndex : Integer; const AValue : String); 
+Procedure TAutoscalingPolicyCustomMetricUtilization.Setmetric(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmetric=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
+Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double);
 
 begin
   If (FutilizationTarget=AValue) then exit;
@@ -890,7 +890,7 @@ end;
 
 
 
-Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTargetType(AIndex : Integer; const AValue : String); 
+Procedure TAutoscalingPolicyCustomMetricUtilization.SetutilizationTargetType(AIndex : Integer; const AValue : String);
 
 begin
   If (FutilizationTargetType=AValue) then exit;
@@ -907,7 +907,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingPolicyLoadBalancingUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double); 
+Procedure TAutoscalingPolicyLoadBalancingUtilization.SetutilizationTarget(AIndex : Integer; const AValue : double);
 
 begin
   If (FutilizationTarget=AValue) then exit;
@@ -924,7 +924,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeprecationStatus.Setdeleted(AIndex : Integer; const AValue : String); 
+Procedure TDeprecationStatus.Setdeleted(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -934,7 +934,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setdeprecated(AIndex : Integer; const AValue : String); 
+Procedure TDeprecationStatus.Setdeprecated(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -944,7 +944,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setobsolete(AIndex : Integer; const AValue : String); 
+Procedure TDeprecationStatus.Setobsolete(AIndex : Integer; const AValue : String);
 
 begin
   If (Fobsolete=AValue) then exit;
@@ -954,7 +954,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setreplacement(AIndex : Integer; const AValue : String); 
+Procedure TDeprecationStatus.Setreplacement(AIndex : Integer; const AValue : String);
 
 begin
   If (Freplacement=AValue) then exit;
@@ -964,7 +964,7 @@ end;
 
 
 
-Procedure TDeprecationStatus.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TDeprecationStatus.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -981,7 +981,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -991,7 +991,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1001,7 +1001,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1018,7 +1018,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1029,7 +1029,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1048,7 +1048,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1058,7 +1058,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1075,7 +1075,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1085,7 +1085,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1095,7 +1095,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1106,7 +1106,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1125,7 +1125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientOperationId=AValue) then exit;
@@ -1135,7 +1135,7 @@ end;
 
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1145,7 +1145,7 @@ end;
 
 
 
-Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1155,7 +1155,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1165,7 +1165,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror);
 
 begin
   If (Ferror=AValue) then exit;
@@ -1175,7 +1175,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -1185,7 +1185,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer);
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1195,7 +1195,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1205,7 +1205,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1215,7 +1215,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1225,7 +1225,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1235,7 +1235,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -1245,7 +1245,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1255,7 +1255,7 @@ end;
 
 
 
-Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -1265,7 +1265,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1275,7 +1275,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1285,7 +1285,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1305,7 +1305,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetId=AValue) then exit;
@@ -1315,7 +1315,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1325,7 +1325,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -1335,7 +1335,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1345,7 +1345,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String);
 
 begin
   If (Fzone=AValue) then exit;
@@ -1356,7 +1356,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1375,7 +1375,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1385,7 +1385,7 @@ end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1395,7 +1395,7 @@ end;
 
 
 
-Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1405,7 +1405,7 @@ end;
 
 
 
-Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1415,7 +1415,7 @@ end;
 
 
 
-Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1426,7 +1426,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1445,7 +1445,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZone.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TZone.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1455,7 +1455,7 @@ end;
 
 
 
-Procedure TZone.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus); 
+Procedure TZone.Setdeprecated(AIndex : Integer; const AValue : TDeprecationStatus);
 
 begin
   If (Fdeprecated=AValue) then exit;
@@ -1465,7 +1465,7 @@ end;
 
 
 
-Procedure TZone.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TZone.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1475,7 +1475,7 @@ end;
 
 
 
-Procedure TZone.Setid(AIndex : Integer; const AValue : String); 
+Procedure TZone.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1485,7 +1485,7 @@ end;
 
 
 
-Procedure TZone.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TZone.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1495,7 +1495,7 @@ end;
 
 
 
-Procedure TZone.Setname(AIndex : Integer; const AValue : String); 
+Procedure TZone.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1505,7 +1505,7 @@ end;
 
 
 
-Procedure TZone.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TZone.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -1515,7 +1515,7 @@ end;
 
 
 
-Procedure TZone.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TZone.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TZone.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TZone.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1542,7 +1542,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TZoneList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1552,7 +1552,7 @@ end;
 
 
 
-Procedure TZoneList.Setitems(AIndex : Integer; const AValue : TZoneListTypeitemsArray); 
+Procedure TZoneList.Setitems(AIndex : Integer; const AValue : TZoneListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1562,7 +1562,7 @@ end;
 
 
 
-Procedure TZoneList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TZoneList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1572,7 +1572,7 @@ end;
 
 
 
-Procedure TZoneList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TZoneList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1582,7 +1582,7 @@ end;
 
 
 
-Procedure TZoneList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TZoneList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1593,7 +1593,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TZoneList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TZoneList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1967,7 +1967,7 @@ begin
   Result[0].Description:='View and manage your Google Compute Engine resources';
   Result[1].Name:='https://www.googleapis.com/auth/compute.readonly';
   Result[1].Description:='View your Google Compute Engine resources';
-  
+
 end;
 
 Class Function TAutoscalerAPI.APINeedsAuth : Boolean;

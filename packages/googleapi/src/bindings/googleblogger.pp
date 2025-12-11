@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TBlog = Class;
   TBlogList = Class;
@@ -76,11 +76,11 @@ type
   TPostTyperepliesTypeitemsArray = Array of TComment;
   TPostListTypeitemsArray = Array of TPost;
   TPostUserInfosListTypeitemsArray = Array of TPostUserInfo;
-  
+
   { --------------------------------------------------------------------
     TBlogTypelocale
     --------------------------------------------------------------------}
-  
+
   TBlogTypelocale = Class(TGoogleBaseObject)
   Private
     Fcountry : String;
@@ -98,11 +98,11 @@ type
     Property variant : String Index 16 Read Fvariant Write Setvariant;
   end;
   TBlogTypelocaleClass = Class of TBlogTypelocale;
-  
+
   { --------------------------------------------------------------------
     TBlogTypepages
     --------------------------------------------------------------------}
-  
+
   TBlogTypepages = Class(TGoogleBaseObject)
   Private
     FselfLink : String;
@@ -117,11 +117,11 @@ type
     Property totalItems : integer Index 8 Read FtotalItems Write SettotalItems;
   end;
   TBlogTypepagesClass = Class of TBlogTypepages;
-  
+
   { --------------------------------------------------------------------
     TBlogTypeposts
     --------------------------------------------------------------------}
-  
+
   TBlogTypeposts = Class(TGoogleBaseObject)
   Private
     Fitems : TBlogTypepostsTypeitemsArray;
@@ -143,11 +143,11 @@ type
     Property totalItems : integer Index 16 Read FtotalItems Write SettotalItems;
   end;
   TBlogTypepostsClass = Class of TBlogTypeposts;
-  
+
   { --------------------------------------------------------------------
     TBlog
     --------------------------------------------------------------------}
-  
+
   TBlog = Class(TGoogleBaseObject)
   Private
     FcustomMetaData : String;
@@ -196,11 +196,11 @@ type
     Property url : String Index 96 Read Furl Write Seturl;
   end;
   TBlogClass = Class of TBlog;
-  
+
   { --------------------------------------------------------------------
     TBlogList
     --------------------------------------------------------------------}
-  
+
   TBlogList = Class(TGoogleBaseObject)
   Private
     FblogUserInfos : TBlogListTypeblogUserInfosArray;
@@ -222,11 +222,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TBlogListClass = Class of TBlogList;
-  
+
   { --------------------------------------------------------------------
     TBlogPerUserInfo
     --------------------------------------------------------------------}
-  
+
   TBlogPerUserInfo = Class(TGoogleBaseObject)
   Private
     FblogId : String;
@@ -253,11 +253,11 @@ type
     Property userId : String Index 40 Read FuserId Write SetuserId;
   end;
   TBlogPerUserInfoClass = Class of TBlogPerUserInfo;
-  
+
   { --------------------------------------------------------------------
     TBlogUserInfo
     --------------------------------------------------------------------}
-  
+
   TBlogUserInfo = Class(TGoogleBaseObject)
   Private
     Fblog : TBlog;
@@ -275,11 +275,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TBlogUserInfoClass = Class of TBlogUserInfo;
-  
+
   { --------------------------------------------------------------------
     TCommentTypeauthorTypeimage
     --------------------------------------------------------------------}
-  
+
   TCommentTypeauthorTypeimage = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -291,11 +291,11 @@ type
     Property url : String Index 0 Read Furl Write Seturl;
   end;
   TCommentTypeauthorTypeimageClass = Class of TCommentTypeauthorTypeimage;
-  
+
   { --------------------------------------------------------------------
     TCommentTypeauthor
     --------------------------------------------------------------------}
-  
+
   TCommentTypeauthor = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -316,11 +316,11 @@ type
     Property url : String Index 24 Read Furl Write Seturl;
   end;
   TCommentTypeauthorClass = Class of TCommentTypeauthor;
-  
+
   { --------------------------------------------------------------------
     TCommentTypeblog
     --------------------------------------------------------------------}
-  
+
   TCommentTypeblog = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -332,11 +332,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TCommentTypeblogClass = Class of TCommentTypeblog;
-  
+
   { --------------------------------------------------------------------
     TCommentTypeinReplyTo
     --------------------------------------------------------------------}
-  
+
   TCommentTypeinReplyTo = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -348,11 +348,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TCommentTypeinReplyToClass = Class of TCommentTypeinReplyTo;
-  
+
   { --------------------------------------------------------------------
     TCommentTypepost
     --------------------------------------------------------------------}
-  
+
   TCommentTypepost = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -364,11 +364,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TCommentTypepostClass = Class of TCommentTypepost;
-  
+
   { --------------------------------------------------------------------
     TComment
     --------------------------------------------------------------------}
-  
+
   TComment = Class(TGoogleBaseObject)
   Private
     Fauthor : TCommentTypeauthor;
@@ -411,11 +411,11 @@ type
     Property updated : TDatetime Index 80 Read Fupdated Write Setupdated;
   end;
   TCommentClass = Class of TComment;
-  
+
   { --------------------------------------------------------------------
     TCommentList
     --------------------------------------------------------------------}
-  
+
   TCommentList = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -443,11 +443,11 @@ type
     Property prevPageToken : String Index 32 Read FprevPageToken Write SetprevPageToken;
   end;
   TCommentListClass = Class of TCommentList;
-  
+
   { --------------------------------------------------------------------
     TPageTypeauthorTypeimage
     --------------------------------------------------------------------}
-  
+
   TPageTypeauthorTypeimage = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -459,11 +459,11 @@ type
     Property url : String Index 0 Read Furl Write Seturl;
   end;
   TPageTypeauthorTypeimageClass = Class of TPageTypeauthorTypeimage;
-  
+
   { --------------------------------------------------------------------
     TPageTypeauthor
     --------------------------------------------------------------------}
-  
+
   TPageTypeauthor = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -484,11 +484,11 @@ type
     Property url : String Index 24 Read Furl Write Seturl;
   end;
   TPageTypeauthorClass = Class of TPageTypeauthor;
-  
+
   { --------------------------------------------------------------------
     TPageTypeblog
     --------------------------------------------------------------------}
-  
+
   TPageTypeblog = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -500,11 +500,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TPageTypeblogClass = Class of TPageTypeblog;
-  
+
   { --------------------------------------------------------------------
     TPage
     --------------------------------------------------------------------}
-  
+
   TPage = Class(TGoogleBaseObject)
   Private
     Fauthor : TPageTypeauthor;
@@ -550,11 +550,11 @@ type
     Property url : String Index 88 Read Furl Write Seturl;
   end;
   TPageClass = Class of TPage;
-  
+
   { --------------------------------------------------------------------
     TPageList
     --------------------------------------------------------------------}
-  
+
   TPageList = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -579,11 +579,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TPageListClass = Class of TPageList;
-  
+
   { --------------------------------------------------------------------
     TPageviewsTypecountsItem
     --------------------------------------------------------------------}
-  
+
   TPageviewsTypecountsItem = Class(TGoogleBaseObject)
   Private
     Fcount : String;
@@ -598,11 +598,11 @@ type
     Property timeRange : String Index 8 Read FtimeRange Write SettimeRange;
   end;
   TPageviewsTypecountsItemClass = Class of TPageviewsTypecountsItem;
-  
+
   { --------------------------------------------------------------------
     TPageviews
     --------------------------------------------------------------------}
-  
+
   TPageviews = Class(TGoogleBaseObject)
   Private
     FblogId : String;
@@ -624,11 +624,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TPageviewsClass = Class of TPageviews;
-  
+
   { --------------------------------------------------------------------
     TPostTypeauthorTypeimage
     --------------------------------------------------------------------}
-  
+
   TPostTypeauthorTypeimage = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -640,11 +640,11 @@ type
     Property url : String Index 0 Read Furl Write Seturl;
   end;
   TPostTypeauthorTypeimageClass = Class of TPostTypeauthorTypeimage;
-  
+
   { --------------------------------------------------------------------
     TPostTypeauthor
     --------------------------------------------------------------------}
-  
+
   TPostTypeauthor = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -665,11 +665,11 @@ type
     Property url : String Index 24 Read Furl Write Seturl;
   end;
   TPostTypeauthorClass = Class of TPostTypeauthor;
-  
+
   { --------------------------------------------------------------------
     TPostTypeblog
     --------------------------------------------------------------------}
-  
+
   TPostTypeblog = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -681,11 +681,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TPostTypeblogClass = Class of TPostTypeblog;
-  
+
   { --------------------------------------------------------------------
     TPostTypeimagesItem
     --------------------------------------------------------------------}
-  
+
   TPostTypeimagesItem = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -697,11 +697,11 @@ type
     Property url : String Index 0 Read Furl Write Seturl;
   end;
   TPostTypeimagesItemClass = Class of TPostTypeimagesItem;
-  
+
   { --------------------------------------------------------------------
     TPostTypelocation
     --------------------------------------------------------------------}
-  
+
   TPostTypelocation = Class(TGoogleBaseObject)
   Private
     Flat : double;
@@ -722,11 +722,11 @@ type
     Property span : String Index 24 Read Fspan Write Setspan;
   end;
   TPostTypelocationClass = Class of TPostTypelocation;
-  
+
   { --------------------------------------------------------------------
     TPostTypereplies
     --------------------------------------------------------------------}
-  
+
   TPostTypereplies = Class(TGoogleBaseObject)
   Private
     Fitems : TPostTyperepliesTypeitemsArray;
@@ -748,11 +748,11 @@ type
     Property totalItems : String Index 16 Read FtotalItems Write SettotalItems;
   end;
   TPostTyperepliesClass = Class of TPostTypereplies;
-  
+
   { --------------------------------------------------------------------
     TPost
     --------------------------------------------------------------------}
-  
+
   TPost = Class(TGoogleBaseObject)
   Private
     Fauthor : TPostTypeauthor;
@@ -823,11 +823,11 @@ type
     Property url : String Index 144 Read Furl Write Seturl;
   end;
   TPostClass = Class of TPost;
-  
+
   { --------------------------------------------------------------------
     TPostList
     --------------------------------------------------------------------}
-  
+
   TPostList = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -852,11 +852,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TPostListClass = Class of TPostList;
-  
+
   { --------------------------------------------------------------------
     TPostPerUserInfo
     --------------------------------------------------------------------}
-  
+
   TPostPerUserInfo = Class(TGoogleBaseObject)
   Private
     FblogId : String;
@@ -880,11 +880,11 @@ type
     Property userId : String Index 32 Read FuserId Write SetuserId;
   end;
   TPostPerUserInfoClass = Class of TPostPerUserInfo;
-  
+
   { --------------------------------------------------------------------
     TPostUserInfo
     --------------------------------------------------------------------}
-  
+
   TPostUserInfo = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -902,11 +902,11 @@ type
     Property post_user_info : TPostPerUserInfo Index 16 Read Fpost_user_info Write Setpost_user_info;
   end;
   TPostUserInfoClass = Class of TPostUserInfo;
-  
+
   { --------------------------------------------------------------------
     TPostUserInfosList
     --------------------------------------------------------------------}
-  
+
   TPostUserInfosList = Class(TGoogleBaseObject)
   Private
     Fitems : TPostUserInfosListTypeitemsArray;
@@ -928,11 +928,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TPostUserInfosListClass = Class of TPostUserInfosList;
-  
+
   { --------------------------------------------------------------------
     TUserTypeblogs
     --------------------------------------------------------------------}
-  
+
   TUserTypeblogs = Class(TGoogleBaseObject)
   Private
     FselfLink : String;
@@ -944,11 +944,11 @@ type
     Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
   end;
   TUserTypeblogsClass = Class of TUserTypeblogs;
-  
+
   { --------------------------------------------------------------------
     TUserTypelocale
     --------------------------------------------------------------------}
-  
+
   TUserTypelocale = Class(TGoogleBaseObject)
   Private
     Fcountry : String;
@@ -966,11 +966,11 @@ type
     Property variant : String Index 16 Read Fvariant Write Setvariant;
   end;
   TUserTypelocaleClass = Class of TUserTypelocale;
-  
+
   { --------------------------------------------------------------------
     TUser
     --------------------------------------------------------------------}
-  
+
   TUser = Class(TGoogleBaseObject)
   Private
     Fabout : String;
@@ -1006,18 +1006,18 @@ type
     Property url : String Index 64 Read Furl Write Seturl;
   end;
   TUserClass = Class of TUser;
-  
+
   { --------------------------------------------------------------------
     TBlogUserInfosResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBlogUserInfosResource, method Get
-  
+
   TBlogUserInfosGetOptions = Record
     maxPosts : integer;
   end;
-  
+
   TBlogUserInfosResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1025,38 +1025,38 @@ type
     Function Get(blogId: string; userId: string; AQuery : string  = '') : TBlogUserInfo;
     Function Get(blogId: string; userId: string; AQuery : TBlogUserInfosgetOptions) : TBlogUserInfo;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBlogsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBlogsResource, method Get
-  
+
   TBlogsGetOptions = Record
     maxPosts : integer;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TBlogsResource, method GetByUrl
-  
+
   TBlogsGetByUrlOptions = Record
     url : String;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TBlogsResource, method ListByUser
-  
+
   TBlogsListByUserOptions = Record
     fetchUserInfo : boolean;
     role : String;
     status : String;
     view : String;
   end;
-  
+
   TBlogsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1068,22 +1068,22 @@ type
     Function ListByUser(userId: string; AQuery : string  = '') : TBlogList;
     Function ListByUser(userId: string; AQuery : TBlogslistByUserOptions) : TBlogList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCommentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCommentsResource, method Get
-  
+
   TCommentsGetOptions = Record
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TCommentsResource, method List
-  
+
   TCommentsListOptions = Record
     endDate : TDatetime;
     fetchBodies : boolean;
@@ -1093,10 +1093,10 @@ type
     status : String;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TCommentsResource, method ListByBlog
-  
+
   TCommentsListByBlogOptions = Record
     endDate : TDatetime;
     fetchBodies : boolean;
@@ -1105,7 +1105,7 @@ type
     startDate : TDatetime;
     status : String;
   end;
-  
+
   TCommentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1121,19 +1121,19 @@ type
     Function MarkAsSpam(blogId: string; commentId: string; postId: string) : TComment;
     Function RemoveContent(blogId: string; commentId: string; postId: string) : TComment;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPageViewsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPageViewsResource, method Get
-  
+
   TPageViewsGetOptions = Record
     range : String;
   end;
-  
+
   TPageViewsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1141,29 +1141,29 @@ type
     Function Get(blogId: string; AQuery : string  = '') : TPageviews;
     Function Get(blogId: string; AQuery : TPageViewsgetOptions) : TPageviews;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPagesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPagesResource, method Get
-  
+
   TPagesGetOptions = Record
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TPagesResource, method Insert
-  
+
   TPagesInsertOptions = Record
     isDraft : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TPagesResource, method List
-  
+
   TPagesListOptions = Record
     fetchBodies : boolean;
     maxResults : integer;
@@ -1171,23 +1171,23 @@ type
     status : String;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TPagesResource, method Patch
-  
+
   TPagesPatchOptions = Record
     publish : boolean;
     revert : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TPagesResource, method Update
-  
+
   TPagesUpdateOptions = Record
     publish : boolean;
     revert : boolean;
   end;
-  
+
   TPagesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1206,22 +1206,22 @@ type
     Function Update(blogId: string; pageId: string; aPage : TPage; AQuery : string  = '') : TPage;
     Function Update(blogId: string; pageId: string; aPage : TPage; AQuery : TPagesupdateOptions) : TPage;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPostUserInfosResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPostUserInfosResource, method Get
-  
+
   TPostUserInfosGetOptions = Record
     maxComments : integer;
   end;
-  
-  
+
+
   //Optional query Options for TPostUserInfosResource, method List
-  
+
   TPostUserInfosListOptions = Record
     endDate : TDatetime;
     fetchBodies : boolean;
@@ -1233,7 +1233,7 @@ type
     status : String;
     view : String;
   end;
-  
+
   TPostUserInfosResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1243,43 +1243,43 @@ type
     Function List(blogId: string; userId: string; AQuery : string  = '') : TPostUserInfosList;
     Function List(blogId: string; userId: string; AQuery : TPostUserInfoslistOptions) : TPostUserInfosList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPostsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPostsResource, method Get
-  
+
   TPostsGetOptions = Record
     fetchBody : boolean;
     fetchImages : boolean;
     maxComments : integer;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method GetByPath
-  
+
   TPostsGetByPathOptions = Record
     maxComments : integer;
     path : String;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method Insert
-  
+
   TPostsInsertOptions = Record
     fetchBody : boolean;
     fetchImages : boolean;
     isDraft : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method List
-  
+
   TPostsListOptions = Record
     endDate : TDatetime;
     fetchBodies : boolean;
@@ -1292,10 +1292,10 @@ type
     status : String;
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method Patch
-  
+
   TPostsPatchOptions = Record
     fetchBody : boolean;
     fetchImages : boolean;
@@ -1303,26 +1303,26 @@ type
     publish : boolean;
     revert : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method Publish
-  
+
   TPostsPublishOptions = Record
     publishDate : TDatetime;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method Search
-  
+
   TPostsSearchOptions = Record
     fetchBodies : boolean;
     orderBy : String;
     q : String;
   end;
-  
-  
+
+
   //Optional query Options for TPostsResource, method Update
-  
+
   TPostsUpdateOptions = Record
     fetchBody : boolean;
     fetchImages : boolean;
@@ -1330,7 +1330,7 @@ type
     publish : boolean;
     revert : boolean;
   end;
-  
+
   TPostsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1354,24 +1354,24 @@ type
     Function Update(blogId: string; postId: string; aPost : TPost; AQuery : string  = '') : TPost;
     Function Update(blogId: string; postId: string; aPost : TPost; AQuery : TPostsupdateOptions) : TPost;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersResource
     --------------------------------------------------------------------}
-  
+
   TUsersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(userId: string) : TUser;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBloggerAPI
     --------------------------------------------------------------------}
-  
+
   TBloggerAPI = Class(TGoogleAPI)
   Private
     FBlogUserInfosInstance : TBlogUserInfosResource;
@@ -1448,7 +1448,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBlogTypelocale.Setcountry(AIndex : Integer; const AValue : String); 
+Procedure TBlogTypelocale.Setcountry(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcountry=AValue) then exit;
@@ -1458,7 +1458,7 @@ end;
 
 
 
-Procedure TBlogTypelocale.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure TBlogTypelocale.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -1468,7 +1468,7 @@ end;
 
 
 
-Procedure TBlogTypelocale.Setvariant(AIndex : Integer; const AValue : String); 
+Procedure TBlogTypelocale.Setvariant(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -1485,7 +1485,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogTypepages.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TBlogTypepages.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1495,7 +1495,7 @@ end;
 
 
 
-Procedure TBlogTypepages.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TBlogTypepages.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -1512,7 +1512,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogTypeposts.Setitems(AIndex : Integer; const AValue : TBlogTypepostsTypeitemsArray); 
+Procedure TBlogTypeposts.Setitems(AIndex : Integer; const AValue : TBlogTypepostsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1522,7 +1522,7 @@ end;
 
 
 
-Procedure TBlogTypeposts.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TBlogTypeposts.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1532,7 +1532,7 @@ end;
 
 
 
-Procedure TBlogTypeposts.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TBlogTypeposts.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -1543,7 +1543,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBlogTypeposts.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBlogTypeposts.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1562,7 +1562,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlog.SetcustomMetaData(AIndex : Integer; const AValue : String); 
+Procedure TBlog.SetcustomMetaData(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomMetaData=AValue) then exit;
@@ -1572,7 +1572,7 @@ end;
 
 
 
-Procedure TBlog.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TBlog.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1582,7 +1582,7 @@ end;
 
 
 
-Procedure TBlog.Setid(AIndex : Integer; const AValue : String); 
+Procedure TBlog.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1592,7 +1592,7 @@ end;
 
 
 
-Procedure TBlog.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBlog.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1602,7 +1602,7 @@ end;
 
 
 
-Procedure TBlog.Setlocale(AIndex : Integer; const AValue : TBlogTypelocale); 
+Procedure TBlog.Setlocale(AIndex : Integer; const AValue : TBlogTypelocale);
 
 begin
   If (Flocale=AValue) then exit;
@@ -1612,7 +1612,7 @@ end;
 
 
 
-Procedure TBlog.Setname(AIndex : Integer; const AValue : String); 
+Procedure TBlog.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1622,7 +1622,7 @@ end;
 
 
 
-Procedure TBlog.Setpages(AIndex : Integer; const AValue : TBlogTypepages); 
+Procedure TBlog.Setpages(AIndex : Integer; const AValue : TBlogTypepages);
 
 begin
   If (Fpages=AValue) then exit;
@@ -1632,7 +1632,7 @@ end;
 
 
 
-Procedure TBlog.Setposts(AIndex : Integer; const AValue : TBlogTypeposts); 
+Procedure TBlog.Setposts(AIndex : Integer; const AValue : TBlogTypeposts);
 
 begin
   If (Fposts=AValue) then exit;
@@ -1642,7 +1642,7 @@ end;
 
 
 
-Procedure TBlog.Set_published(AIndex : Integer; const AValue : TDatetime); 
+Procedure TBlog.Set_published(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (F_published=AValue) then exit;
@@ -1652,7 +1652,7 @@ end;
 
 
 
-Procedure TBlog.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TBlog.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1662,7 +1662,7 @@ end;
 
 
 
-Procedure TBlog.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TBlog.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1672,7 +1672,7 @@ end;
 
 
 
-Procedure TBlog.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TBlog.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -1682,7 +1682,7 @@ end;
 
 
 
-Procedure TBlog.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TBlog.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1710,7 +1710,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogList.SetblogUserInfos(AIndex : Integer; const AValue : TBlogListTypeblogUserInfosArray); 
+Procedure TBlogList.SetblogUserInfos(AIndex : Integer; const AValue : TBlogListTypeblogUserInfosArray);
 
 begin
   If (FblogUserInfos=AValue) then exit;
@@ -1720,7 +1720,7 @@ end;
 
 
 
-Procedure TBlogList.Setitems(AIndex : Integer; const AValue : TBlogListTypeitemsArray); 
+Procedure TBlogList.Setitems(AIndex : Integer; const AValue : TBlogListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1730,7 +1730,7 @@ end;
 
 
 
-Procedure TBlogList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBlogList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1741,7 +1741,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBlogList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBlogList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1761,7 +1761,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogPerUserInfo.SetblogId(AIndex : Integer; const AValue : String); 
+Procedure TBlogPerUserInfo.SetblogId(AIndex : Integer; const AValue : String);
 
 begin
   If (FblogId=AValue) then exit;
@@ -1771,7 +1771,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SethasAdminAccess(AIndex : Integer; const AValue : boolean); 
+Procedure TBlogPerUserInfo.SethasAdminAccess(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasAdminAccess=AValue) then exit;
@@ -1781,7 +1781,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBlogPerUserInfo.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1791,7 +1791,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SetphotosAlbumKey(AIndex : Integer; const AValue : String); 
+Procedure TBlogPerUserInfo.SetphotosAlbumKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotosAlbumKey=AValue) then exit;
@@ -1801,7 +1801,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TBlogPerUserInfo.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -1811,7 +1811,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TBlogPerUserInfo.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -1828,7 +1828,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogUserInfo.Setblog(AIndex : Integer; const AValue : TBlog); 
+Procedure TBlogUserInfo.Setblog(AIndex : Integer; const AValue : TBlog);
 
 begin
   If (Fblog=AValue) then exit;
@@ -1838,7 +1838,7 @@ end;
 
 
 
-Procedure TBlogUserInfo.Setblog_user_info(AIndex : Integer; const AValue : TBlogPerUserInfo); 
+Procedure TBlogUserInfo.Setblog_user_info(AIndex : Integer; const AValue : TBlogPerUserInfo);
 
 begin
   If (Fblog_user_info=AValue) then exit;
@@ -1848,7 +1848,7 @@ end;
 
 
 
-Procedure TBlogUserInfo.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBlogUserInfo.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1865,7 +1865,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1882,7 +1882,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1892,7 +1892,7 @@ end;
 
 
 
-Procedure TCommentTypeauthor.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypeauthor.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1902,7 +1902,7 @@ end;
 
 
 
-Procedure TCommentTypeauthor.Setimage(AIndex : Integer; const AValue : TCommentTypeauthorTypeimage); 
+Procedure TCommentTypeauthor.Setimage(AIndex : Integer; const AValue : TCommentTypeauthorTypeimage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -1912,7 +1912,7 @@ end;
 
 
 
-Procedure TCommentTypeauthor.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypeauthor.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1929,7 +1929,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeblog.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypeblog.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1946,7 +1946,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeinReplyTo.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypeinReplyTo.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1963,7 +1963,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypepost.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCommentTypepost.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1980,7 +1980,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComment.Setauthor(AIndex : Integer; const AValue : TCommentTypeauthor); 
+Procedure TComment.Setauthor(AIndex : Integer; const AValue : TCommentTypeauthor);
 
 begin
   If (Fauthor=AValue) then exit;
@@ -1990,7 +1990,7 @@ end;
 
 
 
-Procedure TComment.Setblog(AIndex : Integer; const AValue : TCommentTypeblog); 
+Procedure TComment.Setblog(AIndex : Integer; const AValue : TCommentTypeblog);
 
 begin
   If (Fblog=AValue) then exit;
@@ -2000,7 +2000,7 @@ end;
 
 
 
-Procedure TComment.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TComment.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -2010,7 +2010,7 @@ end;
 
 
 
-Procedure TComment.Setid(AIndex : Integer; const AValue : String); 
+Procedure TComment.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2020,7 +2020,7 @@ end;
 
 
 
-Procedure TComment.SetinReplyTo(AIndex : Integer; const AValue : TCommentTypeinReplyTo); 
+Procedure TComment.SetinReplyTo(AIndex : Integer; const AValue : TCommentTypeinReplyTo);
 
 begin
   If (FinReplyTo=AValue) then exit;
@@ -2030,7 +2030,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TComment.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2040,7 +2040,7 @@ end;
 
 
 
-Procedure TComment.Setpost(AIndex : Integer; const AValue : TCommentTypepost); 
+Procedure TComment.Setpost(AIndex : Integer; const AValue : TCommentTypepost);
 
 begin
   If (Fpost=AValue) then exit;
@@ -2050,7 +2050,7 @@ end;
 
 
 
-Procedure TComment.Set_published(AIndex : Integer; const AValue : TDatetime); 
+Procedure TComment.Set_published(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (F_published=AValue) then exit;
@@ -2060,7 +2060,7 @@ end;
 
 
 
-Procedure TComment.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TComment.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2070,7 +2070,7 @@ end;
 
 
 
-Procedure TComment.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TComment.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2080,7 +2080,7 @@ end;
 
 
 
-Procedure TComment.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TComment.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2108,7 +2108,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentList.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TCommentList.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2118,7 +2118,7 @@ end;
 
 
 
-Procedure TCommentList.Setitems(AIndex : Integer; const AValue : TCommentListTypeitemsArray); 
+Procedure TCommentList.Setitems(AIndex : Integer; const AValue : TCommentListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2128,7 +2128,7 @@ end;
 
 
 
-Procedure TCommentList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCommentList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2138,7 +2138,7 @@ end;
 
 
 
-Procedure TCommentList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCommentList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2148,7 +2148,7 @@ end;
 
 
 
-Procedure TCommentList.SetprevPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCommentList.SetprevPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -2159,7 +2159,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCommentList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCommentList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2178,7 +2178,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPageTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2195,7 +2195,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TPageTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2205,7 +2205,7 @@ end;
 
 
 
-Procedure TPageTypeauthor.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPageTypeauthor.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2215,7 +2215,7 @@ end;
 
 
 
-Procedure TPageTypeauthor.Setimage(AIndex : Integer; const AValue : TPageTypeauthorTypeimage); 
+Procedure TPageTypeauthor.Setimage(AIndex : Integer; const AValue : TPageTypeauthorTypeimage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -2225,7 +2225,7 @@ end;
 
 
 
-Procedure TPageTypeauthor.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPageTypeauthor.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2242,7 +2242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageTypeblog.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPageTypeblog.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2259,7 +2259,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPage.Setauthor(AIndex : Integer; const AValue : TPageTypeauthor); 
+Procedure TPage.Setauthor(AIndex : Integer; const AValue : TPageTypeauthor);
 
 begin
   If (Fauthor=AValue) then exit;
@@ -2269,7 +2269,7 @@ end;
 
 
 
-Procedure TPage.Setblog(AIndex : Integer; const AValue : TPageTypeblog); 
+Procedure TPage.Setblog(AIndex : Integer; const AValue : TPageTypeblog);
 
 begin
   If (Fblog=AValue) then exit;
@@ -2279,7 +2279,7 @@ end;
 
 
 
-Procedure TPage.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TPage.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -2289,7 +2289,7 @@ end;
 
 
 
-Procedure TPage.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPage.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2299,7 +2299,7 @@ end;
 
 
 
-Procedure TPage.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPage.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2309,7 +2309,7 @@ end;
 
 
 
-Procedure TPage.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPage.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2319,7 +2319,7 @@ end;
 
 
 
-Procedure TPage.Set_published(AIndex : Integer; const AValue : TDatetime); 
+Procedure TPage.Set_published(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (F_published=AValue) then exit;
@@ -2329,7 +2329,7 @@ end;
 
 
 
-Procedure TPage.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TPage.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2339,7 +2339,7 @@ end;
 
 
 
-Procedure TPage.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TPage.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2349,7 +2349,7 @@ end;
 
 
 
-Procedure TPage.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TPage.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2359,7 +2359,7 @@ end;
 
 
 
-Procedure TPage.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TPage.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2369,7 +2369,7 @@ end;
 
 
 
-Procedure TPage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2397,7 +2397,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageList.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPageList.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2407,7 +2407,7 @@ end;
 
 
 
-Procedure TPageList.Setitems(AIndex : Integer; const AValue : TPageListTypeitemsArray); 
+Procedure TPageList.Setitems(AIndex : Integer; const AValue : TPageListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2417,7 +2417,7 @@ end;
 
 
 
-Procedure TPageList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPageList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2427,7 +2427,7 @@ end;
 
 
 
-Procedure TPageList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPageList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2438,7 +2438,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPageList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPageList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2457,7 +2457,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageviewsTypecountsItem.Setcount(AIndex : Integer; const AValue : String); 
+Procedure TPageviewsTypecountsItem.Setcount(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcount=AValue) then exit;
@@ -2467,7 +2467,7 @@ end;
 
 
 
-Procedure TPageviewsTypecountsItem.SettimeRange(AIndex : Integer; const AValue : String); 
+Procedure TPageviewsTypecountsItem.SettimeRange(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeRange=AValue) then exit;
@@ -2484,7 +2484,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageviews.SetblogId(AIndex : Integer; const AValue : String); 
+Procedure TPageviews.SetblogId(AIndex : Integer; const AValue : String);
 
 begin
   If (FblogId=AValue) then exit;
@@ -2494,7 +2494,7 @@ end;
 
 
 
-Procedure TPageviews.Setcounts(AIndex : Integer; const AValue : TPageviewsTypecountsArray); 
+Procedure TPageviews.Setcounts(AIndex : Integer; const AValue : TPageviewsTypecountsArray);
 
 begin
   If (Fcounts=AValue) then exit;
@@ -2504,7 +2504,7 @@ end;
 
 
 
-Procedure TPageviews.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPageviews.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2515,7 +2515,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPageviews.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPageviews.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2534,7 +2534,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPostTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2551,7 +2551,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TPostTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2561,7 +2561,7 @@ end;
 
 
 
-Procedure TPostTypeauthor.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPostTypeauthor.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2571,7 +2571,7 @@ end;
 
 
 
-Procedure TPostTypeauthor.Setimage(AIndex : Integer; const AValue : TPostTypeauthorTypeimage); 
+Procedure TPostTypeauthor.Setimage(AIndex : Integer; const AValue : TPostTypeauthorTypeimage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -2581,7 +2581,7 @@ end;
 
 
 
-Procedure TPostTypeauthor.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPostTypeauthor.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2598,7 +2598,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeblog.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPostTypeblog.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2615,7 +2615,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeimagesItem.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPostTypeimagesItem.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2632,7 +2632,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypelocation.Setlat(AIndex : Integer; const AValue : double); 
+Procedure TPostTypelocation.Setlat(AIndex : Integer; const AValue : double);
 
 begin
   If (Flat=AValue) then exit;
@@ -2642,7 +2642,7 @@ end;
 
 
 
-Procedure TPostTypelocation.Setlng(AIndex : Integer; const AValue : double); 
+Procedure TPostTypelocation.Setlng(AIndex : Integer; const AValue : double);
 
 begin
   If (Flng=AValue) then exit;
@@ -2652,7 +2652,7 @@ end;
 
 
 
-Procedure TPostTypelocation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPostTypelocation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2662,7 +2662,7 @@ end;
 
 
 
-Procedure TPostTypelocation.Setspan(AIndex : Integer; const AValue : String); 
+Procedure TPostTypelocation.Setspan(AIndex : Integer; const AValue : String);
 
 begin
   If (Fspan=AValue) then exit;
@@ -2679,7 +2679,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypereplies.Setitems(AIndex : Integer; const AValue : TPostTyperepliesTypeitemsArray); 
+Procedure TPostTypereplies.Setitems(AIndex : Integer; const AValue : TPostTyperepliesTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2689,7 +2689,7 @@ end;
 
 
 
-Procedure TPostTypereplies.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TPostTypereplies.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2699,7 +2699,7 @@ end;
 
 
 
-Procedure TPostTypereplies.SettotalItems(AIndex : Integer; const AValue : String); 
+Procedure TPostTypereplies.SettotalItems(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2710,7 +2710,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPostTypereplies.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPostTypereplies.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2729,7 +2729,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPost.Setauthor(AIndex : Integer; const AValue : TPostTypeauthor); 
+Procedure TPost.Setauthor(AIndex : Integer; const AValue : TPostTypeauthor);
 
 begin
   If (Fauthor=AValue) then exit;
@@ -2739,7 +2739,7 @@ end;
 
 
 
-Procedure TPost.Setblog(AIndex : Integer; const AValue : TPostTypeblog); 
+Procedure TPost.Setblog(AIndex : Integer; const AValue : TPostTypeblog);
 
 begin
   If (Fblog=AValue) then exit;
@@ -2749,7 +2749,7 @@ end;
 
 
 
-Procedure TPost.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TPost.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -2759,7 +2759,7 @@ end;
 
 
 
-Procedure TPost.SetcustomMetaData(AIndex : Integer; const AValue : String); 
+Procedure TPost.SetcustomMetaData(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomMetaData=AValue) then exit;
@@ -2769,7 +2769,7 @@ end;
 
 
 
-Procedure TPost.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPost.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2779,7 +2779,7 @@ end;
 
 
 
-Procedure TPost.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPost.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2789,7 +2789,7 @@ end;
 
 
 
-Procedure TPost.Setimages(AIndex : Integer; const AValue : TPostTypeimagesArray); 
+Procedure TPost.Setimages(AIndex : Integer; const AValue : TPostTypeimagesArray);
 
 begin
   If (Fimages=AValue) then exit;
@@ -2799,7 +2799,7 @@ end;
 
 
 
-Procedure TPost.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPost.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2809,7 +2809,7 @@ end;
 
 
 
-Procedure TPost.Setlabels(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPost.Setlabels(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -2819,7 +2819,7 @@ end;
 
 
 
-Procedure TPost.Setlocation(AIndex : Integer; const AValue : TPostTypelocation); 
+Procedure TPost.Setlocation(AIndex : Integer; const AValue : TPostTypelocation);
 
 begin
   If (Flocation=AValue) then exit;
@@ -2829,7 +2829,7 @@ end;
 
 
 
-Procedure TPost.Set_published(AIndex : Integer; const AValue : TDatetime); 
+Procedure TPost.Set_published(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (F_published=AValue) then exit;
@@ -2839,7 +2839,7 @@ end;
 
 
 
-Procedure TPost.SetreaderComments(AIndex : Integer; const AValue : String); 
+Procedure TPost.SetreaderComments(AIndex : Integer; const AValue : String);
 
 begin
   If (FreaderComments=AValue) then exit;
@@ -2849,7 +2849,7 @@ end;
 
 
 
-Procedure TPost.Setreplies(AIndex : Integer; const AValue : TPostTypereplies); 
+Procedure TPost.Setreplies(AIndex : Integer; const AValue : TPostTypereplies);
 
 begin
   If (Freplies=AValue) then exit;
@@ -2859,7 +2859,7 @@ end;
 
 
 
-Procedure TPost.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TPost.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2869,7 +2869,7 @@ end;
 
 
 
-Procedure TPost.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TPost.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2879,7 +2879,7 @@ end;
 
 
 
-Procedure TPost.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TPost.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2889,7 +2889,7 @@ end;
 
 
 
-Procedure TPost.SettitleLink(AIndex : Integer; const AValue : String); 
+Procedure TPost.SettitleLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FtitleLink=AValue) then exit;
@@ -2899,7 +2899,7 @@ end;
 
 
 
-Procedure TPost.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TPost.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2909,7 +2909,7 @@ end;
 
 
 
-Procedure TPost.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPost.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2931,7 +2931,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPost.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPost.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2951,7 +2951,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostList.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPostList.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2961,7 +2961,7 @@ end;
 
 
 
-Procedure TPostList.Setitems(AIndex : Integer; const AValue : TPostListTypeitemsArray); 
+Procedure TPostList.Setitems(AIndex : Integer; const AValue : TPostListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2971,7 +2971,7 @@ end;
 
 
 
-Procedure TPostList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPostList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2981,7 +2981,7 @@ end;
 
 
 
-Procedure TPostList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPostList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2992,7 +2992,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPostList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPostList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3011,7 +3011,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostPerUserInfo.SetblogId(AIndex : Integer; const AValue : String); 
+Procedure TPostPerUserInfo.SetblogId(AIndex : Integer; const AValue : String);
 
 begin
   If (FblogId=AValue) then exit;
@@ -3021,7 +3021,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SethasEditAccess(AIndex : Integer; const AValue : boolean); 
+Procedure TPostPerUserInfo.SethasEditAccess(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasEditAccess=AValue) then exit;
@@ -3031,7 +3031,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPostPerUserInfo.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3041,7 +3041,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SetpostId(AIndex : Integer; const AValue : String); 
+Procedure TPostPerUserInfo.SetpostId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpostId=AValue) then exit;
@@ -3051,7 +3051,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TPostPerUserInfo.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -3068,7 +3068,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostUserInfo.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPostUserInfo.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3078,7 +3078,7 @@ end;
 
 
 
-Procedure TPostUserInfo.Setpost(AIndex : Integer; const AValue : TPost); 
+Procedure TPostUserInfo.Setpost(AIndex : Integer; const AValue : TPost);
 
 begin
   If (Fpost=AValue) then exit;
@@ -3088,7 +3088,7 @@ end;
 
 
 
-Procedure TPostUserInfo.Setpost_user_info(AIndex : Integer; const AValue : TPostPerUserInfo); 
+Procedure TPostUserInfo.Setpost_user_info(AIndex : Integer; const AValue : TPostPerUserInfo);
 
 begin
   If (Fpost_user_info=AValue) then exit;
@@ -3105,7 +3105,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostUserInfosList.Setitems(AIndex : Integer; const AValue : TPostUserInfosListTypeitemsArray); 
+Procedure TPostUserInfosList.Setitems(AIndex : Integer; const AValue : TPostUserInfosListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -3115,7 +3115,7 @@ end;
 
 
 
-Procedure TPostUserInfosList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPostUserInfosList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3125,7 +3125,7 @@ end;
 
 
 
-Procedure TPostUserInfosList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPostUserInfosList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3136,7 +3136,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPostUserInfosList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPostUserInfosList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3155,7 +3155,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserTypeblogs.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TUserTypeblogs.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3172,7 +3172,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserTypelocale.Setcountry(AIndex : Integer; const AValue : String); 
+Procedure TUserTypelocale.Setcountry(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcountry=AValue) then exit;
@@ -3182,7 +3182,7 @@ end;
 
 
 
-Procedure TUserTypelocale.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure TUserTypelocale.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -3192,7 +3192,7 @@ end;
 
 
 
-Procedure TUserTypelocale.Setvariant(AIndex : Integer; const AValue : String); 
+Procedure TUserTypelocale.Setvariant(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -3209,7 +3209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setabout(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setabout(AIndex : Integer; const AValue : String);
 
 begin
   If (Fabout=AValue) then exit;
@@ -3219,7 +3219,7 @@ end;
 
 
 
-Procedure TUser.Setblogs(AIndex : Integer; const AValue : TUserTypeblogs); 
+Procedure TUser.Setblogs(AIndex : Integer; const AValue : TUserTypeblogs);
 
 begin
   If (Fblogs=AValue) then exit;
@@ -3229,7 +3229,7 @@ end;
 
 
 
-Procedure TUser.Setcreated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TUser.Setcreated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fcreated=AValue) then exit;
@@ -3239,7 +3239,7 @@ end;
 
 
 
-Procedure TUser.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TUser.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3249,7 +3249,7 @@ end;
 
 
 
-Procedure TUser.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3259,7 +3259,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3269,7 +3269,7 @@ end;
 
 
 
-Procedure TUser.Setlocale(AIndex : Integer; const AValue : TUserTypelocale); 
+Procedure TUser.Setlocale(AIndex : Integer; const AValue : TUserTypelocale);
 
 begin
   If (Flocale=AValue) then exit;
@@ -3279,7 +3279,7 @@ end;
 
 
 
-Procedure TUser.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TUser.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3289,7 +3289,7 @@ end;
 
 
 
-Procedure TUser.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TUser.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -4390,7 +4390,7 @@ begin
   Result[0].Description:='Manage your Blogger account';
   Result[1].Name:='https://www.googleapis.com/auth/blogger.readonly';
   Result[1].Description:='View your Blogger account';
-  
+
 end;
 
 Class Function TBloggerAPI.APINeedsAuth : Boolean;

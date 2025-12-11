@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAchievementConfiguration = Class;
   TAchievementConfigurationDetail = Class;
@@ -41,11 +41,11 @@ type
   TAchievementConfigurationListResponseTypeitemsArray = Array of TAchievementConfiguration;
   TLeaderboardConfigurationListResponseTypeitemsArray = Array of TLeaderboardConfiguration;
   TLocalizedStringBundleTypetranslationsArray = Array of TLocalizedString;
-  
+
   { --------------------------------------------------------------------
     TAchievementConfiguration
     --------------------------------------------------------------------}
-  
+
   TAchievementConfiguration = Class(TGoogleBaseObject)
   Private
     FachievementType : String;
@@ -79,11 +79,11 @@ type
     Property token : String Index 56 Read Ftoken Write Settoken;
   end;
   TAchievementConfigurationClass = Class of TAchievementConfiguration;
-  
+
   { --------------------------------------------------------------------
     TAchievementConfigurationDetail
     --------------------------------------------------------------------}
-  
+
   TAchievementConfigurationDetail = Class(TGoogleBaseObject)
   Private
     Fdescription : TLocalizedStringBundle;
@@ -110,11 +110,11 @@ type
     Property sortRank : integer Index 40 Read FsortRank Write SetsortRank;
   end;
   TAchievementConfigurationDetailClass = Class of TAchievementConfigurationDetail;
-  
+
   { --------------------------------------------------------------------
     TAchievementConfigurationListResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementConfigurationListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TAchievementConfigurationListResponseTypeitemsArray;
@@ -136,11 +136,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TAchievementConfigurationListResponseClass = Class of TAchievementConfigurationListResponse;
-  
+
   { --------------------------------------------------------------------
     TGamesNumberAffixConfiguration
     --------------------------------------------------------------------}
-  
+
   TGamesNumberAffixConfiguration = Class(TGoogleBaseObject)
   Private
     Ffew : TLocalizedStringBundle;
@@ -167,11 +167,11 @@ type
     Property zero : TLocalizedStringBundle Index 40 Read Fzero Write Setzero;
   end;
   TGamesNumberAffixConfigurationClass = Class of TGamesNumberAffixConfiguration;
-  
+
   { --------------------------------------------------------------------
     TGamesNumberFormatConfiguration
     --------------------------------------------------------------------}
-  
+
   TGamesNumberFormatConfiguration = Class(TGoogleBaseObject)
   Private
     FcurrencyCode : String;
@@ -192,11 +192,11 @@ type
     Property suffix : TGamesNumberAffixConfiguration Index 24 Read Fsuffix Write Setsuffix;
   end;
   TGamesNumberFormatConfigurationClass = Class of TGamesNumberFormatConfiguration;
-  
+
   { --------------------------------------------------------------------
     TImageConfiguration
     --------------------------------------------------------------------}
-  
+
   TImageConfiguration = Class(TGoogleBaseObject)
   Private
     FimageType : String;
@@ -217,11 +217,11 @@ type
     Property url : String Index 24 Read Furl Write Seturl;
   end;
   TImageConfigurationClass = Class of TImageConfiguration;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardConfiguration
     --------------------------------------------------------------------}
-  
+
   TLeaderboardConfiguration = Class(TGoogleBaseObject)
   Private
     Fdraft : TLeaderboardConfigurationDetail;
@@ -255,11 +255,11 @@ type
     Property token : String Index 56 Read Ftoken Write Settoken;
   end;
   TLeaderboardConfigurationClass = Class of TLeaderboardConfiguration;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardConfigurationDetail
     --------------------------------------------------------------------}
-  
+
   TLeaderboardConfigurationDetail = Class(TGoogleBaseObject)
   Private
     FiconUrl : String;
@@ -283,11 +283,11 @@ type
     Property sortRank : integer Index 32 Read FsortRank Write SetsortRank;
   end;
   TLeaderboardConfigurationDetailClass = Class of TLeaderboardConfigurationDetail;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardConfigurationListResponse
     --------------------------------------------------------------------}
-  
+
   TLeaderboardConfigurationListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TLeaderboardConfigurationListResponseTypeitemsArray;
@@ -309,11 +309,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TLeaderboardConfigurationListResponseClass = Class of TLeaderboardConfigurationListResponse;
-  
+
   { --------------------------------------------------------------------
     TLocalizedString
     --------------------------------------------------------------------}
-  
+
   TLocalizedString = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -331,11 +331,11 @@ type
     Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TLocalizedStringClass = Class of TLocalizedString;
-  
+
   { --------------------------------------------------------------------
     TLocalizedStringBundle
     --------------------------------------------------------------------}
-  
+
   TLocalizedStringBundle = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -354,19 +354,19 @@ type
     Property translations : TLocalizedStringBundleTypetranslationsArray Index 8 Read Ftranslations Write Settranslations;
   end;
   TLocalizedStringBundleClass = Class of TLocalizedStringBundle;
-  
+
   { --------------------------------------------------------------------
     TAchievementConfigurationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAchievementConfigurationsResource, method List
-  
+
   TAchievementConfigurationsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAchievementConfigurationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -379,32 +379,32 @@ type
     Function Patch(achievementId: string; aAchievementConfiguration : TAchievementConfiguration) : TAchievementConfiguration;
     Function Update(achievementId: string; aAchievementConfiguration : TAchievementConfiguration) : TAchievementConfiguration;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TImageConfigurationsResource
     --------------------------------------------------------------------}
-  
+
   TImageConfigurationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Upload(imageType: string; resourceId: string) : TImageConfiguration;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLeaderboardConfigurationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLeaderboardConfigurationsResource, method List
-  
+
   TLeaderboardConfigurationsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TLeaderboardConfigurationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -417,12 +417,12 @@ type
     Function Patch(leaderboardId: string; aLeaderboardConfiguration : TLeaderboardConfiguration) : TLeaderboardConfiguration;
     Function Update(leaderboardId: string; aLeaderboardConfiguration : TLeaderboardConfiguration) : TLeaderboardConfiguration;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGamesConfigurationAPI
     --------------------------------------------------------------------}
-  
+
   TGamesConfigurationAPI = Class(TGoogleAPI)
   Private
     FAchievementConfigurationsInstance : TAchievementConfigurationsResource;
@@ -474,7 +474,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementConfiguration.SetachievementType(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfiguration.SetachievementType(AIndex : Integer; const AValue : String);
 
 begin
   If (FachievementType=AValue) then exit;
@@ -484,7 +484,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Setdraft(AIndex : Integer; const AValue : TAchievementConfigurationDetail); 
+Procedure TAchievementConfiguration.Setdraft(AIndex : Integer; const AValue : TAchievementConfigurationDetail);
 
 begin
   If (Fdraft=AValue) then exit;
@@ -494,7 +494,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfiguration.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -504,7 +504,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.SetinitialState(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfiguration.SetinitialState(AIndex : Integer; const AValue : String);
 
 begin
   If (FinitialState=AValue) then exit;
@@ -514,7 +514,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfiguration.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -524,7 +524,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Set_published(AIndex : Integer; const AValue : TAchievementConfigurationDetail); 
+Procedure TAchievementConfiguration.Set_published(AIndex : Integer; const AValue : TAchievementConfigurationDetail);
 
 begin
   If (F_published=AValue) then exit;
@@ -534,7 +534,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.SetstepsToUnlock(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementConfiguration.SetstepsToUnlock(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstepsToUnlock=AValue) then exit;
@@ -544,7 +544,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfiguration.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -572,7 +572,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementConfigurationDetail.Setdescription(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TAchievementConfigurationDetail.Setdescription(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -582,7 +582,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.SeticonUrl(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfigurationDetail.SeticonUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -592,7 +592,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfigurationDetail.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -602,7 +602,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.Setname(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TAchievementConfigurationDetail.Setname(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fname=AValue) then exit;
@@ -612,7 +612,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.SetpointValue(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementConfigurationDetail.SetpointValue(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpointValue=AValue) then exit;
@@ -622,7 +622,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.SetsortRank(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementConfigurationDetail.SetsortRank(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsortRank=AValue) then exit;
@@ -639,7 +639,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementConfigurationListResponse.Setitems(AIndex : Integer; const AValue : TAchievementConfigurationListResponseTypeitemsArray); 
+Procedure TAchievementConfigurationListResponse.Setitems(AIndex : Integer; const AValue : TAchievementConfigurationListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -649,7 +649,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfigurationListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -659,7 +659,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAchievementConfigurationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -670,7 +670,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAchievementConfigurationListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAchievementConfigurationListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -689,7 +689,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesNumberAffixConfiguration.Setfew(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setfew(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Ffew=AValue) then exit;
@@ -699,7 +699,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setmany(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setmany(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fmany=AValue) then exit;
@@ -709,7 +709,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setone(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setone(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fone=AValue) then exit;
@@ -719,7 +719,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setother(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setother(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fother=AValue) then exit;
@@ -729,7 +729,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Settwo(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Settwo(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Ftwo=AValue) then exit;
@@ -739,7 +739,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setzero(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setzero(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fzero=AValue) then exit;
@@ -756,7 +756,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesNumberFormatConfiguration.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TGamesNumberFormatConfiguration.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -766,7 +766,7 @@ end;
 
 
 
-Procedure TGamesNumberFormatConfiguration.SetnumDecimalPlaces(AIndex : Integer; const AValue : integer); 
+Procedure TGamesNumberFormatConfiguration.SetnumDecimalPlaces(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumDecimalPlaces=AValue) then exit;
@@ -776,7 +776,7 @@ end;
 
 
 
-Procedure TGamesNumberFormatConfiguration.SetnumberFormatType(AIndex : Integer; const AValue : String); 
+Procedure TGamesNumberFormatConfiguration.SetnumberFormatType(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumberFormatType=AValue) then exit;
@@ -786,7 +786,7 @@ end;
 
 
 
-Procedure TGamesNumberFormatConfiguration.Setsuffix(AIndex : Integer; const AValue : TGamesNumberAffixConfiguration); 
+Procedure TGamesNumberFormatConfiguration.Setsuffix(AIndex : Integer; const AValue : TGamesNumberAffixConfiguration);
 
 begin
   If (Fsuffix=AValue) then exit;
@@ -803,7 +803,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImageConfiguration.SetimageType(AIndex : Integer; const AValue : String); 
+Procedure TImageConfiguration.SetimageType(AIndex : Integer; const AValue : String);
 
 begin
   If (FimageType=AValue) then exit;
@@ -813,7 +813,7 @@ end;
 
 
 
-Procedure TImageConfiguration.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TImageConfiguration.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -823,7 +823,7 @@ end;
 
 
 
-Procedure TImageConfiguration.SetresourceId(AIndex : Integer; const AValue : String); 
+Procedure TImageConfiguration.SetresourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceId=AValue) then exit;
@@ -833,7 +833,7 @@ end;
 
 
 
-Procedure TImageConfiguration.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TImageConfiguration.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -850,7 +850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardConfiguration.Setdraft(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail); 
+Procedure TLeaderboardConfiguration.Setdraft(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail);
 
 begin
   If (Fdraft=AValue) then exit;
@@ -860,7 +860,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfiguration.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -870,7 +870,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfiguration.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Set_published(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail); 
+Procedure TLeaderboardConfiguration.Set_published(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail);
 
 begin
   If (F_published=AValue) then exit;
@@ -890,7 +890,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.SetscoreMax(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfiguration.SetscoreMax(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreMax=AValue) then exit;
@@ -900,7 +900,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.SetscoreMin(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfiguration.SetscoreMin(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreMin=AValue) then exit;
@@ -910,7 +910,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.SetscoreOrder(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfiguration.SetscoreOrder(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreOrder=AValue) then exit;
@@ -920,7 +920,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfiguration.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -948,7 +948,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardConfigurationDetail.SeticonUrl(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfigurationDetail.SeticonUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -958,7 +958,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfigurationDetail.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -968,7 +968,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.Setname(AIndex : Integer; const AValue : TLocalizedStringBundle); 
+Procedure TLeaderboardConfigurationDetail.Setname(AIndex : Integer; const AValue : TLocalizedStringBundle);
 
 begin
   If (Fname=AValue) then exit;
@@ -978,7 +978,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.SetscoreFormat(AIndex : Integer; const AValue : TGamesNumberFormatConfiguration); 
+Procedure TLeaderboardConfigurationDetail.SetscoreFormat(AIndex : Integer; const AValue : TGamesNumberFormatConfiguration);
 
 begin
   If (FscoreFormat=AValue) then exit;
@@ -988,7 +988,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.SetsortRank(AIndex : Integer; const AValue : integer); 
+Procedure TLeaderboardConfigurationDetail.SetsortRank(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsortRank=AValue) then exit;
@@ -1005,7 +1005,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardConfigurationListResponse.Setitems(AIndex : Integer; const AValue : TLeaderboardConfigurationListResponseTypeitemsArray); 
+Procedure TLeaderboardConfigurationListResponse.Setitems(AIndex : Integer; const AValue : TLeaderboardConfigurationListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1015,7 +1015,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfigurationListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1025,7 +1025,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardConfigurationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1036,7 +1036,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLeaderboardConfigurationListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLeaderboardConfigurationListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1055,7 +1055,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedString.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedString.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1065,7 +1065,7 @@ end;
 
 
 
-Procedure TLocalizedString.Setlocale(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedString.Setlocale(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocale=AValue) then exit;
@@ -1075,7 +1075,7 @@ end;
 
 
 
-Procedure TLocalizedString.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedString.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1092,7 +1092,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedStringBundle.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedStringBundle.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1102,7 +1102,7 @@ end;
 
 
 
-Procedure TLocalizedStringBundle.Settranslations(AIndex : Integer; const AValue : TLocalizedStringBundleTypetranslationsArray); 
+Procedure TLocalizedStringBundle.Settranslations(AIndex : Integer; const AValue : TLocalizedStringBundleTypetranslationsArray);
 
 begin
   If (Ftranslations=AValue) then exit;
@@ -1113,7 +1113,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLocalizedStringBundle.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLocalizedStringBundle.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1517,7 +1517,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/androidpublisher';
   Result[0].Description:='View and manage your Google Play Developer account';
-  
+
 end;
 
 Class Function TGamesConfigurationAPI.APINeedsAuth : Boolean;

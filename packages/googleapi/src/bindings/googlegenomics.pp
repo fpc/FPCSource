@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAnnotationSet = Class;
   TEmpty = Class;
@@ -212,11 +212,11 @@ type
   TSearchCallSetsResponseTypecallSetsArray = Array of TCallSet;
   TStreamVariantsResponseTypevariantsArray = Array of TVariant;
   TOperationMetadataTypeeventsArray = Array of TOperationEvent;
-  
+
   { --------------------------------------------------------------------
     TAnnotationSetTypeinfo
     --------------------------------------------------------------------}
-  
+
   TAnnotationSetTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -226,11 +226,11 @@ type
   Published
   end;
   TAnnotationSetTypeinfoClass = Class of TAnnotationSetTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TAnnotationSet
     --------------------------------------------------------------------}
-  
+
   TAnnotationSet = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -261,11 +261,11 @@ type
     Property info : TAnnotationSetTypeinfo Index 48 Read Finfo Write Setinfo;
   end;
   TAnnotationSetClass = Class of TAnnotationSet;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -274,11 +274,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TSearchAnnotationSetsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchAnnotationSetsRequest = Class(TGoogleBaseObject)
   Private
     FdatasetIds : TStringArray;
@@ -309,11 +309,11 @@ type
     Property pageSize : integer Index 40 Read FpageSize Write SetpageSize;
   end;
   TSearchAnnotationSetsRequestClass = Class of TSearchAnnotationSetsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchAnnotationSetsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchAnnotationSetsResponse = Class(TGoogleBaseObject)
   Private
     FannotationSets : TSearchAnnotationSetsResponseTypeannotationSetsArray;
@@ -332,11 +332,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchAnnotationSetsResponseClass = Class of TSearchAnnotationSetsResponse;
-  
+
   { --------------------------------------------------------------------
     TAnnotationTypeinfo
     --------------------------------------------------------------------}
-  
+
   TAnnotationTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -346,11 +346,11 @@ type
   Published
   end;
   TAnnotationTypeinfoClass = Class of TAnnotationTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TAnnotation
     --------------------------------------------------------------------}
-  
+
   TAnnotation = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -396,11 +396,11 @@ type
     Property info : TAnnotationTypeinfo Index 88 Read Finfo Write Setinfo;
   end;
   TAnnotationClass = Class of TAnnotation;
-  
+
   { --------------------------------------------------------------------
     TVariantAnnotation
     --------------------------------------------------------------------}
-  
+
   TVariantAnnotation = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -435,11 +435,11 @@ type
     Property clinicalSignificance : String Index 48 Read FclinicalSignificance Write SetclinicalSignificance;
   end;
   TVariantAnnotationClass = Class of TVariantAnnotation;
-  
+
   { --------------------------------------------------------------------
     TClinicalCondition
     --------------------------------------------------------------------}
-  
+
   TClinicalCondition = Class(TGoogleBaseObject)
   Private
     Fnames : TStringArray;
@@ -464,11 +464,11 @@ type
     Property omimId : String Index 24 Read FomimId Write SetomimId;
   end;
   TClinicalConditionClass = Class of TClinicalCondition;
-  
+
   { --------------------------------------------------------------------
     TExternalId
     --------------------------------------------------------------------}
-  
+
   TExternalId = Class(TGoogleBaseObject)
   Private
     FsourceName : String;
@@ -483,11 +483,11 @@ type
     Property id : String Index 8 Read Fid Write Setid;
   end;
   TExternalIdClass = Class of TExternalId;
-  
+
   { --------------------------------------------------------------------
     TTranscript
     --------------------------------------------------------------------}
-  
+
   TTranscript = Class(TGoogleBaseObject)
   Private
     FgeneId : String;
@@ -509,11 +509,11 @@ type
     Property codingSequence : TCodingSequence Index 16 Read FcodingSequence Write SetcodingSequence;
   end;
   TTranscriptClass = Class of TTranscript;
-  
+
   { --------------------------------------------------------------------
     TExon
     --------------------------------------------------------------------}
-  
+
   TExon = Class(TGoogleBaseObject)
   Private
     Fstart : String;
@@ -532,11 +532,11 @@ type
     Property frame : integer Index 16 Read Fframe Write Setframe;
   end;
   TExonClass = Class of TExon;
-  
+
   { --------------------------------------------------------------------
     TCodingSequence
     --------------------------------------------------------------------}
-  
+
   TCodingSequence = Class(TGoogleBaseObject)
   Private
     Fstart : String;
@@ -552,11 +552,11 @@ type
     Property _end : String Index 8 Read F_end Write Set_end;
   end;
   TCodingSequenceClass = Class of TCodingSequence;
-  
+
   { --------------------------------------------------------------------
     TBatchCreateAnnotationsRequest
     --------------------------------------------------------------------}
-  
+
   TBatchCreateAnnotationsRequest = Class(TGoogleBaseObject)
   Private
     Fannotations : TBatchCreateAnnotationsRequestTypeannotationsArray;
@@ -572,11 +572,11 @@ type
     Property annotations : TBatchCreateAnnotationsRequestTypeannotationsArray Index 0 Read Fannotations Write Setannotations;
   end;
   TBatchCreateAnnotationsRequestClass = Class of TBatchCreateAnnotationsRequest;
-  
+
   { --------------------------------------------------------------------
     TBatchCreateAnnotationsResponse
     --------------------------------------------------------------------}
-  
+
   TBatchCreateAnnotationsResponse = Class(TGoogleBaseObject)
   Private
     Fentries : TBatchCreateAnnotationsResponseTypeentriesArray;
@@ -592,11 +592,11 @@ type
     Property entries : TBatchCreateAnnotationsResponseTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TBatchCreateAnnotationsResponseClass = Class of TBatchCreateAnnotationsResponse;
-  
+
   { --------------------------------------------------------------------
     TEntry
     --------------------------------------------------------------------}
-  
+
   TEntry = Class(TGoogleBaseObject)
   Private
     Fstatus : TStatus;
@@ -611,11 +611,11 @@ type
     Property annotation : TAnnotation Index 8 Read Fannotation Write Setannotation;
   end;
   TEntryClass = Class of TEntry;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -625,11 +625,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -651,11 +651,11 @@ type
     Property details : TStatusTypedetailsArray Index 16 Read Fdetails Write Setdetails;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TSearchAnnotationsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchAnnotationsRequest = Class(TGoogleBaseObject)
   Private
     FannotationSetIds : TStringArray;
@@ -690,11 +690,11 @@ type
     Property pageSize : integer Index 48 Read FpageSize Write SetpageSize;
   end;
   TSearchAnnotationsRequestClass = Class of TSearchAnnotationsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchAnnotationsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchAnnotationsResponse = Class(TGoogleBaseObject)
   Private
     Fannotations : TSearchAnnotationsResponseTypeannotationsArray;
@@ -713,11 +713,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchAnnotationsResponseClass = Class of TSearchAnnotationsResponse;
-  
+
   { --------------------------------------------------------------------
     TListDatasetsResponse
     --------------------------------------------------------------------}
-  
+
   TListDatasetsResponse = Class(TGoogleBaseObject)
   Private
     Fdatasets : TListDatasetsResponseTypedatasetsArray;
@@ -736,11 +736,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListDatasetsResponseClass = Class of TListDatasetsResponse;
-  
+
   { --------------------------------------------------------------------
     TDataset
     --------------------------------------------------------------------}
-  
+
   TDataset = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -761,11 +761,11 @@ type
     Property createTime : String Index 24 Read FcreateTime Write SetcreateTime;
   end;
   TDatasetClass = Class of TDataset;
-  
+
   { --------------------------------------------------------------------
     TUndeleteDatasetRequest
     --------------------------------------------------------------------}
-  
+
   TUndeleteDatasetRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -774,11 +774,11 @@ type
   Published
   end;
   TUndeleteDatasetRequestClass = Class of TUndeleteDatasetRequest;
-  
+
   { --------------------------------------------------------------------
     TSetIamPolicyRequest
     --------------------------------------------------------------------}
-  
+
   TSetIamPolicyRequest = Class(TGoogleBaseObject)
   Private
     Fpolicy : TPolicy;
@@ -790,11 +790,11 @@ type
     Property policy : TPolicy Index 0 Read Fpolicy Write Setpolicy;
   end;
   TSetIamPolicyRequestClass = Class of TSetIamPolicyRequest;
-  
+
   { --------------------------------------------------------------------
     TPolicy
     --------------------------------------------------------------------}
-  
+
   TPolicy = Class(TGoogleBaseObject)
   Private
     Fversion : integer;
@@ -816,11 +816,11 @@ type
     Property etag : String Index 16 Read Fetag Write Setetag;
   end;
   TPolicyClass = Class of TPolicy;
-  
+
   { --------------------------------------------------------------------
     TBinding
     --------------------------------------------------------------------}
-  
+
   TBinding = Class(TGoogleBaseObject)
   Private
     Frole : String;
@@ -839,11 +839,11 @@ type
     Property members : TStringArray Index 8 Read Fmembers Write Setmembers;
   end;
   TBindingClass = Class of TBinding;
-  
+
   { --------------------------------------------------------------------
     TGetIamPolicyRequest
     --------------------------------------------------------------------}
-  
+
   TGetIamPolicyRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -852,11 +852,11 @@ type
   Published
   end;
   TGetIamPolicyRequestClass = Class of TGetIamPolicyRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsRequest
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsRequest = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -872,11 +872,11 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsRequestClass = Class of TTestIamPermissionsRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsResponse
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsResponse = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -892,11 +892,11 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsResponseClass = Class of TTestIamPermissionsResponse;
-  
+
   { --------------------------------------------------------------------
     TOperationTypemetadata
     --------------------------------------------------------------------}
-  
+
   TOperationTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -906,11 +906,11 @@ type
   Published
   end;
   TOperationTypemetadataClass = Class of TOperationTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationTyperesponse
     --------------------------------------------------------------------}
-  
+
   TOperationTyperesponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -920,11 +920,11 @@ type
   Published
   end;
   TOperationTyperesponseClass = Class of TOperationTyperesponse;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -948,11 +948,11 @@ type
     Property response : TOperationTyperesponse Index 32 Read Fresponse Write Setresponse;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TListOperationsResponse
     --------------------------------------------------------------------}
-  
+
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
     Foperations : TListOperationsResponseTypeoperationsArray;
@@ -971,11 +971,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
-  
+
   { --------------------------------------------------------------------
     TCancelOperationRequest
     --------------------------------------------------------------------}
-  
+
   TCancelOperationRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -984,11 +984,11 @@ type
   Published
   end;
   TCancelOperationRequestClass = Class of TCancelOperationRequest;
-  
+
   { --------------------------------------------------------------------
     TImportReadGroupSetsRequest
     --------------------------------------------------------------------}
-  
+
   TImportReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
     FdatasetId : String;
@@ -1013,11 +1013,11 @@ type
     Property partitionStrategy : String Index 24 Read FpartitionStrategy Write SetpartitionStrategy;
   end;
   TImportReadGroupSetsRequestClass = Class of TImportReadGroupSetsRequest;
-  
+
   { --------------------------------------------------------------------
     TExportReadGroupSetRequest
     --------------------------------------------------------------------}
-  
+
   TExportReadGroupSetRequest = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -1039,11 +1039,11 @@ type
     Property referenceNames : TStringArray Index 16 Read FreferenceNames Write SetreferenceNames;
   end;
   TExportReadGroupSetRequestClass = Class of TExportReadGroupSetRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchReadGroupSetsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchReadGroupSetsRequest = Class(TGoogleBaseObject)
   Private
     FdatasetIds : TStringArray;
@@ -1068,11 +1068,11 @@ type
     Property pageSize : integer Index 24 Read FpageSize Write SetpageSize;
   end;
   TSearchReadGroupSetsRequestClass = Class of TSearchReadGroupSetsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchReadGroupSetsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
     FreadGroupSets : TSearchReadGroupSetsResponseTypereadGroupSetsArray;
@@ -1091,11 +1091,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchReadGroupSetsResponseClass = Class of TSearchReadGroupSetsResponse;
-  
+
   { --------------------------------------------------------------------
     TReadGroupSetTypeinfo
     --------------------------------------------------------------------}
-  
+
   TReadGroupSetTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1105,11 +1105,11 @@ type
   Published
   end;
   TReadGroupSetTypeinfoClass = Class of TReadGroupSetTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TReadGroupSet
     --------------------------------------------------------------------}
-  
+
   TReadGroupSet = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1143,11 +1143,11 @@ type
     Property info : TReadGroupSetTypeinfo Index 48 Read Finfo Write Setinfo;
   end;
   TReadGroupSetClass = Class of TReadGroupSet;
-  
+
   { --------------------------------------------------------------------
     TReadGroupTypeinfo
     --------------------------------------------------------------------}
-  
+
   TReadGroupTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1157,11 +1157,11 @@ type
   Published
   end;
   TReadGroupTypeinfoClass = Class of TReadGroupTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TReadGroup
     --------------------------------------------------------------------}
-  
+
   TReadGroup = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1204,11 +1204,11 @@ type
     Property info : TReadGroupTypeinfo Index 72 Read Finfo Write Setinfo;
   end;
   TReadGroupClass = Class of TReadGroup;
-  
+
   { --------------------------------------------------------------------
     TExperiment
     --------------------------------------------------------------------}
-  
+
   TExperiment = Class(TGoogleBaseObject)
   Private
     FlibraryId : String;
@@ -1229,11 +1229,11 @@ type
     Property instrumentModel : String Index 24 Read FinstrumentModel Write SetinstrumentModel;
   end;
   TExperimentClass = Class of TExperiment;
-  
+
   { --------------------------------------------------------------------
     TProgram
     --------------------------------------------------------------------}
-  
+
   TProgram = Class(TGoogleBaseObject)
   Private
     FcommandLine : String;
@@ -1257,11 +1257,11 @@ type
     Property version : String Index 32 Read Fversion Write Setversion;
   end;
   TProgramClass = Class of TProgram;
-  
+
   { --------------------------------------------------------------------
     TListCoverageBucketsResponse
     --------------------------------------------------------------------}
-  
+
   TListCoverageBucketsResponse = Class(TGoogleBaseObject)
   Private
     FbucketWidth : String;
@@ -1283,11 +1283,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListCoverageBucketsResponseClass = Class of TListCoverageBucketsResponse;
-  
+
   { --------------------------------------------------------------------
     TCoverageBucket
     --------------------------------------------------------------------}
-  
+
   TCoverageBucket = Class(TGoogleBaseObject)
   Private
     Frange : TRange;
@@ -1302,11 +1302,11 @@ type
     Property meanCoverage : integer Index 8 Read FmeanCoverage Write SetmeanCoverage;
   end;
   TCoverageBucketClass = Class of TCoverageBucket;
-  
+
   { --------------------------------------------------------------------
     TRange
     --------------------------------------------------------------------}
-  
+
   TRange = Class(TGoogleBaseObject)
   Private
     FreferenceName : String;
@@ -1325,11 +1325,11 @@ type
     Property _end : String Index 16 Read F_end Write Set_end;
   end;
   TRangeClass = Class of TRange;
-  
+
   { --------------------------------------------------------------------
     TSearchReadsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchReadsRequest = Class(TGoogleBaseObject)
   Private
     FreadGroupSetIds : TStringArray;
@@ -1364,11 +1364,11 @@ type
     Property pageSize : integer Index 48 Read FpageSize Write SetpageSize;
   end;
   TSearchReadsRequestClass = Class of TSearchReadsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchReadsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchReadsResponse = Class(TGoogleBaseObject)
   Private
     Falignments : TSearchReadsResponseTypealignmentsArray;
@@ -1387,11 +1387,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchReadsResponseClass = Class of TSearchReadsResponse;
-  
+
   { --------------------------------------------------------------------
     TReadTypeinfo
     --------------------------------------------------------------------}
-  
+
   TReadTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1401,11 +1401,11 @@ type
   Published
   end;
   TReadTypeinfoClass = Class of TReadTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TRead
     --------------------------------------------------------------------}
-  
+
   TRead = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1469,11 +1469,11 @@ type
     Property info : TReadTypeinfo Index 128 Read Finfo Write Setinfo;
   end;
   TReadClass = Class of TRead;
-  
+
   { --------------------------------------------------------------------
     TLinearAlignment
     --------------------------------------------------------------------}
-  
+
   TLinearAlignment = Class(TGoogleBaseObject)
   Private
     Fposition : TPosition;
@@ -1495,11 +1495,11 @@ type
     Property cigar : TLinearAlignmentTypecigarArray Index 16 Read Fcigar Write Setcigar;
   end;
   TLinearAlignmentClass = Class of TLinearAlignment;
-  
+
   { --------------------------------------------------------------------
     TPosition
     --------------------------------------------------------------------}
-  
+
   TPosition = Class(TGoogleBaseObject)
   Private
     FreferenceName : String;
@@ -1517,11 +1517,11 @@ type
     Property reverseStrand : boolean Index 16 Read FreverseStrand Write SetreverseStrand;
   end;
   TPositionClass = Class of TPosition;
-  
+
   { --------------------------------------------------------------------
     TCigarUnit
     --------------------------------------------------------------------}
-  
+
   TCigarUnit = Class(TGoogleBaseObject)
   Private
     Foperation : String;
@@ -1539,11 +1539,11 @@ type
     Property referenceSequence : String Index 16 Read FreferenceSequence Write SetreferenceSequence;
   end;
   TCigarUnitClass = Class of TCigarUnit;
-  
+
   { --------------------------------------------------------------------
     TStreamReadsRequest
     --------------------------------------------------------------------}
-  
+
   TStreamReadsRequest = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -1574,11 +1574,11 @@ type
     Property totalShards : integer Index 48 Read FtotalShards Write SettotalShards;
   end;
   TStreamReadsRequestClass = Class of TStreamReadsRequest;
-  
+
   { --------------------------------------------------------------------
     TStreamReadsResponse
     --------------------------------------------------------------------}
-  
+
   TStreamReadsResponse = Class(TGoogleBaseObject)
   Private
     Falignments : TStreamReadsResponseTypealignmentsArray;
@@ -1594,11 +1594,11 @@ type
     Property alignments : TStreamReadsResponseTypealignmentsArray Index 0 Read Falignments Write Setalignments;
   end;
   TStreamReadsResponseClass = Class of TStreamReadsResponse;
-  
+
   { --------------------------------------------------------------------
     TSearchReferenceSetsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchReferenceSetsRequest = Class(TGoogleBaseObject)
   Private
     Fmd5checksums : TStringArray;
@@ -1626,11 +1626,11 @@ type
     Property pageSize : integer Index 32 Read FpageSize Write SetpageSize;
   end;
   TSearchReferenceSetsRequestClass = Class of TSearchReferenceSetsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchReferenceSetsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchReferenceSetsResponse = Class(TGoogleBaseObject)
   Private
     FreferenceSets : TSearchReferenceSetsResponseTypereferenceSetsArray;
@@ -1649,11 +1649,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchReferenceSetsResponseClass = Class of TSearchReferenceSetsResponse;
-  
+
   { --------------------------------------------------------------------
     TReferenceSet
     --------------------------------------------------------------------}
-  
+
   TReferenceSet = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1690,11 +1690,11 @@ type
     Property sourceAccessions : TStringArray Index 56 Read FsourceAccessions Write SetsourceAccessions;
   end;
   TReferenceSetClass = Class of TReferenceSet;
-  
+
   { --------------------------------------------------------------------
     TSearchReferencesRequest
     --------------------------------------------------------------------}
-  
+
   TSearchReferencesRequest = Class(TGoogleBaseObject)
   Private
     Fmd5checksums : TStringArray;
@@ -1722,11 +1722,11 @@ type
     Property pageSize : integer Index 32 Read FpageSize Write SetpageSize;
   end;
   TSearchReferencesRequestClass = Class of TSearchReferencesRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchReferencesResponse
     --------------------------------------------------------------------}
-  
+
   TSearchReferencesResponse = Class(TGoogleBaseObject)
   Private
     Freferences : TSearchReferencesResponseTypereferencesArray;
@@ -1745,11 +1745,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchReferencesResponseClass = Class of TSearchReferencesResponse;
-  
+
   { --------------------------------------------------------------------
     TReference
     --------------------------------------------------------------------}
-  
+
   TReference = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1784,11 +1784,11 @@ type
     Property ncbiTaxonId : integer Index 48 Read FncbiTaxonId Write SetncbiTaxonId;
   end;
   TReferenceClass = Class of TReference;
-  
+
   { --------------------------------------------------------------------
     TListBasesResponse
     --------------------------------------------------------------------}
-  
+
   TListBasesResponse = Class(TGoogleBaseObject)
   Private
     Foffset : String;
@@ -1806,11 +1806,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListBasesResponseClass = Class of TListBasesResponse;
-  
+
   { --------------------------------------------------------------------
     TImportVariantsRequestTypeinfoMergeConfig
     --------------------------------------------------------------------}
-  
+
   TImportVariantsRequestTypeinfoMergeConfig = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1820,11 +1820,11 @@ type
   Published
   end;
   TImportVariantsRequestTypeinfoMergeConfigClass = Class of TImportVariantsRequestTypeinfoMergeConfig;
-  
+
   { --------------------------------------------------------------------
     TImportVariantsRequest
     --------------------------------------------------------------------}
-  
+
   TImportVariantsRequest = Class(TGoogleBaseObject)
   Private
     FvariantSetId : String;
@@ -1852,11 +1852,11 @@ type
     Property infoMergeConfig : TImportVariantsRequestTypeinfoMergeConfig Index 32 Read FinfoMergeConfig Write SetinfoMergeConfig;
   end;
   TImportVariantsRequestClass = Class of TImportVariantsRequest;
-  
+
   { --------------------------------------------------------------------
     TVariantSet
     --------------------------------------------------------------------}
-  
+
   TVariantSet = Class(TGoogleBaseObject)
   Private
     FdatasetId : String;
@@ -1890,11 +1890,11 @@ type
     Property description : String Index 48 Read Fdescription Write Setdescription;
   end;
   TVariantSetClass = Class of TVariantSet;
-  
+
   { --------------------------------------------------------------------
     TReferenceBound
     --------------------------------------------------------------------}
-  
+
   TReferenceBound = Class(TGoogleBaseObject)
   Private
     FreferenceName : String;
@@ -1909,11 +1909,11 @@ type
     Property upperBound : String Index 8 Read FupperBound Write SetupperBound;
   end;
   TReferenceBoundClass = Class of TReferenceBound;
-  
+
   { --------------------------------------------------------------------
     TVariantSetMetadataTypeinfo
     --------------------------------------------------------------------}
-  
+
   TVariantSetMetadataTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1923,11 +1923,11 @@ type
   Published
   end;
   TVariantSetMetadataTypeinfoClass = Class of TVariantSetMetadataTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TVariantSetMetadata
     --------------------------------------------------------------------}
-  
+
   TVariantSetMetadata = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -1958,11 +1958,11 @@ type
     Property info : TVariantSetMetadataTypeinfo Index 48 Read Finfo Write Setinfo;
   end;
   TVariantSetMetadataClass = Class of TVariantSetMetadata;
-  
+
   { --------------------------------------------------------------------
     TExportVariantSetRequest
     --------------------------------------------------------------------}
-  
+
   TExportVariantSetRequest = Class(TGoogleBaseObject)
   Private
     FcallSetIds : TStringArray;
@@ -1990,11 +1990,11 @@ type
     Property bigqueryTable : String Index 32 Read FbigqueryTable Write SetbigqueryTable;
   end;
   TExportVariantSetRequestClass = Class of TExportVariantSetRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchVariantSetsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchVariantSetsRequest = Class(TGoogleBaseObject)
   Private
     FdatasetIds : TStringArray;
@@ -2016,11 +2016,11 @@ type
     Property pageSize : integer Index 16 Read FpageSize Write SetpageSize;
   end;
   TSearchVariantSetsRequestClass = Class of TSearchVariantSetsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchVariantSetsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchVariantSetsResponse = Class(TGoogleBaseObject)
   Private
     FvariantSets : TSearchVariantSetsResponseTypevariantSetsArray;
@@ -2039,11 +2039,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchVariantSetsResponseClass = Class of TSearchVariantSetsResponse;
-  
+
   { --------------------------------------------------------------------
     TSearchVariantsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchVariantsRequest = Class(TGoogleBaseObject)
   Private
     FvariantSetIds : TStringArray;
@@ -2084,11 +2084,11 @@ type
     Property maxCalls : integer Index 64 Read FmaxCalls Write SetmaxCalls;
   end;
   TSearchVariantsRequestClass = Class of TSearchVariantsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchVariantsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchVariantsResponse = Class(TGoogleBaseObject)
   Private
     Fvariants : TSearchVariantsResponseTypevariantsArray;
@@ -2107,11 +2107,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchVariantsResponseClass = Class of TSearchVariantsResponse;
-  
+
   { --------------------------------------------------------------------
     TVariantTypeinfo
     --------------------------------------------------------------------}
-  
+
   TVariantTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -2121,11 +2121,11 @@ type
   Published
   end;
   TVariantTypeinfoClass = Class of TVariantTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TVariant
     --------------------------------------------------------------------}
-  
+
   TVariant = Class(TGoogleBaseObject)
   Private
     FvariantSetId : String;
@@ -2178,11 +2178,11 @@ type
     Property calls : TVariantTypecallsArray Index 96 Read Fcalls Write Setcalls;
   end;
   TVariantClass = Class of TVariant;
-  
+
   { --------------------------------------------------------------------
     TVariantCallTypeinfo
     --------------------------------------------------------------------}
-  
+
   TVariantCallTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -2192,11 +2192,11 @@ type
   Published
   end;
   TVariantCallTypeinfoClass = Class of TVariantCallTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TVariantCall
     --------------------------------------------------------------------}
-  
+
   TVariantCall = Class(TGoogleBaseObject)
   Private
     FcallSetId : String;
@@ -2227,11 +2227,11 @@ type
     Property info : TVariantCallTypeinfo Index 40 Read Finfo Write Setinfo;
   end;
   TVariantCallClass = Class of TVariantCall;
-  
+
   { --------------------------------------------------------------------
     TMergeVariantsRequestTypeinfoMergeConfig
     --------------------------------------------------------------------}
-  
+
   TMergeVariantsRequestTypeinfoMergeConfig = Class(TGoogleBaseObject)
   Private
   Protected
@@ -2241,11 +2241,11 @@ type
   Published
   end;
   TMergeVariantsRequestTypeinfoMergeConfigClass = Class of TMergeVariantsRequestTypeinfoMergeConfig;
-  
+
   { --------------------------------------------------------------------
     TMergeVariantsRequest
     --------------------------------------------------------------------}
-  
+
   TMergeVariantsRequest = Class(TGoogleBaseObject)
   Private
     FvariantSetId : String;
@@ -2267,11 +2267,11 @@ type
     Property infoMergeConfig : TMergeVariantsRequestTypeinfoMergeConfig Index 16 Read FinfoMergeConfig Write SetinfoMergeConfig;
   end;
   TMergeVariantsRequestClass = Class of TMergeVariantsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchCallSetsRequest
     --------------------------------------------------------------------}
-  
+
   TSearchCallSetsRequest = Class(TGoogleBaseObject)
   Private
     FvariantSetIds : TStringArray;
@@ -2296,11 +2296,11 @@ type
     Property pageSize : integer Index 24 Read FpageSize Write SetpageSize;
   end;
   TSearchCallSetsRequestClass = Class of TSearchCallSetsRequest;
-  
+
   { --------------------------------------------------------------------
     TSearchCallSetsResponse
     --------------------------------------------------------------------}
-  
+
   TSearchCallSetsResponse = Class(TGoogleBaseObject)
   Private
     FcallSets : TSearchCallSetsResponseTypecallSetsArray;
@@ -2319,11 +2319,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TSearchCallSetsResponseClass = Class of TSearchCallSetsResponse;
-  
+
   { --------------------------------------------------------------------
     TCallSetTypeinfo
     --------------------------------------------------------------------}
-  
+
   TCallSetTypeinfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -2333,11 +2333,11 @@ type
   Published
   end;
   TCallSetTypeinfoClass = Class of TCallSetTypeinfo;
-  
+
   { --------------------------------------------------------------------
     TCallSet
     --------------------------------------------------------------------}
-  
+
   TCallSet = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -2368,11 +2368,11 @@ type
     Property info : TCallSetTypeinfo Index 40 Read Finfo Write Setinfo;
   end;
   TCallSetClass = Class of TCallSet;
-  
+
   { --------------------------------------------------------------------
     TStreamVariantsRequest
     --------------------------------------------------------------------}
-  
+
   TStreamVariantsRequest = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -2404,11 +2404,11 @@ type
     Property _end : String Index 40 Read F_end Write Set_end;
   end;
   TStreamVariantsRequestClass = Class of TStreamVariantsRequest;
-  
+
   { --------------------------------------------------------------------
     TStreamVariantsResponse
     --------------------------------------------------------------------}
-  
+
   TStreamVariantsResponse = Class(TGoogleBaseObject)
   Private
     Fvariants : TStreamVariantsResponseTypevariantsArray;
@@ -2424,11 +2424,11 @@ type
     Property variants : TStreamVariantsResponseTypevariantsArray Index 0 Read Fvariants Write Setvariants;
   end;
   TStreamVariantsResponseClass = Class of TStreamVariantsResponse;
-  
+
   { --------------------------------------------------------------------
     TImportReadGroupSetsResponse
     --------------------------------------------------------------------}
-  
+
   TImportReadGroupSetsResponse = Class(TGoogleBaseObject)
   Private
     FreadGroupSetIds : TStringArray;
@@ -2444,11 +2444,11 @@ type
     Property readGroupSetIds : TStringArray Index 0 Read FreadGroupSetIds Write SetreadGroupSetIds;
   end;
   TImportReadGroupSetsResponseClass = Class of TImportReadGroupSetsResponse;
-  
+
   { --------------------------------------------------------------------
     TImportVariantsResponse
     --------------------------------------------------------------------}
-  
+
   TImportVariantsResponse = Class(TGoogleBaseObject)
   Private
     FcallSetIds : TStringArray;
@@ -2464,11 +2464,11 @@ type
     Property callSetIds : TStringArray Index 0 Read FcallSetIds Write SetcallSetIds;
   end;
   TImportVariantsResponseClass = Class of TImportVariantsResponse;
-  
+
   { --------------------------------------------------------------------
     TOperationMetadataTyperequest
     --------------------------------------------------------------------}
-  
+
   TOperationMetadataTyperequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -2478,11 +2478,11 @@ type
   Published
   end;
   TOperationMetadataTyperequestClass = Class of TOperationMetadataTyperequest;
-  
+
   { --------------------------------------------------------------------
     TOperationMetadata
     --------------------------------------------------------------------}
-  
+
   TOperationMetadata = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -2510,11 +2510,11 @@ type
     Property events : TOperationMetadataTypeeventsArray Index 32 Read Fevents Write Setevents;
   end;
   TOperationMetadataClass = Class of TOperationMetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationEvent
     --------------------------------------------------------------------}
-  
+
   TOperationEvent = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -2526,18 +2526,18 @@ type
     Property description : String Index 0 Read Fdescription Write Setdescription;
   end;
   TOperationEventClass = Class of TOperationEvent;
-  
+
   { --------------------------------------------------------------------
     TAnnotationsetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAnnotationsetsResource, method Update
-  
+
   TAnnotationsetsUpdateOptions = Record
     updateMask : String;
   end;
-  
+
   TAnnotationsetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2549,19 +2549,19 @@ type
     Function Delete(annotationSetId: string) : TEmpty;
     Function Search(aSearchAnnotationSetsRequest : TSearchAnnotationSetsRequest) : TSearchAnnotationSetsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAnnotationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAnnotationsResource, method Update
-  
+
   TAnnotationsUpdateOptions = Record
     updateMask : String;
   end;
-  
+
   TAnnotationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2574,28 +2574,28 @@ type
     Function Delete(annotationId: string) : TEmpty;
     Function Search(aSearchAnnotationsRequest : TSearchAnnotationsRequest) : TSearchAnnotationsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDatasetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TDatasetsResource, method List
-  
+
   TDatasetsListOptions = Record
     projectId : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TDatasetsResource, method Patch
-  
+
   TDatasetsPatchOptions = Record
     updateMask : String;
   end;
-  
+
   TDatasetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2612,21 +2612,21 @@ type
     Function GetIamPolicy(resource: string; aGetIamPolicyRequest : TGetIamPolicyRequest) : TPolicy;
     Function TestIamPermissions(resource: string; aTestIamPermissionsRequest : TTestIamPermissionsRequest) : TTestIamPermissionsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TOperationsResource, method List
-  
+
   TOperationsListOptions = Record
     filter : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2636,15 +2636,15 @@ type
     Function List(_name: string; AQuery : TOperationslistOptions) : TListOperationsResponse;
     Function Cancel(_name: string; aCancelOperationRequest : TCancelOperationRequest) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReadgroupsetsCoveragebucketsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TReadgroupsetsCoveragebucketsResource, method List
-  
+
   TReadgroupsetsCoveragebucketsListOptions = Record
     referenceName : String;
     start : int64;
@@ -2653,7 +2653,7 @@ type
     pageToken : String;
     pageSize : integer;
   end;
-  
+
   TReadgroupsetsCoveragebucketsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2661,19 +2661,19 @@ type
     Function List(readGroupSetId: string; AQuery : string  = '') : TListCoverageBucketsResponse;
     Function List(readGroupSetId: string; AQuery : TReadgroupsetsCoveragebucketslistOptions) : TListCoverageBucketsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReadgroupsetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TReadgroupsetsResource, method Patch
-  
+
   TReadgroupsetsPatchOptions = Record
     updateMask : String;
   end;
-  
+
   TReadgroupsetsResource = Class(TGoogleResource)
   Private
     FCoveragebucketsInstance : TReadgroupsetsCoveragebucketsResource;
@@ -2692,12 +2692,12 @@ type
     Function CreateCoveragebucketsResource : TReadgroupsetsCoveragebucketsResource;virtual;overload;
     Property CoveragebucketsResource : TReadgroupsetsCoveragebucketsResource Read GetCoveragebucketsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReadsResource
     --------------------------------------------------------------------}
-  
+
   TReadsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2705,12 +2705,12 @@ type
     Function Search(aSearchReadsRequest : TSearchReadsRequest) : TSearchReadsResponse;
     Function Stream(aStreamReadsRequest : TStreamReadsRequest) : TStreamReadsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReferencesetsResource
     --------------------------------------------------------------------}
-  
+
   TReferencesetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2718,22 +2718,22 @@ type
     Function Search(aSearchReferenceSetsRequest : TSearchReferenceSetsRequest) : TSearchReferenceSetsResponse;
     Function Get(referenceSetId: string) : TReferenceSet;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReferencesBasesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TReferencesBasesResource, method List
-  
+
   TReferencesBasesListOptions = Record
     start : int64;
     _end : int64;
     pageToken : String;
     pageSize : integer;
   end;
-  
+
   TReferencesBasesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2741,12 +2741,12 @@ type
     Function List(referenceId: string; AQuery : string  = '') : TListBasesResponse;
     Function List(referenceId: string; AQuery : TReferencesBaseslistOptions) : TListBasesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReferencesResource
     --------------------------------------------------------------------}
-  
+
   TReferencesResource = Class(TGoogleResource)
   Private
     FBasesInstance : TReferencesBasesResource;
@@ -2760,19 +2760,19 @@ type
     Function CreateBasesResource : TReferencesBasesResource;virtual;overload;
     Property BasesResource : TReferencesBasesResource Read GetBasesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TVariantsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TVariantsResource, method Patch
-  
+
   TVariantsPatchOptions = Record
     updateMask : String;
   end;
-  
+
   TVariantsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2787,19 +2787,19 @@ type
     Function Merge(aMergeVariantsRequest : TMergeVariantsRequest) : TEmpty;
     Function Stream(aStreamVariantsRequest : TStreamVariantsRequest) : TStreamVariantsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TVariantsetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TVariantsetsResource, method Patch
-  
+
   TVariantsetsPatchOptions = Record
     updateMask : String;
   end;
-  
+
   TVariantsetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2812,19 +2812,19 @@ type
     Function Patch(variantSetId: string; aVariantSet : TVariantSet; AQuery : string  = '') : TVariantSet;
     Function Patch(variantSetId: string; aVariantSet : TVariantSet; AQuery : TVariantsetspatchOptions) : TVariantSet;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCallsetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCallsetsResource, method Patch
-  
+
   TCallsetsPatchOptions = Record
     updateMask : String;
   end;
-  
+
   TCallsetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2836,12 +2836,12 @@ type
     Function Delete(callSetId: string) : TEmpty;
     Function Get(callSetId: string) : TCallSet;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGenomicsAPI
     --------------------------------------------------------------------}
-  
+
   TGenomicsAPI = Class(TGoogleAPI)
   Private
     FAnnotationsetsInstance : TAnnotationsetsResource;
@@ -2956,7 +2956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotationSet.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAnnotationSet.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2966,7 +2966,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetdatasetId(AIndex : Integer; const AValue : String); 
+Procedure TAnnotationSet.SetdatasetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -2976,7 +2976,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TAnnotationSet.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -2986,7 +2986,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAnnotationSet.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2996,7 +2996,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetsourceUri(AIndex : Integer; const AValue : String); 
+Procedure TAnnotationSet.SetsourceUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceUri=AValue) then exit;
@@ -3006,7 +3006,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAnnotationSet.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3016,7 +3016,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setinfo(AIndex : Integer; const AValue : TAnnotationSetTypeinfo); 
+Procedure TAnnotationSet.Setinfo(AIndex : Integer; const AValue : TAnnotationSetTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -3051,7 +3051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationSetsRequest.SetdatasetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchAnnotationSetsRequest.SetdatasetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdatasetIds=AValue) then exit;
@@ -3061,7 +3061,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationSetsRequest.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -3071,7 +3071,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.Setname(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationSetsRequest.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3081,7 +3081,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.Settypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchAnnotationSetsRequest.Settypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ftypes=AValue) then exit;
@@ -3091,7 +3091,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationSetsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -3101,7 +3101,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchAnnotationSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -3112,7 +3112,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchAnnotationSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchAnnotationSetsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3132,7 +3132,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationSetsResponse.SetannotationSets(AIndex : Integer; const AValue : TSearchAnnotationSetsResponseTypeannotationSetsArray); 
+Procedure TSearchAnnotationSetsResponse.SetannotationSets(AIndex : Integer; const AValue : TSearchAnnotationSetsResponseTypeannotationSetsArray);
 
 begin
   If (FannotationSets=AValue) then exit;
@@ -3142,7 +3142,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3153,7 +3153,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchAnnotationSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchAnnotationSetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3185,7 +3185,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3195,7 +3195,7 @@ end;
 
 
 
-Procedure TAnnotation.SetannotationSetId(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.SetannotationSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FannotationSetId=AValue) then exit;
@@ -3205,7 +3205,7 @@ end;
 
 
 
-Procedure TAnnotation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3215,7 +3215,7 @@ end;
 
 
 
-Procedure TAnnotation.SetreferenceId(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.SetreferenceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -3225,7 +3225,7 @@ end;
 
 
 
-Procedure TAnnotation.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -3235,7 +3235,7 @@ end;
 
 
 
-Procedure TAnnotation.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -3245,7 +3245,7 @@ end;
 
 
 
-Procedure TAnnotation.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -3255,7 +3255,7 @@ end;
 
 
 
-Procedure TAnnotation.SetreverseStrand(AIndex : Integer; const AValue : boolean); 
+Procedure TAnnotation.SetreverseStrand(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreverseStrand=AValue) then exit;
@@ -3265,7 +3265,7 @@ end;
 
 
 
-Procedure TAnnotation.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAnnotation.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3275,7 +3275,7 @@ end;
 
 
 
-Procedure TAnnotation.Setvariant(AIndex : Integer; const AValue : TVariantAnnotation); 
+Procedure TAnnotation.Setvariant(AIndex : Integer; const AValue : TVariantAnnotation);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -3285,7 +3285,7 @@ end;
 
 
 
-Procedure TAnnotation.Settranscript(AIndex : Integer; const AValue : TTranscript); 
+Procedure TAnnotation.Settranscript(AIndex : Integer; const AValue : TTranscript);
 
 begin
   If (Ftranscript=AValue) then exit;
@@ -3295,7 +3295,7 @@ end;
 
 
 
-Procedure TAnnotation.Setinfo(AIndex : Integer; const AValue : TAnnotationTypeinfo); 
+Procedure TAnnotation.Setinfo(AIndex : Integer; const AValue : TAnnotationTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -3324,7 +3324,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantAnnotation.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TVariantAnnotation.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3334,7 +3334,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Seteffect(AIndex : Integer; const AValue : String); 
+Procedure TVariantAnnotation.Seteffect(AIndex : Integer; const AValue : String);
 
 begin
   If (Feffect=AValue) then exit;
@@ -3344,7 +3344,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetalternateBases(AIndex : Integer; const AValue : String); 
+Procedure TVariantAnnotation.SetalternateBases(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateBases=AValue) then exit;
@@ -3354,7 +3354,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetgeneId(AIndex : Integer; const AValue : String); 
+Procedure TVariantAnnotation.SetgeneId(AIndex : Integer; const AValue : String);
 
 begin
   If (FgeneId=AValue) then exit;
@@ -3364,7 +3364,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SettranscriptIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVariantAnnotation.SettranscriptIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FtranscriptIds=AValue) then exit;
@@ -3374,7 +3374,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Setconditions(AIndex : Integer; const AValue : TVariantAnnotationTypeconditionsArray); 
+Procedure TVariantAnnotation.Setconditions(AIndex : Integer; const AValue : TVariantAnnotationTypeconditionsArray);
 
 begin
   If (Fconditions=AValue) then exit;
@@ -3384,7 +3384,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetclinicalSignificance(AIndex : Integer; const AValue : String); 
+Procedure TVariantAnnotation.SetclinicalSignificance(AIndex : Integer; const AValue : String);
 
 begin
   If (FclinicalSignificance=AValue) then exit;
@@ -3406,7 +3406,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVariantAnnotation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVariantAnnotation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3426,7 +3426,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClinicalCondition.Setnames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TClinicalCondition.Setnames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fnames=AValue) then exit;
@@ -3436,7 +3436,7 @@ end;
 
 
 
-Procedure TClinicalCondition.SetexternalIds(AIndex : Integer; const AValue : TClinicalConditionTypeexternalIdsArray); 
+Procedure TClinicalCondition.SetexternalIds(AIndex : Integer; const AValue : TClinicalConditionTypeexternalIdsArray);
 
 begin
   If (FexternalIds=AValue) then exit;
@@ -3446,7 +3446,7 @@ end;
 
 
 
-Procedure TClinicalCondition.SetconceptId(AIndex : Integer; const AValue : String); 
+Procedure TClinicalCondition.SetconceptId(AIndex : Integer; const AValue : String);
 
 begin
   If (FconceptId=AValue) then exit;
@@ -3456,7 +3456,7 @@ end;
 
 
 
-Procedure TClinicalCondition.SetomimId(AIndex : Integer; const AValue : String); 
+Procedure TClinicalCondition.SetomimId(AIndex : Integer; const AValue : String);
 
 begin
   If (FomimId=AValue) then exit;
@@ -3467,7 +3467,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TClinicalCondition.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TClinicalCondition.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3487,7 +3487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExternalId.SetsourceName(AIndex : Integer; const AValue : String); 
+Procedure TExternalId.SetsourceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceName=AValue) then exit;
@@ -3497,7 +3497,7 @@ end;
 
 
 
-Procedure TExternalId.Setid(AIndex : Integer; const AValue : String); 
+Procedure TExternalId.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3514,7 +3514,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranscript.SetgeneId(AIndex : Integer; const AValue : String); 
+Procedure TTranscript.SetgeneId(AIndex : Integer; const AValue : String);
 
 begin
   If (FgeneId=AValue) then exit;
@@ -3524,7 +3524,7 @@ end;
 
 
 
-Procedure TTranscript.Setexons(AIndex : Integer; const AValue : TTranscriptTypeexonsArray); 
+Procedure TTranscript.Setexons(AIndex : Integer; const AValue : TTranscriptTypeexonsArray);
 
 begin
   If (Fexons=AValue) then exit;
@@ -3534,7 +3534,7 @@ end;
 
 
 
-Procedure TTranscript.SetcodingSequence(AIndex : Integer; const AValue : TCodingSequence); 
+Procedure TTranscript.SetcodingSequence(AIndex : Integer; const AValue : TCodingSequence);
 
 begin
   If (FcodingSequence=AValue) then exit;
@@ -3545,7 +3545,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTranscript.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTranscript.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3564,7 +3564,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExon.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TExon.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -3574,7 +3574,7 @@ end;
 
 
 
-Procedure TExon.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TExon.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -3584,7 +3584,7 @@ end;
 
 
 
-Procedure TExon.Setframe(AIndex : Integer; const AValue : integer); 
+Procedure TExon.Setframe(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fframe=AValue) then exit;
@@ -3612,7 +3612,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCodingSequence.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TCodingSequence.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -3622,7 +3622,7 @@ end;
 
 
 
-Procedure TCodingSequence.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TCodingSequence.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -3650,7 +3650,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchCreateAnnotationsRequest.Setannotations(AIndex : Integer; const AValue : TBatchCreateAnnotationsRequestTypeannotationsArray); 
+Procedure TBatchCreateAnnotationsRequest.Setannotations(AIndex : Integer; const AValue : TBatchCreateAnnotationsRequestTypeannotationsArray);
 
 begin
   If (Fannotations=AValue) then exit;
@@ -3661,7 +3661,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchCreateAnnotationsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchCreateAnnotationsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3680,7 +3680,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchCreateAnnotationsResponse.Setentries(AIndex : Integer; const AValue : TBatchCreateAnnotationsResponseTypeentriesArray); 
+Procedure TBatchCreateAnnotationsResponse.Setentries(AIndex : Integer; const AValue : TBatchCreateAnnotationsResponseTypeentriesArray);
 
 begin
   If (Fentries=AValue) then exit;
@@ -3691,7 +3691,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchCreateAnnotationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchCreateAnnotationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3710,7 +3710,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntry.Setstatus(AIndex : Integer; const AValue : TStatus); 
+Procedure TEntry.Setstatus(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3720,7 +3720,7 @@ end;
 
 
 
-Procedure TEntry.Setannotation(AIndex : Integer; const AValue : TAnnotation); 
+Procedure TEntry.Setannotation(AIndex : Integer; const AValue : TAnnotation);
 
 begin
   If (Fannotation=AValue) then exit;
@@ -3750,7 +3750,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -3760,7 +3760,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -3770,7 +3770,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -3781,7 +3781,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3800,7 +3800,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationsRequest.SetannotationSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchAnnotationsRequest.SetannotationSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FannotationSetIds=AValue) then exit;
@@ -3810,7 +3810,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.SetreferenceId(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationsRequest.SetreferenceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -3820,7 +3820,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationsRequest.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -3830,7 +3830,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationsRequest.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -3840,7 +3840,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationsRequest.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -3850,7 +3850,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -3860,7 +3860,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchAnnotationsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -3882,7 +3882,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchAnnotationsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchAnnotationsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3901,7 +3901,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchAnnotationsResponse.Setannotations(AIndex : Integer; const AValue : TSearchAnnotationsResponseTypeannotationsArray); 
+Procedure TSearchAnnotationsResponse.Setannotations(AIndex : Integer; const AValue : TSearchAnnotationsResponseTypeannotationsArray);
 
 begin
   If (Fannotations=AValue) then exit;
@@ -3911,7 +3911,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchAnnotationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3922,7 +3922,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchAnnotationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchAnnotationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3941,7 +3941,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDatasetsResponse.Setdatasets(AIndex : Integer; const AValue : TListDatasetsResponseTypedatasetsArray); 
+Procedure TListDatasetsResponse.Setdatasets(AIndex : Integer; const AValue : TListDatasetsResponseTypedatasetsArray);
 
 begin
   If (Fdatasets=AValue) then exit;
@@ -3951,7 +3951,7 @@ end;
 
 
 
-Procedure TListDatasetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListDatasetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3962,7 +3962,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListDatasetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListDatasetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3981,7 +3981,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDataset.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3991,7 +3991,7 @@ end;
 
 
 
-Procedure TDataset.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TDataset.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4001,7 +4001,7 @@ end;
 
 
 
-Procedure TDataset.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDataset.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4011,7 +4011,7 @@ end;
 
 
 
-Procedure TDataset.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TDataset.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -4035,7 +4035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy); 
+Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy);
 
 begin
   If (Fpolicy=AValue) then exit;
@@ -4052,7 +4052,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer); 
+Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fversion=AValue) then exit;
@@ -4062,7 +4062,7 @@ end;
 
 
 
-Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray); 
+Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray);
 
 begin
   If (Fbindings=AValue) then exit;
@@ -4072,7 +4072,7 @@ end;
 
 
 
-Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -4083,7 +4083,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4102,7 +4102,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBinding.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TBinding.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -4112,7 +4112,7 @@ end;
 
 
 
-Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -4123,7 +4123,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4149,7 +4149,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -4160,7 +4160,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4179,7 +4179,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -4190,7 +4190,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4235,7 +4235,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4245,7 +4245,7 @@ end;
 
 
 
-Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata); 
+Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -4255,7 +4255,7 @@ end;
 
 
 
-Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean); 
+Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdone=AValue) then exit;
@@ -4265,7 +4265,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -4275,7 +4275,7 @@ end;
 
 
 
-Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse); 
+Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -4292,7 +4292,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); 
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray);
 
 begin
   If (Foperations=AValue) then exit;
@@ -4302,7 +4302,7 @@ end;
 
 
 
-Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4313,7 +4313,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4339,7 +4339,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportReadGroupSetsRequest.SetdatasetId(AIndex : Integer; const AValue : String); 
+Procedure TImportReadGroupSetsRequest.SetdatasetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -4349,7 +4349,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TImportReadGroupSetsRequest.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -4359,7 +4359,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetsourceUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TImportReadGroupSetsRequest.SetsourceUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -4369,7 +4369,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetpartitionStrategy(AIndex : Integer; const AValue : String); 
+Procedure TImportReadGroupSetsRequest.SetpartitionStrategy(AIndex : Integer; const AValue : String);
 
 begin
   If (FpartitionStrategy=AValue) then exit;
@@ -4380,7 +4380,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TImportReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TImportReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4399,7 +4399,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportReadGroupSetRequest.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TExportReadGroupSetRequest.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4409,7 +4409,7 @@ end;
 
 
 
-Procedure TExportReadGroupSetRequest.SetexportUri(AIndex : Integer; const AValue : String); 
+Procedure TExportReadGroupSetRequest.SetexportUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FexportUri=AValue) then exit;
@@ -4419,7 +4419,7 @@ end;
 
 
 
-Procedure TExportReadGroupSetRequest.SetreferenceNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TExportReadGroupSetRequest.SetreferenceNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FreferenceNames=AValue) then exit;
@@ -4430,7 +4430,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TExportReadGroupSetRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TExportReadGroupSetRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4449,7 +4449,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadGroupSetsRequest.SetdatasetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReadGroupSetsRequest.SetdatasetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdatasetIds=AValue) then exit;
@@ -4459,7 +4459,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.Setname(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadGroupSetsRequest.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4469,7 +4469,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadGroupSetsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -4479,7 +4479,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchReadGroupSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -4490,7 +4490,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReadGroupSetsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4509,7 +4509,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadGroupSetsResponse.SetreadGroupSets(AIndex : Integer; const AValue : TSearchReadGroupSetsResponseTypereadGroupSetsArray); 
+Procedure TSearchReadGroupSetsResponse.SetreadGroupSets(AIndex : Integer; const AValue : TSearchReadGroupSetsResponseTypereadGroupSetsArray);
 
 begin
   If (FreadGroupSets=AValue) then exit;
@@ -4519,7 +4519,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadGroupSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4530,7 +4530,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReadGroupSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReadGroupSetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4562,7 +4562,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupSet.Setid(AIndex : Integer; const AValue : String); 
+Procedure TReadGroupSet.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4572,7 +4572,7 @@ end;
 
 
 
-Procedure TReadGroupSet.SetdatasetId(AIndex : Integer; const AValue : String); 
+Procedure TReadGroupSet.SetdatasetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -4582,7 +4582,7 @@ end;
 
 
 
-Procedure TReadGroupSet.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TReadGroupSet.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -4592,7 +4592,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setname(AIndex : Integer; const AValue : String); 
+Procedure TReadGroupSet.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4602,7 +4602,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setfilename(AIndex : Integer; const AValue : String); 
+Procedure TReadGroupSet.Setfilename(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilename=AValue) then exit;
@@ -4612,7 +4612,7 @@ end;
 
 
 
-Procedure TReadGroupSet.SetreadGroups(AIndex : Integer; const AValue : TReadGroupSetTypereadGroupsArray); 
+Procedure TReadGroupSet.SetreadGroups(AIndex : Integer; const AValue : TReadGroupSetTypereadGroupsArray);
 
 begin
   If (FreadGroups=AValue) then exit;
@@ -4622,7 +4622,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setinfo(AIndex : Integer; const AValue : TReadGroupSetTypeinfo); 
+Procedure TReadGroupSet.Setinfo(AIndex : Integer; const AValue : TReadGroupSetTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -4633,7 +4633,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReadGroupSet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReadGroupSet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4665,7 +4665,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroup.Setid(AIndex : Integer; const AValue : String); 
+Procedure TReadGroup.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4675,7 +4675,7 @@ end;
 
 
 
-Procedure TReadGroup.SetdatasetId(AIndex : Integer; const AValue : String); 
+Procedure TReadGroup.SetdatasetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -4685,7 +4685,7 @@ end;
 
 
 
-Procedure TReadGroup.Setname(AIndex : Integer; const AValue : String); 
+Procedure TReadGroup.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4695,7 +4695,7 @@ end;
 
 
 
-Procedure TReadGroup.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TReadGroup.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4705,7 +4705,7 @@ end;
 
 
 
-Procedure TReadGroup.SetsampleId(AIndex : Integer; const AValue : String); 
+Procedure TReadGroup.SetsampleId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsampleId=AValue) then exit;
@@ -4715,7 +4715,7 @@ end;
 
 
 
-Procedure TReadGroup.Setexperiment(AIndex : Integer; const AValue : TExperiment); 
+Procedure TReadGroup.Setexperiment(AIndex : Integer; const AValue : TExperiment);
 
 begin
   If (Fexperiment=AValue) then exit;
@@ -4725,7 +4725,7 @@ end;
 
 
 
-Procedure TReadGroup.SetpredictedInsertSize(AIndex : Integer; const AValue : integer); 
+Procedure TReadGroup.SetpredictedInsertSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpredictedInsertSize=AValue) then exit;
@@ -4735,7 +4735,7 @@ end;
 
 
 
-Procedure TReadGroup.Setprograms(AIndex : Integer; const AValue : TReadGroupTypeprogramsArray); 
+Procedure TReadGroup.Setprograms(AIndex : Integer; const AValue : TReadGroupTypeprogramsArray);
 
 begin
   If (Fprograms=AValue) then exit;
@@ -4745,7 +4745,7 @@ end;
 
 
 
-Procedure TReadGroup.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TReadGroup.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -4755,7 +4755,7 @@ end;
 
 
 
-Procedure TReadGroup.Setinfo(AIndex : Integer; const AValue : TReadGroupTypeinfo); 
+Procedure TReadGroup.Setinfo(AIndex : Integer; const AValue : TReadGroupTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -4766,7 +4766,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReadGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReadGroup.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4785,7 +4785,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExperiment.SetlibraryId(AIndex : Integer; const AValue : String); 
+Procedure TExperiment.SetlibraryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlibraryId=AValue) then exit;
@@ -4795,7 +4795,7 @@ end;
 
 
 
-Procedure TExperiment.SetplatformUnit(AIndex : Integer; const AValue : String); 
+Procedure TExperiment.SetplatformUnit(AIndex : Integer; const AValue : String);
 
 begin
   If (FplatformUnit=AValue) then exit;
@@ -4805,7 +4805,7 @@ end;
 
 
 
-Procedure TExperiment.SetsequencingCenter(AIndex : Integer; const AValue : String); 
+Procedure TExperiment.SetsequencingCenter(AIndex : Integer; const AValue : String);
 
 begin
   If (FsequencingCenter=AValue) then exit;
@@ -4815,7 +4815,7 @@ end;
 
 
 
-Procedure TExperiment.SetinstrumentModel(AIndex : Integer; const AValue : String); 
+Procedure TExperiment.SetinstrumentModel(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstrumentModel=AValue) then exit;
@@ -4832,7 +4832,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProgram.SetcommandLine(AIndex : Integer; const AValue : String); 
+Procedure TProgram.SetcommandLine(AIndex : Integer; const AValue : String);
 
 begin
   If (FcommandLine=AValue) then exit;
@@ -4842,7 +4842,7 @@ end;
 
 
 
-Procedure TProgram.Setid(AIndex : Integer; const AValue : String); 
+Procedure TProgram.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4852,7 +4852,7 @@ end;
 
 
 
-Procedure TProgram.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProgram.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4862,7 +4862,7 @@ end;
 
 
 
-Procedure TProgram.SetprevProgramId(AIndex : Integer; const AValue : String); 
+Procedure TProgram.SetprevProgramId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprevProgramId=AValue) then exit;
@@ -4872,7 +4872,7 @@ end;
 
 
 
-Procedure TProgram.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TProgram.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -4889,7 +4889,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCoverageBucketsResponse.SetbucketWidth(AIndex : Integer; const AValue : String); 
+Procedure TListCoverageBucketsResponse.SetbucketWidth(AIndex : Integer; const AValue : String);
 
 begin
   If (FbucketWidth=AValue) then exit;
@@ -4899,7 +4899,7 @@ end;
 
 
 
-Procedure TListCoverageBucketsResponse.SetcoverageBuckets(AIndex : Integer; const AValue : TListCoverageBucketsResponseTypecoverageBucketsArray); 
+Procedure TListCoverageBucketsResponse.SetcoverageBuckets(AIndex : Integer; const AValue : TListCoverageBucketsResponseTypecoverageBucketsArray);
 
 begin
   If (FcoverageBuckets=AValue) then exit;
@@ -4909,7 +4909,7 @@ end;
 
 
 
-Procedure TListCoverageBucketsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListCoverageBucketsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4920,7 +4920,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListCoverageBucketsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListCoverageBucketsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4939,7 +4939,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCoverageBucket.Setrange(AIndex : Integer; const AValue : TRange); 
+Procedure TCoverageBucket.Setrange(AIndex : Integer; const AValue : TRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -4949,7 +4949,7 @@ end;
 
 
 
-Procedure TCoverageBucket.SetmeanCoverage(AIndex : Integer; const AValue : integer); 
+Procedure TCoverageBucket.SetmeanCoverage(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmeanCoverage=AValue) then exit;
@@ -4966,7 +4966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRange.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TRange.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -4976,7 +4976,7 @@ end;
 
 
 
-Procedure TRange.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TRange.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -4986,7 +4986,7 @@ end;
 
 
 
-Procedure TRange.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TRange.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -5014,7 +5014,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadsRequest.SetreadGroupSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReadsRequest.SetreadGroupSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FreadGroupSetIds=AValue) then exit;
@@ -5024,7 +5024,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetreadGroupIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReadsRequest.SetreadGroupIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FreadGroupIds=AValue) then exit;
@@ -5034,7 +5034,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadsRequest.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5044,7 +5044,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadsRequest.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -5054,7 +5054,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadsRequest.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -5064,7 +5064,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -5074,7 +5074,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchReadsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -5096,7 +5096,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReadsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReadsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5116,7 +5116,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadsResponse.Setalignments(AIndex : Integer; const AValue : TSearchReadsResponseTypealignmentsArray); 
+Procedure TSearchReadsResponse.Setalignments(AIndex : Integer; const AValue : TSearchReadsResponseTypealignmentsArray);
 
 begin
   If (Falignments=AValue) then exit;
@@ -5126,7 +5126,7 @@ end;
 
 
 
-Procedure TSearchReadsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReadsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5137,7 +5137,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReadsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReadsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5169,7 +5169,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRead.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRead.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5179,7 +5179,7 @@ end;
 
 
 
-Procedure TRead.SetreadGroupId(AIndex : Integer; const AValue : String); 
+Procedure TRead.SetreadGroupId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreadGroupId=AValue) then exit;
@@ -5189,7 +5189,7 @@ end;
 
 
 
-Procedure TRead.SetreadGroupSetId(AIndex : Integer; const AValue : String); 
+Procedure TRead.SetreadGroupSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -5199,7 +5199,7 @@ end;
 
 
 
-Procedure TRead.SetfragmentName(AIndex : Integer; const AValue : String); 
+Procedure TRead.SetfragmentName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfragmentName=AValue) then exit;
@@ -5209,7 +5209,7 @@ end;
 
 
 
-Procedure TRead.SetproperPlacement(AIndex : Integer; const AValue : boolean); 
+Procedure TRead.SetproperPlacement(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FproperPlacement=AValue) then exit;
@@ -5219,7 +5219,7 @@ end;
 
 
 
-Procedure TRead.SetduplicateFragment(AIndex : Integer; const AValue : boolean); 
+Procedure TRead.SetduplicateFragment(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FduplicateFragment=AValue) then exit;
@@ -5229,7 +5229,7 @@ end;
 
 
 
-Procedure TRead.SetfragmentLength(AIndex : Integer; const AValue : integer); 
+Procedure TRead.SetfragmentLength(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfragmentLength=AValue) then exit;
@@ -5239,7 +5239,7 @@ end;
 
 
 
-Procedure TRead.SetreadNumber(AIndex : Integer; const AValue : integer); 
+Procedure TRead.SetreadNumber(AIndex : Integer; const AValue : integer);
 
 begin
   If (FreadNumber=AValue) then exit;
@@ -5249,7 +5249,7 @@ end;
 
 
 
-Procedure TRead.SetnumberReads(AIndex : Integer; const AValue : integer); 
+Procedure TRead.SetnumberReads(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumberReads=AValue) then exit;
@@ -5259,7 +5259,7 @@ end;
 
 
 
-Procedure TRead.SetfailedVendorQualityChecks(AIndex : Integer; const AValue : boolean); 
+Procedure TRead.SetfailedVendorQualityChecks(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FfailedVendorQualityChecks=AValue) then exit;
@@ -5269,7 +5269,7 @@ end;
 
 
 
-Procedure TRead.Setalignment(AIndex : Integer; const AValue : TLinearAlignment); 
+Procedure TRead.Setalignment(AIndex : Integer; const AValue : TLinearAlignment);
 
 begin
   If (Falignment=AValue) then exit;
@@ -5279,7 +5279,7 @@ end;
 
 
 
-Procedure TRead.SetsecondaryAlignment(AIndex : Integer; const AValue : boolean); 
+Procedure TRead.SetsecondaryAlignment(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsecondaryAlignment=AValue) then exit;
@@ -5289,7 +5289,7 @@ end;
 
 
 
-Procedure TRead.SetsupplementaryAlignment(AIndex : Integer; const AValue : boolean); 
+Procedure TRead.SetsupplementaryAlignment(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupplementaryAlignment=AValue) then exit;
@@ -5299,7 +5299,7 @@ end;
 
 
 
-Procedure TRead.SetalignedSequence(AIndex : Integer; const AValue : String); 
+Procedure TRead.SetalignedSequence(AIndex : Integer; const AValue : String);
 
 begin
   If (FalignedSequence=AValue) then exit;
@@ -5309,7 +5309,7 @@ end;
 
 
 
-Procedure TRead.SetalignedQuality(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TRead.SetalignedQuality(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (FalignedQuality=AValue) then exit;
@@ -5319,7 +5319,7 @@ end;
 
 
 
-Procedure TRead.SetnextMatePosition(AIndex : Integer; const AValue : TPosition); 
+Procedure TRead.SetnextMatePosition(AIndex : Integer; const AValue : TPosition);
 
 begin
   If (FnextMatePosition=AValue) then exit;
@@ -5329,7 +5329,7 @@ end;
 
 
 
-Procedure TRead.Setinfo(AIndex : Integer; const AValue : TReadTypeinfo); 
+Procedure TRead.Setinfo(AIndex : Integer; const AValue : TReadTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -5340,7 +5340,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRead.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRead.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5359,7 +5359,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinearAlignment.Setposition(AIndex : Integer; const AValue : TPosition); 
+Procedure TLinearAlignment.Setposition(AIndex : Integer; const AValue : TPosition);
 
 begin
   If (Fposition=AValue) then exit;
@@ -5369,7 +5369,7 @@ end;
 
 
 
-Procedure TLinearAlignment.SetmappingQuality(AIndex : Integer; const AValue : integer); 
+Procedure TLinearAlignment.SetmappingQuality(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmappingQuality=AValue) then exit;
@@ -5379,7 +5379,7 @@ end;
 
 
 
-Procedure TLinearAlignment.Setcigar(AIndex : Integer; const AValue : TLinearAlignmentTypecigarArray); 
+Procedure TLinearAlignment.Setcigar(AIndex : Integer; const AValue : TLinearAlignmentTypecigarArray);
 
 begin
   If (Fcigar=AValue) then exit;
@@ -5390,7 +5390,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLinearAlignment.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLinearAlignment.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5409,7 +5409,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPosition.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TPosition.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5419,7 +5419,7 @@ end;
 
 
 
-Procedure TPosition.Setposition(AIndex : Integer; const AValue : String); 
+Procedure TPosition.Setposition(AIndex : Integer; const AValue : String);
 
 begin
   If (Fposition=AValue) then exit;
@@ -5429,7 +5429,7 @@ end;
 
 
 
-Procedure TPosition.SetreverseStrand(AIndex : Integer; const AValue : boolean); 
+Procedure TPosition.SetreverseStrand(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreverseStrand=AValue) then exit;
@@ -5446,7 +5446,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCigarUnit.Setoperation(AIndex : Integer; const AValue : String); 
+Procedure TCigarUnit.Setoperation(AIndex : Integer; const AValue : String);
 
 begin
   If (Foperation=AValue) then exit;
@@ -5456,7 +5456,7 @@ end;
 
 
 
-Procedure TCigarUnit.SetoperationLength(AIndex : Integer; const AValue : String); 
+Procedure TCigarUnit.SetoperationLength(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationLength=AValue) then exit;
@@ -5466,7 +5466,7 @@ end;
 
 
 
-Procedure TCigarUnit.SetreferenceSequence(AIndex : Integer; const AValue : String); 
+Procedure TCigarUnit.SetreferenceSequence(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSequence=AValue) then exit;
@@ -5483,7 +5483,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamReadsRequest.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TStreamReadsRequest.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5493,7 +5493,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.SetreadGroupSetId(AIndex : Integer; const AValue : String); 
+Procedure TStreamReadsRequest.SetreadGroupSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -5503,7 +5503,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TStreamReadsRequest.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5513,7 +5513,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TStreamReadsRequest.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -5523,7 +5523,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TStreamReadsRequest.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -5533,7 +5533,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.Setshard(AIndex : Integer; const AValue : integer); 
+Procedure TStreamReadsRequest.Setshard(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fshard=AValue) then exit;
@@ -5543,7 +5543,7 @@ end;
 
 
 
-Procedure TStreamReadsRequest.SettotalShards(AIndex : Integer; const AValue : integer); 
+Procedure TStreamReadsRequest.SettotalShards(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalShards=AValue) then exit;
@@ -5571,7 +5571,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamReadsResponse.Setalignments(AIndex : Integer; const AValue : TStreamReadsResponseTypealignmentsArray); 
+Procedure TStreamReadsResponse.Setalignments(AIndex : Integer; const AValue : TStreamReadsResponseTypealignmentsArray);
 
 begin
   If (Falignments=AValue) then exit;
@@ -5582,7 +5582,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStreamReadsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStreamReadsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5601,7 +5601,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferenceSetsRequest.Setmd5checksums(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReferenceSetsRequest.Setmd5checksums(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmd5checksums=AValue) then exit;
@@ -5611,7 +5611,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.Setaccessions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReferenceSetsRequest.Setaccessions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Faccessions=AValue) then exit;
@@ -5621,7 +5621,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetassemblyId(AIndex : Integer; const AValue : String); 
+Procedure TSearchReferenceSetsRequest.SetassemblyId(AIndex : Integer; const AValue : String);
 
 begin
   If (FassemblyId=AValue) then exit;
@@ -5631,7 +5631,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReferenceSetsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -5641,7 +5641,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchReferenceSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -5652,7 +5652,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReferenceSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReferenceSetsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5672,7 +5672,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferenceSetsResponse.SetreferenceSets(AIndex : Integer; const AValue : TSearchReferenceSetsResponseTypereferenceSetsArray); 
+Procedure TSearchReferenceSetsResponse.SetreferenceSets(AIndex : Integer; const AValue : TSearchReferenceSetsResponseTypereferenceSetsArray);
 
 begin
   If (FreferenceSets=AValue) then exit;
@@ -5682,7 +5682,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReferenceSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5693,7 +5693,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReferenceSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReferenceSetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5712,7 +5712,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReferenceSet.Setid(AIndex : Integer; const AValue : String); 
+Procedure TReferenceSet.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5722,7 +5722,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetreferenceIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReferenceSet.SetreferenceIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FreferenceIds=AValue) then exit;
@@ -5732,7 +5732,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setmd5checksum(AIndex : Integer; const AValue : String); 
+Procedure TReferenceSet.Setmd5checksum(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmd5checksum=AValue) then exit;
@@ -5742,7 +5742,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetncbiTaxonId(AIndex : Integer; const AValue : integer); 
+Procedure TReferenceSet.SetncbiTaxonId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FncbiTaxonId=AValue) then exit;
@@ -5752,7 +5752,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TReferenceSet.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5762,7 +5762,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetassemblyId(AIndex : Integer; const AValue : String); 
+Procedure TReferenceSet.SetassemblyId(AIndex : Integer; const AValue : String);
 
 begin
   If (FassemblyId=AValue) then exit;
@@ -5772,7 +5772,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetsourceUri(AIndex : Integer; const AValue : String); 
+Procedure TReferenceSet.SetsourceUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceUri=AValue) then exit;
@@ -5782,7 +5782,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetsourceAccessions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReferenceSet.SetsourceAccessions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsourceAccessions=AValue) then exit;
@@ -5793,7 +5793,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReferenceSet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReferenceSet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5813,7 +5813,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferencesRequest.Setmd5checksums(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReferencesRequest.Setmd5checksums(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmd5checksums=AValue) then exit;
@@ -5823,7 +5823,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.Setaccessions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchReferencesRequest.Setaccessions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Faccessions=AValue) then exit;
@@ -5833,7 +5833,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TSearchReferencesRequest.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -5843,7 +5843,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReferencesRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -5853,7 +5853,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchReferencesRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -5864,7 +5864,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReferencesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReferencesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5884,7 +5884,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferencesResponse.Setreferences(AIndex : Integer; const AValue : TSearchReferencesResponseTypereferencesArray); 
+Procedure TSearchReferencesResponse.Setreferences(AIndex : Integer; const AValue : TSearchReferencesResponseTypereferencesArray);
 
 begin
   If (Freferences=AValue) then exit;
@@ -5894,7 +5894,7 @@ end;
 
 
 
-Procedure TSearchReferencesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchReferencesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5905,7 +5905,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchReferencesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchReferencesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5924,7 +5924,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReference.Setid(AIndex : Integer; const AValue : String); 
+Procedure TReference.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5934,7 +5934,7 @@ end;
 
 
 
-Procedure TReference.Set_length(AIndex : Integer; const AValue : String); 
+Procedure TReference.Set_length(AIndex : Integer; const AValue : String);
 
 begin
   If (F_length=AValue) then exit;
@@ -5944,7 +5944,7 @@ end;
 
 
 
-Procedure TReference.Setmd5checksum(AIndex : Integer; const AValue : String); 
+Procedure TReference.Setmd5checksum(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmd5checksum=AValue) then exit;
@@ -5954,7 +5954,7 @@ end;
 
 
 
-Procedure TReference.Setname(AIndex : Integer; const AValue : String); 
+Procedure TReference.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5964,7 +5964,7 @@ end;
 
 
 
-Procedure TReference.SetsourceUri(AIndex : Integer; const AValue : String); 
+Procedure TReference.SetsourceUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceUri=AValue) then exit;
@@ -5974,7 +5974,7 @@ end;
 
 
 
-Procedure TReference.SetsourceAccessions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReference.SetsourceAccessions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsourceAccessions=AValue) then exit;
@@ -5984,7 +5984,7 @@ end;
 
 
 
-Procedure TReference.SetncbiTaxonId(AIndex : Integer; const AValue : integer); 
+Procedure TReference.SetncbiTaxonId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FncbiTaxonId=AValue) then exit;
@@ -6006,7 +6006,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReference.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReference.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6025,7 +6025,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBasesResponse.Setoffset(AIndex : Integer; const AValue : String); 
+Procedure TListBasesResponse.Setoffset(AIndex : Integer; const AValue : String);
 
 begin
   If (Foffset=AValue) then exit;
@@ -6035,7 +6035,7 @@ end;
 
 
 
-Procedure TListBasesResponse.Setsequence(AIndex : Integer; const AValue : String); 
+Procedure TListBasesResponse.Setsequence(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsequence=AValue) then exit;
@@ -6045,7 +6045,7 @@ end;
 
 
 
-Procedure TListBasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListBasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6075,7 +6075,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportVariantsRequest.SetvariantSetId(AIndex : Integer; const AValue : String); 
+Procedure TImportVariantsRequest.SetvariantSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariantSetId=AValue) then exit;
@@ -6085,7 +6085,7 @@ end;
 
 
 
-Procedure TImportVariantsRequest.SetsourceUris(AIndex : Integer; const AValue : TStringArray); 
+Procedure TImportVariantsRequest.SetsourceUris(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsourceUris=AValue) then exit;
@@ -6095,7 +6095,7 @@ end;
 
 
 
-Procedure TImportVariantsRequest.Setformat(AIndex : Integer; const AValue : String); 
+Procedure TImportVariantsRequest.Setformat(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformat=AValue) then exit;
@@ -6105,7 +6105,7 @@ end;
 
 
 
-Procedure TImportVariantsRequest.SetnormalizeReferenceNames(AIndex : Integer; const AValue : boolean); 
+Procedure TImportVariantsRequest.SetnormalizeReferenceNames(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnormalizeReferenceNames=AValue) then exit;
@@ -6115,7 +6115,7 @@ end;
 
 
 
-Procedure TImportVariantsRequest.SetinfoMergeConfig(AIndex : Integer; const AValue : TImportVariantsRequestTypeinfoMergeConfig); 
+Procedure TImportVariantsRequest.SetinfoMergeConfig(AIndex : Integer; const AValue : TImportVariantsRequestTypeinfoMergeConfig);
 
 begin
   If (FinfoMergeConfig=AValue) then exit;
@@ -6126,7 +6126,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TImportVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TImportVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6145,7 +6145,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantSet.SetdatasetId(AIndex : Integer; const AValue : String); 
+Procedure TVariantSet.SetdatasetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -6155,7 +6155,7 @@ end;
 
 
 
-Procedure TVariantSet.Setid(AIndex : Integer; const AValue : String); 
+Procedure TVariantSet.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6165,7 +6165,7 @@ end;
 
 
 
-Procedure TVariantSet.SetreferenceSetId(AIndex : Integer; const AValue : String); 
+Procedure TVariantSet.SetreferenceSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -6175,7 +6175,7 @@ end;
 
 
 
-Procedure TVariantSet.SetreferenceBounds(AIndex : Integer; const AValue : TVariantSetTypereferenceBoundsArray); 
+Procedure TVariantSet.SetreferenceBounds(AIndex : Integer; const AValue : TVariantSetTypereferenceBoundsArray);
 
 begin
   If (FreferenceBounds=AValue) then exit;
@@ -6185,7 +6185,7 @@ end;
 
 
 
-Procedure TVariantSet.Setmetadata(AIndex : Integer; const AValue : TVariantSetTypemetadataArray); 
+Procedure TVariantSet.Setmetadata(AIndex : Integer; const AValue : TVariantSetTypemetadataArray);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -6195,7 +6195,7 @@ end;
 
 
 
-Procedure TVariantSet.Setname(AIndex : Integer; const AValue : String); 
+Procedure TVariantSet.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6205,7 +6205,7 @@ end;
 
 
 
-Procedure TVariantSet.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TVariantSet.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6216,7 +6216,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVariantSet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVariantSet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6236,7 +6236,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReferenceBound.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TReferenceBound.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6246,7 +6246,7 @@ end;
 
 
 
-Procedure TReferenceBound.SetupperBound(AIndex : Integer; const AValue : String); 
+Procedure TReferenceBound.SetupperBound(AIndex : Integer; const AValue : String);
 
 begin
   If (FupperBound=AValue) then exit;
@@ -6276,7 +6276,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantSetMetadata.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TVariantSetMetadata.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -6286,7 +6286,7 @@ end;
 
 
 
-Procedure TVariantSetMetadata.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TVariantSetMetadata.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -6296,7 +6296,7 @@ end;
 
 
 
-Procedure TVariantSetMetadata.Setid(AIndex : Integer; const AValue : String); 
+Procedure TVariantSetMetadata.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6306,7 +6306,7 @@ end;
 
 
 
-Procedure TVariantSetMetadata.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TVariantSetMetadata.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -6316,7 +6316,7 @@ end;
 
 
 
-Procedure TVariantSetMetadata.Setnumber(AIndex : Integer; const AValue : String); 
+Procedure TVariantSetMetadata.Setnumber(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnumber=AValue) then exit;
@@ -6326,7 +6326,7 @@ end;
 
 
 
-Procedure TVariantSetMetadata.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TVariantSetMetadata.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6336,7 +6336,7 @@ end;
 
 
 
-Procedure TVariantSetMetadata.Setinfo(AIndex : Integer; const AValue : TVariantSetMetadataTypeinfo); 
+Procedure TVariantSetMetadata.Setinfo(AIndex : Integer; const AValue : TVariantSetMetadataTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -6364,7 +6364,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportVariantSetRequest.SetcallSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TExportVariantSetRequest.SetcallSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcallSetIds=AValue) then exit;
@@ -6374,7 +6374,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TExportVariantSetRequest.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6384,7 +6384,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.Setformat(AIndex : Integer; const AValue : String); 
+Procedure TExportVariantSetRequest.Setformat(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformat=AValue) then exit;
@@ -6394,7 +6394,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetbigqueryDataset(AIndex : Integer; const AValue : String); 
+Procedure TExportVariantSetRequest.SetbigqueryDataset(AIndex : Integer; const AValue : String);
 
 begin
   If (FbigqueryDataset=AValue) then exit;
@@ -6404,7 +6404,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetbigqueryTable(AIndex : Integer; const AValue : String); 
+Procedure TExportVariantSetRequest.SetbigqueryTable(AIndex : Integer; const AValue : String);
 
 begin
   If (FbigqueryTable=AValue) then exit;
@@ -6415,7 +6415,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TExportVariantSetRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TExportVariantSetRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6434,7 +6434,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantSetsRequest.SetdatasetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchVariantSetsRequest.SetdatasetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdatasetIds=AValue) then exit;
@@ -6444,7 +6444,7 @@ end;
 
 
 
-Procedure TSearchVariantSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantSetsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6454,7 +6454,7 @@ end;
 
 
 
-Procedure TSearchVariantSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchVariantSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -6465,7 +6465,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchVariantSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchVariantSetsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6484,7 +6484,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantSetsResponse.SetvariantSets(AIndex : Integer; const AValue : TSearchVariantSetsResponseTypevariantSetsArray); 
+Procedure TSearchVariantSetsResponse.SetvariantSets(AIndex : Integer; const AValue : TSearchVariantSetsResponseTypevariantSetsArray);
 
 begin
   If (FvariantSets=AValue) then exit;
@@ -6494,7 +6494,7 @@ end;
 
 
 
-Procedure TSearchVariantSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6505,7 +6505,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchVariantSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchVariantSetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6524,7 +6524,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantsRequest.SetvariantSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchVariantsRequest.SetvariantSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvariantSetIds=AValue) then exit;
@@ -6534,7 +6534,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetvariantName(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantsRequest.SetvariantName(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariantName=AValue) then exit;
@@ -6544,7 +6544,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetcallSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchVariantsRequest.SetcallSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcallSetIds=AValue) then exit;
@@ -6554,7 +6554,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantsRequest.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6564,7 +6564,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantsRequest.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -6574,7 +6574,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantsRequest.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -6584,7 +6584,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6594,7 +6594,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchVariantsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -6604,7 +6604,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetmaxCalls(AIndex : Integer; const AValue : integer); 
+Procedure TSearchVariantsRequest.SetmaxCalls(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxCalls=AValue) then exit;
@@ -6626,7 +6626,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6646,7 +6646,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantsResponse.Setvariants(AIndex : Integer; const AValue : TSearchVariantsResponseTypevariantsArray); 
+Procedure TSearchVariantsResponse.Setvariants(AIndex : Integer; const AValue : TSearchVariantsResponseTypevariantsArray);
 
 begin
   If (Fvariants=AValue) then exit;
@@ -6656,7 +6656,7 @@ end;
 
 
 
-Procedure TSearchVariantsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchVariantsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6667,7 +6667,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6699,7 +6699,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariant.SetvariantSetId(AIndex : Integer; const AValue : String); 
+Procedure TVariant.SetvariantSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariantSetId=AValue) then exit;
@@ -6709,7 +6709,7 @@ end;
 
 
 
-Procedure TVariant.Setid(AIndex : Integer; const AValue : String); 
+Procedure TVariant.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6719,7 +6719,7 @@ end;
 
 
 
-Procedure TVariant.Setnames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVariant.Setnames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fnames=AValue) then exit;
@@ -6729,7 +6729,7 @@ end;
 
 
 
-Procedure TVariant.Setcreated(AIndex : Integer; const AValue : String); 
+Procedure TVariant.Setcreated(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcreated=AValue) then exit;
@@ -6739,7 +6739,7 @@ end;
 
 
 
-Procedure TVariant.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TVariant.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6749,7 +6749,7 @@ end;
 
 
 
-Procedure TVariant.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TVariant.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -6759,7 +6759,7 @@ end;
 
 
 
-Procedure TVariant.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TVariant.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -6769,7 +6769,7 @@ end;
 
 
 
-Procedure TVariant.SetreferenceBases(AIndex : Integer; const AValue : String); 
+Procedure TVariant.SetreferenceBases(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceBases=AValue) then exit;
@@ -6779,7 +6779,7 @@ end;
 
 
 
-Procedure TVariant.SetalternateBases(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVariant.SetalternateBases(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FalternateBases=AValue) then exit;
@@ -6789,7 +6789,7 @@ end;
 
 
 
-Procedure TVariant.Setquality(AIndex : Integer; const AValue : double); 
+Procedure TVariant.Setquality(AIndex : Integer; const AValue : double);
 
 begin
   If (Fquality=AValue) then exit;
@@ -6799,7 +6799,7 @@ end;
 
 
 
-Procedure TVariant.Setfilter(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVariant.Setfilter(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -6809,7 +6809,7 @@ end;
 
 
 
-Procedure TVariant.Setinfo(AIndex : Integer; const AValue : TVariantTypeinfo); 
+Procedure TVariant.Setinfo(AIndex : Integer; const AValue : TVariantTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -6819,7 +6819,7 @@ end;
 
 
 
-Procedure TVariant.Setcalls(AIndex : Integer; const AValue : TVariantTypecallsArray); 
+Procedure TVariant.Setcalls(AIndex : Integer; const AValue : TVariantTypecallsArray);
 
 begin
   If (Fcalls=AValue) then exit;
@@ -6841,7 +6841,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVariant.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVariant.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6876,7 +6876,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantCall.SetcallSetId(AIndex : Integer; const AValue : String); 
+Procedure TVariantCall.SetcallSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcallSetId=AValue) then exit;
@@ -6886,7 +6886,7 @@ end;
 
 
 
-Procedure TVariantCall.SetcallSetName(AIndex : Integer; const AValue : String); 
+Procedure TVariantCall.SetcallSetName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcallSetName=AValue) then exit;
@@ -6896,7 +6896,7 @@ end;
 
 
 
-Procedure TVariantCall.Setgenotype(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TVariantCall.Setgenotype(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (Fgenotype=AValue) then exit;
@@ -6906,7 +6906,7 @@ end;
 
 
 
-Procedure TVariantCall.Setphaseset(AIndex : Integer; const AValue : String); 
+Procedure TVariantCall.Setphaseset(AIndex : Integer; const AValue : String);
 
 begin
   If (Fphaseset=AValue) then exit;
@@ -6916,7 +6916,7 @@ end;
 
 
 
-Procedure TVariantCall.SetgenotypeLikelihood(AIndex : Integer; const AValue : TdoubleArray); 
+Procedure TVariantCall.SetgenotypeLikelihood(AIndex : Integer; const AValue : TdoubleArray);
 
 begin
   If (FgenotypeLikelihood=AValue) then exit;
@@ -6926,7 +6926,7 @@ end;
 
 
 
-Procedure TVariantCall.Setinfo(AIndex : Integer; const AValue : TVariantCallTypeinfo); 
+Procedure TVariantCall.Setinfo(AIndex : Integer; const AValue : TVariantCallTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -6937,7 +6937,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVariantCall.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVariantCall.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6970,7 +6970,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMergeVariantsRequest.SetvariantSetId(AIndex : Integer; const AValue : String); 
+Procedure TMergeVariantsRequest.SetvariantSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariantSetId=AValue) then exit;
@@ -6980,7 +6980,7 @@ end;
 
 
 
-Procedure TMergeVariantsRequest.Setvariants(AIndex : Integer; const AValue : TMergeVariantsRequestTypevariantsArray); 
+Procedure TMergeVariantsRequest.Setvariants(AIndex : Integer; const AValue : TMergeVariantsRequestTypevariantsArray);
 
 begin
   If (Fvariants=AValue) then exit;
@@ -6990,7 +6990,7 @@ end;
 
 
 
-Procedure TMergeVariantsRequest.SetinfoMergeConfig(AIndex : Integer; const AValue : TMergeVariantsRequestTypeinfoMergeConfig); 
+Procedure TMergeVariantsRequest.SetinfoMergeConfig(AIndex : Integer; const AValue : TMergeVariantsRequestTypeinfoMergeConfig);
 
 begin
   If (FinfoMergeConfig=AValue) then exit;
@@ -7001,7 +7001,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMergeVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMergeVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7020,7 +7020,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchCallSetsRequest.SetvariantSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSearchCallSetsRequest.SetvariantSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvariantSetIds=AValue) then exit;
@@ -7030,7 +7030,7 @@ end;
 
 
 
-Procedure TSearchCallSetsRequest.Setname(AIndex : Integer; const AValue : String); 
+Procedure TSearchCallSetsRequest.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -7040,7 +7040,7 @@ end;
 
 
 
-Procedure TSearchCallSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchCallSetsRequest.SetpageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpageToken=AValue) then exit;
@@ -7050,7 +7050,7 @@ end;
 
 
 
-Procedure TSearchCallSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer); 
+Procedure TSearchCallSetsRequest.SetpageSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpageSize=AValue) then exit;
@@ -7061,7 +7061,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchCallSetsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchCallSetsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7080,7 +7080,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchCallSetsResponse.SetcallSets(AIndex : Integer; const AValue : TSearchCallSetsResponseTypecallSetsArray); 
+Procedure TSearchCallSetsResponse.SetcallSets(AIndex : Integer; const AValue : TSearchCallSetsResponseTypecallSetsArray);
 
 begin
   If (FcallSets=AValue) then exit;
@@ -7090,7 +7090,7 @@ end;
 
 
 
-Procedure TSearchCallSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSearchCallSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7101,7 +7101,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearchCallSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearchCallSetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7133,7 +7133,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCallSet.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCallSet.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -7143,7 +7143,7 @@ end;
 
 
 
-Procedure TCallSet.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCallSet.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -7153,7 +7153,7 @@ end;
 
 
 
-Procedure TCallSet.SetsampleId(AIndex : Integer; const AValue : String); 
+Procedure TCallSet.SetsampleId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsampleId=AValue) then exit;
@@ -7163,7 +7163,7 @@ end;
 
 
 
-Procedure TCallSet.SetvariantSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCallSet.SetvariantSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvariantSetIds=AValue) then exit;
@@ -7173,7 +7173,7 @@ end;
 
 
 
-Procedure TCallSet.Setcreated(AIndex : Integer; const AValue : String); 
+Procedure TCallSet.Setcreated(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcreated=AValue) then exit;
@@ -7183,7 +7183,7 @@ end;
 
 
 
-Procedure TCallSet.Setinfo(AIndex : Integer; const AValue : TCallSetTypeinfo); 
+Procedure TCallSet.Setinfo(AIndex : Integer; const AValue : TCallSetTypeinfo);
 
 begin
   If (Finfo=AValue) then exit;
@@ -7194,7 +7194,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCallSet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCallSet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7213,7 +7213,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamVariantsRequest.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TStreamVariantsRequest.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -7223,7 +7223,7 @@ end;
 
 
 
-Procedure TStreamVariantsRequest.SetvariantSetId(AIndex : Integer; const AValue : String); 
+Procedure TStreamVariantsRequest.SetvariantSetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariantSetId=AValue) then exit;
@@ -7233,7 +7233,7 @@ end;
 
 
 
-Procedure TStreamVariantsRequest.SetcallSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TStreamVariantsRequest.SetcallSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcallSetIds=AValue) then exit;
@@ -7243,7 +7243,7 @@ end;
 
 
 
-Procedure TStreamVariantsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
+Procedure TStreamVariantsRequest.SetreferenceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -7253,7 +7253,7 @@ end;
 
 
 
-Procedure TStreamVariantsRequest.Setstart(AIndex : Integer; const AValue : String); 
+Procedure TStreamVariantsRequest.Setstart(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart=AValue) then exit;
@@ -7263,7 +7263,7 @@ end;
 
 
 
-Procedure TStreamVariantsRequest.Set_end(AIndex : Integer; const AValue : String); 
+Procedure TStreamVariantsRequest.Set_end(AIndex : Integer; const AValue : String);
 
 begin
   If (F_end=AValue) then exit;
@@ -7285,7 +7285,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStreamVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStreamVariantsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7304,7 +7304,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamVariantsResponse.Setvariants(AIndex : Integer; const AValue : TStreamVariantsResponseTypevariantsArray); 
+Procedure TStreamVariantsResponse.Setvariants(AIndex : Integer; const AValue : TStreamVariantsResponseTypevariantsArray);
 
 begin
   If (Fvariants=AValue) then exit;
@@ -7315,7 +7315,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStreamVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStreamVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7334,7 +7334,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportReadGroupSetsResponse.SetreadGroupSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TImportReadGroupSetsResponse.SetreadGroupSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FreadGroupSetIds=AValue) then exit;
@@ -7345,7 +7345,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TImportReadGroupSetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TImportReadGroupSetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7364,7 +7364,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportVariantsResponse.SetcallSetIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TImportVariantsResponse.SetcallSetIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcallSetIds=AValue) then exit;
@@ -7375,7 +7375,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TImportVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TImportVariantsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7407,7 +7407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationMetadata.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -7417,7 +7417,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -7427,7 +7427,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -7437,7 +7437,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setrequest(AIndex : Integer; const AValue : TOperationMetadataTyperequest); 
+Procedure TOperationMetadata.Setrequest(AIndex : Integer; const AValue : TOperationMetadataTyperequest);
 
 begin
   If (Frequest=AValue) then exit;
@@ -7447,7 +7447,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setevents(AIndex : Integer; const AValue : TOperationMetadataTypeeventsArray); 
+Procedure TOperationMetadata.Setevents(AIndex : Integer; const AValue : TOperationMetadataTypeeventsArray);
 
 begin
   If (Fevents=AValue) then exit;
@@ -7458,7 +7458,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7477,7 +7477,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationEvent.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TOperationEvent.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8800,7 +8800,7 @@ begin
   Result[3].Description:='View and manage Genomics data';
   Result[4].Name:='https://www.googleapis.com/auth/genomics.readonly';
   Result[4].Description:='View Genomics data';
-  
+
 end;
 
 Class Function TGenomicsAPI.APINeedsAuth : Boolean;

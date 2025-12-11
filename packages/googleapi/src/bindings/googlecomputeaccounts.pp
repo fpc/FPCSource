@@ -5,14 +5,14 @@ unit googlecomputeaccounts;
    **********************************************************************
       This file is part of the Free Component Library (FCL)
       Copyright (c) 2015 The free pascal team.
-  
+
       See the file COPYING.FPC, included in this distribution,
       for details about the copyright.
-  
+
       This program is distributed in the hope that it will be useful,
       but WITHOUT ANY WARRANTY; without even the implied warranty of
       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
+
    **********************************************************************
 }
 //Generated on: 16-5-15 08:53:00
@@ -28,7 +28,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAuthorizedKeysView = Class;
   TGroup = Class;
@@ -74,11 +74,11 @@ type
   TOperationListTypeitemsArray = Array of TOperation;
   TUserTypepublicKeysArray = Array of TPublicKey;
   TUserListTypeitemsArray = Array of TUser;
-  
+
   { --------------------------------------------------------------------
     TAuthorizedKeysView
     --------------------------------------------------------------------}
-  
+
   TAuthorizedKeysView = Class(TGoogleBaseObject)
   Private
     Fkeys : TStringArray;
@@ -94,11 +94,11 @@ type
     Property keys : TStringArray Index 0 Read Fkeys Write Setkeys;
   end;
   TAuthorizedKeysViewClass = Class of TAuthorizedKeysView;
-  
+
   { --------------------------------------------------------------------
     TGroup
     --------------------------------------------------------------------}
-  
+
   TGroup = Class(TGoogleBaseObject)
   Private
     FcreationTimestamp : String;
@@ -132,11 +132,11 @@ type
     Property selfLink : String Index 48 Read FselfLink Write SetselfLink;
   end;
   TGroupClass = Class of TGroup;
-  
+
   { --------------------------------------------------------------------
     TGroupList
     --------------------------------------------------------------------}
-  
+
   TGroupList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -164,11 +164,11 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TGroupListClass = Class of TGroupList;
-  
+
   { --------------------------------------------------------------------
     TGroupsAddMemberRequest
     --------------------------------------------------------------------}
-  
+
   TGroupsAddMemberRequest = Class(TGoogleBaseObject)
   Private
     Fusers : TStringArray;
@@ -184,11 +184,11 @@ type
     Property users : TStringArray Index 0 Read Fusers Write Setusers;
   end;
   TGroupsAddMemberRequestClass = Class of TGroupsAddMemberRequest;
-  
+
   { --------------------------------------------------------------------
     TGroupsRemoveMemberRequest
     --------------------------------------------------------------------}
-  
+
   TGroupsRemoveMemberRequest = Class(TGoogleBaseObject)
   Private
     Fusers : TStringArray;
@@ -204,11 +204,11 @@ type
     Property users : TStringArray Index 0 Read Fusers Write Setusers;
   end;
   TGroupsRemoveMemberRequestClass = Class of TGroupsRemoveMemberRequest;
-  
+
   { --------------------------------------------------------------------
     TLinuxAccountViews
     --------------------------------------------------------------------}
-  
+
   TLinuxAccountViews = Class(TGoogleBaseObject)
   Private
     FgroupViews : TLinuxAccountViewsTypegroupViewsArray;
@@ -230,11 +230,11 @@ type
     Property userViews : TLinuxAccountViewsTypeuserViewsArray Index 16 Read FuserViews Write SetuserViews;
   end;
   TLinuxAccountViewsClass = Class of TLinuxAccountViews;
-  
+
   { --------------------------------------------------------------------
     TLinuxGetAuthorizedKeysViewResponse
     --------------------------------------------------------------------}
-  
+
   TLinuxGetAuthorizedKeysViewResponse = Class(TGoogleBaseObject)
   Private
     Fresource : TAuthorizedKeysView;
@@ -246,11 +246,11 @@ type
     Property resource : TAuthorizedKeysView Index 0 Read Fresource Write Setresource;
   end;
   TLinuxGetAuthorizedKeysViewResponseClass = Class of TLinuxGetAuthorizedKeysViewResponse;
-  
+
   { --------------------------------------------------------------------
     TLinuxGetLinuxAccountViewsResponse
     --------------------------------------------------------------------}
-  
+
   TLinuxGetLinuxAccountViewsResponse = Class(TGoogleBaseObject)
   Private
     Fresource : TLinuxAccountViews;
@@ -262,11 +262,11 @@ type
     Property resource : TLinuxAccountViews Index 0 Read Fresource Write Setresource;
   end;
   TLinuxGetLinuxAccountViewsResponseClass = Class of TLinuxGetLinuxAccountViewsResponse;
-  
+
   { --------------------------------------------------------------------
     TLinuxGroupView
     --------------------------------------------------------------------}
-  
+
   TLinuxGroupView = Class(TGoogleBaseObject)
   Private
     Fgid : integer;
@@ -288,11 +288,11 @@ type
     Property members : TStringArray Index 16 Read Fmembers Write Setmembers;
   end;
   TLinuxGroupViewClass = Class of TLinuxGroupView;
-  
+
   { --------------------------------------------------------------------
     TLinuxUserView
     --------------------------------------------------------------------}
-  
+
   TLinuxUserView = Class(TGoogleBaseObject)
   Private
     Fgecos : String;
@@ -319,11 +319,11 @@ type
     Property username : String Index 40 Read Fusername Write Setusername;
   end;
   TLinuxUserViewClass = Class of TLinuxUserView;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -341,11 +341,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerror
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerror = Class(TGoogleBaseObject)
   Private
     Ferrors : TOperationTypeerrorTypeerrorsArray;
@@ -361,11 +361,11 @@ type
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
   TOperationTypeerrorClass = Class of TOperationTypeerror;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItemTypedataItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -380,11 +380,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -406,11 +406,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     FclientOperationId : String;
@@ -489,11 +489,11 @@ type
     Property zone : String Index 168 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TOperationList
     --------------------------------------------------------------------}
-  
+
   TOperationList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -521,11 +521,11 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TOperationListClass = Class of TOperationList;
-  
+
   { --------------------------------------------------------------------
     TPublicKey
     --------------------------------------------------------------------}
-  
+
   TPublicKey = Class(TGoogleBaseObject)
   Private
     FcreationTimestamp : String;
@@ -549,11 +549,11 @@ type
     Property key : String Index 32 Read Fkey Write Setkey;
   end;
   TPublicKeyClass = Class of TPublicKey;
-  
+
   { --------------------------------------------------------------------
     TUser
     --------------------------------------------------------------------}
-  
+
   TUser = Class(TGoogleBaseObject)
   Private
     FcreationTimestamp : String;
@@ -593,11 +593,11 @@ type
     Property selfLink : String Index 64 Read FselfLink Write SetselfLink;
   end;
   TUserClass = Class of TUser;
-  
+
   { --------------------------------------------------------------------
     TUserList
     --------------------------------------------------------------------}
-  
+
   TUserList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -625,20 +625,20 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TUserListClass = Class of TUserList;
-  
+
   { --------------------------------------------------------------------
     TGlobalAccountsOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TGlobalAccountsOperationsResource, method List
-  
+
   TGlobalAccountsOperationsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TGlobalAccountsOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -648,21 +648,21 @@ type
     Function List(project: string; AQuery : string  = '') : TOperationList;
     Function List(project: string; AQuery : TGlobalAccountsOperationslistOptions) : TOperationList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGroupsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TGroupsResource, method List
-  
+
   TGroupsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TGroupsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -675,22 +675,22 @@ type
     Function List(project: string; AQuery : TGroupslistOptions) : TGroupList;
     Function RemoveMember(groupName: string; project: string; aGroupsRemoveMemberRequest : TGroupsRemoveMemberRequest) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLinuxResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLinuxResource, method GetAuthorizedKeysView
-  
+
   TLinuxGetAuthorizedKeysViewOptions = Record
     instance : String;
   end;
-  
-  
+
+
   //Optional query Options for TLinuxResource, method GetLinuxAccountViews
-  
+
   TLinuxGetLinuxAccountViewsOptions = Record
     filter : String;
     instance : String;
@@ -698,7 +698,7 @@ type
     pageToken : String;
     user : String;
   end;
-  
+
   TLinuxResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -708,28 +708,28 @@ type
     Function GetLinuxAccountViews(project: string; zone: string; AQuery : string  = '') : TLinuxGetLinuxAccountViewsResponse;
     Function GetLinuxAccountViews(project: string; zone: string; AQuery : TLinuxgetLinuxAccountViewsOptions) : TLinuxGetLinuxAccountViewsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersResource, method List
-  
+
   TUsersListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersResource, method RemovePublicKey
-  
+
   TUsersRemovePublicKeyOptions = Record
     fingerprint : String;
   end;
-  
+
   TUsersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -743,12 +743,12 @@ type
     Function RemovePublicKey(project: string; user: string; AQuery : string  = '') : TOperation;
     Function RemovePublicKey(project: string; user: string; AQuery : TUsersremovePublicKeyOptions) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TComputeaccountsAPI
     --------------------------------------------------------------------}
-  
+
   TComputeaccountsAPI = Class(TGoogleAPI)
   Private
     FGlobalAccountsOperationsInstance : TGlobalAccountsOperationsResource;
@@ -805,7 +805,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAuthorizedKeysView.Setkeys(AIndex : Integer; AValue : TStringArray); 
+Procedure TAuthorizedKeysView.Setkeys(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fkeys=AValue) then exit;
@@ -816,7 +816,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAuthorizedKeysView.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAuthorizedKeysView.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -835,7 +835,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroup.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TGroup.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -845,7 +845,7 @@ end;
 
 
 
-Procedure TGroup.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TGroup.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -855,7 +855,7 @@ end;
 
 
 
-Procedure TGroup.Setid(AIndex : Integer; const AValue : String); 
+Procedure TGroup.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -865,7 +865,7 @@ end;
 
 
 
-Procedure TGroup.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGroup.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -875,7 +875,7 @@ end;
 
 
 
-Procedure TGroup.Setmembers(AIndex : Integer; AValue : TStringArray); 
+Procedure TGroup.Setmembers(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -885,7 +885,7 @@ end;
 
 
 
-Procedure TGroup.Setname(AIndex : Integer; const AValue : String); 
+Procedure TGroup.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -895,7 +895,7 @@ end;
 
 
 
-Procedure TGroup.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TGroup.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -906,7 +906,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGroup.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -925,7 +925,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TGroupList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -935,7 +935,7 @@ end;
 
 
 
-Procedure TGroupList.Setitems(AIndex : Integer; AValue : TGroupListTypeitemsArray); 
+Procedure TGroupList.Setitems(AIndex : Integer; AValue : TGroupListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -945,7 +945,7 @@ end;
 
 
 
-Procedure TGroupList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGroupList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -955,7 +955,7 @@ end;
 
 
 
-Procedure TGroupList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TGroupList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -965,7 +965,7 @@ end;
 
 
 
-Procedure TGroupList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TGroupList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -976,7 +976,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGroupList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGroupList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -995,7 +995,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupsAddMemberRequest.Setusers(AIndex : Integer; AValue : TStringArray); 
+Procedure TGroupsAddMemberRequest.Setusers(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -1006,7 +1006,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGroupsAddMemberRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGroupsAddMemberRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1025,7 +1025,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupsRemoveMemberRequest.Setusers(AIndex : Integer; AValue : TStringArray); 
+Procedure TGroupsRemoveMemberRequest.Setusers(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -1036,7 +1036,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGroupsRemoveMemberRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGroupsRemoveMemberRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1055,7 +1055,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinuxAccountViews.SetgroupViews(AIndex : Integer; AValue : TLinuxAccountViewsTypegroupViewsArray); 
+Procedure TLinuxAccountViews.SetgroupViews(AIndex : Integer; AValue : TLinuxAccountViewsTypegroupViewsArray);
 
 begin
   If (FgroupViews=AValue) then exit;
@@ -1065,7 +1065,7 @@ end;
 
 
 
-Procedure TLinuxAccountViews.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLinuxAccountViews.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1075,7 +1075,7 @@ end;
 
 
 
-Procedure TLinuxAccountViews.SetuserViews(AIndex : Integer; AValue : TLinuxAccountViewsTypeuserViewsArray); 
+Procedure TLinuxAccountViews.SetuserViews(AIndex : Integer; AValue : TLinuxAccountViewsTypeuserViewsArray);
 
 begin
   If (FuserViews=AValue) then exit;
@@ -1086,7 +1086,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLinuxAccountViews.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLinuxAccountViews.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1106,7 +1106,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinuxGetAuthorizedKeysViewResponse.Setresource(AIndex : Integer; AValue : TAuthorizedKeysView); 
+Procedure TLinuxGetAuthorizedKeysViewResponse.Setresource(AIndex : Integer; AValue : TAuthorizedKeysView);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1123,7 +1123,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinuxGetLinuxAccountViewsResponse.Setresource(AIndex : Integer; AValue : TLinuxAccountViews); 
+Procedure TLinuxGetLinuxAccountViewsResponse.Setresource(AIndex : Integer; AValue : TLinuxAccountViews);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1140,7 +1140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinuxGroupView.Setgid(AIndex : Integer; AValue : integer); 
+Procedure TLinuxGroupView.Setgid(AIndex : Integer; AValue : integer);
 
 begin
   If (Fgid=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
 
 
 
-Procedure TLinuxGroupView.SetgroupName(AIndex : Integer; const AValue : String); 
+Procedure TLinuxGroupView.SetgroupName(AIndex : Integer; const AValue : String);
 
 begin
   If (FgroupName=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 
 
-Procedure TLinuxGroupView.Setmembers(AIndex : Integer; AValue : TStringArray); 
+Procedure TLinuxGroupView.Setmembers(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -1171,7 +1171,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLinuxGroupView.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLinuxGroupView.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1190,7 +1190,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinuxUserView.Setgecos(AIndex : Integer; const AValue : String); 
+Procedure TLinuxUserView.Setgecos(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgecos=AValue) then exit;
@@ -1200,7 +1200,7 @@ end;
 
 
 
-Procedure TLinuxUserView.Setgid(AIndex : Integer; AValue : integer); 
+Procedure TLinuxUserView.Setgid(AIndex : Integer; AValue : integer);
 
 begin
   If (Fgid=AValue) then exit;
@@ -1210,7 +1210,7 @@ end;
 
 
 
-Procedure TLinuxUserView.SethomeDirectory(AIndex : Integer; const AValue : String); 
+Procedure TLinuxUserView.SethomeDirectory(AIndex : Integer; const AValue : String);
 
 begin
   If (FhomeDirectory=AValue) then exit;
@@ -1220,7 +1220,7 @@ end;
 
 
 
-Procedure TLinuxUserView.Setshell(AIndex : Integer; const AValue : String); 
+Procedure TLinuxUserView.Setshell(AIndex : Integer; const AValue : String);
 
 begin
   If (Fshell=AValue) then exit;
@@ -1230,7 +1230,7 @@ end;
 
 
 
-Procedure TLinuxUserView.Setuid(AIndex : Integer; AValue : integer); 
+Procedure TLinuxUserView.Setuid(AIndex : Integer; AValue : integer);
 
 begin
   If (Fuid=AValue) then exit;
@@ -1240,7 +1240,7 @@ end;
 
 
 
-Procedure TLinuxUserView.Setusername(AIndex : Integer; const AValue : String); 
+Procedure TLinuxUserView.Setusername(AIndex : Integer; const AValue : String);
 
 begin
   If (Fusername=AValue) then exit;
@@ -1257,7 +1257,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1277,7 +1277,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1294,7 +1294,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1305,7 +1305,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1324,7 +1324,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1334,7 +1334,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1351,7 +1351,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1361,7 +1361,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1371,7 +1371,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1382,7 +1382,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1401,7 +1401,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientOperationId=AValue) then exit;
@@ -1411,7 +1411,7 @@ end;
 
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1421,7 +1421,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1431,7 +1431,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror);
 
 begin
   If (Ferror=AValue) then exit;
@@ -1441,7 +1441,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -1451,7 +1451,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer);
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1461,7 +1461,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1481,7 +1481,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1491,7 +1491,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1501,7 +1501,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -1511,7 +1511,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer);
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1521,7 +1521,7 @@ end;
 
 
 
-Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -1531,7 +1531,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1541,7 +1541,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1551,7 +1551,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1561,7 +1561,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1571,7 +1571,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetId=AValue) then exit;
@@ -1581,7 +1581,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1591,7 +1591,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -1601,7 +1601,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1611,7 +1611,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String);
 
 begin
   If (Fzone=AValue) then exit;
@@ -1622,7 +1622,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1641,7 +1641,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1651,7 +1651,7 @@ end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); 
+Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1661,7 +1661,7 @@ end;
 
 
 
-Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1671,7 +1671,7 @@ end;
 
 
 
-Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1681,7 +1681,7 @@ end;
 
 
 
-Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1692,7 +1692,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1711,7 +1711,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublicKey.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TPublicKey.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1721,7 +1721,7 @@ end;
 
 
 
-Procedure TPublicKey.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TPublicKey.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1731,7 +1731,7 @@ end;
 
 
 
-Procedure TPublicKey.SetexpirationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TPublicKey.SetexpirationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpirationTimestamp=AValue) then exit;
@@ -1741,7 +1741,7 @@ end;
 
 
 
-Procedure TPublicKey.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TPublicKey.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1751,7 +1751,7 @@ end;
 
 
 
-Procedure TPublicKey.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TPublicKey.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1768,7 +1768,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TUser.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1778,7 +1778,7 @@ end;
 
 
 
-Procedure TUser.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1788,7 +1788,7 @@ end;
 
 
 
-Procedure TUser.Setgroups(AIndex : Integer; AValue : TStringArray); 
+Procedure TUser.Setgroups(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fgroups=AValue) then exit;
@@ -1798,7 +1798,7 @@ end;
 
 
 
-Procedure TUser.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1808,7 +1808,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1818,7 +1818,7 @@ end;
 
 
 
-Procedure TUser.Setname(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1828,7 +1828,7 @@ end;
 
 
 
-Procedure TUser.Setowner(AIndex : Integer; const AValue : String); 
+Procedure TUser.Setowner(AIndex : Integer; const AValue : String);
 
 begin
   If (Fowner=AValue) then exit;
@@ -1838,7 +1838,7 @@ end;
 
 
 
-Procedure TUser.SetpublicKeys(AIndex : Integer; AValue : TUserTypepublicKeysArray); 
+Procedure TUser.SetpublicKeys(AIndex : Integer; AValue : TUserTypepublicKeysArray);
 
 begin
   If (FpublicKeys=AValue) then exit;
@@ -1848,7 +1848,7 @@ end;
 
 
 
-Procedure TUser.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TUser.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1859,7 +1859,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUser.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUser.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1879,7 +1879,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUserList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1889,7 +1889,7 @@ end;
 
 
 
-Procedure TUserList.Setitems(AIndex : Integer; AValue : TUserListTypeitemsArray); 
+Procedure TUserList.Setitems(AIndex : Integer; AValue : TUserListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1899,7 +1899,7 @@ end;
 
 
 
-Procedure TUserList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUserList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1909,7 +1909,7 @@ end;
 
 
 
-Procedure TUserList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TUserList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1919,7 +1919,7 @@ end;
 
 
 
-Procedure TUserList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TUserList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1930,7 +1930,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUserList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUserList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2473,7 +2473,7 @@ begin
   Result[1].Description:='Manage your Google Compute Accounts';
   Result[2].Name:='https://www.googleapis.com/auth/computeaccounts.readonly';
   Result[2].Description:='View your Google Compute Accounts';
-  
+
 end;
 
 Class Function TComputeaccountsAPI.APINeedsAuth : Boolean;

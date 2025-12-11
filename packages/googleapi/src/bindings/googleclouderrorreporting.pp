@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TSourceLocation = Class;
   TErrorGroupStats = Class;
@@ -45,11 +45,11 @@ type
   TErrorGroupTypetrackingIssuesArray = Array of TTrackingIssue;
   TListEventsResponseTypeerrorEventsArray = Array of TErrorEvent;
   TListGroupStatsResponseTypeerrorGroupStatsArray = Array of TErrorGroupStats;
-  
+
   { --------------------------------------------------------------------
     TSourceLocation
     --------------------------------------------------------------------}
-  
+
   TSourceLocation = Class(TGoogleBaseObject)
   Private
     FfilePath : String;
@@ -67,11 +67,11 @@ type
     Property lineNumber : integer Index 16 Read FlineNumber Write SetlineNumber;
   end;
   TSourceLocationClass = Class of TSourceLocation;
-  
+
   { --------------------------------------------------------------------
     TErrorGroupStats
     --------------------------------------------------------------------}
-  
+
   TErrorGroupStats = Class(TGoogleBaseObject)
   Private
     Frepresentative : TErrorEvent;
@@ -111,11 +111,11 @@ type
     Property timedCounts : TErrorGroupStatsTypetimedCountsArray Index 64 Read FtimedCounts Write SettimedCounts;
   end;
   TErrorGroupStatsClass = Class of TErrorGroupStats;
-  
+
   { --------------------------------------------------------------------
     TErrorContext
     --------------------------------------------------------------------}
-  
+
   TErrorContext = Class(TGoogleBaseObject)
   Private
     FhttpRequest : THttpRequestContext;
@@ -133,11 +133,11 @@ type
     Property user : String Index 16 Read Fuser Write Setuser;
   end;
   TErrorContextClass = Class of TErrorContext;
-  
+
   { --------------------------------------------------------------------
     TServiceContext
     --------------------------------------------------------------------}
-  
+
   TServiceContext = Class(TGoogleBaseObject)
   Private
     Fservice : String;
@@ -152,11 +152,11 @@ type
     Property version : String Index 8 Read Fversion Write Setversion;
   end;
   TServiceContextClass = Class of TServiceContext;
-  
+
   { --------------------------------------------------------------------
     TErrorGroup
     --------------------------------------------------------------------}
-  
+
   TErrorGroup = Class(TGoogleBaseObject)
   Private
     FgroupId : String;
@@ -178,11 +178,11 @@ type
     Property trackingIssues : TErrorGroupTypetrackingIssuesArray Index 16 Read FtrackingIssues Write SettrackingIssues;
   end;
   TErrorGroupClass = Class of TErrorGroup;
-  
+
   { --------------------------------------------------------------------
     TTrackingIssue
     --------------------------------------------------------------------}
-  
+
   TTrackingIssue = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -194,11 +194,11 @@ type
     Property url : String Index 0 Read Furl Write Seturl;
   end;
   TTrackingIssueClass = Class of TTrackingIssue;
-  
+
   { --------------------------------------------------------------------
     TDeleteEventsResponse
     --------------------------------------------------------------------}
-  
+
   TDeleteEventsResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -207,11 +207,11 @@ type
   Published
   end;
   TDeleteEventsResponseClass = Class of TDeleteEventsResponse;
-  
+
   { --------------------------------------------------------------------
     TErrorEvent
     --------------------------------------------------------------------}
-  
+
   TErrorEvent = Class(TGoogleBaseObject)
   Private
     FserviceContext : TServiceContext;
@@ -232,11 +232,11 @@ type
     Property message : String Index 24 Read Fmessage Write Setmessage;
   end;
   TErrorEventClass = Class of TErrorEvent;
-  
+
   { --------------------------------------------------------------------
     TListEventsResponse
     --------------------------------------------------------------------}
-  
+
   TListEventsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -255,11 +255,11 @@ type
     Property errorEvents : TListEventsResponseTypeerrorEventsArray Index 8 Read FerrorEvents Write SeterrorEvents;
   end;
   TListEventsResponseClass = Class of TListEventsResponse;
-  
+
   { --------------------------------------------------------------------
     TTimedCount
     --------------------------------------------------------------------}
-  
+
   TTimedCount = Class(TGoogleBaseObject)
   Private
     FstartTime : String;
@@ -277,11 +277,11 @@ type
     Property count : String Index 16 Read Fcount Write Setcount;
   end;
   TTimedCountClass = Class of TTimedCount;
-  
+
   { --------------------------------------------------------------------
     THttpRequestContext
     --------------------------------------------------------------------}
-  
+
   THttpRequestContext = Class(TGoogleBaseObject)
   Private
     Fmethod : String;
@@ -308,11 +308,11 @@ type
     Property userAgent : String Index 40 Read FuserAgent Write SetuserAgent;
   end;
   THttpRequestContextClass = Class of THttpRequestContext;
-  
+
   { --------------------------------------------------------------------
     TListGroupStatsResponse
     --------------------------------------------------------------------}
-  
+
   TListGroupStatsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -331,14 +331,14 @@ type
     Property errorGroupStats : TListGroupStatsResponseTypeerrorGroupStatsArray Index 8 Read FerrorGroupStats Write SeterrorGroupStats;
   end;
   TListGroupStatsResponseClass = Class of TListGroupStatsResponse;
-  
+
   { --------------------------------------------------------------------
     TProjectsEventsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsEventsResource, method List
-  
+
   TProjectsEventsListOptions = Record
     timeRangeperiod : String;
     serviceFilterservice : String;
@@ -347,7 +347,7 @@ type
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsEventsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -355,12 +355,12 @@ type
     Function List(projectName: string; AQuery : string  = '') : TListEventsResponse;
     Function List(projectName: string; AQuery : TProjectsEventslistOptions) : TListEventsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsGroupsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsGroupsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -368,15 +368,15 @@ type
     Function Update(_name: string; aErrorGroup : TErrorGroup) : TErrorGroup;
     Function Get(groupName: string) : TErrorGroup;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsGroupStatsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsGroupStatsResource, method List
-  
+
   TProjectsGroupStatsListOptions = Record
     alignment : String;
     timeRangeperiod : String;
@@ -389,7 +389,7 @@ type
     timedCountDuration : String;
     pageToken : String;
   end;
-  
+
   TProjectsGroupStatsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -397,12 +397,12 @@ type
     Function List(projectName: string; AQuery : string  = '') : TListGroupStatsResponse;
     Function List(projectName: string; AQuery : TProjectsGroupStatslistOptions) : TListGroupStatsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FEventsInstance : TProjectsEventsResource;
@@ -425,12 +425,12 @@ type
     Property GroupsResource : TProjectsGroupsResource Read GetGroupsInstance;
     Property GroupStatsResource : TProjectsGroupStatsResource Read GetGroupStatsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TClouderrorreportingAPI
     --------------------------------------------------------------------}
-  
+
   TClouderrorreportingAPI = Class(TGoogleAPI)
   Private
     FProjectsEventsInstance : TProjectsEventsResource;
@@ -487,7 +487,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TSourceLocation.SetfilePath(AIndex : Integer; const AValue : String); 
+Procedure TSourceLocation.SetfilePath(AIndex : Integer; const AValue : String);
 
 begin
   If (FfilePath=AValue) then exit;
@@ -497,7 +497,7 @@ end;
 
 
 
-Procedure TSourceLocation.SetfunctionName(AIndex : Integer; const AValue : String); 
+Procedure TSourceLocation.SetfunctionName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfunctionName=AValue) then exit;
@@ -507,7 +507,7 @@ end;
 
 
 
-Procedure TSourceLocation.SetlineNumber(AIndex : Integer; const AValue : integer); 
+Procedure TSourceLocation.SetlineNumber(AIndex : Integer; const AValue : integer);
 
 begin
   If (FlineNumber=AValue) then exit;
@@ -524,7 +524,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorGroupStats.Setrepresentative(AIndex : Integer; const AValue : TErrorEvent); 
+Procedure TErrorGroupStats.Setrepresentative(AIndex : Integer; const AValue : TErrorEvent);
 
 begin
   If (Frepresentative=AValue) then exit;
@@ -534,7 +534,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.SetnumAffectedServices(AIndex : Integer; const AValue : integer); 
+Procedure TErrorGroupStats.SetnumAffectedServices(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumAffectedServices=AValue) then exit;
@@ -544,7 +544,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.SetaffectedUsersCount(AIndex : Integer; const AValue : String); 
+Procedure TErrorGroupStats.SetaffectedUsersCount(AIndex : Integer; const AValue : String);
 
 begin
   If (FaffectedUsersCount=AValue) then exit;
@@ -554,7 +554,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.Setcount(AIndex : Integer; const AValue : String); 
+Procedure TErrorGroupStats.Setcount(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcount=AValue) then exit;
@@ -564,7 +564,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.SetfirstSeenTime(AIndex : Integer; const AValue : String); 
+Procedure TErrorGroupStats.SetfirstSeenTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FfirstSeenTime=AValue) then exit;
@@ -574,7 +574,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.SetlastSeenTime(AIndex : Integer; const AValue : String); 
+Procedure TErrorGroupStats.SetlastSeenTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastSeenTime=AValue) then exit;
@@ -584,7 +584,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.Setgroup(AIndex : Integer; const AValue : TErrorGroup); 
+Procedure TErrorGroupStats.Setgroup(AIndex : Integer; const AValue : TErrorGroup);
 
 begin
   If (Fgroup=AValue) then exit;
@@ -594,7 +594,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.SetaffectedServices(AIndex : Integer; const AValue : TErrorGroupStatsTypeaffectedServicesArray); 
+Procedure TErrorGroupStats.SetaffectedServices(AIndex : Integer; const AValue : TErrorGroupStatsTypeaffectedServicesArray);
 
 begin
   If (FaffectedServices=AValue) then exit;
@@ -604,7 +604,7 @@ end;
 
 
 
-Procedure TErrorGroupStats.SettimedCounts(AIndex : Integer; const AValue : TErrorGroupStatsTypetimedCountsArray); 
+Procedure TErrorGroupStats.SettimedCounts(AIndex : Integer; const AValue : TErrorGroupStatsTypetimedCountsArray);
 
 begin
   If (FtimedCounts=AValue) then exit;
@@ -615,7 +615,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TErrorGroupStats.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TErrorGroupStats.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -635,7 +635,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorContext.SethttpRequest(AIndex : Integer; const AValue : THttpRequestContext); 
+Procedure TErrorContext.SethttpRequest(AIndex : Integer; const AValue : THttpRequestContext);
 
 begin
   If (FhttpRequest=AValue) then exit;
@@ -645,7 +645,7 @@ end;
 
 
 
-Procedure TErrorContext.SetreportLocation(AIndex : Integer; const AValue : TSourceLocation); 
+Procedure TErrorContext.SetreportLocation(AIndex : Integer; const AValue : TSourceLocation);
 
 begin
   If (FreportLocation=AValue) then exit;
@@ -655,7 +655,7 @@ end;
 
 
 
-Procedure TErrorContext.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TErrorContext.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -672,7 +672,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceContext.Setservice(AIndex : Integer; const AValue : String); 
+Procedure TServiceContext.Setservice(AIndex : Integer; const AValue : String);
 
 begin
   If (Fservice=AValue) then exit;
@@ -682,7 +682,7 @@ end;
 
 
 
-Procedure TServiceContext.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TServiceContext.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -699,7 +699,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorGroup.SetgroupId(AIndex : Integer; const AValue : String); 
+Procedure TErrorGroup.SetgroupId(AIndex : Integer; const AValue : String);
 
 begin
   If (FgroupId=AValue) then exit;
@@ -709,7 +709,7 @@ end;
 
 
 
-Procedure TErrorGroup.Setname(AIndex : Integer; const AValue : String); 
+Procedure TErrorGroup.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -719,7 +719,7 @@ end;
 
 
 
-Procedure TErrorGroup.SettrackingIssues(AIndex : Integer; const AValue : TErrorGroupTypetrackingIssuesArray); 
+Procedure TErrorGroup.SettrackingIssues(AIndex : Integer; const AValue : TErrorGroupTypetrackingIssuesArray);
 
 begin
   If (FtrackingIssues=AValue) then exit;
@@ -730,7 +730,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TErrorGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TErrorGroup.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -749,7 +749,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTrackingIssue.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TTrackingIssue.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -773,7 +773,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorEvent.SetserviceContext(AIndex : Integer; const AValue : TServiceContext); 
+Procedure TErrorEvent.SetserviceContext(AIndex : Integer; const AValue : TServiceContext);
 
 begin
   If (FserviceContext=AValue) then exit;
@@ -783,7 +783,7 @@ end;
 
 
 
-Procedure TErrorEvent.Setcontext(AIndex : Integer; const AValue : TErrorContext); 
+Procedure TErrorEvent.Setcontext(AIndex : Integer; const AValue : TErrorContext);
 
 begin
   If (Fcontext=AValue) then exit;
@@ -793,7 +793,7 @@ end;
 
 
 
-Procedure TErrorEvent.SeteventTime(AIndex : Integer; const AValue : String); 
+Procedure TErrorEvent.SeteventTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventTime=AValue) then exit;
@@ -803,7 +803,7 @@ end;
 
 
 
-Procedure TErrorEvent.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TErrorEvent.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -820,7 +820,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListEventsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListEventsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -830,7 +830,7 @@ end;
 
 
 
-Procedure TListEventsResponse.SeterrorEvents(AIndex : Integer; const AValue : TListEventsResponseTypeerrorEventsArray); 
+Procedure TListEventsResponse.SeterrorEvents(AIndex : Integer; const AValue : TListEventsResponseTypeerrorEventsArray);
 
 begin
   If (FerrorEvents=AValue) then exit;
@@ -841,7 +841,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListEventsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListEventsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -860,7 +860,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimedCount.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TTimedCount.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -870,7 +870,7 @@ end;
 
 
 
-Procedure TTimedCount.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TTimedCount.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 
 
-Procedure TTimedCount.Setcount(AIndex : Integer; const AValue : String); 
+Procedure TTimedCount.Setcount(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcount=AValue) then exit;
@@ -897,7 +897,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THttpRequestContext.Setmethod(AIndex : Integer; const AValue : String); 
+Procedure THttpRequestContext.Setmethod(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -907,7 +907,7 @@ end;
 
 
 
-Procedure THttpRequestContext.SetresponseStatusCode(AIndex : Integer; const AValue : integer); 
+Procedure THttpRequestContext.SetresponseStatusCode(AIndex : Integer; const AValue : integer);
 
 begin
   If (FresponseStatusCode=AValue) then exit;
@@ -917,7 +917,7 @@ end;
 
 
 
-Procedure THttpRequestContext.SetremoteIp(AIndex : Integer; const AValue : String); 
+Procedure THttpRequestContext.SetremoteIp(AIndex : Integer; const AValue : String);
 
 begin
   If (FremoteIp=AValue) then exit;
@@ -927,7 +927,7 @@ end;
 
 
 
-Procedure THttpRequestContext.Seturl(AIndex : Integer; const AValue : String); 
+Procedure THttpRequestContext.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -937,7 +937,7 @@ end;
 
 
 
-Procedure THttpRequestContext.Setreferrer(AIndex : Integer; const AValue : String); 
+Procedure THttpRequestContext.Setreferrer(AIndex : Integer; const AValue : String);
 
 begin
   If (Freferrer=AValue) then exit;
@@ -947,7 +947,7 @@ end;
 
 
 
-Procedure THttpRequestContext.SetuserAgent(AIndex : Integer; const AValue : String); 
+Procedure THttpRequestContext.SetuserAgent(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserAgent=AValue) then exit;
@@ -964,7 +964,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListGroupStatsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListGroupStatsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -974,7 +974,7 @@ end;
 
 
 
-Procedure TListGroupStatsResponse.SeterrorGroupStats(AIndex : Integer; const AValue : TListGroupStatsResponseTypeerrorGroupStatsArray); 
+Procedure TListGroupStatsResponse.SeterrorGroupStats(AIndex : Integer; const AValue : TListGroupStatsResponseTypeerrorGroupStatsArray);
 
 begin
   If (FerrorGroupStats=AValue) then exit;
@@ -985,7 +985,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListGroupStatsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListGroupStatsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1372,7 +1372,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TClouderrorreportingAPI.APINeedsAuth : Boolean;

@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAccount = Class;
   TAttachment = Class;
@@ -69,11 +69,11 @@ type
   TTimelineItemTypemenuItemsArray = Array of TMenuItem;
   TTimelineItemTyperecipientsArray = Array of TContact;
   TTimelineListResponseTypeitemsArray = Array of TTimelineItem;
-  
+
   { --------------------------------------------------------------------
     TAccount
     --------------------------------------------------------------------}
-  
+
   TAccount = Class(TGoogleBaseObject)
   Private
     FauthTokens : TAccountTypeauthTokensArray;
@@ -98,11 +98,11 @@ type
     Property userData : TAccountTypeuserDataArray Index 24 Read FuserData Write SetuserData;
   end;
   TAccountClass = Class of TAccount;
-  
+
   { --------------------------------------------------------------------
     TAttachment
     --------------------------------------------------------------------}
-  
+
   TAttachment = Class(TGoogleBaseObject)
   Private
     FcontentType : String;
@@ -123,11 +123,11 @@ type
     Property isProcessingContent : boolean Index 24 Read FisProcessingContent Write SetisProcessingContent;
   end;
   TAttachmentClass = Class of TAttachment;
-  
+
   { --------------------------------------------------------------------
     TAttachmentsListResponse
     --------------------------------------------------------------------}
-  
+
   TAttachmentsListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TAttachmentsListResponseTypeitemsArray;
@@ -146,11 +146,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAttachmentsListResponseClass = Class of TAttachmentsListResponse;
-  
+
   { --------------------------------------------------------------------
     TAuthToken
     --------------------------------------------------------------------}
-  
+
   TAuthToken = Class(TGoogleBaseObject)
   Private
     FauthToken : String;
@@ -166,11 +166,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TAuthTokenClass = Class of TAuthToken;
-  
+
   { --------------------------------------------------------------------
     TCommand
     --------------------------------------------------------------------}
-  
+
   TCommand = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -183,11 +183,11 @@ type
     Property _type : String Index 0 Read F_type Write Set_type;
   end;
   TCommandClass = Class of TCommand;
-  
+
   { --------------------------------------------------------------------
     TContact
     --------------------------------------------------------------------}
-  
+
   TContact = Class(TGoogleBaseObject)
   Private
     FacceptCommands : TContactTypeacceptCommandsArray;
@@ -237,11 +237,11 @@ type
     Property _type : String Index 88 Read F_type Write Set_type;
   end;
   TContactClass = Class of TContact;
-  
+
   { --------------------------------------------------------------------
     TContactsListResponse
     --------------------------------------------------------------------}
-  
+
   TContactsListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TContactsListResponseTypeitemsArray;
@@ -260,11 +260,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TContactsListResponseClass = Class of TContactsListResponse;
-  
+
   { --------------------------------------------------------------------
     TLocation
     --------------------------------------------------------------------}
-  
+
   TLocation = Class(TGoogleBaseObject)
   Private
     Faccuracy : double;
@@ -297,11 +297,11 @@ type
     Property timestamp : TDatetime Index 56 Read Ftimestamp Write Settimestamp;
   end;
   TLocationClass = Class of TLocation;
-  
+
   { --------------------------------------------------------------------
     TLocationsListResponse
     --------------------------------------------------------------------}
-  
+
   TLocationsListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TLocationsListResponseTypeitemsArray;
@@ -320,11 +320,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TLocationsListResponseClass = Class of TLocationsListResponse;
-  
+
   { --------------------------------------------------------------------
     TMenuItem
     --------------------------------------------------------------------}
-  
+
   TMenuItem = Class(TGoogleBaseObject)
   Private
     Faction : String;
@@ -355,11 +355,11 @@ type
     Property values : TMenuItemTypevaluesArray Index 40 Read Fvalues Write Setvalues;
   end;
   TMenuItemClass = Class of TMenuItem;
-  
+
   { --------------------------------------------------------------------
     TMenuValue
     --------------------------------------------------------------------}
-  
+
   TMenuValue = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -377,11 +377,11 @@ type
     Property state : String Index 16 Read Fstate Write Setstate;
   end;
   TMenuValueClass = Class of TMenuValue;
-  
+
   { --------------------------------------------------------------------
     TNotification
     --------------------------------------------------------------------}
-  
+
   TNotification = Class(TGoogleBaseObject)
   Private
     Fcollection : String;
@@ -412,11 +412,11 @@ type
     Property verifyToken : String Index 40 Read FverifyToken Write SetverifyToken;
   end;
   TNotificationClass = Class of TNotification;
-  
+
   { --------------------------------------------------------------------
     TNotificationConfig
     --------------------------------------------------------------------}
-  
+
   TNotificationConfig = Class(TGoogleBaseObject)
   Private
     FdeliveryTime : TDatetime;
@@ -431,11 +431,11 @@ type
     Property level : String Index 8 Read Flevel Write Setlevel;
   end;
   TNotificationConfigClass = Class of TNotificationConfig;
-  
+
   { --------------------------------------------------------------------
     TSetting
     --------------------------------------------------------------------}
-  
+
   TSetting = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -453,11 +453,11 @@ type
     Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TSettingClass = Class of TSetting;
-  
+
   { --------------------------------------------------------------------
     TSubscription
     --------------------------------------------------------------------}
-  
+
   TSubscription = Class(TGoogleBaseObject)
   Private
     FcallbackUrl : String;
@@ -497,11 +497,11 @@ type
     Property verifyToken : String Index 64 Read FverifyToken Write SetverifyToken;
   end;
   TSubscriptionClass = Class of TSubscription;
-  
+
   { --------------------------------------------------------------------
     TSubscriptionsListResponse
     --------------------------------------------------------------------}
-  
+
   TSubscriptionsListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TSubscriptionsListResponseTypeitemsArray;
@@ -520,11 +520,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TSubscriptionsListResponseClass = Class of TSubscriptionsListResponse;
-  
+
   { --------------------------------------------------------------------
     TTimelineItem
     --------------------------------------------------------------------}
-  
+
   TTimelineItem = Class(TGoogleBaseObject)
   Private
     Fattachments : TTimelineItemTypeattachmentsArray;
@@ -615,11 +615,11 @@ type
     Property updated : TDatetime Index 200 Read Fupdated Write Setupdated;
   end;
   TTimelineItemClass = Class of TTimelineItem;
-  
+
   { --------------------------------------------------------------------
     TTimelineListResponse
     --------------------------------------------------------------------}
-  
+
   TTimelineListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TTimelineListResponseTypeitemsArray;
@@ -641,11 +641,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TTimelineListResponseClass = Class of TTimelineListResponse;
-  
+
   { --------------------------------------------------------------------
     TUserAction
     --------------------------------------------------------------------}
-  
+
   TUserAction = Class(TGoogleBaseObject)
   Private
     Fpayload : String;
@@ -661,11 +661,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TUserActionClass = Class of TUserAction;
-  
+
   { --------------------------------------------------------------------
     TUserData
     --------------------------------------------------------------------}
-  
+
   TUserData = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -680,23 +680,23 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TUserDataClass = Class of TUserData;
-  
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Insert(accountName: string; accountType: string; userToken: string; aAccount : TAccount) : TAccount;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TContactsResource
     --------------------------------------------------------------------}
-  
+
   TContactsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -708,12 +708,12 @@ type
     Function Patch(id: string; aContact : TContact) : TContact;
     Function Update(id: string; aContact : TContact) : TContact;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLocationsResource
     --------------------------------------------------------------------}
-  
+
   TLocationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -721,24 +721,24 @@ type
     Function Get(id: string) : TLocation;
     Function List : TLocationsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSettingsResource
     --------------------------------------------------------------------}
-  
+
   TSettingsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(id: string) : TSetting;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSubscriptionsResource
     --------------------------------------------------------------------}
-  
+
   TSubscriptionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -748,12 +748,12 @@ type
     Function List : TSubscriptionsListResponse;
     Function Update(id: string; aSubscription : TSubscription) : TSubscription;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTimelineAttachmentsResource
     --------------------------------------------------------------------}
-  
+
   TTimelineAttachmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -763,15 +763,15 @@ type
     Function Insert(itemId: string) : TAttachment;
     Function List(itemId: string) : TAttachmentsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTimelineResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTimelineResource, method List
-  
+
   TTimelineListOptions = Record
     bundleId : String;
     includeDeleted : boolean;
@@ -781,7 +781,7 @@ type
     pinnedOnly : boolean;
     sourceItemId : String;
   end;
-  
+
   TTimelineResource = Class(TGoogleResource)
   Private
     FAttachmentsInstance : TTimelineAttachmentsResource;
@@ -800,12 +800,12 @@ type
     Function CreateAttachmentsResource : TTimelineAttachmentsResource;virtual;overload;
     Property AttachmentsResource : TTimelineAttachmentsResource Read GetAttachmentsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMirrorAPI
     --------------------------------------------------------------------}
-  
+
   TMirrorAPI = Class(TGoogleAPI)
   Private
     FAccountsInstance : TAccountsResource;
@@ -877,7 +877,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetauthTokens(AIndex : Integer; const AValue : TAccountTypeauthTokensArray); 
+Procedure TAccount.SetauthTokens(AIndex : Integer; const AValue : TAccountTypeauthTokensArray);
 
 begin
   If (FauthTokens=AValue) then exit;
@@ -887,7 +887,7 @@ end;
 
 
 
-Procedure TAccount.Setfeatures(AIndex : Integer; const AValue : TStringArray); 
+Procedure TAccount.Setfeatures(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -897,7 +897,7 @@ end;
 
 
 
-Procedure TAccount.Setpassword(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setpassword(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpassword=AValue) then exit;
@@ -907,7 +907,7 @@ end;
 
 
 
-Procedure TAccount.SetuserData(AIndex : Integer; const AValue : TAccountTypeuserDataArray); 
+Procedure TAccount.SetuserData(AIndex : Integer; const AValue : TAccountTypeuserDataArray);
 
 begin
   If (FuserData=AValue) then exit;
@@ -918,7 +918,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAccount.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -939,7 +939,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAttachment.SetcontentType(AIndex : Integer; const AValue : String); 
+Procedure TAttachment.SetcontentType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentType=AValue) then exit;
@@ -949,7 +949,7 @@ end;
 
 
 
-Procedure TAttachment.SetcontentUrl(AIndex : Integer; const AValue : String); 
+Procedure TAttachment.SetcontentUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentUrl=AValue) then exit;
@@ -959,7 +959,7 @@ end;
 
 
 
-Procedure TAttachment.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAttachment.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -969,7 +969,7 @@ end;
 
 
 
-Procedure TAttachment.SetisProcessingContent(AIndex : Integer; const AValue : boolean); 
+Procedure TAttachment.SetisProcessingContent(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisProcessingContent=AValue) then exit;
@@ -986,7 +986,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAttachmentsListResponse.Setitems(AIndex : Integer; const AValue : TAttachmentsListResponseTypeitemsArray); 
+Procedure TAttachmentsListResponse.Setitems(AIndex : Integer; const AValue : TAttachmentsListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -996,7 +996,7 @@ end;
 
 
 
-Procedure TAttachmentsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAttachmentsListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1007,7 +1007,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAttachmentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAttachmentsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1026,7 +1026,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAuthToken.SetauthToken(AIndex : Integer; const AValue : String); 
+Procedure TAuthToken.SetauthToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthToken=AValue) then exit;
@@ -1036,7 +1036,7 @@ end;
 
 
 
-Procedure TAuthToken.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAuthToken.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1064,7 +1064,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommand.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCommand.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1092,7 +1092,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContact.SetacceptCommands(AIndex : Integer; const AValue : TContactTypeacceptCommandsArray); 
+Procedure TContact.SetacceptCommands(AIndex : Integer; const AValue : TContactTypeacceptCommandsArray);
 
 begin
   If (FacceptCommands=AValue) then exit;
@@ -1102,7 +1102,7 @@ end;
 
 
 
-Procedure TContact.SetacceptTypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContact.SetacceptTypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FacceptTypes=AValue) then exit;
@@ -1112,7 +1112,7 @@ end;
 
 
 
-Procedure TContact.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TContact.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1122,7 +1122,7 @@ end;
 
 
 
-Procedure TContact.Setid(AIndex : Integer; const AValue : String); 
+Procedure TContact.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1132,7 +1132,7 @@ end;
 
 
 
-Procedure TContact.SetimageUrls(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContact.SetimageUrls(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FimageUrls=AValue) then exit;
@@ -1142,7 +1142,7 @@ end;
 
 
 
-Procedure TContact.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TContact.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1152,7 +1152,7 @@ end;
 
 
 
-Procedure TContact.SetphoneNumber(AIndex : Integer; const AValue : String); 
+Procedure TContact.SetphoneNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneNumber=AValue) then exit;
@@ -1162,7 +1162,7 @@ end;
 
 
 
-Procedure TContact.Setpriority(AIndex : Integer; const AValue : integer); 
+Procedure TContact.Setpriority(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fpriority=AValue) then exit;
@@ -1172,7 +1172,7 @@ end;
 
 
 
-Procedure TContact.SetsharingFeatures(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContact.SetsharingFeatures(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsharingFeatures=AValue) then exit;
@@ -1182,7 +1182,7 @@ end;
 
 
 
-Procedure TContact.Setsource(AIndex : Integer; const AValue : String); 
+Procedure TContact.Setsource(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsource=AValue) then exit;
@@ -1192,7 +1192,7 @@ end;
 
 
 
-Procedure TContact.SetspeakableName(AIndex : Integer; const AValue : String); 
+Procedure TContact.SetspeakableName(AIndex : Integer; const AValue : String);
 
 begin
   If (FspeakableName=AValue) then exit;
@@ -1202,7 +1202,7 @@ end;
 
 
 
-Procedure TContact.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TContact.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1224,7 +1224,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TContact.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TContact.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1246,7 +1246,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContactsListResponse.Setitems(AIndex : Integer; const AValue : TContactsListResponseTypeitemsArray); 
+Procedure TContactsListResponse.Setitems(AIndex : Integer; const AValue : TContactsListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1256,7 +1256,7 @@ end;
 
 
 
-Procedure TContactsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TContactsListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TContactsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TContactsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1286,7 +1286,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocation.Setaccuracy(AIndex : Integer; const AValue : double); 
+Procedure TLocation.Setaccuracy(AIndex : Integer; const AValue : double);
 
 begin
   If (Faccuracy=AValue) then exit;
@@ -1296,7 +1296,7 @@ end;
 
 
 
-Procedure TLocation.Setaddress(AIndex : Integer; const AValue : String); 
+Procedure TLocation.Setaddress(AIndex : Integer; const AValue : String);
 
 begin
   If (Faddress=AValue) then exit;
@@ -1306,7 +1306,7 @@ end;
 
 
 
-Procedure TLocation.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TLocation.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1316,7 +1316,7 @@ end;
 
 
 
-Procedure TLocation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLocation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1326,7 +1326,7 @@ end;
 
 
 
-Procedure TLocation.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocation.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1336,7 +1336,7 @@ end;
 
 
 
-Procedure TLocation.Setlatitude(AIndex : Integer; const AValue : double); 
+Procedure TLocation.Setlatitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1346,7 +1346,7 @@ end;
 
 
 
-Procedure TLocation.Setlongitude(AIndex : Integer; const AValue : double); 
+Procedure TLocation.Setlongitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1356,7 +1356,7 @@ end;
 
 
 
-Procedure TLocation.Settimestamp(AIndex : Integer; const AValue : TDatetime); 
+Procedure TLocation.Settimestamp(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -1373,7 +1373,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationsListResponse.Setitems(AIndex : Integer; const AValue : TLocationsListResponseTypeitemsArray); 
+Procedure TLocationsListResponse.Setitems(AIndex : Integer; const AValue : TLocationsListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1383,7 +1383,7 @@ end;
 
 
 
-Procedure TLocationsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLocationsListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1394,7 +1394,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLocationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLocationsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1413,7 +1413,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMenuItem.Setaction(AIndex : Integer; const AValue : String); 
+Procedure TMenuItem.Setaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Faction=AValue) then exit;
@@ -1423,7 +1423,7 @@ end;
 
 
 
-Procedure TMenuItem.Setcontextual_command(AIndex : Integer; const AValue : String); 
+Procedure TMenuItem.Setcontextual_command(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontextual_command=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 
 
-Procedure TMenuItem.Setid(AIndex : Integer; const AValue : String); 
+Procedure TMenuItem.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TMenuItem.Setpayload(AIndex : Integer; const AValue : String); 
+Procedure TMenuItem.Setpayload(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpayload=AValue) then exit;
@@ -1453,7 +1453,7 @@ end;
 
 
 
-Procedure TMenuItem.SetremoveWhenSelected(AIndex : Integer; const AValue : boolean); 
+Procedure TMenuItem.SetremoveWhenSelected(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FremoveWhenSelected=AValue) then exit;
@@ -1463,7 +1463,7 @@ end;
 
 
 
-Procedure TMenuItem.Setvalues(AIndex : Integer; const AValue : TMenuItemTypevaluesArray); 
+Procedure TMenuItem.Setvalues(AIndex : Integer; const AValue : TMenuItemTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1474,7 +1474,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMenuItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMenuItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1493,7 +1493,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMenuValue.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TMenuValue.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1503,7 +1503,7 @@ end;
 
 
 
-Procedure TMenuValue.SeticonUrl(AIndex : Integer; const AValue : String); 
+Procedure TMenuValue.SeticonUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -1513,7 +1513,7 @@ end;
 
 
 
-Procedure TMenuValue.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TMenuValue.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1530,7 +1530,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNotification.Setcollection(AIndex : Integer; const AValue : String); 
+Procedure TNotification.Setcollection(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcollection=AValue) then exit;
@@ -1540,7 +1540,7 @@ end;
 
 
 
-Procedure TNotification.SetitemId(AIndex : Integer; const AValue : String); 
+Procedure TNotification.SetitemId(AIndex : Integer; const AValue : String);
 
 begin
   If (FitemId=AValue) then exit;
@@ -1550,7 +1550,7 @@ end;
 
 
 
-Procedure TNotification.Setoperation(AIndex : Integer; const AValue : String); 
+Procedure TNotification.Setoperation(AIndex : Integer; const AValue : String);
 
 begin
   If (Foperation=AValue) then exit;
@@ -1560,7 +1560,7 @@ end;
 
 
 
-Procedure TNotification.SetuserActions(AIndex : Integer; const AValue : TNotificationTypeuserActionsArray); 
+Procedure TNotification.SetuserActions(AIndex : Integer; const AValue : TNotificationTypeuserActionsArray);
 
 begin
   If (FuserActions=AValue) then exit;
@@ -1570,7 +1570,7 @@ end;
 
 
 
-Procedure TNotification.SetuserToken(AIndex : Integer; const AValue : String); 
+Procedure TNotification.SetuserToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserToken=AValue) then exit;
@@ -1580,7 +1580,7 @@ end;
 
 
 
-Procedure TNotification.SetverifyToken(AIndex : Integer; const AValue : String); 
+Procedure TNotification.SetverifyToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FverifyToken=AValue) then exit;
@@ -1591,7 +1591,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TNotification.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TNotification.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1610,7 +1610,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNotificationConfig.SetdeliveryTime(AIndex : Integer; const AValue : TDatetime); 
+Procedure TNotificationConfig.SetdeliveryTime(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FdeliveryTime=AValue) then exit;
@@ -1620,7 +1620,7 @@ end;
 
 
 
-Procedure TNotificationConfig.Setlevel(AIndex : Integer; const AValue : String); 
+Procedure TNotificationConfig.Setlevel(AIndex : Integer; const AValue : String);
 
 begin
   If (Flevel=AValue) then exit;
@@ -1637,7 +1637,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetting.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1647,7 +1647,7 @@ end;
 
 
 
-Procedure TSetting.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1657,7 +1657,7 @@ end;
 
 
 
-Procedure TSetting.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TSetting.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1674,7 +1674,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscription.SetcallbackUrl(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetcallbackUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FcallbackUrl=AValue) then exit;
@@ -1684,7 +1684,7 @@ end;
 
 
 
-Procedure TSubscription.Setcollection(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Setcollection(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcollection=AValue) then exit;
@@ -1694,7 +1694,7 @@ end;
 
 
 
-Procedure TSubscription.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1704,7 +1704,7 @@ end;
 
 
 
-Procedure TSubscription.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1714,7 +1714,7 @@ end;
 
 
 
-Procedure TSubscription.Setnotification(AIndex : Integer; const AValue : TNotification); 
+Procedure TSubscription.Setnotification(AIndex : Integer; const AValue : TNotification);
 
 begin
   If (Fnotification=AValue) then exit;
@@ -1724,7 +1724,7 @@ end;
 
 
 
-Procedure TSubscription.Setoperation(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSubscription.Setoperation(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Foperation=AValue) then exit;
@@ -1734,7 +1734,7 @@ end;
 
 
 
-Procedure TSubscription.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TSubscription.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -1744,7 +1744,7 @@ end;
 
 
 
-Procedure TSubscription.SetuserToken(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetuserToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserToken=AValue) then exit;
@@ -1754,7 +1754,7 @@ end;
 
 
 
-Procedure TSubscription.SetverifyToken(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.SetverifyToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FverifyToken=AValue) then exit;
@@ -1765,7 +1765,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSubscription.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSubscription.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1784,7 +1784,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionsListResponse.Setitems(AIndex : Integer; const AValue : TSubscriptionsListResponseTypeitemsArray); 
+Procedure TSubscriptionsListResponse.Setitems(AIndex : Integer; const AValue : TSubscriptionsListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1794,7 +1794,7 @@ end;
 
 
 
-Procedure TSubscriptionsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSubscriptionsListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1805,7 +1805,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSubscriptionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSubscriptionsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1824,7 +1824,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimelineItem.Setattachments(AIndex : Integer; const AValue : TTimelineItemTypeattachmentsArray); 
+Procedure TTimelineItem.Setattachments(AIndex : Integer; const AValue : TTimelineItemTypeattachmentsArray);
 
 begin
   If (Fattachments=AValue) then exit;
@@ -1834,7 +1834,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetbundleId(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetbundleId(AIndex : Integer; const AValue : String);
 
 begin
   If (FbundleId=AValue) then exit;
@@ -1844,7 +1844,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetcanonicalUrl(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetcanonicalUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FcanonicalUrl=AValue) then exit;
@@ -1854,7 +1854,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setcreated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTimelineItem.Setcreated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fcreated=AValue) then exit;
@@ -1864,7 +1864,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setcreator(AIndex : Integer; const AValue : TContact); 
+Procedure TTimelineItem.Setcreator(AIndex : Integer; const AValue : TContact);
 
 begin
   If (Fcreator=AValue) then exit;
@@ -1874,7 +1874,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetdisplayTime(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTimelineItem.SetdisplayTime(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FdisplayTime=AValue) then exit;
@@ -1884,7 +1884,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1894,7 +1894,7 @@ end;
 
 
 
-Procedure TTimelineItem.Sethtml(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.Sethtml(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhtml=AValue) then exit;
@@ -1904,7 +1904,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1914,7 +1914,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetinReplyTo(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetinReplyTo(AIndex : Integer; const AValue : String);
 
 begin
   If (FinReplyTo=AValue) then exit;
@@ -1924,7 +1924,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetisBundleCover(AIndex : Integer; const AValue : boolean); 
+Procedure TTimelineItem.SetisBundleCover(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisBundleCover=AValue) then exit;
@@ -1934,7 +1934,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetisDeleted(AIndex : Integer; const AValue : boolean); 
+Procedure TTimelineItem.SetisDeleted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisDeleted=AValue) then exit;
@@ -1944,7 +1944,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetisPinned(AIndex : Integer; const AValue : boolean); 
+Procedure TTimelineItem.SetisPinned(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisPinned=AValue) then exit;
@@ -1954,7 +1954,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1964,7 +1964,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setlocation(AIndex : Integer; const AValue : TLocation); 
+Procedure TTimelineItem.Setlocation(AIndex : Integer; const AValue : TLocation);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1974,7 +1974,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetmenuItems(AIndex : Integer; const AValue : TTimelineItemTypemenuItemsArray); 
+Procedure TTimelineItem.SetmenuItems(AIndex : Integer; const AValue : TTimelineItemTypemenuItemsArray);
 
 begin
   If (FmenuItems=AValue) then exit;
@@ -1984,7 +1984,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setnotification(AIndex : Integer; const AValue : TNotificationConfig); 
+Procedure TTimelineItem.Setnotification(AIndex : Integer; const AValue : TNotificationConfig);
 
 begin
   If (Fnotification=AValue) then exit;
@@ -1994,7 +1994,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetpinScore(AIndex : Integer; const AValue : integer); 
+Procedure TTimelineItem.SetpinScore(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpinScore=AValue) then exit;
@@ -2004,7 +2004,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setrecipients(AIndex : Integer; const AValue : TTimelineItemTyperecipientsArray); 
+Procedure TTimelineItem.Setrecipients(AIndex : Integer; const AValue : TTimelineItemTyperecipientsArray);
 
 begin
   If (Frecipients=AValue) then exit;
@@ -2014,7 +2014,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2024,7 +2024,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetsourceItemId(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetsourceItemId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceItemId=AValue) then exit;
@@ -2034,7 +2034,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetspeakableText(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetspeakableText(AIndex : Integer; const AValue : String);
 
 begin
   If (FspeakableText=AValue) then exit;
@@ -2044,7 +2044,7 @@ end;
 
 
 
-Procedure TTimelineItem.SetspeakableType(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.SetspeakableType(AIndex : Integer; const AValue : String);
 
 begin
   If (FspeakableType=AValue) then exit;
@@ -2054,7 +2054,7 @@ end;
 
 
 
-Procedure TTimelineItem.Settext(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.Settext(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftext=AValue) then exit;
@@ -2064,7 +2064,7 @@ end;
 
 
 
-Procedure TTimelineItem.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TTimelineItem.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2074,7 +2074,7 @@ end;
 
 
 
-Procedure TTimelineItem.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTimelineItem.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2085,7 +2085,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTimelineItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTimelineItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2106,7 +2106,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimelineListResponse.Setitems(AIndex : Integer; const AValue : TTimelineListResponseTypeitemsArray); 
+Procedure TTimelineListResponse.Setitems(AIndex : Integer; const AValue : TTimelineListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2116,7 +2116,7 @@ end;
 
 
 
-Procedure TTimelineListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTimelineListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2126,7 +2126,7 @@ end;
 
 
 
-Procedure TTimelineListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTimelineListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2137,7 +2137,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTimelineListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTimelineListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2156,7 +2156,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserAction.Setpayload(AIndex : Integer; const AValue : String); 
+Procedure TUserAction.Setpayload(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpayload=AValue) then exit;
@@ -2166,7 +2166,7 @@ end;
 
 
 
-Procedure TUserAction.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TUserAction.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2194,7 +2194,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserData.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TUserData.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -2204,7 +2204,7 @@ end;
 
 
 
-Procedure TUserData.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TUserData.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2837,7 +2837,7 @@ begin
   Result[0].Description:='View your location';
   Result[1].Name:='https://www.googleapis.com/auth/glass.timeline';
   Result[1].Description:='View and manage your Glass timeline';
-  
+
 end;
 
 Class Function TMirrorAPI.APINeedsAuth : Boolean;

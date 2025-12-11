@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAggregateBucket = Class;
   TAggregateBy = Class;
@@ -66,11 +66,11 @@ type
   TListSessionsResponseTypedeletedSessionArray = Array of TSession;
   TListSessionsResponseTypesessionArray = Array of TSession;
   TValueTypemapValArray = Array of TValueMapValEntry;
-  
+
   { --------------------------------------------------------------------
     TAggregateBucket
     --------------------------------------------------------------------}
-  
+
   TAggregateBucket = Class(TGoogleBaseObject)
   Private
     Factivity : integer;
@@ -102,11 +102,11 @@ type
     Property _type : String Index 40 Read F_type Write Set_type;
   end;
   TAggregateBucketClass = Class of TAggregateBucket;
-  
+
   { --------------------------------------------------------------------
     TAggregateBy
     --------------------------------------------------------------------}
-  
+
   TAggregateBy = Class(TGoogleBaseObject)
   Private
     FdataSourceId : String;
@@ -121,11 +121,11 @@ type
     Property dataTypeName : String Index 8 Read FdataTypeName Write SetdataTypeName;
   end;
   TAggregateByClass = Class of TAggregateBy;
-  
+
   { --------------------------------------------------------------------
     TAggregateRequest
     --------------------------------------------------------------------}
-  
+
   TAggregateRequest = Class(TGoogleBaseObject)
   Private
     FaggregateBy : TAggregateRequestTypeaggregateByArray;
@@ -159,11 +159,11 @@ type
     Property startTimeMillis : String Index 48 Read FstartTimeMillis Write SetstartTimeMillis;
   end;
   TAggregateRequestClass = Class of TAggregateRequest;
-  
+
   { --------------------------------------------------------------------
     TAggregateResponse
     --------------------------------------------------------------------}
-  
+
   TAggregateResponse = Class(TGoogleBaseObject)
   Private
     Fbucket : TAggregateResponseTypebucketArray;
@@ -179,11 +179,11 @@ type
     Property bucket : TAggregateResponseTypebucketArray Index 0 Read Fbucket Write Setbucket;
   end;
   TAggregateResponseClass = Class of TAggregateResponse;
-  
+
   { --------------------------------------------------------------------
     TApplication
     --------------------------------------------------------------------}
-  
+
   TApplication = Class(TGoogleBaseObject)
   Private
     FdetailsUrl : String;
@@ -204,11 +204,11 @@ type
     Property version : String Index 24 Read Fversion Write Setversion;
   end;
   TApplicationClass = Class of TApplication;
-  
+
   { --------------------------------------------------------------------
     TBucketByActivity
     --------------------------------------------------------------------}
-  
+
   TBucketByActivity = Class(TGoogleBaseObject)
   Private
     FactivityDataSourceId : String;
@@ -223,11 +223,11 @@ type
     Property minDurationMillis : String Index 8 Read FminDurationMillis Write SetminDurationMillis;
   end;
   TBucketByActivityClass = Class of TBucketByActivity;
-  
+
   { --------------------------------------------------------------------
     TBucketBySession
     --------------------------------------------------------------------}
-  
+
   TBucketBySession = Class(TGoogleBaseObject)
   Private
     FminDurationMillis : String;
@@ -239,11 +239,11 @@ type
     Property minDurationMillis : String Index 0 Read FminDurationMillis Write SetminDurationMillis;
   end;
   TBucketBySessionClass = Class of TBucketBySession;
-  
+
   { --------------------------------------------------------------------
     TBucketByTime
     --------------------------------------------------------------------}
-  
+
   TBucketByTime = Class(TGoogleBaseObject)
   Private
     FdurationMillis : String;
@@ -255,11 +255,11 @@ type
     Property durationMillis : String Index 0 Read FdurationMillis Write SetdurationMillis;
   end;
   TBucketByTimeClass = Class of TBucketByTime;
-  
+
   { --------------------------------------------------------------------
     TDataPoint
     --------------------------------------------------------------------}
-  
+
   TDataPoint = Class(TGoogleBaseObject)
   Private
     FcomputationTimeMillis : String;
@@ -296,11 +296,11 @@ type
     Property value : TDataPointTypevalueArray Index 56 Read Fvalue Write Setvalue;
   end;
   TDataPointClass = Class of TDataPoint;
-  
+
   { --------------------------------------------------------------------
     TDataSource
     --------------------------------------------------------------------}
-  
+
   TDataSource = Class(TGoogleBaseObject)
   Private
     Fapplication : TApplication;
@@ -331,11 +331,11 @@ type
     Property _type : String Index 48 Read F_type Write Set_type;
   end;
   TDataSourceClass = Class of TDataSource;
-  
+
   { --------------------------------------------------------------------
     TDataType
     --------------------------------------------------------------------}
-  
+
   TDataType = Class(TGoogleBaseObject)
   Private
     Ffield : TDataTypeTypefieldArray;
@@ -354,11 +354,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TDataTypeClass = Class of TDataType;
-  
+
   { --------------------------------------------------------------------
     TDataTypeField
     --------------------------------------------------------------------}
-  
+
   TDataTypeField = Class(TGoogleBaseObject)
   Private
     Fformat : String;
@@ -376,11 +376,11 @@ type
     Property optional : boolean Index 16 Read Foptional Write Setoptional;
   end;
   TDataTypeFieldClass = Class of TDataTypeField;
-  
+
   { --------------------------------------------------------------------
     TDataset
     --------------------------------------------------------------------}
-  
+
   TDataset = Class(TGoogleBaseObject)
   Private
     FdataSourceId : String;
@@ -408,11 +408,11 @@ type
     Property point : TDatasetTypepointArray Index 32 Read Fpoint Write Setpoint;
   end;
   TDatasetClass = Class of TDataset;
-  
+
   { --------------------------------------------------------------------
     TDevice
     --------------------------------------------------------------------}
-  
+
   TDevice = Class(TGoogleBaseObject)
   Private
     Fmanufacturer : String;
@@ -437,11 +437,11 @@ type
     Property version : String Index 32 Read Fversion Write Setversion;
   end;
   TDeviceClass = Class of TDevice;
-  
+
   { --------------------------------------------------------------------
     TListDataSourcesResponse
     --------------------------------------------------------------------}
-  
+
   TListDataSourcesResponse = Class(TGoogleBaseObject)
   Private
     FdataSource : TListDataSourcesResponseTypedataSourceArray;
@@ -457,11 +457,11 @@ type
     Property dataSource : TListDataSourcesResponseTypedataSourceArray Index 0 Read FdataSource Write SetdataSource;
   end;
   TListDataSourcesResponseClass = Class of TListDataSourcesResponse;
-  
+
   { --------------------------------------------------------------------
     TListSessionsResponse
     --------------------------------------------------------------------}
-  
+
   TListSessionsResponse = Class(TGoogleBaseObject)
   Private
     FdeletedSession : TListSessionsResponseTypedeletedSessionArray;
@@ -483,11 +483,11 @@ type
     Property session : TListSessionsResponseTypesessionArray Index 16 Read Fsession Write Setsession;
   end;
   TListSessionsResponseClass = Class of TListSessionsResponse;
-  
+
   { --------------------------------------------------------------------
     TMapValue
     --------------------------------------------------------------------}
-  
+
   TMapValue = Class(TGoogleBaseObject)
   Private
     FfpVal : double;
@@ -499,11 +499,11 @@ type
     Property fpVal : double Index 0 Read FfpVal Write SetfpVal;
   end;
   TMapValueClass = Class of TMapValue;
-  
+
   { --------------------------------------------------------------------
     TSession
     --------------------------------------------------------------------}
-  
+
   TSession = Class(TGoogleBaseObject)
   Private
     FactiveTimeMillis : String;
@@ -539,11 +539,11 @@ type
     Property startTimeMillis : String Index 64 Read FstartTimeMillis Write SetstartTimeMillis;
   end;
   TSessionClass = Class of TSession;
-  
+
   { --------------------------------------------------------------------
     TValue
     --------------------------------------------------------------------}
-  
+
   TValue = Class(TGoogleBaseObject)
   Private
     FfpVal : double;
@@ -568,11 +568,11 @@ type
     Property stringVal : String Index 24 Read FstringVal Write SetstringVal;
   end;
   TValueClass = Class of TValue;
-  
+
   { --------------------------------------------------------------------
     TValueMapValEntry
     --------------------------------------------------------------------}
-  
+
   TValueMapValEntry = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -587,34 +587,34 @@ type
     Property value : TMapValue Index 8 Read Fvalue Write Setvalue;
   end;
   TValueMapValEntryClass = Class of TValueMapValEntry;
-  
+
   { --------------------------------------------------------------------
     TUsersDataSourcesDatasetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersDataSourcesDatasetsResource, method Delete
-  
+
   TUsersDataSourcesDatasetsDeleteOptions = Record
     currentTimeMillis : int64;
     modifiedTimeMillis : int64;
   end;
-  
-  
+
+
   //Optional query Options for TUsersDataSourcesDatasetsResource, method Get
-  
+
   TUsersDataSourcesDatasetsGetOptions = Record
     limit : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersDataSourcesDatasetsResource, method Patch
-  
+
   TUsersDataSourcesDatasetsPatchOptions = Record
     currentTimeMillis : int64;
   end;
-  
+
   TUsersDataSourcesDatasetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -626,19 +626,19 @@ type
     Function Patch(dataSourceId: string; datasetId: string; userId: string; aDataset : TDataset; AQuery : string  = '') : TDataset;
     Function Patch(dataSourceId: string; datasetId: string; userId: string; aDataset : TDataset; AQuery : TUsersDataSourcesDatasetspatchOptions) : TDataset;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersDataSourcesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersDataSourcesResource, method List
-  
+
   TUsersDataSourcesListOptions = Record
     dataTypeName : String;
   end;
-  
+
   TUsersDataSourcesResource = Class(TGoogleResource)
   Private
     FDatasetsInstance : TUsersDataSourcesDatasetsResource;
@@ -657,48 +657,48 @@ type
     Function CreateDatasetsResource : TUsersDataSourcesDatasetsResource;virtual;overload;
     Property DatasetsResource : TUsersDataSourcesDatasetsResource Read GetDatasetsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersDatasetResource
     --------------------------------------------------------------------}
-  
+
   TUsersDatasetResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Aggregate(userId: string; aAggregateRequest : TAggregateRequest) : TAggregateResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersSessionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUsersSessionsResource, method Delete
-  
+
   TUsersSessionsDeleteOptions = Record
     currentTimeMillis : int64;
   end;
-  
-  
+
+
   //Optional query Options for TUsersSessionsResource, method List
-  
+
   TUsersSessionsListOptions = Record
     endTime : String;
     includeDeleted : boolean;
     pageToken : String;
     startTime : String;
   end;
-  
-  
+
+
   //Optional query Options for TUsersSessionsResource, method Update
-  
+
   TUsersSessionsUpdateOptions = Record
     currentTimeMillis : int64;
   end;
-  
+
   TUsersSessionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -710,12 +710,12 @@ type
     Function Update(sessionId: string; userId: string; aSession : TSession; AQuery : string  = '') : TSession;
     Function Update(sessionId: string; userId: string; aSession : TSession; AQuery : TUsersSessionsupdateOptions) : TSession;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUsersResource
     --------------------------------------------------------------------}
-  
+
   TUsersResource = Class(TGoogleResource)
   Private
     FDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
@@ -742,12 +742,12 @@ type
     Property DatasetResource : TUsersDatasetResource Read GetDatasetInstance;
     Property SessionsResource : TUsersSessionsResource Read GetSessionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TFitnessAPI
     --------------------------------------------------------------------}
-  
+
   TFitnessAPI = Class(TGoogleAPI)
   Private
     FUsersDataSourcesDatasetsInstance : TUsersDataSourcesDatasetsResource;
@@ -809,7 +809,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAggregateBucket.Setactivity(AIndex : Integer; const AValue : integer); 
+Procedure TAggregateBucket.Setactivity(AIndex : Integer; const AValue : integer);
 
 begin
   If (Factivity=AValue) then exit;
@@ -819,7 +819,7 @@ end;
 
 
 
-Procedure TAggregateBucket.Setdataset(AIndex : Integer; const AValue : TAggregateBucketTypedatasetArray); 
+Procedure TAggregateBucket.Setdataset(AIndex : Integer; const AValue : TAggregateBucketTypedatasetArray);
 
 begin
   If (Fdataset=AValue) then exit;
@@ -829,7 +829,7 @@ end;
 
 
 
-Procedure TAggregateBucket.SetendTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TAggregateBucket.SetendTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTimeMillis=AValue) then exit;
@@ -839,7 +839,7 @@ end;
 
 
 
-Procedure TAggregateBucket.Setsession(AIndex : Integer; const AValue : TSession); 
+Procedure TAggregateBucket.Setsession(AIndex : Integer; const AValue : TSession);
 
 begin
   If (Fsession=AValue) then exit;
@@ -849,7 +849,7 @@ end;
 
 
 
-Procedure TAggregateBucket.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TAggregateBucket.SetstartTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTimeMillis=AValue) then exit;
@@ -859,7 +859,7 @@ end;
 
 
 
-Procedure TAggregateBucket.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAggregateBucket.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -881,7 +881,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAggregateBucket.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAggregateBucket.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -900,7 +900,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregateBy.SetdataSourceId(AIndex : Integer; const AValue : String); 
+Procedure TAggregateBy.SetdataSourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataSourceId=AValue) then exit;
@@ -910,7 +910,7 @@ end;
 
 
 
-Procedure TAggregateBy.SetdataTypeName(AIndex : Integer; const AValue : String); 
+Procedure TAggregateBy.SetdataTypeName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataTypeName=AValue) then exit;
@@ -927,7 +927,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregateRequest.SetaggregateBy(AIndex : Integer; const AValue : TAggregateRequestTypeaggregateByArray); 
+Procedure TAggregateRequest.SetaggregateBy(AIndex : Integer; const AValue : TAggregateRequestTypeaggregateByArray);
 
 begin
   If (FaggregateBy=AValue) then exit;
@@ -937,7 +937,7 @@ end;
 
 
 
-Procedure TAggregateRequest.SetbucketByActivitySegment(AIndex : Integer; const AValue : TBucketByActivity); 
+Procedure TAggregateRequest.SetbucketByActivitySegment(AIndex : Integer; const AValue : TBucketByActivity);
 
 begin
   If (FbucketByActivitySegment=AValue) then exit;
@@ -947,7 +947,7 @@ end;
 
 
 
-Procedure TAggregateRequest.SetbucketByActivityType(AIndex : Integer; const AValue : TBucketByActivity); 
+Procedure TAggregateRequest.SetbucketByActivityType(AIndex : Integer; const AValue : TBucketByActivity);
 
 begin
   If (FbucketByActivityType=AValue) then exit;
@@ -957,7 +957,7 @@ end;
 
 
 
-Procedure TAggregateRequest.SetbucketBySession(AIndex : Integer; const AValue : TBucketBySession); 
+Procedure TAggregateRequest.SetbucketBySession(AIndex : Integer; const AValue : TBucketBySession);
 
 begin
   If (FbucketBySession=AValue) then exit;
@@ -967,7 +967,7 @@ end;
 
 
 
-Procedure TAggregateRequest.SetbucketByTime(AIndex : Integer; const AValue : TBucketByTime); 
+Procedure TAggregateRequest.SetbucketByTime(AIndex : Integer; const AValue : TBucketByTime);
 
 begin
   If (FbucketByTime=AValue) then exit;
@@ -977,7 +977,7 @@ end;
 
 
 
-Procedure TAggregateRequest.SetendTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TAggregateRequest.SetendTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTimeMillis=AValue) then exit;
@@ -987,7 +987,7 @@ end;
 
 
 
-Procedure TAggregateRequest.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TAggregateRequest.SetstartTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTimeMillis=AValue) then exit;
@@ -998,7 +998,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAggregateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAggregateRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1017,7 +1017,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregateResponse.Setbucket(AIndex : Integer; const AValue : TAggregateResponseTypebucketArray); 
+Procedure TAggregateResponse.Setbucket(AIndex : Integer; const AValue : TAggregateResponseTypebucketArray);
 
 begin
   If (Fbucket=AValue) then exit;
@@ -1028,7 +1028,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAggregateResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAggregateResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1047,7 +1047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplication.SetdetailsUrl(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetdetailsUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FdetailsUrl=AValue) then exit;
@@ -1057,7 +1057,7 @@ end;
 
 
 
-Procedure TApplication.Setname(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1067,7 +1067,7 @@ end;
 
 
 
-Procedure TApplication.SetpackageName(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetpackageName(AIndex : Integer; const AValue : String);
 
 begin
   If (FpackageName=AValue) then exit;
@@ -1077,7 +1077,7 @@ end;
 
 
 
-Procedure TApplication.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -1094,7 +1094,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketByActivity.SetactivityDataSourceId(AIndex : Integer; const AValue : String); 
+Procedure TBucketByActivity.SetactivityDataSourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FactivityDataSourceId=AValue) then exit;
@@ -1104,7 +1104,7 @@ end;
 
 
 
-Procedure TBucketByActivity.SetminDurationMillis(AIndex : Integer; const AValue : String); 
+Procedure TBucketByActivity.SetminDurationMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FminDurationMillis=AValue) then exit;
@@ -1121,7 +1121,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketBySession.SetminDurationMillis(AIndex : Integer; const AValue : String); 
+Procedure TBucketBySession.SetminDurationMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FminDurationMillis=AValue) then exit;
@@ -1138,7 +1138,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketByTime.SetdurationMillis(AIndex : Integer; const AValue : String); 
+Procedure TBucketByTime.SetdurationMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FdurationMillis=AValue) then exit;
@@ -1155,7 +1155,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataPoint.SetcomputationTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetcomputationTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FcomputationTimeMillis=AValue) then exit;
@@ -1165,7 +1165,7 @@ end;
 
 
 
-Procedure TDataPoint.SetdataTypeName(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetdataTypeName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataTypeName=AValue) then exit;
@@ -1175,7 +1175,7 @@ end;
 
 
 
-Procedure TDataPoint.SetendTimeNanos(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetendTimeNanos(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTimeNanos=AValue) then exit;
@@ -1185,7 +1185,7 @@ end;
 
 
 
-Procedure TDataPoint.SetmodifiedTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetmodifiedTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FmodifiedTimeMillis=AValue) then exit;
@@ -1195,7 +1195,7 @@ end;
 
 
 
-Procedure TDataPoint.SetoriginDataSourceId(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetoriginDataSourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (ForiginDataSourceId=AValue) then exit;
@@ -1205,7 +1205,7 @@ end;
 
 
 
-Procedure TDataPoint.SetrawTimestampNanos(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetrawTimestampNanos(AIndex : Integer; const AValue : String);
 
 begin
   If (FrawTimestampNanos=AValue) then exit;
@@ -1215,7 +1215,7 @@ end;
 
 
 
-Procedure TDataPoint.SetstartTimeNanos(AIndex : Integer; const AValue : String); 
+Procedure TDataPoint.SetstartTimeNanos(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTimeNanos=AValue) then exit;
@@ -1225,7 +1225,7 @@ end;
 
 
 
-Procedure TDataPoint.Setvalue(AIndex : Integer; const AValue : TDataPointTypevalueArray); 
+Procedure TDataPoint.Setvalue(AIndex : Integer; const AValue : TDataPointTypevalueArray);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1236,7 +1236,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDataPoint.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDataPoint.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1255,7 +1255,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataSource.Setapplication(AIndex : Integer; const AValue : TApplication); 
+Procedure TDataSource.Setapplication(AIndex : Integer; const AValue : TApplication);
 
 begin
   If (Fapplication=AValue) then exit;
@@ -1265,7 +1265,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataStreamId(AIndex : Integer; const AValue : String); 
+Procedure TDataSource.SetdataStreamId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataStreamId=AValue) then exit;
@@ -1275,7 +1275,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataStreamName(AIndex : Integer; const AValue : String); 
+Procedure TDataSource.SetdataStreamName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataStreamName=AValue) then exit;
@@ -1285,7 +1285,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataType(AIndex : Integer; const AValue : TDataType); 
+Procedure TDataSource.SetdataType(AIndex : Integer; const AValue : TDataType);
 
 begin
   If (FdataType=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 
 
-Procedure TDataSource.Setdevice(AIndex : Integer; const AValue : TDevice); 
+Procedure TDataSource.Setdevice(AIndex : Integer; const AValue : TDevice);
 
 begin
   If (Fdevice=AValue) then exit;
@@ -1305,7 +1305,7 @@ end;
 
 
 
-Procedure TDataSource.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDataSource.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1315,7 +1315,7 @@ end;
 
 
 
-Procedure TDataSource.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TDataSource.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1343,7 +1343,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataType.Setfield(AIndex : Integer; const AValue : TDataTypeTypefieldArray); 
+Procedure TDataType.Setfield(AIndex : Integer; const AValue : TDataTypeTypefieldArray);
 
 begin
   If (Ffield=AValue) then exit;
@@ -1353,7 +1353,7 @@ end;
 
 
 
-Procedure TDataType.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDataType.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1364,7 +1364,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDataType.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDataType.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1383,7 +1383,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataTypeField.Setformat(AIndex : Integer; const AValue : String); 
+Procedure TDataTypeField.Setformat(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformat=AValue) then exit;
@@ -1393,7 +1393,7 @@ end;
 
 
 
-Procedure TDataTypeField.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDataTypeField.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1403,7 +1403,7 @@ end;
 
 
 
-Procedure TDataTypeField.Setoptional(AIndex : Integer; const AValue : boolean); 
+Procedure TDataTypeField.Setoptional(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Foptional=AValue) then exit;
@@ -1420,7 +1420,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.SetdataSourceId(AIndex : Integer; const AValue : String); 
+Procedure TDataset.SetdataSourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataSourceId=AValue) then exit;
@@ -1430,7 +1430,7 @@ end;
 
 
 
-Procedure TDataset.SetmaxEndTimeNs(AIndex : Integer; const AValue : String); 
+Procedure TDataset.SetmaxEndTimeNs(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaxEndTimeNs=AValue) then exit;
@@ -1440,7 +1440,7 @@ end;
 
 
 
-Procedure TDataset.SetminStartTimeNs(AIndex : Integer; const AValue : String); 
+Procedure TDataset.SetminStartTimeNs(AIndex : Integer; const AValue : String);
 
 begin
   If (FminStartTimeNs=AValue) then exit;
@@ -1450,7 +1450,7 @@ end;
 
 
 
-Procedure TDataset.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TDataset.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1460,7 +1460,7 @@ end;
 
 
 
-Procedure TDataset.Setpoint(AIndex : Integer; const AValue : TDatasetTypepointArray); 
+Procedure TDataset.Setpoint(AIndex : Integer; const AValue : TDatasetTypepointArray);
 
 begin
   If (Fpoint=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDataset.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDataset.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1490,7 +1490,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDevice.Setmanufacturer(AIndex : Integer; const AValue : String); 
+Procedure TDevice.Setmanufacturer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmanufacturer=AValue) then exit;
@@ -1500,7 +1500,7 @@ end;
 
 
 
-Procedure TDevice.Setmodel(AIndex : Integer; const AValue : String); 
+Procedure TDevice.Setmodel(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmodel=AValue) then exit;
@@ -1510,7 +1510,7 @@ end;
 
 
 
-Procedure TDevice.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TDevice.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1520,7 +1520,7 @@ end;
 
 
 
-Procedure TDevice.Setuid(AIndex : Integer; const AValue : String); 
+Procedure TDevice.Setuid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuid=AValue) then exit;
@@ -1530,7 +1530,7 @@ end;
 
 
 
-Procedure TDevice.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TDevice.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -1558,7 +1558,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDataSourcesResponse.SetdataSource(AIndex : Integer; const AValue : TListDataSourcesResponseTypedataSourceArray); 
+Procedure TListDataSourcesResponse.SetdataSource(AIndex : Integer; const AValue : TListDataSourcesResponseTypedataSourceArray);
 
 begin
   If (FdataSource=AValue) then exit;
@@ -1569,7 +1569,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListDataSourcesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListDataSourcesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1588,7 +1588,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListSessionsResponse.SetdeletedSession(AIndex : Integer; const AValue : TListSessionsResponseTypedeletedSessionArray); 
+Procedure TListSessionsResponse.SetdeletedSession(AIndex : Integer; const AValue : TListSessionsResponseTypedeletedSessionArray);
 
 begin
   If (FdeletedSession=AValue) then exit;
@@ -1598,7 +1598,7 @@ end;
 
 
 
-Procedure TListSessionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListSessionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1608,7 +1608,7 @@ end;
 
 
 
-Procedure TListSessionsResponse.Setsession(AIndex : Integer; const AValue : TListSessionsResponseTypesessionArray); 
+Procedure TListSessionsResponse.Setsession(AIndex : Integer; const AValue : TListSessionsResponseTypesessionArray);
 
 begin
   If (Fsession=AValue) then exit;
@@ -1619,7 +1619,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListSessionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListSessionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1639,7 +1639,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMapValue.SetfpVal(AIndex : Integer; const AValue : double); 
+Procedure TMapValue.SetfpVal(AIndex : Integer; const AValue : double);
 
 begin
   If (FfpVal=AValue) then exit;
@@ -1656,7 +1656,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSession.SetactiveTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TSession.SetactiveTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FactiveTimeMillis=AValue) then exit;
@@ -1666,7 +1666,7 @@ end;
 
 
 
-Procedure TSession.SetactivityType(AIndex : Integer; const AValue : integer); 
+Procedure TSession.SetactivityType(AIndex : Integer; const AValue : integer);
 
 begin
   If (FactivityType=AValue) then exit;
@@ -1676,7 +1676,7 @@ end;
 
 
 
-Procedure TSession.Setapplication(AIndex : Integer; const AValue : TApplication); 
+Procedure TSession.Setapplication(AIndex : Integer; const AValue : TApplication);
 
 begin
   If (Fapplication=AValue) then exit;
@@ -1686,7 +1686,7 @@ end;
 
 
 
-Procedure TSession.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TSession.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1696,7 +1696,7 @@ end;
 
 
 
-Procedure TSession.SetendTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TSession.SetendTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTimeMillis=AValue) then exit;
@@ -1706,7 +1706,7 @@ end;
 
 
 
-Procedure TSession.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSession.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1716,7 +1716,7 @@ end;
 
 
 
-Procedure TSession.SetmodifiedTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TSession.SetmodifiedTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FmodifiedTimeMillis=AValue) then exit;
@@ -1726,7 +1726,7 @@ end;
 
 
 
-Procedure TSession.Setname(AIndex : Integer; const AValue : String); 
+Procedure TSession.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1736,7 +1736,7 @@ end;
 
 
 
-Procedure TSession.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TSession.SetstartTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTimeMillis=AValue) then exit;
@@ -1753,7 +1753,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValue.SetfpVal(AIndex : Integer; const AValue : double); 
+Procedure TValue.SetfpVal(AIndex : Integer; const AValue : double);
 
 begin
   If (FfpVal=AValue) then exit;
@@ -1763,7 +1763,7 @@ end;
 
 
 
-Procedure TValue.SetintVal(AIndex : Integer; const AValue : integer); 
+Procedure TValue.SetintVal(AIndex : Integer; const AValue : integer);
 
 begin
   If (FintVal=AValue) then exit;
@@ -1773,7 +1773,7 @@ end;
 
 
 
-Procedure TValue.SetmapVal(AIndex : Integer; const AValue : TValueTypemapValArray); 
+Procedure TValue.SetmapVal(AIndex : Integer; const AValue : TValueTypemapValArray);
 
 begin
   If (FmapVal=AValue) then exit;
@@ -1783,7 +1783,7 @@ end;
 
 
 
-Procedure TValue.SetstringVal(AIndex : Integer; const AValue : String); 
+Procedure TValue.SetstringVal(AIndex : Integer; const AValue : String);
 
 begin
   If (FstringVal=AValue) then exit;
@@ -1794,7 +1794,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TValue.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TValue.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1813,7 +1813,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValueMapValEntry.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TValueMapValEntry.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1823,7 +1823,7 @@ end;
 
 
 
-Procedure TValueMapValEntry.Setvalue(AIndex : Integer; const AValue : TMapValue); 
+Procedure TValueMapValEntry.Setvalue(AIndex : Integer; const AValue : TMapValue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2456,7 +2456,7 @@ begin
   Result[4].Description:='View your stored location data in Google Fit';
   Result[5].Name:='https://www.googleapis.com/auth/fitness.location.write';
   Result[5].Description:='View and store your location data in Google Fit';
-  
+
 end;
 
 Class Function TFitnessAPI.APINeedsAuth : Boolean;

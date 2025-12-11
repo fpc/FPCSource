@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TOperation = Class;
   TStatus = Class;
@@ -104,11 +104,11 @@ type
   TListVersionsResponseTypeversionsArray = Array of TVersion;
   TListServicesResponseTypeservicesArray = Array of TService;
   TListInstancesResponseTypeinstancesArray = Array of TInstance;
-  
+
   { --------------------------------------------------------------------
     TOperationTypemetadata
     --------------------------------------------------------------------}
-  
+
   TOperationTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -118,11 +118,11 @@ type
   Published
   end;
   TOperationTypemetadataClass = Class of TOperationTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationTyperesponse
     --------------------------------------------------------------------}
-  
+
   TOperationTyperesponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -132,11 +132,11 @@ type
   Published
   end;
   TOperationTyperesponseClass = Class of TOperationTyperesponse;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -160,11 +160,11 @@ type
     Property response : TOperationTyperesponse Index 32 Read Fresponse Write Setresponse;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -174,11 +174,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -200,11 +200,11 @@ type
     Property details : TStatusTypedetailsArray Index 16 Read Fdetails Write Setdetails;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TListOperationsResponse
     --------------------------------------------------------------------}
-  
+
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
     Foperations : TListOperationsResponseTypeoperationsArray;
@@ -223,11 +223,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
-  
+
   { --------------------------------------------------------------------
     TApplication
     --------------------------------------------------------------------}
-  
+
   TApplication = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -267,11 +267,11 @@ type
     Property defaultBucket : String Index 64 Read FdefaultBucket Write SetdefaultBucket;
   end;
   TApplicationClass = Class of TApplication;
-  
+
   { --------------------------------------------------------------------
     TUrlDispatchRule
     --------------------------------------------------------------------}
-  
+
   TUrlDispatchRule = Class(TGoogleBaseObject)
   Private
     Fdomain : String;
@@ -289,11 +289,11 @@ type
     Property service : String Index 16 Read Fservice Write Setservice;
   end;
   TUrlDispatchRuleClass = Class of TUrlDispatchRule;
-  
+
   { --------------------------------------------------------------------
     TVersionTypebetaSettings
     --------------------------------------------------------------------}
-  
+
   TVersionTypebetaSettings = Class(TGoogleBaseObject)
   Private
   Protected
@@ -303,11 +303,11 @@ type
   Published
   end;
   TVersionTypebetaSettingsClass = Class of TVersionTypebetaSettings;
-  
+
   { --------------------------------------------------------------------
     TVersionTypeenvVariables
     --------------------------------------------------------------------}
-  
+
   TVersionTypeenvVariables = Class(TGoogleBaseObject)
   Private
   Protected
@@ -317,11 +317,11 @@ type
   Published
   end;
   TVersionTypeenvVariablesClass = Class of TVersionTypeenvVariables;
-  
+
   { --------------------------------------------------------------------
     TVersion
     --------------------------------------------------------------------}
-  
+
   TVersion = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -415,11 +415,11 @@ type
     Property deployment : TDeployment Index 208 Read Fdeployment Write Setdeployment;
   end;
   TVersionClass = Class of TVersion;
-  
+
   { --------------------------------------------------------------------
     TAutomaticScaling
     --------------------------------------------------------------------}
-  
+
   TAutomaticScaling = Class(TGoogleBaseObject)
   Private
     FcoolDownPeriod : String;
@@ -464,11 +464,11 @@ type
     Property networkUtilization : TNetworkUtilization Index 88 Read FnetworkUtilization Write SetnetworkUtilization;
   end;
   TAutomaticScalingClass = Class of TAutomaticScaling;
-  
+
   { --------------------------------------------------------------------
     TCpuUtilization
     --------------------------------------------------------------------}
-  
+
   TCpuUtilization = Class(TGoogleBaseObject)
   Private
     FaggregationWindowLength : String;
@@ -483,11 +483,11 @@ type
     Property targetUtilization : double Index 8 Read FtargetUtilization Write SettargetUtilization;
   end;
   TCpuUtilizationClass = Class of TCpuUtilization;
-  
+
   { --------------------------------------------------------------------
     TRequestUtilization
     --------------------------------------------------------------------}
-  
+
   TRequestUtilization = Class(TGoogleBaseObject)
   Private
     FtargetRequestCountPerSec : integer;
@@ -502,11 +502,11 @@ type
     Property targetConcurrentRequests : integer Index 8 Read FtargetConcurrentRequests Write SettargetConcurrentRequests;
   end;
   TRequestUtilizationClass = Class of TRequestUtilization;
-  
+
   { --------------------------------------------------------------------
     TDiskUtilization
     --------------------------------------------------------------------}
-  
+
   TDiskUtilization = Class(TGoogleBaseObject)
   Private
     FtargetWriteBytesPerSec : integer;
@@ -527,11 +527,11 @@ type
     Property targetReadOpsPerSec : integer Index 24 Read FtargetReadOpsPerSec Write SettargetReadOpsPerSec;
   end;
   TDiskUtilizationClass = Class of TDiskUtilization;
-  
+
   { --------------------------------------------------------------------
     TNetworkUtilization
     --------------------------------------------------------------------}
-  
+
   TNetworkUtilization = Class(TGoogleBaseObject)
   Private
     FtargetSentBytesPerSec : integer;
@@ -552,11 +552,11 @@ type
     Property targetReceivedPacketsPerSec : integer Index 24 Read FtargetReceivedPacketsPerSec Write SettargetReceivedPacketsPerSec;
   end;
   TNetworkUtilizationClass = Class of TNetworkUtilization;
-  
+
   { --------------------------------------------------------------------
     TBasicScaling
     --------------------------------------------------------------------}
-  
+
   TBasicScaling = Class(TGoogleBaseObject)
   Private
     FidleTimeout : String;
@@ -571,11 +571,11 @@ type
     Property maxInstances : integer Index 8 Read FmaxInstances Write SetmaxInstances;
   end;
   TBasicScalingClass = Class of TBasicScaling;
-  
+
   { --------------------------------------------------------------------
     TManualScaling
     --------------------------------------------------------------------}
-  
+
   TManualScaling = Class(TGoogleBaseObject)
   Private
     Finstances : integer;
@@ -587,11 +587,11 @@ type
     Property instances : integer Index 0 Read Finstances Write Setinstances;
   end;
   TManualScalingClass = Class of TManualScaling;
-  
+
   { --------------------------------------------------------------------
     TNetwork
     --------------------------------------------------------------------}
-  
+
   TNetwork = Class(TGoogleBaseObject)
   Private
     FforwardedPorts : TStringArray;
@@ -613,11 +613,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TNetworkClass = Class of TNetwork;
-  
+
   { --------------------------------------------------------------------
     TResources
     --------------------------------------------------------------------}
-  
+
   TResources = Class(TGoogleBaseObject)
   Private
     Fcpu : double;
@@ -635,11 +635,11 @@ type
     Property memoryGb : double Index 16 Read FmemoryGb Write SetmemoryGb;
   end;
   TResourcesClass = Class of TResources;
-  
+
   { --------------------------------------------------------------------
     TUrlMap
     --------------------------------------------------------------------}
-  
+
   TUrlMap = Class(TGoogleBaseObject)
   Private
     FurlRegex : String;
@@ -672,11 +672,11 @@ type
     Property redirectHttpResponseCode : String Index 56 Read FredirectHttpResponseCode Write SetredirectHttpResponseCode;
   end;
   TUrlMapClass = Class of TUrlMap;
-  
+
   { --------------------------------------------------------------------
     TStaticFilesHandlerTypehttpHeaders
     --------------------------------------------------------------------}
-  
+
   TStaticFilesHandlerTypehttpHeaders = Class(TGoogleBaseObject)
   Private
   Protected
@@ -686,11 +686,11 @@ type
   Published
   end;
   TStaticFilesHandlerTypehttpHeadersClass = Class of TStaticFilesHandlerTypehttpHeaders;
-  
+
   { --------------------------------------------------------------------
     TStaticFilesHandler
     --------------------------------------------------------------------}
-  
+
   TStaticFilesHandler = Class(TGoogleBaseObject)
   Private
     Fpath : String;
@@ -720,11 +720,11 @@ type
     Property applicationReadable : boolean Index 48 Read FapplicationReadable Write SetapplicationReadable;
   end;
   TStaticFilesHandlerClass = Class of TStaticFilesHandler;
-  
+
   { --------------------------------------------------------------------
     TScriptHandler
     --------------------------------------------------------------------}
-  
+
   TScriptHandler = Class(TGoogleBaseObject)
   Private
     FscriptPath : String;
@@ -736,11 +736,11 @@ type
     Property scriptPath : String Index 0 Read FscriptPath Write SetscriptPath;
   end;
   TScriptHandlerClass = Class of TScriptHandler;
-  
+
   { --------------------------------------------------------------------
     TApiEndpointHandler
     --------------------------------------------------------------------}
-  
+
   TApiEndpointHandler = Class(TGoogleBaseObject)
   Private
     FscriptPath : String;
@@ -752,11 +752,11 @@ type
     Property scriptPath : String Index 0 Read FscriptPath Write SetscriptPath;
   end;
   TApiEndpointHandlerClass = Class of TApiEndpointHandler;
-  
+
   { --------------------------------------------------------------------
     TErrorHandler
     --------------------------------------------------------------------}
-  
+
   TErrorHandler = Class(TGoogleBaseObject)
   Private
     FerrorCode : String;
@@ -774,11 +774,11 @@ type
     Property mimeType : String Index 16 Read FmimeType Write SetmimeType;
   end;
   TErrorHandlerClass = Class of TErrorHandler;
-  
+
   { --------------------------------------------------------------------
     TLibrary
     --------------------------------------------------------------------}
-  
+
   TLibrary = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -793,11 +793,11 @@ type
     Property version : String Index 8 Read Fversion Write Setversion;
   end;
   TLibraryClass = Class of TLibrary;
-  
+
   { --------------------------------------------------------------------
     TApiConfigHandler
     --------------------------------------------------------------------}
-  
+
   TApiConfigHandler = Class(TGoogleBaseObject)
   Private
     FauthFailAction : String;
@@ -821,11 +821,11 @@ type
     Property url : String Index 32 Read Furl Write Seturl;
   end;
   TApiConfigHandlerClass = Class of TApiConfigHandler;
-  
+
   { --------------------------------------------------------------------
     THealthCheck
     --------------------------------------------------------------------}
-  
+
   THealthCheck = Class(TGoogleBaseObject)
   Private
     FdisableHealthCheck : boolean;
@@ -855,11 +855,11 @@ type
     Property timeout : String Index 48 Read Ftimeout Write Settimeout;
   end;
   THealthCheckClass = Class of THealthCheck;
-  
+
   { --------------------------------------------------------------------
     TDeploymentTypefiles
     --------------------------------------------------------------------}
-  
+
   TDeploymentTypefiles = Class(TGoogleBaseObject)
   Private
   Protected
@@ -869,11 +869,11 @@ type
   Published
   end;
   TDeploymentTypefilesClass = Class of TDeploymentTypefiles;
-  
+
   { --------------------------------------------------------------------
     TDeployment
     --------------------------------------------------------------------}
-  
+
   TDeployment = Class(TGoogleBaseObject)
   Private
     Ffiles : TDeploymentTypefiles;
@@ -895,11 +895,11 @@ type
     Property sourceReferences : TDeploymentTypesourceReferencesArray Index 16 Read FsourceReferences Write SetsourceReferences;
   end;
   TDeploymentClass = Class of TDeployment;
-  
+
   { --------------------------------------------------------------------
     TFileInfo
     --------------------------------------------------------------------}
-  
+
   TFileInfo = Class(TGoogleBaseObject)
   Private
     FsourceUrl : String;
@@ -917,11 +917,11 @@ type
     Property mimeType : String Index 16 Read FmimeType Write SetmimeType;
   end;
   TFileInfoClass = Class of TFileInfo;
-  
+
   { --------------------------------------------------------------------
     TContainerInfo
     --------------------------------------------------------------------}
-  
+
   TContainerInfo = Class(TGoogleBaseObject)
   Private
     Fimage : String;
@@ -933,11 +933,11 @@ type
     Property image : String Index 0 Read Fimage Write Setimage;
   end;
   TContainerInfoClass = Class of TContainerInfo;
-  
+
   { --------------------------------------------------------------------
     TSourceReference
     --------------------------------------------------------------------}
-  
+
   TSourceReference = Class(TGoogleBaseObject)
   Private
     Frepository : String;
@@ -952,11 +952,11 @@ type
     Property revisionId : String Index 8 Read FrevisionId Write SetrevisionId;
   end;
   TSourceReferenceClass = Class of TSourceReference;
-  
+
   { --------------------------------------------------------------------
     TListVersionsResponse
     --------------------------------------------------------------------}
-  
+
   TListVersionsResponse = Class(TGoogleBaseObject)
   Private
     Fversions : TListVersionsResponseTypeversionsArray;
@@ -975,11 +975,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListVersionsResponseClass = Class of TListVersionsResponse;
-  
+
   { --------------------------------------------------------------------
     TService
     --------------------------------------------------------------------}
-  
+
   TService = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -997,11 +997,11 @@ type
     Property split : TTrafficSplit Index 16 Read Fsplit Write Setsplit;
   end;
   TServiceClass = Class of TService;
-  
+
   { --------------------------------------------------------------------
     TTrafficSplitTypeallocations
     --------------------------------------------------------------------}
-  
+
   TTrafficSplitTypeallocations = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1011,11 +1011,11 @@ type
   Published
   end;
   TTrafficSplitTypeallocationsClass = Class of TTrafficSplitTypeallocations;
-  
+
   { --------------------------------------------------------------------
     TTrafficSplit
     --------------------------------------------------------------------}
-  
+
   TTrafficSplit = Class(TGoogleBaseObject)
   Private
     FshardBy : String;
@@ -1030,11 +1030,11 @@ type
     Property allocations : TTrafficSplitTypeallocations Index 8 Read Fallocations Write Setallocations;
   end;
   TTrafficSplitClass = Class of TTrafficSplit;
-  
+
   { --------------------------------------------------------------------
     TListServicesResponse
     --------------------------------------------------------------------}
-  
+
   TListServicesResponse = Class(TGoogleBaseObject)
   Private
     Fservices : TListServicesResponseTypeservicesArray;
@@ -1053,11 +1053,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListServicesResponseClass = Class of TListServicesResponse;
-  
+
   { --------------------------------------------------------------------
     TListInstancesResponse
     --------------------------------------------------------------------}
-  
+
   TListInstancesResponse = Class(TGoogleBaseObject)
   Private
     Finstances : TListInstancesResponseTypeinstancesArray;
@@ -1076,11 +1076,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListInstancesResponseClass = Class of TListInstancesResponse;
-  
+
   { --------------------------------------------------------------------
     TInstance
     --------------------------------------------------------------------}
-  
+
   TInstance = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -1134,11 +1134,11 @@ type
     Property vmUnlocked : boolean Index 112 Read FvmUnlocked Write SetvmUnlocked;
   end;
   TInstanceClass = Class of TInstance;
-  
+
   { --------------------------------------------------------------------
     TOperationMetadata
     --------------------------------------------------------------------}
-  
+
   TOperationMetadata = Class(TGoogleBaseObject)
   Private
     FoperationType : String;
@@ -1165,11 +1165,11 @@ type
     Property method : String Index 40 Read Fmethod Write Setmethod;
   end;
   TOperationMetadataClass = Class of TOperationMetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationMetadataV1Beta5
     --------------------------------------------------------------------}
-  
+
   TOperationMetadataV1Beta5 = Class(TGoogleBaseObject)
   Private
     Fmethod : String;
@@ -1193,20 +1193,20 @@ type
     Property target : String Index 32 Read Ftarget Write Settarget;
   end;
   TOperationMetadataV1Beta5Class = Class of TOperationMetadataV1Beta5;
-  
+
   { --------------------------------------------------------------------
     TAppsOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAppsOperationsResource, method List
-  
+
   TAppsOperationsListOptions = Record
     filter : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TAppsOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1215,20 +1215,20 @@ type
     Function List(appsId: string; AQuery : string  = '') : TListOperationsResponse;
     Function List(appsId: string; AQuery : TAppsOperationslistOptions) : TListOperationsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAppsServicesVersionsInstancesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAppsServicesVersionsInstancesResource, method List
-  
+
   TAppsServicesVersionsInstancesListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TAppsServicesVersionsInstancesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1236,35 +1236,35 @@ type
     Function List(appsId: string; servicesId: string; versionsId: string; AQuery : string  = '') : TListInstancesResponse;
     Function List(appsId: string; servicesId: string; versionsId: string; AQuery : TAppsServicesVersionsInstanceslistOptions) : TListInstancesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAppsServicesVersionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAppsServicesVersionsResource, method Get
-  
+
   TAppsServicesVersionsGetOptions = Record
     view : String;
   end;
-  
-  
+
+
   //Optional query Options for TAppsServicesVersionsResource, method List
-  
+
   TAppsServicesVersionsListOptions = Record
     view : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TAppsServicesVersionsResource, method Patch
-  
+
   TAppsServicesVersionsPatchOptions = Record
     mask : String;
   end;
-  
+
   TAppsServicesVersionsResource = Class(TGoogleResource)
   Private
     FInstancesInstance : TAppsServicesVersionsInstancesResource;
@@ -1284,28 +1284,28 @@ type
     Function CreateInstancesResource : TAppsServicesVersionsInstancesResource;virtual;overload;
     Property InstancesResource : TAppsServicesVersionsInstancesResource Read GetInstancesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAppsServicesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAppsServicesResource, method List
-  
+
   TAppsServicesListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TAppsServicesResource, method Patch
-  
+
   TAppsServicesPatchOptions = Record
     mask : String;
     migrateTraffic : boolean;
   end;
-  
+
   TAppsServicesResource = Class(TGoogleResource)
   Private
     FVersionsInstancesInstance : TAppsServicesVersionsInstancesResource;
@@ -1328,19 +1328,19 @@ type
     Property VersionsInstancesResource : TAppsServicesVersionsInstancesResource Read GetVersionsInstancesInstance;
     Property VersionsResource : TAppsServicesVersionsResource Read GetVersionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAppsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAppsResource, method Get
-  
+
   TAppsGetOptions = Record
     ensureResourcesExist : boolean;
   end;
-  
+
   TAppsResource = Class(TGoogleResource)
   Private
     FOperationsInstance : TAppsOperationsResource;
@@ -1369,12 +1369,12 @@ type
     Property ServicesVersionsResource : TAppsServicesVersionsResource Read GetServicesVersionsInstance;
     Property ServicesResource : TAppsServicesResource Read GetServicesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAppengineAPI
     --------------------------------------------------------------------}
-  
+
   TAppengineAPI = Class(TGoogleAPI)
   Private
     FAppsOperationsInstance : TAppsOperationsResource;
@@ -1462,7 +1462,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1472,7 +1472,7 @@ end;
 
 
 
-Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata); 
+Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1482,7 +1482,7 @@ end;
 
 
 
-Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean); 
+Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdone=AValue) then exit;
@@ -1492,7 +1492,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -1502,7 +1502,7 @@ end;
 
 
 
-Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse); 
+Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -1532,7 +1532,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1542,7 +1542,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1552,7 +1552,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1563,7 +1563,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1582,7 +1582,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); 
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray);
 
 begin
   If (Foperations=AValue) then exit;
@@ -1592,7 +1592,7 @@ end;
 
 
 
-Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1603,7 +1603,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1622,7 +1622,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplication.Setname(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1632,7 +1632,7 @@ end;
 
 
 
-Procedure TApplication.Setid(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1642,7 +1642,7 @@ end;
 
 
 
-Procedure TApplication.SetdispatchRules(AIndex : Integer; const AValue : TApplicationTypedispatchRulesArray); 
+Procedure TApplication.SetdispatchRules(AIndex : Integer; const AValue : TApplicationTypedispatchRulesArray);
 
 begin
   If (FdispatchRules=AValue) then exit;
@@ -1652,7 +1652,7 @@ end;
 
 
 
-Procedure TApplication.SetauthDomain(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetauthDomain(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthDomain=AValue) then exit;
@@ -1662,7 +1662,7 @@ end;
 
 
 
-Procedure TApplication.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1672,7 +1672,7 @@ end;
 
 
 
-Procedure TApplication.SetcodeBucket(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetcodeBucket(AIndex : Integer; const AValue : String);
 
 begin
   If (FcodeBucket=AValue) then exit;
@@ -1682,7 +1682,7 @@ end;
 
 
 
-Procedure TApplication.SetdefaultCookieExpiration(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetdefaultCookieExpiration(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultCookieExpiration=AValue) then exit;
@@ -1692,7 +1692,7 @@ end;
 
 
 
-Procedure TApplication.SetdefaultHostname(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetdefaultHostname(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultHostname=AValue) then exit;
@@ -1702,7 +1702,7 @@ end;
 
 
 
-Procedure TApplication.SetdefaultBucket(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetdefaultBucket(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultBucket=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TApplication.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TApplication.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1732,7 +1732,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlDispatchRule.Setdomain(AIndex : Integer; const AValue : String); 
+Procedure TUrlDispatchRule.Setdomain(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -1742,7 +1742,7 @@ end;
 
 
 
-Procedure TUrlDispatchRule.Setpath(AIndex : Integer; const AValue : String); 
+Procedure TUrlDispatchRule.Setpath(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpath=AValue) then exit;
@@ -1752,7 +1752,7 @@ end;
 
 
 
-Procedure TUrlDispatchRule.Setservice(AIndex : Integer; const AValue : String); 
+Procedure TUrlDispatchRule.Setservice(AIndex : Integer; const AValue : String);
 
 begin
   If (Fservice=AValue) then exit;
@@ -1795,7 +1795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVersion.Setname(AIndex : Integer; const AValue : String); 
+Procedure TVersion.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1805,7 +1805,7 @@ end;
 
 
 
-Procedure TVersion.Setid(AIndex : Integer; const AValue : String); 
+Procedure TVersion.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1815,7 +1815,7 @@ end;
 
 
 
-Procedure TVersion.SetautomaticScaling(AIndex : Integer; const AValue : TAutomaticScaling); 
+Procedure TVersion.SetautomaticScaling(AIndex : Integer; const AValue : TAutomaticScaling);
 
 begin
   If (FautomaticScaling=AValue) then exit;
@@ -1825,7 +1825,7 @@ end;
 
 
 
-Procedure TVersion.SetbasicScaling(AIndex : Integer; const AValue : TBasicScaling); 
+Procedure TVersion.SetbasicScaling(AIndex : Integer; const AValue : TBasicScaling);
 
 begin
   If (FbasicScaling=AValue) then exit;
@@ -1835,7 +1835,7 @@ end;
 
 
 
-Procedure TVersion.SetmanualScaling(AIndex : Integer; const AValue : TManualScaling); 
+Procedure TVersion.SetmanualScaling(AIndex : Integer; const AValue : TManualScaling);
 
 begin
   If (FmanualScaling=AValue) then exit;
@@ -1845,7 +1845,7 @@ end;
 
 
 
-Procedure TVersion.SetinboundServices(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVersion.SetinboundServices(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FinboundServices=AValue) then exit;
@@ -1855,7 +1855,7 @@ end;
 
 
 
-Procedure TVersion.SetinstanceClass(AIndex : Integer; const AValue : String); 
+Procedure TVersion.SetinstanceClass(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceClass=AValue) then exit;
@@ -1865,7 +1865,7 @@ end;
 
 
 
-Procedure TVersion.Setnetwork(AIndex : Integer; const AValue : TNetwork); 
+Procedure TVersion.Setnetwork(AIndex : Integer; const AValue : TNetwork);
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -1875,7 +1875,7 @@ end;
 
 
 
-Procedure TVersion.Setresources(AIndex : Integer; const AValue : TResources); 
+Procedure TVersion.Setresources(AIndex : Integer; const AValue : TResources);
 
 begin
   If (Fresources=AValue) then exit;
@@ -1885,7 +1885,7 @@ end;
 
 
 
-Procedure TVersion.Setruntime(AIndex : Integer; const AValue : String); 
+Procedure TVersion.Setruntime(AIndex : Integer; const AValue : String);
 
 begin
   If (Fruntime=AValue) then exit;
@@ -1895,7 +1895,7 @@ end;
 
 
 
-Procedure TVersion.Setthreadsafe(AIndex : Integer; const AValue : boolean); 
+Procedure TVersion.Setthreadsafe(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fthreadsafe=AValue) then exit;
@@ -1905,7 +1905,7 @@ end;
 
 
 
-Procedure TVersion.Setvm(AIndex : Integer; const AValue : boolean); 
+Procedure TVersion.Setvm(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fvm=AValue) then exit;
@@ -1915,7 +1915,7 @@ end;
 
 
 
-Procedure TVersion.SetbetaSettings(AIndex : Integer; const AValue : TVersionTypebetaSettings); 
+Procedure TVersion.SetbetaSettings(AIndex : Integer; const AValue : TVersionTypebetaSettings);
 
 begin
   If (FbetaSettings=AValue) then exit;
@@ -1925,7 +1925,7 @@ end;
 
 
 
-Procedure TVersion.Setenv(AIndex : Integer; const AValue : String); 
+Procedure TVersion.Setenv(AIndex : Integer; const AValue : String);
 
 begin
   If (Fenv=AValue) then exit;
@@ -1935,7 +1935,7 @@ end;
 
 
 
-Procedure TVersion.SetservingStatus(AIndex : Integer; const AValue : String); 
+Procedure TVersion.SetservingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FservingStatus=AValue) then exit;
@@ -1945,7 +1945,7 @@ end;
 
 
 
-Procedure TVersion.Setdeployer(AIndex : Integer; const AValue : String); 
+Procedure TVersion.Setdeployer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdeployer=AValue) then exit;
@@ -1955,7 +1955,7 @@ end;
 
 
 
-Procedure TVersion.SetcreationTime(AIndex : Integer; const AValue : String); 
+Procedure TVersion.SetcreationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -1965,7 +1965,7 @@ end;
 
 
 
-Procedure TVersion.SetdiskUsageBytes(AIndex : Integer; const AValue : String); 
+Procedure TVersion.SetdiskUsageBytes(AIndex : Integer; const AValue : String);
 
 begin
   If (FdiskUsageBytes=AValue) then exit;
@@ -1975,7 +1975,7 @@ end;
 
 
 
-Procedure TVersion.Sethandlers(AIndex : Integer; const AValue : TVersionTypehandlersArray); 
+Procedure TVersion.Sethandlers(AIndex : Integer; const AValue : TVersionTypehandlersArray);
 
 begin
   If (Fhandlers=AValue) then exit;
@@ -1985,7 +1985,7 @@ end;
 
 
 
-Procedure TVersion.SeterrorHandlers(AIndex : Integer; const AValue : TVersionTypeerrorHandlersArray); 
+Procedure TVersion.SeterrorHandlers(AIndex : Integer; const AValue : TVersionTypeerrorHandlersArray);
 
 begin
   If (FerrorHandlers=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
 
 
 
-Procedure TVersion.Setlibraries(AIndex : Integer; const AValue : TVersionTypelibrariesArray); 
+Procedure TVersion.Setlibraries(AIndex : Integer; const AValue : TVersionTypelibrariesArray);
 
 begin
   If (Flibraries=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
 
 
 
-Procedure TVersion.SetapiConfig(AIndex : Integer; const AValue : TApiConfigHandler); 
+Procedure TVersion.SetapiConfig(AIndex : Integer; const AValue : TApiConfigHandler);
 
 begin
   If (FapiConfig=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure TVersion.SetenvVariables(AIndex : Integer; const AValue : TVersionTypeenvVariables); 
+Procedure TVersion.SetenvVariables(AIndex : Integer; const AValue : TVersionTypeenvVariables);
 
 begin
   If (FenvVariables=AValue) then exit;
@@ -2025,7 +2025,7 @@ end;
 
 
 
-Procedure TVersion.SetdefaultExpiration(AIndex : Integer; const AValue : String); 
+Procedure TVersion.SetdefaultExpiration(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultExpiration=AValue) then exit;
@@ -2035,7 +2035,7 @@ end;
 
 
 
-Procedure TVersion.SethealthCheck(AIndex : Integer; const AValue : THealthCheck); 
+Procedure TVersion.SethealthCheck(AIndex : Integer; const AValue : THealthCheck);
 
 begin
   If (FhealthCheck=AValue) then exit;
@@ -2045,7 +2045,7 @@ end;
 
 
 
-Procedure TVersion.SetnobuildFilesRegex(AIndex : Integer; const AValue : String); 
+Procedure TVersion.SetnobuildFilesRegex(AIndex : Integer; const AValue : String);
 
 begin
   If (FnobuildFilesRegex=AValue) then exit;
@@ -2055,7 +2055,7 @@ end;
 
 
 
-Procedure TVersion.Setdeployment(AIndex : Integer; const AValue : TDeployment); 
+Procedure TVersion.Setdeployment(AIndex : Integer; const AValue : TDeployment);
 
 begin
   If (Fdeployment=AValue) then exit;
@@ -2066,7 +2066,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVersion.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVersion.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2088,7 +2088,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutomaticScaling.SetcoolDownPeriod(AIndex : Integer; const AValue : String); 
+Procedure TAutomaticScaling.SetcoolDownPeriod(AIndex : Integer; const AValue : String);
 
 begin
   If (FcoolDownPeriod=AValue) then exit;
@@ -2098,7 +2098,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetcpuUtilization(AIndex : Integer; const AValue : TCpuUtilization); 
+Procedure TAutomaticScaling.SetcpuUtilization(AIndex : Integer; const AValue : TCpuUtilization);
 
 begin
   If (FcpuUtilization=AValue) then exit;
@@ -2108,7 +2108,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetmaxConcurrentRequests(AIndex : Integer; const AValue : integer); 
+Procedure TAutomaticScaling.SetmaxConcurrentRequests(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxConcurrentRequests=AValue) then exit;
@@ -2118,7 +2118,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetmaxIdleInstances(AIndex : Integer; const AValue : integer); 
+Procedure TAutomaticScaling.SetmaxIdleInstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxIdleInstances=AValue) then exit;
@@ -2128,7 +2128,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetmaxTotalInstances(AIndex : Integer; const AValue : integer); 
+Procedure TAutomaticScaling.SetmaxTotalInstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxTotalInstances=AValue) then exit;
@@ -2138,7 +2138,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetmaxPendingLatency(AIndex : Integer; const AValue : String); 
+Procedure TAutomaticScaling.SetmaxPendingLatency(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaxPendingLatency=AValue) then exit;
@@ -2148,7 +2148,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetminIdleInstances(AIndex : Integer; const AValue : integer); 
+Procedure TAutomaticScaling.SetminIdleInstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminIdleInstances=AValue) then exit;
@@ -2158,7 +2158,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetminTotalInstances(AIndex : Integer; const AValue : integer); 
+Procedure TAutomaticScaling.SetminTotalInstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminTotalInstances=AValue) then exit;
@@ -2168,7 +2168,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetminPendingLatency(AIndex : Integer; const AValue : String); 
+Procedure TAutomaticScaling.SetminPendingLatency(AIndex : Integer; const AValue : String);
 
 begin
   If (FminPendingLatency=AValue) then exit;
@@ -2178,7 +2178,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetrequestUtilization(AIndex : Integer; const AValue : TRequestUtilization); 
+Procedure TAutomaticScaling.SetrequestUtilization(AIndex : Integer; const AValue : TRequestUtilization);
 
 begin
   If (FrequestUtilization=AValue) then exit;
@@ -2188,7 +2188,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetdiskUtilization(AIndex : Integer; const AValue : TDiskUtilization); 
+Procedure TAutomaticScaling.SetdiskUtilization(AIndex : Integer; const AValue : TDiskUtilization);
 
 begin
   If (FdiskUtilization=AValue) then exit;
@@ -2198,7 +2198,7 @@ end;
 
 
 
-Procedure TAutomaticScaling.SetnetworkUtilization(AIndex : Integer; const AValue : TNetworkUtilization); 
+Procedure TAutomaticScaling.SetnetworkUtilization(AIndex : Integer; const AValue : TNetworkUtilization);
 
 begin
   If (FnetworkUtilization=AValue) then exit;
@@ -2215,7 +2215,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCpuUtilization.SetaggregationWindowLength(AIndex : Integer; const AValue : String); 
+Procedure TCpuUtilization.SetaggregationWindowLength(AIndex : Integer; const AValue : String);
 
 begin
   If (FaggregationWindowLength=AValue) then exit;
@@ -2225,7 +2225,7 @@ end;
 
 
 
-Procedure TCpuUtilization.SettargetUtilization(AIndex : Integer; const AValue : double); 
+Procedure TCpuUtilization.SettargetUtilization(AIndex : Integer; const AValue : double);
 
 begin
   If (FtargetUtilization=AValue) then exit;
@@ -2242,7 +2242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRequestUtilization.SettargetRequestCountPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TRequestUtilization.SettargetRequestCountPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetRequestCountPerSec=AValue) then exit;
@@ -2252,7 +2252,7 @@ end;
 
 
 
-Procedure TRequestUtilization.SettargetConcurrentRequests(AIndex : Integer; const AValue : integer); 
+Procedure TRequestUtilization.SettargetConcurrentRequests(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetConcurrentRequests=AValue) then exit;
@@ -2269,7 +2269,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiskUtilization.SettargetWriteBytesPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TDiskUtilization.SettargetWriteBytesPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetWriteBytesPerSec=AValue) then exit;
@@ -2279,7 +2279,7 @@ end;
 
 
 
-Procedure TDiskUtilization.SettargetWriteOpsPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TDiskUtilization.SettargetWriteOpsPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetWriteOpsPerSec=AValue) then exit;
@@ -2289,7 +2289,7 @@ end;
 
 
 
-Procedure TDiskUtilization.SettargetReadBytesPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TDiskUtilization.SettargetReadBytesPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetReadBytesPerSec=AValue) then exit;
@@ -2299,7 +2299,7 @@ end;
 
 
 
-Procedure TDiskUtilization.SettargetReadOpsPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TDiskUtilization.SettargetReadOpsPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetReadOpsPerSec=AValue) then exit;
@@ -2316,7 +2316,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkUtilization.SettargetSentBytesPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkUtilization.SettargetSentBytesPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetSentBytesPerSec=AValue) then exit;
@@ -2326,7 +2326,7 @@ end;
 
 
 
-Procedure TNetworkUtilization.SettargetSentPacketsPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkUtilization.SettargetSentPacketsPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetSentPacketsPerSec=AValue) then exit;
@@ -2336,7 +2336,7 @@ end;
 
 
 
-Procedure TNetworkUtilization.SettargetReceivedBytesPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkUtilization.SettargetReceivedBytesPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetReceivedBytesPerSec=AValue) then exit;
@@ -2346,7 +2346,7 @@ end;
 
 
 
-Procedure TNetworkUtilization.SettargetReceivedPacketsPerSec(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkUtilization.SettargetReceivedPacketsPerSec(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetReceivedPacketsPerSec=AValue) then exit;
@@ -2363,7 +2363,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBasicScaling.SetidleTimeout(AIndex : Integer; const AValue : String); 
+Procedure TBasicScaling.SetidleTimeout(AIndex : Integer; const AValue : String);
 
 begin
   If (FidleTimeout=AValue) then exit;
@@ -2373,7 +2373,7 @@ end;
 
 
 
-Procedure TBasicScaling.SetmaxInstances(AIndex : Integer; const AValue : integer); 
+Procedure TBasicScaling.SetmaxInstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxInstances=AValue) then exit;
@@ -2390,7 +2390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManualScaling.Setinstances(AIndex : Integer; const AValue : integer); 
+Procedure TManualScaling.Setinstances(AIndex : Integer; const AValue : integer);
 
 begin
   If (Finstances=AValue) then exit;
@@ -2407,7 +2407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetwork.SetforwardedPorts(AIndex : Integer; const AValue : TStringArray); 
+Procedure TNetwork.SetforwardedPorts(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FforwardedPorts=AValue) then exit;
@@ -2417,7 +2417,7 @@ end;
 
 
 
-Procedure TNetwork.SetinstanceTag(AIndex : Integer; const AValue : String); 
+Procedure TNetwork.SetinstanceTag(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceTag=AValue) then exit;
@@ -2427,7 +2427,7 @@ end;
 
 
 
-Procedure TNetwork.Setname(AIndex : Integer; const AValue : String); 
+Procedure TNetwork.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2438,7 +2438,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TNetwork.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TNetwork.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2457,7 +2457,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResources.Setcpu(AIndex : Integer; const AValue : double); 
+Procedure TResources.Setcpu(AIndex : Integer; const AValue : double);
 
 begin
   If (Fcpu=AValue) then exit;
@@ -2467,7 +2467,7 @@ end;
 
 
 
-Procedure TResources.SetdiskGb(AIndex : Integer; const AValue : double); 
+Procedure TResources.SetdiskGb(AIndex : Integer; const AValue : double);
 
 begin
   If (FdiskGb=AValue) then exit;
@@ -2477,7 +2477,7 @@ end;
 
 
 
-Procedure TResources.SetmemoryGb(AIndex : Integer; const AValue : double); 
+Procedure TResources.SetmemoryGb(AIndex : Integer; const AValue : double);
 
 begin
   If (FmemoryGb=AValue) then exit;
@@ -2494,7 +2494,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlMap.SeturlRegex(AIndex : Integer; const AValue : String); 
+Procedure TUrlMap.SeturlRegex(AIndex : Integer; const AValue : String);
 
 begin
   If (FurlRegex=AValue) then exit;
@@ -2504,7 +2504,7 @@ end;
 
 
 
-Procedure TUrlMap.SetstaticFiles(AIndex : Integer; const AValue : TStaticFilesHandler); 
+Procedure TUrlMap.SetstaticFiles(AIndex : Integer; const AValue : TStaticFilesHandler);
 
 begin
   If (FstaticFiles=AValue) then exit;
@@ -2514,7 +2514,7 @@ end;
 
 
 
-Procedure TUrlMap.Setscript(AIndex : Integer; const AValue : TScriptHandler); 
+Procedure TUrlMap.Setscript(AIndex : Integer; const AValue : TScriptHandler);
 
 begin
   If (Fscript=AValue) then exit;
@@ -2524,7 +2524,7 @@ end;
 
 
 
-Procedure TUrlMap.SetapiEndpoint(AIndex : Integer; const AValue : TApiEndpointHandler); 
+Procedure TUrlMap.SetapiEndpoint(AIndex : Integer; const AValue : TApiEndpointHandler);
 
 begin
   If (FapiEndpoint=AValue) then exit;
@@ -2534,7 +2534,7 @@ end;
 
 
 
-Procedure TUrlMap.SetsecurityLevel(AIndex : Integer; const AValue : String); 
+Procedure TUrlMap.SetsecurityLevel(AIndex : Integer; const AValue : String);
 
 begin
   If (FsecurityLevel=AValue) then exit;
@@ -2544,7 +2544,7 @@ end;
 
 
 
-Procedure TUrlMap.Setlogin(AIndex : Integer; const AValue : String); 
+Procedure TUrlMap.Setlogin(AIndex : Integer; const AValue : String);
 
 begin
   If (Flogin=AValue) then exit;
@@ -2554,7 +2554,7 @@ end;
 
 
 
-Procedure TUrlMap.SetauthFailAction(AIndex : Integer; const AValue : String); 
+Procedure TUrlMap.SetauthFailAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthFailAction=AValue) then exit;
@@ -2564,7 +2564,7 @@ end;
 
 
 
-Procedure TUrlMap.SetredirectHttpResponseCode(AIndex : Integer; const AValue : String); 
+Procedure TUrlMap.SetredirectHttpResponseCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FredirectHttpResponseCode=AValue) then exit;
@@ -2594,7 +2594,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStaticFilesHandler.Setpath(AIndex : Integer; const AValue : String); 
+Procedure TStaticFilesHandler.Setpath(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpath=AValue) then exit;
@@ -2604,7 +2604,7 @@ end;
 
 
 
-Procedure TStaticFilesHandler.SetuploadPathRegex(AIndex : Integer; const AValue : String); 
+Procedure TStaticFilesHandler.SetuploadPathRegex(AIndex : Integer; const AValue : String);
 
 begin
   If (FuploadPathRegex=AValue) then exit;
@@ -2614,7 +2614,7 @@ end;
 
 
 
-Procedure TStaticFilesHandler.SethttpHeaders(AIndex : Integer; const AValue : TStaticFilesHandlerTypehttpHeaders); 
+Procedure TStaticFilesHandler.SethttpHeaders(AIndex : Integer; const AValue : TStaticFilesHandlerTypehttpHeaders);
 
 begin
   If (FhttpHeaders=AValue) then exit;
@@ -2624,7 +2624,7 @@ end;
 
 
 
-Procedure TStaticFilesHandler.SetmimeType(AIndex : Integer; const AValue : String); 
+Procedure TStaticFilesHandler.SetmimeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmimeType=AValue) then exit;
@@ -2634,7 +2634,7 @@ end;
 
 
 
-Procedure TStaticFilesHandler.Setexpiration(AIndex : Integer; const AValue : String); 
+Procedure TStaticFilesHandler.Setexpiration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -2644,7 +2644,7 @@ end;
 
 
 
-Procedure TStaticFilesHandler.SetrequireMatchingFile(AIndex : Integer; const AValue : boolean); 
+Procedure TStaticFilesHandler.SetrequireMatchingFile(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FrequireMatchingFile=AValue) then exit;
@@ -2654,7 +2654,7 @@ end;
 
 
 
-Procedure TStaticFilesHandler.SetapplicationReadable(AIndex : Integer; const AValue : boolean); 
+Procedure TStaticFilesHandler.SetapplicationReadable(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FapplicationReadable=AValue) then exit;
@@ -2671,7 +2671,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScriptHandler.SetscriptPath(AIndex : Integer; const AValue : String); 
+Procedure TScriptHandler.SetscriptPath(AIndex : Integer; const AValue : String);
 
 begin
   If (FscriptPath=AValue) then exit;
@@ -2688,7 +2688,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApiEndpointHandler.SetscriptPath(AIndex : Integer; const AValue : String); 
+Procedure TApiEndpointHandler.SetscriptPath(AIndex : Integer; const AValue : String);
 
 begin
   If (FscriptPath=AValue) then exit;
@@ -2705,7 +2705,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorHandler.SeterrorCode(AIndex : Integer; const AValue : String); 
+Procedure TErrorHandler.SeterrorCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FerrorCode=AValue) then exit;
@@ -2715,7 +2715,7 @@ end;
 
 
 
-Procedure TErrorHandler.SetstaticFile(AIndex : Integer; const AValue : String); 
+Procedure TErrorHandler.SetstaticFile(AIndex : Integer; const AValue : String);
 
 begin
   If (FstaticFile=AValue) then exit;
@@ -2725,7 +2725,7 @@ end;
 
 
 
-Procedure TErrorHandler.SetmimeType(AIndex : Integer; const AValue : String); 
+Procedure TErrorHandler.SetmimeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmimeType=AValue) then exit;
@@ -2742,7 +2742,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLibrary.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLibrary.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2752,7 +2752,7 @@ end;
 
 
 
-Procedure TLibrary.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TLibrary.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -2769,7 +2769,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApiConfigHandler.SetauthFailAction(AIndex : Integer; const AValue : String); 
+Procedure TApiConfigHandler.SetauthFailAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthFailAction=AValue) then exit;
@@ -2779,7 +2779,7 @@ end;
 
 
 
-Procedure TApiConfigHandler.Setlogin(AIndex : Integer; const AValue : String); 
+Procedure TApiConfigHandler.Setlogin(AIndex : Integer; const AValue : String);
 
 begin
   If (Flogin=AValue) then exit;
@@ -2789,7 +2789,7 @@ end;
 
 
 
-Procedure TApiConfigHandler.Setscript(AIndex : Integer; const AValue : String); 
+Procedure TApiConfigHandler.Setscript(AIndex : Integer; const AValue : String);
 
 begin
   If (Fscript=AValue) then exit;
@@ -2799,7 +2799,7 @@ end;
 
 
 
-Procedure TApiConfigHandler.SetsecurityLevel(AIndex : Integer; const AValue : String); 
+Procedure TApiConfigHandler.SetsecurityLevel(AIndex : Integer; const AValue : String);
 
 begin
   If (FsecurityLevel=AValue) then exit;
@@ -2809,7 +2809,7 @@ end;
 
 
 
-Procedure TApiConfigHandler.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TApiConfigHandler.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2826,7 +2826,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THealthCheck.SetdisableHealthCheck(AIndex : Integer; const AValue : boolean); 
+Procedure THealthCheck.SetdisableHealthCheck(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FdisableHealthCheck=AValue) then exit;
@@ -2836,7 +2836,7 @@ end;
 
 
 
-Procedure THealthCheck.Sethost(AIndex : Integer; const AValue : String); 
+Procedure THealthCheck.Sethost(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhost=AValue) then exit;
@@ -2846,7 +2846,7 @@ end;
 
 
 
-Procedure THealthCheck.SethealthyThreshold(AIndex : Integer; const AValue : integer); 
+Procedure THealthCheck.SethealthyThreshold(AIndex : Integer; const AValue : integer);
 
 begin
   If (FhealthyThreshold=AValue) then exit;
@@ -2856,7 +2856,7 @@ end;
 
 
 
-Procedure THealthCheck.SetunhealthyThreshold(AIndex : Integer; const AValue : integer); 
+Procedure THealthCheck.SetunhealthyThreshold(AIndex : Integer; const AValue : integer);
 
 begin
   If (FunhealthyThreshold=AValue) then exit;
@@ -2866,7 +2866,7 @@ end;
 
 
 
-Procedure THealthCheck.SetrestartThreshold(AIndex : Integer; const AValue : integer); 
+Procedure THealthCheck.SetrestartThreshold(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrestartThreshold=AValue) then exit;
@@ -2876,7 +2876,7 @@ end;
 
 
 
-Procedure THealthCheck.SetcheckInterval(AIndex : Integer; const AValue : String); 
+Procedure THealthCheck.SetcheckInterval(AIndex : Integer; const AValue : String);
 
 begin
   If (FcheckInterval=AValue) then exit;
@@ -2886,7 +2886,7 @@ end;
 
 
 
-Procedure THealthCheck.Settimeout(AIndex : Integer; const AValue : String); 
+Procedure THealthCheck.Settimeout(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftimeout=AValue) then exit;
@@ -2916,7 +2916,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeployment.Setfiles(AIndex : Integer; const AValue : TDeploymentTypefiles); 
+Procedure TDeployment.Setfiles(AIndex : Integer; const AValue : TDeploymentTypefiles);
 
 begin
   If (Ffiles=AValue) then exit;
@@ -2926,7 +2926,7 @@ end;
 
 
 
-Procedure TDeployment.Setcontainer(AIndex : Integer; const AValue : TContainerInfo); 
+Procedure TDeployment.Setcontainer(AIndex : Integer; const AValue : TContainerInfo);
 
 begin
   If (Fcontainer=AValue) then exit;
@@ -2936,7 +2936,7 @@ end;
 
 
 
-Procedure TDeployment.SetsourceReferences(AIndex : Integer; const AValue : TDeploymentTypesourceReferencesArray); 
+Procedure TDeployment.SetsourceReferences(AIndex : Integer; const AValue : TDeploymentTypesourceReferencesArray);
 
 begin
   If (FsourceReferences=AValue) then exit;
@@ -2947,7 +2947,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeployment.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeployment.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2966,7 +2966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFileInfo.SetsourceUrl(AIndex : Integer; const AValue : String); 
+Procedure TFileInfo.SetsourceUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceUrl=AValue) then exit;
@@ -2976,7 +2976,7 @@ end;
 
 
 
-Procedure TFileInfo.Setsha1Sum(AIndex : Integer; const AValue : String); 
+Procedure TFileInfo.Setsha1Sum(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsha1Sum=AValue) then exit;
@@ -2986,7 +2986,7 @@ end;
 
 
 
-Procedure TFileInfo.SetmimeType(AIndex : Integer; const AValue : String); 
+Procedure TFileInfo.SetmimeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmimeType=AValue) then exit;
@@ -3003,7 +3003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerInfo.Setimage(AIndex : Integer; const AValue : String); 
+Procedure TContainerInfo.Setimage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fimage=AValue) then exit;
@@ -3020,7 +3020,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceReference.Setrepository(AIndex : Integer; const AValue : String); 
+Procedure TSourceReference.Setrepository(AIndex : Integer; const AValue : String);
 
 begin
   If (Frepository=AValue) then exit;
@@ -3030,7 +3030,7 @@ end;
 
 
 
-Procedure TSourceReference.SetrevisionId(AIndex : Integer; const AValue : String); 
+Procedure TSourceReference.SetrevisionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionId=AValue) then exit;
@@ -3047,7 +3047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListVersionsResponse.Setversions(AIndex : Integer; const AValue : TListVersionsResponseTypeversionsArray); 
+Procedure TListVersionsResponse.Setversions(AIndex : Integer; const AValue : TListVersionsResponseTypeversionsArray);
 
 begin
   If (Fversions=AValue) then exit;
@@ -3057,7 +3057,7 @@ end;
 
 
 
-Procedure TListVersionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListVersionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3068,7 +3068,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListVersionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListVersionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3087,7 +3087,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TService.Setname(AIndex : Integer; const AValue : String); 
+Procedure TService.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3097,7 +3097,7 @@ end;
 
 
 
-Procedure TService.Setid(AIndex : Integer; const AValue : String); 
+Procedure TService.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3107,7 +3107,7 @@ end;
 
 
 
-Procedure TService.Setsplit(AIndex : Integer; const AValue : TTrafficSplit); 
+Procedure TService.Setsplit(AIndex : Integer; const AValue : TTrafficSplit);
 
 begin
   If (Fsplit=AValue) then exit;
@@ -3137,7 +3137,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTrafficSplit.SetshardBy(AIndex : Integer; const AValue : String); 
+Procedure TTrafficSplit.SetshardBy(AIndex : Integer; const AValue : String);
 
 begin
   If (FshardBy=AValue) then exit;
@@ -3147,7 +3147,7 @@ end;
 
 
 
-Procedure TTrafficSplit.Setallocations(AIndex : Integer; const AValue : TTrafficSplitTypeallocations); 
+Procedure TTrafficSplit.Setallocations(AIndex : Integer; const AValue : TTrafficSplitTypeallocations);
 
 begin
   If (Fallocations=AValue) then exit;
@@ -3164,7 +3164,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListServicesResponse.Setservices(AIndex : Integer; const AValue : TListServicesResponseTypeservicesArray); 
+Procedure TListServicesResponse.Setservices(AIndex : Integer; const AValue : TListServicesResponseTypeservicesArray);
 
 begin
   If (Fservices=AValue) then exit;
@@ -3174,7 +3174,7 @@ end;
 
 
 
-Procedure TListServicesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListServicesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3185,7 +3185,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListServicesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListServicesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3204,7 +3204,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListInstancesResponse.Setinstances(AIndex : Integer; const AValue : TListInstancesResponseTypeinstancesArray); 
+Procedure TListInstancesResponse.Setinstances(AIndex : Integer; const AValue : TListInstancesResponseTypeinstancesArray);
 
 begin
   If (Finstances=AValue) then exit;
@@ -3214,7 +3214,7 @@ end;
 
 
 
-Procedure TListInstancesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListInstancesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3225,7 +3225,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListInstancesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListInstancesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3244,7 +3244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstance.Setname(AIndex : Integer; const AValue : String); 
+Procedure TInstance.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3254,7 +3254,7 @@ end;
 
 
 
-Procedure TInstance.Setid(AIndex : Integer; const AValue : String); 
+Procedure TInstance.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3264,7 +3264,7 @@ end;
 
 
 
-Procedure TInstance.SetappEngineRelease(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetappEngineRelease(AIndex : Integer; const AValue : String);
 
 begin
   If (FappEngineRelease=AValue) then exit;
@@ -3274,7 +3274,7 @@ end;
 
 
 
-Procedure TInstance.Setavailability(AIndex : Integer; const AValue : String); 
+Procedure TInstance.Setavailability(AIndex : Integer; const AValue : String);
 
 begin
   If (Favailability=AValue) then exit;
@@ -3284,7 +3284,7 @@ end;
 
 
 
-Procedure TInstance.SetvmName(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetvmName(AIndex : Integer; const AValue : String);
 
 begin
   If (FvmName=AValue) then exit;
@@ -3294,7 +3294,7 @@ end;
 
 
 
-Procedure TInstance.SetvmZoneName(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetvmZoneName(AIndex : Integer; const AValue : String);
 
 begin
   If (FvmZoneName=AValue) then exit;
@@ -3304,7 +3304,7 @@ end;
 
 
 
-Procedure TInstance.SetvmId(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetvmId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvmId=AValue) then exit;
@@ -3314,7 +3314,7 @@ end;
 
 
 
-Procedure TInstance.SetstartTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetstartTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTimestamp=AValue) then exit;
@@ -3324,7 +3324,7 @@ end;
 
 
 
-Procedure TInstance.Setrequests(AIndex : Integer; const AValue : integer); 
+Procedure TInstance.Setrequests(AIndex : Integer; const AValue : integer);
 
 begin
   If (Frequests=AValue) then exit;
@@ -3334,7 +3334,7 @@ end;
 
 
 
-Procedure TInstance.Seterrors(AIndex : Integer; const AValue : integer); 
+Procedure TInstance.Seterrors(AIndex : Integer; const AValue : integer);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -3344,7 +3344,7 @@ end;
 
 
 
-Procedure TInstance.Setqps(AIndex : Integer; const AValue : integer); 
+Procedure TInstance.Setqps(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fqps=AValue) then exit;
@@ -3354,7 +3354,7 @@ end;
 
 
 
-Procedure TInstance.SetaverageLatency(AIndex : Integer; const AValue : integer); 
+Procedure TInstance.SetaverageLatency(AIndex : Integer; const AValue : integer);
 
 begin
   If (FaverageLatency=AValue) then exit;
@@ -3364,7 +3364,7 @@ end;
 
 
 
-Procedure TInstance.SetmemoryUsage(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetmemoryUsage(AIndex : Integer; const AValue : String);
 
 begin
   If (FmemoryUsage=AValue) then exit;
@@ -3374,7 +3374,7 @@ end;
 
 
 
-Procedure TInstance.SetvmStatus(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetvmStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FvmStatus=AValue) then exit;
@@ -3384,7 +3384,7 @@ end;
 
 
 
-Procedure TInstance.SetvmUnlocked(AIndex : Integer; const AValue : boolean); 
+Procedure TInstance.SetvmUnlocked(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FvmUnlocked=AValue) then exit;
@@ -3401,7 +3401,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationMetadata.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -3411,7 +3411,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -3421,7 +3421,7 @@ end;
 
 
 
-Procedure TOperationMetadata.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -3431,7 +3431,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -3441,7 +3441,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Settarget(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.Settarget(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftarget=AValue) then exit;
@@ -3451,7 +3451,7 @@ end;
 
 
 
-Procedure TOperationMetadata.Setmethod(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadata.Setmethod(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -3468,7 +3468,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationMetadataV1Beta5.Setmethod(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadataV1Beta5.Setmethod(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -3478,7 +3478,7 @@ end;
 
 
 
-Procedure TOperationMetadataV1Beta5.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadataV1Beta5.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -3488,7 +3488,7 @@ end;
 
 
 
-Procedure TOperationMetadataV1Beta5.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadataV1Beta5.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -3498,7 +3498,7 @@ end;
 
 
 
-Procedure TOperationMetadataV1Beta5.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadataV1Beta5.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -3508,7 +3508,7 @@ end;
 
 
 
-Procedure TOperationMetadataV1Beta5.Settarget(AIndex : Integer; const AValue : String); 
+Procedure TOperationMetadataV1Beta5.Settarget(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftarget=AValue) then exit;
@@ -4193,7 +4193,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TAppengineAPI.APINeedsAuth : Boolean;

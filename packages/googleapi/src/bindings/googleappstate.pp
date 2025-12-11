@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TGetResponse = Class;
   TListResponse = Class;
@@ -25,11 +25,11 @@ type
   TWriteResultArray = Array of TWriteResult;
   //Anonymous types, using auto-generated names
   TListResponseTypeitemsArray = Array of TGetResponse;
-  
+
   { --------------------------------------------------------------------
     TGetResponse
     --------------------------------------------------------------------}
-  
+
   TGetResponse = Class(TGoogleBaseObject)
   Private
     FcurrentStateVersion : String;
@@ -50,11 +50,11 @@ type
     Property stateKey : integer Index 24 Read FstateKey Write SetstateKey;
   end;
   TGetResponseClass = Class of TGetResponse;
-  
+
   { --------------------------------------------------------------------
     TListResponse
     --------------------------------------------------------------------}
-  
+
   TListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TListResponseTypeitemsArray;
@@ -76,11 +76,11 @@ type
     Property maximumKeyCount : integer Index 16 Read FmaximumKeyCount Write SetmaximumKeyCount;
   end;
   TListResponseClass = Class of TListResponse;
-  
+
   { --------------------------------------------------------------------
     TUpdateRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateRequest = Class(TGoogleBaseObject)
   Private
     Fdata : String;
@@ -95,11 +95,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TUpdateRequestClass = Class of TUpdateRequest;
-  
+
   { --------------------------------------------------------------------
     TWriteResult
     --------------------------------------------------------------------}
-  
+
   TWriteResult = Class(TGoogleBaseObject)
   Private
     FcurrentStateVersion : String;
@@ -117,32 +117,32 @@ type
     Property stateKey : integer Index 16 Read FstateKey Write SetstateKey;
   end;
   TWriteResultClass = Class of TWriteResult;
-  
+
   { --------------------------------------------------------------------
     TStatesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TStatesResource, method Clear
-  
+
   TStatesClearOptions = Record
     currentDataVersion : String;
   end;
-  
-  
+
+
   //Optional query Options for TStatesResource, method List
-  
+
   TStatesListOptions = Record
     includeData : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TStatesResource, method Update
-  
+
   TStatesUpdateOptions = Record
     currentStateVersion : String;
   end;
-  
+
   TStatesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -156,12 +156,12 @@ type
     Function Update(stateKey: integer; aUpdateRequest : TUpdateRequest; AQuery : string  = '') : TWriteResult;
     Function Update(stateKey: integer; aUpdateRequest : TUpdateRequest; AQuery : TStatesupdateOptions) : TWriteResult;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAppstateAPI
     --------------------------------------------------------------------}
-  
+
   TAppstateAPI = Class(TGoogleAPI)
   Private
     FStatesInstance : TStatesResource;
@@ -203,7 +203,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGetResponse.SetcurrentStateVersion(AIndex : Integer; const AValue : String); 
+Procedure TGetResponse.SetcurrentStateVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentStateVersion=AValue) then exit;
@@ -213,7 +213,7 @@ end;
 
 
 
-Procedure TGetResponse.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TGetResponse.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -223,7 +223,7 @@ end;
 
 
 
-Procedure TGetResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGetResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -233,7 +233,7 @@ end;
 
 
 
-Procedure TGetResponse.SetstateKey(AIndex : Integer; const AValue : integer); 
+Procedure TGetResponse.SetstateKey(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstateKey=AValue) then exit;
@@ -250,7 +250,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListResponse.Setitems(AIndex : Integer; const AValue : TListResponseTypeitemsArray); 
+Procedure TListResponse.Setitems(AIndex : Integer; const AValue : TListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -260,7 +260,7 @@ end;
 
 
 
-Procedure TListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -270,7 +270,7 @@ end;
 
 
 
-Procedure TListResponse.SetmaximumKeyCount(AIndex : Integer; const AValue : integer); 
+Procedure TListResponse.SetmaximumKeyCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaximumKeyCount=AValue) then exit;
@@ -281,7 +281,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -300,7 +300,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateRequest.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TUpdateRequest.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -310,7 +310,7 @@ end;
 
 
 
-Procedure TUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUpdateRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -327,7 +327,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteResult.SetcurrentStateVersion(AIndex : Integer; const AValue : String); 
+Procedure TWriteResult.SetcurrentStateVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentStateVersion=AValue) then exit;
@@ -337,7 +337,7 @@ end;
 
 
 
-Procedure TWriteResult.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TWriteResult.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -347,7 +347,7 @@ end;
 
 
 
-Procedure TWriteResult.SetstateKey(AIndex : Integer; const AValue : integer); 
+Procedure TWriteResult.SetstateKey(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstateKey=AValue) then exit;
@@ -597,7 +597,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/appstate';
   Result[0].Description:='View and manage your data for this application';
-  
+
 end;
 
 Class Function TAppstateAPI.APINeedsAuth : Boolean;

@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TRegisterDebuggeeRequest = Class;
   TDebuggee = Class;
@@ -84,11 +84,11 @@ type
   TVariableTypemembersArray = Array of TVariable;
   TListBreakpointsResponseTypebreakpointsArray = Array of TBreakpoint;
   TListDebuggeesResponseTypedebuggeesArray = Array of TDebuggee;
-  
+
   { --------------------------------------------------------------------
     TRegisterDebuggeeRequest
     --------------------------------------------------------------------}
-  
+
   TRegisterDebuggeeRequest = Class(TGoogleBaseObject)
   Private
     Fdebuggee : TDebuggee;
@@ -100,11 +100,11 @@ type
     Property debuggee : TDebuggee Index 0 Read Fdebuggee Write Setdebuggee;
   end;
   TRegisterDebuggeeRequestClass = Class of TRegisterDebuggeeRequest;
-  
+
   { --------------------------------------------------------------------
     TDebuggeeTypelabels
     --------------------------------------------------------------------}
-  
+
   TDebuggeeTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -114,11 +114,11 @@ type
   Published
   end;
   TDebuggeeTypelabelsClass = Class of TDebuggeeTypelabels;
-  
+
   { --------------------------------------------------------------------
     TDebuggee
     --------------------------------------------------------------------}
-  
+
   TDebuggee = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -164,11 +164,11 @@ type
     Property labels : TDebuggeeTypelabels Index 80 Read Flabels Write Setlabels;
   end;
   TDebuggeeClass = Class of TDebuggee;
-  
+
   { --------------------------------------------------------------------
     TStatusMessage
     --------------------------------------------------------------------}
-  
+
   TStatusMessage = Class(TGoogleBaseObject)
   Private
     FisError : boolean;
@@ -186,11 +186,11 @@ type
     Property description : TFormatMessage Index 16 Read Fdescription Write Setdescription;
   end;
   TStatusMessageClass = Class of TStatusMessage;
-  
+
   { --------------------------------------------------------------------
     TFormatMessage
     --------------------------------------------------------------------}
-  
+
   TFormatMessage = Class(TGoogleBaseObject)
   Private
     Fformat : String;
@@ -209,11 +209,11 @@ type
     Property parameters : TStringArray Index 8 Read Fparameters Write Setparameters;
   end;
   TFormatMessageClass = Class of TFormatMessage;
-  
+
   { --------------------------------------------------------------------
     TSourceContext
     --------------------------------------------------------------------}
-  
+
   TSourceContext = Class(TGoogleBaseObject)
   Private
     FcloudRepo : TCloudRepoSourceContext;
@@ -234,11 +234,11 @@ type
     Property git : TGitSourceContext Index 24 Read Fgit Write Setgit;
   end;
   TSourceContextClass = Class of TSourceContext;
-  
+
   { --------------------------------------------------------------------
     TCloudRepoSourceContext
     --------------------------------------------------------------------}
-  
+
   TCloudRepoSourceContext = Class(TGoogleBaseObject)
   Private
     FrepoId : TRepoId;
@@ -259,11 +259,11 @@ type
     Property aliasContext : TAliasContext Index 24 Read FaliasContext Write SetaliasContext;
   end;
   TCloudRepoSourceContextClass = Class of TCloudRepoSourceContext;
-  
+
   { --------------------------------------------------------------------
     TRepoId
     --------------------------------------------------------------------}
-  
+
   TRepoId = Class(TGoogleBaseObject)
   Private
     FprojectRepoId : TProjectRepoId;
@@ -278,11 +278,11 @@ type
     Property uid : String Index 8 Read Fuid Write Setuid;
   end;
   TRepoIdClass = Class of TRepoId;
-  
+
   { --------------------------------------------------------------------
     TProjectRepoId
     --------------------------------------------------------------------}
-  
+
   TProjectRepoId = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -297,11 +297,11 @@ type
     Property repoName : String Index 8 Read FrepoName Write SetrepoName;
   end;
   TProjectRepoIdClass = Class of TProjectRepoId;
-  
+
   { --------------------------------------------------------------------
     TAliasContext
     --------------------------------------------------------------------}
-  
+
   TAliasContext = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -316,11 +316,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TAliasContextClass = Class of TAliasContext;
-  
+
   { --------------------------------------------------------------------
     TCloudWorkspaceSourceContext
     --------------------------------------------------------------------}
-  
+
   TCloudWorkspaceSourceContext = Class(TGoogleBaseObject)
   Private
     FworkspaceId : TCloudWorkspaceId;
@@ -335,11 +335,11 @@ type
     Property snapshotId : String Index 8 Read FsnapshotId Write SetsnapshotId;
   end;
   TCloudWorkspaceSourceContextClass = Class of TCloudWorkspaceSourceContext;
-  
+
   { --------------------------------------------------------------------
     TCloudWorkspaceId
     --------------------------------------------------------------------}
-  
+
   TCloudWorkspaceId = Class(TGoogleBaseObject)
   Private
     FrepoId : TRepoId;
@@ -354,11 +354,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TCloudWorkspaceIdClass = Class of TCloudWorkspaceId;
-  
+
   { --------------------------------------------------------------------
     TGerritSourceContext
     --------------------------------------------------------------------}
-  
+
   TGerritSourceContext = Class(TGoogleBaseObject)
   Private
     FhostUri : String;
@@ -382,11 +382,11 @@ type
     Property aliasContext : TAliasContext Index 32 Read FaliasContext Write SetaliasContext;
   end;
   TGerritSourceContextClass = Class of TGerritSourceContext;
-  
+
   { --------------------------------------------------------------------
     TGitSourceContext
     --------------------------------------------------------------------}
-  
+
   TGitSourceContext = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -401,11 +401,11 @@ type
     Property revisionId : String Index 8 Read FrevisionId Write SetrevisionId;
   end;
   TGitSourceContextClass = Class of TGitSourceContext;
-  
+
   { --------------------------------------------------------------------
     TExtendedSourceContextTypelabels
     --------------------------------------------------------------------}
-  
+
   TExtendedSourceContextTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -415,11 +415,11 @@ type
   Published
   end;
   TExtendedSourceContextTypelabelsClass = Class of TExtendedSourceContextTypelabels;
-  
+
   { --------------------------------------------------------------------
     TExtendedSourceContext
     --------------------------------------------------------------------}
-  
+
   TExtendedSourceContext = Class(TGoogleBaseObject)
   Private
     Fcontext : TSourceContext;
@@ -434,11 +434,11 @@ type
     Property labels : TExtendedSourceContextTypelabels Index 8 Read Flabels Write Setlabels;
   end;
   TExtendedSourceContextClass = Class of TExtendedSourceContext;
-  
+
   { --------------------------------------------------------------------
     TRegisterDebuggeeResponse
     --------------------------------------------------------------------}
-  
+
   TRegisterDebuggeeResponse = Class(TGoogleBaseObject)
   Private
     Fdebuggee : TDebuggee;
@@ -450,11 +450,11 @@ type
     Property debuggee : TDebuggee Index 0 Read Fdebuggee Write Setdebuggee;
   end;
   TRegisterDebuggeeResponseClass = Class of TRegisterDebuggeeResponse;
-  
+
   { --------------------------------------------------------------------
     TListActiveBreakpointsResponse
     --------------------------------------------------------------------}
-  
+
   TListActiveBreakpointsResponse = Class(TGoogleBaseObject)
   Private
     Fbreakpoints : TListActiveBreakpointsResponseTypebreakpointsArray;
@@ -476,11 +476,11 @@ type
     Property waitExpired : boolean Index 16 Read FwaitExpired Write SetwaitExpired;
   end;
   TListActiveBreakpointsResponseClass = Class of TListActiveBreakpointsResponse;
-  
+
   { --------------------------------------------------------------------
     TBreakpointTypelabels
     --------------------------------------------------------------------}
-  
+
   TBreakpointTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -490,11 +490,11 @@ type
   Published
   end;
   TBreakpointTypelabelsClass = Class of TBreakpointTypelabels;
-  
+
   { --------------------------------------------------------------------
     TBreakpoint
     --------------------------------------------------------------------}
-  
+
   TBreakpoint = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -555,11 +555,11 @@ type
     Property labels : TBreakpointTypelabels Index 120 Read Flabels Write Setlabels;
   end;
   TBreakpointClass = Class of TBreakpoint;
-  
+
   { --------------------------------------------------------------------
     TSourceLocation
     --------------------------------------------------------------------}
-  
+
   TSourceLocation = Class(TGoogleBaseObject)
   Private
     Fpath : String;
@@ -574,11 +574,11 @@ type
     Property line : integer Index 8 Read Fline Write Setline;
   end;
   TSourceLocationClass = Class of TSourceLocation;
-  
+
   { --------------------------------------------------------------------
     TStackFrame
     --------------------------------------------------------------------}
-  
+
   TStackFrame = Class(TGoogleBaseObject)
   Private
     F_function : String;
@@ -604,11 +604,11 @@ type
     Property locals : TStackFrameTypelocalsArray Index 24 Read Flocals Write Setlocals;
   end;
   TStackFrameClass = Class of TStackFrame;
-  
+
   { --------------------------------------------------------------------
     TVariable
     --------------------------------------------------------------------}
-  
+
   TVariable = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -640,11 +640,11 @@ type
     Property status : TStatusMessage Index 40 Read Fstatus Write Setstatus;
   end;
   TVariableClass = Class of TVariable;
-  
+
   { --------------------------------------------------------------------
     TUpdateActiveBreakpointRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateActiveBreakpointRequest = Class(TGoogleBaseObject)
   Private
     Fbreakpoint : TBreakpoint;
@@ -656,11 +656,11 @@ type
     Property breakpoint : TBreakpoint Index 0 Read Fbreakpoint Write Setbreakpoint;
   end;
   TUpdateActiveBreakpointRequestClass = Class of TUpdateActiveBreakpointRequest;
-  
+
   { --------------------------------------------------------------------
     TUpdateActiveBreakpointResponse
     --------------------------------------------------------------------}
-  
+
   TUpdateActiveBreakpointResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -669,11 +669,11 @@ type
   Published
   end;
   TUpdateActiveBreakpointResponseClass = Class of TUpdateActiveBreakpointResponse;
-  
+
   { --------------------------------------------------------------------
     TSetBreakpointResponse
     --------------------------------------------------------------------}
-  
+
   TSetBreakpointResponse = Class(TGoogleBaseObject)
   Private
     Fbreakpoint : TBreakpoint;
@@ -685,11 +685,11 @@ type
     Property breakpoint : TBreakpoint Index 0 Read Fbreakpoint Write Setbreakpoint;
   end;
   TSetBreakpointResponseClass = Class of TSetBreakpointResponse;
-  
+
   { --------------------------------------------------------------------
     TGetBreakpointResponse
     --------------------------------------------------------------------}
-  
+
   TGetBreakpointResponse = Class(TGoogleBaseObject)
   Private
     Fbreakpoint : TBreakpoint;
@@ -701,11 +701,11 @@ type
     Property breakpoint : TBreakpoint Index 0 Read Fbreakpoint Write Setbreakpoint;
   end;
   TGetBreakpointResponseClass = Class of TGetBreakpointResponse;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -714,11 +714,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TListBreakpointsResponse
     --------------------------------------------------------------------}
-  
+
   TListBreakpointsResponse = Class(TGoogleBaseObject)
   Private
     Fbreakpoints : TListBreakpointsResponseTypebreakpointsArray;
@@ -737,11 +737,11 @@ type
     Property nextWaitToken : String Index 8 Read FnextWaitToken Write SetnextWaitToken;
   end;
   TListBreakpointsResponseClass = Class of TListBreakpointsResponse;
-  
+
   { --------------------------------------------------------------------
     TListDebuggeesResponse
     --------------------------------------------------------------------}
-  
+
   TListDebuggeesResponse = Class(TGoogleBaseObject)
   Private
     Fdebuggees : TListDebuggeesResponseTypedebuggeesArray;
@@ -757,19 +757,19 @@ type
     Property debuggees : TListDebuggeesResponseTypedebuggeesArray Index 0 Read Fdebuggees Write Setdebuggees;
   end;
   TListDebuggeesResponseClass = Class of TListDebuggeesResponse;
-  
+
   { --------------------------------------------------------------------
     TControllerDebuggeesBreakpointsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TControllerDebuggeesBreakpointsResource, method List
-  
+
   TControllerDebuggeesBreakpointsListOptions = Record
     waitToken : String;
     successOnTimeout : boolean;
   end;
-  
+
   TControllerDebuggeesBreakpointsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -778,12 +778,12 @@ type
     Function List(debuggeeId: string; AQuery : TControllerDebuggeesBreakpointslistOptions) : TListActiveBreakpointsResponse;
     Function Update(debuggeeId: string; id: string; aUpdateActiveBreakpointRequest : TUpdateActiveBreakpointRequest) : TUpdateActiveBreakpointResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TControllerDebuggeesResource
     --------------------------------------------------------------------}
-  
+
   TControllerDebuggeesResource = Class(TGoogleResource)
   Private
     FBreakpointsInstance : TControllerDebuggeesBreakpointsResource;
@@ -796,12 +796,12 @@ type
     Function CreateBreakpointsResource : TControllerDebuggeesBreakpointsResource;virtual;overload;
     Property BreakpointsResource : TControllerDebuggeesBreakpointsResource Read GetBreakpointsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TControllerResource
     --------------------------------------------------------------------}
-  
+
   TControllerResource = Class(TGoogleResource)
   Private
     FDebuggeesBreakpointsInstance : TControllerDebuggeesBreakpointsResource;
@@ -818,36 +818,36 @@ type
     Property DebuggeesBreakpointsResource : TControllerDebuggeesBreakpointsResource Read GetDebuggeesBreakpointsInstance;
     Property DebuggeesResource : TControllerDebuggeesResource Read GetDebuggeesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDebuggerDebuggeesBreakpointsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TDebuggerDebuggeesBreakpointsResource, method Set
-  
+
   TDebuggerDebuggeesBreakpointsSetOptions = Record
     clientVersion : String;
   end;
-  
-  
+
+
   //Optional query Options for TDebuggerDebuggeesBreakpointsResource, method Get
-  
+
   TDebuggerDebuggeesBreakpointsGetOptions = Record
     clientVersion : String;
   end;
-  
-  
+
+
   //Optional query Options for TDebuggerDebuggeesBreakpointsResource, method Delete
-  
+
   TDebuggerDebuggeesBreakpointsDeleteOptions = Record
     clientVersion : String;
   end;
-  
-  
+
+
   //Optional query Options for TDebuggerDebuggeesBreakpointsResource, method List
-  
+
   TDebuggerDebuggeesBreakpointsListOptions = Record
     includeAllUsers : boolean;
     includeInactive : boolean;
@@ -856,7 +856,7 @@ type
     waitToken : String;
     clientVersion : String;
   end;
-  
+
   TDebuggerDebuggeesBreakpointsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -870,21 +870,21 @@ type
     Function List(debuggeeId: string; AQuery : string  = '') : TListBreakpointsResponse;
     Function List(debuggeeId: string; AQuery : TDebuggerDebuggeesBreakpointslistOptions) : TListBreakpointsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDebuggerDebuggeesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TDebuggerDebuggeesResource, method List
-  
+
   TDebuggerDebuggeesListOptions = Record
     project : String;
     includeInactive : boolean;
     clientVersion : String;
   end;
-  
+
   TDebuggerDebuggeesResource = Class(TGoogleResource)
   Private
     FBreakpointsInstance : TDebuggerDebuggeesBreakpointsResource;
@@ -898,12 +898,12 @@ type
     Function CreateBreakpointsResource : TDebuggerDebuggeesBreakpointsResource;virtual;overload;
     Property BreakpointsResource : TDebuggerDebuggeesBreakpointsResource Read GetBreakpointsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDebuggerResource
     --------------------------------------------------------------------}
-  
+
   TDebuggerResource = Class(TGoogleResource)
   Private
     FDebuggeesBreakpointsInstance : TDebuggerDebuggeesBreakpointsResource;
@@ -920,12 +920,12 @@ type
     Property DebuggeesBreakpointsResource : TDebuggerDebuggeesBreakpointsResource Read GetDebuggeesBreakpointsInstance;
     Property DebuggeesResource : TDebuggerDebuggeesResource Read GetDebuggeesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TClouddebuggerAPI
     --------------------------------------------------------------------}
-  
+
   TClouddebuggerAPI = Class(TGoogleAPI)
   Private
     FControllerDebuggeesBreakpointsInstance : TControllerDebuggeesBreakpointsResource;
@@ -992,7 +992,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TRegisterDebuggeeRequest.Setdebuggee(AIndex : Integer; const AValue : TDebuggee); 
+Procedure TRegisterDebuggeeRequest.Setdebuggee(AIndex : Integer; const AValue : TDebuggee);
 
 begin
   If (Fdebuggee=AValue) then exit;
@@ -1022,7 +1022,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDebuggee.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDebuggee.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1032,7 +1032,7 @@ end;
 
 
 
-Procedure TDebuggee.Setproject(AIndex : Integer; const AValue : String); 
+Procedure TDebuggee.Setproject(AIndex : Integer; const AValue : String);
 
 begin
   If (Fproject=AValue) then exit;
@@ -1042,7 +1042,7 @@ end;
 
 
 
-Procedure TDebuggee.Setuniquifier(AIndex : Integer; const AValue : String); 
+Procedure TDebuggee.Setuniquifier(AIndex : Integer; const AValue : String);
 
 begin
   If (Funiquifier=AValue) then exit;
@@ -1052,7 +1052,7 @@ end;
 
 
 
-Procedure TDebuggee.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TDebuggee.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1062,7 +1062,7 @@ end;
 
 
 
-Procedure TDebuggee.SetisInactive(AIndex : Integer; const AValue : boolean); 
+Procedure TDebuggee.SetisInactive(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisInactive=AValue) then exit;
@@ -1072,7 +1072,7 @@ end;
 
 
 
-Procedure TDebuggee.SetagentVersion(AIndex : Integer; const AValue : String); 
+Procedure TDebuggee.SetagentVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FagentVersion=AValue) then exit;
@@ -1082,7 +1082,7 @@ end;
 
 
 
-Procedure TDebuggee.SetisDisabled(AIndex : Integer; const AValue : boolean); 
+Procedure TDebuggee.SetisDisabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisDisabled=AValue) then exit;
@@ -1092,7 +1092,7 @@ end;
 
 
 
-Procedure TDebuggee.Setstatus(AIndex : Integer; const AValue : TStatusMessage); 
+Procedure TDebuggee.Setstatus(AIndex : Integer; const AValue : TStatusMessage);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1102,7 +1102,7 @@ end;
 
 
 
-Procedure TDebuggee.SetsourceContexts(AIndex : Integer; const AValue : TDebuggeeTypesourceContextsArray); 
+Procedure TDebuggee.SetsourceContexts(AIndex : Integer; const AValue : TDebuggeeTypesourceContextsArray);
 
 begin
   If (FsourceContexts=AValue) then exit;
@@ -1112,7 +1112,7 @@ end;
 
 
 
-Procedure TDebuggee.SetextSourceContexts(AIndex : Integer; const AValue : TDebuggeeTypeextSourceContextsArray); 
+Procedure TDebuggee.SetextSourceContexts(AIndex : Integer; const AValue : TDebuggeeTypeextSourceContextsArray);
 
 begin
   If (FextSourceContexts=AValue) then exit;
@@ -1122,7 +1122,7 @@ end;
 
 
 
-Procedure TDebuggee.Setlabels(AIndex : Integer; const AValue : TDebuggeeTypelabels); 
+Procedure TDebuggee.Setlabels(AIndex : Integer; const AValue : TDebuggeeTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1133,7 +1133,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDebuggee.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDebuggee.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1153,7 +1153,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatusMessage.SetisError(AIndex : Integer; const AValue : boolean); 
+Procedure TStatusMessage.SetisError(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisError=AValue) then exit;
@@ -1163,7 +1163,7 @@ end;
 
 
 
-Procedure TStatusMessage.SetrefersTo(AIndex : Integer; const AValue : String); 
+Procedure TStatusMessage.SetrefersTo(AIndex : Integer; const AValue : String);
 
 begin
   If (FrefersTo=AValue) then exit;
@@ -1173,7 +1173,7 @@ end;
 
 
 
-Procedure TStatusMessage.Setdescription(AIndex : Integer; const AValue : TFormatMessage); 
+Procedure TStatusMessage.Setdescription(AIndex : Integer; const AValue : TFormatMessage);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1190,7 +1190,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFormatMessage.Setformat(AIndex : Integer; const AValue : String); 
+Procedure TFormatMessage.Setformat(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformat=AValue) then exit;
@@ -1200,7 +1200,7 @@ end;
 
 
 
-Procedure TFormatMessage.Setparameters(AIndex : Integer; const AValue : TStringArray); 
+Procedure TFormatMessage.Setparameters(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fparameters=AValue) then exit;
@@ -1211,7 +1211,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFormatMessage.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFormatMessage.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1230,7 +1230,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceContext.SetcloudRepo(AIndex : Integer; const AValue : TCloudRepoSourceContext); 
+Procedure TSourceContext.SetcloudRepo(AIndex : Integer; const AValue : TCloudRepoSourceContext);
 
 begin
   If (FcloudRepo=AValue) then exit;
@@ -1240,7 +1240,7 @@ end;
 
 
 
-Procedure TSourceContext.SetcloudWorkspace(AIndex : Integer; const AValue : TCloudWorkspaceSourceContext); 
+Procedure TSourceContext.SetcloudWorkspace(AIndex : Integer; const AValue : TCloudWorkspaceSourceContext);
 
 begin
   If (FcloudWorkspace=AValue) then exit;
@@ -1250,7 +1250,7 @@ end;
 
 
 
-Procedure TSourceContext.Setgerrit(AIndex : Integer; const AValue : TGerritSourceContext); 
+Procedure TSourceContext.Setgerrit(AIndex : Integer; const AValue : TGerritSourceContext);
 
 begin
   If (Fgerrit=AValue) then exit;
@@ -1260,7 +1260,7 @@ end;
 
 
 
-Procedure TSourceContext.Setgit(AIndex : Integer; const AValue : TGitSourceContext); 
+Procedure TSourceContext.Setgit(AIndex : Integer; const AValue : TGitSourceContext);
 
 begin
   If (Fgit=AValue) then exit;
@@ -1277,7 +1277,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCloudRepoSourceContext.SetrepoId(AIndex : Integer; const AValue : TRepoId); 
+Procedure TCloudRepoSourceContext.SetrepoId(AIndex : Integer; const AValue : TRepoId);
 
 begin
   If (FrepoId=AValue) then exit;
@@ -1287,7 +1287,7 @@ end;
 
 
 
-Procedure TCloudRepoSourceContext.SetrevisionId(AIndex : Integer; const AValue : String); 
+Procedure TCloudRepoSourceContext.SetrevisionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionId=AValue) then exit;
@@ -1297,7 +1297,7 @@ end;
 
 
 
-Procedure TCloudRepoSourceContext.SetaliasName(AIndex : Integer; const AValue : String); 
+Procedure TCloudRepoSourceContext.SetaliasName(AIndex : Integer; const AValue : String);
 
 begin
   If (FaliasName=AValue) then exit;
@@ -1307,7 +1307,7 @@ end;
 
 
 
-Procedure TCloudRepoSourceContext.SetaliasContext(AIndex : Integer; const AValue : TAliasContext); 
+Procedure TCloudRepoSourceContext.SetaliasContext(AIndex : Integer; const AValue : TAliasContext);
 
 begin
   If (FaliasContext=AValue) then exit;
@@ -1324,7 +1324,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRepoId.SetprojectRepoId(AIndex : Integer; const AValue : TProjectRepoId); 
+Procedure TRepoId.SetprojectRepoId(AIndex : Integer; const AValue : TProjectRepoId);
 
 begin
   If (FprojectRepoId=AValue) then exit;
@@ -1334,7 +1334,7 @@ end;
 
 
 
-Procedure TRepoId.Setuid(AIndex : Integer; const AValue : String); 
+Procedure TRepoId.Setuid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuid=AValue) then exit;
@@ -1351,7 +1351,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProjectRepoId.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TProjectRepoId.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -1361,7 +1361,7 @@ end;
 
 
 
-Procedure TProjectRepoId.SetrepoName(AIndex : Integer; const AValue : String); 
+Procedure TProjectRepoId.SetrepoName(AIndex : Integer; const AValue : String);
 
 begin
   If (FrepoName=AValue) then exit;
@@ -1378,7 +1378,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAliasContext.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAliasContext.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1388,7 +1388,7 @@ end;
 
 
 
-Procedure TAliasContext.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAliasContext.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1405,7 +1405,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCloudWorkspaceSourceContext.SetworkspaceId(AIndex : Integer; const AValue : TCloudWorkspaceId); 
+Procedure TCloudWorkspaceSourceContext.SetworkspaceId(AIndex : Integer; const AValue : TCloudWorkspaceId);
 
 begin
   If (FworkspaceId=AValue) then exit;
@@ -1415,7 +1415,7 @@ end;
 
 
 
-Procedure TCloudWorkspaceSourceContext.SetsnapshotId(AIndex : Integer; const AValue : String); 
+Procedure TCloudWorkspaceSourceContext.SetsnapshotId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsnapshotId=AValue) then exit;
@@ -1432,7 +1432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCloudWorkspaceId.SetrepoId(AIndex : Integer; const AValue : TRepoId); 
+Procedure TCloudWorkspaceId.SetrepoId(AIndex : Integer; const AValue : TRepoId);
 
 begin
   If (FrepoId=AValue) then exit;
@@ -1442,7 +1442,7 @@ end;
 
 
 
-Procedure TCloudWorkspaceId.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCloudWorkspaceId.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1459,7 +1459,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGerritSourceContext.SethostUri(AIndex : Integer; const AValue : String); 
+Procedure TGerritSourceContext.SethostUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FhostUri=AValue) then exit;
@@ -1469,7 +1469,7 @@ end;
 
 
 
-Procedure TGerritSourceContext.SetgerritProject(AIndex : Integer; const AValue : String); 
+Procedure TGerritSourceContext.SetgerritProject(AIndex : Integer; const AValue : String);
 
 begin
   If (FgerritProject=AValue) then exit;
@@ -1479,7 +1479,7 @@ end;
 
 
 
-Procedure TGerritSourceContext.SetrevisionId(AIndex : Integer; const AValue : String); 
+Procedure TGerritSourceContext.SetrevisionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionId=AValue) then exit;
@@ -1489,7 +1489,7 @@ end;
 
 
 
-Procedure TGerritSourceContext.SetaliasName(AIndex : Integer; const AValue : String); 
+Procedure TGerritSourceContext.SetaliasName(AIndex : Integer; const AValue : String);
 
 begin
   If (FaliasName=AValue) then exit;
@@ -1499,7 +1499,7 @@ end;
 
 
 
-Procedure TGerritSourceContext.SetaliasContext(AIndex : Integer; const AValue : TAliasContext); 
+Procedure TGerritSourceContext.SetaliasContext(AIndex : Integer; const AValue : TAliasContext);
 
 begin
   If (FaliasContext=AValue) then exit;
@@ -1516,7 +1516,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGitSourceContext.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TGitSourceContext.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1526,7 +1526,7 @@ end;
 
 
 
-Procedure TGitSourceContext.SetrevisionId(AIndex : Integer; const AValue : String); 
+Procedure TGitSourceContext.SetrevisionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionId=AValue) then exit;
@@ -1556,7 +1556,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExtendedSourceContext.Setcontext(AIndex : Integer; const AValue : TSourceContext); 
+Procedure TExtendedSourceContext.Setcontext(AIndex : Integer; const AValue : TSourceContext);
 
 begin
   If (Fcontext=AValue) then exit;
@@ -1566,7 +1566,7 @@ end;
 
 
 
-Procedure TExtendedSourceContext.Setlabels(AIndex : Integer; const AValue : TExtendedSourceContextTypelabels); 
+Procedure TExtendedSourceContext.Setlabels(AIndex : Integer; const AValue : TExtendedSourceContextTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1583,7 +1583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRegisterDebuggeeResponse.Setdebuggee(AIndex : Integer; const AValue : TDebuggee); 
+Procedure TRegisterDebuggeeResponse.Setdebuggee(AIndex : Integer; const AValue : TDebuggee);
 
 begin
   If (Fdebuggee=AValue) then exit;
@@ -1600,7 +1600,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListActiveBreakpointsResponse.Setbreakpoints(AIndex : Integer; const AValue : TListActiveBreakpointsResponseTypebreakpointsArray); 
+Procedure TListActiveBreakpointsResponse.Setbreakpoints(AIndex : Integer; const AValue : TListActiveBreakpointsResponseTypebreakpointsArray);
 
 begin
   If (Fbreakpoints=AValue) then exit;
@@ -1610,7 +1610,7 @@ end;
 
 
 
-Procedure TListActiveBreakpointsResponse.SetnextWaitToken(AIndex : Integer; const AValue : String); 
+Procedure TListActiveBreakpointsResponse.SetnextWaitToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextWaitToken=AValue) then exit;
@@ -1620,7 +1620,7 @@ end;
 
 
 
-Procedure TListActiveBreakpointsResponse.SetwaitExpired(AIndex : Integer; const AValue : boolean); 
+Procedure TListActiveBreakpointsResponse.SetwaitExpired(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FwaitExpired=AValue) then exit;
@@ -1631,7 +1631,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListActiveBreakpointsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListActiveBreakpointsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1663,7 +1663,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBreakpoint.Setid(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1673,7 +1673,7 @@ end;
 
 
 
-Procedure TBreakpoint.Setaction(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.Setaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Faction=AValue) then exit;
@@ -1683,7 +1683,7 @@ end;
 
 
 
-Procedure TBreakpoint.Setlocation(AIndex : Integer; const AValue : TSourceLocation); 
+Procedure TBreakpoint.Setlocation(AIndex : Integer; const AValue : TSourceLocation);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
 
 
 
-Procedure TBreakpoint.Setcondition(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.Setcondition(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcondition=AValue) then exit;
@@ -1703,7 +1703,7 @@ end;
 
 
 
-Procedure TBreakpoint.Setexpressions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBreakpoint.Setexpressions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fexpressions=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetlogMessageFormat(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.SetlogMessageFormat(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogMessageFormat=AValue) then exit;
@@ -1723,7 +1723,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetlogLevel(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.SetlogLevel(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogLevel=AValue) then exit;
@@ -1733,7 +1733,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetisFinalState(AIndex : Integer; const AValue : boolean); 
+Procedure TBreakpoint.SetisFinalState(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisFinalState=AValue) then exit;
@@ -1743,7 +1743,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -1753,7 +1753,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetfinalTime(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.SetfinalTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FfinalTime=AValue) then exit;
@@ -1763,7 +1763,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetuserEmail(AIndex : Integer; const AValue : String); 
+Procedure TBreakpoint.SetuserEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserEmail=AValue) then exit;
@@ -1773,7 +1773,7 @@ end;
 
 
 
-Procedure TBreakpoint.Setstatus(AIndex : Integer; const AValue : TStatusMessage); 
+Procedure TBreakpoint.Setstatus(AIndex : Integer; const AValue : TStatusMessage);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1783,7 +1783,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetstackFrames(AIndex : Integer; const AValue : TBreakpointTypestackFramesArray); 
+Procedure TBreakpoint.SetstackFrames(AIndex : Integer; const AValue : TBreakpointTypestackFramesArray);
 
 begin
   If (FstackFrames=AValue) then exit;
@@ -1793,7 +1793,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetevaluatedExpressions(AIndex : Integer; const AValue : TBreakpointTypeevaluatedExpressionsArray); 
+Procedure TBreakpoint.SetevaluatedExpressions(AIndex : Integer; const AValue : TBreakpointTypeevaluatedExpressionsArray);
 
 begin
   If (FevaluatedExpressions=AValue) then exit;
@@ -1803,7 +1803,7 @@ end;
 
 
 
-Procedure TBreakpoint.SetvariableTable(AIndex : Integer; const AValue : TBreakpointTypevariableTableArray); 
+Procedure TBreakpoint.SetvariableTable(AIndex : Integer; const AValue : TBreakpointTypevariableTableArray);
 
 begin
   If (FvariableTable=AValue) then exit;
@@ -1813,7 +1813,7 @@ end;
 
 
 
-Procedure TBreakpoint.Setlabels(AIndex : Integer; const AValue : TBreakpointTypelabels); 
+Procedure TBreakpoint.Setlabels(AIndex : Integer; const AValue : TBreakpointTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1824,7 +1824,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBreakpoint.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBreakpoint.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1846,7 +1846,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceLocation.Setpath(AIndex : Integer; const AValue : String); 
+Procedure TSourceLocation.Setpath(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpath=AValue) then exit;
@@ -1856,7 +1856,7 @@ end;
 
 
 
-Procedure TSourceLocation.Setline(AIndex : Integer; const AValue : integer); 
+Procedure TSourceLocation.Setline(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fline=AValue) then exit;
@@ -1873,7 +1873,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStackFrame.Set_function(AIndex : Integer; const AValue : String); 
+Procedure TStackFrame.Set_function(AIndex : Integer; const AValue : String);
 
 begin
   If (F_function=AValue) then exit;
@@ -1883,7 +1883,7 @@ end;
 
 
 
-Procedure TStackFrame.Setlocation(AIndex : Integer; const AValue : TSourceLocation); 
+Procedure TStackFrame.Setlocation(AIndex : Integer; const AValue : TSourceLocation);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1893,7 +1893,7 @@ end;
 
 
 
-Procedure TStackFrame.Setarguments(AIndex : Integer; const AValue : TStackFrameTypeargumentsArray); 
+Procedure TStackFrame.Setarguments(AIndex : Integer; const AValue : TStackFrameTypeargumentsArray);
 
 begin
   If (Farguments=AValue) then exit;
@@ -1903,7 +1903,7 @@ end;
 
 
 
-Procedure TStackFrame.Setlocals(AIndex : Integer; const AValue : TStackFrameTypelocalsArray); 
+Procedure TStackFrame.Setlocals(AIndex : Integer; const AValue : TStackFrameTypelocalsArray);
 
 begin
   If (Flocals=AValue) then exit;
@@ -1925,7 +1925,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStackFrame.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStackFrame.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1945,7 +1945,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariable.Setname(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1955,7 +1955,7 @@ end;
 
 
 
-Procedure TVariable.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1965,7 +1965,7 @@ end;
 
 
 
-Procedure TVariable.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1975,7 +1975,7 @@ end;
 
 
 
-Procedure TVariable.Setmembers(AIndex : Integer; const AValue : TVariableTypemembersArray); 
+Procedure TVariable.Setmembers(AIndex : Integer; const AValue : TVariableTypemembersArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -1985,7 +1985,7 @@ end;
 
 
 
-Procedure TVariable.SetvarTableIndex(AIndex : Integer; const AValue : integer); 
+Procedure TVariable.SetvarTableIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FvarTableIndex=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
 
 
 
-Procedure TVariable.Setstatus(AIndex : Integer; const AValue : TStatusMessage); 
+Procedure TVariable.Setstatus(AIndex : Integer; const AValue : TStatusMessage);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2017,7 +2017,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVariable.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVariable.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2036,7 +2036,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateActiveBreakpointRequest.Setbreakpoint(AIndex : Integer; const AValue : TBreakpoint); 
+Procedure TUpdateActiveBreakpointRequest.Setbreakpoint(AIndex : Integer; const AValue : TBreakpoint);
 
 begin
   If (Fbreakpoint=AValue) then exit;
@@ -2060,7 +2060,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetBreakpointResponse.Setbreakpoint(AIndex : Integer; const AValue : TBreakpoint); 
+Procedure TSetBreakpointResponse.Setbreakpoint(AIndex : Integer; const AValue : TBreakpoint);
 
 begin
   If (Fbreakpoint=AValue) then exit;
@@ -2077,7 +2077,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetBreakpointResponse.Setbreakpoint(AIndex : Integer; const AValue : TBreakpoint); 
+Procedure TGetBreakpointResponse.Setbreakpoint(AIndex : Integer; const AValue : TBreakpoint);
 
 begin
   If (Fbreakpoint=AValue) then exit;
@@ -2101,7 +2101,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBreakpointsResponse.Setbreakpoints(AIndex : Integer; const AValue : TListBreakpointsResponseTypebreakpointsArray); 
+Procedure TListBreakpointsResponse.Setbreakpoints(AIndex : Integer; const AValue : TListBreakpointsResponseTypebreakpointsArray);
 
 begin
   If (Fbreakpoints=AValue) then exit;
@@ -2111,7 +2111,7 @@ end;
 
 
 
-Procedure TListBreakpointsResponse.SetnextWaitToken(AIndex : Integer; const AValue : String); 
+Procedure TListBreakpointsResponse.SetnextWaitToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextWaitToken=AValue) then exit;
@@ -2122,7 +2122,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListBreakpointsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListBreakpointsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2141,7 +2141,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDebuggeesResponse.Setdebuggees(AIndex : Integer; const AValue : TListDebuggeesResponseTypedebuggeesArray); 
+Procedure TListDebuggeesResponse.Setdebuggees(AIndex : Integer; const AValue : TListDebuggeesResponseTypedebuggeesArray);
 
 begin
   If (Fdebuggees=AValue) then exit;
@@ -2152,7 +2152,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListDebuggeesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListDebuggeesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2732,7 +2732,7 @@ begin
   Result[1].Description:='Manage cloud debugger';
   Result[2].Name:='https://www.googleapis.com/auth/cloud_debugletcontroller';
   Result[2].Description:='Manage active breakpoints in cloud debugger';
-  
+
 end;
 
 Class Function TClouddebuggerAPI.APINeedsAuth : Boolean;

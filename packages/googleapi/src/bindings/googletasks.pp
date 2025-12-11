@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TTask = Class;
   TTaskList = Class;
@@ -28,11 +28,11 @@ type
   TTaskTypelinksArray = Array of TTaskTypelinksItem;
   TTaskListsTypeitemsArray = Array of TTaskList;
   TTasksTypeitemsArray = Array of TTask;
-  
+
   { --------------------------------------------------------------------
     TTaskTypelinksItem
     --------------------------------------------------------------------}
-  
+
   TTaskTypelinksItem = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -51,11 +51,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TTaskTypelinksItemClass = Class of TTaskTypelinksItem;
-  
+
   { --------------------------------------------------------------------
     TTask
     --------------------------------------------------------------------}
-  
+
   TTask = Class(TGoogleBaseObject)
   Private
     Fcompleted : TDatetime;
@@ -113,11 +113,11 @@ type
     Property updated : TDatetime Index 112 Read Fupdated Write Setupdated;
   end;
   TTaskClass = Class of TTask;
-  
+
   { --------------------------------------------------------------------
     TTaskList
     --------------------------------------------------------------------}
-  
+
   TTaskList = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -144,11 +144,11 @@ type
     Property updated : TDatetime Index 40 Read Fupdated Write Setupdated;
   end;
   TTaskListClass = Class of TTaskList;
-  
+
   { --------------------------------------------------------------------
     TTaskLists
     --------------------------------------------------------------------}
-  
+
   TTaskLists = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -173,11 +173,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TTaskListsClass = Class of TTaskLists;
-  
+
   { --------------------------------------------------------------------
     TTasks
     --------------------------------------------------------------------}
-  
+
   TTasks = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -202,19 +202,19 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TTasksClass = Class of TTasks;
-  
+
   { --------------------------------------------------------------------
     TTasklistsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTasklistsResource, method List
-  
+
   TTasklistsListOptions = Record
     maxResults : int64;
     pageToken : String;
   end;
-  
+
   TTasklistsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -227,23 +227,23 @@ type
     Function Patch(tasklist: string; aTaskList : TTaskList) : TTaskList;
     Function Update(tasklist: string; aTaskList : TTaskList) : TTaskList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTasksResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTasksResource, method Insert
-  
+
   TTasksInsertOptions = Record
     parent : String;
     previous : String;
   end;
-  
-  
+
+
   //Optional query Options for TTasksResource, method List
-  
+
   TTasksListOptions = Record
     completedMax : String;
     completedMin : String;
@@ -256,15 +256,15 @@ type
     showHidden : boolean;
     updatedMin : String;
   end;
-  
-  
+
+
   //Optional query Options for TTasksResource, method Move
-  
+
   TTasksMoveOptions = Record
     parent : String;
     previous : String;
   end;
-  
+
   TTasksResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -281,12 +281,12 @@ type
     Function Patch(task: string; tasklist: string; aTask : TTask) : TTask;
     Function Update(task: string; tasklist: string; aTask : TTask) : TTask;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTasksAPI
     --------------------------------------------------------------------}
-  
+
   TTasksAPI = Class(TGoogleAPI)
   Private
     FTasklistsInstance : TTasklistsResource;
@@ -333,7 +333,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TTaskTypelinksItem.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TTaskTypelinksItem.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -343,7 +343,7 @@ end;
 
 
 
-Procedure TTaskTypelinksItem.Setlink(AIndex : Integer; const AValue : String); 
+Procedure TTaskTypelinksItem.Setlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Flink=AValue) then exit;
@@ -353,7 +353,7 @@ end;
 
 
 
-Procedure TTaskTypelinksItem.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TTaskTypelinksItem.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -381,7 +381,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTask.Setcompleted(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTask.Setcompleted(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fcompleted=AValue) then exit;
@@ -391,7 +391,7 @@ end;
 
 
 
-Procedure TTask.Setdeleted(AIndex : Integer; const AValue : boolean); 
+Procedure TTask.Setdeleted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -401,7 +401,7 @@ end;
 
 
 
-Procedure TTask.Setdue(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTask.Setdue(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fdue=AValue) then exit;
@@ -411,7 +411,7 @@ end;
 
 
 
-Procedure TTask.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -421,7 +421,7 @@ end;
 
 
 
-Procedure TTask.Sethidden(AIndex : Integer; const AValue : boolean); 
+Procedure TTask.Sethidden(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fhidden=AValue) then exit;
@@ -431,7 +431,7 @@ end;
 
 
 
-Procedure TTask.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -441,7 +441,7 @@ end;
 
 
 
-Procedure TTask.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -451,7 +451,7 @@ end;
 
 
 
-Procedure TTask.Setlinks(AIndex : Integer; const AValue : TTaskTypelinksArray); 
+Procedure TTask.Setlinks(AIndex : Integer; const AValue : TTaskTypelinksArray);
 
 begin
   If (Flinks=AValue) then exit;
@@ -461,7 +461,7 @@ end;
 
 
 
-Procedure TTask.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -471,7 +471,7 @@ end;
 
 
 
-Procedure TTask.Setparent(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setparent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fparent=AValue) then exit;
@@ -481,7 +481,7 @@ end;
 
 
 
-Procedure TTask.Setposition(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setposition(AIndex : Integer; const AValue : String);
 
 begin
   If (Fposition=AValue) then exit;
@@ -491,7 +491,7 @@ end;
 
 
 
-Procedure TTask.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TTask.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -501,7 +501,7 @@ end;
 
 
 
-Procedure TTask.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -511,7 +511,7 @@ end;
 
 
 
-Procedure TTask.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TTask.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -521,7 +521,7 @@ end;
 
 
 
-Procedure TTask.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTask.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -532,7 +532,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTask.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTask.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -551,7 +551,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskList.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -561,7 +561,7 @@ end;
 
 
 
-Procedure TTaskList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -571,7 +571,7 @@ end;
 
 
 
-Procedure TTaskList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -581,7 +581,7 @@ end;
 
 
 
-Procedure TTaskList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -591,7 +591,7 @@ end;
 
 
 
-Procedure TTaskList.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -601,7 +601,7 @@ end;
 
 
 
-Procedure TTaskList.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TTaskList.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -618,7 +618,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskLists.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TTaskLists.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -628,7 +628,7 @@ end;
 
 
 
-Procedure TTaskLists.Setitems(AIndex : Integer; const AValue : TTaskListsTypeitemsArray); 
+Procedure TTaskLists.Setitems(AIndex : Integer; const AValue : TTaskListsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -638,7 +638,7 @@ end;
 
 
 
-Procedure TTaskLists.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTaskLists.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -648,7 +648,7 @@ end;
 
 
 
-Procedure TTaskLists.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTaskLists.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -659,7 +659,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTaskLists.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTaskLists.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -678,7 +678,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TTasks.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -688,7 +688,7 @@ end;
 
 
 
-Procedure TTasks.Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray); 
+Procedure TTasks.Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -698,7 +698,7 @@ end;
 
 
 
-Procedure TTasks.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTasks.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -708,7 +708,7 @@ end;
 
 
 
-Procedure TTasks.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTasks.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -719,7 +719,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTasks.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTasks.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1147,7 +1147,7 @@ begin
   Result[0].Description:='Manage your tasks';
   Result[1].Name:='https://www.googleapis.com/auth/tasks.readonly';
   Result[1].Description:='View your tasks';
-  
+
 end;
 
 Class Function TTasksAPI.APINeedsAuth : Boolean;

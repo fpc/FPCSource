@@ -13,16 +13,16 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TGroups = Class;
   TGroupsArray = Array of TGroups;
   //Anonymous types, using auto-generated names
-  
+
   { --------------------------------------------------------------------
     TGroups
     --------------------------------------------------------------------}
-  
+
   TGroups = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -37,23 +37,23 @@ type
     Property responseCode : String Index 8 Read FresponseCode Write SetresponseCode;
   end;
   TGroupsClass = Class of TGroups;
-  
+
   { --------------------------------------------------------------------
     TArchiveResource
     --------------------------------------------------------------------}
-  
+
   TArchiveResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Insert(groupId: string) : TGroups;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGroupsmigrationAPI
     --------------------------------------------------------------------}
-  
+
   TGroupsmigrationAPI = Class(TGoogleAPI)
   Private
     FArchiveInstance : TArchiveResource;
@@ -95,7 +95,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGroups.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGroups.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -105,7 +105,7 @@ end;
 
 
 
-Procedure TGroups.SetresponseCode(AIndex : Integer; const AValue : String); 
+Procedure TGroups.SetresponseCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FresponseCode=AValue) then exit;
@@ -263,7 +263,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/apps.groups.migration';
   Result[0].Description:='Manage messages in groups on your domain';
-  
+
 end;
 
 Class Function TGroupsmigrationAPI.APINeedsAuth : Boolean;

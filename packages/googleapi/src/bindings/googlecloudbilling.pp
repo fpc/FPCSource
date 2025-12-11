@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TBillingAccount = Class;
   TListBillingAccountsResponse = Class;
@@ -26,11 +26,11 @@ type
   //Anonymous types, using auto-generated names
   TListBillingAccountsResponseTypebillingAccountsArray = Array of TBillingAccount;
   TListProjectBillingInfoResponseTypeprojectBillingInfoArray = Array of TProjectBillingInfo;
-  
+
   { --------------------------------------------------------------------
     TBillingAccount
     --------------------------------------------------------------------}
-  
+
   TBillingAccount = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -48,11 +48,11 @@ type
     Property displayName : String Index 16 Read FdisplayName Write SetdisplayName;
   end;
   TBillingAccountClass = Class of TBillingAccount;
-  
+
   { --------------------------------------------------------------------
     TListBillingAccountsResponse
     --------------------------------------------------------------------}
-  
+
   TListBillingAccountsResponse = Class(TGoogleBaseObject)
   Private
     FbillingAccounts : TListBillingAccountsResponseTypebillingAccountsArray;
@@ -71,11 +71,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListBillingAccountsResponseClass = Class of TListBillingAccountsResponse;
-  
+
   { --------------------------------------------------------------------
     TListProjectBillingInfoResponse
     --------------------------------------------------------------------}
-  
+
   TListProjectBillingInfoResponse = Class(TGoogleBaseObject)
   Private
     FprojectBillingInfo : TListProjectBillingInfoResponseTypeprojectBillingInfoArray;
@@ -94,11 +94,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListProjectBillingInfoResponseClass = Class of TListProjectBillingInfoResponse;
-  
+
   { --------------------------------------------------------------------
     TProjectBillingInfo
     --------------------------------------------------------------------}
-  
+
   TProjectBillingInfo = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -119,19 +119,19 @@ type
     Property billingEnabled : boolean Index 24 Read FbillingEnabled Write SetbillingEnabled;
   end;
   TProjectBillingInfoClass = Class of TProjectBillingInfo;
-  
+
   { --------------------------------------------------------------------
     TBillingAccountsProjectsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBillingAccountsProjectsResource, method List
-  
+
   TBillingAccountsProjectsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TBillingAccountsProjectsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -139,20 +139,20 @@ type
     Function List(_name: string; AQuery : string  = '') : TListProjectBillingInfoResponse;
     Function List(_name: string; AQuery : TBillingAccountsProjectslistOptions) : TListProjectBillingInfoResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBillingAccountsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBillingAccountsResource, method List
-  
+
   TBillingAccountsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TBillingAccountsResource = Class(TGoogleResource)
   Private
     FProjectsInstance : TBillingAccountsProjectsResource;
@@ -167,12 +167,12 @@ type
     Function CreateProjectsResource : TBillingAccountsProjectsResource;virtual;overload;
     Property ProjectsResource : TBillingAccountsProjectsResource Read GetProjectsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -180,12 +180,12 @@ type
     Function GetBillingInfo(_name: string) : TProjectBillingInfo;
     Function UpdateBillingInfo(_name: string; aProjectBillingInfo : TProjectBillingInfo) : TProjectBillingInfo;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCloudbillingAPI
     --------------------------------------------------------------------}
-  
+
   TCloudbillingAPI = Class(TGoogleAPI)
   Private
     FBillingAccountsProjectsInstance : TBillingAccountsProjectsResource;
@@ -237,7 +237,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBillingAccount.Setname(AIndex : Integer; const AValue : String); 
+Procedure TBillingAccount.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -247,7 +247,7 @@ end;
 
 
 
-Procedure TBillingAccount.Setopen(AIndex : Integer; const AValue : boolean); 
+Procedure TBillingAccount.Setopen(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fopen=AValue) then exit;
@@ -257,7 +257,7 @@ end;
 
 
 
-Procedure TBillingAccount.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TBillingAccount.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -274,7 +274,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBillingAccountsResponse.SetbillingAccounts(AIndex : Integer; const AValue : TListBillingAccountsResponseTypebillingAccountsArray); 
+Procedure TListBillingAccountsResponse.SetbillingAccounts(AIndex : Integer; const AValue : TListBillingAccountsResponseTypebillingAccountsArray);
 
 begin
   If (FbillingAccounts=AValue) then exit;
@@ -284,7 +284,7 @@ end;
 
 
 
-Procedure TListBillingAccountsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListBillingAccountsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -295,7 +295,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListBillingAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListBillingAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -314,7 +314,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListProjectBillingInfoResponse.SetprojectBillingInfo(AIndex : Integer; const AValue : TListProjectBillingInfoResponseTypeprojectBillingInfoArray); 
+Procedure TListProjectBillingInfoResponse.SetprojectBillingInfo(AIndex : Integer; const AValue : TListProjectBillingInfoResponseTypeprojectBillingInfoArray);
 
 begin
   If (FprojectBillingInfo=AValue) then exit;
@@ -324,7 +324,7 @@ end;
 
 
 
-Procedure TListProjectBillingInfoResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListProjectBillingInfoResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -335,7 +335,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListProjectBillingInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListProjectBillingInfoResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -354,7 +354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProjectBillingInfo.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProjectBillingInfo.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -364,7 +364,7 @@ end;
 
 
 
-Procedure TProjectBillingInfo.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TProjectBillingInfo.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -374,7 +374,7 @@ end;
 
 
 
-Procedure TProjectBillingInfo.SetbillingAccountName(AIndex : Integer; const AValue : String); 
+Procedure TProjectBillingInfo.SetbillingAccountName(AIndex : Integer; const AValue : String);
 
 begin
   If (FbillingAccountName=AValue) then exit;
@@ -384,7 +384,7 @@ end;
 
 
 
-Procedure TProjectBillingInfo.SetbillingEnabled(AIndex : Integer; const AValue : boolean); 
+Procedure TProjectBillingInfo.SetbillingEnabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FbillingEnabled=AValue) then exit;
@@ -686,7 +686,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TCloudbillingAPI.APINeedsAuth : Boolean;

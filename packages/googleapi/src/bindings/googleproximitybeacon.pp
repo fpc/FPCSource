@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TBeacon = Class;
   TAdvertisedId = Class;
@@ -66,11 +66,11 @@ type
   TGetInfoForObservedBeaconsRequestTypeobservationsArray = Array of TObservation;
   TGetInfoForObservedBeaconsResponseTypebeaconsArray = Array of TBeaconInfo;
   TBeaconInfoTypeattachmentsArray = Array of TAttachmentInfo;
-  
+
   { --------------------------------------------------------------------
     TBeaconTypeproperties
     --------------------------------------------------------------------}
-  
+
   TBeaconTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -80,11 +80,11 @@ type
   Published
   end;
   TBeaconTypepropertiesClass = Class of TBeaconTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TBeacon
     --------------------------------------------------------------------}
-  
+
   TBeacon = Class(TGoogleBaseObject)
   Private
     FbeaconName : String;
@@ -126,11 +126,11 @@ type
     Property provisioningKey : String Index 80 Read FprovisioningKey Write SetprovisioningKey;
   end;
   TBeaconClass = Class of TBeacon;
-  
+
   { --------------------------------------------------------------------
     TAdvertisedId
     --------------------------------------------------------------------}
-  
+
   TAdvertisedId = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -146,11 +146,11 @@ type
     Property id : String Index 8 Read Fid Write Setid;
   end;
   TAdvertisedIdClass = Class of TAdvertisedId;
-  
+
   { --------------------------------------------------------------------
     TLatLng
     --------------------------------------------------------------------}
-  
+
   TLatLng = Class(TGoogleBaseObject)
   Private
     Flatitude : double;
@@ -165,11 +165,11 @@ type
     Property longitude : double Index 8 Read Flongitude Write Setlongitude;
   end;
   TLatLngClass = Class of TLatLng;
-  
+
   { --------------------------------------------------------------------
     TIndoorLevel
     --------------------------------------------------------------------}
-  
+
   TIndoorLevel = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -181,11 +181,11 @@ type
     Property name : String Index 0 Read Fname Write Setname;
   end;
   TIndoorLevelClass = Class of TIndoorLevel;
-  
+
   { --------------------------------------------------------------------
     TEphemeralIdRegistration
     --------------------------------------------------------------------}
-  
+
   TEphemeralIdRegistration = Class(TGoogleBaseObject)
   Private
     FbeaconEcdhPublicKey : String;
@@ -212,11 +212,11 @@ type
     Property initialEid : String Index 40 Read FinitialEid Write SetinitialEid;
   end;
   TEphemeralIdRegistrationClass = Class of TEphemeralIdRegistration;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -225,11 +225,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TListBeaconsResponse
     --------------------------------------------------------------------}
-  
+
   TListBeaconsResponse = Class(TGoogleBaseObject)
   Private
     Fbeacons : TListBeaconsResponseTypebeaconsArray;
@@ -251,11 +251,11 @@ type
     Property totalCount : String Index 16 Read FtotalCount Write SettotalCount;
   end;
   TListBeaconsResponseClass = Class of TListBeaconsResponse;
-  
+
   { --------------------------------------------------------------------
     TBeaconAttachment
     --------------------------------------------------------------------}
-  
+
   TBeaconAttachment = Class(TGoogleBaseObject)
   Private
     FattachmentName : String;
@@ -273,11 +273,11 @@ type
     Property data : String Index 16 Read Fdata Write Setdata;
   end;
   TBeaconAttachmentClass = Class of TBeaconAttachment;
-  
+
   { --------------------------------------------------------------------
     TListBeaconAttachmentsResponse
     --------------------------------------------------------------------}
-  
+
   TListBeaconAttachmentsResponse = Class(TGoogleBaseObject)
   Private
     Fattachments : TListBeaconAttachmentsResponseTypeattachmentsArray;
@@ -293,11 +293,11 @@ type
     Property attachments : TListBeaconAttachmentsResponseTypeattachmentsArray Index 0 Read Fattachments Write Setattachments;
   end;
   TListBeaconAttachmentsResponseClass = Class of TListBeaconAttachmentsResponse;
-  
+
   { --------------------------------------------------------------------
     TDeleteAttachmentsResponse
     --------------------------------------------------------------------}
-  
+
   TDeleteAttachmentsResponse = Class(TGoogleBaseObject)
   Private
     FnumDeleted : integer;
@@ -309,11 +309,11 @@ type
     Property numDeleted : integer Index 0 Read FnumDeleted Write SetnumDeleted;
   end;
   TDeleteAttachmentsResponseClass = Class of TDeleteAttachmentsResponse;
-  
+
   { --------------------------------------------------------------------
     TListNamespacesResponse
     --------------------------------------------------------------------}
-  
+
   TListNamespacesResponse = Class(TGoogleBaseObject)
   Private
     Fnamespaces : TListNamespacesResponseTypenamespacesArray;
@@ -329,11 +329,11 @@ type
     Property namespaces : TListNamespacesResponseTypenamespacesArray Index 0 Read Fnamespaces Write Setnamespaces;
   end;
   TListNamespacesResponseClass = Class of TListNamespacesResponse;
-  
+
   { --------------------------------------------------------------------
     TNamespace
     --------------------------------------------------------------------}
-  
+
   TNamespace = Class(TGoogleBaseObject)
   Private
     FnamespaceName : String;
@@ -348,11 +348,11 @@ type
     Property servingVisibility : String Index 8 Read FservingVisibility Write SetservingVisibility;
   end;
   TNamespaceClass = Class of TNamespace;
-  
+
   { --------------------------------------------------------------------
     TEphemeralIdRegistrationParams
     --------------------------------------------------------------------}
-  
+
   TEphemeralIdRegistrationParams = Class(TGoogleBaseObject)
   Private
     FserviceEcdhPublicKey : String;
@@ -370,11 +370,11 @@ type
     Property maxRotationPeriodExponent : integer Index 16 Read FmaxRotationPeriodExponent Write SetmaxRotationPeriodExponent;
   end;
   TEphemeralIdRegistrationParamsClass = Class of TEphemeralIdRegistrationParams;
-  
+
   { --------------------------------------------------------------------
     TListDiagnosticsResponse
     --------------------------------------------------------------------}
-  
+
   TListDiagnosticsResponse = Class(TGoogleBaseObject)
   Private
     Fdiagnostics : TListDiagnosticsResponseTypediagnosticsArray;
@@ -393,11 +393,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListDiagnosticsResponseClass = Class of TListDiagnosticsResponse;
-  
+
   { --------------------------------------------------------------------
     TDiagnostics
     --------------------------------------------------------------------}
-  
+
   TDiagnostics = Class(TGoogleBaseObject)
   Private
     FbeaconName : String;
@@ -419,11 +419,11 @@ type
     Property alerts : TStringArray Index 16 Read Falerts Write Setalerts;
   end;
   TDiagnosticsClass = Class of TDiagnostics;
-  
+
   { --------------------------------------------------------------------
     TDate
     --------------------------------------------------------------------}
-  
+
   TDate = Class(TGoogleBaseObject)
   Private
     Fyear : integer;
@@ -441,11 +441,11 @@ type
     Property day : integer Index 16 Read Fday Write Setday;
   end;
   TDateClass = Class of TDate;
-  
+
   { --------------------------------------------------------------------
     TGetInfoForObservedBeaconsRequest
     --------------------------------------------------------------------}
-  
+
   TGetInfoForObservedBeaconsRequest = Class(TGoogleBaseObject)
   Private
     Fobservations : TGetInfoForObservedBeaconsRequestTypeobservationsArray;
@@ -464,11 +464,11 @@ type
     Property namespacedTypes : TStringArray Index 8 Read FnamespacedTypes Write SetnamespacedTypes;
   end;
   TGetInfoForObservedBeaconsRequestClass = Class of TGetInfoForObservedBeaconsRequest;
-  
+
   { --------------------------------------------------------------------
     TObservation
     --------------------------------------------------------------------}
-  
+
   TObservation = Class(TGoogleBaseObject)
   Private
     FadvertisedId : TAdvertisedId;
@@ -486,11 +486,11 @@ type
     Property timestampMs : String Index 16 Read FtimestampMs Write SettimestampMs;
   end;
   TObservationClass = Class of TObservation;
-  
+
   { --------------------------------------------------------------------
     TGetInfoForObservedBeaconsResponse
     --------------------------------------------------------------------}
-  
+
   TGetInfoForObservedBeaconsResponse = Class(TGoogleBaseObject)
   Private
     Fbeacons : TGetInfoForObservedBeaconsResponseTypebeaconsArray;
@@ -506,11 +506,11 @@ type
     Property beacons : TGetInfoForObservedBeaconsResponseTypebeaconsArray Index 0 Read Fbeacons Write Setbeacons;
   end;
   TGetInfoForObservedBeaconsResponseClass = Class of TGetInfoForObservedBeaconsResponse;
-  
+
   { --------------------------------------------------------------------
     TBeaconInfo
     --------------------------------------------------------------------}
-  
+
   TBeaconInfo = Class(TGoogleBaseObject)
   Private
     FadvertisedId : TAdvertisedId;
@@ -532,11 +532,11 @@ type
     Property attachments : TBeaconInfoTypeattachmentsArray Index 16 Read Fattachments Write Setattachments;
   end;
   TBeaconInfoClass = Class of TBeaconInfo;
-  
+
   { --------------------------------------------------------------------
     TAttachmentInfo
     --------------------------------------------------------------------}
-  
+
   TAttachmentInfo = Class(TGoogleBaseObject)
   Private
     FnamespacedType : String;
@@ -551,41 +551,41 @@ type
     Property data : String Index 8 Read Fdata Write Setdata;
   end;
   TAttachmentInfoClass = Class of TAttachmentInfo;
-  
+
   { --------------------------------------------------------------------
     TBeaconsAttachmentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBeaconsAttachmentsResource, method Create
-  
+
   TBeaconsAttachmentsCreateOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsAttachmentsResource, method List
-  
+
   TBeaconsAttachmentsListOptions = Record
     namespacedType : String;
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsAttachmentsResource, method Delete
-  
+
   TBeaconsAttachmentsDeleteOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsAttachmentsResource, method BatchDelete
-  
+
   TBeaconsAttachmentsBatchDeleteOptions = Record
     namespacedType : String;
     projectId : String;
   end;
-  
+
   TBeaconsAttachmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -599,22 +599,22 @@ type
     Function BatchDelete(beaconName: string; AQuery : string  = '') : TDeleteAttachmentsResponse;
     Function BatchDelete(beaconName: string; AQuery : TBeaconsAttachmentsbatchDeleteOptions) : TDeleteAttachmentsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBeaconsDiagnosticsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBeaconsDiagnosticsResource, method List
-  
+
   TBeaconsDiagnosticsListOptions = Record
     pageSize : integer;
     pageToken : String;
     alertFilter : String;
     projectId : String;
   end;
-  
+
   TBeaconsDiagnosticsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -622,64 +622,64 @@ type
     Function List(beaconName: string; AQuery : string  = '') : TListDiagnosticsResponse;
     Function List(beaconName: string; AQuery : TBeaconsDiagnosticslistOptions) : TListDiagnosticsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBeaconsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method Register
-  
+
   TBeaconsRegisterOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method Decommission
-  
+
   TBeaconsDecommissionOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method Get
-  
+
   TBeaconsGetOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method List
-  
+
   TBeaconsListOptions = Record
     q : String;
     pageToken : String;
     pageSize : integer;
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method Update
-  
+
   TBeaconsUpdateOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method Activate
-  
+
   TBeaconsActivateOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TBeaconsResource, method Deactivate
-  
+
   TBeaconsDeactivateOptions = Record
     projectId : String;
   end;
-  
+
   TBeaconsResource = Class(TGoogleResource)
   Private
     FAttachmentsInstance : TBeaconsAttachmentsResource;
@@ -710,26 +710,26 @@ type
     Property AttachmentsResource : TBeaconsAttachmentsResource Read GetAttachmentsInstance;
     Property DiagnosticsResource : TBeaconsDiagnosticsResource Read GetDiagnosticsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TNamespacesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TNamespacesResource, method List
-  
+
   TNamespacesListOptions = Record
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TNamespacesResource, method Update
-  
+
   TNamespacesUpdateOptions = Record
     projectId : String;
   end;
-  
+
   TNamespacesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -739,36 +739,36 @@ type
     Function Update(namespaceName: string; aNamespace : TNamespace; AQuery : string  = '') : TNamespace;
     Function Update(namespaceName: string; aNamespace : TNamespace; AQuery : TNamespacesupdateOptions) : TNamespace;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TV1beta1Resource
     --------------------------------------------------------------------}
-  
+
   TV1beta1Resource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function GetEidparams : TEphemeralIdRegistrationParams;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBeaconinfoResource
     --------------------------------------------------------------------}
-  
+
   TBeaconinfoResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Getforobserved(aGetInfoForObservedBeaconsRequest : TGetInfoForObservedBeaconsRequest) : TGetInfoForObservedBeaconsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProximitybeaconAPI
     --------------------------------------------------------------------}
-  
+
   TProximitybeaconAPI = Class(TGoogleAPI)
   Private
     FBeaconsAttachmentsInstance : TBeaconsAttachmentsResource;
@@ -848,7 +848,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBeacon.SetbeaconName(AIndex : Integer; const AValue : String); 
+Procedure TBeacon.SetbeaconName(AIndex : Integer; const AValue : String);
 
 begin
   If (FbeaconName=AValue) then exit;
@@ -858,7 +858,7 @@ end;
 
 
 
-Procedure TBeacon.SetadvertisedId(AIndex : Integer; const AValue : TAdvertisedId); 
+Procedure TBeacon.SetadvertisedId(AIndex : Integer; const AValue : TAdvertisedId);
 
 begin
   If (FadvertisedId=AValue) then exit;
@@ -868,7 +868,7 @@ end;
 
 
 
-Procedure TBeacon.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TBeacon.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -878,7 +878,7 @@ end;
 
 
 
-Procedure TBeacon.SetplaceId(AIndex : Integer; const AValue : String); 
+Procedure TBeacon.SetplaceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FplaceId=AValue) then exit;
@@ -888,7 +888,7 @@ end;
 
 
 
-Procedure TBeacon.SetlatLng(AIndex : Integer; const AValue : TLatLng); 
+Procedure TBeacon.SetlatLng(AIndex : Integer; const AValue : TLatLng);
 
 begin
   If (FlatLng=AValue) then exit;
@@ -898,7 +898,7 @@ end;
 
 
 
-Procedure TBeacon.SetindoorLevel(AIndex : Integer; const AValue : TIndoorLevel); 
+Procedure TBeacon.SetindoorLevel(AIndex : Integer; const AValue : TIndoorLevel);
 
 begin
   If (FindoorLevel=AValue) then exit;
@@ -908,7 +908,7 @@ end;
 
 
 
-Procedure TBeacon.SetexpectedStability(AIndex : Integer; const AValue : String); 
+Procedure TBeacon.SetexpectedStability(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpectedStability=AValue) then exit;
@@ -918,7 +918,7 @@ end;
 
 
 
-Procedure TBeacon.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TBeacon.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -928,7 +928,7 @@ end;
 
 
 
-Procedure TBeacon.Setproperties(AIndex : Integer; const AValue : TBeaconTypeproperties); 
+Procedure TBeacon.Setproperties(AIndex : Integer; const AValue : TBeaconTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -938,7 +938,7 @@ end;
 
 
 
-Procedure TBeacon.SetephemeralIdRegistration(AIndex : Integer; const AValue : TEphemeralIdRegistration); 
+Procedure TBeacon.SetephemeralIdRegistration(AIndex : Integer; const AValue : TEphemeralIdRegistration);
 
 begin
   If (FephemeralIdRegistration=AValue) then exit;
@@ -948,7 +948,7 @@ end;
 
 
 
-Procedure TBeacon.SetprovisioningKey(AIndex : Integer; const AValue : String); 
+Procedure TBeacon.SetprovisioningKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FprovisioningKey=AValue) then exit;
@@ -965,7 +965,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdvertisedId.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAdvertisedId.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -975,7 +975,7 @@ end;
 
 
 
-Procedure TAdvertisedId.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAdvertisedId.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1003,7 +1003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1013,7 +1013,7 @@ end;
 
 
 
-Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1030,7 +1030,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIndoorLevel.Setname(AIndex : Integer; const AValue : String); 
+Procedure TIndoorLevel.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1047,7 +1047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEphemeralIdRegistration.SetbeaconEcdhPublicKey(AIndex : Integer; const AValue : String); 
+Procedure TEphemeralIdRegistration.SetbeaconEcdhPublicKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FbeaconEcdhPublicKey=AValue) then exit;
@@ -1057,7 +1057,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistration.SetserviceEcdhPublicKey(AIndex : Integer; const AValue : String); 
+Procedure TEphemeralIdRegistration.SetserviceEcdhPublicKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FserviceEcdhPublicKey=AValue) then exit;
@@ -1067,7 +1067,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistration.SetbeaconIdentityKey(AIndex : Integer; const AValue : String); 
+Procedure TEphemeralIdRegistration.SetbeaconIdentityKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FbeaconIdentityKey=AValue) then exit;
@@ -1077,7 +1077,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistration.SetrotationPeriodExponent(AIndex : Integer; const AValue : integer); 
+Procedure TEphemeralIdRegistration.SetrotationPeriodExponent(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrotationPeriodExponent=AValue) then exit;
@@ -1087,7 +1087,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistration.SetinitialClockValue(AIndex : Integer; const AValue : String); 
+Procedure TEphemeralIdRegistration.SetinitialClockValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FinitialClockValue=AValue) then exit;
@@ -1097,7 +1097,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistration.SetinitialEid(AIndex : Integer; const AValue : String); 
+Procedure TEphemeralIdRegistration.SetinitialEid(AIndex : Integer; const AValue : String);
 
 begin
   If (FinitialEid=AValue) then exit;
@@ -1121,7 +1121,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBeaconsResponse.Setbeacons(AIndex : Integer; const AValue : TListBeaconsResponseTypebeaconsArray); 
+Procedure TListBeaconsResponse.Setbeacons(AIndex : Integer; const AValue : TListBeaconsResponseTypebeaconsArray);
 
 begin
   If (Fbeacons=AValue) then exit;
@@ -1131,7 +1131,7 @@ end;
 
 
 
-Procedure TListBeaconsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListBeaconsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1141,7 +1141,7 @@ end;
 
 
 
-Procedure TListBeaconsResponse.SettotalCount(AIndex : Integer; const AValue : String); 
+Procedure TListBeaconsResponse.SettotalCount(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalCount=AValue) then exit;
@@ -1152,7 +1152,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListBeaconsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListBeaconsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1171,7 +1171,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBeaconAttachment.SetattachmentName(AIndex : Integer; const AValue : String); 
+Procedure TBeaconAttachment.SetattachmentName(AIndex : Integer; const AValue : String);
 
 begin
   If (FattachmentName=AValue) then exit;
@@ -1181,7 +1181,7 @@ end;
 
 
 
-Procedure TBeaconAttachment.SetnamespacedType(AIndex : Integer; const AValue : String); 
+Procedure TBeaconAttachment.SetnamespacedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamespacedType=AValue) then exit;
@@ -1191,7 +1191,7 @@ end;
 
 
 
-Procedure TBeaconAttachment.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TBeaconAttachment.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1208,7 +1208,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBeaconAttachmentsResponse.Setattachments(AIndex : Integer; const AValue : TListBeaconAttachmentsResponseTypeattachmentsArray); 
+Procedure TListBeaconAttachmentsResponse.Setattachments(AIndex : Integer; const AValue : TListBeaconAttachmentsResponseTypeattachmentsArray);
 
 begin
   If (Fattachments=AValue) then exit;
@@ -1219,7 +1219,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListBeaconAttachmentsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListBeaconAttachmentsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1238,7 +1238,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteAttachmentsResponse.SetnumDeleted(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteAttachmentsResponse.SetnumDeleted(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumDeleted=AValue) then exit;
@@ -1255,7 +1255,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListNamespacesResponse.Setnamespaces(AIndex : Integer; const AValue : TListNamespacesResponseTypenamespacesArray); 
+Procedure TListNamespacesResponse.Setnamespaces(AIndex : Integer; const AValue : TListNamespacesResponseTypenamespacesArray);
 
 begin
   If (Fnamespaces=AValue) then exit;
@@ -1266,7 +1266,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListNamespacesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListNamespacesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1285,7 +1285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNamespace.SetnamespaceName(AIndex : Integer; const AValue : String); 
+Procedure TNamespace.SetnamespaceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamespaceName=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 
 
-Procedure TNamespace.SetservingVisibility(AIndex : Integer; const AValue : String); 
+Procedure TNamespace.SetservingVisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (FservingVisibility=AValue) then exit;
@@ -1312,7 +1312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEphemeralIdRegistrationParams.SetserviceEcdhPublicKey(AIndex : Integer; const AValue : String); 
+Procedure TEphemeralIdRegistrationParams.SetserviceEcdhPublicKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FserviceEcdhPublicKey=AValue) then exit;
@@ -1322,7 +1322,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistrationParams.SetminRotationPeriodExponent(AIndex : Integer; const AValue : integer); 
+Procedure TEphemeralIdRegistrationParams.SetminRotationPeriodExponent(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminRotationPeriodExponent=AValue) then exit;
@@ -1332,7 +1332,7 @@ end;
 
 
 
-Procedure TEphemeralIdRegistrationParams.SetmaxRotationPeriodExponent(AIndex : Integer; const AValue : integer); 
+Procedure TEphemeralIdRegistrationParams.SetmaxRotationPeriodExponent(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxRotationPeriodExponent=AValue) then exit;
@@ -1349,7 +1349,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListDiagnosticsResponse.Setdiagnostics(AIndex : Integer; const AValue : TListDiagnosticsResponseTypediagnosticsArray); 
+Procedure TListDiagnosticsResponse.Setdiagnostics(AIndex : Integer; const AValue : TListDiagnosticsResponseTypediagnosticsArray);
 
 begin
   If (Fdiagnostics=AValue) then exit;
@@ -1359,7 +1359,7 @@ end;
 
 
 
-Procedure TListDiagnosticsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListDiagnosticsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1370,7 +1370,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListDiagnosticsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListDiagnosticsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1389,7 +1389,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiagnostics.SetbeaconName(AIndex : Integer; const AValue : String); 
+Procedure TDiagnostics.SetbeaconName(AIndex : Integer; const AValue : String);
 
 begin
   If (FbeaconName=AValue) then exit;
@@ -1399,7 +1399,7 @@ end;
 
 
 
-Procedure TDiagnostics.SetestimatedLowBatteryDate(AIndex : Integer; const AValue : TDate); 
+Procedure TDiagnostics.SetestimatedLowBatteryDate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (FestimatedLowBatteryDate=AValue) then exit;
@@ -1409,7 +1409,7 @@ end;
 
 
 
-Procedure TDiagnostics.Setalerts(AIndex : Integer; const AValue : TStringArray); 
+Procedure TDiagnostics.Setalerts(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Falerts=AValue) then exit;
@@ -1420,7 +1420,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDiagnostics.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDiagnostics.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1439,7 +1439,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDate.Setyear(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setyear(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fyear=AValue) then exit;
@@ -1449,7 +1449,7 @@ end;
 
 
 
-Procedure TDate.Setmonth(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setmonth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fmonth=AValue) then exit;
@@ -1459,7 +1459,7 @@ end;
 
 
 
-Procedure TDate.Setday(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setday(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fday=AValue) then exit;
@@ -1476,7 +1476,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetInfoForObservedBeaconsRequest.Setobservations(AIndex : Integer; const AValue : TGetInfoForObservedBeaconsRequestTypeobservationsArray); 
+Procedure TGetInfoForObservedBeaconsRequest.Setobservations(AIndex : Integer; const AValue : TGetInfoForObservedBeaconsRequestTypeobservationsArray);
 
 begin
   If (Fobservations=AValue) then exit;
@@ -1486,7 +1486,7 @@ end;
 
 
 
-Procedure TGetInfoForObservedBeaconsRequest.SetnamespacedTypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TGetInfoForObservedBeaconsRequest.SetnamespacedTypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FnamespacedTypes=AValue) then exit;
@@ -1497,7 +1497,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetInfoForObservedBeaconsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetInfoForObservedBeaconsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1517,7 +1517,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObservation.SetadvertisedId(AIndex : Integer; const AValue : TAdvertisedId); 
+Procedure TObservation.SetadvertisedId(AIndex : Integer; const AValue : TAdvertisedId);
 
 begin
   If (FadvertisedId=AValue) then exit;
@@ -1527,7 +1527,7 @@ end;
 
 
 
-Procedure TObservation.Settelemetry(AIndex : Integer; const AValue : String); 
+Procedure TObservation.Settelemetry(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftelemetry=AValue) then exit;
@@ -1537,7 +1537,7 @@ end;
 
 
 
-Procedure TObservation.SettimestampMs(AIndex : Integer; const AValue : String); 
+Procedure TObservation.SettimestampMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimestampMs=AValue) then exit;
@@ -1554,7 +1554,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetInfoForObservedBeaconsResponse.Setbeacons(AIndex : Integer; const AValue : TGetInfoForObservedBeaconsResponseTypebeaconsArray); 
+Procedure TGetInfoForObservedBeaconsResponse.Setbeacons(AIndex : Integer; const AValue : TGetInfoForObservedBeaconsResponseTypebeaconsArray);
 
 begin
   If (Fbeacons=AValue) then exit;
@@ -1565,7 +1565,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetInfoForObservedBeaconsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetInfoForObservedBeaconsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1584,7 +1584,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBeaconInfo.SetadvertisedId(AIndex : Integer; const AValue : TAdvertisedId); 
+Procedure TBeaconInfo.SetadvertisedId(AIndex : Integer; const AValue : TAdvertisedId);
 
 begin
   If (FadvertisedId=AValue) then exit;
@@ -1594,7 +1594,7 @@ end;
 
 
 
-Procedure TBeaconInfo.SetbeaconName(AIndex : Integer; const AValue : String); 
+Procedure TBeaconInfo.SetbeaconName(AIndex : Integer; const AValue : String);
 
 begin
   If (FbeaconName=AValue) then exit;
@@ -1604,7 +1604,7 @@ end;
 
 
 
-Procedure TBeaconInfo.Setattachments(AIndex : Integer; const AValue : TBeaconInfoTypeattachmentsArray); 
+Procedure TBeaconInfo.Setattachments(AIndex : Integer; const AValue : TBeaconInfoTypeattachmentsArray);
 
 begin
   If (Fattachments=AValue) then exit;
@@ -1615,7 +1615,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBeaconInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBeaconInfo.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1634,7 +1634,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAttachmentInfo.SetnamespacedType(AIndex : Integer; const AValue : String); 
+Procedure TAttachmentInfo.SetnamespacedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamespacedType=AValue) then exit;
@@ -1644,7 +1644,7 @@ end;
 
 
 
-Procedure TAttachmentInfo.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TAttachmentInfo.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -2326,7 +2326,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/userlocation.beacon.registry';
   Result[0].Description:='View and modify your beacons';
-  
+
 end;
 
 Class Function TProximitybeaconAPI.APINeedsAuth : Boolean;

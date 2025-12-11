@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TChange = Class;
   TChangesListResponse = Class;
@@ -37,11 +37,11 @@ type
   TChangesListResponseTypechangesArray = Array of TChange;
   TManagedZonesListResponseTypemanagedZonesArray = Array of TManagedZone;
   TResourceRecordSetsListResponseTyperrsetsArray = Array of TResourceRecordSet;
-  
+
   { --------------------------------------------------------------------
     TChange
     --------------------------------------------------------------------}
-  
+
   TChange = Class(TGoogleBaseObject)
   Private
     Fadditions : TChangeTypeadditionsArray;
@@ -72,11 +72,11 @@ type
     Property status : String Index 40 Read Fstatus Write Setstatus;
   end;
   TChangeClass = Class of TChange;
-  
+
   { --------------------------------------------------------------------
     TChangesListResponse
     --------------------------------------------------------------------}
-  
+
   TChangesListResponse = Class(TGoogleBaseObject)
   Private
     Fchanges : TChangesListResponseTypechangesArray;
@@ -98,11 +98,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TChangesListResponseClass = Class of TChangesListResponse;
-  
+
   { --------------------------------------------------------------------
     TManagedZone
     --------------------------------------------------------------------}
-  
+
   TManagedZone = Class(TGoogleBaseObject)
   Private
     FcreationTime : String;
@@ -139,11 +139,11 @@ type
     Property nameServers : TStringArray Index 56 Read FnameServers Write SetnameServers;
   end;
   TManagedZoneClass = Class of TManagedZone;
-  
+
   { --------------------------------------------------------------------
     TManagedZonesListResponse
     --------------------------------------------------------------------}
-  
+
   TManagedZonesListResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -165,11 +165,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TManagedZonesListResponseClass = Class of TManagedZonesListResponse;
-  
+
   { --------------------------------------------------------------------
     TProject
     --------------------------------------------------------------------}
-  
+
   TProject = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -190,11 +190,11 @@ type
     Property quota : TQuota Index 24 Read Fquota Write Setquota;
   end;
   TProjectClass = Class of TProject;
-  
+
   { --------------------------------------------------------------------
     TQuota
     --------------------------------------------------------------------}
-  
+
   TQuota = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -224,11 +224,11 @@ type
     Property totalRrdataSizePerChange : integer Index 48 Read FtotalRrdataSizePerChange Write SettotalRrdataSizePerChange;
   end;
   TQuotaClass = Class of TQuota;
-  
+
   { --------------------------------------------------------------------
     TResourceRecordSet
     --------------------------------------------------------------------}
-  
+
   TResourceRecordSet = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -257,11 +257,11 @@ type
     Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TResourceRecordSetClass = Class of TResourceRecordSet;
-  
+
   { --------------------------------------------------------------------
     TResourceRecordSetsListResponse
     --------------------------------------------------------------------}
-  
+
   TResourceRecordSetsListResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -283,21 +283,21 @@ type
     Property rrsets : TResourceRecordSetsListResponseTyperrsetsArray Index 16 Read Frrsets Write Setrrsets;
   end;
   TResourceRecordSetsListResponseClass = Class of TResourceRecordSetsListResponse;
-  
+
   { --------------------------------------------------------------------
     TChangesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TChangesResource, method List
-  
+
   TChangesListOptions = Record
     maxResults : integer;
     pageToken : String;
     sortBy : String;
     sortOrder : String;
   end;
-  
+
   TChangesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -307,21 +307,21 @@ type
     Function List(managedZone: string; project: string; AQuery : string  = '') : TChangesListResponse;
     Function List(managedZone: string; project: string; AQuery : TChangeslistOptions) : TChangesListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TManagedZonesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TManagedZonesResource, method List
-  
+
   TManagedZonesListOptions = Record
     dnsName : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TManagedZonesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -332,34 +332,34 @@ type
     Function List(project: string; AQuery : string  = '') : TManagedZonesListResponse;
     Function List(project: string; AQuery : TManagedZoneslistOptions) : TManagedZonesListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(project: string) : TProject;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TResourceRecordSetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TResourceRecordSetsResource, method List
-  
+
   TResourceRecordSetsListOptions = Record
     maxResults : integer;
     _name : String;
     pageToken : String;
     _type : String;
   end;
-  
+
   TResourceRecordSetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -367,12 +367,12 @@ type
     Function List(managedZone: string; project: string; AQuery : string  = '') : TResourceRecordSetsListResponse;
     Function List(managedZone: string; project: string; AQuery : TResourceRecordSetslistOptions) : TResourceRecordSetsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDnsAPI
     --------------------------------------------------------------------}
-  
+
   TDnsAPI = Class(TGoogleAPI)
   Private
     FChangesInstance : TChangesResource;
@@ -429,7 +429,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TChange.Setadditions(AIndex : Integer; const AValue : TChangeTypeadditionsArray); 
+Procedure TChange.Setadditions(AIndex : Integer; const AValue : TChangeTypeadditionsArray);
 
 begin
   If (Fadditions=AValue) then exit;
@@ -439,7 +439,7 @@ end;
 
 
 
-Procedure TChange.Setdeletions(AIndex : Integer; const AValue : TChangeTypedeletionsArray); 
+Procedure TChange.Setdeletions(AIndex : Integer; const AValue : TChangeTypedeletionsArray);
 
 begin
   If (Fdeletions=AValue) then exit;
@@ -449,7 +449,7 @@ end;
 
 
 
-Procedure TChange.Setid(AIndex : Integer; const AValue : String); 
+Procedure TChange.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -459,7 +459,7 @@ end;
 
 
 
-Procedure TChange.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TChange.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -469,7 +469,7 @@ end;
 
 
 
-Procedure TChange.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TChange.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -479,7 +479,7 @@ end;
 
 
 
-Procedure TChange.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TChange.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -490,7 +490,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TChange.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TChange.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -510,7 +510,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChangesListResponse.Setchanges(AIndex : Integer; const AValue : TChangesListResponseTypechangesArray); 
+Procedure TChangesListResponse.Setchanges(AIndex : Integer; const AValue : TChangesListResponseTypechangesArray);
 
 begin
   If (Fchanges=AValue) then exit;
@@ -520,7 +520,7 @@ end;
 
 
 
-Procedure TChangesListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TChangesListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -530,7 +530,7 @@ end;
 
 
 
-Procedure TChangesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TChangesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -541,7 +541,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TChangesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TChangesListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -560,7 +560,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManagedZone.SetcreationTime(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.SetcreationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -570,7 +570,7 @@ end;
 
 
 
-Procedure TManagedZone.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -580,7 +580,7 @@ end;
 
 
 
-Procedure TManagedZone.SetdnsName(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.SetdnsName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdnsName=AValue) then exit;
@@ -590,7 +590,7 @@ end;
 
 
 
-Procedure TManagedZone.Setid(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -600,7 +600,7 @@ end;
 
 
 
-Procedure TManagedZone.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -610,7 +610,7 @@ end;
 
 
 
-Procedure TManagedZone.Setname(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -620,7 +620,7 @@ end;
 
 
 
-Procedure TManagedZone.SetnameServerSet(AIndex : Integer; const AValue : String); 
+Procedure TManagedZone.SetnameServerSet(AIndex : Integer; const AValue : String);
 
 begin
   If (FnameServerSet=AValue) then exit;
@@ -630,7 +630,7 @@ end;
 
 
 
-Procedure TManagedZone.SetnameServers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TManagedZone.SetnameServers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FnameServers=AValue) then exit;
@@ -641,7 +641,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TManagedZone.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TManagedZone.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -660,7 +660,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManagedZonesListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TManagedZonesListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -670,7 +670,7 @@ end;
 
 
 
-Procedure TManagedZonesListResponse.SetmanagedZones(AIndex : Integer; const AValue : TManagedZonesListResponseTypemanagedZonesArray); 
+Procedure TManagedZonesListResponse.SetmanagedZones(AIndex : Integer; const AValue : TManagedZonesListResponseTypemanagedZonesArray);
 
 begin
   If (FmanagedZones=AValue) then exit;
@@ -680,7 +680,7 @@ end;
 
 
 
-Procedure TManagedZonesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TManagedZonesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -691,7 +691,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TManagedZonesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TManagedZonesListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -710,7 +710,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProject.Setid(AIndex : Integer; const AValue : String); 
+Procedure TProject.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -720,7 +720,7 @@ end;
 
 
 
-Procedure TProject.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TProject.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -730,7 +730,7 @@ end;
 
 
 
-Procedure TProject.Setnumber(AIndex : Integer; const AValue : String); 
+Procedure TProject.Setnumber(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnumber=AValue) then exit;
@@ -740,7 +740,7 @@ end;
 
 
 
-Procedure TProject.Setquota(AIndex : Integer; const AValue : TQuota); 
+Procedure TProject.Setquota(AIndex : Integer; const AValue : TQuota);
 
 begin
   If (Fquota=AValue) then exit;
@@ -757,7 +757,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuota.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TQuota.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -767,7 +767,7 @@ end;
 
 
 
-Procedure TQuota.SetmanagedZones(AIndex : Integer; const AValue : integer); 
+Procedure TQuota.SetmanagedZones(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmanagedZones=AValue) then exit;
@@ -777,7 +777,7 @@ end;
 
 
 
-Procedure TQuota.SetresourceRecordsPerRrset(AIndex : Integer; const AValue : integer); 
+Procedure TQuota.SetresourceRecordsPerRrset(AIndex : Integer; const AValue : integer);
 
 begin
   If (FresourceRecordsPerRrset=AValue) then exit;
@@ -787,7 +787,7 @@ end;
 
 
 
-Procedure TQuota.SetrrsetAdditionsPerChange(AIndex : Integer; const AValue : integer); 
+Procedure TQuota.SetrrsetAdditionsPerChange(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrrsetAdditionsPerChange=AValue) then exit;
@@ -797,7 +797,7 @@ end;
 
 
 
-Procedure TQuota.SetrrsetDeletionsPerChange(AIndex : Integer; const AValue : integer); 
+Procedure TQuota.SetrrsetDeletionsPerChange(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrrsetDeletionsPerChange=AValue) then exit;
@@ -807,7 +807,7 @@ end;
 
 
 
-Procedure TQuota.SetrrsetsPerManagedZone(AIndex : Integer; const AValue : integer); 
+Procedure TQuota.SetrrsetsPerManagedZone(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrrsetsPerManagedZone=AValue) then exit;
@@ -817,7 +817,7 @@ end;
 
 
 
-Procedure TQuota.SettotalRrdataSizePerChange(AIndex : Integer; const AValue : integer); 
+Procedure TQuota.SettotalRrdataSizePerChange(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalRrdataSizePerChange=AValue) then exit;
@@ -834,7 +834,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceRecordSet.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TResourceRecordSet.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -844,7 +844,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setname(AIndex : Integer; const AValue : String); 
+Procedure TResourceRecordSet.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -854,7 +854,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setrrdatas(AIndex : Integer; const AValue : TStringArray); 
+Procedure TResourceRecordSet.Setrrdatas(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Frrdatas=AValue) then exit;
@@ -864,7 +864,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setttl(AIndex : Integer; const AValue : integer); 
+Procedure TResourceRecordSet.Setttl(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fttl=AValue) then exit;
@@ -874,7 +874,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TResourceRecordSet.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -896,7 +896,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourceRecordSet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourceRecordSet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -915,7 +915,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceRecordSetsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TResourceRecordSetsListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -925,7 +925,7 @@ end;
 
 
 
-Procedure TResourceRecordSetsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TResourceRecordSetsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -935,7 +935,7 @@ end;
 
 
 
-Procedure TResourceRecordSetsListResponse.Setrrsets(AIndex : Integer; const AValue : TResourceRecordSetsListResponseTyperrsetsArray); 
+Procedure TResourceRecordSetsListResponse.Setrrsets(AIndex : Integer; const AValue : TResourceRecordSetsListResponseTyperrsetsArray);
 
 begin
   If (Frrsets=AValue) then exit;
@@ -946,7 +946,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourceRecordSetsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourceRecordSetsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1333,7 +1333,7 @@ begin
   Result[2].Description:='View your DNS records hosted by Google Cloud DNS';
   Result[3].Name:='https://www.googleapis.com/auth/ndev.clouddns.readwrite';
   Result[3].Description:='View and manage your DNS records hosted by Google Cloud DNS';
-  
+
 end;
 
 Class Function TDnsAPI.APINeedsAuth : Boolean;

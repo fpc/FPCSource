@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TRelease = Class;
   TSource = Class;
@@ -42,11 +42,11 @@ type
   TTestRulesetResponseTypeissuesArray = Array of TIssue;
   TListReleasesResponseTypereleasesArray = Array of TRelease;
   TListRulesetsResponseTyperulesetsArray = Array of TRuleset;
-  
+
   { --------------------------------------------------------------------
     TRelease
     --------------------------------------------------------------------}
-  
+
   TRelease = Class(TGoogleBaseObject)
   Private
     FupdateTime : String;
@@ -67,11 +67,11 @@ type
     Property rulesetName : String Index 24 Read FrulesetName Write SetrulesetName;
   end;
   TReleaseClass = Class of TRelease;
-  
+
   { --------------------------------------------------------------------
     TSource
     --------------------------------------------------------------------}
-  
+
   TSource = Class(TGoogleBaseObject)
   Private
     Ffiles : TSourceTypefilesArray;
@@ -87,11 +87,11 @@ type
     Property files : TSourceTypefilesArray Index 0 Read Ffiles Write Setfiles;
   end;
   TSourceClass = Class of TSource;
-  
+
   { --------------------------------------------------------------------
     TSourcePosition
     --------------------------------------------------------------------}
-  
+
   TSourcePosition = Class(TGoogleBaseObject)
   Private
     FfileName : String;
@@ -109,11 +109,11 @@ type
     Property line : integer Index 16 Read Fline Write Setline;
   end;
   TSourcePositionClass = Class of TSourcePosition;
-  
+
   { --------------------------------------------------------------------
     TTestRulesetResponse
     --------------------------------------------------------------------}
-  
+
   TTestRulesetResponse = Class(TGoogleBaseObject)
   Private
     Fissues : TTestRulesetResponseTypeissuesArray;
@@ -129,11 +129,11 @@ type
     Property issues : TTestRulesetResponseTypeissuesArray Index 0 Read Fissues Write Setissues;
   end;
   TTestRulesetResponseClass = Class of TTestRulesetResponse;
-  
+
   { --------------------------------------------------------------------
     TRuleset
     --------------------------------------------------------------------}
-  
+
   TRuleset = Class(TGoogleBaseObject)
   Private
     Fsource : TSource;
@@ -151,11 +151,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TRulesetClass = Class of TRuleset;
-  
+
   { --------------------------------------------------------------------
     TListReleasesResponse
     --------------------------------------------------------------------}
-  
+
   TListReleasesResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -174,11 +174,11 @@ type
     Property releases : TListReleasesResponseTypereleasesArray Index 8 Read Freleases Write Setreleases;
   end;
   TListReleasesResponseClass = Class of TListReleasesResponse;
-  
+
   { --------------------------------------------------------------------
     TListRulesetsResponse
     --------------------------------------------------------------------}
-  
+
   TListRulesetsResponse = Class(TGoogleBaseObject)
   Private
     Frulesets : TListRulesetsResponseTyperulesetsArray;
@@ -197,11 +197,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListRulesetsResponseClass = Class of TListRulesetsResponse;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -210,11 +210,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TFile
     --------------------------------------------------------------------}
-  
+
   TFile = Class(TGoogleBaseObject)
   Private
     Fcontent : String;
@@ -232,11 +232,11 @@ type
     Property fingerprint : String Index 16 Read Ffingerprint Write Setfingerprint;
   end;
   TFileClass = Class of TFile;
-  
+
   { --------------------------------------------------------------------
     TTestRulesetRequest
     --------------------------------------------------------------------}
-  
+
   TTestRulesetRequest = Class(TGoogleBaseObject)
   Private
     Fsource : TSource;
@@ -248,11 +248,11 @@ type
     Property source : TSource Index 0 Read Fsource Write Setsource;
   end;
   TTestRulesetRequestClass = Class of TTestRulesetRequest;
-  
+
   { --------------------------------------------------------------------
     TIssue
     --------------------------------------------------------------------}
-  
+
   TIssue = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -270,19 +270,19 @@ type
     Property sourcePosition : TSourcePosition Index 16 Read FsourcePosition Write SetsourcePosition;
   end;
   TIssueClass = Class of TIssue;
-  
+
   { --------------------------------------------------------------------
     TProjectsRulesetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsRulesetsResource, method List
-  
+
   TProjectsRulesetsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsRulesetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -293,21 +293,21 @@ type
     Function List(_name: string; AQuery : TProjectsRulesetslistOptions) : TListRulesetsResponse;
     Function Delete(_name: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsReleasesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsReleasesResource, method List
-  
+
   TProjectsReleasesListOptions = Record
     pageSize : integer;
     filter : String;
     pageToken : String;
   end;
-  
+
   TProjectsReleasesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -319,12 +319,12 @@ type
     Function List(_name: string; AQuery : TProjectsReleaseslistOptions) : TListReleasesResponse;
     Function Delete(_name: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FRulesetsInstance : TProjectsRulesetsResource;
@@ -342,12 +342,12 @@ type
     Property RulesetsResource : TProjectsRulesetsResource Read GetRulesetsInstance;
     Property ReleasesResource : TProjectsReleasesResource Read GetReleasesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TFirebaserulesAPI
     --------------------------------------------------------------------}
-  
+
   TFirebaserulesAPI = Class(TGoogleAPI)
   Private
     FProjectsRulesetsInstance : TProjectsRulesetsResource;
@@ -399,7 +399,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TRelease.SetupdateTime(AIndex : Integer; const AValue : String); 
+Procedure TRelease.SetupdateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -409,7 +409,7 @@ end;
 
 
 
-Procedure TRelease.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TRelease.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -419,7 +419,7 @@ end;
 
 
 
-Procedure TRelease.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRelease.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -429,7 +429,7 @@ end;
 
 
 
-Procedure TRelease.SetrulesetName(AIndex : Integer; const AValue : String); 
+Procedure TRelease.SetrulesetName(AIndex : Integer; const AValue : String);
 
 begin
   If (FrulesetName=AValue) then exit;
@@ -446,7 +446,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSource.Setfiles(AIndex : Integer; const AValue : TSourceTypefilesArray); 
+Procedure TSource.Setfiles(AIndex : Integer; const AValue : TSourceTypefilesArray);
 
 begin
   If (Ffiles=AValue) then exit;
@@ -457,7 +457,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSource.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSource.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -476,7 +476,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourcePosition.SetfileName(AIndex : Integer; const AValue : String); 
+Procedure TSourcePosition.SetfileName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileName=AValue) then exit;
@@ -486,7 +486,7 @@ end;
 
 
 
-Procedure TSourcePosition.Setcolumn(AIndex : Integer; const AValue : integer); 
+Procedure TSourcePosition.Setcolumn(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -496,7 +496,7 @@ end;
 
 
 
-Procedure TSourcePosition.Setline(AIndex : Integer; const AValue : integer); 
+Procedure TSourcePosition.Setline(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fline=AValue) then exit;
@@ -513,7 +513,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestRulesetResponse.Setissues(AIndex : Integer; const AValue : TTestRulesetResponseTypeissuesArray); 
+Procedure TTestRulesetResponse.Setissues(AIndex : Integer; const AValue : TTestRulesetResponseTypeissuesArray);
 
 begin
   If (Fissues=AValue) then exit;
@@ -524,7 +524,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestRulesetResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestRulesetResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -543,7 +543,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRuleset.Setsource(AIndex : Integer; const AValue : TSource); 
+Procedure TRuleset.Setsource(AIndex : Integer; const AValue : TSource);
 
 begin
   If (Fsource=AValue) then exit;
@@ -553,7 +553,7 @@ end;
 
 
 
-Procedure TRuleset.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TRuleset.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -563,7 +563,7 @@ end;
 
 
 
-Procedure TRuleset.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRuleset.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -580,7 +580,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListReleasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListReleasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -590,7 +590,7 @@ end;
 
 
 
-Procedure TListReleasesResponse.Setreleases(AIndex : Integer; const AValue : TListReleasesResponseTypereleasesArray); 
+Procedure TListReleasesResponse.Setreleases(AIndex : Integer; const AValue : TListReleasesResponseTypereleasesArray);
 
 begin
   If (Freleases=AValue) then exit;
@@ -601,7 +601,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListReleasesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListReleasesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -620,7 +620,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListRulesetsResponse.Setrulesets(AIndex : Integer; const AValue : TListRulesetsResponseTyperulesetsArray); 
+Procedure TListRulesetsResponse.Setrulesets(AIndex : Integer; const AValue : TListRulesetsResponseTyperulesetsArray);
 
 begin
   If (Frulesets=AValue) then exit;
@@ -630,7 +630,7 @@ end;
 
 
 
-Procedure TListRulesetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListRulesetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -641,7 +641,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListRulesetsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListRulesetsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -667,7 +667,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFile.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TFile.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -677,7 +677,7 @@ end;
 
 
 
-Procedure TFile.Setname(AIndex : Integer; const AValue : String); 
+Procedure TFile.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -687,7 +687,7 @@ end;
 
 
 
-Procedure TFile.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TFile.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -704,7 +704,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestRulesetRequest.Setsource(AIndex : Integer; const AValue : TSource); 
+Procedure TTestRulesetRequest.Setsource(AIndex : Integer; const AValue : TSource);
 
 begin
   If (Fsource=AValue) then exit;
@@ -721,7 +721,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIssue.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TIssue.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -731,7 +731,7 @@ end;
 
 
 
-Procedure TIssue.Setseverity(AIndex : Integer; const AValue : String); 
+Procedure TIssue.Setseverity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fseverity=AValue) then exit;
@@ -741,7 +741,7 @@ end;
 
 
 
-Procedure TIssue.SetsourcePosition(AIndex : Integer; const AValue : TSourcePosition); 
+Procedure TIssue.SetsourcePosition(AIndex : Integer; const AValue : TSourcePosition);
 
 begin
   If (FsourcePosition=AValue) then exit;
@@ -1147,7 +1147,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TFirebaserulesAPI.APINeedsAuth : Boolean;

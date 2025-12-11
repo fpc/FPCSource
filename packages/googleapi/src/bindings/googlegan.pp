@@ -5,14 +5,14 @@ unit googlegan;
    **********************************************************************
       This file is part of the Free Component Library (FCL)
       Copyright (c) 2015 The free pascal team.
-  
+
       See the file COPYING.FPC, included in this distribution,
       for details about the copyright.
-  
+
       This program is distributed in the hope that it will be useful,
       but WITHOUT ANY WARRANTY; without even the implied warranty of
       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
+
    **********************************************************************
 }
 //Generated on: 16-5-15 08:53:04
@@ -28,7 +28,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAdvertiser = Class;
   TAdvertisers = Class;
@@ -71,11 +71,11 @@ type
   TPublishersTypeitemsArray = Array of TPublisher;
   TReportTyperowsArray = Array of TTJSONSchemaArray;
   TReportTypetotals_rowsArray = Array of TTJSONSchemaArray;
-  
+
   { --------------------------------------------------------------------
     TAdvertiser
     --------------------------------------------------------------------}
-  
+
   TAdvertiser = Class(TGoogleBaseObject)
   Private
     FallowPublisherCreatedLinks : boolean;
@@ -151,11 +151,11 @@ type
     Property status : String Index 160 Read Fstatus Write Setstatus;
   end;
   TAdvertiserClass = Class of TAdvertiser;
-  
+
   { --------------------------------------------------------------------
     TAdvertisers
     --------------------------------------------------------------------}
-  
+
   TAdvertisers = Class(TGoogleBaseObject)
   Private
     Fitems : TAdvertisersTypeitemsArray;
@@ -177,11 +177,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TAdvertisersClass = Class of TAdvertisers;
-  
+
   { --------------------------------------------------------------------
     TCcOfferTypebonusRewardsItem
     --------------------------------------------------------------------}
-  
+
   TCcOfferTypebonusRewardsItem = Class(TGoogleBaseObject)
   Private
     Famount : double;
@@ -196,11 +196,11 @@ type
     Property details : String Index 8 Read Fdetails Write Setdetails;
   end;
   TCcOfferTypebonusRewardsItemClass = Class of TCcOfferTypebonusRewardsItem;
-  
+
   { --------------------------------------------------------------------
     TCcOfferTypedefaultFeesItem
     --------------------------------------------------------------------}
-  
+
   TCcOfferTypedefaultFeesItem = Class(TGoogleBaseObject)
   Private
     Fcategory : String;
@@ -221,11 +221,11 @@ type
     Property rateType : String Index 24 Read FrateType Write SetrateType;
   end;
   TCcOfferTypedefaultFeesItemClass = Class of TCcOfferTypedefaultFeesItem;
-  
+
   { --------------------------------------------------------------------
     TCcOfferTyperewardsItem
     --------------------------------------------------------------------}
-  
+
   TCcOfferTyperewardsItem = Class(TGoogleBaseObject)
   Private
     FadditionalDetails : String;
@@ -252,11 +252,11 @@ type
     Property minRewardTier : double Index 40 Read FminRewardTier Write SetminRewardTier;
   end;
   TCcOfferTyperewardsItemClass = Class of TCcOfferTyperewardsItem;
-  
+
   { --------------------------------------------------------------------
     TCcOffer
     --------------------------------------------------------------------}
-  
+
   TCcOffer = Class(TGoogleBaseObject)
   Private
     FadditionalCardBenefits : TStringArray;
@@ -458,11 +458,11 @@ type
     Property variableRatesUpdateFrequency : String Index 496 Read FvariableRatesUpdateFrequency Write SetvariableRatesUpdateFrequency;
   end;
   TCcOfferClass = Class of TCcOffer;
-  
+
   { --------------------------------------------------------------------
     TCcOffers
     --------------------------------------------------------------------}
-  
+
   TCcOffers = Class(TGoogleBaseObject)
   Private
     Fitems : TCcOffersTypeitemsArray;
@@ -481,11 +481,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TCcOffersClass = Class of TCcOffers;
-  
+
   { --------------------------------------------------------------------
     TEventTypeproductsItem
     --------------------------------------------------------------------}
-  
+
   TEventTypeproductsItem = Class(TGoogleBaseObject)
   Private
     FcategoryId : String;
@@ -521,11 +521,11 @@ type
     Property unitPrice : TMoney Index 64 Read FunitPrice Write SetunitPrice;
   end;
   TEventTypeproductsItemClass = Class of TEventTypeproductsItem;
-  
+
   { --------------------------------------------------------------------
     TEvent
     --------------------------------------------------------------------}
-  
+
   TEvent = Class(TGoogleBaseObject)
   Private
     FadvertiserId : String;
@@ -593,11 +593,11 @@ type
     Property _type : String Index 136 Read F_type Write Set_type;
   end;
   TEventClass = Class of TEvent;
-  
+
   { --------------------------------------------------------------------
     TEvents
     --------------------------------------------------------------------}
-  
+
   TEvents = Class(TGoogleBaseObject)
   Private
     Fitems : TEventsTypeitemsArray;
@@ -619,11 +619,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TEventsClass = Class of TEvents;
-  
+
   { --------------------------------------------------------------------
     TLinkTypespecialOffers
     --------------------------------------------------------------------}
-  
+
   TLinkTypespecialOffers = Class(TGoogleBaseObject)
   Private
     FfreeGift : boolean;
@@ -660,11 +660,11 @@ type
     Property promotionCodes : TStringArray Index 56 Read FpromotionCodes Write SetpromotionCodes;
   end;
   TLinkTypespecialOffersClass = Class of TLinkTypespecialOffers;
-  
+
   { --------------------------------------------------------------------
     TLink
     --------------------------------------------------------------------}
-  
+
   TLink = Class(TGoogleBaseObject)
   Private
     FadvertiserId : String;
@@ -736,11 +736,11 @@ type
     Property startDate : TDatetime Index 160 Read FstartDate Write SetstartDate;
   end;
   TLinkClass = Class of TLink;
-  
+
   { --------------------------------------------------------------------
     TLinks
     --------------------------------------------------------------------}
-  
+
   TLinks = Class(TGoogleBaseObject)
   Private
     Fitems : TLinksTypeitemsArray;
@@ -762,11 +762,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TLinksClass = Class of TLinks;
-  
+
   { --------------------------------------------------------------------
     TMoney
     --------------------------------------------------------------------}
-  
+
   TMoney = Class(TGoogleBaseObject)
   Private
     Famount : double;
@@ -781,11 +781,11 @@ type
     Property currencyCode : String Index 8 Read FcurrencyCode Write SetcurrencyCode;
   end;
   TMoneyClass = Class of TMoney;
-  
+
   { --------------------------------------------------------------------
     TPublisher
     --------------------------------------------------------------------}
-  
+
   TPublisher = Class(TGoogleBaseObject)
   Private
     Fclassification : String;
@@ -831,11 +831,11 @@ type
     Property status : String Index 80 Read Fstatus Write Setstatus;
   end;
   TPublisherClass = Class of TPublisher;
-  
+
   { --------------------------------------------------------------------
     TPublishers
     --------------------------------------------------------------------}
-  
+
   TPublishers = Class(TGoogleBaseObject)
   Private
     Fitems : TPublishersTypeitemsArray;
@@ -857,11 +857,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TPublishersClass = Class of TPublishers;
-  
+
   { --------------------------------------------------------------------
     TReport
     --------------------------------------------------------------------}
-  
+
   TReport = Class(TGoogleBaseObject)
   Private
     Fcolumn_names : TStringArray;
@@ -899,21 +899,21 @@ type
     Property _type : String Index 56 Read F_type Write Set_type;
   end;
   TReportClass = Class of TReport;
-  
+
   { --------------------------------------------------------------------
     TAdvertisersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAdvertisersResource, method Get
-  
+
   TAdvertisersGetOptions = Record
     advertiserId : String;
   end;
-  
-  
+
+
   //Optional query Options for TAdvertisersResource, method List
-  
+
   TAdvertisersListOptions = Record
     advertiserCategory : String;
     maxResults : integer;
@@ -923,7 +923,7 @@ type
     pageToken : String;
     relationshipStatus : String;
   end;
-  
+
   TAdvertisersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -933,20 +933,20 @@ type
     Function List(role: string; roleId: string; AQuery : string  = '') : TAdvertisers;
     Function List(role: string; roleId: string; AQuery : TAdvertiserslistOptions) : TAdvertisers;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCcOffersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCcOffersResource, method List
-  
+
   TCcOffersListOptions = Record
     advertiser : String;
     projection : String;
   end;
-  
+
   TCcOffersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -954,15 +954,15 @@ type
     Function List(publisher: string; AQuery : string  = '') : TCcOffers;
     Function List(publisher: string; AQuery : TCcOfferslistOptions) : TCcOffers;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TEventsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TEventsResource, method List
-  
+
   TEventsListOptions = Record
     advertiserId : String;
     chargeType : String;
@@ -981,7 +981,7 @@ type
     status : String;
     _type : String;
   end;
-  
+
   TEventsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -989,15 +989,15 @@ type
     Function List(role: string; roleId: string; AQuery : string  = '') : TEvents;
     Function List(role: string; roleId: string; AQuery : TEventslistOptions) : TEvents;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLinksResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLinksResource, method List
-  
+
   TLinksListOptions = Record
     advertiserId : int64;
     assetSize : String;
@@ -1013,7 +1013,7 @@ type
     startDateMax : String;
     startDateMin : String;
   end;
-  
+
   TLinksResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1023,22 +1023,22 @@ type
     Function List(role: string; roleId: string; AQuery : string  = '') : TLinks;
     Function List(role: string; roleId: string; AQuery : TLinkslistOptions) : TLinks;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPublishersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPublishersResource, method Get
-  
+
   TPublishersGetOptions = Record
     publisherId : String;
   end;
-  
-  
+
+
   //Optional query Options for TPublishersResource, method List
-  
+
   TPublishersListOptions = Record
     maxResults : integer;
     minNinetyDayEpc : double;
@@ -1048,7 +1048,7 @@ type
     publisherCategory : String;
     relationshipStatus : String;
   end;
-  
+
   TPublishersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1058,15 +1058,15 @@ type
     Function List(role: string; roleId: string; AQuery : string  = '') : TPublishers;
     Function List(role: string; roleId: string; AQuery : TPublisherslistOptions) : TPublishers;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReportsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TReportsResource, method Get
-  
+
   TReportsGetOptions = Record
     advertiserId : String;
     calculateTotals : boolean;
@@ -1080,7 +1080,7 @@ type
     startIndex : integer;
     status : String;
   end;
-  
+
   TReportsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1088,12 +1088,12 @@ type
     Function Get(reportType: string; role: string; roleId: string; AQuery : string  = '') : TReport;
     Function Get(reportType: string; role: string; roleId: string; AQuery : TReportsgetOptions) : TReport;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGanAPI
     --------------------------------------------------------------------}
-  
+
   TGanAPI = Class(TGoogleAPI)
   Private
     FAdvertisersInstance : TAdvertisersResource;
@@ -1160,7 +1160,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAdvertiser.SetallowPublisherCreatedLinks(AIndex : Integer; AValue : boolean); 
+Procedure TAdvertiser.SetallowPublisherCreatedLinks(AIndex : Integer; AValue : boolean);
 
 begin
   If (FallowPublisherCreatedLinks=AValue) then exit;
@@ -1170,7 +1170,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setcategory(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.Setcategory(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcategory=AValue) then exit;
@@ -1180,7 +1180,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetcommissionDuration(AIndex : Integer; AValue : integer); 
+Procedure TAdvertiser.SetcommissionDuration(AIndex : Integer; AValue : integer);
 
 begin
   If (FcommissionDuration=AValue) then exit;
@@ -1190,7 +1190,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetcontactEmail(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.SetcontactEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontactEmail=AValue) then exit;
@@ -1200,7 +1200,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetcontactPhone(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.SetcontactPhone(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontactPhone=AValue) then exit;
@@ -1210,7 +1210,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetdefaultLinkId(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.SetdefaultLinkId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultLinkId=AValue) then exit;
@@ -1220,7 +1220,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1230,7 +1230,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney); 
+Procedure TAdvertiser.SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FepcNinetyDayAverage=AValue) then exit;
@@ -1240,7 +1240,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney); 
+Procedure TAdvertiser.SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FepcSevenDayAverage=AValue) then exit;
@@ -1250,7 +1250,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1260,7 +1260,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setitem(AIndex : Integer; AValue : TAdvertiser); 
+Procedure TAdvertiser.Setitem(AIndex : Integer; AValue : TAdvertiser);
 
 begin
   If (Fitem=AValue) then exit;
@@ -1270,7 +1270,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetjoinDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TAdvertiser.SetjoinDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FjoinDate=AValue) then exit;
@@ -1280,7 +1280,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1290,7 +1290,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetlogoUrl(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.SetlogoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogoUrl=AValue) then exit;
@@ -1300,7 +1300,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetmerchantCenterIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TAdvertiser.SetmerchantCenterIds(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FmerchantCenterIds=AValue) then exit;
@@ -1310,7 +1310,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1320,7 +1320,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetpayoutRank(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.SetpayoutRank(AIndex : Integer; const AValue : String);
 
 begin
   If (FpayoutRank=AValue) then exit;
@@ -1330,7 +1330,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetproductFeedsEnabled(AIndex : Integer; AValue : boolean); 
+Procedure TAdvertiser.SetproductFeedsEnabled(AIndex : Integer; AValue : boolean);
 
 begin
   If (FproductFeedsEnabled=AValue) then exit;
@@ -1340,7 +1340,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetredirectDomains(AIndex : Integer; AValue : TStringArray); 
+Procedure TAdvertiser.SetredirectDomains(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FredirectDomains=AValue) then exit;
@@ -1350,7 +1350,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetsiteUrl(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.SetsiteUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FsiteUrl=AValue) then exit;
@@ -1360,7 +1360,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TAdvertiser.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1371,7 +1371,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAdvertiser.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAdvertiser.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1391,7 +1391,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdvertisers.Setitems(AIndex : Integer; AValue : TAdvertisersTypeitemsArray); 
+Procedure TAdvertisers.Setitems(AIndex : Integer; AValue : TAdvertisersTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
 
 
 
-Procedure TAdvertisers.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdvertisers.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1411,7 +1411,7 @@ end;
 
 
 
-Procedure TAdvertisers.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAdvertisers.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1422,7 +1422,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAdvertisers.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAdvertisers.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1441,7 +1441,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOfferTypebonusRewardsItem.Setamount(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTypebonusRewardsItem.Setamount(AIndex : Integer; AValue : double);
 
 begin
   If (Famount=AValue) then exit;
@@ -1451,7 +1451,7 @@ end;
 
 
 
-Procedure TCcOfferTypebonusRewardsItem.Setdetails(AIndex : Integer; const AValue : String); 
+Procedure TCcOfferTypebonusRewardsItem.Setdetails(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1468,7 +1468,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOfferTypedefaultFeesItem.Setcategory(AIndex : Integer; const AValue : String); 
+Procedure TCcOfferTypedefaultFeesItem.Setcategory(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcategory=AValue) then exit;
@@ -1478,7 +1478,7 @@ end;
 
 
 
-Procedure TCcOfferTypedefaultFeesItem.SetmaxRate(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTypedefaultFeesItem.SetmaxRate(AIndex : Integer; AValue : double);
 
 begin
   If (FmaxRate=AValue) then exit;
@@ -1488,7 +1488,7 @@ end;
 
 
 
-Procedure TCcOfferTypedefaultFeesItem.SetminRate(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTypedefaultFeesItem.SetminRate(AIndex : Integer; AValue : double);
 
 begin
   If (FminRate=AValue) then exit;
@@ -1498,7 +1498,7 @@ end;
 
 
 
-Procedure TCcOfferTypedefaultFeesItem.SetrateType(AIndex : Integer; const AValue : String); 
+Procedure TCcOfferTypedefaultFeesItem.SetrateType(AIndex : Integer; const AValue : String);
 
 begin
   If (FrateType=AValue) then exit;
@@ -1515,7 +1515,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOfferTyperewardsItem.SetadditionalDetails(AIndex : Integer; const AValue : String); 
+Procedure TCcOfferTyperewardsItem.SetadditionalDetails(AIndex : Integer; const AValue : String);
 
 begin
   If (FadditionalDetails=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TCcOfferTyperewardsItem.Setamount(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTyperewardsItem.Setamount(AIndex : Integer; AValue : double);
 
 begin
   If (Famount=AValue) then exit;
@@ -1535,7 +1535,7 @@ end;
 
 
 
-Procedure TCcOfferTyperewardsItem.Setcategory(AIndex : Integer; const AValue : String); 
+Procedure TCcOfferTyperewardsItem.Setcategory(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcategory=AValue) then exit;
@@ -1545,7 +1545,7 @@ end;
 
 
 
-Procedure TCcOfferTyperewardsItem.SetexpirationMonths(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTyperewardsItem.SetexpirationMonths(AIndex : Integer; AValue : double);
 
 begin
   If (FexpirationMonths=AValue) then exit;
@@ -1555,7 +1555,7 @@ end;
 
 
 
-Procedure TCcOfferTyperewardsItem.SetmaxRewardTier(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTyperewardsItem.SetmaxRewardTier(AIndex : Integer; AValue : double);
 
 begin
   If (FmaxRewardTier=AValue) then exit;
@@ -1565,7 +1565,7 @@ end;
 
 
 
-Procedure TCcOfferTyperewardsItem.SetminRewardTier(AIndex : Integer; AValue : double); 
+Procedure TCcOfferTyperewardsItem.SetminRewardTier(AIndex : Integer; AValue : double);
 
 begin
   If (FminRewardTier=AValue) then exit;
@@ -1582,7 +1582,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOffer.SetadditionalCardBenefits(AIndex : Integer; AValue : TStringArray); 
+Procedure TCcOffer.SetadditionalCardBenefits(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FadditionalCardBenefits=AValue) then exit;
@@ -1592,7 +1592,7 @@ end;
 
 
 
-Procedure TCcOffer.SetadditionalCardHolderFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetadditionalCardHolderFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FadditionalCardHolderFee=AValue) then exit;
@@ -1602,7 +1602,7 @@ end;
 
 
 
-Procedure TCcOffer.SetageMinimum(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetageMinimum(AIndex : Integer; AValue : double);
 
 begin
   If (FageMinimum=AValue) then exit;
@@ -1612,7 +1612,7 @@ end;
 
 
 
-Procedure TCcOffer.SetageMinimumDetails(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetageMinimumDetails(AIndex : Integer; const AValue : String);
 
 begin
   If (FageMinimumDetails=AValue) then exit;
@@ -1622,7 +1622,7 @@ end;
 
 
 
-Procedure TCcOffer.SetannualFee(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetannualFee(AIndex : Integer; AValue : double);
 
 begin
   If (FannualFee=AValue) then exit;
@@ -1632,7 +1632,7 @@ end;
 
 
 
-Procedure TCcOffer.SetannualFeeDisplay(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetannualFeeDisplay(AIndex : Integer; const AValue : String);
 
 begin
   If (FannualFeeDisplay=AValue) then exit;
@@ -1642,7 +1642,7 @@ end;
 
 
 
-Procedure TCcOffer.SetannualRewardMaximum(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetannualRewardMaximum(AIndex : Integer; AValue : double);
 
 begin
   If (FannualRewardMaximum=AValue) then exit;
@@ -1652,7 +1652,7 @@ end;
 
 
 
-Procedure TCcOffer.SetapprovedCategories(AIndex : Integer; AValue : TStringArray); 
+Procedure TCcOffer.SetapprovedCategories(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FapprovedCategories=AValue) then exit;
@@ -1662,7 +1662,7 @@ end;
 
 
 
-Procedure TCcOffer.SetaprDisplay(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetaprDisplay(AIndex : Integer; const AValue : String);
 
 begin
   If (FaprDisplay=AValue) then exit;
@@ -1672,7 +1672,7 @@ end;
 
 
 
-Procedure TCcOffer.SetbalanceComputationMethod(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetbalanceComputationMethod(AIndex : Integer; const AValue : String);
 
 begin
   If (FbalanceComputationMethod=AValue) then exit;
@@ -1682,7 +1682,7 @@ end;
 
 
 
-Procedure TCcOffer.SetbalanceTransferTerms(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetbalanceTransferTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FbalanceTransferTerms=AValue) then exit;
@@ -1692,7 +1692,7 @@ end;
 
 
 
-Procedure TCcOffer.SetbonusRewards(AIndex : Integer; AValue : TCcOfferTypebonusRewardsArray); 
+Procedure TCcOffer.SetbonusRewards(AIndex : Integer; AValue : TCcOfferTypebonusRewardsArray);
 
 begin
   If (FbonusRewards=AValue) then exit;
@@ -1702,7 +1702,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcarRentalInsurance(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetcarRentalInsurance(AIndex : Integer; const AValue : String);
 
 begin
   If (FcarRentalInsurance=AValue) then exit;
@@ -1712,7 +1712,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcardBenefits(AIndex : Integer; AValue : TStringArray); 
+Procedure TCcOffer.SetcardBenefits(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FcardBenefits=AValue) then exit;
@@ -1722,7 +1722,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcardName(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetcardName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcardName=AValue) then exit;
@@ -1732,7 +1732,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcardType(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetcardType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcardType=AValue) then exit;
@@ -1742,7 +1742,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcashAdvanceTerms(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetcashAdvanceTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FcashAdvanceTerms=AValue) then exit;
@@ -1752,7 +1752,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcreditLimitMax(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetcreditLimitMax(AIndex : Integer; AValue : double);
 
 begin
   If (FcreditLimitMax=AValue) then exit;
@@ -1762,7 +1762,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcreditLimitMin(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetcreditLimitMin(AIndex : Integer; AValue : double);
 
 begin
   If (FcreditLimitMin=AValue) then exit;
@@ -1772,7 +1772,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcreditRatingDisplay(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetcreditRatingDisplay(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreditRatingDisplay=AValue) then exit;
@@ -1782,7 +1782,7 @@ end;
 
 
 
-Procedure TCcOffer.SetdefaultFees(AIndex : Integer; AValue : TCcOfferTypedefaultFeesArray); 
+Procedure TCcOffer.SetdefaultFees(AIndex : Integer; AValue : TCcOfferTypedefaultFeesArray);
 
 begin
   If (FdefaultFees=AValue) then exit;
@@ -1792,7 +1792,7 @@ end;
 
 
 
-Procedure TCcOffer.Setdisclaimer(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.Setdisclaimer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdisclaimer=AValue) then exit;
@@ -1802,7 +1802,7 @@ end;
 
 
 
-Procedure TCcOffer.SetemergencyInsurance(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetemergencyInsurance(AIndex : Integer; const AValue : String);
 
 begin
   If (FemergencyInsurance=AValue) then exit;
@@ -1812,7 +1812,7 @@ end;
 
 
 
-Procedure TCcOffer.SetexistingCustomerOnly(AIndex : Integer; AValue : boolean); 
+Procedure TCcOffer.SetexistingCustomerOnly(AIndex : Integer; AValue : boolean);
 
 begin
   If (FexistingCustomerOnly=AValue) then exit;
@@ -1822,7 +1822,7 @@ end;
 
 
 
-Procedure TCcOffer.SetextendedWarranty(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetextendedWarranty(AIndex : Integer; const AValue : String);
 
 begin
   If (FextendedWarranty=AValue) then exit;
@@ -1832,7 +1832,7 @@ end;
 
 
 
-Procedure TCcOffer.SetfirstYearAnnualFee(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetfirstYearAnnualFee(AIndex : Integer; AValue : double);
 
 begin
   If (FfirstYearAnnualFee=AValue) then exit;
@@ -1842,7 +1842,7 @@ end;
 
 
 
-Procedure TCcOffer.SetflightAccidentInsurance(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetflightAccidentInsurance(AIndex : Integer; const AValue : String);
 
 begin
   If (FflightAccidentInsurance=AValue) then exit;
@@ -1852,7 +1852,7 @@ end;
 
 
 
-Procedure TCcOffer.SetforeignCurrencyTransactionFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetforeignCurrencyTransactionFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FforeignCurrencyTransactionFee=AValue) then exit;
@@ -1862,7 +1862,7 @@ end;
 
 
 
-Procedure TCcOffer.SetfraudLiability(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetfraudLiability(AIndex : Integer; const AValue : String);
 
 begin
   If (FfraudLiability=AValue) then exit;
@@ -1872,7 +1872,7 @@ end;
 
 
 
-Procedure TCcOffer.SetgracePeriodDisplay(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetgracePeriodDisplay(AIndex : Integer; const AValue : String);
 
 begin
   If (FgracePeriodDisplay=AValue) then exit;
@@ -1882,7 +1882,7 @@ end;
 
 
 
-Procedure TCcOffer.SetimageUrl(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetimageUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -1892,7 +1892,7 @@ end;
 
 
 
-Procedure TCcOffer.SetinitialSetupAndProcessingFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetinitialSetupAndProcessingFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FinitialSetupAndProcessingFee=AValue) then exit;
@@ -1902,7 +1902,7 @@ end;
 
 
 
-Procedure TCcOffer.SetintroBalanceTransferTerms(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetintroBalanceTransferTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FintroBalanceTransferTerms=AValue) then exit;
@@ -1912,7 +1912,7 @@ end;
 
 
 
-Procedure TCcOffer.SetintroCashAdvanceTerms(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetintroCashAdvanceTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FintroCashAdvanceTerms=AValue) then exit;
@@ -1922,7 +1922,7 @@ end;
 
 
 
-Procedure TCcOffer.SetintroPurchaseTerms(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetintroPurchaseTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FintroPurchaseTerms=AValue) then exit;
@@ -1932,7 +1932,7 @@ end;
 
 
 
-Procedure TCcOffer.Setissuer(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.Setissuer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fissuer=AValue) then exit;
@@ -1942,7 +1942,7 @@ end;
 
 
 
-Procedure TCcOffer.SetissuerId(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetissuerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FissuerId=AValue) then exit;
@@ -1952,7 +1952,7 @@ end;
 
 
 
-Procedure TCcOffer.SetissuerWebsite(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetissuerWebsite(AIndex : Integer; const AValue : String);
 
 begin
   If (FissuerWebsite=AValue) then exit;
@@ -1962,7 +1962,7 @@ end;
 
 
 
-Procedure TCcOffer.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1972,7 +1972,7 @@ end;
 
 
 
-Procedure TCcOffer.SetlandingPageUrl(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetlandingPageUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FlandingPageUrl=AValue) then exit;
@@ -1982,7 +1982,7 @@ end;
 
 
 
-Procedure TCcOffer.SetlatePaymentFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetlatePaymentFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FlatePaymentFee=AValue) then exit;
@@ -1992,7 +1992,7 @@ end;
 
 
 
-Procedure TCcOffer.SetluggageInsurance(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetluggageInsurance(AIndex : Integer; const AValue : String);
 
 begin
   If (FluggageInsurance=AValue) then exit;
@@ -2002,7 +2002,7 @@ end;
 
 
 
-Procedure TCcOffer.SetmaxPurchaseRate(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetmaxPurchaseRate(AIndex : Integer; AValue : double);
 
 begin
   If (FmaxPurchaseRate=AValue) then exit;
@@ -2012,7 +2012,7 @@ end;
 
 
 
-Procedure TCcOffer.SetminPurchaseRate(AIndex : Integer; AValue : double); 
+Procedure TCcOffer.SetminPurchaseRate(AIndex : Integer; AValue : double);
 
 begin
   If (FminPurchaseRate=AValue) then exit;
@@ -2022,7 +2022,7 @@ end;
 
 
 
-Procedure TCcOffer.SetminimumFinanceCharge(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetminimumFinanceCharge(AIndex : Integer; const AValue : String);
 
 begin
   If (FminimumFinanceCharge=AValue) then exit;
@@ -2032,7 +2032,7 @@ end;
 
 
 
-Procedure TCcOffer.Setnetwork(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.Setnetwork(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -2042,7 +2042,7 @@ end;
 
 
 
-Procedure TCcOffer.SetofferId(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetofferId(AIndex : Integer; const AValue : String);
 
 begin
   If (FofferId=AValue) then exit;
@@ -2052,7 +2052,7 @@ end;
 
 
 
-Procedure TCcOffer.SetoffersImmediateCashReward(AIndex : Integer; AValue : boolean); 
+Procedure TCcOffer.SetoffersImmediateCashReward(AIndex : Integer; AValue : boolean);
 
 begin
   If (FoffersImmediateCashReward=AValue) then exit;
@@ -2062,7 +2062,7 @@ end;
 
 
 
-Procedure TCcOffer.SetoverLimitFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetoverLimitFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FoverLimitFee=AValue) then exit;
@@ -2072,7 +2072,7 @@ end;
 
 
 
-Procedure TCcOffer.SetprohibitedCategories(AIndex : Integer; AValue : TStringArray); 
+Procedure TCcOffer.SetprohibitedCategories(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FprohibitedCategories=AValue) then exit;
@@ -2082,7 +2082,7 @@ end;
 
 
 
-Procedure TCcOffer.SetpurchaseRateAdditionalDetails(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetpurchaseRateAdditionalDetails(AIndex : Integer; const AValue : String);
 
 begin
   If (FpurchaseRateAdditionalDetails=AValue) then exit;
@@ -2092,7 +2092,7 @@ end;
 
 
 
-Procedure TCcOffer.SetpurchaseRateType(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetpurchaseRateType(AIndex : Integer; const AValue : String);
 
 begin
   If (FpurchaseRateType=AValue) then exit;
@@ -2102,7 +2102,7 @@ end;
 
 
 
-Procedure TCcOffer.SetreturnedPaymentFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetreturnedPaymentFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FreturnedPaymentFee=AValue) then exit;
@@ -2112,7 +2112,7 @@ end;
 
 
 
-Procedure TCcOffer.SetrewardPartner(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetrewardPartner(AIndex : Integer; const AValue : String);
 
 begin
   If (FrewardPartner=AValue) then exit;
@@ -2122,7 +2122,7 @@ end;
 
 
 
-Procedure TCcOffer.SetrewardUnit(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetrewardUnit(AIndex : Integer; const AValue : String);
 
 begin
   If (FrewardUnit=AValue) then exit;
@@ -2132,7 +2132,7 @@ end;
 
 
 
-Procedure TCcOffer.Setrewards(AIndex : Integer; AValue : TCcOfferTyperewardsArray); 
+Procedure TCcOffer.Setrewards(AIndex : Integer; AValue : TCcOfferTyperewardsArray);
 
 begin
   If (Frewards=AValue) then exit;
@@ -2142,7 +2142,7 @@ end;
 
 
 
-Procedure TCcOffer.SetrewardsExpire(AIndex : Integer; AValue : boolean); 
+Procedure TCcOffer.SetrewardsExpire(AIndex : Integer; AValue : boolean);
 
 begin
   If (FrewardsExpire=AValue) then exit;
@@ -2152,7 +2152,7 @@ end;
 
 
 
-Procedure TCcOffer.SetrewardsHaveBlackoutDates(AIndex : Integer; AValue : boolean); 
+Procedure TCcOffer.SetrewardsHaveBlackoutDates(AIndex : Integer; AValue : boolean);
 
 begin
   If (FrewardsHaveBlackoutDates=AValue) then exit;
@@ -2162,7 +2162,7 @@ end;
 
 
 
-Procedure TCcOffer.SetstatementCopyFee(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetstatementCopyFee(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatementCopyFee=AValue) then exit;
@@ -2172,7 +2172,7 @@ end;
 
 
 
-Procedure TCcOffer.SettrackingUrl(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SettrackingUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FtrackingUrl=AValue) then exit;
@@ -2182,7 +2182,7 @@ end;
 
 
 
-Procedure TCcOffer.SettravelInsurance(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SettravelInsurance(AIndex : Integer; const AValue : String);
 
 begin
   If (FtravelInsurance=AValue) then exit;
@@ -2192,7 +2192,7 @@ end;
 
 
 
-Procedure TCcOffer.SetvariableRatesLastUpdated(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetvariableRatesLastUpdated(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariableRatesLastUpdated=AValue) then exit;
@@ -2202,7 +2202,7 @@ end;
 
 
 
-Procedure TCcOffer.SetvariableRatesUpdateFrequency(AIndex : Integer; const AValue : String); 
+Procedure TCcOffer.SetvariableRatesUpdateFrequency(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariableRatesUpdateFrequency=AValue) then exit;
@@ -2213,7 +2213,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCcOffer.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCcOffer.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2238,7 +2238,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOffers.Setitems(AIndex : Integer; AValue : TCcOffersTypeitemsArray); 
+Procedure TCcOffers.Setitems(AIndex : Integer; AValue : TCcOffersTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2248,7 +2248,7 @@ end;
 
 
 
-Procedure TCcOffers.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCcOffers.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2259,7 +2259,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCcOffers.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCcOffers.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2278,7 +2278,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypeproductsItem.SetcategoryId(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeproductsItem.SetcategoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcategoryId=AValue) then exit;
@@ -2288,7 +2288,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetcategoryName(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeproductsItem.SetcategoryName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcategoryName=AValue) then exit;
@@ -2298,7 +2298,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.Setearnings(AIndex : Integer; AValue : TMoney); 
+Procedure TEventTypeproductsItem.Setearnings(AIndex : Integer; AValue : TMoney);
 
 begin
   If (Fearnings=AValue) then exit;
@@ -2308,7 +2308,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetnetworkFee(AIndex : Integer; AValue : TMoney); 
+Procedure TEventTypeproductsItem.SetnetworkFee(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FnetworkFee=AValue) then exit;
@@ -2318,7 +2318,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetpublisherFee(AIndex : Integer; AValue : TMoney); 
+Procedure TEventTypeproductsItem.SetpublisherFee(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FpublisherFee=AValue) then exit;
@@ -2328,7 +2328,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.Setquantity(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeproductsItem.Setquantity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fquantity=AValue) then exit;
@@ -2338,7 +2338,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.Setsku(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeproductsItem.Setsku(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsku=AValue) then exit;
@@ -2348,7 +2348,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetskuName(AIndex : Integer; const AValue : String); 
+Procedure TEventTypeproductsItem.SetskuName(AIndex : Integer; const AValue : String);
 
 begin
   If (FskuName=AValue) then exit;
@@ -2358,7 +2358,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetunitPrice(AIndex : Integer; AValue : TMoney); 
+Procedure TEventTypeproductsItem.SetunitPrice(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FunitPrice=AValue) then exit;
@@ -2375,7 +2375,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvent.SetadvertiserId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetadvertiserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -2385,7 +2385,7 @@ end;
 
 
 
-Procedure TEvent.SetadvertiserName(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetadvertiserName(AIndex : Integer; const AValue : String);
 
 begin
   If (FadvertiserName=AValue) then exit;
@@ -2395,7 +2395,7 @@ end;
 
 
 
-Procedure TEvent.SetchargeId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetchargeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FchargeId=AValue) then exit;
@@ -2405,7 +2405,7 @@ end;
 
 
 
-Procedure TEvent.SetchargeType(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetchargeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FchargeType=AValue) then exit;
@@ -2415,7 +2415,7 @@ end;
 
 
 
-Procedure TEvent.SetcommissionableSales(AIndex : Integer; AValue : TMoney); 
+Procedure TEvent.SetcommissionableSales(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FcommissionableSales=AValue) then exit;
@@ -2425,7 +2425,7 @@ end;
 
 
 
-Procedure TEvent.Setearnings(AIndex : Integer; AValue : TMoney); 
+Procedure TEvent.Setearnings(AIndex : Integer; AValue : TMoney);
 
 begin
   If (Fearnings=AValue) then exit;
@@ -2435,7 +2435,7 @@ end;
 
 
 
-Procedure TEvent.SeteventDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TEvent.SeteventDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FeventDate=AValue) then exit;
@@ -2445,7 +2445,7 @@ end;
 
 
 
-Procedure TEvent.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2455,7 +2455,7 @@ end;
 
 
 
-Procedure TEvent.SetmemberId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetmemberId(AIndex : Integer; const AValue : String);
 
 begin
   If (FmemberId=AValue) then exit;
@@ -2465,7 +2465,7 @@ end;
 
 
 
-Procedure TEvent.SetmodifyDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TEvent.SetmodifyDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FmodifyDate=AValue) then exit;
@@ -2475,7 +2475,7 @@ end;
 
 
 
-Procedure TEvent.SetnetworkFee(AIndex : Integer; AValue : TMoney); 
+Procedure TEvent.SetnetworkFee(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FnetworkFee=AValue) then exit;
@@ -2485,7 +2485,7 @@ end;
 
 
 
-Procedure TEvent.SetorderId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetorderId(AIndex : Integer; const AValue : String);
 
 begin
   If (ForderId=AValue) then exit;
@@ -2495,7 +2495,7 @@ end;
 
 
 
-Procedure TEvent.Setproducts(AIndex : Integer; AValue : TEventTypeproductsArray); 
+Procedure TEvent.Setproducts(AIndex : Integer; AValue : TEventTypeproductsArray);
 
 begin
   If (Fproducts=AValue) then exit;
@@ -2505,7 +2505,7 @@ end;
 
 
 
-Procedure TEvent.SetpublisherFee(AIndex : Integer; AValue : TMoney); 
+Procedure TEvent.SetpublisherFee(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FpublisherFee=AValue) then exit;
@@ -2515,7 +2515,7 @@ end;
 
 
 
-Procedure TEvent.SetpublisherId(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetpublisherId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublisherId=AValue) then exit;
@@ -2525,7 +2525,7 @@ end;
 
 
 
-Procedure TEvent.SetpublisherName(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetpublisherName(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublisherName=AValue) then exit;
@@ -2535,7 +2535,7 @@ end;
 
 
 
-Procedure TEvent.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2545,7 +2545,7 @@ end;
 
 
 
-Procedure TEvent.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2567,7 +2567,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEvent.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2586,7 +2586,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvents.Setitems(AIndex : Integer; AValue : TEventsTypeitemsArray); 
+Procedure TEvents.Setitems(AIndex : Integer; AValue : TEventsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2596,7 +2596,7 @@ end;
 
 
 
-Procedure TEvents.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEvents.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2606,7 +2606,7 @@ end;
 
 
 
-Procedure TEvents.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TEvents.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2617,7 +2617,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEvents.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEvents.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2636,7 +2636,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinkTypespecialOffers.SetfreeGift(AIndex : Integer; AValue : boolean); 
+Procedure TLinkTypespecialOffers.SetfreeGift(AIndex : Integer; AValue : boolean);
 
 begin
   If (FfreeGift=AValue) then exit;
@@ -2646,7 +2646,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetfreeShipping(AIndex : Integer; AValue : boolean); 
+Procedure TLinkTypespecialOffers.SetfreeShipping(AIndex : Integer; AValue : boolean);
 
 begin
   If (FfreeShipping=AValue) then exit;
@@ -2656,7 +2656,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetfreeShippingMin(AIndex : Integer; AValue : TMoney); 
+Procedure TLinkTypespecialOffers.SetfreeShippingMin(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FfreeShippingMin=AValue) then exit;
@@ -2666,7 +2666,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetpercentOff(AIndex : Integer; AValue : double); 
+Procedure TLinkTypespecialOffers.SetpercentOff(AIndex : Integer; AValue : double);
 
 begin
   If (FpercentOff=AValue) then exit;
@@ -2676,7 +2676,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetpercentOffMin(AIndex : Integer; AValue : TMoney); 
+Procedure TLinkTypespecialOffers.SetpercentOffMin(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FpercentOffMin=AValue) then exit;
@@ -2686,7 +2686,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetpriceCut(AIndex : Integer; AValue : TMoney); 
+Procedure TLinkTypespecialOffers.SetpriceCut(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FpriceCut=AValue) then exit;
@@ -2696,7 +2696,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetpriceCutMin(AIndex : Integer; AValue : TMoney); 
+Procedure TLinkTypespecialOffers.SetpriceCutMin(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FpriceCutMin=AValue) then exit;
@@ -2706,7 +2706,7 @@ end;
 
 
 
-Procedure TLinkTypespecialOffers.SetpromotionCodes(AIndex : Integer; AValue : TStringArray); 
+Procedure TLinkTypespecialOffers.SetpromotionCodes(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FpromotionCodes=AValue) then exit;
@@ -2717,7 +2717,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLinkTypespecialOffers.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLinkTypespecialOffers.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2736,7 +2736,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLink.SetadvertiserId(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetadvertiserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -2746,7 +2746,7 @@ end;
 
 
 
-Procedure TLink.Setauthorship(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setauthorship(AIndex : Integer; const AValue : String);
 
 begin
   If (Fauthorship=AValue) then exit;
@@ -2756,7 +2756,7 @@ end;
 
 
 
-Procedure TLink.Setavailability(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setavailability(AIndex : Integer; const AValue : String);
 
 begin
   If (Favailability=AValue) then exit;
@@ -2766,7 +2766,7 @@ end;
 
 
 
-Procedure TLink.SetclickTrackingUrl(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetclickTrackingUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FclickTrackingUrl=AValue) then exit;
@@ -2776,7 +2776,7 @@ end;
 
 
 
-Procedure TLink.SetcreateDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TLink.SetcreateDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreateDate=AValue) then exit;
@@ -2786,7 +2786,7 @@ end;
 
 
 
-Procedure TLink.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2796,7 +2796,7 @@ end;
 
 
 
-Procedure TLink.SetdestinationUrl(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetdestinationUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FdestinationUrl=AValue) then exit;
@@ -2806,7 +2806,7 @@ end;
 
 
 
-Procedure TLink.Setduration(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setduration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fduration=AValue) then exit;
@@ -2816,7 +2816,7 @@ end;
 
 
 
-Procedure TLink.SetendDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TLink.SetendDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FendDate=AValue) then exit;
@@ -2826,7 +2826,7 @@ end;
 
 
 
-Procedure TLink.SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney); 
+Procedure TLink.SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FepcNinetyDayAverage=AValue) then exit;
@@ -2836,7 +2836,7 @@ end;
 
 
 
-Procedure TLink.SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney); 
+Procedure TLink.SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FepcSevenDayAverage=AValue) then exit;
@@ -2846,7 +2846,7 @@ end;
 
 
 
-Procedure TLink.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2856,7 +2856,7 @@ end;
 
 
 
-Procedure TLink.SetimageAltText(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetimageAltText(AIndex : Integer; const AValue : String);
 
 begin
   If (FimageAltText=AValue) then exit;
@@ -2866,7 +2866,7 @@ end;
 
 
 
-Procedure TLink.SetimpressionTrackingUrl(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetimpressionTrackingUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FimpressionTrackingUrl=AValue) then exit;
@@ -2876,7 +2876,7 @@ end;
 
 
 
-Procedure TLink.SetisActive(AIndex : Integer; AValue : boolean); 
+Procedure TLink.SetisActive(AIndex : Integer; AValue : boolean);
 
 begin
   If (FisActive=AValue) then exit;
@@ -2886,7 +2886,7 @@ end;
 
 
 
-Procedure TLink.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2896,7 +2896,7 @@ end;
 
 
 
-Procedure TLink.SetlinkType(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetlinkType(AIndex : Integer; const AValue : String);
 
 begin
   If (FlinkType=AValue) then exit;
@@ -2906,7 +2906,7 @@ end;
 
 
 
-Procedure TLink.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLink.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2916,7 +2916,7 @@ end;
 
 
 
-Procedure TLink.SetpromotionType(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetpromotionType(AIndex : Integer; const AValue : String);
 
 begin
   If (FpromotionType=AValue) then exit;
@@ -2926,7 +2926,7 @@ end;
 
 
 
-Procedure TLink.SetspecialOffers(AIndex : Integer; AValue : TLinkTypespecialOffers); 
+Procedure TLink.SetspecialOffers(AIndex : Integer; AValue : TLinkTypespecialOffers);
 
 begin
   If (FspecialOffers=AValue) then exit;
@@ -2936,7 +2936,7 @@ end;
 
 
 
-Procedure TLink.SetstartDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TLink.SetstartDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FstartDate=AValue) then exit;
@@ -2953,7 +2953,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinks.Setitems(AIndex : Integer; AValue : TLinksTypeitemsArray); 
+Procedure TLinks.Setitems(AIndex : Integer; AValue : TLinksTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2963,7 +2963,7 @@ end;
 
 
 
-Procedure TLinks.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLinks.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2973,7 +2973,7 @@ end;
 
 
 
-Procedure TLinks.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLinks.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2984,7 +2984,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLinks.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLinks.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3003,7 +3003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMoney.Setamount(AIndex : Integer; AValue : double); 
+Procedure TMoney.Setamount(AIndex : Integer; AValue : double);
 
 begin
   If (Famount=AValue) then exit;
@@ -3013,7 +3013,7 @@ end;
 
 
 
-Procedure TMoney.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TMoney.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -3030,7 +3030,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublisher.Setclassification(AIndex : Integer; const AValue : String); 
+Procedure TPublisher.Setclassification(AIndex : Integer; const AValue : String);
 
 begin
   If (Fclassification=AValue) then exit;
@@ -3040,7 +3040,7 @@ end;
 
 
 
-Procedure TPublisher.SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney); 
+Procedure TPublisher.SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FepcNinetyDayAverage=AValue) then exit;
@@ -3050,7 +3050,7 @@ end;
 
 
 
-Procedure TPublisher.SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney); 
+Procedure TPublisher.SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney);
 
 begin
   If (FepcSevenDayAverage=AValue) then exit;
@@ -3060,7 +3060,7 @@ end;
 
 
 
-Procedure TPublisher.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPublisher.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3070,7 +3070,7 @@ end;
 
 
 
-Procedure TPublisher.Setitem(AIndex : Integer; AValue : TPublisher); 
+Procedure TPublisher.Setitem(AIndex : Integer; AValue : TPublisher);
 
 begin
   If (Fitem=AValue) then exit;
@@ -3080,7 +3080,7 @@ end;
 
 
 
-Procedure TPublisher.SetjoinDate(AIndex : Integer; AValue : TDatetime); 
+Procedure TPublisher.SetjoinDate(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FjoinDate=AValue) then exit;
@@ -3090,7 +3090,7 @@ end;
 
 
 
-Procedure TPublisher.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPublisher.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3100,7 +3100,7 @@ end;
 
 
 
-Procedure TPublisher.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPublisher.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3110,7 +3110,7 @@ end;
 
 
 
-Procedure TPublisher.SetpayoutRank(AIndex : Integer; const AValue : String); 
+Procedure TPublisher.SetpayoutRank(AIndex : Integer; const AValue : String);
 
 begin
   If (FpayoutRank=AValue) then exit;
@@ -3120,7 +3120,7 @@ end;
 
 
 
-Procedure TPublisher.Setsites(AIndex : Integer; AValue : TStringArray); 
+Procedure TPublisher.Setsites(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fsites=AValue) then exit;
@@ -3130,7 +3130,7 @@ end;
 
 
 
-Procedure TPublisher.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TPublisher.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3141,7 +3141,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublisher.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublisher.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3160,7 +3160,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishers.Setitems(AIndex : Integer; AValue : TPublishersTypeitemsArray); 
+Procedure TPublishers.Setitems(AIndex : Integer; AValue : TPublishersTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -3170,7 +3170,7 @@ end;
 
 
 
-Procedure TPublishers.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPublishers.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3180,7 +3180,7 @@ end;
 
 
 
-Procedure TPublishers.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPublishers.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3191,7 +3191,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublishers.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublishers.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3210,7 +3210,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setcolumn_names(AIndex : Integer; AValue : TStringArray); 
+Procedure TReport.Setcolumn_names(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fcolumn_names=AValue) then exit;
@@ -3220,7 +3220,7 @@ end;
 
 
 
-Procedure TReport.Setend_date(AIndex : Integer; const AValue : String); 
+Procedure TReport.Setend_date(AIndex : Integer; const AValue : String);
 
 begin
   If (Fend_date=AValue) then exit;
@@ -3230,7 +3230,7 @@ end;
 
 
 
-Procedure TReport.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TReport.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3240,7 +3240,7 @@ end;
 
 
 
-Procedure TReport.Setmatching_row_count(AIndex : Integer; const AValue : String); 
+Procedure TReport.Setmatching_row_count(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmatching_row_count=AValue) then exit;
@@ -3250,7 +3250,7 @@ end;
 
 
 
-Procedure TReport.Setrows(AIndex : Integer; AValue : TReportTyperowsArray); 
+Procedure TReport.Setrows(AIndex : Integer; AValue : TReportTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -3260,7 +3260,7 @@ end;
 
 
 
-Procedure TReport.Setstart_date(AIndex : Integer; const AValue : String); 
+Procedure TReport.Setstart_date(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstart_date=AValue) then exit;
@@ -3270,7 +3270,7 @@ end;
 
 
 
-Procedure TReport.Settotals_rows(AIndex : Integer; AValue : TReportTypetotals_rowsArray); 
+Procedure TReport.Settotals_rows(AIndex : Integer; AValue : TReportTypetotals_rowsArray);
 
 begin
   If (Ftotals_rows=AValue) then exit;
@@ -3280,7 +3280,7 @@ end;
 
 
 
-Procedure TReport.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TReport.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3302,7 +3302,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3838,7 +3838,7 @@ Class Function TGanAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TGanAPI.APINeedsAuth : Boolean;
