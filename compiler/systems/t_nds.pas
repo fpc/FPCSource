@@ -77,7 +77,7 @@ Var
   i        : longint;
   HPath    : TCmdStrListItem;
   s,s1,s2  : TCmdStr;
-  prtobj, 
+  prtobj,
   cprtobj  : string[80];
   linklibc,
   linklibgcc : boolean;
@@ -105,7 +105,7 @@ begin
     else
       internalerror(2019050935);
   end;
-  
+
   if (linklibc or linklibgcc) then
     prtobj:=cprtobj;
 
@@ -231,7 +231,7 @@ begin
          LinkRes.AddFileName(s1);
         LinkRes.Add(')');
       end;
-   end;   
+   end;
   if linklibc then
    begin
      found2:=librarysearchpath.FindFile('crtn.o',false,s2);
@@ -242,8 +242,8 @@ begin
          LinkRes.AddFileName(s2);
         LinkRes.Add(')');
       end;
-   end;   
-   
+   end;
+
   with linkres do
     begin
       if apptype=app_arm9 then //ARM9
@@ -402,7 +402,7 @@ begin
         add('	.jcr            : { KEEP (*(.jcr)) } >ewram :main = 0');
         add('	.got            : { *(.got.plt) *(.got) *(.rel.got) } >ewram :main = 0');
         add('');
-        add('	.ewram ALIGN(4) :'); 
+        add('	.ewram ALIGN(4) :');
         add('	{');
         add('		__ewram_start = ABSOLUTE(.) ;');
         add('		*(.ewram)');
@@ -453,7 +453,7 @@ begin
         add('		__vectors_end = ABSOLUTE(.);');
         add('	} >vectors AT>ewram :vectors = 0xff');
         add('	');
-        add('	.sbss __dtcm_end (NOLOAD):'); 
+        add('	.sbss __dtcm_end (NOLOAD):');
         add('	{');
         add('		__sbss_start = ABSOLUTE(.);');
         add('		__sbss_start__ = ABSOLUTE(.);');
@@ -462,7 +462,7 @@ begin
         add('		__sbss_end = ABSOLUTE(.);');
         add('	} >dtcm :NONE');
         add('');
-        add('	.bss __bss_vma (NOLOAD):'); 
+        add('	.bss __bss_vma (NOLOAD):');
         add('	{');
         add('		__bss_start = ABSOLUTE(.);');
         add('		__bss_start__ = ABSOLUTE(.);');
@@ -836,7 +836,7 @@ begin
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$MAP',MapStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  
+
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
@@ -846,16 +846,16 @@ begin
 { Post process }
   if success then
     begin
-      success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+ 
-        ChangeFileExt(current_module.exefilename, preName) + ' ' + 
+      success:=DoExec(FindUtil(utilsprefix + 'objcopy'), '-O binary '+
+        ChangeFileExt(current_module.exefilename, preName) + ' ' +
         ChangeFileExt(current_module.exefilename, preName+target_info.exeext),
         true,false);
     end;
 
-  if success and (apptype=app_arm9) then 
+  if success and (apptype=app_arm9) then
     begin
-      success:=DoExec(FindUtil('ndstool'), '-c ' + 
-        ChangeFileExt(current_module.exefilename, '.nds') + ' -9 ' + 
+      success:=DoExec(FindUtil('ndstool'), '-c ' +
+        ChangeFileExt(current_module.exefilename, '.nds') + ' -9 ' +
         ChangeFileExt(current_module.exefilename, preName+target_info.exeext),
         true,false);
     end;

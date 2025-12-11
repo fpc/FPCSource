@@ -1138,7 +1138,7 @@ unit scandir;
                 current_namespacelist.Insert(s)
               else // copied when correct module is activated
                 premodule_namespacelist.Insert(s);
-              s:='';  
+              s:='';
               if c=',' then
                 begin
                   current_scanner.readchar;

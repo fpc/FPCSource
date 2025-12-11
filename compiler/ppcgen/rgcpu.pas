@@ -86,13 +86,13 @@ unit rgcpu;
             tmpref:=spilltemp;
             tmpref.refaddr := addr_low;
             tmpref.base:=hreg;
-	    
+
             ins:=spilling_create_load(tmpref,tempreg);
             add_cpu_interferences(ins);
-	    
-	    
+
+
             helplist.concat(ins);
-	    
+
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
 

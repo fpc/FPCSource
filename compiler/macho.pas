@@ -54,10 +54,10 @@ type
 
 // mach/thread_status.h
 
-{$ifdef i386}  
+{$ifdef i386}
 
 {$endif i386}
-  
+
 // mach/machine.h
 
 type
@@ -74,8 +74,8 @@ const
   CPU_STATE_NICE		= 3;
 
   {* Capability bits used in the definition of cpu_type. }
-  CPU_ARCH_MASK	  = $ff000000;	{ mask for architecture bits } 
-  CPU_ARCH_ABI64	= $01000000;	{ 64 bit ABI } 
+  CPU_ARCH_MASK	  = $ff000000;	{ mask for architecture bits }
+  CPU_ARCH_ABI64	= $01000000;	{ 64 bit ABI }
 
   {	Machine types known by all. }
 
@@ -97,7 +97,7 @@ const
 
   CPU_TYPE_POWERPC	  = 18;
   CPU_TYPE_POWERPC64	= CPU_TYPE_POWERPC or CPU_ARCH_ABI64;
-  
+
 {*
  *	Machine subtypes (these are defined here, instead of in a machine
  *	dependent directory, so that any program can get all definitions
@@ -137,7 +137,7 @@ const
  *	ID assigned by DEC available via the SID register).
  *}
 
- 	CPU_SUBTYPE_VAX_ALL	= 0; 
+ 	CPU_SUBTYPE_VAX_ALL	= 0;
   CPU_SUBTYPE_VAX780	= 1;
   CPU_SUBTYPE_VAX785	= 2;
   CPU_SUBTYPE_VAX750	= 3;
@@ -157,7 +157,7 @@ const
  * The subtype definitions here are unusual for historical reasons.
  * NeXT used to consider 68030 code as generic 68000 code.  For
  * backwards compatability:
- * 
+ *
  *	CPU_SUBTYPE_MC68030 symbol has been preserved for source code
  *	compatability.
  *
@@ -196,12 +196,12 @@ const
   CPU_SUBTYPE_ITANIUM_2		   = 11 + (1 shl 4);
   CPU_SUBTYPE_XEON				   = 12 + (0 shl 4);
   CPU_SUBTYPE_XEON_MP			   = 12 + (1 shl 4);
-                                  
+
   CPU_SUBTYPE_INTEL_FAMILY_MAX	=  15;
   CPU_SUBTYPE_INTEL_MODEL_ALL	= 0;
 
   {* X86 subtypes. *}
- 
+
   CPU_SUBTYPE_X86_ALL		 = 3;
   CPU_SUBTYPE_X86_64_ALL = 3;
   CPU_SUBTYPE_X86_ARCH1	 = 4;
@@ -226,7 +226,7 @@ const
 
 {*
  *	HPPA subtypes for Hewlett-Packard HP-PA family of
- *	risc processors. Port by NeXT to 700 series. 
+ *	risc processors. Port by NeXT to 700 series.
  *}
 
  	CPU_SUBTYPE_HPPA_ALL		= 0;
@@ -234,7 +234,7 @@ const
   CPU_SUBTYPE_HPPA_7100LC	= 1;
 
   {* MC88000 subtypes. *}
-  
+
  	CPU_SUBTYPE_MC88000_ALL	= 0;
   CPU_SUBTYPE_MC88100	    = 1;
   CPU_SUBTYPE_MC88110	    = 2;
@@ -247,7 +247,7 @@ const
   CPU_SUBTYPE_I860_860	=  1;
 
   {* PowerPC subtypes *}
-  
+
   CPU_SUBTYPE_POWERPC_ALL		= 0;
   CPU_SUBTYPE_POWERPC_601		= 1;
   CPU_SUBTYPE_POWERPC_602		= 2;
@@ -292,15 +292,15 @@ const
   CPUFAMILY_ARM_9      = $e73283ae;
   CPUFAMILY_ARM_11     = $8ff620d8;
   CPUFAMILY_ARM_XSCALE = $53b005f5;
-  
+
   CPUFAMILY_INTEL_YONAH	  = CPUFAMILY_INTEL_6_14;
   CPUFAMILY_INTEL_MEROM	  = CPUFAMILY_INTEL_6_15;
   CPUFAMILY_INTEL_PENRYN	= CPUFAMILY_INTEL_6_23;
   CPUFAMILY_INTEL_NEHALEM	= CPUFAMILY_INTEL_6_26;
-  
+
   CPUFAMILY_INTEL_CORE	 = CPUFAMILY_INTEL_6_14;
   CPUFAMILY_INTEL_CORE2	 = CPUFAMILY_INTEL_6_15;
-  
+
 // mach/vm_prot.h
 type
   vm_prot_t = Integer;
@@ -357,7 +357,7 @@ const
 
   VM_PROT_WANTS_COPY = $10;
 
-  
+
 { Constant for the magic field of the mach_header (32-bit architectures)  the mach magic number  }
 
 const
@@ -436,7 +436,7 @@ const
 
 const
   { Constants for the flags field of the mach_header  }
-  
+
   MH_NOUNDEFS     = $1;   { the object file has no undefined references  }
   MH_INCRLINK     = $2;   { the object file is the output of an  incremental link against a base file and can't be link edited again  }
   MH_DYLDLINK     = $4;   { the object file is input for the dynamic linker and can't be staticly link edited again  }
@@ -566,21 +566,21 @@ type
    * section structures directly follow the segment command and their size is
    * reflected in cmdsize.
     }
-  
-  { for 32-bit architectures  }            
-  
-  segment_command = record           
-    cmd      : uint32_t;             { LC_SEGMENT  }                          
-    cmdsize  : uint32_t;             { includes sizeof section structs  }     
-    segname  : array[0..15] of char; { segment name  }                        
-    vmaddr   : uint32_t;             { memory address of this segment  }      
-    vmsize   : uint32_t;             { memory size of this segment  }         
-    fileoff  : uint32_t;             { file offset of this segment  }         
-    filesize : uint32_t;             { amount to map from the file  }         
-    maxprot  : vm_prot_t;            { maximum VM protection  }               
-    initprot : vm_prot_t;            { initial VM protection  }               
-    nsects   : uint32_t;             { number of sections in segment  }       
-    flags    : uint32_t;             { flags  }                               
+
+  { for 32-bit architectures  }
+
+  segment_command = record
+    cmd      : uint32_t;             { LC_SEGMENT  }
+    cmdsize  : uint32_t;             { includes sizeof section structs  }
+    segname  : array[0..15] of char; { segment name  }
+    vmaddr   : uint32_t;             { memory address of this segment  }
+    vmsize   : uint32_t;             { memory size of this segment  }
+    fileoff  : uint32_t;             { file offset of this segment  }
+    filesize : uint32_t;             { amount to map from the file  }
+    maxprot  : vm_prot_t;            { maximum VM protection  }
+    initprot : vm_prot_t;            { initial VM protection  }
+    nsects   : uint32_t;             { number of sections in segment  }
+    flags    : uint32_t;             { flags  }
   end;
   psegment_command = ^segment_command;
 
@@ -591,19 +591,19 @@ type
    * command and their size is reflected in cmdsize.
     }
   { for 64-bit architectures  }
-  
+
   segment_command_64 = record
-    cmd      : uint32_t;              { LC_SEGMENT_64  }                      
+    cmd      : uint32_t;              { LC_SEGMENT_64  }
     cmdsize  : uint32_t;              { includes sizeof section_64 structs  }
-    segname  : array[0..15] of char;  { segment name  }                      
-    vmaddr   : uint64_t;              { memory address of this segment  }    
-    vmsize   : uint64_t;              { memory size of this segment  }       
-    fileoff  : uint64_t;              { file offset of this segment  }       
-    filesize : uint64_t;              { amount to map from the file  }       
-    maxprot  : vm_prot_t;             { maximum VM protection  }             
-    initprot : vm_prot_t;             { initial VM protection  }             
-    nsects   : uint32_t;              { number of sections in segment  }     
-    flags    : uint32_t;              { flags  }                             
+    segname  : array[0..15] of char;  { segment name  }
+    vmaddr   : uint64_t;              { memory address of this segment  }
+    vmsize   : uint64_t;              { memory size of this segment  }
+    fileoff  : uint64_t;              { file offset of this segment  }
+    filesize : uint64_t;              { amount to map from the file  }
+    maxprot  : vm_prot_t;             { maximum VM protection  }
+    initprot : vm_prot_t;             { initial VM protection  }
+    nsects   : uint32_t;              { number of sections in segment  }
+    flags    : uint32_t;              { flags  }
   end;
   psegment_command_64 = ^segment_command_64;
 
@@ -616,18 +616,18 @@ const
 
   SG_FVMLIB = $2;  { this segment is the VM that is allocated by }
                    {	a fixed VM library, for overlap checking in }
-                   { the link editor  }                           
-   
+                   { the link editor  }
+
   SG_NORELOC = $4; { this segment has nothing that was relocated }
                    { in it and nothing relocated to it, that is  }
                    { it maybe safely replaced without relocation }
-     
+
   SG_PROTECTED_VERSION_1 = $8;  { This segment is protected.  If the    }
                                 {	segment starts at file offset 0, the  }
                                 {	first page of the segment is not      }
                                 {	protected.  All other pages of the    }
                                 {	segment are protected.                }
-     
+
   {* A segment is made up of zero or more sections.  Non-MH_OBJECT files have
    * all of their segments with the proper sections in each, and padded to the
    * specified segment alignment when produced by the link editor.  The first
@@ -730,9 +730,9 @@ const
   S_LAZY_DYLIB_SYMBOL_POINTERS = $10; { section with only lazy symbol pointers to lazy loaded dylibs  }
 
   {* Constants for the section attributes part of the flags field of a section structure.  }
-  
+
   SECTION_ATTRIBUTES_USR     = $ff000000; { User setable attributes  }
-  
+
   S_ATTR_PURE_INSTRUCTIONS   = $80000000; { section contains only true machine instructions  }
   S_ATTR_NO_TOC              = $40000000; { section contains coalesced symbols }
                                           { that are not to be in a ranlib table of contents  }
@@ -741,7 +741,7 @@ const
   S_ATTR_NO_DEAD_STRIP       = $10000000; { no dead stripping  }
   S_ATTR_LIVE_SUPPORT        = $08000000; { blocks are live if they reference live blocks  }
   S_ATTR_SELF_MODIFYING_CODE = $04000000; { Used with i386 code stubs written on by dyld  }
-  
+
   {
    * If a segment contains any sections marked with S_ATTR_DEBUG then all
    * sections in that segment must have this attribute.  No section other than
@@ -909,10 +909,10 @@ type
    * Zero or more sub_umbrella frameworks may be use by an umbrella framework.
    * The name of a sub_umbrella framework is recorded in the following structure.
     }
-  
+
   sub_umbrella_command = record
-    cmd           : uint32_t; { LC_SUB_UMBRELLA  }                
-    cmdsize       : uint32_t; { includes sub_umbrella string  }   
+    cmd           : uint32_t; { LC_SUB_UMBRELLA  }
+    cmdsize       : uint32_t; { includes sub_umbrella string  }
     sub_umbrella  : lc_str;   { the sub_umbrella framework name  }
   end;
 
@@ -929,11 +929,11 @@ type
    * shared libraries may be use by an umbrella framework or (or dynamic library).
    * The name of a sub_library framework is recorded in the following structure.
    * For example /usr/lib/libobjc_profile.A.dylib would be recorded as "libobjc".}
-   
+
   sub_library_command = record
-    cmd         : uint32_t; { LC_SUB_LIBRARY  }             
+    cmd         : uint32_t; { LC_SUB_LIBRARY  }
     cmdsize     : uint32_t; { includes sub_library string  }
-    sub_library : lc_str;   { the sub_library name  }       
+    sub_library : lc_str;   { the sub_library name  }
   end;
   psub_library_command = ^sub_library_command;
 
@@ -944,29 +944,29 @@ type
    * which are not (0) from the library.  The bit for module 0 is the low bit
    * of the first byte.  So the bit for the Nth module is:
    * (linked_modules[N/8] >> N%8) & 1 }
-  
+
   prebound_dylib_command = record
-    cmd      : uint32_t;     { LC_PREBOUND_DYLIB  }           
-    cmdsize  : uint32_t;     { includes strings  }            
-    name     : lc_str;       { library's path name  }         
+    cmd      : uint32_t;     { LC_PREBOUND_DYLIB  }
+    cmdsize  : uint32_t;     { includes strings  }
+    name     : lc_str;       { library's path name  }
     nmodules : uint32_t;     { number of modules in library  }
     linked_modules : lc_str; { bit vector of linked modules  }
   end;
   pprebound_dylib_command = ^prebound_dylib_command;
-       
-       
+
+
   {* A program that uses a dynamic linker contains a dylinker_command to identify
    * the name of the dynamic linker (LC_LOAD_DYLINKER).  And a dynamic linker
    * contains a dylinker_command to identify the dynamic linker (LC_ID_DYLINKER).
    * A file can have at most one of these.}
-  
+
   dylinker_command = record
     cmd     : uint32_t; { LC_ID_DYLINKER or LC_LOAD_DYLINKER  }
-    cmdsize : uint32_t; { includes pathname string  }          
-    name    : lc_str;   { dynamic linker's path name  }        
+    cmdsize : uint32_t; { includes pathname string  }
+    name    : lc_str;   { dynamic linker's path name  }
   end;
   pdylinker_command = ^dylinker_command;
-  
+
   {
    * Thread commands contain machine-specific data structures suitable for
    * use in the thread state primitives.  The machine specific data structures
@@ -988,14 +988,14 @@ type
    * created (based on the shell's limit for the stack size).  Command arguments
    * and environment variables are copied onto that stack.
     }
-  
+
   thread_command = record
-    cmd     : uint32_t; { LC_THREAD or  LC_UNIXTHREAD  }                                        
-    cmdsize : uint32_t; { total size of this command  }                                  
-    flavor  : uint32_t; { uint32_t flavor		   flavor of thread state  }                 
-    count   : uint32_t; { uint32_t count		   count of longs in thread state  }         
+    cmd     : uint32_t; { LC_THREAD or  LC_UNIXTHREAD  }
+    cmdsize : uint32_t; { total size of this command  }
+    flavor  : uint32_t; { uint32_t flavor		   flavor of thread state  }
+    count   : uint32_t; { uint32_t count		   count of longs in thread state  }
                         { struct XXX_thread_state state   thread state for this flavor  }
-                        { ...  }                                                         
+                        { ...  }
   end;
   pthread_command = ^thread_command;
 
@@ -1006,10 +1006,10 @@ type
    * and then calls it.  This gets called before any module initialization
    * routines (used for C++ static constructors) in the library.  }
   { for 32-bit architectures  }
-  
+
   routines_command = record
-    cmd     : uint32_t;       { LC_ROUTINES  }                      
-    cmdsize : uint32_t;       { total size of this command  }       
+    cmd     : uint32_t;       { LC_ROUTINES  }
+    cmdsize : uint32_t;       { total size of this command  }
     init_address : uint32_t;  { address of initialization routine  }
     init_module  : uint32_t;  { index into the module table that the init routine is defined in }
     reserved1 : uint32_t;
@@ -1023,13 +1023,13 @@ type
 
   { * The 64-bit routines command.  Same use as above. }
   { for 64-bit architectures  }
-  
+
   routines_command_64 = record
-    cmd     : uint32_t;         { LC_ROUTINES_64  }                   
-    cmdsize : uint32_t;         { total size of this command  }       
+    cmd     : uint32_t;         { LC_ROUTINES_64  }
+    cmdsize : uint32_t;         { total size of this command  }
     init_address : uint64_t;    { address of initialization routine  }
-    init_module  : uint64_t;    { index into the module table that  } 
-                                {  the init routine is defined in  }  
+    init_module  : uint64_t;    { index into the module table that  }
+                                {  the init routine is defined in  }
     reserved1 : uint64_t;
     reserved2 : uint64_t;
     reserved3 : uint64_t;
@@ -1045,12 +1045,12 @@ type
     }
 
   symtab_command = record
-    cmd     : uint32_t;  { LC_SYMTAB  }                       
-    cmdsize : uint32_t;  { sizeof(struct symtab_command)  }   
-    symoff  : uint32_t;  { symbol table offset  }             
-    nsyms   : uint32_t;  { number of symbol table entries  }  
-    stroff  : uint32_t;  { string table offset  }             
-    strsize : uint32_t;  { string table size in bytes  }      
+    cmd     : uint32_t;  { LC_SYMTAB  }
+    cmdsize : uint32_t;  { sizeof(struct symtab_command)  }
+    symoff  : uint32_t;  { symbol table offset  }
+    nsyms   : uint32_t;  { number of symbol table entries  }
+    stroff  : uint32_t;  { string table offset  }
+    strsize : uint32_t;  { string table size in bytes  }
   end;
   psymtab_command = ^symtab_command;
 
@@ -1284,13 +1284,13 @@ type
 
   {* The twolevel_hints_command contains the offset and number of hints in the
    * two-level namespace lookup hints table.}
- 
+
 type
   twolevel_hints_command = record
-    cmd     : uint32_t; { LC_TWOLEVEL_HINTS  }                    
+    cmd     : uint32_t; { LC_TWOLEVEL_HINTS  }
     cmdsize : uint32_t; { sizeof(struct twolevel_hints_command)  }
-    offset  : uint32_t; { offset to the hint table  }             
-    nhints  : uint32_t; { number of hints in the hint table  }    
+    offset  : uint32_t; { offset to the hint table  }
+    nhints  : uint32_t; { number of hints in the hint table  }
   end;
 
   {
@@ -1337,62 +1337,62 @@ type
    * cksum field of this load command in the output file.  If when the prebinding
    * is re-done and the cksum field is non-zero it is left unchanged from the
    * input file. }
-   
+
   prebind_cksum_command = record
-    cmd     : uint32_t; { LC_PREBIND_CKSUM  }                    
+    cmd     : uint32_t; { LC_PREBIND_CKSUM  }
     cmdsize : uint32_t; { sizeof(struct prebind_cksum_command)  }
-    cksum   : uint32_t; { the check sum or zero  }               
+    cksum   : uint32_t; { the check sum or zero  }
   end;
   pprebind_cksum_command = ^prebind_cksum_command;
-  
-       
+
+
   {* The uuid load command contains a single 128-bit unique random number that
    * identifies an object produced by the static link editor. }
 
-  uuid_command = record                
-    cmd     : uint32_t;                { LC_UUID  }                    
+  uuid_command = record
+    cmd     : uint32_t;                { LC_UUID  }
     cmdsize : uint32_t;                { sizeof(struct uuid_command)  }
-    uuid    : array[0..15] of uint8_t; { the 128-bit uuid  }           
+    uuid    : array[0..15] of uint8_t; { the 128-bit uuid  }
   end;
   puuid_command = ^uuid_command;
-  
-  
+
+
   {* The rpath_command contains a path which at runtime should be added to
    * the current run path used to find @rpath prefixed dylibs.}
-    
+
   rpath_command = record
-    cmd     : uint32_t; { LC_RPATH  }               
-    cmdsize : uint32_t; { includes string  }        
+    cmd     : uint32_t; { LC_RPATH  }
+    cmdsize : uint32_t; { includes string  }
     path    : lc_str;   { path to add to run path  }
   end;
   prpath_command = ^rpath_command;
 
-  
+
   {* The linkedit_data_command contains the offsets and sizes of a blob
    * of data in the __LINKEDIT segment.}
-  
+
   linkedit_data_command = record
     cmd      : uint32_t; { LC_CODE_SIGNATURE or LC_SEGMENT_SPLIT_INFO  }
-    cmdsize  : uint32_t; { sizeof(struct linkedit_data_command)  }      
-    dataoff  : uint32_t; { file offset of data in __LINKEDIT segment  } 
-    datasize : uint32_t; { file size of data in __LINKEDIT segment   }  
+    cmdsize  : uint32_t; { sizeof(struct linkedit_data_command)  }
+    dataoff  : uint32_t; { file offset of data in __LINKEDIT segment  }
+    datasize : uint32_t; { file size of data in __LINKEDIT segment   }
   end;
   plinkedit_data_command = ^linkedit_data_command;
-  
-  
+
+
   {* The encryption_info_command contains the file offset and size of an
    * of an encrypted segment.}
-  
+
   encryption_info_command = record
-    cmd       : uint32_t; { LC_ENCRYPTION_INFO  }                               
-    cmdsize   : uint32_t; { sizeof(struct encryption_info_command)  }           
-    cryptoff  : uint32_t; { file offset of encrypted range  }                   
-    cryptsize : uint32_t; { file size of encrypted range  }                     
+    cmd       : uint32_t; { LC_ENCRYPTION_INFO  }
+    cmdsize   : uint32_t; { sizeof(struct encryption_info_command)  }
+    cryptoff  : uint32_t; { file offset of encrypted range  }
+    cryptsize : uint32_t; { file size of encrypted range  }
     cryptid   : uint32_t; { which enryption system, 0 means not-encrypted yet  }
   end;
   pencryption_info_command = ^encryption_info_command;
-  
-  
+
+
   {* The symseg_command contains the offset and size of the GNU style
    * symbol table information as described in the header file <symseg.h>.
    * The symbol roots of the symbol segments must also be aligned properly
@@ -1400,12 +1400,12 @@ type
    * multiple of a 4 bytes translates to the length field of the symbol
    * roots also being a multiple of a long.  Also the padding must again be
    * zeroed. (THIS IS OBSOLETE and no longer supported). }
-  
+
   symseg_command = record
-    cmd     : uint32_t; { LC_SYMSEG  }                    
+    cmd     : uint32_t; { LC_SYMSEG  }
     cmdsize : uint32_t; { sizeof(struct symseg_command)  }
-    offset  : uint32_t; { symbol segment offset  }        
-    size    : uint32_t; { symbol segment size in bytes  } 
+    offset  : uint32_t; { symbol segment offset  }
+    size    : uint32_t; { symbol segment size in bytes  }
   end;
   psymseg_command = ^symseg_command;
 
@@ -1414,28 +1414,28 @@ type
    * ident_command structure.  The strings are null terminated and the size of
    * the command is padded out with zero bytes to a multiple of 4 bytes/
    * (THIS IS OBSOLETE and no longer supported).}
-  
+
   ident_command = record
-    cmd     : uint32_t; { LC_IDENT  }                        
+    cmd     : uint32_t; { LC_IDENT  }
     cmdsize : uint32_t; { strings that follow this command  }
   end;
   pident_command = ^ident_command;
-  
-  
+
+
   {* The fvmfile_command contains a reference to a file to be loaded at the
    * specified virtual address.  (Presently, this command is reserved for
    * internal use.  The kernel ignores this command when loading a program into
    * memory).  }
-  
+
   fvmfile_command = record
-    cmd         : uint32_t;  { LC_FVMFILE  }              
+    cmd         : uint32_t;  { LC_FVMFILE  }
     cmdsize     : uint32_t;  { includes pathname string  }
-    name        : lc_str;    { files pathname  }          
-    header_addr : uint32_t;  { files virtual address  }   
+    name        : lc_str;    { files pathname  }
+    header_addr : uint32_t;  { files virtual address  }
   end;
   pfvmfile_command = ^fvmfile_command;
 
-  
+
   {* This header file describes the structures of the file format for "fat"
    * architecture specific file (wrapper design).  At the begining of the file
    * there is one fat_header structure followed by a number of fat_arch

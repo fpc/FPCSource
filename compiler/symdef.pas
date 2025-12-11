@@ -2955,7 +2955,7 @@ implementation
         case stringtype of
           st_shortstring:
             result:=cshortstringtype;
-          { st_longstring is currently not supported but 
+          { st_longstring is currently not supported but
             when it is this case will need to be supplied }
           st_longstring:
             internalerror(2021040801);
@@ -5214,7 +5214,7 @@ implementation
     procedure tabstractrecorddef.apply_rtti_directive(dir: trtti_directive);
       begin
         { records don't support the inherit clause but shouldn't
-          give an error either if used (for Delphi compatibility), 
+          give an error either if used (for Delphi compatibility),
           so we silently enforce the clause as explicit. }
         rtti.clause:=rtc_explicit;
         rtti.options:=dir.options;
@@ -9714,7 +9714,7 @@ implementation
        bool8type:=nil;
        bool16type:=nil;
        bool32type:=nil;
-       bool64type:=nil;                
+       bool64type:=nil;
 {$ifdef llvm}
        llvmbool1type:=nil;             { LLVM i1 type }
 {$endif llvm}

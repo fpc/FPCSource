@@ -464,7 +464,7 @@ uses
          The value of this constant is equal to the constant
          PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
-{$ifdef RISCV64}	  
+{$ifdef RISCV64}
       std_param_align = 8;
 {$endif RISCV64}
 {$ifdef RISCV32}

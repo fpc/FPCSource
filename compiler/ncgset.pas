@@ -1329,7 +1329,7 @@ implementation
                               genjumptable(labels,min_label.svalue,max_label.svalue)
                             { value has been determined on an i7-4770 using a random case with random values
                               if more values are known, this can be handled depending on the target CPU
-                              
+
                               Testing on a Core 2 Duo E6850 as well as on a Raspi3 showed also, that 64 is
                               a good value }
                             else if labelcnt>=64 then

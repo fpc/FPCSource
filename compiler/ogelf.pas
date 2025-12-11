@@ -624,7 +624,7 @@ implementation
 
 
     procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
-      type 
+      type
         multi = record
           case integer of
           0 : (ba : array[0..sizeof(aint)-1] of byte);

@@ -61,7 +61,7 @@ implementation
       begin
         max_linear_list:=3;
       end;
-    
+
 
     function trvcasenode.has_jumptable : boolean;
       begin

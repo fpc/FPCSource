@@ -431,7 +431,7 @@ end;
 
 procedure tppufile.putdata(const b;len:integer);
 {$ifdef Test_Double_checksum}
-  var 
+  var
     pb : pbyte;
     ind : integer;
 {$endif Test_Double_checksum}

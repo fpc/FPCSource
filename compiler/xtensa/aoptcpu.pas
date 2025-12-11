@@ -151,7 +151,7 @@ Implementation
 
       p := taicpu(hp);
       if not (p.ops >0) then
-        exit; 
+        exit;
       case p.opcode of
         A_B,
         A_SSI,A_SSIU,A_SSX,A_SSXU,

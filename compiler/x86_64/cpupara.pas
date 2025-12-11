@@ -478,7 +478,7 @@ unit cpupara;
                 Exit(0);
               end;
           end;
-		
+
         (* Final merger cleanup.  *)
         (* The first one must never be X86_64_SSEUP_CLASS or
            X86_64_X87UP_CLASS.  *)
@@ -752,7 +752,7 @@ unit cpupara;
 
       end;
 
-	
+
     function classify_record(calloption: tproccalloption; def: tdef; parentdef: tdef; varspez: tvarspez; var classes: tx64paraclasses; byte_offset: aint): longint;
       var
         vs: tfieldvarsym;
@@ -908,7 +908,7 @@ unit cpupara;
 	  rounded_offset := byte_offset mod 8
         else
           rounded_offset := byte_offset;
-		
+
         case def.typ of
           orddef,
           enumdef,

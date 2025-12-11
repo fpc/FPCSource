@@ -327,7 +327,7 @@ unit cg64f32;
           end;
         tmpref := ref;
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs
           to reduce spilling and produce a better code. }
         if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
           begin
@@ -373,7 +373,7 @@ unit cg64f32;
           end;
         tmpref := ref;
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
-        { Preload base and index to a separate temp register for 8 & 16 bit CPUs 
+        { Preload base and index to a separate temp register for 8 & 16 bit CPUs
           to reduce spilling and produce a better code. }
         if (tmpref.base<>NR_NO) and (getsupreg(tmpref.base)>=first_int_imreg) then
           begin

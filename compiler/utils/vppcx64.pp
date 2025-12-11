@@ -114,7 +114,7 @@ begin
   if (argv0 <> '') then
     fsplit(argv0,Dir,Name,Ext);
 {$endif}
-  
+
   if (length(Name)>3) and (UpCase(Name[1])='V') then
     CompilerName:=Copy(Name,2,255)+Ext
   else

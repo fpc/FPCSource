@@ -648,7 +648,7 @@ unit rgobj;
           i8086 where indexed memory access instructions allow only
           few registers as arguments and additionally the calling convention
           provides no general purpose volatile registers.
-          
+
           Also spill registers which have the initial memory location
           and are used only once. This allows to access the memory location
           directly, without preloading it to a register.
@@ -1635,9 +1635,9 @@ unit rgobj;
         to get too much conflicts with the result that the spilling code
         will never converge (PFV)
 
-        We need a special processing for nodes with the ri_spill_helper flag set. 
+        We need a special processing for nodes with the ri_spill_helper flag set.
         These nodes contain a value of a previously spilled node.
-        We need to avoid another spilling of ri_spill_helper nodes, since it will 
+        We need to avoid another spilling of ri_spill_helper nodes, since it will
         likely lead to an endless loop and the register allocation will fail.
       }
       maxlength:=0;
@@ -2569,7 +2569,7 @@ unit rgobj;
                   begin
                     if (getregtype(reg)=regtype) then
                       begin
-                        {A register allocation of the spilled register (and all coalesced registers) 
+                        {A register allocation of the spilled register (and all coalesced registers)
                          must be removed.}
                         supreg:=get_alias(getsupreg(reg));
                         if supregset_in(regs_to_spill_set,supreg) then

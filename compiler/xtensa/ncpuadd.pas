@@ -167,7 +167,7 @@ interface
         location_reset_jump(location,truelab,falselab);
 
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(OS_INT),true);
-                                            
+
         if is_signed(left.resultdef) then
           case nodetype of
             equaln:   cond:=OC_EQ;

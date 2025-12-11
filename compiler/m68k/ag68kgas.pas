@@ -266,7 +266,7 @@ interface
               end;
           top_const:
             getopstr_jmp:=tostr(o.val);
-          else 
+          else
             internalerror(200405022);
         end;
       end;

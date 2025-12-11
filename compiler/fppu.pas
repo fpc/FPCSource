@@ -1666,17 +1666,17 @@ var
                begin
                  dispose(ppufile.interface_crc_array);
                  ppufile.interface_crc_array:=interface_crc_array;
-               end; 
+               end;
              if assigned(ppufile.implementation_crc_array) then
                begin
                  dispose(ppufile.implementation_crc_array);
                  ppufile.implementation_crc_array:=implementation_crc_array;
-               end; 
+               end;
              if assigned(ppufile.indirect_crc_array) then
                begin
                  dispose(ppufile.indirect_crc_array);
                  ppufile.indirect_crc_array:=indirect_crc_array;
-               end; 
+               end;
            end;
          if FileExists(ppufilename+'.IMP',false) then
            RenameFile(ppufilename+'.IMP',ppufilename+'.IMP-old');

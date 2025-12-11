@@ -72,7 +72,7 @@ unit agppcgas;
     topstr = string[4];
 
     function branchmode(o: tasmop): topstr;
-    function cond2str(op: tasmop; c: tasmcond): string;  
+    function cond2str(op: tasmop; c: tasmcond): string;
 
   implementation
 
@@ -515,11 +515,11 @@ unit agppcgas;
                 hp:=tai(current_asmdata.asmlists[hal].First);
                 while assigned(hp) do
                   begin
-                    case hp.typ of 
+                    case hp.typ of
                      ait_align :
                        begin
                          if tai_align_abstract(hp).aligntype > max_alignment[cur_sectype] then
-                           begin 
+                           begin
                              max_alignment[cur_sectype]:=tai_align_abstract(hp).aligntype;
                              current_asmdata.asmlists[hal].InsertAfter(tai_comment.Create(strpnew('Alignment put to '+tostr(tai_align_abstract(hp).aligntype))),hp);
                            end;
@@ -573,7 +573,7 @@ unit agppcgas;
         { make sure we always have a code and toc section,
           the linker expects that }
         writer.AsmWriteln(#9'.csect .text[PR],'+sectionalignment_aix(sec_code,max_alignment[sec_code]));
-        { set _text_s, to be used by footer below } 
+        { set _text_s, to be used by footer below }
         writer.AsmWriteln(#9'_text_s:');
         writer.AsmWriteln(#9'.toc');
       end;

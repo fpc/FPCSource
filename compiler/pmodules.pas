@@ -2966,7 +2966,7 @@ type
 
          { global switches are read, so further changes aren't allowed }
          curr.in_global:=false;
-  
+
          { system unit is loaded, now insert feature defines }
          for feature:=low(tfeature) to high(tfeature) do
            if feature in features then

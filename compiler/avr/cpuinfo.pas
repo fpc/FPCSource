@@ -487,7 +487,7 @@ Const
         (
         controllertypestr:'AVRSIM';
         controllerunitstr:'AVRSIM';
-        
+
         cputype: cpu_avr5;
         fputype: fpu_soft;
         flashbase:0;

@@ -1561,9 +1561,9 @@ implementation
 
     function tprocsym.could_be_implicitly_specialized:boolean;
       begin
-        result:=(m_implicit_function_specialization in current_settings.modeswitches) and 
+        result:=(m_implicit_function_specialization in current_settings.modeswitches) and
                 (sp_generic_dummy in symoptions) and
-                assigned(genprocsymovlds);          
+                assigned(genprocsymovlds);
       end;
 
 {****************************************************************************

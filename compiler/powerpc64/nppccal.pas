@@ -85,7 +85,7 @@ function tppccallnode.pass_1: tnode;
 
 procedure tppccallnode.do_syscall;
 begin
-  { no MorphOS style syscalls supported. Only implemented to avoid abstract 
+  { no MorphOS style syscalls supported. Only implemented to avoid abstract
    method not implemented compiler warning. }
   internalerror(2005120401);
 end;

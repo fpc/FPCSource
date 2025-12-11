@@ -165,7 +165,7 @@ const
     (id: 'void';     modes: []; flags: []),
     (id: '#imm';     modes: [OT_IMMEDIATE]; flags: []),
     (id: '#immq';    modes: [OT_IMMEDIATE]; flags: [OF_NOSIZE,OF_IMM_QUICK]),
-    (id: '#immregs'; modes: [OT_IMMEDIATE]; flags: [OF_NOSIZE]), 
+    (id: '#immregs'; modes: [OT_IMMEDIATE]; flags: [OF_NOSIZE]),
     (id: 'Dx';       modes: [OT_DATA]; flags: []),
     (id: 'Dx:Dx';    modes: [OT_DATA]; flags: [OF_DOUBLE_REG]),
     (id: 'Rx';       modes: [OT_DATA, OT_ADDR]; flags: []),

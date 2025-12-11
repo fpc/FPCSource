@@ -70,7 +70,7 @@ unit nrv64cnv;
     *****************************************************************************}
 
     function trv64typeconvnode.first_int_to_real: tnode;
-      begin                  
+      begin
         if (cs_fp_emulation in current_settings.moduleswitches) then
           result:=inherited first_int_to_real
         { converting a 64bit integer to a float requires a helper }

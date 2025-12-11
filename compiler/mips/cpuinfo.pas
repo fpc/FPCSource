@@ -62,8 +62,8 @@ Const
      pocall_cppdecl
    ];
 
-   { cpu strings as accepted by 
-     GNU assembler in -arch=XXX option 
+   { cpu strings as accepted by
+     GNU assembler in -arch=XXX option
      this ilist needs to be uppercased }
    cputypestr : array[tcputype] of string[8] = ('',
      { cpu_mips1        } 'MIPS1',

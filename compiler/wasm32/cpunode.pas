@@ -32,7 +32,7 @@ implementation
   uses
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncgadd, ncgcal,ncgmat,ncginl,
-    
+
     nwasmbas,nwasmadd,nwasmcal,nwasmmat,nwasmflw,nwasmcnv,nwasmset,nwasminl,nwasmld,
     nwasmmem,
     { these are not really nodes }

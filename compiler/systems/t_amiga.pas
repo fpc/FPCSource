@@ -89,7 +89,7 @@ end;
 
 procedure TLinkerAmiga.SetAmigaPPCInfo;
 begin
-  with Info do 
+  with Info do
    begin
     if not UseVLink then
      begin

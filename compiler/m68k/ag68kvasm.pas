@@ -108,7 +108,7 @@ unit ag68kvasm;
           internalerror(2016052601);
         end;
 
-        if (target_info.system = system_m68k_amiga) then 
+        if (target_info.system = system_m68k_amiga) then
           begin
             Replace(result,'$ASM',maybequoted(ScriptFixFileName(Unix2AmigaPath(AsmFileName))));
             Replace(result,'$OBJ',maybequoted(ScriptFixFileName(Unix2AmigaPath(ObjFileName))));

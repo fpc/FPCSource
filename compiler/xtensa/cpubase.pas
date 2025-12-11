@@ -188,7 +188,7 @@ unit cpubase;
 
     const
       cond2str : array[TAsmCond] of string[4]=('',
-        'eq','ne',                         
+        'eq','ne',
         'ge','lt','geu','ltu',
         'any','none','all','nall','bc','bs','bci','bsi',
         'eqz','nez','ltz','gez',

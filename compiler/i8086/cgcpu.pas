@@ -2394,7 +2394,7 @@ unit cgcpu;
         var
           ref : treference;
         begin
-          if sp_moved then 
+          if sp_moved then
             exit;
           if not(pi_has_open_array_parameter in current_procinfo.flags) then
             exit;
@@ -2514,7 +2514,7 @@ unit cgcpu;
         a_load_loc_reg(list,OS_INT,lenloc,NR_DI);
         list.concat(Taicpu.op_reg(A_INC,S_W,NR_DI));
         { Now DI contains (high+1). }
-	
+
         include(current_procinfo.flags, pi_has_open_array_parameter);
 
         { special case handling for elesize=2:

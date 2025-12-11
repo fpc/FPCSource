@@ -607,7 +607,7 @@ unit cpubase;
 
 {$push}
 { Disable range and overflow checking here }
-{$R-}{$Q-}        
+{$R-}{$Q-}
     function is_thumb32_imm(d: aint): boolean;
       var
         t : aint;
@@ -641,14 +641,14 @@ unit cpubase;
               end;
           end;
       end;
-    
+
     function is_continuous_mask(d : aword;var lsb, width: byte) : boolean;
       var
         msb : byte;
       begin
         lsb:=BsfDword(d);
         msb:=BsrDword(d);
-        
+
         width:=msb-lsb+1;
         result:=(lsb<>255) and (msb<>255) and (aword(((1 shl (msb-lsb+1))-1) shl lsb) = d);
       end;

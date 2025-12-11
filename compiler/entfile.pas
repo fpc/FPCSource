@@ -1267,8 +1267,8 @@ end;
 
 {$ifndef FPC_HAS_TYPE_EXTENDED}
 {$ifdef FPC_SOFT_FPUX80}
-{ i8086,i386 and x86_64 normally have 80bit float type for 
-  entryreal, but this is not supported 
+{ i8086,i386 and x86_64 normally have 80bit float type for
+  entryreal, but this is not supported
   on CPUs without 80bit floats.
   Special code is required to handle this. }
 const

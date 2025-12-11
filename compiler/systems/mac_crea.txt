@@ -43,7 +43,7 @@ REQUEST ------------------------------------------------------------------------
 
 WEB CREATOR/FILE TYPE Registration Request
 ==========================================
-%UNIQUE REGISTRATION%: 
+%UNIQUE REGISTRATION%:
 %NAME%: Olle Raab
 %COMPANY%: Free Pascal Team
 %ADDRESS%: Vikingavägen 28 A
@@ -52,7 +52,7 @@ Sweden
 %TELEPHONE%: +46-46-120053
 %E-MAIL%: olle.raab@freepascal.org
 %PRODUCT NAME%: Free Pascal Compiler
-%DEVICE DRIVER%: 
+%DEVICE DRIVER%:
 %SIGNATURE (HEX)%: 46506173
 %END
 

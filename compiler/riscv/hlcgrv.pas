@@ -191,7 +191,7 @@ implementation
           op_onr12methodaddr;
         end
       else
-        begin                      
+        begin
           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,0,[]);
 
           tmpreg:=NR_X5;
@@ -219,7 +219,7 @@ implementation
 
   procedure thlcgriscv.g_external_wrapper(list: TAsmList; procdef: tprocdef; const wrappername, externalname: string; global: boolean);
     var
-      sym: tasmsymbol;   
+      sym: tasmsymbol;
       ai: taicpu;
       href: treference;
       tmpreg: TRegister;

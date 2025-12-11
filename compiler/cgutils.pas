@@ -74,7 +74,7 @@ unit cgutils;
          base,
          index       : tregister;
          refaddr     : trefaddr;
-         scalefactor : byte;     
+         scalefactor : byte;
 {$if defined(riscv32) or defined(riscv64)}
          symboldata  : tlinkedlistitem;
 {$endif riscv32/64}

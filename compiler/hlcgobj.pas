@@ -5202,7 +5202,7 @@ implementation
 {$else}
                { clear the whole register }
                mmreg:=newreg(R_MMREGISTER,getsupreg(tstaticvarsym(p).initialloc.register),R_SUBMMWHOLE);
-{$endif}             
+{$endif}
                a_opmm_reg_reg(TAsmList(arg),OP_XOR,tstaticvarsym(p).vardef, mmreg, mmreg,
                  { as we pass shuffle=nil, we have to pass a full register }
                  nil);

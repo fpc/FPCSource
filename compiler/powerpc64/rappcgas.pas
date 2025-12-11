@@ -111,11 +111,11 @@ begin
       else if upper(actasmpattern) = 'HIGHERA' then
         oper.opr.ref.refaddr := addr_highera
       else if upper(actasmpattern) = 'HIGHESTA' then
-        oper.opr.ref.refaddr := addr_highesta        
+        oper.opr.ref.refaddr := addr_highesta
       else if upper(actasmpattern) = 'HIGHER' then
         oper.opr.ref.refaddr := addr_higher
       else if upper(actasmpattern) = 'HIGHEST' then
-        oper.opr.ref.refaddr := addr_highest                
+        oper.opr.ref.refaddr := addr_highest
       else
         Message(asmr_e_invalid_reference_syntax);
 

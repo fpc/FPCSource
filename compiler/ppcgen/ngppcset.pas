@@ -61,7 +61,7 @@ implementation
     begin
       max_linear_list := 10;
     end;
-    
+
 
     function tgppccasenode.has_jumptable : boolean;
       begin

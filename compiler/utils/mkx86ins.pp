@@ -329,7 +329,7 @@ begin
 		  begin
                     dec(attopcode[0]);
                     attsuffix:='attsufMMS';
-		  end;	  
+		  end;
                 'X' :
                   begin
                     dec(attopcode[0]);

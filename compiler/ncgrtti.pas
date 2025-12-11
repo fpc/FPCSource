@@ -1760,7 +1760,7 @@ implementation
              defaultpacking,reqalign,
              targetinfos[target_info.system]^.alignment.recordalignmin);
            { store special terminator for init table for more optimal rtl operations
-             strictly related to RecordRTTI procedure in rtti.inc (directly 
+             strictly related to RecordRTTI procedure in rtti.inc (directly
              related to RTTIRecordRttiInfoToInitInfo function) }
            if rt=initrtti then
              tcb.emit_tai(Tai_const.Create_nil_dataptr,voidpointertype)
@@ -2571,7 +2571,7 @@ implementation
             end;
           recorddef :
             begin
-              { guarantee initrtti for any record for RTTI purposes 
+              { guarantee initrtti for any record for RTTI purposes
                 also for fpc_initialize, fpc_finalize }
               if (rt=fullrtti) then
                 begin
@@ -2591,7 +2591,7 @@ implementation
 
               if (rt=fullrtti) then
                 begin
-                  { guarantee initrtti for any object for RTTI purposes 
+                  { guarantee initrtti for any object for RTTI purposes
                     also for fpc_initialize, fpc_finalize }
                   if (tobjectdef(def).objecttype=odt_object) then
                     begin

@@ -177,7 +177,7 @@ unit optvirt;
       DEVIRT_SECTION_NAME = 'contextinsensitive_devirtualization';
 
    { *************************** tinheritancetreenode ************************* }
-    
+
     constructor tinheritancetreenode.create(_parent: tinheritancetreenode; _def: tobjectdef; _instantiated: boolean);
       begin
         fparent:=_parent;
@@ -223,7 +223,7 @@ unit optvirt;
     function tinheritancetreenode.maybeaddchild(_def: tobjectdef; _instantiated: boolean): tinheritancetreenode;
       begin
         { sanity check }
-        if assigned(_def.childof) then 
+        if assigned(_def.childof) then
           begin
             if (_def.childof<>def) then
               internalerror(2008092201);
@@ -277,7 +277,7 @@ unit optvirt;
         classrefdefs:=nil;
         inherited destroy;
       end;
-      
+
 
     function tinheritancetree.registerinstantiatedobjectdefrecursive(def: tobjectdef; instantiated: boolean): tinheritancetreenode;
       begin
@@ -376,7 +376,7 @@ unit optvirt;
 
 
     procedure tinheritancetree.foreachnodefromroot(root: tinheritancetreenode; proctocall: tinheritancetreecallback; arg: pointer);
-        
+
       procedure process(const node: tinheritancetreenode);
         var
          i: longint;
@@ -390,7 +390,7 @@ unit optvirt;
             else
               proctocall(node.childs[i],arg);
         end;
-        
+
       begin
         process(root);
       end;
@@ -414,7 +414,7 @@ unit optvirt;
             else
               proctocall(node.childs[i],arg);
         end;
-        
+
       begin
         process(froots);
       end;
@@ -461,7 +461,7 @@ unit optvirt;
               if { stop when this method does not exist in a parent }
                  (currnode.def.vmtentries.count<=i) then
                 break;
-              
+
               if not assigned(currnode.def.vmcallstaticinfo) then
                 currnode.def.vmcallstaticinfo:=allocmem(currnode.def.vmtentries.count*sizeof(tvmcallstatic));
               { if this method cannot be called, we can just mark it as

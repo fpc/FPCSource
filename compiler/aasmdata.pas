@@ -111,7 +111,7 @@ interface
          sp_guids,
          sp_paraloc
       );
-      
+
     const
       AsmListTypeStr : array[TAsmListType] of string[24] =(
         'al_begin',

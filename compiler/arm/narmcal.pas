@@ -79,7 +79,7 @@ implementation
 
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
     begin
-      if (realresdef.typ=floatdef) and 
+      if (realresdef.typ=floatdef) and
          (target_info.abi<>abi_eabihf) and
          (procdefinition.proccalloption<>pocall_hardfloat) and
          ((cs_fp_emulation in current_settings.moduleswitches) or

@@ -61,7 +61,7 @@ implementation
       begin
         max_linear_list:=10;
       end;
-    
+
 
     function taarch64casenode.has_jumptable: boolean;
       begin
@@ -281,7 +281,7 @@ implementation
         if target_info.system=system_aarch64_win64 then
           begin
             { For windows, it has to be in a data section otherwise an access violation
-              will occur, but also full 64-bit references to avoid problems with 
+              will occur, but also full 64-bit references to avoid problems with
               relative references }
             sectype:=sec_rodata;
             new_section(current_procinfo.aktlocaldata,sectype,lower(current_procinfo.procdef.mangledname),sizeof(aint));

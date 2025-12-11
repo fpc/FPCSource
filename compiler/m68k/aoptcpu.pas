@@ -292,7 +292,7 @@ unit aoptcpu;
               opstr:=opname(p);
               case taicpu(p).oper[0]^.typ of
                 top_reg:
-                  { do not optimize away FPU to INT to FPU reg moves. These are used for 
+                  { do not optimize away FPU to INT to FPU reg moves. These are used for
                     to-single-rounding on FPUs which have no FSMOVE/FDMOVE. (KB) }
                   if not ((taicpu(p).opcode = A_FMOVE) and
                     (getregtype(taicpu(p).oper[0]^.reg) <> getregtype(taicpu(p).oper[1]^.reg))) then
@@ -417,7 +417,7 @@ unit aoptcpu;
         (taicpu(next).oper[1]^.ref^.base=NR_A7) and
         (taicpu(next).oper[1]^.ref^.index=NR_NO) and
         (taicpu(next).oper[1]^.ref^.symbol=nil) and
-        (taicpu(next).oper[1]^.ref^.direction=dir_none) and 
+        (taicpu(next).oper[1]^.ref^.direction=dir_none) and
         not (current_settings.cputype in cpu_coldfire) then
         begin
           DebugMsg('Optimizer: LEA, MOVE(M) to MOVE(M) predecremented',p);
@@ -592,7 +592,7 @@ unit aoptcpu;
                 if (taicpu(p).oper[0]^.typ = top_realconst) then
                   begin
                     if (taicpu(p).oper[0]^.val_real = 0.0) then
-                      begin 
+                      begin
                         DebugMsg('Optimizer: FCMP #0.0 to FTST',p);
                         taicpu(p).opcode:=A_FTST;
                         taicpu(p).opsize:=S_FX;

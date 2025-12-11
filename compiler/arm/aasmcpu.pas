@@ -1658,7 +1658,7 @@ implementation
 
 {$push}
 { Disable range and overflow checking here }
-{$R-}{$Q-}        
+{$R-}{$Q-}
     procedure fix_invalid_imms(list: TAsmList);
       var
         curtai: tai;

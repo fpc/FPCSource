@@ -320,7 +320,7 @@ unit aoptcpu;
                 move $t9,$reg
                 jalr $t9
 
-                if $reg is nonvolatile, its value may be used after call 
+                if $reg is nonvolatile, its value may be used after call
                 and we cannot safely replace it with $t9 }
               if (opcode=A_MOVE) and
                  (taicpu(next).oper[0]^.reg=NR_R25) and
