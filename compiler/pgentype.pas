@@ -72,6 +72,7 @@ end;
 destructor tspecializationcontext.destroy;
 begin
   paramlist.free;
+  paramlist := nil;
   tfplist.FreeAndNilDisposing(poslist,TypeInfo(tfileposinfo));
   inherited destroy;
 end;

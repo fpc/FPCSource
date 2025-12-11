@@ -463,6 +463,7 @@ procedure flushpendingswitchesstate;
         pendingstate.nextmessagerecord:=nil;
       end;
     msgset.free;
+    msgset := nil;
     { process pending calling convention changes (calling x) }
     if pendingstate.nextcallingstr<>'' then
       begin

@@ -2530,6 +2530,7 @@ var
                       end;
                     finally
                       Cycle.Free;
+                      Cycle := nil;
                     end;
                     if assigned(hp2) then
                       Message2(unit_f_circular_unit_reference,callermodule.realmodulename^,hp.realmodulename^);

@@ -760,7 +760,9 @@ implementation
             result:=cnothingnode.create;
             // free unused nodes
             hloopvar.free;
+            hloopvar := nil;
             hloopbody.free;
+            hloopbody := nil;
             exit;
           end;
         { result is a block of statements }
@@ -941,7 +943,9 @@ implementation
               begin
                 result:=cerrornode.create;
                 hloopvar.free;
+                hloopvar := nil;
                 hloopbody.free;
+                hloopbody := nil;
                 MessagePos1(expr.fileinfo,parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
               end
             else
@@ -958,7 +962,9 @@ implementation
                 if result.nodetype=errorn then
                   begin
                     hloopvar.free;
+                    hloopvar := nil;
                     hloopbody.free;
+                    hloopbody := nil;
                   end;
               end
             { "for x in [] do ..." always results in a never executed loop body }
@@ -997,7 +1003,9 @@ implementation
                       begin
                         result:=cerrornode.create;
                         hloopvar.free;
+                        hloopvar := nil;
                         hloopbody.free;
+                        hloopbody := nil;
                         MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.typename);
                       end
                     else
@@ -1007,7 +1015,9 @@ implementation
                           begin
                             result:=cerrornode.create;
                             hloopvar.free;
+                            hloopvar := nil;
                             hloopbody.free;
+                            hloopbody := nil;
                             MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.typename);
                           end
                         else
@@ -1038,7 +1048,9 @@ implementation
                       begin
                         result:=cerrornode.create;
                         hloopvar.free;
+                        hloopvar := nil;
                         hloopbody.free;
+                        hloopbody := nil;
                         MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.typename);
                       end;
                     end;
@@ -1061,6 +1073,7 @@ implementation
             n:=tfornode(n).makewhileloop;
             do_firstpass(n);
             hp.Free;
+            hp := nil;
           end;
       end;
 
@@ -1087,7 +1100,9 @@ implementation
 
       begin
          t1.free;
+         t1 := nil;
          t2.free;
+         t2 := nil;
          inherited destroy;
       end;
 
@@ -1325,6 +1340,7 @@ implementation
              left:=Tunarynode(left).left;
              t.left:=nil;
              t.free;
+             t := nil;
              {Symdif operator, in case you are wondering:}
              loopflags:=loopflags >< [lnf_checknegate];
            end;
@@ -1552,6 +1568,7 @@ implementation
                 if code.track_state_pass(exec_known) then
                     track_state_pass:=true;
                 code.free;
+                code := nil;
             end;
         repeat
             condition:=left.getcopy;
@@ -1592,7 +1609,9 @@ implementation
                     done:=true;
                 end;
             code.free;
+            code := nil;
             condition.free;
+            condition := nil;
             firsttest:=false;
         until done;
         {The loop condition is also known, for example:
@@ -1615,7 +1634,7 @@ implementation
             aktstate.store_fact(condition,
              cordconstnode.create(byte(checknegate),pasbool1type,true))
         else
-            condition.free;
+            condition.free; // no nil needed
     end;
 {$endif}
 
@@ -1886,6 +1905,7 @@ implementation
     destructor tfornode.destroy;
       begin
          loopiteration.free;
+         loopiteration := nil;
          inherited destroy;
       end;
 
@@ -2887,6 +2907,7 @@ implementation
         { copied nodes don't need to release the symtable }
         if assigned(excepTSymtable) then
          excepTSymtable.free;
+         excepTSymtable := nil;
         inherited destroy;
       end;
 

@@ -166,6 +166,7 @@ implementation
     destructor TOmfLibObjectWriter.TOmfLibObjectModule.Destroy;
       begin
         FObjData.Free;
+        FObjData := nil;
         inherited Destroy;
       end;
 
@@ -205,8 +206,11 @@ implementation
         if Errorcount=0 then
           WriteLib;
         FLibData.Free;
+        FLibData := nil;
         FObjectModules.Free;
+        FObjectModules := nil;
         FDictionary.Free;
+        FDictionary := nil;
         inherited destroy;
       end;
 
@@ -231,6 +235,7 @@ implementation
         if RawRec.RecordType<>RT_THEADR then
           begin
             RawRec.Free;
+            RawRec := nil;
             InternalError(2018060801);
           end;
         ObjHeader:=TOmfRecord_THEADR.Create;
@@ -238,7 +243,9 @@ implementation
         { create a dictionary entry with the module name }
         TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FCurrentModuleIndex);
         ObjHeader.Free;
+        ObjHeader := nil;
         RawRec.Free;
+        RawRec := nil;
         fobjsize:=0;
       end;
 
@@ -274,7 +281,9 @@ implementation
         FLibData.seek(0);
         RawRec.WriteTo(FLibData);
         Header.Free;
+        Header := nil;
         RawRec.Free;
+        RawRec := nil;
       end;
 
     procedure TOmfLibObjectWriter.WriteFooter;
@@ -289,7 +298,9 @@ implementation
         Footer.EncodeTo(RawRec);
         RawRec.WriteTo(FLibData);
         Footer.Free;
+        Footer := nil;
         RawRec.Free;
+        RawRec := nil;
       end;
 
     function TOmfLibObjectWriter.TryPageSize(aPageSize: Integer): Boolean;
@@ -365,6 +376,7 @@ implementation
         WriteHeader(DictStart,DictBlocks);
         FLibData.WriteStream(libf);
         libf.Free;
+        libf := nil;
       end;
 
     function TOmfLibObjectWriter.WriteDictionary: Word;
@@ -484,7 +496,9 @@ implementation
       FIsCaseSensitive:=Header.CaseSensitive;
       ReadDictionary(Header.DictionaryOffset, Header.DictionarySizeInBlocks);
       Header.Free;
+      Header := nil;
       RawRecord.Free;
+      RawRecord := nil;
     end;
 
   procedure TOmfLibObjectReader.ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
@@ -571,6 +585,7 @@ implementation
     begin
       inherited closefile;
       LibSymbols.Free;
+      LibSymbols := nil;
       inherited Destroy;
     end;
 
@@ -594,7 +609,9 @@ implementation
       Header.DecodeFrom(RawRec);
       CurrMemberName:=Header.ModuleName;
       Header.Free;
+      Header := nil;
       RawRec.Free;
+      RawRec := nil;
 
       { go back to the beginning of the file }
       inherited Seek(CurrMemberPos);

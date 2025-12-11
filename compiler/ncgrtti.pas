@@ -485,6 +485,7 @@ implementation
             );
 
             loctcb.free;
+            loctcb := nil;
 
             entry^.data:=loclab;
           end
@@ -638,6 +639,7 @@ implementation
             tcb.emit_tai(tai_const.Create_sym(tbllbl),voidpointertype);
           end;
         list.free;
+        list := nil;
       end;
 
 
@@ -725,6 +727,7 @@ implementation
             maybe_add_comment(tcb,'RTTI end field '+tostr(i)+': '+sym.prettyname);
           end;
         fields.free;
+        fields := nil;
       end;
 
 
@@ -885,6 +888,7 @@ implementation
           end;
         tcb.end_anonymous_record;
         list.free;
+        list := nil;
       end;
 
 
@@ -1226,6 +1230,7 @@ implementation
                       tbltcb.get_final_asmlist(tbllab,tbldef,sec_rodata,tbllab.name,const_align(sizeof(pint)))
                     );
                     tbltcb.free;
+                    tbltcb := nil;
                     { write the pointer to the prop info }
                     maybe_add_comment(tcb,#9'property info reference');
                     tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
@@ -1720,6 +1725,7 @@ implementation
               tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,
               sizeof(PInt)));
             tcb.free;
+            tcb := nil;
           end;
 
 
@@ -1733,6 +1739,7 @@ implementation
             collect_propnamelist(propnamelist,def,visibilities);
             properties_write_rtti_data(tcb,propnamelist,def.symtable,true,visibilities);
             propnamelist.free;
+            propnamelist := nil;
           end;
 
         var
@@ -1968,6 +1975,7 @@ implementation
             collect_propnamelist(propnamelist,def,visibilities);
             properties_write_rtti_data(tcb,propnamelist,def.symtable,true,visibilities);
             propnamelist.free;
+            propnamelist := nil;
           end;
 
           procedure objectdef_rtti_class_full(def:tobjectdef);
@@ -2024,6 +2032,7 @@ implementation
             tcb.end_anonymous_record;
 
             propnamelist.free;
+            propnamelist := nil;
           end;
 
           procedure objectdef_rtti_interface_full(def:tobjectdef);
@@ -2089,6 +2098,7 @@ implementation
             tcb.end_anonymous_record;
 
             propnamelist.free;
+            propnamelist := nil;
           end;
 
         begin
@@ -2234,6 +2244,7 @@ implementation
             );
 
             argtcb.free;
+            argtcb := nil;
 
             { write argument size and the reference to the argument entry }
             tbltcb.emit_ord_const(argdef.size,u16inttype);
@@ -2295,6 +2306,7 @@ implementation
       );
 
       tbltcb.free;
+      tbltcb := nil;
 
       { write the reference to the attribute table }
       tcb.emit_tai(Tai_const.Create_sym(tbllab),voidpointertype);
@@ -2441,6 +2453,7 @@ implementation
               rttilab,tabledef,sec_rodata,
               rttilab.name,sizeof(PInt)));
             tcb.free;
+            tcb := nil;
 
             current_module.add_public_asmsym(rttilab);
         end;
@@ -2487,6 +2500,7 @@ implementation
             rttilab,tabledef,sec_rodata,
             rttilab.name,sizeof(PInt)));
           tcb.free;
+          tcb := nil;
 
           current_module.add_public_asmsym(rttilab);
         end;
@@ -2526,6 +2540,7 @@ implementation
           syms.sort(@enumsym_compare_value);
           enumdef_rtti_ord2stringindex(rttidef,syms);
           syms.free;
+          syms := nil;
         end;
 
 
@@ -2672,6 +2687,7 @@ implementation
         current_asmdata.AsmLists[al_rtti].concatList(
           tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,min(target_info.alignment.maxCrecordalign,SizeOf(QWord))));
         tcb.free;
+        tcb := nil;
 
         current_module.add_public_asmsym(rttilab);
 

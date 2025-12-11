@@ -161,6 +161,7 @@ uses
     Destructor Tresourcestrings.Destroy;
       begin
         List.Free;
+        List := nil;
       end;
 
 
@@ -235,6 +236,7 @@ uses
             );
             R:=TResourceStringItem(R.Next);
             tcb.free;
+            tcb := nil;
           end;
         tcb:=ctai_typedconstbuilder.create([tcalo_vectorized_dead_strip_end,tcalo_data_force_indirect,tcalo_is_public_asm]);
         tcb.begin_anonymous_record(internaltypeprefixName[itp_emptyrec],
@@ -246,6 +248,7 @@ uses
           )
         );
         tcb.free;
+        tcb := nil;
       end;
 
     procedure Tresourcestrings.WriteRSJFile;
@@ -368,6 +371,7 @@ uses
             resstrs.WriteRSJFile;
           end;
         resstrs.Free;
+        resstrs := nil;
         symtablestack.pop(current_module.localsymtable);
         if assigned(current_module.globalsymtable) then
           symtablestack.pop(current_module.globalsymtable);

@@ -646,6 +646,7 @@ uses
                 result:=false;
               end;
             typeparam.free;
+            typeparam := nil;
             first:=false;
           end;
         block_type:=old_block_type;
@@ -673,7 +674,7 @@ uses
           genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
         tt:=genericdef;
         if assigned(context) then
-          context.free;
+          context.free; // no nil needed
       end;
 
 
@@ -1033,6 +1034,7 @@ uses
               if compare_defs(caller_proc_para.vardef,target_proc_para.vardef,nothingn)=te_incompatible then
                 begin
                   newparams.free;
+                  newparams := nil;
                   exit(false);
                 end;
 
@@ -1055,6 +1057,7 @@ uses
               if compare_defs(caller_proc.returndef,target_proc.returndef,nothingn)<te_equal then
                 begin
                   newparams.free;
+                  newparams := nil;
                   exit(false);
                 end;
 
@@ -1072,6 +1075,7 @@ uses
               genericparams.add(newparams.nameofindex(i),newparams[i]);
 
           newparams.free;
+          newparams := nil;
         end;
 
       function maybe_inherited_specialization(givendef,desireddef:tstoreddef;out basedef:tstoreddef):boolean;
@@ -1147,6 +1151,7 @@ uses
           if callerparams.count<required_param_count then
             begin
               paras.free;
+              paras := nil;
               exit;
             end;
 
@@ -1160,6 +1165,7 @@ uses
           if count<genericdef.genericparas.count then
             begin
               paras.free;
+              paras := nil;
               exit;
             end;
 
@@ -1172,7 +1178,9 @@ uses
               if i=paras.count then
                 begin
                   genericparams.free;
+                  genericparams := nil;
                   paras.free;
+                  paras := nil;
                   exit;
                 end;
 
@@ -1261,8 +1269,11 @@ uses
 
           { cleanup }
           paras.free;
-          if not result then
+          paras := nil;
+          if not result then begin
             genericparams.free;
+            genericparams := nil;
+          end;
         end;
 
       { make an ordered list of parameters from the caller }
@@ -1323,10 +1334,12 @@ uses
                   begin
                     generate_implicit_specialization(spezcontext,pd,genericparams);
                     genericparams.free;
+                    genericparams := nil;
                     { finalize the specialization so it can be added to the list of overloads }
                     if not finalize_specialization(pd,spezcontext) then
                       begin
                         spezcontext.free;
+                        spezcontext := nil;
                         continue;
                       end;
                     { handle unnamed syms used by the specialization }
@@ -1334,9 +1347,11 @@ uses
                       begin
                         transfer_unnamed_symbols(pd.owner,pd_unnamed_syms);
                         pd_unnamed_syms.free;
+                        pd_unnamed_syms := nil;
                       end;
                     pdoverloadlist.add(pd);
                     spezcontext.free;
+                    spezcontext := nil;
                     if po_overload in pd.procoptions then
                       hasoverload:=true;
                     { store first procsym found }
@@ -1363,6 +1378,7 @@ uses
           end;
 
         callerparams.free;
+        callerparams := nil;
       end;
 
     function generate_specialization_phase1(out context:tspecializationcontext;genericdef:tdef;enforce_unit:boolean):tdef;
@@ -1558,6 +1574,7 @@ uses
             for i:=tmpstack.count-1 downto 0 do
               symtablestack.push(tsymtable(tmpstack[i]));
             tmpstack.free;
+            tmpstack := nil;
           end;
 
         if not found or not (context.sym.typ in [typesym,procsym]) then
@@ -2196,6 +2213,7 @@ uses
               specializest.includeoption(sto_has_generic);
 
             tempst.free;
+            tempst := nil;
 
             specialization_done(state);
 
@@ -2206,6 +2224,7 @@ uses
           end;
 
         generictypelist.free;
+        generictypelist := nil;
         if assigned(genericdef) then
           begin
             { check the hints of the found generic symbol }
@@ -2228,7 +2247,7 @@ uses
           genericdef:=tstoreddef(generate_specialization_phase2(context,genericdef,parse_class_parent,_prettyname));
         tt:=genericdef;
         if assigned(context) then
-          context.free;
+          context.free; // no nil needed
       end;
 
 
@@ -2446,6 +2465,7 @@ uses
               firstidx:=result.count;
 
               constraintdata.free;
+              constraintdata := nil;
             end
           else
             begin
@@ -2854,6 +2874,7 @@ uses
           pu:=tused_unit(pu.next);
         end;
       unitsyms.free;
+      unitsyms := nil;
       if assigned(hmodule.globalsymtable) then
         symtablestack.push(hmodule.globalsymtable);
       symtable:=genericdef.owner;
@@ -3043,7 +3064,9 @@ uses
           current_module.pendingspecializations.add(tstoreddef(readdlist[i]).typename,readdlist[i]);
 
         readdlist.free;
+        readdlist := nil;
         list.free;
+        list := nil;
       end;
 
 

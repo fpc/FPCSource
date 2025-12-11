@@ -46,6 +46,9 @@ uses
 {$ifdef FPC_TESTGENERICS}
   fgl,
 {$endif}
+{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
+  intrinsics,
+{$ENDIF}
   typinfo;
 {$ENDIF FPC_DOTTEDUNITS}
 

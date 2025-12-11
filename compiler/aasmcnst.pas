@@ -665,6 +665,7 @@ implementation
    destructor tai_simpletypedconst.destroy;
      begin
        fval.free;
+       fval := nil;
        inherited destroy;
      end;
 
@@ -719,7 +720,7 @@ implementation
             if ai.adetyp<>tck_simple then
               internalerror(2014070103);
             add_to_string(newstr,tai_simpletypedconst(ai).val);
-            ai.free;
+            ai.free; // no nil needed
           end;
        fvalues.count:=0;
        { the "nil" def will be replaced with an array def of the appropriate
@@ -787,7 +788,8 @@ implementation
              1:
                begin
                  add_to_string(tai_string(tai_simpletypedconst(fvalues[0]).val),tai_simpletypedconst(val).val);
-                 val.free
+                 val.free;
+                 val := nil;
                end
              else
                internalerror(2014070104);
@@ -849,6 +851,7 @@ implementation
    destructor tai_aggregatetypedconst.destroy;
      begin
        fvalues.free;
+       fvalues := nil;
        inherited destroy;
      end;
 
@@ -1044,6 +1047,7 @@ implementation
        fasmlist.concat(tai_symbol_end.Createname(asmsym.name));
        { free the temporary list }
        prelist.free;
+       prelist := nil;
      end;
 
 
@@ -1077,6 +1081,7 @@ implementation
            symind.increfs;
 
            indtcb.free;
+           indtcb := nil;
            if not (target_info.system in systems_indirect_var_imports) then
              current_module.add_public_asmsym(symind.name,AB_INDIRECT,AT_DATA);
          end;
@@ -1274,7 +1279,9 @@ implementation
           (ErrorCount=0) then
          internalerror(2014062901);
        faggregateinformation.free;
+       faggregateinformation := nil;
        fasmlist.free;
+       fasmlist := nil;
        inherited destroy;
      end;
 
@@ -1559,6 +1566,7 @@ implementation
        info:=curagginfo;
        faggregateinformation.count:=faggregateinformation.count-1;
        info.free;
+       info := nil;
      end;
 
 
@@ -1826,6 +1834,7 @@ implementation
        { we emit the high value, not the count }
        arrlengthloc.replace(tai_const.Create_sizeint(arrlength-1),sizesinttype);
        arrlengthloc.free;
+       arrlengthloc := nil;
        if get_dynarray_symofs=0 then
          emit_tai(tai_symbol_end.create(llofs.lab),arrdef);
        result:=end_anonymous_record;
@@ -1940,6 +1949,7 @@ implementation
              strtcb.get_final_asmlist(strlab,datadef,sec_rodata_norel,strlab.name,const_align(sizeof(pint)))
            );
            strtcb.free;
+           strtcb := nil;
 
            entry^.Data:=strlab;
            { Make sure strlab has a reference }
@@ -2158,7 +2168,9 @@ implementation
        for i:=high(fields) downto low(fields) do
          queue_subscriptn(tabstractrecorddef(parentdefs[i]),tfieldvarsym(syms[i]));
        syms.free;
+       syms := nil;
        parentdefs.free;
+       parentdefs := nil;
      end;
 
 
@@ -2266,6 +2278,7 @@ implementation
        list.insertafter(ai,insertpos);
        list.remove(insertpos);
        insertpos.free;
+       insertpos := nil;
      end;
 
 

@@ -373,6 +373,7 @@ implementation
         end;
 
       procvarnode.free;
+      procvarnode := nil;
 
       { restore scanner }
       restore_scanner(sstate);

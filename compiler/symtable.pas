@@ -1220,6 +1220,7 @@ implementation
           exit;
 {$ifdef llvm}
         fllvmst.free;
+        fllvmst := nil;
 {$endif llvm}
         for mop:=low(tmanagementoperator) to high(tmanagementoperator) do
           TFPList.FreeAndNilDisposing(mop_list[mop],TypeInfo(tmanagementoperator_offset_entry));
@@ -1769,6 +1770,7 @@ implementation
           end;
         { we don't need to remove the entries as they become part of list }
         sublist.free;
+        sublist := nil;
       end;
 
     procedure tabstractrecordsymtable.get_managementoperator_offset_list(mop:tmanagementoperator;list:tfplist);
@@ -2106,6 +2108,7 @@ implementation
     destructor tllvmshadowsymtable.destroy;
       begin
         symdeflist.free;
+        symdeflist := nil;
       end;
 
 
@@ -2406,7 +2409,9 @@ implementation
         buildmapping(tempsymlist, variantstarts);
 
         variantstarts.free;
+        variantstarts := nil;
         tempsymlist.free;
+        tempsymlist := nil;
       end;
 
 {$endif llvm}
@@ -2826,6 +2831,7 @@ implementation
         if refcount>1 then
           exit;
         withrefnode.free;
+        withrefnode := nil;
         { Disable SymList because we don't Own it }
         SymList:=nil;
         inherited destroy;
@@ -5063,12 +5069,17 @@ implementation
       begin
         generrorsym.owner:=nil;
         generrorsym.free;
+        generrorsym := nil;
         generrordef.owner:=nil;
         generrordef.free;
+        generrordef := nil;
         initialmacrosymtable.free;
+        initialmacrosymtable := nil;
         macrosymtablestack.free;
+        macrosymtablestack := nil;
 {$ifdef UNITALIASES}
         unitaliases.free;
+        unitaliases := nil;
 {$endif}
      end;
 

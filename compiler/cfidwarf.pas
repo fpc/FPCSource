@@ -271,6 +271,7 @@ implementation
     destructor TDwarfAsmCFILowLevel.destroy;
       begin
         FDwarfList.Free;
+        FDwarfList := nil;
       end;
 
 

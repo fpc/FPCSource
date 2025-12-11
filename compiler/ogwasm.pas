@@ -27,7 +27,7 @@ interface
 
     uses
       { common }
-      cclasses,globtype,
+      sysutils,cclasses,globtype,
       { target }
       systems,cpubase,
       { assembler }
@@ -699,6 +699,7 @@ implementation
     destructor TWasmObjSymbolLinkingData.Destroy;
       begin
         FuncType.Free;
+        FuncType := nil;
         inherited Destroy;
       end;
 
@@ -735,6 +736,7 @@ implementation
     destructor TWasmObjRelocation.Destroy;
       begin
         FuncType.Free;
+        FuncType := nil;
         inherited Destroy;
       end;
 
@@ -771,6 +773,7 @@ implementation
     destructor TWasmObjSymbol.Destroy;
       begin
         LinkingData.Free;
+        LinkingData := nil;
         inherited Destroy;
       end;
 
@@ -794,6 +797,7 @@ implementation
     destructor TWasmObjSymbolExtraData.Destroy;
       begin
         EncodedLocals.Free;
+        EncodedLocals := nil;
         inherited Destroy;
       end;
 
@@ -1076,7 +1080,9 @@ implementation
         i: Integer;
       begin
         FObjSymbolsExtraDataList.Free;
+        FObjSymbolsExtraDataList := nil;
         FFuncTypes.Free;
+        FFuncTypes := nil;
         inherited destroy;
       end;
 
@@ -1277,6 +1283,7 @@ implementation
         ft:=TWasmFuncType.Create([],tt.params);
         i:=FFuncTypes.AddOrGetFuncType(ft);
         ft.free;
+        ft := nil;
         ObjSymExtraData.ExceptionTagTypeIdx:=i;
       end;
 
@@ -2460,21 +2467,31 @@ implementation
         k: TWasmLinkingSubsectionType;
       begin
         for i in TWasmSectionID do
-          FWasmSections[i].Free;
+          FreeAndNil(FWasmSections[i]);
         for j in TWasmCustomSectionType do
-          FWasmCustomSections[j].Free;
+          FreeAndNil(FWasmCustomSections[j]);
         for k:=low(TWasmLinkingSubsectionType) to high(TWasmLinkingSubsectionType) do
-          FWasmLinkingSubsections[k].Free;
+          FreeAndNil(FWasmLinkingSubsections[k]);
         FWasmSymbolTable.Free;
+        FWasmSymbolTable := nil;
         FWasmRelocationCodeTable.Free;
+        FWasmRelocationCodeTable := nil;
         FWasmRelocationDataTable.Free;
+        FWasmRelocationDataTable := nil;
         FWasmRelocationDebugFrameTable.Free;
+        FWasmRelocationDebugFrameTable := nil;
         FWasmRelocationDebugInfoTable.Free;
+        FWasmRelocationDebugInfoTable := nil;
         FWasmRelocationDebugLineTable.Free;
+        FWasmRelocationDebugLineTable := nil;
         FWasmRelocationDebugAbbrevTable.Free;
+        FWasmRelocationDebugAbbrevTable := nil;
         FWasmRelocationDebugArangesTable.Free;
+        FWasmRelocationDebugArangesTable := nil;
         FWasmRelocationDebugRangesTable.Free;
+        FWasmRelocationDebugRangesTable := nil;
         FWasmRelocationDebugStrTable.Free;
+        FWasmRelocationDebugStrTable := nil;
         inherited destroy;
       end;
 
@@ -5571,12 +5588,13 @@ implementation
         k: TWasmNameSubsectionType;
       begin
         for i in TWasmSectionID do
-          FWasmSections[i].Free;
+          FreeAndNil(FWasmSections[i]);
         for j in TWasmCustomSectionType do
-          FWasmCustomSections[j].Free;
+          FreeAndNil(FWasmCustomSections[j]);
         for k:=low(FWasmNameSubsections) to high(FWasmNameSubsections) do
-          FWasmNameSubsections[k].Free;
+          FreeAndNil(FWasmNameSubsections[k]);
         FFuncTypes.Free;
+        FFuncTypes := nil;
         inherited destroy;
       end;
 

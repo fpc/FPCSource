@@ -26,6 +26,7 @@ unit fpkg;
 interface
 
   uses
+    sysutils,
     cclasses,
     globtype,
     finput;
@@ -87,7 +88,9 @@ implementation
             dispose(p);
           end;
       containedmodules.free;
+      containedmodules := nil;
       requiredpackages.free;
+      requiredpackages := nil;
       inherited destroy;
     end;
 
@@ -108,7 +111,7 @@ implementation
             for i:=0 to packagelist.count-1 do
               begin
                 pkgentry:=ppackageentry(packagelist[i]);
-                pkgentry^.package.free;
+                FreeAndNil(pkgentry^.package);
                 dispose(pkgentry);
               end;
           end;

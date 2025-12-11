@@ -977,6 +977,7 @@ implementation
                       prot_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
                     end;
                   handledprotocols.free;
+                  handledprotocols := nil;
                 end
               else
                 internalerror(2009091801);
@@ -992,6 +993,7 @@ implementation
         vmtbuilder:=TVMTBuilder.create(def);
         vmtbuilder.build;
         vmtbuilder.free;
+        vmtbuilder := nil;
       end;
 
 end.

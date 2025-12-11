@@ -106,7 +106,7 @@ finalization
   for t:=low(timers) to high(timers) do
     writeln(StdErr,'  ',t,' ',timers[t].Elapsed:0:9,' s');
   for t:=low(timers) to high(timers) do
-    timers[t].Free;
+    FreeAndNil(timers[t]);
 {$endif COMPILER_TIMINGS}
 end.
 

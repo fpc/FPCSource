@@ -183,6 +183,7 @@ implementation
         if not(actionlist.Empty) then
           Internalerror(2019020501);
         actionlist.Free;
+        actionlist := nil;
         inherited Destroy;
       end;
 
@@ -226,11 +227,17 @@ implementation
     destructor tpsabiehprocinfo.destroy;
       begin
          gcc_except_table_data.free;
+         gcc_except_table_data := nil;
          actionstack.free;
+         actionstack := nil;
          landingpadstack.free;
+         landingpadstack := nil;
          typefilterlist.free;
+         typefilterlist := nil;
          callsite_table_data.Free;
+         callsite_table_data := nil;
          action_table_data.Free;
+         action_table_data := nil;
          inherited;
       end;
 

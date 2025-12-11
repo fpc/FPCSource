@@ -348,6 +348,7 @@ implementation
             looplist := deftowritelist;
           end;
         templist.free;
+        templist := nil;
       end;
 
 

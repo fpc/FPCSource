@@ -582,6 +582,7 @@ implementation
 
         { old argument list skeleton isn't needed anymore }
         parametersnode.free;
+        parametersnode := nil;
 
         pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
 
@@ -614,6 +615,7 @@ implementation
           )
         );
         tcb.free;
+        tcb := nil;
 
         if variantdispatch then
           begin
@@ -971,7 +973,9 @@ implementation
 
       begin
          fparainit.free;
+         fparainit := nil;
          fparacopyback.free;
+         fparacopyback := nil;
          inherited destroy;
       end;
 
@@ -1181,6 +1185,7 @@ implementation
                  left:=ttypeconvnode(left).left;
                  ttypeconvnode(hp).left:=nil;
                  hp.free;
+                 hp := nil;
                end;
              maybe_global_proc_to_nested(left,parasym.vardef);
 
@@ -1726,15 +1731,26 @@ implementation
     destructor tcallnode.destroy;
       begin
          methodpointer.free;
+         methodpointer := nil;
          callinitblock.free;
+         callinitblock := nil;
          callcleanupblock.free;
+         callcleanupblock := nil;
          funcretnode.free;
+         funcretnode := nil;
          if assigned(varargsparas) then
+         begin
            varargsparas.free;
+           varargsparas := nil;
+         end;
          call_self_node.free;
+         call_self_node := nil;
          call_vmt_node.free;
+         call_vmt_node := nil;
          vmt_entry.free;
+         vmt_entry := nil;
          spezcontext.free;
+         spezcontext := nil;
          inherited destroy;
       end;
 
@@ -2396,6 +2412,7 @@ implementation
                         p:=left;
                         Tcallparanode(tinlinenode(temp).left).left:=nil;
                         temp.free;
+                        temp := nil;
 
                         typecheckpass(hightree);
                       end
@@ -2425,6 +2442,7 @@ implementation
                           right:=nil;
                         end;
                       temp.free;
+                      temp := nil;
 
                       {Tree changed from p[l..h] to p[l], recalculate resultdef.}
                       p.resultdef:=nil;
@@ -2446,6 +2464,7 @@ implementation
                         end
                       else
                         temp.free;
+                        temp := nil;
                     end;
                 end;
             end;
@@ -3764,6 +3783,7 @@ implementation
           end;
         if assigned(parents) then
           parents.free;
+          parents := nil;
         { Finally give out a warning for each abstract method still in the list }
         for i:=0 to AbstractMethodsList.Count-1 do
           begin
@@ -3775,7 +3795,10 @@ implementation
               end;
           end;
         if assigned(AbstractMethodsList) then
-          AbstractMethodsList.Free;
+          begin
+            AbstractMethodsList.Free;
+            AbstractMethodsList := nil;
+          end;
       end;
 
 
@@ -5746,6 +5769,7 @@ implementation
         if assigned(n) then
           begin
             inlineblock.free;
+            inlineblock := nil;
             result:=n;
           end;
 

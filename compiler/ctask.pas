@@ -164,6 +164,7 @@ end;
 destructor ttask_handler.destroy;
 begin
   hash.free;
+  hash := nil;
   List.Clear;
   FreeAndNil(list);
   inherited destroy;

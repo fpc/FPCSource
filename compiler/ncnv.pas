@@ -612,7 +612,9 @@ implementation
                               for l:=tordconstnode(p2).value.svalue to tordconstnode(p3).value.svalue do
                                 do_set(l);
                               p2.free;
+                              p2 := nil;
                               p3.free;
+                              p3 := nil;
                             end
                            else
                             begin
@@ -649,6 +651,7 @@ implementation
 
                           do_set(tordconstnode(p2).value.svalue);
                           p2.free;
+                          p2 := nil;
                         end
                        else
                         begin
@@ -676,7 +679,7 @@ implementation
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
               tarrayconstructornode(p2).right:=nil;
               if freep then
-                p2.free;
+                p2.free; // no nil needed
               current_filepos:=oldfilepos;
               first:=false;
             end;
@@ -687,7 +690,7 @@ implementation
          begin
            { empty set [], only remove node }
            if freep then
-             p.free;
+             p.free; // no nil needed
          end;
         { set the initial set type }
         constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
@@ -895,6 +898,7 @@ implementation
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
             hp.free;
+            hp := nil;
             result:=true;
           end;
       end;
@@ -929,6 +933,7 @@ implementation
             typecheckpass(fromnode);
             ttypeconvnode(hp).left:=nil;
             hp.free;
+            hp := nil;
             result:=true;
           end;
       end;
@@ -2716,6 +2721,7 @@ implementation
             typecheckpass(left);
             ttypeconvnode(hp).left:=nil;
             hp.free;
+            hp := nil;
           end;
 
         intfdef:=capturer_add_procvar_or_proc(current_procinfo,left,capturer,hp);
@@ -3481,6 +3487,7 @@ implementation
                       n:=newblock;
                       do_typecheckpass(n);
                       originaldivtree.free;
+                      originaldivtree := nil;
                     end;
                 end
               else
@@ -3618,6 +3625,7 @@ implementation
                   if ([nf_explicit,nf_internal] * flags <> []) then
                     include(result.flags, nf_explicit);
                   hp.free;
+                  hp := nil;
                 end;
             end;
 
@@ -5137,6 +5145,7 @@ implementation
 
       begin
         call.free;
+        call := nil;
         inherited destroy;
       end;
 

@@ -97,7 +97,9 @@ unit rasm;
     destructor tasmreader.destroy;
       begin
         locallabels.Free;
+        locallabels := nil;
         iasmops.Free;
+        iasmops := nil;
         inherited destroy;
       end;
 

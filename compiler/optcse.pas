@@ -29,7 +29,7 @@ unit optcse;
   interface
 
     uses
-      node;
+      sysutils,node;
 
     {
       the function  creates non optimal code so far:
@@ -523,16 +523,17 @@ unit optcse;
                 { clean up unused trees }
                 for i:=0 to lists.nodelist.count-1 do
                   if lists.equalto[i]<>pointer(-1) then
-                    tnode(lists.nodelist[i]).free;
+                    tnode(lists.nodelist[i]).free; // no nil needed
 {$ifdef csedebug}
                 writeln('nodes: ',lists.nodelist.count);
                 writeln('==========================================');
 {$endif csedebug}
-                lists.nodelist.free;
-                lists.locationlist.free;
-                lists.equalto.free;
-                lists.refs.free;
+                FreeAndNil(lists.nodelist);
+                FreeAndNil(lists.locationlist);
+                FreeAndNil(lists.equalto);
+                FreeAndNil(lists.refs);
                 templist.free;
+                templist := nil;
 
                 if assigned(statements) then
                   begin

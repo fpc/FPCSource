@@ -1705,15 +1705,25 @@ implementation
      begin
        calldoneprocs;
        librarysearchpath.Free;
+       librarysearchpath := nil;
        unitsearchpath.Free;
+       unitsearchpath := nil;
        objectsearchpath.Free;
+       objectsearchpath := nil;
        includesearchpath.Free;
+       includesearchpath := nil;
        frameworksearchpath.Free;
+       frameworksearchpath := nil;
        LinkLibraryAliases.Free;
+       LinkLibraryAliases := nil;
        LinkLibraryOrder.Free;
+       LinkLibraryOrder := nil;
        packagesearchpath.Free;
+       packagesearchpath := nil;
        namespacelist.Free;
+       namespacelist := nil;
        premodule_namespacelist.Free;
+       premodule_namespacelist := nil;
        current_namespacelist:=Nil;
      end;
 

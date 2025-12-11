@@ -500,6 +500,7 @@ uses
         fileclose:=false;
         try
           f.Free;
+          f := nil;
           fileclose:=true;
         except
         end;
@@ -526,7 +527,7 @@ uses
          ifile : SizeInt;
       begin
          for ifile:=0 to nfiles-1 do
-          files[ifile].free;
+          FreeAndNil(files[ifile]);
          FreeMem(files);
       end;
 

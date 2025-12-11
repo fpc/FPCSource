@@ -156,6 +156,7 @@ end;
 destructor TScript.Destroy;
 begin
   data.Free;
+  data := nil;
 end;
 
 

@@ -463,6 +463,7 @@ implementation
            get:=p.data;
            m:=p.needlink;
            p.free;
+           p := nil;
          end;
       end;
 
@@ -483,6 +484,7 @@ implementation
           getusemask:=p.data;
           found:=(p.needlink and mask)<>0;
           p.free;
+          p := nil;
         until found;
       end;
 
@@ -694,25 +696,25 @@ implementation
           end;
         derefmap:=nil;
         if assigned(_exports) then
-         _exports.free;
+          freeandnil(_exports);
         if assigned(dllscannerinputlist) then
-         dllscannerinputlist.free;
+          freeandnil(dllscannerinputlist);
         if assigned(localnamespacelist) then
-         localnamespacelist.free;
+          freeandnil(localnamespacelist);
         if assigned(scanner) then
-         begin
+          begin
             { also update current_scanner if it was pointing
               to this module }
             if current_scanner=tscannerfile(scanner) then
               set_current_scanner(nil);
             freeandnil(scanner);
-
-         end;
+          end;
         if assigned(asmdata) then
           begin
             if current_asmdata=asmdata then
               current_asmdata:=nil;
              asmdata.free;
+             asmdata := nil;
           end;
         if assigned(procinfo) then
           begin
@@ -729,40 +731,68 @@ implementation
           end;
         DoneDebugInfo(self,current_debuginfo_reset);
         used_units.free;
+        used_units := nil;
         dependent_units.free;
+        dependent_units := nil;
         resourcefiles.Free;
+        resourcefiles := nil;
         linkorderedsymbols.Free;
+        linkorderedsymbols := nil;
         linkunitofiles.Free;
+        linkunitofiles := nil;
         linkunitstaticlibs.Free;
+        linkunitstaticlibs := nil;
         linkunitsharedlibs.Free;
+        linkunitsharedlibs := nil;
         linkotherofiles.Free;
+        linkotherofiles := nil;
         linkotherstaticlibs.Free;
+        linkotherstaticlibs := nil;
         linkothersharedlibs.Free;
+        linkothersharedlibs := nil;
         linkotherframeworks.Free;
+        linkotherframeworks := nil;
         stringdispose(mainname);
         externasmsyms.Free;
+        externasmsyms := nil;
         publicasmsyms.Free;
+        publicasmsyms := nil;
         unitimportsyms.Free;
+        unitimportsyms := nil;
         FImportLibraryList.Free;
+        FImportLibraryList := nil;
         extendeddefs.Free;
+        extendeddefs := nil;
         genericdummysyms.free;
+        genericdummysyms := nil;
         pendingspecializations.free;
+        pendingspecializations := nil;
         waitingforunit.free;
+        waitingforunit := nil;
         waitingunits.free;
+        waitingunits := nil;
         used_rtti_attrs.free;
+        used_rtti_attrs := nil;
         stringdispose(asmprefix);
         stringdispose(deprecatedmsg);
         stringdispose(namespace);
         tcinitcode.free;
+        tcinitcode := nil;
         localunitsearchpath.Free;
+        localunitsearchpath := nil;
         localobjectsearchpath.free;
+        localobjectsearchpath := nil;
         localincludesearchpath.free;
+        localincludesearchpath := nil;
         locallibrarysearchpath.free;
+        locallibrarysearchpath := nil;
         localframeworksearchpath.free;
+        localframeworksearchpath := nil;
 {$ifdef MEMDEBUG}
         memsymtable.start;
 {$endif}
         derefdata.free;
+        derefdata := nil;
         if assigned(deflist) then
           begin
             for i:=0 to deflist.Count-1 do
@@ -770,27 +800,45 @@ implementation
                  (tdef(deflist[i]).registered_in_module=self) then
                 tdef(deflist[i]).registered_in_module:=nil;
             deflist.free;
+            deflist := nil;
           end;
         symlist.free;
+        symlist := nil;
         ptrdefs.free;
+        ptrdefs := nil;
         arraydefs.free;
+        arraydefs := nil;
         procaddrdefs.free;
+        procaddrdefs := nil;
 {$ifdef llvm}
         llvmdefs.free;
+        llvmdefs := nil;
         llvmusedsyms.free;
+        llvmusedsyms := nil;
         llvmcompilerusedsyms.free;
+        llvmcompilerusedsyms := nil;
         llvminitprocs.free;
+        llvminitprocs := nil;
         llvmfiniprocs.free;
+        llvmfiniprocs := nil;
         llvmmetadatastrings.free;
+        llvmmetadatastrings := nil;
 {$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
+        wpoinfo := nil;
         checkforwarddefs.free;
+        checkforwarddefs := nil;
         forwardgenericdefs.free;
+        forwardgenericdefs := nil;
         globalsymtable.free;
+        globalsymtable := nil;
         localsymtable.free;
+        localsymtable := nil;
         globalmacrosymtable.free;
+        globalmacrosymtable := nil;
         localmacrosymtable.free;
+        localmacrosymtable := nil;
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}
@@ -1457,6 +1505,7 @@ initialization
 finalization
 {$ifdef MEMDEBUG}
   memsymtable.free;
+  memsymtable := nil;
 {$endif MEMDEBUG}
 
 end.

@@ -122,6 +122,7 @@ procedure DoneImport;
 begin
   if assigned(importlib) then
     importlib.free;
+    importlib := nil;
 end;
 
 end.

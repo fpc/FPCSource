@@ -149,6 +149,7 @@ implementation
                      searchsym(upper(hs),srsym,srsymtable);
                      { we don't need the forwarddef anymore, dispose it }
                      hpd.free;
+                     hpd := nil;
                      tabstractpointerdef(def).pointeddef:=nil; { if error occurs }
                      { was a type sym found ? }
                      if assigned(srsym) and
@@ -341,6 +342,7 @@ implementation
                    end;
                  parse_nested_types(def,isfowarddef,true,structdefstack);
                  structdefstack.free;
+                 structdefstack := nil;
                  result:=true;
                  exit;
                end;
@@ -1270,6 +1272,7 @@ implementation
                else
                  Message(sym_e_error_in_type_def);
                pt2.free;
+               pt2 := nil;
              end
            else
              begin
@@ -1393,6 +1396,7 @@ implementation
                  Message(sym_e_error_in_type_def);
              end;
            pt1.free;
+           pt1 := nil;
            block_type:=old_block_type;
         end;
 
@@ -1644,6 +1648,7 @@ implementation
                            Message(sym_e_error_in_type_def)
                        end;
                      pt.free;
+                     pt := nil;
                    end;
 
                   { if we are not at the first dimension, add the new arrray
@@ -1910,6 +1915,7 @@ implementation
                        else
                         Message(parser_e_illegal_expression);
                        p.free;
+                       p := nil;
                        { please leave that a note, allows type save }
                        { declarations in the win32 units ! }
                        if (not first) and (v<=l) and (not enumdupmsg) then

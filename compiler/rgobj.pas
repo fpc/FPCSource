@@ -498,11 +498,15 @@ unit rgobj;
         live_registers.done;
 
         move_garbage.free;
+        move_garbage := nil;
         worklist_moves.free;
+        worklist_moves := nil;
 
         dispose_reginfo;
         extended_backwards.free;
+        extended_backwards := nil;
         backwards_was_first.free;
+        backwards_was_first := nil;
       end;
 
 
@@ -683,6 +687,7 @@ unit rgobj;
             end;
         until endspill;
         ibitmap.free;
+        ibitmap := nil;
 
         translate_registers(list);
 
@@ -695,7 +700,7 @@ unit rgobj;
         }
 
         for i:=0 to High(spillinfo) do
-          spillinfo[i].interferences.Free;
+          FreeAndNil(spillinfo[i].interferences);
         spillinfo:=nil;
       end;
 
@@ -2552,6 +2557,7 @@ unit rgobj;
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
+        templist := nil;
         { Walk through all instructions, we can start with the headertai,
           because before the header tai is only symbols }
         p:=headertai;

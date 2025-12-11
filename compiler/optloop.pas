@@ -606,6 +606,7 @@ unit optloop;
 
             n:=internalstatements(newcodestatements);
             oldn.Free;
+            oldn := nil;
             addstatement(newcodestatements,initcode);
             addstatement(newcodestatements,newfor);
             addstatement(newcodestatements,deletecode);

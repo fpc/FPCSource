@@ -219,6 +219,7 @@ end;
       begin
         FreeDirectoryEntries;
         FDirectoryEntries.Free;
+        FDirectoryEntries := nil;
         inherited destroy;
       end;
 
@@ -390,6 +391,7 @@ end;
     destructor TDirectoryCache.destroy;
       begin
         FDirectories.Free;
+        FDirectories := nil;
         inherited destroy;
       end;
 
@@ -1116,6 +1118,7 @@ end;
              Insert(s);
            end;
           hl.Free;
+          hl := nil;
         end
        else
         begin
@@ -1556,6 +1559,7 @@ end;
     procedure DoneFileUtils;
       begin
         DirCache.Free;
+        DirCache := nil;
       end;
 
 end.

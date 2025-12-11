@@ -398,9 +398,13 @@ end;
     destructor TNLMexeoutput.destroy;
       begin
         nlmImports.Free;
+        nlmImports := nil;
         nlmImpNames.Free;
+        nlmImpNames := nil;
         nlmSymbols.Free;
+        nlmSymbols := nil;
         FexportFunctionOffsets.Free;
+        FexportFunctionOffsets := nil;
         inherited destroy;
       end;
 

@@ -700,6 +700,7 @@ implementation
             end;
         end;
       symstodo.free;
+      symstodo := nil;
     end;
 
 
@@ -1728,10 +1729,12 @@ implementation
             end;
 
           tocapture.free;
+          tocapture := nil;
         end;
 
       { not required anymore }
       capturedsyms.free;
+      capturedsyms := nil;
 
       if convertarg.mappings.count>0 then
         foreachnodestatic(pm_postprocess,tree,@convert_captured_sym,@convertarg);
@@ -1739,11 +1742,11 @@ implementation
       for i:=0 to convertarg.mappings.count-1 do
         begin
           mapping:=pconvert_mapping(convertarg.mappings[i]);
-          mapping^.selfnode.free;
+          mapping^.selfnode.free; // no nil needed
           dispose(mapping);
         end;
 
-      convertarg.mappings.free;
+      convertarg.mappings.free; // no nil needed
     end;
 
 

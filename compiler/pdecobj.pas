@@ -423,6 +423,7 @@ implementation
         else
           Message(parser_e_illegal_expression);
         p.free;
+        p := nil;
       end;
 
     procedure get_cpp_or_java_class_external_status(od: tobjectdef);
@@ -1403,6 +1404,7 @@ implementation
                                     trtti_attribute_list.bind(rtti_attrs_def,tfieldvarsym(fieldlist[FldCount]).rtti_attribute_list)
                                   else
                                     rtti_attrs_def.free;
+                                    rtti_attrs_def := nil;
                                   end;
                                 rtti_attrs_def:=nil;
                               end;
@@ -1477,6 +1479,7 @@ implementation
         if is_class(current_structdef) then
           tabstractrecordsymtable(current_structdef.symtable).addfieldlist(fieldlist,true);
         fieldlist.free;
+        fieldlist := nil;
       end;
 
 

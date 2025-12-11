@@ -471,6 +471,7 @@ implementation
     destructor TDirIndexItem.Destroy;
       begin
         FFiles.Free;
+        FFiles := nil;
         inherited Destroy;
       end;
 
@@ -1084,6 +1085,7 @@ implementation
         append_block1(DW_AT_frame_base,blocksize);
         current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
         templist.free;
+        templist := nil;
       end;
 {$elseif defined(wasm)}
       var
@@ -1103,6 +1105,7 @@ implementation
               append_block1(DW_AT_frame_base,blocksize);
               current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
               templist.free;
+              templist := nil;
             end;
       end;
 {$else}
@@ -1144,6 +1147,7 @@ implementation
         append_block1(DW_AT_segment,blocksize);
         current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
         templist.free;
+        templist := nil;
       end;
 {$endif i8086}
 
@@ -2646,6 +2650,7 @@ implementation
 {$endif i8086}
 
         templist.free;
+        templist := nil;
 
         finish_entry;
       end;
@@ -3014,6 +3019,7 @@ implementation
                   appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym, false),tabstractvarsym(sym).vardef,offset,flags);
                 end;
               templist.free;
+              templist := nil;
               exit;
             end;
         end;
@@ -3033,6 +3039,7 @@ implementation
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
 
         templist.free;
+        templist := nil;
 
         finish_entry;
       end;
@@ -3102,6 +3109,7 @@ implementation
         templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_line0',AT_METADATA,0,voidpointertype));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
+        templist := nil;
 
         { finalize line info if the unit doesn't contain any function/ }
         { procedure/init/final code                                    }
@@ -3226,6 +3234,7 @@ implementation
         linelist.concat(tai_symbol.createname(target_asm.labelprefix+'edebug_line0',AT_METADATA,0,voidpointertype));
 
         flist.free;
+        flist := nil;
       end;
 
 

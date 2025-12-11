@@ -282,6 +282,7 @@ procedure DoneExport;
 begin
   if assigned(Exportlib) then
     Exportlib.free;
+    Exportlib := nil;
 end;
 
 

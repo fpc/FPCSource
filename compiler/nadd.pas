@@ -913,7 +913,7 @@ const
               have a side effect }
             if (is_constintnode(left) and might_have_sideeffects(right)) or
               (is_constintnode(right) and might_have_sideeffects(left)) then
-              t.free
+              t.free // no nil needed
             else
               result:=t;
             exit;

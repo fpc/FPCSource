@@ -9546,17 +9546,8 @@ begin
 end;
 
 procedure TFPReportCustomBand.AfterPrintBand(pBand: TFPReportCustomBand);
-var
-  i: integer;
-  c: TFPReportElement;
 begin
-  // reset aggregates after printing
-  for i := 0 to ChildCount - 1 do
-  begin
-    c := Child[i];
-    if c is TFPReportMemo then
-      TFPReportMemo(c).ResetAggregates; // checks for moNoResetAggregateOnPrint
-  end;
+  // Do nothing
 end;
 
 procedure TFPReportCustomBand.BeforePrintWithChilds;
@@ -9570,8 +9561,24 @@ begin
 end;
 
 procedure TFPReportCustomBand.AfterPrintWithChilds;
+var
+  i: integer;
+  c: TFPReportElement;
+  lBand: TFPReportCustomBand;
 begin
-  // Do nothing
+  // reset aggregates after printing
+
+  lBand := Self;
+  while Assigned(lBand) do
+  begin
+    for i := 0 to lBand.ChildCount - 1 do
+    begin
+      c := lBand.Child[i];
+      if c is TFPReportMemo then
+        TFPReportMemo(c).ResetAggregates; // checks for moNoResetAggregateOnPrint
+    end;
+    lBand := lBand.ChildBand;
+  end;
 end;
 
 constructor TFPReportCustomBand.Create(AOwner: TComponent);

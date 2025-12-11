@@ -270,9 +270,11 @@ implementation
           exit;
         Clear;
         DefList.Free;
+        DefList := nil;
         { SymList can already be disposed or set to nil for withsymtable, }
         { but in that case Free does nothing                              }
         SymList.Free;
+        SymList := nil;
         stringdispose(name);
         stringdispose(realname);
       end;
@@ -522,5 +524,6 @@ initialization
 
 finalization
   memrealnames.free;
+  memrealnames := nil;
 {$endif MEMDEBUG}
 end.

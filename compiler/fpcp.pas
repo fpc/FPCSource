@@ -312,6 +312,7 @@ implementation
           rewriteppu(module^.module.ppufilename,stream);
           module^.size:=stream.position;
           stream.free;
+          stream := nil;
         end;
 
       pos:=pcpfile.position;
@@ -416,6 +417,7 @@ implementation
   destructor tpcppackage.destroy;
     begin
       pcpfile.free;
+      pcpfile := nil;
       inherited destroy;
     end;
 

@@ -1098,11 +1098,17 @@ type
   class destructor texprvalue.destroydefs;
     begin
       setdef.free;
+      setdef := nil;
       sintdef.free;
+      sintdef := nil;
       uintdef.free;
+      uintdef := nil;
       booldef.free;
+      booldef := nil;
       strdef.free;
+      strdef := nil;
       realdef.free;
+      realdef := nil;
     end;
 
   constructor texprvalue.create_const(c: tconstsym);
@@ -2264,6 +2270,7 @@ type
                     else
                       result:=texprvalue.create_int(0);
                     exprvalue.free;
+                    exprvalue := nil;
                     if current_scanner.preproc_token =_RKLAMMER then
                       preproc_consume(_RKLAMMER)
                     else
@@ -2279,6 +2286,7 @@ type
                     else
                       result:=texprvalue.create_bool(false); {Just to have something}
                     exprvalue.free;
+                    exprvalue := nil;
                   end
                 else
                 if (current_scanner.preproc_pattern='TRUE') then
@@ -2455,6 +2463,7 @@ type
                else
                  Message(scan_e_error_in_preproc_expr);
                exprvalue.free;
+               exprvalue := nil;
              end
            else
              Message(scan_e_error_in_preproc_expr);
@@ -2508,7 +2517,9 @@ type
                      result:=texprvalue.create_bool(false); {Just to have something}
                  end;
                hs1.free;
+               hs1 := nil;
                hs2.free;
+               hs2 := nil;
              end
            else
              break;
@@ -2538,6 +2549,7 @@ type
           end;
         valuedescr:=hs.asStr;
         hs.free;
+        hs := nil;
       end;
 
     procedure dir_if;
@@ -2720,6 +2732,7 @@ type
              else
                Message(scan_e_preproc_syntax_error);
              exprvalue.free;
+             exprvalue := nil;
           end
         else
           Message(scan_e_preproc_syntax_error);
@@ -3094,8 +3107,12 @@ type
         if not inputfile.closed then
           closeinputfile;
         if inputfile.is_macro then
-          inputfile.free;
+          begin
+            inputfile.free;
+            inputfile := nil;
+          end;
         ignoredirectives.free;
+        ignoredirectives := nil;
       end;
 
 
@@ -3227,7 +3244,7 @@ type
            inputfile.close;
            inputfile:=inputfile.next;
            if assigned(to_dispose) then
-             to_dispose.free;
+             to_dispose.free; // no nil needed
            restoreinputfile;
          end;
       end;
@@ -3923,6 +3940,7 @@ type
                         if assigned(pmsg) then
                           dispose(pmsg);
                         msgset.free;
+                        msgset := nil;
                       end;
                     ST_LINE:
                       begin
@@ -6872,6 +6890,7 @@ exit_label:
             result:=false;
           end;
         hs.free;
+        hs := nil;
       end;
 
 
@@ -6891,6 +6910,7 @@ exit_label:
             result:=false;
           end;
         hs.free;
+        hs := nil;
       end;
 
 
@@ -6998,7 +7018,9 @@ exit_label:
     procedure DoneScanner;
       begin
         turbo_scannerdirectives.Free;
+        turbo_scannerdirectives := nil;
         mac_scannerdirectives.Free;
+        mac_scannerdirectives := nil;
         DoneWideString(patternw);
       end;
 

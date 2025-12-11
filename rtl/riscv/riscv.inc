@@ -218,3 +218,51 @@ procedure WriteBarrier; assembler; nostackframe;
   begin
     InterLockedIncrement(l);
   end;
+
+
+{$ifdef CPURV_HAS_ZBB}
+
+{$define FPC_SYSTEM_HAS_SWAPENDIAN}
+
+function SwapEndian(const AValue: SmallInt): SmallInt; assembler; nostackframe;
+asm
+  rev8 a0, a0
+  srli a0, a0, 16
+end;
+
+
+function SwapEndian(const AValue: Word): Word; assembler; nostackframe;
+asm
+  rev8 a0, a0
+  srli a0, a0, 16
+end;
+
+
+function SwapEndian(const AValue: LongInt): LongInt; assembler; nostackframe;
+asm
+  rev8 a0, a0
+end;
+
+
+function SwapEndian(const AValue: DWord): DWord; assembler; nostackframe;
+asm
+  rev8 a0, a0
+end;
+
+
+function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
+asm
+  rev8 a2, a0
+  rev8 a0, a1
+  addi a1, a2, 0
+end;
+
+
+function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
+asm
+  rev8 a2, a0
+  rev8 a0, a1
+  addi a1, a2, 0
+end;
+
+{$endif CPURV_HAS_ZBB}

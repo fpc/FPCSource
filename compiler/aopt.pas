@@ -379,6 +379,7 @@ Unit aopt;
         p.Debug_InsertInstrRegisterDependencyInfo;
 {$endif DEBUG_INSTRUCTIONREGISTERDEPENDENCIES}
         p.free;
+        p := nil;
         StopTimer;
       end;
 
@@ -389,7 +390,8 @@ Unit aopt;
       begin
         p:=cpreregallocscheduler.Create(AsmL);
         p.Optimize;
-        p.free
+        p.free;
+        p := nil;
       end;
 
 

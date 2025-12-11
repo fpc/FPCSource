@@ -140,6 +140,7 @@ implementation
         for i:=0 to variantstarts.count-1 do
           encodedstr:=encodedstr+'})';
         variantstarts.free;
+        variantstarts := nil;
         encodedstr:=encodedstr+'}';
         result:=true
       end;

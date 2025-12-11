@@ -520,6 +520,7 @@ Begin
   expr:=TExprParse.create;
   CalculateExpression:=expr.Evaluate(expression);
   expr.Free;
+  expr := nil;
 end;
 
 
@@ -1271,7 +1272,7 @@ var
   i : longint;
 Begin
   for i:=1 to max_operands do
-   Operands[i].free;
+   FreeAndNil(Operands[i]);
 end;
 
 

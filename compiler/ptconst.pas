@@ -146,6 +146,7 @@ implementation
           end;
 
         tcbuilder.free;
+        tcbuilder := nil;
         current_filepos:=storefilepos;
       end;
 
