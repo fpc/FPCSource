@@ -1619,7 +1619,7 @@ implementation
           begin
             if ref.offset<>0 then
               begin
-                if (tmpreg<>NR_NO) and (ref.index=tmpreg) then
+                if (tmpreg<>NR_NO) and ((ref.index=tmpreg) or (ref.base=tmpreg)) then
                   begin
                     tmpreg2:=getintregister(list,OS_INT);
                     ltmpreg:=tmpreg2;
