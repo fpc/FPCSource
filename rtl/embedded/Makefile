@@ -976,7 +976,7 @@ $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNIT
 endif
 endif
 ifeq ($(ARCH),avr)
-CPU_SPECIFIC_COMMON_UNITS+=$(INTRINSICSUNIT)
+CPU_SPECIFIC_COMMON_UNITS=$(INTRINSICSUNIT)
 ifeq ($(SUBARCH),avrtiny)
 CPU_UNITS=attiny4 attiny5 attiny9 attiny10 attiny20 attiny40 attiny102 attiny104
 CPU_UNITS_DEFINED=1
