@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses 
+uses
   {$ifdef unix}
   cthreads,
   {$endif}
@@ -21,7 +21,7 @@ begin
     begin
     P:=AddPackage('utils-lexyacc');
     P.ShortName:='tply';
-    { java and jvm-android do not support 
+    { java and jvm-android do not support
       fpc_get_output used in these sources }
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];

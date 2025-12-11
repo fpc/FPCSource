@@ -2,11 +2,11 @@
     This file is part of the Free Component Library
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
-    Take a uses clause from standard input, 
+    Take a uses clause from standard input,
     and replace it with a conditional uses clause that allows dotted and non-dotted units.
-    To be used in shell scripts or to be invoked from an editor 
+    To be used in shell scripts or to be invoked from an editor
     that allows you to filter a selection through a command.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

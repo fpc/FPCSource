@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses 
+uses
 {$ifdef unix}
   cthreads,
 {$endif}
@@ -20,7 +20,7 @@ begin
     begin
     P:=AddPackage('utils-h2pas');
     P.ShortName:='h2pa';
-    { java and jvm-android do not support 
+    { java and jvm-android do not support
       fpc_get_output used in these sources }
     if Defaults.CPU=jvm then
       P.OSes := P.OSes - [java,android];
@@ -57,7 +57,7 @@ begin
     T.Dependencies.AddUnit('scan');
     T.Dependencies.AddUnit('h2pyacclib');
     T.Dependencies.AddUnit('h2pparse');
-    
+
     T:=P.Targets.AddUnit('scan.pas');
     T.Install:=false;
     T.Dependencies.AddUnit('h2pbase');
@@ -74,8 +74,8 @@ begin
     T.Dependencies.AddUnit('h2ptypes');
     T.Dependencies.AddUnit('h2plexlib');
     T.Dependencies.AddUnit('h2pyacclib');
-    
-    
+
+
     T:=P.Targets.AddUnit('scanbase.pp');
     T.install:=false;
     T.Dependencies.AddUnit('h2pconst');

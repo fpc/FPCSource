@@ -30,7 +30,7 @@ interface
 
 uses
   Classes, lNet, lTelnet;
-  
+
 const
   DEFAULT_FTP_PORT    = 1025;
 
@@ -41,16 +41,16 @@ type
   TLFTPStatus = (fsNone, fsCon, fsUser, fsPass, fsPasv, fsPort, fsList, fsRetr,
                  fsStor, fsType, fsCWD, fsMKD, fsRMD, fsDEL, fsRNFR, fsRNTO,
                  fsSYS, fsFeat, fsPWD, fsHelp, fsLast);
-                 
+
   TLFTPStatusSet = set of TLFTPStatus;
-                 
+
   TLFTPStatusRec = record
     Status: TLFTPStatus;
     Args: array[1..2] of string;
   end;
-  
+
   TLFTPTransferMethod = (ftActive, ftPassive);
-                 
+
   TLFTPClientStatusEvent = procedure (aSocket: TLSocket;
                                      const aStatus: TLFTPStatus) of object;
 
@@ -60,7 +60,7 @@ type
   {$DEFINE __front_type__  :=  TLFTPStatusRec}
   {$i lcontainersh.inc}
   TLFTPStatusFront = TLFront;
-  
+
   TLFTP = class(TLComponent, ILDirect)
    protected
     FControl: TLTelnetClient;
@@ -71,7 +71,7 @@ type
     FFeatureString: string;
 
     function GetConnected: Boolean; virtual;
-    
+
     function GetTimeout: Integer;
     procedure SetTimeout(const Value: Integer);
 
@@ -84,13 +84,13 @@ type
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
-    
+
     function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
-    
+
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
-    
+
    public
     property Connected: Boolean read GetConnected;
     property Timeout: Integer read GetTimeout write SetTimeout;
@@ -103,7 +103,7 @@ type
   end;
 
   { TLFTPTelnetClient }
-  
+
   TLFTPTelnetClient = class(TLTelnetClient)
    protected
     function React(const Operation, Command: Char):boolean; override;
@@ -144,7 +144,7 @@ type
     procedure OnControlRe(aSocket: TLSocket);
     procedure OnControlCo(aSocket: TLSocket);
     procedure OnControlDs(aSocket: TLSocket);
-    
+
     procedure ClearStatusFlags;
 
     function GetCurrentStatus: TLFTPStatus;
@@ -183,25 +183,25 @@ type
 
     function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; override;
-    
+
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; override;
-    
+
     function Connect(const aHost: string; const aPort: Word = 21): Boolean; virtual; overload;
     function Connect: Boolean; virtual; overload;
-    
+
     function Authenticate(const aUsername, aPassword: string): Boolean;
-    
+
     function GetData(out aData; const aSize: Integer): Integer;
     function GetDataMessage: string;
-    
+
     function Retrieve(const FileName: string): Boolean;
     function Put(const FileName: string): Boolean; virtual; // because of LCLsocket
-    
+
     function ChangeDirectory(const DestPath: string): Boolean;
     function MakeDirectory(const DirName: string): Boolean;
     function RemoveDirectory(const DirName: string): Boolean;
-    
+
     function DeleteFile(const FileName: string): Boolean;
     function Rename(const FromName, ToName: string): Boolean;
    public
@@ -211,9 +211,9 @@ type
     procedure ListFeatures;
     procedure PresentWorkingDirectory;
     procedure Help(const Arg: string);
-    
+
     procedure Disconnect(const Forced: Boolean = True); override;
-    
+
     procedure CallAction; override;
    public
     property StatusSet: TLFTPStatusSet read FStatusSet write FStatusSet;
@@ -234,9 +234,9 @@ type
     property OnSuccess: TLFTPClientStatusEvent read FOnSuccess write FOnSuccess;
     property OnFailure: TLFTPClientStatusEvent read FOnFailure write FOnFailure;
   end;
-  
+
   function FTPStatusToStr(const aStatus: TLFTPStatus): string;
-  
+
 implementation
 
 uses
@@ -306,7 +306,7 @@ end;
 procedure TLFTP.SetCreator(AValue: TLComponent);
 begin
   inherited SetCreator(AValue);
-  
+
   FControl.Creator := AValue;
   FData.Creator := AValue;
 end;
@@ -403,7 +403,7 @@ begin
 
   FStatus := TLFTPStatusFront.Create(EMPTY_REC);
   FCommandFront := TLFTPStatusFront.Create(EMPTY_REC);
-  
+
   FStoreFile := nil;
 end;
 
@@ -446,13 +446,13 @@ end;
 procedure TLFTPClient.OnControlEr(const msg: string; aSocket: TLSocket);
 begin
   FSending := False;
-  
+
   if Assigned(FOnFailure) then begin
     while not FStatus.Empty do
       FOnFailure(aSocket, FStatus.Remove.Status);
   end else
     FStatus.Clear;
-    
+
   ClearStatusFlags;
 
   if Assigned(FOnError) then
@@ -648,25 +648,25 @@ procedure TLFTPClient.EvaluateAnswer(const Ans: string);
       FStatus.Remove;
     end;
   end;
-  
+
   procedure SendFile;
   begin
     FStoreFile.Position := 0;
     FSending := True;
     SendChunk(False);
   end;
-  
+
   function ValidResponse(const Answer: string): Boolean; inline;
   begin
     Result := (Length(Ans) >= 3) and
             (Ans[1] in ['1'..'5']) and
             (Ans[2] in ['0'..'9']) and
             (Ans[3] in ['0'..'9']);
-            
+
     if Result then
       Result := (Length(Ans) = 3) or ((Length(Ans) > 3) and (Ans[4] = ' '));
   end;
-  
+
   procedure Eventize(const aStatus: TLFTPStatus; const Res: Boolean);
   begin
     FStatus.Remove;
@@ -678,7 +678,7 @@ procedure TLFTPClient.EvaluateAnswer(const Ans: string);
         FOnFailure(FData.Iterator, aStatus);
     end;
   end;
-  
+
 var
   x: Integer;
 begin
@@ -723,7 +723,7 @@ begin
                        Eventize(FStatus.First.Status, False);
                      end;
                  end;
-                 
+
         fsPass : case x of
                    230:
                      begin
@@ -782,7 +782,7 @@ begin
 
         fsStor : case x of
                    125, 150: SendFile;
-                   
+
                    226:
                      begin
                        Eventize(FStatus.First.Status, True);
@@ -844,7 +844,7 @@ begin
                        Eventize(FStatus.First.Status, False);
                      end;
                  end;
-                 
+
         fsMKD  : case x of
                    250, 257:
                      begin
@@ -857,7 +857,7 @@ begin
                        Eventize(FStatus.First.Status, False);
                      end;
                  end;
-                 
+
         fsRMD,
         fsDEL  : case x of
                    250:
@@ -871,7 +871,7 @@ begin
                        Eventize(FStatus.First.Status, False);
                      end;
                  end;
-                 
+
         fsRNFR : case x of
                    350:
                      begin
@@ -883,7 +883,7 @@ begin
                        Eventize(FStatus.First.Status, False);
                      end;
                  end;
-                 
+
         fsRNTO : case x of
                    250:
                      begin
@@ -921,13 +921,13 @@ procedure TLFTPClient.PasvPort;
     Result := IntToStr(aPort div 256);
     Result := Result + ',' + IntToStr(aPort mod 256);
   end;
-  
+
   function StringIP: string;
   begin
     Result := StringReplace(FControl.Connection.Iterator.LocalAddress, '.', ',',
                           [rfReplaceAll]) + ',';
   end;
-  
+
 begin
   if FTransferMethod = ftActive then begin
     Writedbg(['Sent PORT']);

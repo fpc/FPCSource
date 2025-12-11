@@ -348,7 +348,7 @@ end;
 
 procedure THTTPCompilerApplication.AddToStatus(AEntry: TDirectoryEntry; AEvents: TFileEvents);
 
-Var  
+Var
   O : TJSONObject;
   FN : String;
 

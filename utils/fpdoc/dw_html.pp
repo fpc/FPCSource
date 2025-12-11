@@ -169,7 +169,7 @@ begin
   El := Doc.CreateElement('meta');
   HeadEl.AppendChild(El);
   El['http-equiv'] := 'Content-Type';
-  
+
   El['content'] := 'text/html; charset=utf-8';
   FTitleElement := Doc.CreateElement('title');
   HeadEl.AppendChild(TitleElement);
@@ -811,7 +811,7 @@ begin
     If (FDateFormat='') then
       S:=DateToStr(Date)
     else
-      S:=FormatDateTime(FDateFormat,Date);  
+      S:=FormatDateTime(FDateFormat,Date);
     AppendText(F,Format(SDocDateGenerated,[S]));
     end;
 end;
@@ -1009,7 +1009,7 @@ begin
     If (ASubPageIndex=0) then
       CreatePackagePageBody
     else if ASubPageIndex=IndexSubIndex then
-      CreatePackageIndex  
+      CreatePackageIndex
     else if ASubPageIndex=ClassHierarchySubIndex then
       CreatePackageClassHierarchy
     end
@@ -1065,7 +1065,7 @@ begin
     E:=TPasElement(L.Objects[i]);
     If not (E is TPasUnresolvedTypeRef) then
       begin
-      If (S<>'') then 
+      If (S<>'') then
         begin
         C:=Upcase(S[1]);
         If C='_' then
@@ -1076,12 +1076,12 @@ begin
           Lists[C]:=CL;
           end;
         end;
-      if assigned(cl) then  
+      if assigned(cl) then
         CL.AddObject(S,E);
-      end;  
-    end;  
-  Try  
-  // Create a quick jump table to all available letters.    
+      end;
+    end;
+  Try
+  // Create a quick jump table to all available letters.
   TableEl := CreateTable(ContentElement);
   TableEl['border']:='1';
   TableEl['width']:='50%';
@@ -1094,7 +1094,7 @@ begin
       If C<>'Z' then
        AppendNBsp(El,1);
       end;
-  // Now emit all identifiers.    
+  // Now emit all identifiers.
   TableEl:=Nil;
   For C:='A' to 'Z' do
     begin
@@ -1110,11 +1110,11 @@ begin
       Rows:=(CL.Count div IndexColCount);
       If ((CL.Count Mod IndexColCount)<>0) then
         Inc(Rows);
-      // Fill rows  
+      // Fill rows
       For I:=0 to Rows-1 do
         begin
         TREl := CreateTR(TableEl);
-        For J:=0 to IndexColCount-1 do 
+        For J:=0 to IndexColCount-1 do
           begin
           El:=CreateTD_vtop(TREl);
           Index:=(J*Rows)+I;
@@ -1124,14 +1124,14 @@ begin
             E:=TPasElement(CL.Objects[Index]);
             AppendHyperlink(El,E);
             end;
-          end;  
-        end;  
+          end;
+        end;
       end; // have List
     end;  // For C:=
   Finally
     for C:='A' to 'Z' do
       FreeAndNil(Lists[C]);
-  end;  
+  end;
 end;
 
 procedure THTMLWriter.CreatePackageIndex;
@@ -1141,7 +1141,7 @@ Var
   I : Integer;
   M : TPasModule;
   S : String;
-  
+
 begin
   L:=TStringList.Create;
   try
@@ -1251,7 +1251,7 @@ begin
     CreateIndexPage(L);
   Finally
     L.Free;
-  end;  
+  end;
 end;
 
 procedure THTMLWriter.CreateModuleMainPage(aModule : TPasModule);
@@ -1385,7 +1385,7 @@ begin
       CreateModuleSimpleSubpage(aModule, ProcsSubindex, UTF8Decode(SDocProceduresAndFunctions), AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateModuleSimpleSubpage(aModule, VarsSubindex,UTF8Decode(SDocVariables), AModule.InterfaceSection.Variables);
-    IndexSubIndex: 
+    IndexSubIndex:
       CreateModuleIndexPage(AModule);
   end;
 end;

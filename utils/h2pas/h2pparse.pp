@@ -119,664 +119,664 @@ begin
          yyval := yyv[yysp-0];
        end;
    2 : begin
-         
+
          (* SPACE_DEFINE *)
          yyval:=nil;
-         
+
        end;
    3 : begin
-         
+
          (* empty space  *)
          yyval:=nil;
-         
+
        end;
    4 : begin
-         
+
          (* error_info *)
          EmitErrorStart(yyline);
-         
+
        end;
    5 : begin
-         
+
          (* declaration_list  declaration *)
          EmitAndOutput('declaration reduced at line ',line_no);
-         
+
        end;
    6 : begin
-         
+
          (* declaration_list define_dec *)
          EmitAndOutput('define declaration reduced at line ',line_no);
-         
+
        end;
    7 : begin
-         
+
          (* declaration *)
          EmitAndOutput('define declaration reduced at line ',line_no);
-         
+
        end;
    8 : begin
-         
+
          (* define_dec *)
          EmitAndOutput('define declaration reduced at line ',line_no);
-         
+
        end;
    9 : begin
          (* EXTERN *)
          yyval:=NewID('extern');
-         
+
        end;
   10 : begin
          (* not extern  *)
          yyval:=NewID('intern');
-         
+
        end;
   11 : begin
-         
+
          (* STDCALL *)
          yyval:=NewID('no_pop');
-         
+
        end;
   12 : begin
-         
+
          (* CDECL *)
          yyval:=NewID('cdecl');
-         
+
        end;
   13 : begin
-         
+
          (* CALLBACK *)
          yyval:=NewID('no_pop');
-         
+
        end;
   14 : begin
-         
+
          (* PASCAL *)
          yyval:=NewID('no_pop');
-         
+
        end;
   15 : begin
-         
+
          (* WINAPI *)
          yyval:=NewID('no_pop');
-         
+
        end;
   16 : begin
-         
+
          (* APIENTRY  *)
          yyval:=NewID('no_pop');
-         
+
        end;
   17 : begin
-         
+
          (* WINGDIAPI  *)
          yyval:=NewID('no_pop');
-         
+
        end;
   18 : begin
-         
+
          (* No modifier *)
          yyval:=nil
-         
+
        end;
   19 : begin
-         
+
          (* SYS_TRAP LKLAMMER dname RKLAMMER *)
          yyval:=yyv[yysp-1];
-         
+
        end;
   20 : begin
-         
+
          (* Empty systrap *)
          yyval:=nil;
-         
+
        end;
   21 : begin
-         
+
          (* expr SEMICOLON *)
          yyval:=yyv[yysp-1];
-         
+
        end;
   22 : begin
-         
+
          (* _WHILE LKLAMMER expr RKLAMMER statement_list  *)
          yyval:=NewType2(t_whilenode,yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
   23 : begin
-         
+
          (* statement statement_list *)
          yyval:=NewType1(t_statement_list,yyv[yysp-1]);
          yyval^.next:=yyv[yysp-0];
-         
+
        end;
   24 : begin
-         
+
          (* statement  *)
          yyval:=NewType1(t_statement_list,yyv[yysp-0]);
-         
+
        end;
   25 : begin
-         
+
          (* SEMICOLON  *)
          yyval:=NewType1(t_statement_list,nil);
-         
+
        end;
   26 : begin
-         
+
          (* empty statement  *)
          yyval:=NewType1(t_statement_list,nil);
-         
+
        end;
   27 : begin
-         
+
          (* LGKLAMMER statement_list RGKLAMMER  *)
          yyval:=yyv[yysp-1];
-         
+
        end;
   28 : begin
-         
+
          (* dec_specifier type_specifier dec_modifier declarator_list statement_block *)
          HandleDeclarationStatement(yyv[yysp-4],yyv[yysp-3],yyv[yysp-2],yyv[yysp-1],yyv[yysp-0]);
-         
+
        end;
   29 : begin
-         
+
          (* dec_specifier type_specifier dec_modifier declarator_list systrap_specifier SEMICOLON *)
          HandleDeclarationSysTrap(yyv[yysp-5],yyv[yysp-4],yyv[yysp-3],yyv[yysp-2],yyv[yysp-1]);
-         
+
        end;
   30 : begin
-         
+
          (* special_type_specifier SEMICOLON *)
          HandleSpecialType(yyv[yysp-1]);
-         
+
        end;
   31 : begin
-         
+
          (* TYPEDEF STRUCT dname dname SEMICOLON *)
          HandleStructDef(yyv[yysp-2],yyv[yysp-1]);
-         
+
        end;
   32 : begin
-         
+
          (* TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON *)
          HandleTypeDef(yyv[yysp-9],yyv[yysp-7],yyv[yysp-6],yyv[yysp-2]);
-         
+
        end;
   33 : begin
-         
+
          (* TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON *)
          HandleTypeDefList(yyv[yysp-3],yyv[yysp-2],yyv[yysp-1]);
-         
+
        end;
   34 : begin
-         
+
          (* TYPEDEF dname SEMICOLON *)
          HandleSimpleTypeDef(yyv[yysp-1]);
-         
+
        end;
   35 : begin
-         
+
          (* error  error_info SEMICOLON *)
          HandleErrorDecl(yyv[yysp-2],yyv[yysp-1]);
-         
+
        end;
   36 : begin
-         
+
          (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
          HandleDefineMacro(yyv[yysp-5],yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
   37 : begin
-         
+
          (* DEFINE dname SPACE_DEFINE NEW_LINE *)
          HandleDefine(yyv[yysp-2]);
-         
+
        end;
   38 : begin
-         
+
          (* DEFINE dname NEW_LINE *)
          HandleDefine(yyv[yysp-1]);
-         
+
        end;
   39 : begin
-         
+
          (* DEFINE dname SPACE_DEFINE def_expr NEW_LINE *)
          HandleDefineConst(yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
   40 : begin
-         
+
          (* error error_info NEW_LINE *)
          HandleErrorDecl(yyv[yysp-2],yyv[yysp-1]);
-         
+
        end;
   41 : begin
-         
+
          (* LGKLAMMER member_list RGKLAMMER *)
          yyval:=yyv[yysp-1];
-         
+
        end;
   42 : begin
-         
+
          (* error  error_info RGKLAMMER *)
          emitwriteln(' in member_list *)');
          yyerrok;
          yyval:=nil;
-         
+
        end;
   43 : begin
-         
+
          (* LGKLAMMER enum_list RGKLAMMER *)
          yyval:=yyv[yysp-1];
-         
+
        end;
   44 : begin
-         
+
          (* error  error_info RGKLAMMER *)
          emitwriteln(' in enum_list *)');
          yyerrok;
          yyval:=nil;
-         
+
        end;
   45 : begin
-         
+
          (* STRUCT dname closed_list _PACKED *)
          emitpacked(1);
          yyval:=NewType2(t_structdef,yyv[yysp-1],yyv[yysp-2]);
-         
+
        end;
   46 : begin
-         
+
          (* STRUCT dname closed_list *)
          emitpacked(4);
          yyval:=NewType2(t_structdef,yyv[yysp-0],yyv[yysp-1]);
-         
+
        end;
   47 : begin
-         
+
          (* UNION dname closed_list _PACKED *)
          emitpacked(1);
          yyval:=NewType2(t_uniondef,yyv[yysp-1],yyv[yysp-2]);
-         
+
        end;
   48 : begin
-         
+
          (* UNION dname closed_list *)
          yyval:=NewType2(t_uniondef,yyv[yysp-0],yyv[yysp-1]);
-         
+
        end;
   49 : begin
-         
+
          (* UNION dname  *)
          yyval:=yyv[yysp-0];
-         
+
        end;
   50 : begin
-         
+
          (* STRUCT dname *)
          yyval:=yyv[yysp-0];
-         
+
        end;
   51 : begin
-         
+
          (* ENUM dname closed_enum_list *)
          yyval:=NewType2(t_enumdef,yyv[yysp-0],yyv[yysp-1]);
-         
+
        end;
   52 : begin
-         
+
          (* ENUM dname *)
          yyval:=yyv[yysp-0];
-         
+
        end;
   53 : begin
-         
+
          (* _CONST type_specifier *)
          EmitIgnoreConst;
          yyval:=yyv[yysp-0];
-         
+
        end;
   54 : begin
-         
+
          (* UNION closed_list  _PACKED *)
          EmitPacked(1);
          yyval:=NewType1(t_uniondef,yyv[yysp-1]);
-         
+
        end;
   55 : begin
-         
+
          (* UNION closed_list *)
          yyval:=NewType1(t_uniondef,yyv[yysp-0]);
-         
+
        end;
   56 : begin
-         
+
          (* STRUCT closed_list _PACKED *)
          emitpacked(1);
          yyval:=NewType1(t_structdef,yyv[yysp-1]);
-         
+
        end;
   57 : begin
-         
+
          (* STRUCT closed_list  *)
          emitpacked(4);
          yyval:=NewType1(t_structdef,yyv[yysp-0]);
-         
+
        end;
   58 : begin
-         
+
          (* ENUM closed_enum_list*)
          yyval:=NewType1(t_enumdef,yyv[yysp-0]);
-         
+
        end;
   59 : begin
-         
+
          (* special_type_specifier *)
          yyval:=yyv[yysp-0];
-         
+
        end;
   60 : begin
-         yyval:=yyv[yysp-0]; 
+         yyval:=yyv[yysp-0];
        end;
   61 : begin
-         
+
          (*  member_declaration member_list *)
          yyval:=NewType1(t_memberdeclist,yyv[yysp-1]);
          yyval^.next:=yyv[yysp-0];
-         
+
        end;
   62 : begin
-         
+
          (* member_declaration *)
          yyval:=NewType1(t_memberdeclist,yyv[yysp-0]);
-         
+
        end;
   63 : begin
-         
+
          (* type_specifier declarator_list SEMICOLON *)
          yyval:=NewType2(t_memberdec,yyv[yysp-2],yyv[yysp-1]);
-         
+
        end;
   64 : begin
-         
+
          (* dname *)
          yyval:=NewID(act_token);
-         
+
        end;
   65 : begin
-         
+
          (* SIGNED special_type_name *)
          yyval:=HandleSpecialSignedType(yyv[yysp-0]);
-         
+
        end;
   66 : begin
-         
+
          (* UNSIGNED special_type_name *)
          yyval:=HandleSpecialUnsignedType(yyv[yysp-0]);
-         
+
        end;
   67 : begin
-         
+
          (* INT *)
          yyval:=NewCType(cint_STR,INT_STR);
-         
+
        end;
   68 : begin
-         
+
          (* LONG *)
          yyval:=NewCType(clong_STR,INT_STR);
-         
+
        end;
   69 : begin
-         
+
          (* LONG INT *)
          yyval:=NewCType(clong_STR,INT_STR);
-         
+
        end;
   70 : begin
-         
+
          (* LONG LONG *)
          yyval:=NewCType(clonglong_STR,INT64_STR);
-         
+
        end;
   71 : begin
-         
+
          (* LONG LONG INT *)
          yyval:=NewCType(clonglong_STR,INT64_STR);
-         
+
        end;
   72 : begin
-         
+
          (* SHORT  *)
          yyval:=NewCType(cshort_STR,SMALL_STR);
-         
+
        end;
   73 : begin
-         
+
          (* SHORT INT *)
          yyval:=NewCType(cshort_STR,SMALL_STR);
-         
+
        end;
   74 : begin
-         
+
          (* INT8 *)
          yyval:=NewCType(cint8_STR,SHORT_STR);
-         
+
        end;
   75 : begin
-         
+
          (* INT8 *)
          yyval:=NewCType(cint16_STR,SMALL_STR);
-         
+
        end;
   76 : begin
-         
+
          (* INT32 *)
          yyval:=NewCType(cint32_STR,INT_STR);
-         
+
        end;
   77 : begin
-         
+
          (* INT64 *)
-         
+
          yyval:=NewCType(cint64_STR,INT64_STR);
-         
+
        end;
   78 : begin
-         
+
          (* FLOAT *)
          yyval:=NewCType(cfloat_STR,FLOAT_STR);
-         
+
        end;
   79 : begin
-         
+
          (* VOID *)
          yyval:=NewVoid;
-         
+
        end;
   80 : begin
-         
+
          (* CHAR *)
          yyval:=NewCType(cchar_STR,char_STR);
-         
+
        end;
   81 : begin
-         
+
          (* UNSIGNED *)
          yyval:=NewCType(cunsigned_STR,UINT_STR);
-         
+
        end;
   82 : begin
-         
+
          (* special_type_name *)
          yyval:=yyv[yysp-0];
-         
+
        end;
   83 : begin
-         
+
          (* dname *)
          yyval:=CheckUnderscore(yyv[yysp-0]);
-         
+
        end;
   84 : begin
-         
+
          (* declarator_list COMMA declarator *)
          yyval:=HandleDeclarationList(yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
   85 : begin
-         
+
          (* error error_info COMMA declarator_list *)
          EmitWriteln(' in declarator_list *)');
          yyval:=yyv[yysp-0];
          yyerrok;
-         
+
        end;
   86 : begin
-         
+
          (* error error_info *)
          EmitWriteln(' in declarator_list *)');
          yyerrok;
-         
+
        end;
   87 : begin
-         
+
          (* declarator *)
          yyval:=NewType1(t_declist,yyv[yysp-0]);
-         
+
        end;
   88 : begin
-         
+
          (* type_specifier declarator *)
          yyval:=NewType2(t_arg,yyv[yysp-1],yyv[yysp-0]);
-         
+
        end;
   89 : begin
-         
+
          (* type_specifier STAR declarator *)
          yyval:=HandlePointerArgDeclarator(yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
   90 : begin
-         
+
          (* type_specifier abstract_declarator *)
          yyval:=NewType2(t_arg,yyv[yysp-1],yyv[yysp-0]);
-         
+
        end;
   91 : begin
-         
+
          (* argument_declaration *)
          yyval:=NewType2(t_arglist,yyv[yysp-0],nil);
-         
+
        end;
   92 : begin
-         
+
          (* argument_declaration COMMA argument_declaration_list *)
          yyval:=HandleArgList(yyv[yysp-2],yyv[yysp-0])
-         
+
        end;
   93 : begin
-         
+
          (* ELLIPISIS *)
          yyval:=NewType2(t_arglist,ellipsisarg,nil);
-         
+
        end;
   94 : begin
-         
+
          (* empty *)
          yyval:=nil;
-         
+
        end;
   95 : begin
-         
+
          (* FAR *)
          yyval:=NewID('far');
-         
+
        end;
   96 : begin
-         
+
          (* NEAR*)
          yyval:=NewID('near');
-         
+
        end;
   97 : begin
-         
+
          (* HUGE *)
          yyval:=NewID('huge');
        end;
   98 : begin
-         
+
          (* _CONST declarator *)
          EmitIgnoreConst;
          yyval:=yyv[yysp-0];
-         
+
        end;
   99 : begin
-         
+
          (* size_overrider STAR declarator *)
          yyval:=HandleSizeOverrideDeclarator(yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  100 : begin
-         
+
          (* %prec PSTAR this was wrong!! *)
          yyval:=HandleDeclarator(t_pointerdef,yyv[yysp-0]);
-         
+
        end;
  101 : begin
-         
+
          (* _AND declarator %prec P_AND *)
          yyval:=HandleDeclarator(t_addrdef,yyv[yysp-0]);
-         
+
        end;
  102 : begin
-         
+
          (* dname COLON expr *)
          yyval:=HandleSizedDeclarator(yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  103 : begin
-         
+
          (*     dname ASSIGN expr *)
          yyval:=HandleDefaultDeclarator(yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  104 : begin
-         
+
          (* dname *)
          yyval:=NewType2(t_dec,nil,yyv[yysp-0]);
-         
+
        end;
  105 : begin
-         
+
          (* declarator LKLAMMER argument_declaration_list RKLAMMER *)
          yyval:=HandleDeclarator2(t_procdef,yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
  106 : begin
-         
+
          (*   declarator no_arg *)
          yyval:=HandleDeclarator2(t_procdef,yyv[yysp-1],Nil);
-         
+
        end;
  107 : begin
-         
+
          (* declarator LECKKLAMMER expr RECKKLAMMER *)
          yyval:=HandleDeclarator2(t_arraydef,yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
  108 : begin
-         
+
          (* declarator LECKKLAMMER RECKKLAMMER *)
          yyval:=HandleDeclarator(t_pointerdef,yyv[yysp-2]);
-         
+
        end;
  109 : begin
-         
+
          (* LKLAMMER declarator RKLAMMER *)
          yyval:=yyv[yysp-1];
-         
+
        end;
  110 : begin
          yyval := yyv[yysp-1];
@@ -785,67 +785,67 @@ begin
          yyval := yyv[yysp-2];
        end;
  112 : begin
-         
+
          (* _CONST abstract_declarator *)
          EmitAbstractIgnored;
          yyval:=yyv[yysp-0];
-         
+
        end;
  113 : begin
-         
+
          (* size_overrider STAR abstract_declarator *)
          yyval:=HandleSizedPointerDeclarator(yyv[yysp-0],yyv[yysp-2]);
-         
+
        end;
  114 : begin
-         
+
          (* STAR abstract_declarator %prec PSTAR *)
          yyval:=HandlePointerAbstractDeclarator(yyv[yysp-0]);
-         
+
        end;
  115 : begin
-         
+
          (* abstract_declarator LKLAMMER argument_declaration_list RKLAMMER *)
          yyval:=HandlePointerAbstractListDeclarator(yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
  116 : begin
-         
+
          (* abstract_declarator no_arg *)
          yyval:=HandleFuncNoArg(yyv[yysp-1]);
-         
+
        end;
  117 : begin
-         
+
          (* abstract_declarator LECKKLAMMER expr RECKKLAMMER *)
          yyval:=HandleSizedArrayDecl(yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
  118 : begin
-         
+
          (* declarator LECKKLAMMER RECKKLAMMER *)
          yyval:=HandleArrayDecl(yyv[yysp-2]);
-         
+
        end;
  119 : begin
-         
+
          (* LKLAMMER abstract_declarator RKLAMMER *)
          yyval:=yyv[yysp-1];
-         
+
        end;
  120 : begin
-         
+
          yyval:=NewType2(t_dec,nil,nil);
-         
+
        end;
  121 : begin
-         
+
          (* shift_expr *)
          yyval:=yyv[yysp-0];
-         
+
        end;
  122 : begin
-         yyval:=NewBinaryOp(':=',yyv[yysp-2],yyv[yysp-0]); 
+         yyval:=NewBinaryOp(':=',yyv[yysp-2],yyv[yysp-0]);
        end;
  123 : begin
          yyval:=NewBinaryOp('=',yyv[yysp-2],yyv[yysp-0]);
@@ -893,192 +893,192 @@ begin
          yyval:=NewBinaryOp(' shr ',yyv[yysp-2],yyv[yysp-0]);
        end;
  138 : begin
-         
+
          HandleTernary(yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  139 : begin
          yyval:=yyv[yysp-0];
        end;
  140 : begin
-         
+
          (* if A then B else C *)
          yyval:=NewType3(t_ifexpr,nil,yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  141 : begin
-         yyval:=yyv[yysp-0]; 
+         yyval:=yyv[yysp-0];
        end;
  142 : begin
          yyval:=nil;
        end;
  143 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  144 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  145 : begin
-         
+
          (* remove L prefix for widestrings *)
          yyval:=CheckWideString(act_token);
-         
+
        end;
  146 : begin
-         
+
          yyval:=NewID(act_token);
-         
+
        end;
  147 : begin
-         
+
          yyval:=NewBinaryOp('.',yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  148 : begin
-         
+
          yyval:=NewBinaryOp('^.',yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  149 : begin
-         
+
          yyval:=NewUnaryOp('-',yyv[yysp-0]);
-         
+
        end;
  150 : begin
-         
+
          yyval:=NewUnaryOp('+',yyv[yysp-0]);
-         
+
        end;
  151 : begin
-         
+
          yyval:=NewUnaryOp('@',yyv[yysp-0]);
-         
+
        end;
  152 : begin
-         
+
          yyval:=NewUnaryOp(' not ',yyv[yysp-0]);
-         
+
        end;
  153 : begin
-         
+
          if assigned(yyv[yysp-0]) then
          yyval:=NewType2(t_typespec,yyv[yysp-2],yyv[yysp-0])
          else
          yyval:=yyv[yysp-2];
-         
+
        end;
  154 : begin
-         
+
          yyval:=NewType2(t_typespec,yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  155 : begin
-         
+
          yyval:=HandlePointerType(yyv[yysp-3],yyv[yysp-0],Nil);
-         
+
        end;
  156 : begin
-         
+
          yyval:=HandlePointerType(yyv[yysp-4],yyv[yysp-0],yyv[yysp-3]);
-         
+
        end;
  157 : begin
-         
+
          yyval:=HandleFuncExpr(yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
  158 : begin
-         
+
          yyval:=yyv[yysp-1];
-         
+
        end;
  159 : begin
-         
+
          yyval:=NewType2(t_callop,yyv[yysp-5],yyv[yysp-1]);
-         
+
        end;
  160 : begin
-         
+
          yyval:=NewType2(t_arrayop,yyv[yysp-3],yyv[yysp-1]);
-         
+
        end;
  161 : begin
-         
+
          (*enum_element COMMA enum_list *)
          yyval:=yyv[yysp-2];
          yyval^.next:=yyv[yysp-0];
-         
+
        end;
  162 : begin
-         
+
          (* enum element *)
          yyval:=yyv[yysp-0];
-         
+
        end;
  163 : begin
-         
+
          (* empty enum list *)
          yyval:=nil;
-         
+
        end;
  164 : begin
-         
+
          (* enum_element: dname _ASSIGN expr *)
          yyval:=NewType2(t_enumlist,yyv[yysp-2],yyv[yysp-0]);
-         
+
        end;
  165 : begin
-         
+
          (* enum_element: dname *)
          yyval:=NewType2(t_enumlist,yyv[yysp-0],nil);
-         
+
        end;
  166 : begin
-         
+
          (* unary_expr *)
          yyval:=HandleUnaryDefExpr(yyv[yysp-0]);
-         
+
        end;
  167 : begin
-         
+
          (* SPACE_DEFINE def_expr *)
          yyval:=yyv[yysp-0];
-         
+
        end;
  168 : begin
-         
+
          (* maybe_space LKLAMMER def_expr RKLAMMER *)
          yyval:=yyv[yysp-1]
-         
+
        end;
  169 : begin
-         
+
          (*exprlist COMMA expr*)
          yyval:=yyv[yysp-2];
          yyv[yysp-2]^.next:=yyv[yysp-0];
-         
+
        end;
  170 : begin
-         
+
          (* exprelem *)
          yyval:=yyv[yysp-0];
-         
+
        end;
  171 : begin
-         
+
          (* empty expression list *)
          yyval:=nil;
-         
+
        end;
  172 : begin
-         
+
          (*expr *)
          yyval:=NewType1(t_exprlist,yyv[yysp-0]);
-         
+
        end;
   end;
 end(*yyaction*);

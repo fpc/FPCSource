@@ -82,10 +82,10 @@ const
   SNoInputFiles = 'No input files';
   SNoOutputFile = 'No output file name specified';
   SCannotReadConfFile ='Can''t read config file ''%s''';
-  
+
   SCantOpenFile = 'Can''t open file ''%s''';
   SUnknownInputFormat = 'No known file format detected for file ''%s''';
-  
+
   SCantCreateDirHier = 'Can''t create directory hierarchy ''%s''';
   SCantCreateFile = 'Can''t create file ''%s''';
 

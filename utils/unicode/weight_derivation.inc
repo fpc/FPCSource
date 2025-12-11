@@ -17,7 +17,7 @@ end;
 function IsTangutComponent(ACodePoint : Cardinal) : Boolean;inline;
 begin
   Result := (ACodePoint >= $18800) and (ACodePoint <= $18AFF);
-end; 
+end;
 
 function IsTangutSupplement(ACodePoint : Cardinal) : Boolean;inline;
 begin
@@ -33,7 +33,7 @@ begin
   AResult[1].Weights[0] := (ACodePoint - $17000) or $8000;
   AResult[1].Weights[1] := 0;
   AResult[1].Weights[2] := 0;
-end;    
+end;
 
 function IsNushu(ACodePoint : Cardinal) : Boolean;inline;
 begin
@@ -54,7 +54,7 @@ begin
   AResult[1].Weights[0] := (ACodePoint - $1B170) or $8000;
   AResult[1].Weights[1] := 0;
   AResult[1].Weights[2] := 0;
-end; 
+end;
 
 procedure DeriveWeightKhitanSmallScript(const ACodePoint : Cardinal; AResult : PUCA_PropWeights);inline;
 begin
@@ -67,14 +67,14 @@ begin
   AResult[1].Weights[2] := 0;
 end;
 
-{$IFDEF UNI_BUILD_TIME} 
+{$IFDEF UNI_BUILD_TIME}
 function isUnifiedIdeograph(const ACodePoint : Cardinal; const AUnifiedIdeographs : TCodePointRecArray) : boolean;
 begin
   Result := IsIncluded(ACodePoint,AUnifiedIdeographs);
 end;
 {$ENDIF UNI_BUILD_TIME}
 
-{$IFNDEF UNI_BUILD_TIME} 
+{$IFNDEF UNI_BUILD_TIME}
 function isUnifiedIdeograph(const ACodePoint : Cardinal) : boolean;
 var
   p : PUC_Prop;
@@ -104,8 +104,8 @@ begin
      IsTangutSupplement(ACodePoint)
   then begin
     DeriveWeightTangut(ACodePoint,AResult);
-  end else if IsNushu(ACodePoint) then begin                         
-    DeriveWeightNushu(ACodePoint,AResult);   
+  end else if IsNushu(ACodePoint) then begin
+    DeriveWeightNushu(ACodePoint,AResult);
   end else if IsKhitanSmallScript(ACodePoint) then begin
     DeriveWeightKhitanSmallScript(ACodePoint,AResult);
   end else begin
@@ -117,7 +117,7 @@ begin
     end else if ui and
              not(IsCJK_Unified_Ideographs(ACodePoint) or IsCJK_Compatibility_Ideographs(ACodePoint))
     then begin
-      base := BASE_2 
+      base := BASE_2
     end else begin
       base := BASE_3;
     end;

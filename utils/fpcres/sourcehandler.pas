@@ -27,7 +27,7 @@ type
   ESourceFilesException = class(Exception);
   ECantOpenFileException = class(ESourceFilesException);
   EUnknownInputFormatException = class(ESourceFilesException);
-  
+
 type
 
   { TSourceFiles }
@@ -49,7 +49,7 @@ type
     property RCDefines: TStringList read fRCDefines;
     property RCMode: Boolean read fRCMode write fRCMode;
   end;
-  
+
 implementation
 
 uses msghandler, closablefilestream, rcreader;

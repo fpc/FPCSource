@@ -29,7 +29,7 @@ interface
 
 uses
   SysUtils, Classes, Contnrs, lMimeStreams;
-  
+
 const
   MIME_VERSION = 'MIME-version: 1.0' + CRLF;
 
@@ -72,7 +72,7 @@ type
     property Header: string read GetHeader;
     property Size: Integer read GetSize;
   end;
-  
+
   { TMimeTextSection }
 
   TMimeTextSection = class(TMimeSection)
@@ -91,7 +91,7 @@ type
     property Charset: string read GetCharset write SetCharset;
     property Text: string read FData write SetData;
   end;
-  
+
   { TMimeStreamSection }
 
   TMimeStreamSection = class(TMimeSection)
@@ -110,7 +110,7 @@ type
     property Stream: TStream read FStream write SetStream;
     property OwnsStreams: Boolean read FOwnsStreams write FOwnsStreams;
   end;
-  
+
   { TMimeFileSection }
 
   TMimeFileSection = class(TMimeStreamSection)
@@ -162,14 +162,14 @@ type
     property Count: Integer read GetCount;
     property Boundary: string read FBoundary;
   end;
-  
+
   { EAlreadyActivatedException }
 
   EAlreadyActivatedException = class(Exception)
    public
     constructor Create;
   end;
-  
+
   { EAlreadyCalledReadException }
 
   EAlreadyCalledReadException = class(Exception)
@@ -183,12 +183,12 @@ type
    public
     constructor Create;
   end;
-  
+
 implementation
 
 uses
   Math, Base64;
-  
+
 function EncodingToStr(const Encoding: TMimeEncoding): string;
 begin
   Result := '';
@@ -215,7 +215,7 @@ begin
 
   if OriginalSize = 0 then
     Exit;
-    
+
   case FEncoding of
     me8bit   : Result := OriginalSize;
     meBase64 : if OriginalSize mod 3 = 0 then
@@ -243,7 +243,7 @@ begin
     FEncoding := aValue;
     if Assigned(FEncodingStream) then
       FEncodingStream.Free;
-    
+
     CreateEncodingStream;
   end;
 end;
@@ -264,7 +264,7 @@ begin
 
   if Length(FDescription) > 0 then
     Result := Result + 'Content-Description: ' + FDescription + CRLF;
-    
+
   Result := Result + CRLF;
 end;
 
@@ -274,7 +274,7 @@ begin
 
   if aSize >= Length(FBuffer) then
     FillBuffer(aSize);
-    
+
   Result := Copy(FBuffer, 1, aSize);
 end;
 
@@ -289,7 +289,7 @@ destructor TMimeSection.Destroy;
 begin
   if Assigned(FEncodingStream) then
     FEncodingStream.Free;
-    
+
   FLocalStream.Free;
 
   inherited Destroy;
@@ -308,10 +308,10 @@ begin
     FActivated := True;
     FBuffer := GetHeader;
   end;
-  
+
   if Length(FBuffer) < aSize then
     FillBuffer(aSize);
-    
+
   s := ReadBuffer(aSize);
   if Length(s) >= aSize then begin
     Result := FOutputStream.Write(s[1], aSize);
@@ -348,10 +348,10 @@ var
   n: Integer;
 begin
   s := Copy(FData, 1, aSize);
-  
+
   if Length(s) = 0 then
     Exit;
-  
+
   n := aSize;
 
   if Assigned(FEncodingStream) then begin
@@ -363,7 +363,7 @@ begin
       CreateEncodingStream;
       FLocalStream.Write(CRLF[1], Length(CRLF));
     end;
-    
+
     SetLength(s, FLocalStream.Size);
     SetLength(s, FLocalStream.Read(s[1], Length(s)));
   end else begin
@@ -432,7 +432,7 @@ begin
     Result := Length(FBuffer) + RecalculateSize(FStream.Size - FStream.Position)
   else
     Result := Length(FBuffer) + Length(GetHeader) + RecalculateSize(FStream.Size - FStream.Position);
-    
+
   if not FActivated
   or (Length(FBuffer) > 0)
   or (FStream.Size - FStream.Position > 0) then
@@ -447,7 +447,7 @@ begin
     FStream.Free;
     FStream := nil;
   end;
-  
+
   FStream := aValue;
   FOriginalPosition := FStream.Position;
 end;
@@ -459,22 +459,22 @@ var
 begin
   SetLength(s, aSize);
   SetLength(s, FStream.Read(s[1], aSize));
-  
+
   if Length(s) <= 0 then
     Exit;
-  
+
   if Assigned(FEncodingStream) then begin
     n := FEncodingStream.Write(s[1], Length(s));
-    
+
     if n < Length(s) then
       FStream.Position := FStream.Position - (n - Length(s));
-      
+
     if FStream.Size - FStream.Position = 0 then begin
       FEncodingStream.Free; // to fill in the last bit
       CreateEncodingStream;
       FLocalStream.Write(CRLF[1], Length(CRLF));
     end;
-      
+
     SetLength(s, FLocalStream.Size);
     SetLength(s, FLocalStream.Read(s[1], FLocalStream.Size));
   end else if FStream.Size - FStream.Position = 0 then
@@ -486,7 +486,7 @@ end;
 constructor TMimeStreamSection.Create(aOutputStream: TStream; aStream: TStream);
 begin
   inherited Create(aOutputStream);
-  
+
   FDisposition := mdAttachment;
   FStream := aStream;
   FOriginalPosition := FStream.Position;
@@ -527,14 +527,14 @@ var
   i: Integer;
 begin
   Result := 0;
-  
+
   if FActiveSection > -2 then
     for i := 0 to Count - 1 do
       Result := Result + TMimeSection(FSections[i]).Size;
-      
+
   if FActiveSection = -1 then // not yet active, must add header info
     Result := Result + Length(GetMimeHeader) + GetBoundarySize;
-    
+
   Result := Result + FOutputStream.Size;
 end;
 
@@ -555,7 +555,7 @@ end;
 function TMimeStream.GetSection(i: Integer): TMimeSection;
 begin
   Result := nil;
-  
+
   if  (i >= 0)
   and (i < FSections.Count) then
     Result := TMimeSection(FSections[i]);
@@ -566,7 +566,7 @@ const
   MIME_HEADER = 'Content-type: multipart/mixed; boundary="';
 begin
   Result := MIME_VERSION;
-  
+
   if FSections.Count > 1 then
     Result := Result + MIME_HEADER + FBoundary + '"' + CRLF + CRLF +
          'This is a multi-part message in MIME format.' + CRLF +
@@ -603,7 +603,7 @@ begin
       s := '--' + FBoundary + '--' + CRLF
     else
       s := '--' + FBoundary + CRLF;
-      
+
     FOutputStream.Write(s[1], Length(s));
   end;
 
@@ -614,12 +614,12 @@ end;
 procedure TMimeStream.DoRead(const aSize: Integer);
 begin
   ActivateFirstSection;
-  
+
   if FActiveSection < 0 then
     Exit;
-    
+
   TMimeSection(FSections[FActiveSection]).Read(aSize);
-  
+
   if TMimeSection(FSections[FActiveSection]).Size = 0 then
     ActivateNextSection;
 end;
@@ -627,7 +627,7 @@ end;
 constructor TMimeStream.Create;
 begin
   Randomize;
-  
+
   FActiveSection := -1;
   FBoundary := GetBoundary;
   FSections := TFPObjectList.Create(True);
@@ -656,7 +656,7 @@ function TMimeStream.Read(var Buffer; Count: Longint): Longint;
 begin
   if Count <= 0 then
     Exit(0);
-    
+
   if FCalledWrite then
     raise EAlreadyCalledWriteException.Create;
 
@@ -683,9 +683,9 @@ var
 begin
   if FActiveSection >= 0 then
     raise EAlreadyActivatedException.Create;
-    
+
   s := TMimeTextSection.Create(FOutputStream, aText);
-  
+
   s.Charset := aCharSet;
   FSections.Add(s);
 end;
@@ -729,10 +729,10 @@ var
 begin
   FCalledRead := False;
   FCalledWrite := False;
-  
+
   for i := 0 to FSections.Count - 1 do
     TMimeSection(FSections[i]).Reset;
-    
+
   FOutputStream.Reset;
   FActiveSection := -1;
 end;
@@ -769,11 +769,11 @@ begin
   or (s = 'php4')
   or (s = 'php5')
   or (s = 'c++') then FContentType := 'text/plain';
-  
+
   if (s = 'html')
   or (s = 'shtml') then FContentType := 'text/html';
   if s = 'css' then FContentType := 'text/css';
-  
+
   if s = 'png' then FContentType := 'image/x-png';
   if s = 'xpm' then FContentType := 'image/x-pixmap';
   if s = 'xbm' then FContentType := 'image/x-bitmap';
@@ -785,7 +785,7 @@ begin
   if (s = 'jpg')
   or (s = 'jpeg') then FContentType := 'image/jpeg';
   if s = 'bmp' then FContentType := 'image/x-ms-bmp';
-    
+
   if s = 'wav' then FContentType := 'audio/x-wav';
   if s = 'mp3' then FContentType := 'audio/x-mp3';
   if s = 'ogg' then FContentType := 'audio/x-ogg';
@@ -794,7 +794,7 @@ begin
   or (s = 'mov') then FContentType := 'video/quicktime';
   if (s = 'mpg')
   or (s = 'mpeg') then FContentType := 'video/mpeg';
-  
+
   if s = 'pdf' then FContentType := 'application/pdf';
   if s = 'rtf' then FContentType := 'application/rtf';
   if s = 'tex' then FContentType := 'application/x-tex';
@@ -817,7 +817,7 @@ begin
 
   if Length(FDescription) > 0 then
     Result := Result + 'Content-Description: ' + FDescription + CRLF;
-    
+
   Result := Result + CRLF;
 end;
 

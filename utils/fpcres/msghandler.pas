@@ -44,7 +44,7 @@ type
     procedure Flush;
     property Verbose : boolean read fVerbose write SetVerbose;
   end;
-  
+
 var Messages : TMessages;
 
 procedure Halt(errnum:Longint);

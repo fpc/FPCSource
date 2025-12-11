@@ -18,9 +18,9 @@ The tools expect one or two files:
 A file with rules to apply to units.
 
 Each line is constructed as follows:
-  
+
 ```
-FileName=Rule;Compile Options 
+FileName=Rule;Compile Options
 ```
 
 Here
@@ -50,16 +50,16 @@ the name of the math unit will not be changed.
 ## Known units rules
 
 A file with OldName=Rule pairs to apply to unit names in a uses clause. a Rule may never specify a path
-or an extension. The same extension as the original is used. 
+or an extension. The same extension as the original is used.
 
 This file is used by the prefixunits tool.
 
 # Conversion Rules
 
 A rule can take the following forms:
-  
+
 "*DottedUnitName" : Use the dotted name as typed.
-   
+
 Example:
 
 ```
@@ -77,29 +77,29 @@ sysutils=system
 ```
 
 will result in a file system.sysutils
- 
+
 "Prefix,*UnitSuffix" : This is equivalent to *Prefix.UnitSuffix
 
 Example:
 
 ```
-sysutils=System,*SysUtils 
+sysutils=System,*SysUtils
 ```
-  
+
 will result in System.SysUtils
 
 
-"Prefix,-TextToDelete" strips the indicated part from the start of the original filename and prepends the result with Prefix. 
+"Prefix,-TextToDelete" strips the indicated part from the start of the original filename and prepends the result with Prefix.
 
 Example:
 
 ```
-fpreportdata=FpReport,-fpreport 
+fpreportdata=FpReport,-fpreport
 ```
 
 Will result in FpReport.Data
 
-"Prefix,TextToDelete-" strips the indicated part from the end of the original filename and prepends the result with Prefix. 
+"Prefix,TextToDelete-" strips the indicated part from the end of the original filename and prepends the result with Prefix.
 
 Example:
 
@@ -109,7 +109,7 @@ elfresource=System.Resources,resource-
 
 
 Will result in System.Resources.elf
-  
+
 
 # Available tools
 
@@ -125,14 +125,14 @@ Takes a unit name from standard input, pretty print it (first letter
 uppercased) and add a conditional define for a namespace.
 
 ```
-echo "sysutils" | conditionalprefix System will result in 
+echo "sysutils" | conditionalprefix System will result in
 ```
 
 ```
 {$IFDEF FPC_DOTTEDUNITS}System{$ENDIF}.Sysutils
 ```
 
-To be used in shell scripts or to be invoked from an editor 
+To be used in shell scripts or to be invoked from an editor
 that allows you to filter a selection through a command
 
 ## dond.pp
@@ -143,17 +143,17 @@ Tool to lowercase values in a Name=Value list
 
 ## fixuses.pp
 
-Read a complete uses clause from standard input, and replace it with a conditional uses clause that 
+Read a complete uses clause from standard input, and replace it with a conditional uses clause that
 allows dotted and non-dotted units. The command needs a file with unit transform rules to apply
 to the units in the uses clause.
 
-To be used in shell scripts or to be invoked from an editor 
+To be used in shell scripts or to be invoked from an editor
 that allows you to filter a selection through a command.
 
 Example:
 
 ```
-echo "uses sysutils, classes" | fixuses known.txt 
+echo "uses sysutils, classes" | fixuses known.txt
 ```
 
 results in
@@ -186,7 +186,7 @@ sysutils=*System.SysUtils
 classes=*System.Classes
 ```
 
-results in 
+results in
 
 ```
 ifdef FPC_DOTTEDUNITS
@@ -206,8 +206,8 @@ generate a dotted version of the unit. Optionally adapts an fpmake file.
 This tool accepts a lot of options, run with -h to get an explanation of
 what it does.
 
-It needs 2 files to be specified using the command-line options: 
-a rule file of units to treat and the 'known mappings' rule file.    
+It needs 2 files to be specified using the command-line options:
+a rule file of units to treat and the 'known mappings' rule file.
 
 ## prefixunits.pp
 
@@ -219,7 +219,7 @@ program or unit so it uses dotted names, based on a list of known aliases.
 
 ## proxyunit.pp
 
-Generate a skeleton unit with namespaced name which defines FPC_DOTTEDUNITS and 
+Generate a skeleton unit with namespaced name which defines FPC_DOTTEDUNITS and
 includes the original non-dotted unit. The full path to the skeleton unit
 must be given, the original non-dotted unit must be given only as a name.
 The extension is optional, when not specified, .pp is assumed.
@@ -258,7 +258,7 @@ and the Makefile:
 sysutils($PPUEXT): sysutils.pp
 	$(COMPILER) sysutils.pp
 
-classes($PPUEXT): classes.pp sysutils.pp 
+classes($PPUEXT): classes.pp sysutils.pp
 	$(COMPILER) classes.pp
 ```
 
@@ -266,11 +266,11 @@ is transformed to
 sysutils($PPUEXT): $(SYSUTILSUNIT).pp
         $(COMPILER) $(SYSUTILSUNIT).pp
 
-classes($PPUEXT): $(CLASSESUNIT).pp $(SYSUTILSUNIT).pp 
+classes($PPUEXT): $(CLASSESUNIT).pp $(SYSUTILSUNIT).pp
         $(COMPILER) $(CLASSESUNIT).pp
-	
 
-## reworkmakefile.pp  
+
+## reworkmakefile.pp
 
 Duplicate all rules in a Makefile.fpc [Rules] section according to the rules specified
 in the aliases file. Skip rules that are in the skip file. Every rule is

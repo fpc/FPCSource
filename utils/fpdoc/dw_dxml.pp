@@ -60,7 +60,7 @@ end;
 
 { TDocumentation }
 
-procedure TDocumentation.Visit(obj: TPasElement); 
+procedure TDocumentation.Visit(obj: TPasElement);
 
 begin
   If (Obj.ClassType=TPasSection) then

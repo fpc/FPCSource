@@ -24,4 +24,4 @@ begin
   If Col<>1 then
     Writeln;
 end.
-    
+

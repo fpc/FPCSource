@@ -409,7 +409,7 @@ Var
   p : pansichar;
 
 begin
-  {$IF SIZEOF(CHAR)=2} 
+  {$IF SIZEOF(CHAR)=2}
   ds:=UTF8Encode(d);
   {$Endif};
   fd:=inotify_init;

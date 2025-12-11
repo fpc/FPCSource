@@ -924,7 +924,7 @@ begin
     If (ASubPageIndex=0) then
       CreatePackagePageBody
     else if ASubPageIndex=IndexSubIndex then
-      CreatePackageIndex  
+      CreatePackageIndex
     else if ASubPageIndex=ClassHierarchySubIndex then
       CreatePackageClassHierarchy
     end
@@ -980,7 +980,7 @@ begin
     E:=TPasElement(L.Objects[i]);
     If not (E is TPasUnresolvedTypeRef) then
       begin
-      If (S<>'') then 
+      If (S<>'') then
         begin
         C:=Upcase(S[1]);
         If C='_' then
@@ -991,12 +991,12 @@ begin
           Lists[C]:=CL;
           end;
         end;
-      if assigned(cl) then  
+      if assigned(cl) then
         CL.AddObject(S,E);
-      end;  
-    end;  
-  Try  
-  // Create a quick jump table to all available letters.    
+      end;
+    end;
+  Try
+  // Create a quick jump table to all available letters.
   CCount:=0;
   for C:='A' to 'Z' do
     If (Lists[C]<>Nil) then
@@ -1031,7 +1031,7 @@ begin
       Rows:=(CL.Count div IndexColCount);
       If ((CL.Count Mod IndexColCount)<>0) then
         Inc(Rows);
-      // Fill rows  
+      // Fill rows
       For I:=0 to Rows-1 do
         begin
         DescrBeginTableRow;
@@ -1053,7 +1053,7 @@ begin
   Finally
     for C:='A' to 'Z' do
       FreeAndNil(Lists[C]);
-  end;  
+  end;
 end;
 
 
@@ -1079,7 +1079,7 @@ Var
   I : Integer;
   M : TPasModule;
   S : String;
-  
+
 begin
   L:=TStringList.Create;
   try
@@ -1199,7 +1199,7 @@ begin
     CreateIndexPage(L);
   Finally
     L.Free;
-  end;  
+  end;
 end;
 
 procedure TMarkdownWriter.CreateModuleMainPageBody(AModule: TPasModule);
@@ -1316,7 +1316,7 @@ begin
       CreateSimpleSubpage(aModule,SDocProceduresAndFunctions, SDocProcedureOrFunction, AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateSimpleSubpage(aModule,SDocVariables, SDocVariable, AModule.InterfaceSection.Variables);
-    IndexSubIndex: 
+    IndexSubIndex:
       CreateModuleIndexPage(AModule);
   end;
 end;

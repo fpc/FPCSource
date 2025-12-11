@@ -109,7 +109,7 @@ begin
     FInLoop := True;
     for i := 0 to n-1 do begin
       Temp := TLHandle(FEvents[i].uData);
-      
+
       if  (not Temp.FDispose)
       and (FEvents[i].Filter = EVFILT_WRITE) then
         if Assigned(Temp.FOnWrite) and not Temp.IgnoreWrite then
@@ -119,7 +119,7 @@ begin
       and (FEvents[i].Filter = EVFILT_READ) then
         if Assigned(Temp.FOnRead) and not Temp.IgnoreRead then
           Temp.FOnRead(Temp);
-      
+
       if  (not Temp.FDispose)
       and ((FEvents[i].Flags and EV_ERROR) > 0) then
         if Assigned(Temp.FOnError) and not Temp.IgnoreError then

@@ -53,7 +53,7 @@ var
   E : TDomElement;
   CN : TDomNode;
   B : Boolean;
-  
+
 begin
   // Exit procedure if no more nodes to process
   if Node = nil then Exit;
@@ -74,17 +74,17 @@ begin
       B:=(CN.HasChildNodes=false) and
          (CN.HasAttributes=false) and
          (CN.TextContent='');
-      // Empty elements that do not link to others   
+      // Empty elements that do not link to others
       if not B then
         begin
         if (CN is TDomElement) then
           begin
           E:=CN as TDomElement;
-          B:=(E.NodeName='element') 
+          B:=(E.NodeName='element')
              and (E.HasChildNodes=false)
              and (E['name']<>'') and (E['link']='');
           end;
-        end;   
+        end;
       end;
     if B then
       Node.RemoveChild(CN);
@@ -125,7 +125,7 @@ begin
   end;
 
   FStripComments:=not HasOption('keepcomments');
-  
+
   if HasOption('output') then begin
     FOutputFile:=ExpandFileName(GetOptionValue('output'));
   end else begin

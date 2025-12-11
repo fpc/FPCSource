@@ -29,7 +29,7 @@ unit cfgfile;
 interface
 
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 
 implementation
 

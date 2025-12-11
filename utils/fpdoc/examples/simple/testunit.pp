@@ -1,6 +1,6 @@
 {$mode objfpc}
 {$h+}
-{$modeswitch advancedrecords} 
+{$modeswitch advancedrecords}
 
 unit testunit;
 
@@ -22,13 +22,13 @@ Const
 resourcestring
   String1 = 'Resource string 1';
   String2 = 'Resource string 2';
-   
+
 Type
   TAnEnumType         = (one,two,three);
   TASetType           = Set of TAnEnumType;
   TAnArrayType        = Array[1..10] of Integer;
 //  TASubRangeType      = one..two;
-  TABooleanArrayType  = Array[Boolean] of Integer;  
+  TABooleanArrayType  = Array[Boolean] of Integer;
   TARecordType        = Record
                          X,Y : Integer;
                          Z : String;
@@ -38,25 +38,25 @@ Type
                           Case Integer of
                            1 : (X,Y : Integer);
                            2 : (phi,Omega : Real);
-                        end; 
+                        end;
   TAVariantRecordType2 = Record
                           A : String;
                           Case Atype : Integer of
                             1 : (X,Y : Integer);
                             2 : (phi,Omega : Real);
-                          end; 
-                          
+                          end;
+
   TADeprecatedType = Integer deprecated;
 
   TMethodRecord = Record
-  
+
   Private
     Const aconst = 123;
-  private  
+  private
     X22 : Integer;
     Procedure SetX(AValue : Integer);
     Function GetX : Integer;
-  Public  
+  Public
     Procedure MyMethod;
     Property MyX : Integer Read GetX Write SetX;
   Case Integer of
@@ -65,12 +65,12 @@ Type
   end;
   TAExtRecordType        = Record
     Const X = 100;
-  public  
+  public
     class operator assign(Y : Integer) : TAExtRecordType;
   end;
-                        
+
 Var
-  ASimpleVar : Integer;  
+  ASimpleVar : Integer;
   ATypedVar  : TMethod;
   ARecordVar : Record
                  A,B : integer;
@@ -78,25 +78,25 @@ Var
   AnArrayVar : Array[1..10] of Integer;
   ATypedArray : Array[TanEnumType] of Integer;
   AInitVar : Integer = 1;
-  
+
   ADeprecatedVar : Integer deprecated;
   ACVarVar : Integer; cvar;
   AnExternalVar : Integer; external name 'avar';
   AnExternalLibVar : Integer; external 'library' name 'avar';
-      
+
 Procedure SimpleProc;
 Procedure OverloadedProc(A : Integer);
 Procedure OverloadedProc(B : String);
 Function SimpleFunc : Integer;
 Function OverloadedFunc(A: Integer) : Integer;
-Function OverloadedFunc(B : String) : Integer;  
+Function OverloadedFunc(B : String) : Integer;
 
-Procedure ConstArgProc(Const A : Integer); 
-Procedure VarArgProc(Var A : Integer); 
-Procedure OutArgProc(Out A : Integer); 
-Procedure UntypedVarArgProc(Var A); 
-Procedure UntypedConstArgProc(const A); 
-Procedure UntypedOutArgProc(Out A); 
+Procedure ConstArgProc(Const A : Integer);
+Procedure VarArgProc(Var A : Integer);
+Procedure OutArgProc(Out A : Integer);
+Procedure UntypedVarArgProc(Var A);
+Procedure UntypedConstArgProc(const A);
+Procedure UntypedOutArgProc(Out A);
 
 Procedure ArrayArgProc (A : TAnArrayType);
 Procedure OpenArrayArgProc(A : Array of string);
@@ -106,12 +106,12 @@ Procedure externalproc; external;
 Procedure externalnameProc; external name 'aname';
 Procedure externallibnameProc; external 'alibrary' name 'aname';
 
-Type 
+Type
 
   { TMyParentClass }
 
   TMyParentClass = Class(TComponent)
-  Private 
+  Private
     FI : Integer;
     function GetA(AIndex : Integer): String;
     function GetIP(AIndex: integer): String;
@@ -121,7 +121,7 @@ Type
     Function ReadI : Integer;
   Protected
     Procedure AProtectedMethod;
-    Property AProtectedProp : Integer Read FI Write FI;  
+    Property AProtectedProp : Integer Read FI Write FI;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -131,7 +131,7 @@ Type
     Procedure AStringMessageProc(Var Msg); Message '123';
     Procedure ADeprecatedProc; deprecated;
     Procedure APlatformProc; Platform;
-    function MyFunc : Integer; 
+    function MyFunc : Integer;
     Property IntProp : Integer Read FI Write Fi;
     Property IntROProp : Integer Read FI;
     Property GetIntProp : Integer Read ReadI Write WriteI;
@@ -141,7 +141,7 @@ Type
   Published
     Procedure SomePublishedMethod;
   end;
-  
+
   { TMyChildClass }
 
   TMyChildClass = Class(TMyParentClass)
@@ -154,7 +154,7 @@ Type
 
 Operator + (A,B : TAnArrayType) : TAnArrayType;
 Operator multiply (A,B : TAnArrayType) : TAnArrayType;
-  
+
 Implementation
 
 Procedure SimpleProc;
@@ -177,7 +177,7 @@ Function OverloadedFunc(A: Integer) : Integer;
 begin
 end;
 
-Function OverloadedFunc(B : String) : Integer;  
+Function OverloadedFunc(B : String) : Integer;
 begin
 end;
 
@@ -193,27 +193,27 @@ Procedure ConstArrayArgProc(A : Array of const);
 begin
 end;
 
-Procedure ConstArgProc(Const A : Integer); 
+Procedure ConstArgProc(Const A : Integer);
 begin
 end;
 
-Procedure VarArgProc(Var A : Integer); 
+Procedure VarArgProc(Var A : Integer);
 begin
 end;
 
-Procedure OutArgProc(Out A : Integer); 
+Procedure OutArgProc(Out A : Integer);
 begin
 end;
 
-Procedure UntypedVarArgProc(Var A); 
+Procedure UntypedVarArgProc(Var A);
 begin
 end;
 
-Procedure UntypedConstArgProc(const A); 
+Procedure UntypedConstArgProc(const A);
 begin
 end;
 
-Procedure UntypedOutArgProc(Out A); 
+Procedure UntypedOutArgProc(Out A);
 begin
 end;
 

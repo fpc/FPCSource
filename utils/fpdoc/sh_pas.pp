@@ -111,15 +111,15 @@ var
     dest[dp] := source[0]; Inc(dp); Inc(source);
   end;
   procedure PutChars(S : String);
-  
+
   Var
     C : char;
-  
+
   begin
     for C in S do
       begin
-      dest[dp] := c; 
-      Inc(dp); 
+      dest[dp] := c;
+      Inc(dp);
       Inc(source);
       end;
   end;

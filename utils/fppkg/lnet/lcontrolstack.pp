@@ -32,7 +32,7 @@ const
 
 type
   TLOnFull = procedure of object;
-  
+
   TLControlStack = class
    private
     FItems: array of Char;
@@ -62,7 +62,7 @@ uses
 (* The normal situation is that there are up to TL_CSLENGTH items on the stack. *)
 (* However this may be relaxed in cases (assumed to be rare) where subcommand   *)
 (* parameters are being accumulated.                                            *)
-  
+
 constructor TLControlStack.Create;
 begin
   FOnFull:=nil;

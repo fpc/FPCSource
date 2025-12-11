@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1999-2012 by Marco van de Voort and Free Pascal Core 
+    Copyright (c) 1999-2012 by Marco van de Voort and Free Pascal Core
 
     Recursively deletes .cvs and .svn directories essentially "exporting" a
     repository in place.  Typically used when cleaning out old checkouts, to

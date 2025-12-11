@@ -15,7 +15,7 @@
   You should have received a Copy of the GNU Library General Public License
   along with This library; if not, Write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-  
+
   This license has been modified. See file LICENSE.ADDON for more information.
   Should you find these sources without a LICENSE File, please contact
   me at ales@chello.sk
@@ -71,7 +71,7 @@ end;
 procedure AppendString(var ABuffer: TStringBuffer; ASource: pansichar);
 begin
   if ASource = nil then exit;
-  AppendString(ABuffer, ASource, StrLen(ASource)); 
+  AppendString(ABuffer, ASource, StrLen(ASource));
 end;
 
 procedure AppendString(var ABuffer: TStringBuffer; const ASource: shortstring);

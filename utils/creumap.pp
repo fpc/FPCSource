@@ -106,7 +106,7 @@ begin
    Val(paramstr(2),i,e);
    if e<>0 then
      doerror;
-     
+
    p:=loadunicodemapping(paramstr(1),paramstr(1)+'.txt',i);
    if p=nil then
      doerror;

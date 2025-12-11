@@ -43,7 +43,7 @@ type
     procedure DoVerbose(const aMsg : string);
     property Verbose : boolean read fVerbose write SetVerbose;
   end;
-  
+
 var Messages : TMessages;
 
 implementation

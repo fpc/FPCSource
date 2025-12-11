@@ -15,7 +15,7 @@
   You should have received a Copy of the GNU Library General Public License
   along with This library; if not, Write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-  
+
   This license has been modified. See File LICENSE.ADDON for more inFormation.
   Should you find these sources without a LICENSE File, please contact
   me at ales@chello.sk
@@ -47,7 +47,7 @@ type
   TLHandleEvent = procedure (aHandle: TLHandle) of object;
   TLHandleErrorEvent = procedure (aHandle: TLHandle; const msg: string) of object;
   TLEventerErrorEvent = procedure (const msg: string; Sender: TLEventer) of object;
-  
+
   { TLHandle }
 
   TLHandle = class(TObject)
@@ -66,7 +66,7 @@ type
     FNext: TLHandle;
     FFreeNext: TLHandle;
     FInternalData: Pointer;
-    
+
     procedure SetIgnoreError(const aValue: Boolean);
     procedure SetIgnoreWrite(const aValue: Boolean);
     procedure SetIgnoreRead(const aValue: Boolean);
@@ -171,7 +171,7 @@ type
     property Count: Integer read GetCount;
   end;
   TLEventerClass = class of TLEventer;
-  
+
   { TLSelectEventer }
 
   TLSelectEventer = class(TLEventer)
@@ -187,21 +187,21 @@ type
     constructor Create; override;
     function CallAction: Boolean; override;
   end;
-  
+
 {$i sys/lkqueueeventerh.inc}
 {$i sys/lepolleventerh.inc}
 
   function BestEventerClass: TLEventerClass;
-  
+
 implementation
 
 uses
   syncobjs,
   lCommon;
-  
+
 var
   CS: TCriticalSection;
-  
+
 { TLHandle }
 
 procedure TLHandle.SetIgnoreError(const aValue: Boolean);
@@ -286,7 +286,7 @@ end;
 
 procedure TLTimer.CallAction;
 begin
-  if FEnabled and Assigned(FOnTimer) and (Now - FStarted >= FInterval) then 
+  if FEnabled and Assigned(FOnTimer) and (Now - FStarted >= FInterval) then
   begin
     FOnTimer(Self);
     if not FOneShot then
@@ -574,11 +574,11 @@ begin
     n := fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, @TempTime)
   else
     n := fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, nil);
-  
+
   if n < 0 then
     Bail('Error on select', LSocketError);
   Result := n > 0;
-  
+
   if Result then begin
     Temp := FRoot;
     while Assigned(Temp) do begin

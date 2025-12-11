@@ -76,7 +76,7 @@ type
     property Items[index : integer] : TSourceFile read GetItem;
     property Count : integer read GetCount;
   end;
-  
+
 implementation
 
 uses msghandler;
@@ -149,11 +149,11 @@ begin
       Messages.DoVerbose(Format('No more resources in file %s, deleted',[fFname]));
     exit;
   end;
-  
+
   tmp:=ExtractFileDir(fFname);
   if tmp='' then tmp:='.';
   tmp:=GetTempFileName(tmp,'tmp');
-  
+
   Messages.DoVerbose(Format('Updating file %s...',[fFname]));
   try
     aStream:=TFileStream.Create(tmp,fmCreate or fmShareDenyWrite);
@@ -172,7 +172,7 @@ begin
   finally
     aStream.Free;
   end;
-  
+
   if not Delete then exit;
   if not RenameFile(tmp,fFname) then
     Messages.DoError(Format('Can''t rename file %s to %s.',[tmp,fFname]))

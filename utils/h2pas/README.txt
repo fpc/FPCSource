@@ -4,10 +4,10 @@ units. It is part of the Free Pascal distribution.
 COMPILING
 
 To compile the program, a simple
- 'make' 
+ 'make'
 should be sufficient; you need GNU make for this. When using TP, a simple
   tpc h2pas.pas
-should also be possible. 
+should also be possible.
 
 USAGE
 
@@ -18,12 +18,12 @@ h2pas [-p] [-t] [-o outputfilename] [-l libname] [-u unitname] filename
      same name.
 
 -p : Use 'P' instead of ^ as a pointer symbol;
-     This will convert 
+     This will convert
         ^char to pchar
-        ^longint to plongint 
-     etc. It will also define a PSOMETYPE pointer for each SOMETYPE struct type 
+        ^longint to plongint
+     etc. It will also define a PSOMETYPE pointer for each SOMETYPE struct type
      definition in the header file.
-     Thus 
+     Thus
      typedef struct somestruct {
        ...
      }
@@ -36,8 +36,8 @@ h2pas [-p] [-t] [-o outputfilename] [-l libname] [-u unitname] filename
 
 -l : In the implementation part, the external functions will be
      written with 'external libname;' behind it.
-     If you omit this option, all functions will be declared as 
-     cdecl; external; 
+     If you omit this option, all functions will be declared as
+     cdecl; external;
 
 -o : specify the outputname. By default, the inputname is used, with
      extension '.pp'.

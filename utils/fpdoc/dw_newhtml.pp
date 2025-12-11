@@ -829,7 +829,7 @@ begin
     If (FDateFormat='') then
       S:=DateToStr(Date)
     else
-      S:=FormatDateTime(FDateFormat,Date);  
+      S:=FormatDateTime(FDateFormat,Date);
     AppendText(lDateEl,Format(SDocDateGenerated,[S]));
     end;
 end;
@@ -1226,7 +1226,7 @@ begin
     If (ASubPageIndex=0) then
       CreatePackagePageBody
     else if ASubPageIndex=IndexSubIndex then
-      CreatePackageIndex  
+      CreatePackageIndex
     else if ASubPageIndex=ClassHierarchySubIndex then
       CreatePackageClassHierarchy
     end
@@ -1277,7 +1277,7 @@ begin
     E:=TPasElement(L.Objects[i]);
     If not (E is TPasUnresolvedTypeRef) then
       begin
-      If (S<>'') then 
+      If (S<>'') then
         begin
         C:=Upcase(S[1]);
         If C='_' then
@@ -1288,10 +1288,10 @@ begin
           Lists[C]:=CL;
           end;
         end;
-      if assigned(cl) then  
+      if assigned(cl) then
         CL.AddObject(S,E);
-      end;  
-    end;  
+      end;
+    end;
   Try
   // Create a quick jump table to all available letters.
   lColumns := CreateEl(aParent,'div','columns is-multiline');
@@ -1303,7 +1303,7 @@ begin
       lColumn['class']:='button is-link';
       AppendText(lColumn,UTF8Decode(C));
       end;
-  // Now emit all identifiers.    
+  // Now emit all identifiers.
   For C:='A' to 'Z' do
     begin
     CL:=Lists[C];
@@ -1326,7 +1326,7 @@ begin
   Finally
     for C:='A' to 'Z' do
       FreeAndNil(Lists[C]);
-  end;  
+  end;
 end;
 
 procedure TNewHTMLWriter.CreatePackageIndex;
@@ -1500,7 +1500,7 @@ begin
     PopContentElement;
   Finally
     L.Free;
-  end;  
+  end;
 end;
 
 procedure TNewHTMLWriter.CreateModuleMainPage(aModule : TPasModule);
@@ -1634,7 +1634,7 @@ begin
       CreateModuleSimpleSubpage(aModule, ProcsSubindex, UTF8Decode(SDocProceduresAndFunctions), AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateModuleSimpleSubpage(aModule, VarsSubindex,UTF8Decode(SDocVariables), AModule.InterfaceSection.Variables);
-    IndexSubIndex: 
+    IndexSubIndex:
       CreateModuleIndexPage(AModule);
   end;
 end;

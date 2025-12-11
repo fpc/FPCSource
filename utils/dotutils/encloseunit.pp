@@ -4,8 +4,8 @@
 
 var
   S : String;
-  
-begin  
+
+begin
   Writeln('{$IFNDEF FPC_DOTTEDUNITS}');
   While not EOF do
     begin

@@ -680,12 +680,12 @@ begin
           codfilename := codfilepath1+'yylex.cod';
           assign(yycod, codfilename);
           reset(yycod);
-          if (codfilepath2<>'') and (ioresult<>0) then 
+          if (codfilepath2<>'') and (ioresult<>0) then
             begin
               codfilename := codfilepath2+'yylex.cod';
               assign(yycod, codfilename);
               reset(yycod);
-              if ioresult<>0 then 
+              if ioresult<>0 then
                 fatal(cannot_open_file+codfilename);
             end;
         end;

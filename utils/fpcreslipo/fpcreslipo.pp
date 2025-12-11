@@ -19,7 +19,7 @@ program fpcreslipo;
 uses
   SysUtils, Classes, paramparser, msghandler, sourcehandler,
   resource, externalreader, externalwriter;
-  
+
 const
   halt_no_err = 0;
   halt_param_err = 1;

@@ -8,7 +8,7 @@ to stdout.
 
 fprcp.exe can be used as preprocessor by windres GNU-win32 utility.
 It was tested with windres 2.9.4 successfully.
-syntax: 
+syntax:
 windres --preprocessor fprcp.exe [another switches].
 
 Notes:

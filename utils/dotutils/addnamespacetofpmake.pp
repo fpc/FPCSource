@@ -3,7 +3,7 @@
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
     Utility to add a statement to add a namespace to a fpmake program file for FPC packages.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

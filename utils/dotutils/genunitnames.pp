@@ -5,7 +5,7 @@
     Read a list of unit file transformations and generate a list of unit names for use in a Makefile.
     The output consists of a XYZUNIT variable for each unit in the file list, twice: once dotted, once not dotted.
     The variables can be used in target definitions and dependency lists.
-        
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

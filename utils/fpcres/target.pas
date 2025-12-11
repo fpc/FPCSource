@@ -43,14 +43,14 @@ type
 
   TObjFormat = (ofNone, ofRes, ofElf, ofCoff, ofXCoff, ofMachO, ofWasm, ofExt);
   TObjFormats = set of TObjFormat;
-  
+
 
   TMachineInfo = record
     name : string;
     formats : TObjFormats;
     alias : string;
   end;
-  
+
   TFormatInfo = record
     name : string;
     ext : string;
@@ -100,7 +100,7 @@ var
     ('all','armv4','armv6','armv5tej','xscale','armv7');
   SubMachinesGen: array[TSubMachineTypeGeneric] of string[3] =
     ('all');
-  
+
   ObjFormats : array[TObjFormat] of TFormatInfo =
   (
     (name : '';         ext : '';        machines : []),

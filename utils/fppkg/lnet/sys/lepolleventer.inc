@@ -10,7 +10,7 @@ const
   EPOLL_CTL_ADD = 1;
   EPOLL_CTL_DEL = 2;
   EPOLL_CTL_MOD = 3;
-  
+
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
   EPOLLPRI = $02; { There is urgent data available for read(2) operations. }
   EPOLLOUT = $04; { The associated file is available for write(2) operations. }
@@ -128,7 +128,7 @@ begin
   Result := False;
   if FInLoop then
     Exit;
-    
+
   Changes := 0;
   ReadChanges := 0;
 
@@ -144,7 +144,7 @@ begin
       Bail('Error on epoll', LSocketError)
     else
       Result := Changes + ReadChanges > 0;
-      
+
     if Result then begin
       FInLoop := True;
       for i := 0 to Max(Changes, ReadChanges) - 1 do begin
@@ -174,7 +174,7 @@ begin
           if TempRead.FDispose then
             AddForFree(TempRead);
         end; // reads
-        
+
         if i < Changes then begin
           if not Assigned(Temp) then
             Temp := TLHandle(FEvents[i].data.ptr);
