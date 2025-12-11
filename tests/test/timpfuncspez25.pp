@@ -6,7 +6,7 @@
 }
 
 program timpfuncspez25;
-  
+
 type
   TMyClass = class
     generic procedure DoThis<T>(msg: T);

@@ -17,7 +17,7 @@ end;
 var
   AnObj : TTestClass;
   ASingle : Single;
-  
+
 begin
   AnObj := TTestClass.Create;
   ASingle := 1;

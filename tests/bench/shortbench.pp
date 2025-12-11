@@ -117,8 +117,8 @@ begin
       inc(rtot,r[i]);
       Write(r[i]:6);
     end;
-  Write('':4);  
-  Write('avg=',rtot div 8);    
+  Write('':4);
+  Write('avg=',rtot div 8);
   Writeln;
 end;
 

@@ -1,5 +1,5 @@
 
-uses 
+uses
   TypInfo,sysutils;
 
 type
@@ -12,6 +12,6 @@ begin
     halt(1);
 end;
 
-begin 
+begin
  Test;
 end.

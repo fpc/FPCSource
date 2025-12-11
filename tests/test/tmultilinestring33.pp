@@ -1,14 +1,14 @@
 // Multiline string
 {$mode objfpc}
-const 
+const
   s = '''
   this is
   a UTF8 àéèùá
   multiline string
   ''';
-  
+
   stest = 'this is'+slinebreak+'a UTF8 àéèùá'+sLineBreak+'multiline string';
-  
+
 begin
   if not (s=stest) then
     begin

@@ -13,7 +13,7 @@ begin
   if SizeOf(T) > 0 then
     WriteLn('I''m reachable!')
 end;
-  
+
 begin
   TTest<Char>.Create().TestIt();
 end.

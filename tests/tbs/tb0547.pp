@@ -16,6 +16,6 @@ ttestclass = class
   fcolor: colorty;
  published
   property color: colorty read fcolor write fcolor default cl_mapped; //<<--
-end; 
+end;
 begin
 end.

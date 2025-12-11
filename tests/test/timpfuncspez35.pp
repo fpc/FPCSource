@@ -28,7 +28,7 @@ end;
 procedure DoThis<A>(param1: A);
 begin
 end;
- 
+
 procedure DoThis<A, B>(param1: A; param2: B);
 begin
 end;

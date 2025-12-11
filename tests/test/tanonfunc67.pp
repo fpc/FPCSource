@@ -7,7 +7,7 @@ program tanonfunc67;
 {$modeswitch functionreferences}
 {$modeswitch advancedrecords}
 
-{ test advanced generics 
+{ test advanced generics
 
   same as tanonfunc41 but mode delphi
 }

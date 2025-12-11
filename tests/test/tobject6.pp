@@ -35,4 +35,4 @@ begin
   if TR.somevalue <> 1 then
     halt(2);
   WriteLn('ok');
-end.      
+end.

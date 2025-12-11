@@ -62,7 +62,7 @@ begin
  s := FloatToStrF(r, ffCurrency, 12, 2);
  {must print without leading zero  }
  writeln(s);
- if (length(s) > 0) and 
+ if (length(s) > 0) and
   ((Pos('-', s) > 0) or ((Pos('(', s) > 0) and  (Pos(')', s) > 0))) then
    halt(1);
 
@@ -95,7 +95,7 @@ begin
  s := FloatToStrF(r, ffCurrency, 12, 2);
  {must print without leading zero  }
  writeln(s);
- if (length(s) > 0) and 
+ if (length(s) > 0) and
   ((Pos('-', s) > 0) or ((Pos('(', s) > 0) and  (Pos(')', s) > 0))) then
    halt(1);
 

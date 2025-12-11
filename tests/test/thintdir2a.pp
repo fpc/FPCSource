@@ -8,4 +8,4 @@ program thintdir2a;
 const
   Test = 1 deprecated 'Do not use this const' deprecated 'Use that const';
 begin
-end.                      
+end.

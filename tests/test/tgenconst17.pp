@@ -1,7 +1,7 @@
 { %NORUN }
 {$mode objfpc}
 {$modeswitch advancedrecords}
-{ 
+{
   testing range checking for arrays and for-loops
 }
 
@@ -14,7 +14,7 @@ type
 	end;
 
 procedure TStaticList.Display;
-var 
+var
 	I, n: SizeUInt;
 begin
   for I := 0 to Length - 1 do

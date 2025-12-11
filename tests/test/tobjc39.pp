@@ -8,7 +8,7 @@
 program tobjc39;
 uses
   uobjc39;
-	
+
 type
  UITextInputProtocol = objcprotocol external name 'UITextInput'
  required

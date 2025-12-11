@@ -17,7 +17,7 @@ const
 {$endif}
 
 var
-  hdl: TLibHandle; 
+  hdl: TLibHandle;
 begin
   // the library will perform a div-by-zero in its init code
   setexceptionmask([exZeroDivide]);

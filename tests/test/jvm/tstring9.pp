@@ -31,7 +31,7 @@ begin
  s := '1234567890';
  s := a;
  test_chararray := (s = '');
- if not test_chararray then writeln('test_chararray failed');  
+ if not test_chararray then writeln('test_chararray failed');
 end;
 
 function test_pchar_to_widestr: boolean;
@@ -43,7 +43,7 @@ begin
  s := '1234567890';
  s := p;                         { win32: function result assign not optimized! }
  test_pchar_to_widestr := (s = '');
- if not test_pchar_to_widestr then writeln('test_pchar_to_widestr failed');  
+ if not test_pchar_to_widestr then writeln('test_pchar_to_widestr failed');
 end;
 
 function test_chararray_to_widestr: boolean;
@@ -53,7 +53,7 @@ begin
  s := '1234567890';
  s := a;
  test_chararray_to_widestr := (s = '');
- if not test_chararray_to_widestr then writeln('test_chararray_to_widestr failed');  
+ if not test_chararray_to_widestr then writeln('test_chararray_to_widestr failed');
 end;
 
 begin

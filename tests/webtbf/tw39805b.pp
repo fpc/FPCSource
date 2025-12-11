@@ -13,4 +13,4 @@ type
   TTestVariant = specialize GTest<Variant>;
 
 begin
-end. 
+end.

@@ -17,9 +17,9 @@ type
 	end;
 
 implementation
-	
+
 procedure TExtClassHelper.DoThisExt;
-begin	
+begin
 end;
 
 function TExtStringHelper.LengthExt: integer;

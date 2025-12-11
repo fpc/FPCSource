@@ -8,7 +8,7 @@ type
   TTest = record
   type
     TTestSub = record
-    type 
+    type
       TTestSub2 = record
         f: TTest;
       end;

@@ -46,7 +46,7 @@ begin
   if s <> 'test file.' then
     Fail('Invalid resource loaded.');
   writeln(s);
-  
+
   p:=GetResource('Test', 'TEXT', @sz);
   SetString(s, p, sz);
   if s <> 'Another test file.' then

@@ -26,13 +26,13 @@ begin
     doerror(1);
   if RemainderWord<>15 then
     doerror(2);
-	
+
   DivMod($ffff,65,QuotientSmallInt,RemainderSmallInt);
   if QuotientSmallInt<>1008 then
     doerror(1001);
   if RemainderSmallInt<>15 then
     doerror(2);
-	
+
   DivMod($ffff,65,QuotientDWord,RemainderDWord);
   if QuotientDWord<>1008 then
     doerror(2001);
@@ -56,18 +56,18 @@ begin
     doerror(3003);
   if RemainderLongInt<>15 then
     doerror(3004);
-	
+
   DivMod(-9, 5, QuotientLongInt,RemainderLongInt);
   if QuotientLongInt<>-1 then
     doerror(3005);
   if RemainderLongInt<>-4 then
     doerror(3006);
-	
+
   DivMod(-9, -5, QuotientLongInt,RemainderLongInt);
   if QuotientLongInt<>1 then
     doerror(3007);
   if RemainderLongInt<>-4 then
     doerror(3008);
-	
+
 end.
-	
+

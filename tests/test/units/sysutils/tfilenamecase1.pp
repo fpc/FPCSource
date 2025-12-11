@@ -1,7 +1,7 @@
 uses
   Sysutils;
 var
-  f : file;  
+  f : file;
 Begin
   Writeln('IsFileNameCaseSensitive: ',IsFileNameCaseSensitive('tfilenamecase1.dat'));
   Writeln('IsFileNameCasePreserving ',IsFileNameCasePreserving('tfilenamecase1.dat'));
@@ -33,5 +33,5 @@ Begin
     end;
 End.
 
-  
+
   

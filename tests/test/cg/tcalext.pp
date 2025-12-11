@@ -700,7 +700,7 @@ begin
 
   Write('pchar function result testing...');
   failed := false;
-  
+
   { verify if the contents both strings are equal }
   pc := test_function_pchar;
   if strcomp(pc, RESULT_PCHAR) <> 0 then

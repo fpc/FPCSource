@@ -6,7 +6,7 @@ program Test;
 
 uses
   ActiveX;
-  
+
 begin
   // the following imports are missing:
   OleInitialize(nil);

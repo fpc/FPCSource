@@ -12,7 +12,7 @@ type
   public
     function    GetValue(): Integer; override;
   end;
-  
+
   TCollection = class(TObject)
   private
     function    CreateAnotherIterator(): TIterator<TObject>; virtual;
@@ -21,13 +21,13 @@ type
 
 { TAnotherIterator }
 
-function TAnotherIterator.GetValue(): Integer; 
+function TAnotherIterator.GetValue(): Integer;
 begin
   Result := 2;
 end;
-  
-{ TCollection}  
-  
+
+{ TCollection}
+
 function TCollection.CreateAnotherIterator(): TIterator<TObject>;
 begin
   Result := TAnotherIterator.Create();
@@ -52,15 +52,15 @@ begin
     WriteLn('Collection iterator: FAILED');
     Halt(1);
   end;
-  
+
   if AnotherIterator.GetValue() = 2 then
     WriteLn('Another iterator: OK')
   else
   begin
-    WriteLn('Another iterator: FAILED');  
+    WriteLn('Another iterator: FAILED');
     Halt(1);
   end;
-  
+
   CollectionIterator.Free();
   AnotherIterator.Free();
 end.

@@ -17,4 +17,4 @@ begin
  if r.p()<>123 then
    halt(1);
 end.
-    
+

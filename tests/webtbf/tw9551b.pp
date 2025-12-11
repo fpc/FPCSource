@@ -1,6 +1,6 @@
 { %fail }
 
-uses 
+uses
   TypInfo,sysutils;
 
 type
@@ -12,6 +12,6 @@ begin
   writeln(GetEnumName(TypeInfo(TMy2Enum), Ord(e3)));
 end;
 
-begin 
+begin
  Test;
 end.

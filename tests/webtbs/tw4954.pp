@@ -18,7 +18,7 @@ program aFP211r;  { false hints on varrec }
     READ( f , varrec )
   end{ P1 };
 
-begin 
+begin
   assign( f , 'fname');
   reset(f);
   P1;

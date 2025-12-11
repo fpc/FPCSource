@@ -1,10 +1,10 @@
-// check whether enums and integers can be casted to object references; this 
+// check whether enums and integers can be casted to object references; this
 // should work in Delphi mode (is Delphi compatible)
 {$mode delphi}
 {$packenum 2}
 type
   TEnum = (a, b, c);
-  
+
 var
   i : Word;
   e : TEnum;

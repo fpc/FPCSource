@@ -11,5 +11,5 @@ var
   r: tr;
 begin
   for r.a := 0 to 4 do
-    writeln; 
+    writeln;
 end.

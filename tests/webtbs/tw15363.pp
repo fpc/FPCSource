@@ -1,6 +1,6 @@
 {$mode delphi}
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 
 type
   ITest = interface ['{AAAA09DA-4019-4A5C-A450-3631A73CF288}']

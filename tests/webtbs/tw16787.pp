@@ -14,14 +14,14 @@ begin
   except
     ShowException(exceptObject, exceptAddr);
     code := code or 1;
-  end;  
+  end;
   v := 'foo';
   try
     writeln(Format('%s', [v]));
   except
     ShowException(exceptObject, exceptAddr);
     code := code or 2;
-  end;  
+  end;
   v := 1.5;
   try
     writeln(Format('%s', [v]));

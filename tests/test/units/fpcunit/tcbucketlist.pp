@@ -27,8 +27,8 @@ type
     Procedure AddPointers(ACount : Integer);
     function GetCount: Integer;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestCreate;
     procedure TestAdd;
@@ -156,7 +156,7 @@ begin
   AssertEquals('Item count is 0',0,GetCount);
 end;
 
-procedure TTestBucketList.SetUp; 
+procedure TTestBucketList.SetUp;
 
 Var
   I : integer;
@@ -168,15 +168,15 @@ begin
     FData[i]:=I;
     FPointers[i]:=@FData[i];
     end;
-end; 
+end;
 
-procedure TTestBucketList.TearDown; 
+procedure TTestBucketList.TearDown;
 begin
   FreeAndNil(FList);
-end; 
+end;
 
 initialization
 
-  RegisterTest(TTestBucketList); 
+  RegisterTest(TTestBucketList);
 end.
 

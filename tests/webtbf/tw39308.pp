@@ -8,4 +8,4 @@ begin
   if 1 > 2 then
     a := 0;         // <= no warning
   writeln(a);
-end. 
+end.

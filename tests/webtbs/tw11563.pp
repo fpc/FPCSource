@@ -70,7 +70,7 @@ program ExecStack;
     ret[0]:=$03e00008;
 {$else ENDIAN_BIG}
     ret[0]:=$0800e003;
-{$endif ENDIAN_BIG}    
+{$endif ENDIAN_BIG}
     ret[1]:=0;                   { delay slot }
     DoNothing:=proc(@ret);
     DoNothing;

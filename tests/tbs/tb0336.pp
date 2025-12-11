@@ -40,7 +40,7 @@ begin
    val(s,l,code);
    if code<>0 then
      do_error(5);
-     
+
    s:='-2147483649';
    val(s,l,code);
    if code=0 then

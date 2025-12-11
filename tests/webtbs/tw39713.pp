@@ -19,7 +19,7 @@ function align(i,a:longint):longint; inline;
       i:=i+a;
     align:=i and not a;
   end;
-  
+
 procedure IncVar(Input: LongInt; var IncrementVar: LongInt); noinline;
   begin
     Inc(IncrementVar, align(Input,4));
@@ -31,7 +31,7 @@ const
   X, Y, IncrementVar: LongInt;
 begin
   IncrementVar := 0;
-  
+
   for X := 0 to 5 do
     begin
       IncrementVar := X;

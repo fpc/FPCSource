@@ -11,4 +11,4 @@ type
 
 begin
   writeln(SizeOf(TestObject.TestNested));
-end. 
+end.

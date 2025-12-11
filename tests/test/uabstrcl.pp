@@ -1,4 +1,4 @@
-unit uabstrcl;    
+unit uabstrcl;
 
 {$m+}
 {$mode delphi}

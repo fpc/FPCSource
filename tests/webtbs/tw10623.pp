@@ -10,9 +10,9 @@ type
   // TMockMethod
   //
   TMockMethod = class
-  private 
-    FReturnValue: variant; 
-    
+  private
+    FReturnValue: variant;
+
   public
 
     //: Set return value

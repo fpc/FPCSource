@@ -17,12 +17,12 @@ begin
   asm
 {$if FPC_STACKALIGNMENT=16}
     lea esp,[esp-12]
-{$endif FPC_STACKALIGNMENT=16}  
+{$endif FPC_STACKALIGNMENT=16}
     push word $dead
     push word $beef
-    call test        
+    call test
 {$if FPC_STACKALIGNMENT=16}
     lea esp,[esp-4]
-{$endif FPC_STACKALIGNMENT=16}  
+{$endif FPC_STACKALIGNMENT=16}
   end;
 end.

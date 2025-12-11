@@ -41,7 +41,7 @@ function TopBlockType(const Stack: TBlockStack): TBlockType;
       Result:=Stack.Stack[Stack.Top].Typ
     else
       Result:=btNone;
-  end;  
+  end;
 
 begin
 end.

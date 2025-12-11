@@ -175,7 +175,7 @@ type
 const
   FU32_146097Input: array[$0..$F] of Cardinal =
     (0, 1, 146096, 146097, 146098, 292193, 292194, 292195,
-    4294959605, 4294959606, 4294959607,    
+    4294959605, 4294959606, 4294959607,
     $7FFFFFFE, $7FFFFFFF, $80000000, $80000001, $FFFFFFFF);
 
 type
@@ -196,7 +196,7 @@ type
     public
       function TestTitle: shortstring; override;
   end;
-  
+
   { TUInt32Bit3600000Test }
 const
   FU32_3600000Input: array[$0..$F] of Cardinal =
@@ -309,7 +309,7 @@ procedure TUInt32Bit1Test.DoTestIteration(Iteration: Integer);
 
     FResultArray[Index] := Answer;
   end;
-  
+
 { TUInt32Bit1Test }
 
 function TUInt32Bit1ModTest.TestTitle: shortstring;
@@ -626,7 +626,7 @@ procedure TUInt32Bit10ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 10;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -662,7 +662,7 @@ procedure TUInt32Bit100Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -750,7 +750,7 @@ procedure TUInt32Bit1000ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 1000;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -776,7 +776,7 @@ procedure TUInt32Bit60000Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 60000;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -828,7 +828,7 @@ procedure TUInt32Bit146097Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 146097;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -880,7 +880,7 @@ procedure TUInt32Bit3600000Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 3600000;
-      
+
     FResultArray[Index] := Answer;
   end;
 

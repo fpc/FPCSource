@@ -6,7 +6,7 @@
 {$endif fpc}
 {$endif bigfile}
 
-type 
+type
 {$ifdef FPC_COMP_IS_INT64}
   comp46 = currency;
 {$else FPC_COMP_IS_INT64}

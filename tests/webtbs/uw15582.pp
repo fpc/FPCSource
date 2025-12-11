@@ -8,7 +8,7 @@ unit uw15582;
 
 interface
 
-var 
+var
   n_checks : integer = 0;
   n_failed : integer = 0;
 

@@ -10,7 +10,7 @@ type
     procedure CallTest;
   published
     property OnTest: TNotifyEvent read FOnTest Write SetOnTest;
-  end;  
+  end;
 
   TB = class
   public
@@ -24,7 +24,7 @@ end;
 
 procedure TA.CallTest;
 begin
-  if Assigned(FOnTest) then 
+  if Assigned(FOnTest) then
     OnTest(self)
   else
     WriteLn('OnTest no set');
@@ -51,7 +51,7 @@ begin
     SetMethodProp(A, PropInfo, Method);
     WriteLn('Testing SetMethodProp method');
     A.CallTest;
-  end 
+  end
   else begin
     WriteLn('PropInfo for ''OnTest'' not found');
     Halt(1);

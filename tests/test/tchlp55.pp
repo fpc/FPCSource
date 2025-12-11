@@ -1,6 +1,6 @@
 { %NORUN }
 
-{ This tests that methods introduced by a helper can be found in 
+{ This tests that methods introduced by a helper can be found in
   with-Statements as well - Case 1: normal method in current helper }
 program tchlp55;
 

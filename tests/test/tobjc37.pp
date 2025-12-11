@@ -16,8 +16,8 @@ type
 	MyWindow = objcclass(NSWindow)
 		procedure awakeFromNib; override;
 	end;
-	
-	
+
+
 implementation
 
 type
@@ -45,5 +45,5 @@ begin
   v.awakefromnib;
   v.release;
 end;
-	
+
 end.

@@ -5,12 +5,12 @@ type
   public
     x : T;
   end;
-  
+
   generic tc2<T> = class
   type tc2a = specialize tc1<T>;
   var x : tc2a;
   end;
-  
+
   tc2_Integer = specialize tc2<Integer>;
 
 var

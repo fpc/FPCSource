@@ -7,7 +7,7 @@ program project1;
 type
 
 IExample = interface
-  function add(a, b: single): integer; 
+  function add(a, b: single): integer;
 end;
 
 { TExample }

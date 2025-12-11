@@ -15,7 +15,7 @@ var
   ThreadFuncAddr: TStartRoutine;
   FinishedSem: TSemaphore;
   Count: Integer;
-  
+
 function ThreadFunc(AIndex: PtrInt): Pointer; cdecl;
 var
   MySem, NextSem: PSemaphore;

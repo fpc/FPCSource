@@ -119,7 +119,7 @@ begin
   cv := TTest.Create($110);
   if cv.VarType <> $110 then
     Code := Code or 512;
-    
+
   { Test #11. Now creating another customVariantType should skip the occupied slot.
     Delphi 7 fails this test miserably. }
   try

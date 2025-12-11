@@ -23,7 +23,7 @@ type
 
 begin
   asm
-    { this produces an error in TP7, while 
+    { this produces an error in TP7, while
         test [di + 5*foo.fb2], cval
       doesn't... go figure :) }
 {$ifdef CPUI8086}

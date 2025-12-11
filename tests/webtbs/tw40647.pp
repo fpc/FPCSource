@@ -12,6 +12,6 @@ begin
       WriteLn('FAIL: Expected 5 but got ', x);
       Halt(1);
     end;
-    
+
   WriteLn('ok');
 end.

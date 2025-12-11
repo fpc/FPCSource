@@ -2,7 +2,7 @@
 { %fail }
 
 { This test has been known to generate internal error 2014091205 }
-  
+
 program tcond1.pp;
 
 const
@@ -13,7 +13,7 @@ function TestInput(Input, TestAns: Integer): Boolean;
   var
     O1, O2, O3: Integer;
   begin
-    if Input < 2 then 
+    if Input < 2 then
       begin
 		O1 := -10;
 		O2 := TestAns;
@@ -23,21 +23,21 @@ function TestInput(Input, TestAns: Integer): Boolean;
 	    O1 := 0;
 		O2 := -10;
 	  end;
-	  
+
 	TestInput :=
 	  (O1 = Expected[Input][0]) and
 	  (O2 = Expected[Input][1]);
   end;
-  
+
 var
   X: Integer;
-  
+
 begin
   for X := 0 to 3 do
     begin
 	  if not TestInput(X, X + 3) then
 	    Halt(1);
 	end;
-	
+
   WriteLn('ok');
 end.

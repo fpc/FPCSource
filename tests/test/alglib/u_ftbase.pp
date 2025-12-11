@@ -4,7 +4,7 @@ Copyright (c) 2009, Sergey Bochkanov (ALGLIB project).
 >>> SOURCE LICENSE >>>
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation (www.fsf.org); either version 2 of the 
+the Free Software Foundation (www.fsf.org); either version 2 of the
 License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -132,7 +132,7 @@ entries.
 
 Subroutine parameters:
     N               task size
-    
+
 Output parameters:
     Plan            plan
 
@@ -347,7 +347,7 @@ begin
     end;
     if Plan.Plan[EntryOffset+3]=FFTCooleyTukeyPlan then
     begin
-        
+
         //
         // Cooley-Tukey plan
         // * transposition
@@ -381,7 +381,7 @@ begin
     end;
     if Plan.Plan[EntryOffset+3]=FFTRealCooleyTukeyPlan then
     begin
-        
+
         //
         // Cooley-Tukey plan
         // * transposition
@@ -399,7 +399,7 @@ begin
         I:=0;
         while I<=N1 div 2-1 do
         begin
-            
+
             //
             // pack two adjacent smaller real FFT's together,
             // make one complex FFT,
@@ -452,7 +452,7 @@ begin
     end;
     if Plan.Plan[EntryOffset+3]=FHTCooleyTukeyPlan then
     begin
-        
+
         //
         // Cooley-Tukey FHT plan:
         // * transpose                    \
@@ -545,7 +545,7 @@ begin
     end;
     if Plan.Plan[EntryOffset+3]=FHTN2Plan then
     begin
-        
+
         //
         // Cooley-Tukey FHT plan
         //
@@ -766,7 +766,7 @@ begin
     end;
     if Plan.Plan[EntryOffset+3]=FFTBluesteinPlan then
     begin
-        
+
         //
         // Bluestein plan:
         // 1. multiply by precomputed coefficients
@@ -865,7 +865,7 @@ var
 begin
     N1 := 0;
     N2 := 0;
-    
+
     //
     // try to find good codelet
     //
@@ -883,7 +883,7 @@ begin
             Dec(J);
         end;
     end;
-    
+
     //
     // try to factorize N
     //
@@ -901,7 +901,7 @@ begin
             Inc(J);
         end;
     end;
-    
+
     //
     // looks like N is prime :(
     //
@@ -910,7 +910,7 @@ begin
         N1 := 1;
         N2 := N;
     end;
-    
+
     //
     // normalize
     //
@@ -1044,7 +1044,7 @@ var
     ESize : Integer;
     EntryOffset : Integer;
 begin
-    
+
     //
     // prepare
     //
@@ -1055,7 +1055,7 @@ begin
     EntryOffset := PlanSize;
     ESize := FTBasePlanEntrySize;
     PlanSize := PlanSize+ESize;
-    
+
     //
     // if N=1, generate empty plan and exit
     //
@@ -1071,20 +1071,20 @@ begin
         Plan.Plan[EntryOffset+7] := -1;
         Exit;
     end;
-    
+
     //
     // generate plans
     //
     FTBaseFactorize(N, TaskType, N1, N2);
     if (TaskType=FTBaseCFFTTask) or (TaskType=FTBaseRFFTTask) then
     begin
-        
+
         //
         // complex FFT plans
         //
         if N1<>1 then
         begin
-            
+
             //
             // Cooley-Tukey plan (real or complex)
             //
@@ -1115,7 +1115,7 @@ begin
         begin
             if (N=2) or (N=3) or (N=4) or (N=5) then
             begin
-                
+
                 //
                 // hard-coded plan
                 //
@@ -1139,7 +1139,7 @@ begin
             end
             else
             begin
-                
+
                 //
                 // Bluestein's plan
                 //
@@ -1168,13 +1168,13 @@ begin
     end;
     if TaskType=FTBaseRFHTTask then
     begin
-        
+
         //
         // real FHT plans
         //
         if N1<>1 then
         begin
-            
+
             //
             // Cooley-Tukey plan
             //
@@ -1194,7 +1194,7 @@ begin
         end
         else
         begin
-            
+
             //
             // N2 plan
             //
@@ -1208,7 +1208,7 @@ begin
             Plan.Plan[EntryOffset+7] := -1;
             if (N=2) or (N=3) or (N=4) or (N=5) then
             begin
-                
+
                 //
                 // hard-coded plan
                 //
@@ -1373,7 +1373,7 @@ begin
             TmpY := X*TwY+Y*TwXM1;
             A[Offs+0] := X+TmpX;
             A[Offs+1] := Y+TmpY;
-            
+
             //
             // update Tw: Tw(new) = Tw(old)*TwRow
             //
@@ -1395,7 +1395,7 @@ begin
             end;
             Inc(J);
         end;
-        
+
         //
         // update TwRow: TwRow(new) = TwRow(old)*TwBase
         //
@@ -1511,7 +1511,7 @@ begin
     end;
     if N>M then
     begin
-        
+
         //
         // New partition:
         //
@@ -1529,7 +1529,7 @@ begin
     end
     else
     begin
-        
+
         //
         // New partition:
         //
@@ -1596,7 +1596,7 @@ begin
     end;
     if N>M then
     begin
-        
+
         //
         // New partition:
         //
@@ -1614,7 +1614,7 @@ begin
     end
     else
     begin
-        
+
         //
         // New partition:
         //

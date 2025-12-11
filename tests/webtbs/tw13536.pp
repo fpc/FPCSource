@@ -56,7 +56,7 @@ begin
         Result:=GetLastError;
         exit;
       end;
-   end; 
+   end;
 
   { Convert some attributes back }
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
@@ -69,7 +69,7 @@ end;
 
 var n : TMySearchRec;
 
-begin 
+begin
  // make sure it gets past the while loop.
  n.finddata.dwfileattributes:=1;
  n.excludeattr:=0;

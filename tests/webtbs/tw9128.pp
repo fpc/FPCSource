@@ -40,7 +40,7 @@ end.
 {
   bug-interror.pas(30,5) Fatal: Internal error 200106041
   bug-interror.pas(30,5) Fatal: Compilation aborted
-  
+
   Error is caused by const parameter in procedure ArrayStuff(const Arr: TDynArray);
   Doesn't occur when array is var parameter.
   Only crashed in $MODE DELPHI.

@@ -49,47 +49,47 @@ begin
     end;
 
   date1:=EncodeDateTime(2011,03,26,19,15,30,555);
-  if IsInLeapYear(date1) then 
+  if IsInLeapYear(date1) then
     begin
       writeln('IsInLeapYear test fail');
       halt(7);
     end;
-  if not IsPM(date1) then 
+  if not IsPM(date1) then
     begin
       writeln('IsPM test fail');
       halt(8);
     end;
-  if YearOf(date1) <> 2011 then 
+  if YearOf(date1) <> 2011 then
     begin
       writeln('YearOf test fail');
       halt(9);
     end;
-  if MonthOf(date1) <> 3 then 
+  if MonthOf(date1) <> 3 then
     begin
       writeln('MonthOf test fail');
       halt(10);
     end;
-  if DayOf(date1) <> 26 then 
+  if DayOf(date1) <> 26 then
     begin
       writeln('DayOf test fail');
       halt(11);
     end;
-  if (HourOf(date1) <> 19) or (HourOfTheDay(date1) <> 19) then 
+  if (HourOf(date1) <> 19) or (HourOfTheDay(date1) <> 19) then
     begin
       writeln('HourOf test fail');
       halt(11);
     end;
-  if (MinuteOf(date1) <> 15) or (MinuteOfTheHour(date1) <> 15) then 
+  if (MinuteOf(date1) <> 15) or (MinuteOfTheHour(date1) <> 15) then
     begin
       writeln('MinuteOf test fail');
       halt(12);
     end;
-  if (SecondOf(date1) <> 30) or (SecondOfTheMinute(date1) <> 30) then 
+  if (SecondOf(date1) <> 30) or (SecondOfTheMinute(date1) <> 30) then
     begin
       writeln('SecondOf test fail');
       halt(13);
     end;
-  if (MilliSecondOf(date1) <> 555) or (MilliSecondOfTheSecond(date1) <> 555) then 
+  if (MilliSecondOf(date1) <> 555) or (MilliSecondOfTheSecond(date1) <> 555) then
     begin
       writeln('MilliSecondOf test fail');
       halt(14);

@@ -1,7 +1,7 @@
 { %fail }
 {$mode extendedpascal}
 type
-  fruits = (apple, banana, citrus);   
+  fruits = (apple, banana, citrus);
 var
   a:fruits;
 begin

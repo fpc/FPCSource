@@ -4,7 +4,7 @@ Copyright (c) 2009, Sergey Bochkanov (ALGLIB project).
 >>> SOURCE LICENSE >>>
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation (www.fsf.org); either version 2 of the 
+the Free Software Foundation (www.fsf.org); either version 2 of the
 License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -116,7 +116,7 @@ procedure ConvC1D(const A : TComplex1DArray;
      var R : TComplex1DArray);
 begin
     Assert((N>0) and (M>0), 'ConvC1D: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer that B.
@@ -274,7 +274,7 @@ var
     i1_ : Integer;
 begin
     Assert((N>0) and (M>0), 'ConvC1DCircular: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer (at least - not shorter) that B.
@@ -356,7 +356,7 @@ var
     i1_ : Integer;
 begin
     Assert((N>0) and (M>0), 'ConvC1DCircularInv: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer (at least - not shorter) that B.
@@ -385,7 +385,7 @@ begin
         ConvC1DCircularInv(A, M, CBuf, M, R);
         Exit;
     end;
-    
+
     //
     // Task is normalized
     //
@@ -479,7 +479,7 @@ var
     Flop2 : Double;
 begin
     Assert((N>0) and (M>0), 'ConvR1D: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer that B.
@@ -612,7 +612,7 @@ var
     J2 : Integer;
 begin
     Assert((N>0) and (M>0), 'ConvC1DCircular: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer (at least - not shorter) that B.
@@ -637,7 +637,7 @@ begin
         ConvR1DCircular(S, M, Buf, M, C);
         Exit;
     end;
-    
+
     //
     // reduce to usual convolution
     //
@@ -693,7 +693,7 @@ var
     T : Double;
 begin
     Assert((N>0) and (M>0), 'ConvR1DCircularInv: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer (at least - not shorter) that B.
@@ -718,13 +718,13 @@ begin
         ConvR1DCircularInv(A, M, Buf, M, R);
         Exit;
     end;
-    
+
     //
     // Task is normalized
     //
     if M mod 2=0 then
     begin
-        
+
         //
         // size is even, use fast even-size FFT
         //
@@ -762,7 +762,7 @@ begin
     end
     else
     begin
-        
+
         //
         // odd-size, use general real FFT
         //
@@ -849,13 +849,13 @@ var
 begin
     Assert((N>0) and (M>0), 'ConvC1DX: incorrect N or M!');
     Assert(N<=M, 'ConvC1DX: N<M assumption is false!');
-    
+
     //
     // Auto-select
     //
     if (Alg=-1) or (Alg=-2) then
     begin
-        
+
         //
         // Initial candidate: straightforward implementation.
         //
@@ -872,7 +872,7 @@ begin
         begin
             FlopBest := MaxRealNumber;
         end;
-        
+
         //
         // Another candidate - generic FFT code
         //
@@ -880,7 +880,7 @@ begin
         begin
             if Circular and FTBaseIsSmooth(M) then
             begin
-                
+
                 //
                 // special code for circular convolution of a sequence with a smooth length
                 //
@@ -893,7 +893,7 @@ begin
             end
             else
             begin
-                
+
                 //
                 // general cyclic/non-cyclic convolution
                 //
@@ -906,7 +906,7 @@ begin
                 end;
             end;
         end;
-        
+
         //
         // Another candidate - overlap-add
         //
@@ -932,7 +932,7 @@ begin
         ConvC1DX(A, M, B, N, Circular, Alg, Q, R);
         Exit;
     end;
-    
+
     //
     // straightforward formula for
     // circular and non-circular convolutions.
@@ -941,7 +941,7 @@ begin
     //
     if Alg=0 then
     begin
-        
+
         //
         // Special case: N=1
         //
@@ -955,13 +955,13 @@ begin
             end;
             Exit;
         end;
-        
+
         //
         // use straightforward formula
         //
         if Circular then
         begin
-            
+
             //
             // circular convolution
             //
@@ -998,7 +998,7 @@ begin
         end
         else
         begin
-            
+
             //
             // non-circular convolution
             //
@@ -1023,7 +1023,7 @@ begin
         end;
         Exit;
     end;
-    
+
     //
     // general FFT-based code for
     // circular and non-circular convolutions.
@@ -1038,7 +1038,7 @@ begin
     begin
         if Circular and FTBaseIsSmooth(M) then
         begin
-            
+
             //
             // special code for circular convolution with smooth M
             //
@@ -1094,7 +1094,7 @@ begin
         end
         else
         begin
-            
+
             //
             // M is non-smooth, general code (circular/non-circular):
             // * first part is the same for circular and non-circular
@@ -1154,7 +1154,7 @@ begin
             T := AP_Double(1)/P;
             if Circular then
             begin
-                
+
                 //
                 // circular, add tail to head
                 //
@@ -1176,7 +1176,7 @@ begin
             end
             else
             begin
-                
+
                 //
                 // non-circular, just copy
                 //
@@ -1192,7 +1192,7 @@ begin
         end;
         Exit;
     end;
-    
+
     //
     // overlap-add method for
     // circular and non-circular convolutions.
@@ -1206,7 +1206,7 @@ begin
     if Alg=2 then
     begin
         SetLength(Buf, 2*(Q+N-1));
-        
+
         //
         // prepare R
         //
@@ -1230,7 +1230,7 @@ begin
                 Inc(I);
             end;
         end;
-        
+
         //
         // pre-calculated FFT(B)
         //
@@ -1246,12 +1246,12 @@ begin
             Inc(J);
         end;
         FFTC1D(BBuf, Q+N-1);
-        
+
         //
         // prepare FFT plan for chunks of A
         //
         FTBaseGenerateComplexFFTPlan(Q+N-1, Plan);
-        
+
         //
         // main overlap-add cycle
         //
@@ -1380,7 +1380,7 @@ var
 begin
     Assert((N>0) and (M>0), 'ConvC1DX: incorrect N or M!');
     Assert(N<=M, 'ConvC1DX: N<M assumption is false!');
-    
+
     //
     // handle special cases
     //
@@ -1388,13 +1388,13 @@ begin
     begin
         Alg := 0;
     end;
-    
+
     //
     // Auto-select
     //
     if Alg<0 then
     begin
-        
+
         //
         // Initial candidate: straightforward implementation.
         //
@@ -1411,7 +1411,7 @@ begin
         begin
             FlopBest := MaxRealNumber;
         end;
-        
+
         //
         // Another candidate - generic FFT code
         //
@@ -1419,7 +1419,7 @@ begin
         begin
             if Circular and FTBaseIsSmooth(M) and (M mod 2=0) then
             begin
-                
+
                 //
                 // special code for circular convolution of a sequence with a smooth length
                 //
@@ -1432,7 +1432,7 @@ begin
             end
             else
             begin
-                
+
                 //
                 // general cyclic/non-cyclic convolution
                 //
@@ -1445,7 +1445,7 @@ begin
                 end;
             end;
         end;
-        
+
         //
         // Another candidate - overlap-add
         //
@@ -1471,7 +1471,7 @@ begin
         ConvR1DX(A, M, B, N, Circular, Alg, Q, R);
         Exit;
     end;
-    
+
     //
     // straightforward formula for
     // circular and non-circular convolutions.
@@ -1480,7 +1480,7 @@ begin
     //
     if Alg=0 then
     begin
-        
+
         //
         // Special case: N=1
         //
@@ -1491,13 +1491,13 @@ begin
             APVMove(@R[0], 0, M-1, @A[0], 0, M-1, V);
             Exit;
         end;
-        
+
         //
         // use straightforward formula
         //
         if Circular then
         begin
-            
+
             //
             // circular convolution
             //
@@ -1523,7 +1523,7 @@ begin
         end
         else
         begin
-            
+
             //
             // non-circular convolution
             //
@@ -1544,7 +1544,7 @@ begin
         end;
         Exit;
     end;
-    
+
     //
     // general FFT-based code for
     // circular and non-circular convolutions.
@@ -1562,7 +1562,7 @@ begin
         Assert(M+N-1>2, 'ConvR1DX: internal error!');
         if Circular and FTBaseIsSmooth(M) and (M mod 2=0) then
         begin
-            
+
             //
             // special code for circular convolution with smooth even M
             //
@@ -1601,7 +1601,7 @@ begin
         end
         else
         begin
-            
+
             //
             // M is non-smooth or non-even, general code (circular/non-circular):
             // * first part is the same for circular and non-circular
@@ -1649,7 +1649,7 @@ begin
             FFTR1DInvInternalEven(Buf, P, Buf3, Plan);
             if Circular then
             begin
-                
+
                 //
                 // circular, add tail to head
                 //
@@ -1662,7 +1662,7 @@ begin
             end
             else
             begin
-                
+
                 //
                 // non-circular, just copy
                 //
@@ -1672,7 +1672,7 @@ begin
         end;
         Exit;
     end;
-    
+
     //
     // overlap-add method
     //
@@ -1683,7 +1683,7 @@ begin
         SetLength(Buf2, Q+N-1);
         SetLength(Buf3, Q+N-1);
         FTBaseGenerateComplexFFTPlan((Q+N-1) div 2, Plan);
-        
+
         //
         // prepare R
         //
@@ -1707,7 +1707,7 @@ begin
                 Inc(I);
             end;
         end;
-        
+
         //
         // pre-calculated FFT(B)
         //
@@ -1719,7 +1719,7 @@ begin
             Inc(J);
         end;
         FFTR1DInternalEven(Buf2, Q+N-1, Buf3, Plan);
-        
+
         //
         // main overlap-add cycle
         //

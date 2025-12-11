@@ -152,7 +152,7 @@ begin
 
   exitcode:=exitwitherror;
 
- {$ifndef fpc} // halt in delphi ide  
+ {$ifndef fpc} // halt in delphi ide
   readln;
  {$endif}
 end.

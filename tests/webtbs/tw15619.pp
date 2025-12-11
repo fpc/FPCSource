@@ -8,7 +8,7 @@ var
   F: TMultiReadExclusiveWriteSynchronizer;
 begin
   F:=TMultiReadExclusiveWriteSynchronizer.Create;
-  F.Beginwrite; 
+  F.Beginwrite;
   IsMultiThread:=true; //Culprit.
   F.Endwrite;
   F.Beginwrite;

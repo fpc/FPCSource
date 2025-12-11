@@ -1,7 +1,7 @@
 uses
   unicodeducet, fpwidestring, cp1253, cp1251,
   SysUtils;
-  
+
 type
   ts1253 = type AnsiString(1253);
   ts1251 = type AnsiString(1251);

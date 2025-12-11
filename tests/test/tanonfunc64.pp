@@ -8,7 +8,7 @@ program tanonfunc64;
 {$modeswitch anonymousfunctions}
 {$modeswitch functionreferences}
 
-{ test using anonymous functions and C blocks together 
+{ test using anonymous functions and C blocks together
 
   same as tanonfunc26 but mode delphi
 }

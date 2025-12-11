@@ -24,6 +24,6 @@ end;
 begin
   test
 end.
-    
-  
+
+
 

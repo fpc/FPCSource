@@ -5,7 +5,7 @@ type
    TBaseClass = class
       function PrintSelf(): TBaseClass; inline; // has to be inline for the bug to manifest
    end;
-   
+
    TSubClass = class(TBaseClass)
    end;
 

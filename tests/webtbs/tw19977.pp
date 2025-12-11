@@ -40,7 +40,7 @@ begin
   try
     Writeln('We are somewhere after ChDir');
   except
-    on E: EInOutError do 
+    on E: EInOutError do
       begin
         Writeln('Ups, Writeln raised exception');
         halt(1);

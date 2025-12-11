@@ -17,11 +17,11 @@ procedure padLeftTest(const s: ansistring;
   begin
     if padLeft(s, n) <> expectation then
     begin
-      writeln('Testing strUtils/PadLeft: Test ', testnr, 
+      writeln('Testing strUtils/PadLeft: Test ', testnr,
               ' with N = ', n, ' failed.');
       exitCode := 1;
     end;
-  end; 
+  end;
 
 var
   i, j: integer;
@@ -35,6 +35,6 @@ begin
       testString := ' ' + testString;
     padLeftTest('abcd', i, testString, i);
   end;
-  
+
   halt(exitCode);
 end.

@@ -6,4 +6,4 @@ type
 var
   A: TShape.;
 begin
-end. 
+end.

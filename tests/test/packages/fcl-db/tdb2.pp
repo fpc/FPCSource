@@ -35,7 +35,7 @@ begin
     post;
     AssertEquals('ValuesTestName',FieldByName('name').AsString);
     AssertEquals(243,FieldByName('id').AsInteger);
-    
+
     PassException:=false;
     try
       edit;

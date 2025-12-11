@@ -20,7 +20,7 @@ Type
     procedure T6(var s : ansistring);
     procedure T7(sar : array of ansistring);
   end;
-  
+
   TT1 = Class(TObject,I1)
   Protected
     Procedure T2(a : Integer);
@@ -30,7 +30,7 @@ Type
     procedure T6(var s : ansistring);
     procedure T7(sar : array of ansistring);
   Published
-    Procedure Test;  
+    Procedure Test;
   end;
 
   { TTestInvokeHelper }
@@ -58,12 +58,12 @@ Type
     Procedure DoTest6;
     Procedure DoTest7;
   end;
-  
+
 var
-  sa : Integer;  
+  sa : Integer;
   ss : ansistring;
   ssa : array of ansistring;
-  
+
 Procedure TT1.T2(a : Integer);
 
 begin
@@ -78,12 +78,12 @@ begin
   result:=a;
 end;
 
-  
+
 Procedure TT1.Test;
 
 begin
-  Writeln('This is a test');  
-end;  
+  Writeln('This is a test');
+end;
 
 procedure TT1.T4(var a : integer);
 
@@ -94,7 +94,7 @@ begin
 end;
 
 procedure TT1.T5(s : ansistring);
-begin 
+begin
   Writeln('In T5');
   ss:=s;
 end;
@@ -108,10 +108,10 @@ begin
 end;
 
 procedure TT1.T7(sar : array of ansistring);
- 
+
 var
   I : Integer;
- 
+
 begin
   writeln('T7');
   setlength(ssa,length(sar));
@@ -178,14 +178,14 @@ begin
   Writeln(FTest,' '+S);
   Halt(1);
 end;
-  
+
 
 procedure TTestInvokeHelper.DoTest2;
 
 var
   a : Integer;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest2');
   A:=123;
@@ -217,7 +217,7 @@ procedure TTestInvokeHelper.DoTest4;
 var
   a : Integer;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest4');
   A:=123;
@@ -234,7 +234,7 @@ procedure TTestInvokeHelper.DoTest5;
 var
   s : ansistring;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest5');
   s:='123';
@@ -250,7 +250,7 @@ procedure TTestInvokeHelper.DoTest6;
 var
   s : ansistring;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest6');
   s:='123';
@@ -267,7 +267,7 @@ procedure TTestInvokeHelper.DoTest7;
 var
   sar : array of ansistring;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest7');
   setlength(sar,3);
@@ -283,7 +283,7 @@ begin
   AssertEquals('Value 1 passed','456',ssa[1]);
   AssertEquals('Value 2 passed','789',ssa[2]);
 end;
-  
+
 
 begin
   With TTestInvokeHelper.Create do
@@ -297,5 +297,5 @@ begin
       Writeln('All OK');
     finally
       Free;
-    end;   
+    end;
 end.

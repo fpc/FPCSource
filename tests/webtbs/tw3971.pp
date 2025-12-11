@@ -5,10 +5,10 @@ type
         TDemo1 = object
                 member1 : byte;
                 member2 : longint;
-                
+
                 member7 : ^longint;
                 member3 : int64;
-                
+
                 member4 : byte;
                 member5 : longint;
                 //x : boolean;
@@ -16,7 +16,7 @@ type
                 member6 : int64;
                 x : boolean;
         end;
-        
+
         TDemo = object
                 member1 : byte;
                 member5 : longint;
@@ -30,7 +30,7 @@ type
         end;
 var
         x : array[0..2] of TDemo;
-        
+
         z : TDemo;
         w : TDemo1;
 

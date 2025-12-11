@@ -40,4 +40,4 @@ if x2<>1 then
 {$endif FPC_COMP_IS_INT64}
 
 
-END. 
+END.

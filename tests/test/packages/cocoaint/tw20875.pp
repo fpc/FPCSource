@@ -8,6 +8,6 @@ program testlink;
 
 uses
   uw20875a,uw20875b;
-  
+
 begin
 end.

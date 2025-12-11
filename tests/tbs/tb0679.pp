@@ -7,19 +7,19 @@ program tb0679;
 type
   TA = class
   public
-    class destructor Destroy; 
+    class destructor Destroy;
     destructor Destroy; override;
   end;
-  
-class destructor TA.Destroy; 
+
+class destructor TA.Destroy;
 begin
 end;
-    
+
 destructor TA.Destroy;
 begin
   inherited;
 end;
- 
+
 var
   A: TA;
 begin

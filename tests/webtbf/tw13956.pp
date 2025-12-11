@@ -11,7 +11,7 @@ type
     function GetFoo(Index: Integer; Ask: Boolean = True): Integer;
   public
     property Foo[Index: Integer; Ask: Boolean]: Integer read GetFoo;
-  end; 
+  end;
 
 function TForm1.GetFoo(Index: Integer; Ask: Boolean): Integer;
 begin

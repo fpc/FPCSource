@@ -14,7 +14,7 @@ uses SysUtils, Math;
 function ILAENV(ispec: Integer; name__: string; opts: string;
                  n1: Integer; n2: Integer; n3: Integer; n4: Integer): Integer;
 begin
-  Result := 0; 
+  Result := 0;
 end;
 
 function dormqr_(var side: Char; var trans: Char; var m: Integer; var n: Integer; var k: Integer; var a: Double; var lda: Integer; var tau: Double; var c__: Double; var ldc: Integer; var work: Double; var lwork: Integer; var info: Integer; side_len: Integer; trans_len: Integer): Integer; cdecl;

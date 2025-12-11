@@ -4,7 +4,7 @@ program tanonfunc61;
 {$modeswitch anonymousfunctions}
 {$modeswitch functionreferences}
 
-{ test calling into overloaded routines and creating anonymous methods in them. 
+{ test calling into overloaded routines and creating anonymous methods in them.
 
   Same as tanonfunc23 but with mode delphi
 }

@@ -23,7 +23,7 @@ begin
   if aRecurse then
     Result := Test(False, aTest[0])
   else
-    Result := 2;  
+    Result := 2;
 end;
 
 var

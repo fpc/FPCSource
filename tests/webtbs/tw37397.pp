@@ -3,7 +3,7 @@
 program gx;
 //fpc -O3 ax.pas
 // graphmath.pp(518,7) Fatal: Internal error 200108231
-    
+
 {$Mode OBJFPC} {$H+}
 {$inline on}
 
@@ -15,7 +15,7 @@ type
   TFloatPoint = Record
     X, Y : Extended;
   end;
-    
+
   TBezier = Array[0..3] of TFloatPoint;
 
   const res: array[0..50] of tpoint =
@@ -230,7 +230,7 @@ begin
   SplitRecursive(Bezier);
 end;
 
-  
+
   var
     points: ppoint;
     i, ppointcount: longint;

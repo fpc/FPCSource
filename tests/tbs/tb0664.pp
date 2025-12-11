@@ -404,7 +404,7 @@ begin
   Result := nil;
   SetLength(Result, FCount);
   for i := 0 to FCount - 1 do Result[i] := T(FData[i]);
-    
+
 end;
 
 { ListHelper }

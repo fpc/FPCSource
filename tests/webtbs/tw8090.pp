@@ -6,13 +6,13 @@ program notusedbug;
 uses
   Classes, SysUtils
   { add your units here };
-  
+
 type
   TA = class
   private
     FC: integer;
   end;
-  
+
   { TB }
 
   TB = class

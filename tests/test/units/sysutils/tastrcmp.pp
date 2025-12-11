@@ -1,4 +1,4 @@
-{ based on string/tester.c of glibc 2.3.6 
+{ based on string/tester.c of glibc 2.3.6
 
 * Tester for string functions.
    Copyright (C) 1995-2000, 2001, 2003 Free Software Foundation, Inc.

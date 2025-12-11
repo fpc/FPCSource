@@ -42,11 +42,11 @@ implementation
 Function FindNestedComponent(Root : TComponent; APath : String; CStyle : Boolean = True) : TComponent;
 
   Function GetNextName : String; inline;
-  
+
   Var
     P : Integer;
     CM : Boolean;
-    
+
   begin
     P:=Pos('.',APath);
     CM:=False;
@@ -168,9 +168,9 @@ end;
 
 procedure TTestFindComponent.CheckFind(Root: TComponent; AName: String;
   Expected: TComponent);
-  
+
   Function FN (C : TComponent): String;
-  
+
   begin
     If (C=Nil) then
       Result:='<Nil>'
@@ -180,7 +180,7 @@ procedure TTestFindComponent.CheckFind(Root: TComponent; AName: String;
 
 Var
   Res : TComponent;
-  
+
 begin
   Res:=FindNestedComponent(Root,AName);
   If Res<>Expected then
@@ -211,6 +211,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestFindComponent); 
+  RegisterTest(TTestFindComponent);
 end.
 

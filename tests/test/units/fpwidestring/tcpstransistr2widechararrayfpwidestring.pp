@@ -1,8 +1,8 @@
 ﻿uses
   unicodeducet, fpwidestring, cp850,
   sysutils;
-  
-type  
+
+type
   ts850 = type AnsiString(850);
 
   procedure doerror(ANumber : Integer);

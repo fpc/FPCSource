@@ -9,7 +9,7 @@ var
   r: T;
   i: Integer;
 begin
-  for r in a do 
+  for r in a do
   begin
     for i in r do Write(i, ' ');
     Writeln;

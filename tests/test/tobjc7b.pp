@@ -16,7 +16,7 @@ type
   libraries are linked, like gcc does }
   tobjcclass = objcclass external name 'NSObject' (tobjcprot)
     procedure isrequired;
-  end; ; 
+  end; ;
 
 
 begin

@@ -377,7 +377,7 @@ begin
   if (A<>Val1) or (B<>Val2) or (C<>Val3) or (E<>Val5) then
     Exit('Quintuple unpack failure');
   A:='';
-  B:=0; 
+  B:=0;
   C:=#00;
   E:=False;
   P.unpack(A, B, C, D, E);
@@ -400,7 +400,7 @@ end;
 
 begin
   DoTest('TestPairAssign',TestPairAssign);
-  DoTest('TestPairUnpack',TestPairUnpack); 
+  DoTest('TestPairUnpack',TestPairUnpack);
   DoTest('TestTripleAssign',TestTripleAssign);
   DoTest('TestTripleUnpack',TestTripleUnpack);
   DoTest('TestQuadrupleAssign',TestQuadrupleAssign);

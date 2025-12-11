@@ -8,7 +8,7 @@
 function NSStringToString(ns: NSString): String;
 begin
     Result := '';
-end;                 
+end;
 
 begin
   WriteLn(NSStringToString(nil));

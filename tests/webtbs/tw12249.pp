@@ -25,7 +25,7 @@ begin
 end;
 
 procedure P;
-type 
+type
   T = specialize TG2<Integer>;
 begin
 end;

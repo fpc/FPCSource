@@ -53,7 +53,7 @@ begin
  { Time stuff }
   writeln('TimeSeparator : ', timeseparator);
   writeln('TimeAMstring  : ', timeamstring);
-  writeln('TimePMstring  : ', timepmstring);  
+  writeln('TimePMstring  : ', timepmstring);
   {$ifdef localedebug}
   writeln('orgshorttime  : ', orgformatsettings.shorttimeformat);
   {$endif}

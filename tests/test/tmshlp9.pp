@@ -8,7 +8,7 @@ program tmshlp9;
 type
 	TMyObject = class
 		procedure DoThis_1;
-	end;	
+	end;
 	THelper1 = class helper for TMyObject
 		procedure DoThis_2;
 	end;

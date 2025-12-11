@@ -14,7 +14,7 @@ type
 
   TPoint2DArray  = array of TPoint2D;
   TPolygon2D     = array of TPoint2D;
-  
+
   function AABB:TPoint2DArray; overload;
 
 implementation

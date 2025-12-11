@@ -67,7 +67,7 @@ begin
     InvErrors := False;
     InvRErrors := False;
     WasErrors := False;
-    
+
     //
     // Test against reference O(N^2) implementation.
     //
@@ -87,7 +87,7 @@ begin
                 RKind:=-3;
                 while RKind<=1 do
                 begin
-                    
+
                     //
                     // skip impossible combinations of parameters:
                     // * circular convolution, M<N, RKind<>-3 - internal subroutine does not support M<N.
@@ -97,7 +97,7 @@ begin
                         Inc(RKind);
                         Continue;
                     end;
-                    
+
                     //
                     // Complex convolution
                     //
@@ -120,7 +120,7 @@ begin
                     SetLength(CR1, 1);
                     if RKind=-3 then
                     begin
-                        
+
                         //
                         // test wrapper subroutine:
                         // * circular/non-circular
@@ -136,13 +136,13 @@ begin
                     end
                     else
                     begin
-                        
+
                         //
                         // test internal subroutine
                         //
                         if M>=N then
                         begin
-                            
+
                             //
                             // test internal subroutine:
                             // * circular/non-circular mode
@@ -151,7 +151,7 @@ begin
                         end
                         else
                         begin
-                            
+
                             //
                             // test internal subroutine - circular mode only
                             //
@@ -185,7 +185,7 @@ begin
                             Inc(I);
                         end;
                     end;
-                    
+
                     //
                     // Real convolution
                     //
@@ -206,7 +206,7 @@ begin
                     SetLength(RR1, 1);
                     if RKind=-3 then
                     begin
-                        
+
                         //
                         // test wrapper subroutine:
                         // * circular/non-circular
@@ -224,7 +224,7 @@ begin
                     begin
                         if M>=N then
                         begin
-                            
+
                             //
                             // test internal subroutine:
                             // * circular/non-circular mode
@@ -233,7 +233,7 @@ begin
                         end
                         else
                         begin
-                            
+
                             //
                             // test internal subroutine - non-circular mode only
                             //
@@ -276,7 +276,7 @@ begin
     end;
     RefErrors := RefErrors or AP_FP_Greater(RefErr,ErrTol);
     RefRErrors := RefRErrors or AP_FP_Greater(RefRErr,ErrTol);
-    
+
     //
     // Test inverse convolution
     //
@@ -288,7 +288,7 @@ begin
         N:=1;
         while N<=MaxN do
         begin
-            
+
             //
             // Complex circilar and non-circular
             //
@@ -328,7 +328,7 @@ begin
                 InvErr := Max(InvErr, AbsComplex(C_Sub(CR1[I],CA[I])));
                 Inc(I);
             end;
-            
+
             //
             // Real circilar and non-circular
             //
@@ -372,7 +372,7 @@ begin
     end;
     InvErrors := InvErrors or AP_FP_Greater(InvErr,ErrTol);
     InvRErrors := InvRErrors or AP_FP_Greater(InvRErr,ErrTol);
-    
+
     //
     // end
     //

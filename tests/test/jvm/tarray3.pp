@@ -4,7 +4,7 @@ program tarray3;
 
 uses
   {$ifdef java}jdk15{$else}androidr14{$endif};
-  
+
 {$macro on}
 {$define write:=JLSystem.fout.print}
 {$define writeln:=JLSystem.fout.println}
@@ -138,7 +138,7 @@ begin
   testvalueconv('ABCDEFG');
   testvalueconv(car4_1);
   testvalueconv(car6_1);
-(*  
+(*
   getmem(pc+256);
   pc:='Long Test';
 {$ifdef FPC this is not allowed in BP !}

@@ -4,7 +4,7 @@ Copyright (c) 2009, Sergey Bochkanov (ALGLIB project).
 >>> SOURCE LICENSE >>>
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation (www.fsf.org); either version 2 of the 
+the Free Software Foundation (www.fsf.org); either version 2 of the
 License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -58,7 +58,7 @@ Algorithm has O(N*logN) complexity for any N (composite or prime).
 INPUT PARAMETERS
     A   -   array[0..N-1] - complex function to be transformed
     N   -   problem size
-    
+
 OUTPUT PARAMETERS
     A   -   DFT of a input array, array[0..N-1]
             A_out[j] = SUM(A_in[k]*exp(-2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
@@ -74,7 +74,7 @@ var
     Buf : TReal1DArray;
 begin
     Assert(N>0, 'FFTC1D: incorrect N!');
-    
+
     //
     // Special case: N=1, FFT is just identity transform.
     // After this block we assume that N is strictly greater than 1.
@@ -83,7 +83,7 @@ begin
     begin
         Exit;
     end;
-    
+
     //
     // convert input array to the more convinient format
     //
@@ -95,7 +95,7 @@ begin
         Buf[2*I+1] := A[I].Y;
         Inc(I);
     end;
-    
+
     //
     // Generate plan and execute it.
     //
@@ -105,7 +105,7 @@ begin
     //
     FTBaseGenerateComplexFFTPlan(N, Plan);
     FTBaseExecutePlan(Buf, 0, N, Plan);
-    
+
     //
     // result
     //
@@ -144,7 +144,7 @@ var
     I : Integer;
 begin
     Assert(N>0, 'FFTC1DInv: incorrect N!');
-    
+
     //
     // Inverse DFT can be expressed in terms of the DFT as
     //
@@ -204,7 +204,7 @@ var
     Plan : FTPlan;
 begin
     Assert(N>0, 'FFTR1D: incorrect N!');
-    
+
     //
     // Special cases:
     // * N=1, FFT is just identity transform.
@@ -227,13 +227,13 @@ begin
         F[1].Y := 0;
         Exit;
     end;
-    
+
     //
     // Choose between odd-size and even-size FFTs
     //
     if N mod 2=0 then
     begin
-        
+
         //
         // even-size real FFT, use reduction to the complex task
         //
@@ -269,7 +269,7 @@ begin
     end
     else
     begin
-        
+
         //
         // use complex FFT
         //
@@ -323,7 +323,7 @@ var
     FH : TComplex1DArray;
 begin
     Assert(N>0, 'FFTR1DInv: incorrect N!');
-    
+
     //
     // Special case: N=1, FFT is just identity transform.
     // After this block we assume that N is strictly greater than 1.
@@ -334,7 +334,7 @@ begin
         A[0] := F[0].X;
         Exit;
     end;
-    
+
     //
     // inverse real FFT is reduced to the inverse real FHT,
     // which is reduced to the forward real FHT,
@@ -393,7 +393,7 @@ var
     V : Complex;
 begin
     Assert((N>0) and (N mod 2=0), 'FFTR1DEvenInplace: incorrect N!');
-    
+
     //
     // Special cases:
     // * N=2
@@ -408,7 +408,7 @@ begin
         A[1] := Y;
         Exit;
     end;
-    
+
     //
     // even-size real FFT, use reduction to the complex task
     //
@@ -455,7 +455,7 @@ var
     N2 : Integer;
 begin
     Assert((N>0) and (N mod 2=0), 'FFTR1DInvInternalEven: incorrect N!');
-    
+
     //
     // Special cases:
     // * N=2
@@ -470,7 +470,7 @@ begin
         A[1] := Y;
         Exit;
     end;
-    
+
     //
     // inverse real FFT is reduced to the inverse real FHT,
     // which is reduced to the forward real FHT,

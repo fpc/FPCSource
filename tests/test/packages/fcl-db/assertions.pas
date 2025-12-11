@@ -5,7 +5,7 @@ unit Assertions;
 interface
 
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 
 procedure AssertTrue(v1 : boolean);
 procedure AssertEquals(v1,v2 : string); overload;

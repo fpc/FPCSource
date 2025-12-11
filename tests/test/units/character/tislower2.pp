@@ -1,25 +1,25 @@
 program tislower2;
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   character;
-    
-{$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
 
-procedure DoError(ACode : Integer); 
+{$ifndef FPC}
+  type UnicodeChar = WideChar;
+{$endif}
+
+procedure DoError(ACode : Integer);
 begin
   WriteLn('Error #',ACode);
   Halt(Acode);
-end;  
+end;
 
 var
   s : UnicodeString;
-begin 
+begin
   s := UnicodeChar($D835) + UnicodeChar($DFCB); //1D7CB;MATHEMATICAL BOLD SMALL DIGAMMA;Ll;0;L;<font> 03DD;;;;N;;;;;
   if not TCharacter.IsLower(s,1) then
     DoError(1);

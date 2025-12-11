@@ -24,7 +24,7 @@ begin
            begin
             Write('Error: string ');write(Display(s));
               writeln(' is a valid input for val function');
-           end;   
+           end;
           HasErrors:=true;
         end
       else

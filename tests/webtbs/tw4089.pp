@@ -16,7 +16,7 @@ type
  itest1 = interface
   procedure test1;
  end;
- 
+
  itest2 = interface(itest1)['{1A50A4E4-5B46-4C7C-A992-51EFEA1202B8}']
   procedure test2;
  end;
@@ -24,7 +24,7 @@ type
 var
  po1: ptypeinfo;
  po2: ptypedata;
- 
+
 begin
  po1:= typeinfo(itest2);
  writeln('Kind: ',getenumname(typeinfo(ttypekind),ord(po1^.kind)));

@@ -22,7 +22,7 @@ begin
   Write(PadRight(FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', dt), 25));
   try
     dt := ScanDateTime(AFormatStr, ADateTimeStr);
-    if dt = AExpected then WriteLn('OK') else 
+    if dt = AExpected then WriteLn('OK') else
      begin
      Inc(ErrCount);
      WriteLn('ERROR');
@@ -92,7 +92,7 @@ begin
 
   try
     Test(EncodeDateTime(2014, 4, 2,13, 0, 0,  0), 'mmmm dd??, yyyy, hh:nn am/pm', 'April 2nd, 2014, 13:00 pm',True);
-   
+
   except on E:Exception do
     begin
     WriteLn('OK, exception received: ', E.Message);

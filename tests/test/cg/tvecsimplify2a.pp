@@ -25,6 +25,6 @@ end;
 begin
   if GetChar() <> 'y' then
     Halt(1);
-	
+
   WriteLn('ok');
 end.

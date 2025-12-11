@@ -23,7 +23,7 @@ begin
     resourceStream := TResourceStream.Create(HInstance, aname, RT_RCDATA);
     result:=resourcestream.size;
    except
-   
+
     on EResNotFound do
       begin
         writeln(aname);

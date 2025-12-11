@@ -27,7 +27,7 @@ type
   TOnSix = function (const A: string; var Two: integer;
     out Three: TMyObject; Four: PInteger; Five: array of Byte;
     Six: integer): string of object; stdcall;
-  
+
   TMyObject=Class(TObject)
    private
     FFieldOne : Integer;
@@ -38,7 +38,7 @@ type
     FOnSix: TOnSix;
   FOnProcess : TProcess;
   FOnArray: TArray;
-  
+
     Procedure ProcNo1(Var S:String); stdcall;
     Procedure ProcNo2(Var S:String); stdcall;
    public
@@ -172,22 +172,22 @@ begin
   List_of_Param.AMat[I].Flags:=ParameterCurrent^.Flags;
   List_of_Param.AMat[I].ParamName:=ParameterCurrent^.ParamName;
 
-  //  type parameter 
+  //  type parameter
   TypeParameter := Pointer(Integer(@ParameterCurrent^.ParamName) +
                    Length(ParameterCurrent^.ParamName)+1);
 
   List_of_Param.AMat[I].TypeName:=TypeParameter^;
 
-  // Finding Next parameter using a pointer 
+  // Finding Next parameter using a pointer
 
   inc(i);
                   // Address of  current parameter
   ParameterCurrent := PParameter(Integer(ParameterCurrent) +
-                  // size of Tparamflags 
+                  // size of Tparamflags
                  SizeOf(TParamFlags) +
-                  // length of ParamName string 
+                  // length of ParamName string
                  (Length(ParameterCurrent^.ParamName) + 1) +
-                  // length of TypeParameter string 
+                  // length of TypeParameter string
                  (Length(TypeParameter^)+1));
  end;
   // If it is the last parameter and if the method is a  fonction
@@ -218,7 +218,7 @@ var
    Flag:word;
    Definition: String;
 begin
-  // Finding property type 
+  // Finding property type
   With Informations do
   begin
    Writeln('Property Type : ',PropType^.Name);
@@ -251,12 +251,12 @@ begin
         //Information for the method type : tkmethod
         //  TPropInfo.PropType= PPTypeInfo;
         //  GetTypeData(TypeInfo: PTypeInfo) send PTypeData
-        //  PTypeData is for finding MethodKind 
+        //  PTypeData is for finding MethodKind
 {$IFDEF FPC}
         DTypeData:= GetTypeData(PTypeInfo(PropType));
 {$ELSE}
         DTypeData:= GetTypeData(PTypeInfo(PropType^));
-{$ENDIF}                  
+{$ENDIF}
          // Détermine le type de la méthode
         Case DTypeData^.MethodKind of
          mkProcedure: PropTypeZ := 'procedure';
@@ -306,7 +306,7 @@ begin
                  then Definition := Definition+('out ');
                 Inc(v);
               end;
-           
+
            { Next char is the length of the ParamName}
            inc(CurrentParamPosition,SizeOf(TParamFlags));
            ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
@@ -337,17 +337,17 @@ begin
             Fu_ResultType := '';
             for j := CurrentParamPosition + 1 to CurrentParamPosition + ParamNameLength do
               Fu_ResultType  := Fu_ResultType + DTypeData^.ParamList[j];
-          end 
+          end
         else
           Fu_ResultType:='';
   //         end;
         Definition := Definition + ')';
-        if Fu_ResultType<>''  then 
+        if Fu_ResultType<>''  then
           Definition := Format('%s: %s', [Definition, Fu_ResultType]);
         Definition := Definition+' of object;';
 
      //=================================
-                   // Build  the definion of  method 
+                   // Build  the definion of  method
         Writeln(PropTypeZ+' '+Definition);
         if ((PropTypeZ+' '+Definition) <> expectedresult) then
           begin
@@ -357,7 +357,7 @@ begin
 {$ENDIF}
 {$IFDEF delphibuiltin}
         Writeln(PropTypeZ+' '+BuildMethodDefinition(List_of_Param,DTypeData^.ParamCount));
-{$ENDIF}          
+{$ENDIF}
         Method := GetMethodProp(OneObject, Informations.Name);
         if Method.Code <> NIL then
          begin
@@ -400,7 +400,7 @@ begin
    DisplayDetails(List_of_Prop[I]^,expectedresults[i]);
    Writeln;
   end;
- { Other 
+ { Other
  GetPropInfos(TMyObject.ClassInfo, @List_of_Prop);
  for I := 0 to GetTypeData(TMyObject.ClassInfo).PropCount-1 do
   begin

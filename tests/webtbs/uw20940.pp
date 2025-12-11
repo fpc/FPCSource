@@ -1,4 +1,4 @@
-unit uw20940; 
+unit uw20940;
 
 {$mode objfpc}{$H+}
 

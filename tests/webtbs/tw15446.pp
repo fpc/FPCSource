@@ -22,5 +22,5 @@ begin
   writeln({$IFDEF FPC}'FPC'{$ELSE}'Delphi'{$ENDIF});
 
   writeln( Format('%d',[TestFunc1]) );
-  writeln( Format('%d',[TestFunc2]) ); 
+  writeln( Format('%d',[TestFunc2]) );
 end.

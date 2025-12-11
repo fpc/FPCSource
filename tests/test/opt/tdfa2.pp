@@ -23,7 +23,7 @@ var
   counter: Integer;
   c1: Word;
 begin
-  counter:=0;  
+  counter:=0;
   repeat
     c1 := ord(s1[counter]);
     counter:=counter+1;
@@ -36,7 +36,7 @@ var
   counter: Integer;
   c1: Word;
 begin
-  counter:=0;  
+  counter:=0;
   c1 := 0;
   while counter<len do
   begin

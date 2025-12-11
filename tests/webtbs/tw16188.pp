@@ -2,7 +2,7 @@ uses
   SysUtils;
 
 const
-  results: array[1..16] of string = 
+  results: array[1..16] of string =
 (
 '234.6',
 '234.57',
@@ -36,7 +36,7 @@ var ext:extended;
   str: shortstring;
 begin
   DecimalSeparator:='.';
-  ext:=234.56789; 
+  ext:=234.56789;
   check(FloatToStrF(ext,ffGeneral,4,1),1);
   check(FloatToStrF(ext,ffGeneral,5,1),2);
   check(FloatToStrF(ext,ffGeneral,6,7),3);
@@ -48,7 +48,7 @@ begin
   check(FloatToStrF(ext,ffGeneral,6,1),7);
   check(FloatToStrF(ext,ffGeneral,7,1),8);
 
-  ext:=-234.56789; 
+  ext:=-234.56789;
   check(FloatToStrF(ext,ffGeneral,4,1),9);
   check(FloatToStrF(ext,ffGeneral,5,1),10);
   check(FloatToStrF(ext,ffGeneral,6,7),11);

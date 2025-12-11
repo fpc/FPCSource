@@ -28,7 +28,7 @@ program tmacnonlocalgoto;
                   failed := true;
 		Local(5);
 		failed := true;
-        
+
 	end;
 
 

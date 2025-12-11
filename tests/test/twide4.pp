@@ -109,7 +109,7 @@ begin
   a[2].free;
   a[3].free;
   a[4].free;
-  
+
   if error then
-    halt(1);  
+    halt(1);
 end.

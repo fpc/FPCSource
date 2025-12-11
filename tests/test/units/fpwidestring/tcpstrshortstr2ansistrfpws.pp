@@ -2,8 +2,8 @@
 uses
   unicodeducet, fpwidestring, cp1252, cp866,
   sysutils;
-  
-type  
+
+type
   ts866 = type AnsiString(866);
   ts1252 = type AnsiString(1252);
 

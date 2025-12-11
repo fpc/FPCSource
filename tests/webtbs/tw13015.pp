@@ -44,7 +44,7 @@ begin
   writeln('tc.Wstr=',tc.Wstr);
   write('tc.DumpAndCheck()');
   tc.DumpAndCheck;
-     
+
   f:=TFileStream.Create(fn,fmCreate);
   try
     f.WriteComponent(tc);
@@ -95,7 +95,7 @@ begin
   WriteFile('test.bin');
   ReadFile('test.bin');
   DeleteFile('test.bin');
-  
+
   assign(f,'tw13015-utf8.bin');
   rewrite(f,1);
   blockwrite(f,utf8str,sizeof(utf8str));

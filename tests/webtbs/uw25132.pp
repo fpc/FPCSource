@@ -13,7 +13,7 @@ type
   end;
 
   TCollectionIterator = class(TIterator<TObject>)
-  public  
+  public
     function    GetValue(): Integer; override;
   end;
 
@@ -21,7 +21,7 @@ implementation
 
 { TCollectionIterator }
 
-function TCollectionIterator.GetValue(): Integer; 
+function TCollectionIterator.GetValue(): Integer;
 begin
   Result := 1;
 end;

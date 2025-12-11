@@ -5,7 +5,7 @@
 program fpc_vs_delphi_bool_compatibility;
 
 (**********************************************************
- 
+
   TEST STUB for the real function from Windows API
 
  **********************************************************)
@@ -18,8 +18,8 @@ function PtVisible(test_return:TExpectedResult):BOOL;
 
  MSDN definition:
 ~~~~~~~~~~~~~~~~~~
- The PtVisible function determines whether the specified point is within the clipping region of a device context. 
- 
+ The PtVisible function determines whether the specified point is within the clipping region of a device context.
+
  BOOL PtVisible(
    HDC hdc, // handle to DC
    int X,   // x-coordinate of point
@@ -32,7 +32,7 @@ function PtVisible(test_return:TExpectedResult):BOOL;
 
  If the specified point is not within the clipping region of the device context, the return value is FALSE(0).
 
- If the hdc is not valid, the return value is (BOOL)-1. 
+ If the hdc is not valid, the return value is (BOOL)-1.
 
 *)
 begin
@@ -47,7 +47,7 @@ begin
 end;
 
 (**********************************************************
- 
+
   Real test
 
  **********************************************************)

@@ -68,7 +68,7 @@ begin
     else
      raise JLException.create('error 2d');
   end;
-   
+
 
   b1:=meja;
   b2:=mejb;

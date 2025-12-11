@@ -13,14 +13,14 @@ type
 // Declare wrong calling convention
 {$ifdef WINDOWS}
   {$DEFINE extdecl := cdecl}
-{$else}  
+{$else}
   {$DEFINE extdecl := stdcall}
-{$endif}  
+{$endif}
 
   { TObj }
 
   TObj = class(TInterfacedObject, IUnknown)
-  
+
     function IUnknown._AddRef = AddRef;  // This must produce a error because of calling convention mismatch.
 
     function AddRef : longint;extdecl;

@@ -8,17 +8,17 @@ type
   TRecord3 = record
   end align 4;
 
-  TRecord1Outer = record  
+  TRecord1Outer = record
     b : Byte;
     Record1 : TRecord1;
   end;
 
-  TRecord2Outer = record  
+  TRecord2Outer = record
     b : Byte;
     Record2 : TRecord2;
   end;
 
-  TRecord3Outer = record  
+  TRecord3Outer = record
     b : Byte;
     Record3 : TRecord3;
   end;

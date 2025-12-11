@@ -415,7 +415,7 @@ begin
  if j <> k then
    result := false;
 
- { Since qword variable<>negative constant is always false according to the 
+ { Since qword variable<>negative constant is always false according to the
    compiler (allowing it to optimize the if away) we need to do a preventive
    typecast to qword.}
  if j <> qword(1000000000-(qword(1000000000) * 10)) then
@@ -426,7 +426,7 @@ begin
    result := false;
 
  i := 1 - j;
- { Since qword variable<>negative constant is always false according to the 
+ { Since qword variable<>negative constant is always false according to the
    compiler (allowing it to optimize the if away) we need to do a preventive
    typecast to qword.}
  if i <> qword(1-(qword(1) shl 33)) then

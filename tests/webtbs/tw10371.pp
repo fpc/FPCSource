@@ -12,7 +12,7 @@ type
     fL: longword;
     function InlinedMethod : longword; inline;
   public
-    procedure Method1(var Buf); 
+    procedure Method1(var Buf);
     procedure Method2;
   end;
 

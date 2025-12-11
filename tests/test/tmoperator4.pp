@@ -51,9 +51,9 @@ end;
 
 { TA }
 
-type 
+type
   TA = class
-  public 
+  public
     F1: TR1;
   end;
 
@@ -66,16 +66,16 @@ var
   O: TB;
 begin
   O := TB.Create;
-  
+
   if O.F1.I <> 1 then
     Halt(3);
   if O.F2.S <> 'A' then
     Halt(4);
-    
+
   O.F1.I := 2;
-  O.F2.S := 'B'; 
-  
+  O.F2.S := 'B';
+
   O.Free;
-  
+
   WriteLn('end');
 end. 

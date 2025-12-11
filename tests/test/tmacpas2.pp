@@ -28,7 +28,7 @@ begin
     success := false;
 end;
 
-const 
+const
   myFCCconst = 'FPas'; {Free Pascals Creator code :) }
 
 var

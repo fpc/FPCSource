@@ -15,7 +15,7 @@ type
   public
     procedure P;
   end;
-  
+
   S = specialize G2<Integer>;
 
 procedure G2.P;

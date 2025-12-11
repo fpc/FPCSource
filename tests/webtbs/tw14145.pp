@@ -18,7 +18,7 @@ Type
     MsgStr : ShortString;
     Data : pointer;
   end;
-  
+
   TMyIntMessage = record
     Id: integer;
     Data : pointer;

@@ -4,6 +4,6 @@ program test;
 {$H+}
 
 const
-  Chars1: set of char = [255, 254, 253, #0, #1]; 
+  Chars1: set of char = [255, 254, 253, #0, #1];
 begin
 end.

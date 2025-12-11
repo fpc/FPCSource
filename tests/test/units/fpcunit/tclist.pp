@@ -5,7 +5,7 @@ unit tclist;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry; 
+  Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
 
@@ -30,7 +30,7 @@ type
     List3 : TList;
     Pointers : Packed Array[0..20] of Byte;
     procedure SetUp; override;
-    procedure TearDown; override; 
+    procedure TearDown; override;
     Procedure FillList(ACount : Integer); overload;
     Procedure FillList(AList : TList; AOffSet, ACount : Integer); overload;
     procedure HavePointer(I: Integer);
@@ -79,7 +79,7 @@ type
     FLastAction : TListNotification;
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   end;
-  
+
 
 implementation
 
@@ -96,9 +96,9 @@ begin
   List3:=TMyList.Create;
   For I:=0 to 20 do
     Pointers[i]:=I; // Zero serves as sentinel.
-end; 
+end;
 
-procedure TTestTList.TearDown; 
+procedure TTestTList.TearDown;
 begin
   FreeAndNil(List);
   FreeAndNil(List2);
@@ -116,7 +116,7 @@ procedure TTestTList.FillList(AList: TList; AOffSet, ACount: Integer);
 
 Var
   I : integer;
-  
+
 begin
   If ACount+AOffSet>20 then
     Fail('Too many elements added to list. Max is 20');
@@ -571,6 +571,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestTList); 
+  RegisterTest(TTestTList);
 end.
 

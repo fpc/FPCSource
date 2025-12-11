@@ -5,21 +5,21 @@ unit uw40764a;
 {$endif}
 
 interface
- 
-  
+
+
 Type
   TFMXObject = class(TObject)
     procedure something; virtual;
     function FindStyleResource(const AStyleLookup: string; const AClone: Boolean = False): TFmxObject; overload; virtual;
   end;
-  
+
   TBrushObject = class(TFMXObject)
     procedure something; override;
-  end;  
-  
+  end;
+
 implementation
 
-function TFMXObject.FindStyleResource(const AStyleLookup: string; const AClone: Boolean = False): TFmxObject; 
+function TFMXObject.FindStyleResource(const AStyleLookup: string; const AClone: Boolean = False): TFmxObject;
 begin
   Result:=Nil;
 end;
@@ -37,5 +37,5 @@ begin
   Writeln('here too')
 end;
 
-end.  
+end.
   

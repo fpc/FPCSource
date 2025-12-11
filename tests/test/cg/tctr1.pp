@@ -12,13 +12,13 @@ constructor tobj.Create;
 begin
   exit;
 end;
- 
+
 procedure tobj.AfterConstruction;
 begin
   ffield:=true;
 end;
- 
- 
+
+
 var
   o: tobj;
 begin

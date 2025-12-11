@@ -1,4 +1,4 @@
-{ %CPU=x86_64 } 
+{ %CPU=x86_64 }
 program vectorcall_stack_test;
 
 {$IFNDEF CPUX86_64}

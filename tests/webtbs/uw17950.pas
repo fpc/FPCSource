@@ -1,4 +1,4 @@
-unit uw17950; 
+unit uw17950;
 
 {$mode delphi}
 

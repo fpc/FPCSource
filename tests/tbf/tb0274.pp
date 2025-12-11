@@ -1,6 +1,6 @@
 { %fail }
 { %opt=-Sew }
-var 
+var
   c : comp;
 
 begin

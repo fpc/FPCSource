@@ -50,7 +50,7 @@ Asm
 {$ifndef win64}
  // fix parameter locations
  MOV RDX,RSI
- MOV RCX,RDI 
+ MOV RCX,RDI
 {$endif win64}
  MOV R8, RDX
  MOVDQU XMM1, [RCX]; MOVDQU XMM3, [RCX+16]
@@ -133,7 +133,7 @@ Asm
  MOV R9,RCX
  MOV R8,RDX
  MOV RDX,RSI
- MOV RCX,RDI  
+ MOV RCX,RDI
 {$endif win64}
  // Loading decryption keys
  MOVDQU XMM0, [R9+16*0]
@@ -184,7 +184,7 @@ BEGIN
       Passed := Passed and SysUtils.CompareMem(@Data, @Test_Data, 16);
       If Not Passed Then Halt(1);
       writeln('ok');
-    end 
+    end
   else
     writeln('CPU has no AES instruction support');
 END.

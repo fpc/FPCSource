@@ -1,7 +1,7 @@
 program genimpl1;
 {$ifdef fpc}{$mode delphi}{$else}{$apptype console}{$endif}
 Type
-  tbwimagegen<T> = Class 
+  tbwimagegen<T> = Class
                  Type
 
                     BaseUnit = T;

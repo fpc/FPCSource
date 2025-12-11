@@ -814,7 +814,7 @@ begin
     P.OutputDescriptor.FileName:=RedirStdOut;
     if RedirStdErr='stdout' then
       P.Options:=P.options+[poStdErrToOutput]
-    else  
+    else
       P.ErrorDescriptor.FileName:=RedirStdErr;
     try
       P.Execute;
@@ -826,7 +826,7 @@ begin
           writeln(stderr,'ExecuteRedir generated an exception: ',E.Message);
         end;
       end;
-    if Result then  
+    if Result then
       ExecuteResult:=P.ExitCode
     else if (IOStatus<>0) then
       ExecuteResult:=IOStatus*1000
@@ -835,13 +835,13 @@ begin
       Writeln(stderr,'Terminate requested for ',Progname,' ',ComLine);
       { Issue it also to output, so it gets added to log file
                   if ExecuteRedir is in use }
-      Writeln('Terminate requested for ',Progname,' ',ComLine);      
-      Repeat 
+      Writeln('Terminate requested for ',Progname,' ',ComLine);
+      Repeat
         P.Terminate(255);
         Sleep(10);
-      Until not P.Running;  
+      Until not P.Running;
       ExecuteResult:=1000+P.ExitCode;
-      end;  
+      end;
     Result:=ExecuteResult=0;
   finally
     P.Free;
@@ -967,7 +967,7 @@ begin
         Delete(S,1,i)
       else
         S:='';
-  
+
        if FileExist(Dir+FileName) then
         Begin
            FileName:=Dir+FileName;

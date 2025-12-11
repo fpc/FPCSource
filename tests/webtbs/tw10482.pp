@@ -38,7 +38,7 @@ type
      property V2:Variant read fV2 write SetV2;
      property V3:Variant read fV3 write fV3;
    end;
-	
+
 const
    {$ifdef fpc}
    ws:WideString=#$43f#$440#$438#$432#$435#$442', '#$43f#$440#$44B#$432#$456#$442#$430#$43d#$44c#$43d#$435' - pr'#$fc'fung spa'#$df' gut';

@@ -85,7 +85,7 @@ begin
     InvErrors := False;
     InvRErrors := False;
     WasErrors := False;
-    
+
     //
     // Test against reference O(N^2) implementation.
     //
@@ -97,7 +97,7 @@ begin
         N:=1;
         while N<=MaxN do
         begin
-            
+
             //
             // Complex correlation
             //
@@ -135,7 +135,7 @@ begin
                 RefErr := Max(RefErr, AbsComplex(C_Sub(CR1[I],CR2[I])));
                 Inc(I);
             end;
-            
+
             //
             // Real correlation
             //
@@ -177,7 +177,7 @@ begin
     end;
     RefErrors := RefErrors or AP_FP_Greater(RefErr,ErrTol);
     RefRErrors := RefRErrors or AP_FP_Greater(RefRErr,ErrTol);
-    
+
     //
     // end
     //

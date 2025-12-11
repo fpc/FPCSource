@@ -1,6 +1,6 @@
 unit uw35918a;
 
-{$mode objfpc}{$H+}  
+{$mode objfpc}{$H+}
 {$ModeSwitch prefixedattributes}
 
 interface

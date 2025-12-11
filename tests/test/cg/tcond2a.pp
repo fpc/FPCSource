@@ -35,7 +35,7 @@ begin
     begin
       WriteLn('unsupported');
       Halt(0);
-    end;      
+    end;
 
   for X := 0 to 3 do
     begin

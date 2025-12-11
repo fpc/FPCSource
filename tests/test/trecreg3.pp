@@ -81,7 +81,7 @@ var flags : TResFlags;
 begin
    flags.cr := RS_CR7;
    flags.flag := F_EQ;
-   flags_to_cond(flags);  
+   flags_to_cond(flags);
    writeln('Passed');
 end.
 

@@ -18,11 +18,11 @@ type
         function doc(a : integer) : integer;
       end;
   end;
- 
-  
+
+
 implementation
 
-end.  
-  
-  
+end.
+
+
   

@@ -7,8 +7,8 @@
 program tgenconst16;
 
 type
-  Day = (mon,tue,wed,thu,fri,sat,sun);  
-  Days = set of Day;  
+  Day = (mon,tue,wed,thu,fri,sat,sun);
+  Days = set of Day;
   generic TSet<const I: Days> = record
     const
       d0 = I + I;   // Union
@@ -42,10 +42,10 @@ type
       // https://freepascal.org/docs-html/ref/refsu45.html
       d0 = I + I;
       d1 = I - I;
-      d2 = I * I; 
-      d3 = I / I; 
-      d4 = I div I; 
-      d5 = I mod I; 
+      d2 = I * I;
+      d3 = I / I;
+      d4 = I div I;
+      d5 = I mod I;
       // Boolean operators
       // https://freepascal.org/docs-html/ref/refsu47.html
       d6 = I and I;

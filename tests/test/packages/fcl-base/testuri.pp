@@ -49,7 +49,7 @@ begin
     WriteLn('Params: ', Params);
     WriteLn('Bookmark: ', Bookmark);
   end;
-end;  
+end;
 
 type
   urirec = record
@@ -139,7 +139,7 @@ begin
   begin
     writeln(' Failed!');
     Halt(1);
-  end;  
+  end;
 end;
 
 begin

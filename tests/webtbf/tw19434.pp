@@ -11,7 +11,7 @@ function PostMessage2MainWnd(Msg: cardinal; wParam: longint;
 implementation
 
 function PostMessage2MainWnd(Msg: cardinal; wParam: longint = 0;
-  lParam: longint = 0): boolean; 
+  lParam: longint = 0): boolean;
 begin
 end;
 

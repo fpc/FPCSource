@@ -4,24 +4,24 @@ program tissurrogatepair2;
   {$mode objfpc}
   {$H+}
   {$PACKENUM 1}
-{$endif fpc} 
+{$endif fpc}
 
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   unicodedata,character;
-    
+
 {$ifndef FPC}
-  type UnicodeChar = WideChar;   
+  type UnicodeChar = WideChar;
 {$endif}
 
 const
   { test only a spare grid, else the test runs too long (testing all combinations means dist=1) }
   dist = 8;
-    
+
 procedure DoError(ACode : Integer; ACodePoint1, ACodePoint2 : Integer); overload;
 begin
   WriteLn(

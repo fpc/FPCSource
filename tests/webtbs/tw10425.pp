@@ -13,7 +13,7 @@ type
 
   TPoint2DArray  = array of TPoint2D;
   TPolygon2D     = array of TPoint2D;
-  
+
   function AABB(const Polygon   : TPolygon2D   ):TRectangle; overload;
   function AABB(const Curve     : TPoint2DArray):TRectangle; overload;
 

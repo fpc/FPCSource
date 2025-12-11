@@ -4,7 +4,7 @@ program test_register_pushing;
 
 const
   haserror : boolean = false;
-  
+
 procedure dotest;
 var
   wpush,lpush: longint;
@@ -21,7 +21,7 @@ begin
       Writeln('Compiler does not push "pushw %es" into 2 bytes');
       haserror:=true;
     end;
-    
+
   asm
     movl   %esp,lpush
     pushl  %es

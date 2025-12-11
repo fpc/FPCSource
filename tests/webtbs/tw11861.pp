@@ -13,7 +13,7 @@ type
 type
    TProc = procedure(AObject : TObject; A2: Integer) of object;
 
-  
+
 var X: TMyObj;
     P1: TProc;
 
@@ -23,7 +23,7 @@ begin
     halt(1);
 end;
 
-   
+
 { TMyObj }
 
 procedure TMyObj.Proc(A1 : TObject; A2: Integer);

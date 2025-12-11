@@ -27,4 +27,4 @@ end;
 begin
   if (f <> 2) then
     halt(1);
-end.  
+end.

@@ -5,7 +5,7 @@
 
 type
   tderived = class;
- 
+
   tbase = class
     procedure test; virtual;
   end;

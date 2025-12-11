@@ -40,9 +40,9 @@ begin
 end;
 
 { TBar }
-type 
+type
   TBar = class
-  private 
+  private
     F: TFoo;
   end;
 
@@ -65,16 +65,16 @@ var
 begin
   WriteLn('=== Global variable [begin] ===');
   WriteLn;
-  
+
   if F.F <> 1 then
     Halt(6);
 
   if F.S <> 'A' then
     Halt(7);
-    
+
   WriteLn('=== Local variable ===');
-  Foo();  
-    
+  Foo();
+
   WriteLn('=== Field in class ===');
   B := TBar.Create();
   if B.F.F <> 1 then
@@ -83,8 +83,8 @@ begin
     Halt(9);
   B.F.F := 2;
   B.F.S := 'B';
-  B.Free; 
-    
+  B.Free;
+
   WriteLn('=== New and Dispose ===');
   New(PF);
   if PF^.F <> 1 then
@@ -93,8 +93,8 @@ begin
     Halt(11);
   PF^.F := 2;
   PF^.S := 'B';
-  Dispose(PF); 
-  
+  Dispose(PF);
+
   WriteLn('=== InitializeArray and FinalizeArray ===');
   GetMem(PF, SizeOf(TFoo));
   InitializeArray(PF, TypeInfo(TFoo), 1);
@@ -102,8 +102,8 @@ begin
     Halt(12);
   if PF^.S <> 'A' then
     Halt(13);
-  PF^.F := 2;  
-  PF^.S := 'B';  
+  PF^.F := 2;
+  PF^.S := 'B';
   FinalizeArray(PF, TypeInfo(TFoo), 1);
   if PF^.F <> 3 then
     Halt(14);
@@ -116,13 +116,13 @@ begin
     Halt(15);
   if PF^.S <> 'A' then
     Halt(16);
-  PF^.F := 2;  
-  PF^.S := 'B';  
+  PF^.F := 2;
+  PF^.S := 'B';
   Finalize(PF^);
   if PF^.F <> 3 then
     Halt(17);
   FreeMem(PF);
-    
+
   WriteLn('=== Global variable [end] ===');
   F.F := 2;
   F.S := 'B';

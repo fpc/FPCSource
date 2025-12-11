@@ -358,7 +358,7 @@ procedure TUInt64Bit3Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 3;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -392,7 +392,7 @@ procedure TUInt64Bit3ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 3;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -428,7 +428,7 @@ procedure TUInt64Bit7Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 7;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -464,7 +464,7 @@ procedure TUInt64Bit7ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 7;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -500,7 +500,7 @@ procedure TUInt64Bit10Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 10;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -538,7 +538,7 @@ procedure TUInt64Bit10ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 10;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -576,7 +576,7 @@ procedure TUInt64Bit100Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -614,7 +614,7 @@ procedure TUInt64Bit100ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -640,7 +640,7 @@ procedure TUInt64Bit1000000000Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 1000000000;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -666,7 +666,7 @@ procedure TUInt64Bit1000000000ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 1000000000;
-      
+
     FResultArray[Index] := Answer;
   end;
 

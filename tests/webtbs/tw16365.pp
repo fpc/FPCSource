@@ -8,7 +8,7 @@ type
  itest = interface
   function test: longint;
  end;
- 
+
  timpclass = class(tobject,itest)
   protected
    function _addref: longint; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
@@ -17,7 +17,7 @@ type
   public
    function test: longint;
  end;
- 
+
  ttestclass = class(tobject,itest)
   private
    fimp: timpclass;

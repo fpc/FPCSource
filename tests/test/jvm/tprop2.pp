@@ -43,4 +43,4 @@ begin
   if t.x<>555 then
     raise jlexception.create('error 1');
 end.
-  
+

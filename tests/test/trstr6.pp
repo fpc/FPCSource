@@ -26,4 +26,4 @@ begin
       writeln('OK')
     else
       halt(1);
-end. 
+end.

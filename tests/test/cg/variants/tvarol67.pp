@@ -7,7 +7,7 @@
 {$endif fpc}
 {$endif bigfile}
 
-type 
+type
 {$ifdef FPC_COMP_IS_INT64}
   comp67 = double;
 {$else FPC_COMP_IS_INT64}

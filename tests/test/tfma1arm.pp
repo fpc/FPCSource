@@ -3,8 +3,8 @@
 uses
   cpu;
 
-{$i tfma1.inc}  
-  
+{$i tfma1.inc}
+
 begin
   if VFPv4Support then
     begin

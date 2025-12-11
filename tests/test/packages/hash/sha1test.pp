@@ -14,7 +14,7 @@ begin
   sdig := SHA1Print(SHA1String('abc'));
   if sdig <> 'a9993e364706816aba3e25717850c26c9cd0d89d' then
     code := code or 1;
-    
+
   sdig := SHA1Print(SHA1String('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'));
   if sdig <> '84983e441c3bd26ebaae4aa1f95129e5e54670f1' then
     code := code or 2;

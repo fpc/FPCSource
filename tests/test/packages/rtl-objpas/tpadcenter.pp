@@ -17,11 +17,11 @@ procedure padCenterTest(const s: ansistring;
   begin
     if padCenter(s, n) <> expectation then
     begin
-      writeln('Testing strUtils/PadCenter: Test ', testnr, 
+      writeln('Testing strUtils/PadCenter: Test ', testnr,
               ' with N = ', n, ' failed.');
       exitCode := 1;
     end;
-  end; 
+  end;
 
 var
   i, j: integer;
@@ -38,6 +38,6 @@ begin
         testString := ' ' + testString;
     padCenterTest('abcd', i, testString, i);
   end;
-  
+
   halt(exitCode);
 end.

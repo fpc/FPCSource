@@ -5,16 +5,16 @@ uses TypInfo;
 { Check that the class RTTI does not have information about array properties }
 
 type
-  {$RTTI EXPLICIT 
+  {$RTTI EXPLICIT
     FIELDS([vcPublic])
     PROPERTIES([vcPublic,vcPublished])
     METHODS([vcPublic,vcPublished])
   }
   TTestClass = class
-  public 
+  public
     fa:integer;
     function MyMethod(const arg1: Integer): Integer;
-    property TestIProp[const i: Longint]: Integer read MyMethod; 
+    property TestIProp[const i: Longint]: Integer read MyMethod;
   published
     property TestProp: Integer read fa;
   end;

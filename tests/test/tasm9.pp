@@ -7,7 +7,7 @@ procedure test_i386; assembler; nostackframe;
 asm
   vmovd  %xmm0, -16(%ebp)
   vmovd  -16(%ebp), %xmm0
-  
+
   vmovq  %xmm6, -16(%ebp)
   vmovq  -16(%ebp), %xmm6
   vmovq  %xmm0, %xmm2
@@ -23,7 +23,7 @@ const
   );
 {$endif}
 
-{$ifdef cpux86_64}  
+{$ifdef cpux86_64}
 procedure test_x86_64; assembler; nostackframe;
 asm
   vmovq  0x12345678(%rip), %xmm0
@@ -55,13 +55,13 @@ begin
         halt(1);
       end;
 end;
-  
+
 begin
 {$ifdef cpux86_64}
   check('x86_64',expected_x86_64,@test_x86_64);
 {$endif}
 {$ifdef cpui386}
   check('i386',expected_i386,@test_i386);
-{$endif}  
+{$endif}
   writeln('ok');
 end.

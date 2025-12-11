@@ -106,12 +106,12 @@ begin
   ms.Position:=0;
 
   writeln('Dumping streamed object as text:');
-  
+
   f:=TFileStream.Create('dump.bin',fmCreate);
   f.CopyFrom(ms,ms.size);
   f.free;
-  
-  
+
+
   ms.Position:=0;
   os:=TMemoryStream.Create;
   ObjectBinaryToText(ms,os);

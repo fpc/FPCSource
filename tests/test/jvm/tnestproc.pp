@@ -31,12 +31,12 @@ procedure outer(var para: byte);
   procedure inner2;
     var
       b: longint;
-  
+
     procedure doubleinner;
       begin
         b:=b+1;
       end;
-      
+
     begin
       b:=2;
       doubleinner;

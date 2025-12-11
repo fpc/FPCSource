@@ -11,7 +11,7 @@ type
     ExchangeCount: LongInt;
     procedure ExchangeItems(aLeft, aRight: Integer); override;
   end;
-  
+
 procedure TMyStringList.ExchangeItems(aLeft, aRight: Integer);
 begin
   Inc(ExchangeCount);
@@ -31,7 +31,7 @@ type
     ExchangeCount: LongInt;
     procedure Change(aSender: TObject);
   end;
-  
+
 procedure TDummy.Change(aSender: TObject);
 begin
   Inc(ExchangeCount);
@@ -57,7 +57,7 @@ begin
     end;
 
     dummy.ExchangeCount := 0;
-    
+
     msl := TMyStringList.Create;
     try
       FillStringList(msl);

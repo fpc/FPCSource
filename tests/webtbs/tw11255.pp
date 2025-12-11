@@ -5,11 +5,11 @@ type
   TLCLPlatform = (
     lpCarbon
     );
-    
+
   TLCLPlatforms = set of TLCLPlatform;
 
 var
-  WidgetSets: TLCLPlatforms;    
+  WidgetSets: TLCLPlatforms;
 
 function DirNameToLCLPlatform: TLCLPlatform;
 begin

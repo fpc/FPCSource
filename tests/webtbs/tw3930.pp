@@ -3,10 +3,10 @@
 {$endif}
 uses
   Classes;
-  
+
 type
   TMyStringList = type TStringlist;
-  
+
 var
   list : TMyStringList;
 
@@ -17,4 +17,4 @@ begin
   writeln('ok');
 end.
 
-    
+

@@ -2,7 +2,7 @@ program testtypecastinfoexc;
 
 {$mode objfpc}
 // Test that EInvalidCast picks up the typecast error info.
- 
+
 uses SysUtils;
 
 Type

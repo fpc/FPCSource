@@ -34,7 +34,7 @@ begin
   WriteLn('Testing: ', L, '..', H, ' -> 1..', S, '...');
   nSize := VerifyAccessRange(ns,ne,S);
   WriteLn('Output value (0 or Size): ', nSize);
- 
+
   if (nSize <> 0) and (nSize <> S) then
   begin
     WriteLn('- FAIL: Size was modified');
@@ -42,7 +42,7 @@ begin
   end;
 
   WriteLn('- Final result: ', ns, '..', ne);
-  
+
   if (L <= 0) then
   begin
     if (ns <= 0) then
@@ -64,7 +64,7 @@ begin
       Exit;
     end;
   end;
-    
+
   if (H > S) then
   begin
     if (ne > S) then
@@ -102,6 +102,6 @@ begin
   for X := 0 to 3 do
     if not CheckLimits(LArray[X], RArray[X], SArray[X]) then
       Halt(1);
-      
+
   WriteLn('ok');
 end.

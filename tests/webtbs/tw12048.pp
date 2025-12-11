@@ -10,7 +10,7 @@ function GetDynArray: TStringDynArray;
 begin
   SetLength( GetDynArray, 16 );
 end;
-  
+
 var
   darr: array[1..1] of TStringDynArray;
 begin

@@ -21,7 +21,7 @@ type
   trec = record
     a,b,c,d,e: longint;
   end;
-  
+
 const
   tcrec: trec = (a:1;b:2;c:3;d:4;e:5);
 
@@ -85,7 +85,7 @@ type
     constructor create;
     procedure abstr; override;
   end;
-  
+
   tisclass1ref = class of tisclass1;
 
 type
@@ -281,7 +281,7 @@ begin
   if d1<>d2 then
     exit(10);
 end;
-     
+
 function testcnvint1: longint;
 var
  tobyte : byte;
@@ -304,219 +304,219 @@ begin
  { from : LOC_REFERENCE/LOC_REGISTER }
  b1 := TRUE;
  tobyte := byte(b1);
- if tobyte <> 1 then 
+ if tobyte <> 1 then
    exit(1);
  b1 := FALSE;
  tobyte := byte(b1);
- if tobyte <> 0 then 
+ if tobyte <> 0 then
    exit(2);
  b1 := TRUE;
  toword := word(b1);
- if toword <> 1 then 
+ if toword <> 1 then
    exit(3);
  b1 := FALSE;
  toword := word(b1);
- if toword <> 0 then 
+ if toword <> 0 then
    exit(4);
  b1 := TRUE;
  tolong := longint(b1);
- if tolong <> 1 then 
+ if tolong <> 1 then
    exit(5);
  b1 := FALSE;
  tolong := longint(b1);
- if tolong <> 0 then 
+ if tolong <> 0 then
    exit(6);
  bb1 := TRUE;
  tobyte := byte(bb1);
- if tobyte <> 255 then 
+ if tobyte <> 255 then
    exit(7);
  bb1 := FALSE;
  tobyte := byte(bb1);
- if tobyte <> 0 then 
+ if tobyte <> 0 then
    exit(8);
  bb1 := TRUE;
  toword := word(bb1);
- if toword <> 65535 then 
+ if toword <> 65535 then
    exit(9);
  bb1 := FALSE;
  toword := word(bb1);
- if toword <> 0 then 
+ if toword <> 0 then
    exit(10);
  bb1 := TRUE;
  tolong := longint(bb1);
- if tolong <> -1 then 
+ if tolong <> -1 then
    exit(11);
  bb1 := FALSE;
  tolong := longint(bb1);
- if tolong <> 0 then 
+ if tolong <> 0 then
    exit(12);
  wb1 := TRUE;
  tobyte := byte(wb1);
- if tobyte <> 255 then 
+ if tobyte <> 255 then
    exit(13);
  wb1 := FALSE;
  tobyte := byte(wb1);
- if tobyte <> 0 then 
+ if tobyte <> 0 then
    exit(14);
  wb1 := TRUE;
  toword := word(wb1);
- if toword <> 65535 then 
+ if toword <> 65535 then
    exit(15);
  wb1 := FALSE;
  toword := word(wb1);
- if toword <> 0 then 
+ if toword <> 0 then
    exit(16);
  wb1 := TRUE;
  tolong := longint(wb1);
- if tolong <> -1 then 
+ if tolong <> -1 then
    exit(17);
  wb1 := FALSE;
  tolong := longint(wb1);
- if tolong <> 0 then 
+ if tolong <> 0 then
    exit(18);
 {$ifndef tp}
  b1 := TRUE;
  toint64 :=int64(b1);
- if toint64 <> 1 then 
+ if toint64 <> 1 then
    exit(19);
  b1 := FALSE;
  toint64 :=int64(b1);
- if toint64 <> 0 then 
+ if toint64 <> 0 then
    exit(20);
  bb1 := TRUE;
  toint64 :=int64(bb1);
- if toint64 <> -1 then 
+ if toint64 <> -1 then
    exit(21);
  bb1 := FALSE;
  toint64 :=int64(bb1);
- if toint64 <> 0 then 
+ if toint64 <> 0 then
    exit(22);
  wb1 := TRUE;
  toint64 :=int64(wb1);
- if toint64 <> -1 then 
+ if toint64 <> -1 then
    exit(23);
  wb1 := FALSE;
  toint64 :=int64(wb1);
- if toint64 <> 0 then 
+ if toint64 <> 0 then
    exit(24);
 {$endif}
  lb1 := TRUE;
  tobyte := byte(lb1);
- if tobyte <> 255 then 
+ if tobyte <> 255 then
    exit(25);
  lb1 := FALSE;
  tobyte := byte(lb1);
- if tobyte <> 0 then 
+ if tobyte <> 0 then
    exit(26);
  lb1 := TRUE;
  toword := word(lb1);
- if toword <> 65535 then 
+ if toword <> 65535 then
    exit(27);
  lb1 := FALSE;
  toword := word(lb1);
- if toword <> 0 then 
+ if toword <> 0 then
    exit(28);
  lb1 := TRUE;
  tolong := longint(lb1);
- if tolong <> -1 then 
+ if tolong <> -1 then
    exit(29);
  lb1 := FALSE;
  tolong := longint(lb1);
- if tolong <> 0 then 
+ if tolong <> 0 then
    exit(30);
  { left : LOC_REGISTER }
  { from : LOC_REFERENCE }
  wb1 := TRUE;
  b2 := wb1;
- if not b2 then 
+ if not b2 then
    exit(31);
  wb1 := FALSE;
  b2 := wb1;
- if b2 then 
+ if b2 then
    exit(32);
  lb1 := TRUE;
  b2 := lb1;
- if not b2 then 
+ if not b2 then
    exit(33);
  lb1 := FALSE;
  b2 := lb1;
- if b2 then 
+ if b2 then
    exit(34);
 
  wb1 := TRUE;
  bb2 := wb1;
- if not bb2 then 
+ if not bb2 then
    exit(35);
  wb1 := FALSE;
  bb2 := wb1;
- if bb2 then 
+ if bb2 then
    exit(36);
  lb1 := TRUE;
  bb2 := lb1;
- if not bb2 then 
+ if not bb2 then
    exit(37);
  lb1 := FALSE;
  bb2 := lb1;
- if bb2 then 
+ if bb2 then
    exit(38);
  b1 := TRUE;
  lb2 := b1;
- if not lb2 then 
+ if not lb2 then
    exit(39);
  b1 := FALSE;
  lb2 := b1;
- if lb2 then 
+ if lb2 then
    exit(40);
  bb1 := TRUE;
  lb2 := bb1;
- if not lb2 then 
+ if not lb2 then
    exit(41);
  bb1 := FALSE;
  lb2 := bb1;
- if lb2 then 
+ if lb2 then
    exit(42);
  { left : LOC_REGISTER }
  { from : LOC_JUMP     }
  toword := 0;
  tobyte := 1;
  tobyte:=byte(toword > tobyte);
- if tobyte <> 0 then 
+ if tobyte <> 0 then
    exit(43);
  toword := 2;
  tobyte := 1;
  tobyte:=byte(toword > tobyte);
- if tobyte <> 1 then 
+ if tobyte <> 1 then
    exit(44);
  toword := 0;
  tobyte := 1;
  toword:=word(toword > tobyte);
- if toword <> 0 then 
+ if toword <> 0 then
    exit(45);
  toword := 2;
  tobyte := 1;
  toword:=word(toword > tobyte);
- if toword <> 1 then 
+ if toword <> 1 then
    exit(46);
  toword := 0;
  tobyte := 1;
  tolong:=longint(toword > tobyte);
- if tolong <> 0 then 
+ if tolong <> 0 then
    exit(47);
  toword := 2;
  tobyte := 1;
  tolong:=longint(toword > tobyte);
- if tolong <> 1 then 
+ if tolong <> 1 then
    exit(48);
 {$ifndef tp}
  toword := 0;
  tobyte := 1;
  toint64:=int64(toword > tobyte);
- if toint64 <> 0 then 
+ if toint64 <> 0 then
    exit(49);
  toword := 2;
  tobyte := 1;
  toint64:=int64(toword > tobyte);
- if toint64 <> 1 then 
+ if toint64 <> 1 then
    exit(50);
 {$endif}
  { left : LOC_REGISTER }
@@ -524,52 +524,52 @@ begin
  wb1 := TRUE;
  bb1 := FALSE;
  bb1 := (wb1 <> bb1);
- if not bb1 then 
+ if not bb1 then
    exit(51);
  wb1 := FALSE;
  bb1 := FALSE;
  bb1 := (wb1 <> bb1);
- if bb1 then 
+ if bb1 then
    exit(52);
  lb1 := TRUE;
  bb1 := FALSE;
  bb1 := (bb1 = lb1);
- if bb1 then 
+ if bb1 then
    exit(53);
  lb1 := FALSE;
  bb1 := TRUE;
  bb1 := (bb1 <> lb1);
- if not bb1 then 
+ if not bb1 then
    exit(54);
  lb1 := TRUE;
  bb1 := FALSE;
  wb1 := (bb1 = lb1);
- if wb1 then 
+ if wb1 then
    exit(55);
  lb1 := TRUE;
  bb1 := TRUE;
  wb1 := (bb1 = lb1);
- if not wb1 then 
+ if not wb1 then
    exit(56);
  lb1 := TRUE;
  bb1 := FALSE;
  lb1 := (bb1 = lb1);
- if lb1 then 
+ if lb1 then
    exit(57);
  lb1 := FALSE;
  bb1 := FALSE;
  lb1 := (bb1 = lb1);
- if not lb1 then 
+ if not lb1 then
    exit(58);
  bb1 := TRUE;
  bb2 := FALSE;
  lb1 := (bb1 <> bb2);
- if not lb1 then 
+ if not lb1 then
    exit(59);
  bb1 := FALSE;
  bb2 := TRUE;
  lb1 := (bb1 = bb2);
- if lb1 then 
+ if lb1 then
    exit(60);
 end;
 
@@ -600,7 +600,7 @@ begin
   s:=q;
   if s<>qword(high(int64))+48 then
     exit(4);
-  
+
   l:=-12345;
   c:=high(longint)+33;
   i:=-56789;
@@ -1012,7 +1012,7 @@ function testdynarr: longint;
     IsUnit : Boolean;
     V : Double;
     S : Double;
-  begin    
+  begin
     SetLength(AEffective, 2, 2);           // crash occurs at this line
     WasErrors := False;
     MaxMN := 10;
@@ -1094,14 +1094,14 @@ function testdynarr2: longint;
       exit(6);
     if a[0,0,0]<>555 then
       exit(7);
-    
+
     setlength(arrb,4);
     if length(arrb)<>4 then
       exit(8);
     for w:=low(arrb) to high(arrb) do
       if arrb[w]<>0 then
         exit(9);
-    
+
     setlength(arrc,32);
     if length(arrc)<>32 then
       exit(10);
@@ -1186,16 +1186,16 @@ type
  tisclass2 = class(tisclass1)
    constructor create;
  end;
- 
+
  constructor tisclass1.create;
    begin
    end;
-   
+
  constructor tisclass1.tisclass1nested.create;
    begin
      anonrec.c:='x';
    end;
-   
+
  function tisclass1.tisclass1nested.testl1: jint;
    begin
      if anonrec.c='x' then
@@ -1203,12 +1203,12 @@ type
      else
        result:=-1;
    end;
-   
+
  constructor tisclass1.tisclass1nested.tisclass1nestedl2.create;
    begin
      anonrec.l:=961;
    end;
-   
+
  function tisclass1.tisclass1nested.tisclass1nestedl2.testl2: jint;
    begin
      if anonrec.l=961 then
@@ -1216,17 +1216,17 @@ type
     else
       result:=-1;
    end;
-   
+
  procedure tisclass1.abstr;
    begin
    end;
-   
-   
+
+
  constructor tisclass2.create;
    begin
    end;
-   
-   
+
+
 function testispara(cref: tisclass1ref): longint;
 begin
   if cref<>tisclass2 then
@@ -1254,7 +1254,7 @@ begin
     exit(3);
   if (myclass1 is tisclass2) then
     exit(4);
-    
+
   nested1:=tisclass1.tisclass1nested.create;
   nested2:=tisclass1.tisclass1nested.tisclass1nestedl2.create;
   if not(nested1 is tisclass1.tisclass1nested) then
@@ -1266,7 +1266,7 @@ begin
   if nested2.testl2<>42 then
     exit(8);
 
-    
+
 {$ifndef oldcomp}
   myclassref:=tisclass1;
   if not(myclass1 is myclassref) then
@@ -1279,7 +1279,7 @@ begin
     exit(12);
   if not(myclass2 is myclassref) then
     exit(13);
-    
+
   myclass1:=myclass2;
   myclass1.abstr;
   myclass2:=tisclass2(myclass1 as myclassref);
@@ -1287,13 +1287,13 @@ begin
   result:=testispara(tisclass2);
   if result<>0 then
     exit(14);
-  
+
   if not(nested1 is tisinterface) then
     exit(15);
-    
+
   if nested2 is tisinterface then
     exit(16);
-  
+
 {$endif}
 
   result:=0;
@@ -1515,7 +1515,7 @@ function testsmallarr1: longint;
        (a3[1,4,5]<>255) or
        (a3[1,4,6]<>3) then
       exit(3);
-   
+
     i:=2;
     j:=3;
     a1[4]:=38;
@@ -1527,7 +1527,7 @@ function testsmallarr1: longint;
        (a3[i,j,5]<>39) or
        (a3[i,j,6]<>40) then
       exit(4);
-      
+
     { copy multi-dim array to multi-dim array }
     a4:=a3;
     { check for deep copy }
@@ -1535,7 +1535,7 @@ function testsmallarr1: longint;
       for j:=low(a3[i]) to high(a3[i]) do
         for k:=low(a3[i,j]) to high(a3[i,j]) do
           a3[i,j,k]:=-1;
-    
+
     if (a4[1,4,4]<>1) or
        (a4[1,4,5]<>255) or
        (a4[1,4,6]<>3) then
@@ -1559,7 +1559,7 @@ function testopenarrval(a1: longint; arr: array of jfloat; a2: longint): longint
     for i:=low(arr) to high(arr) do
       arr[i]:=1.0;
   end;
-  
+
 function testopenarrconst(a1: longint; const arr: array of jfloat; a2: longint): longint;
   begin
     result:=a1+length(arr)+trunc(arr[high(arr)])+a2;
@@ -1585,7 +1585,7 @@ function testopenarr1: longint;
         exit(2);
     if arr[10]<>2.0 then
       exit(3);
-      
+
     if testopenarrconst(2,arr,4)<>15 then
       exit(4);
     if testopenarrvar(3,arr,5)<>17 then
@@ -1683,7 +1683,7 @@ function testopenarr3: longint;
     arr[10]:=2.0;
     if testopenarrval(1,[1.0,2.0,3.0,4.0,5.0,6.0,2.0],3)<>13 then
       exit(1);
-      
+
     if testopenarrconst(2,[1.0,2.0,3.0,4.0,5.0,6.0,7.0],4)<>20 then
       exit(2);
   end;
@@ -1708,7 +1708,7 @@ function Err : ByteArray;
 
 function testopendynarr: longint;
   var
-    x: bytearray; 
+    x: bytearray;
     i: longint;
   begin
     x:=err;
@@ -1724,7 +1724,7 @@ function testopendynarr: longint;
 
 type
   tdoublearray10 = array[1..10] of jdouble;
-  
+
 function testarrval(arr: tdoublearray10): double;
   var
     i: longint;
@@ -1822,7 +1822,7 @@ function testsmallarr4: longint;
             exit(-4);
         end;
   end;
-  
+
 function testrec1: longint;
   var
     r1, r2: trec;
@@ -1916,7 +1916,7 @@ function testopenarrvalrec(a1: longint; arr: array of trec; a2: longint): longin
     for i:=low(arr) to high(arr) do
       arr[i].a:=123;
   end;
-  
+
 function testopenarrconstrec(a1: longint; const arr: array of trec; a2: longint): longint;
   begin
     result:=a1+length(arr)+arr[high(arr)].b+a2;
@@ -1946,7 +1946,7 @@ function testopenarr1rec: longint;
         exit(2);
     if arr[10].a<>2.0 then
       exit(3);
-      
+
     if testopenarrconstrec(2,arr,4)<>15 then
       exit(4);
     if testopenarrvarrec(3,arr,5)<>17 then
@@ -1955,7 +1955,7 @@ function testopenarr1rec: longint;
       exit(6);
   end;
 
-  
+
 function testunicodestring: JLString;
   var
     s1, s2: unicodestring;
@@ -1978,12 +1978,12 @@ function testunicodestring2: JLString;
   begin
     result:='\'#13#10'"';
   end;
-  
+
 function testunicodestring3(a: unicodestring): unicodestring;
   begin
     result:=a+'def';
   end;
-  
+
 function testunicodestring4(a: unicodestring): unicodestring;
   begin
 //    JLSystem.fout.println(JLString('in testunicodestring4'));

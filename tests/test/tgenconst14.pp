@@ -9,11 +9,11 @@ type
   generic TBinaryOp<const I: Integer> = record
     const
     	d0 = I + I;
-    	d1 = I - I; 
-    	d2 = I * I; 
-    	d3 = I / I; 
-    	d4 = I div I; 
-    	d5 = I mod I; 
+    	d1 = I - I;
+    	d2 = I * I;
+    	d3 = I / I;
+    	d4 = I div I;
+    	d5 = I mod I;
     	d6 = I and I;
     	d7 = I or I;
       d8 = I shl 2;

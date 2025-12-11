@@ -1,6 +1,6 @@
 { %fail }
 
-uses 
+uses
   TypInfo,sysutils;
 
 const
@@ -18,6 +18,6 @@ begin
   writeln(GetEnumName(TypeInfo(TMyEnum), Ord(meValueB)));
 end;
 
-begin 
+begin
  Test;
 end.

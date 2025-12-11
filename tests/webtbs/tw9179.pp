@@ -3,7 +3,7 @@ type
    name: ansistring;
    int: longint;
  end;
- 
+
 var
   r1: fontdataty;
   r2: fontdataty;

@@ -19,7 +19,7 @@ begin
  result.y:=2;
  result.x:=max(result.x,result.y);
 end;
-    
+
 begin
   if test.x<>2 then
     halt(1);

@@ -1,7 +1,7 @@
 { %OPT=-Cg -O2 }
 { %CPU=x86_64 }
 
-{ -Cg and -O2 options together lead to 
+{ -Cg and -O2 options together lead to
   the generation of instruction:
   testq   $15,U_$P$VECTORCALL_HVA_TEST1_$$_HVA@GOTPCREL(%rip)
   for which the relocation was not correctly generated

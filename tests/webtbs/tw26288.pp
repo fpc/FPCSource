@@ -6,27 +6,27 @@ interface
 
 uses
   Classes, SysUtils;
-  
-type  
+
+type
   { TGenVector }
   generic TGenVector<_TItem_> = class
   public type
     TItemToString = function (const Item: _TItem_) : String of object;
-    
-  strict private 
+
+  strict private
     fOnItemToString: TItemToString;
-    
+
     procedure SetOnItemToString(AValue: TItemToString);
-    
+
   public
     constructor Create;
-    
+
     function DefaultItemToString(const Item: _TItem_) : String; virtual;
-    
-    property OnItemToString : TItemToString read fOnItemToString 
+
+    property OnItemToString : TItemToString read fOnItemToString
       write SetOnItemToString;
   end;
-  
+
 implementation
 
 {--- TGenVector.Create ---}

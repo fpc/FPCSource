@@ -10,7 +10,7 @@ uses
  sysutils;
 type
  integerarty = array of integer;
- 
+
 function testproc: integerarty;
 begin
  setlength(result,100);

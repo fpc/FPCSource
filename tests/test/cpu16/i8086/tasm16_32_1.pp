@@ -19,7 +19,7 @@ begin
     mov eax, 12345678h
 
     db 66h, 50h  { push eax }
-    
+
     pop word ptr [lo_word]
     pop word ptr [hi_word]
   end;

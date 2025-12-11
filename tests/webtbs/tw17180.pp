@@ -52,10 +52,10 @@ program testbug;
 type TBla=(b0,b1,b2,b3,b4,b5);
 
      TBlas=set of TBla;
-     
+
 var b,ba:longbool;
     Blas:TBlas;
-    
+
 function BlaFunc(ABool:longbool):longbool;
 begin
  result:=ABool;

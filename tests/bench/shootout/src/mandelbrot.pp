@@ -3,7 +3,7 @@
 
   contributed by Ales Katona
   modified by Vincent Snijders
-  
+
   additional compiler options:
   i386: -Cfsse2
   x86_64: none
@@ -14,7 +14,7 @@ program mandelbrot;
 var n: longint;
     TextBuf: array[0..$FFF] of byte;
     OutFile: PText;
-    
+
 
 procedure run;
 var

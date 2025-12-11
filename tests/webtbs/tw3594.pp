@@ -9,7 +9,7 @@ program Project2;
 uses
   SysUtils;
 
-var 
+var
   s1,s2 : String;
   n : tdatetime;
 

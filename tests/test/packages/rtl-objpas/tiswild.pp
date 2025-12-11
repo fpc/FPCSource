@@ -19,7 +19,7 @@ procedure isWildTest(const testString, wildString: ansistring;
       writeln('Testing strUtils/isWild: Test ', testnr, ' failed.');
       exitCode := 1;
       end;
-  end; 
+  end;
 
 const
   CignoreCase = true;
@@ -126,6 +126,6 @@ begin
   isWildTest('am.pak', '??*??.pak', CignoreCase, false, 118);
   isWildTest('am.pak', '??*??.pak', CfollowCase, false, 119);
   IsWildTest('this that','*that',cignorecase,true,120)  ;
-  
+
   halt(exitCode);
 end.

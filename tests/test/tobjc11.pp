@@ -41,12 +41,12 @@ begin
   check('shortstring',objcencode(shortstring),'[256C]');
 
   check('pointer',objcencode(pointer),'^v');
-  
+
   check('single',objcencode(single),'f');
   check('double',objcencode(double),'d');
-  
+
   check('tprocedure',objcencode(tprocedure),'^?');
-  
+
   check('id',objcencode(id),'@');
   check('NSObject',objcencode(NSObject),'@');
   check('pobjc_class',objcencode(pobjc_class),'#');

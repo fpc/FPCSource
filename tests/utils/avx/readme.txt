@@ -59,7 +59,7 @@ cd ..
 ./avxtestfilecmp -mtmp/*.o -dtmp -s
 
 ***********************************************************************************************************
-x86_64 testing by using self testing fpc executables: 
+x86_64 testing by using self testing fpc executables:
 
 avxtestgenerator -px8664 -ffpcinc -otmp
 avxtestgenerator -px8664 -fnasm -otmp

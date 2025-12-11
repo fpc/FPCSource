@@ -14,5 +14,5 @@ begin
   // machines the default integer type is Int64
   Format('%*s', [length(s), s]);
   // also test QWord
-  Format('%*s', [QWord(length(s)), s]);  
+  Format('%*s', [QWord(length(s)), s]);
 end.

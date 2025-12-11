@@ -18,7 +18,7 @@ begin
       vals[i]:=signs[random(2)+1]+basepref[baseindex];
       for j:=1 to len do
         vals[i]:=vals[i]+chars[random(base)+1];
-    end; 
+    end;
   for i:=1 to 100000 do
     for j:=low(vals) to high(vals) do
       begin

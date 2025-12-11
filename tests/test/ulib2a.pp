@@ -17,7 +17,7 @@ const
 // a resourcestring consists of 3 strings (name,current value,default value)
 // Pointer to it actually points to symbol+sizeof(pointer); this offset must not be lost (bug #19416)
   pTest:PAnsiString = @STest;
-  
+
 implementation
 
 // must be declared in implementation, so DoSomething is not global
@@ -27,7 +27,7 @@ type
   end;
 
 // this is located at the start of .text section. If relocation offset is lost,
-// calling DoSomething will likely transfer control here.  
+// calling DoSomething will likely transfer control here.
 procedure DoSomethingElse;
 begin
   writeln('wrong!!!');

@@ -5,7 +5,7 @@ type
   TFooR = object { put "record" here and it works. }
     Thing : integer;
   end;
-  
+
   TFoo = class
   private
     fRecord : TFooR;

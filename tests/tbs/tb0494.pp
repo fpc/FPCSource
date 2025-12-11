@@ -6,7 +6,7 @@ var
 begin
   p1:=nil;
   if (ca-p1)=0 then
-    halt(1); 
+    halt(1);
   p1:=ca;
 end.
    

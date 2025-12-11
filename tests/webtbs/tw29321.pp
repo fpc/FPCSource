@@ -7,7 +7,7 @@ program tw29321;
 
 type
   TVector = array[0..2] of Single;
-  
+
   TVectorHelper = type helper for TVector
   public
     procedure Add;

@@ -4,19 +4,19 @@ program tisdigit3;
   {$mode objfpc}
   {$H+}
   {$PACKENUM 1}
-{$endif fpc} 
+{$endif fpc}
 
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   unicodedata,character;
-    
+
 {$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
+  type UnicodeChar = WideChar;
+{$endif}
 
 function DumpStr(a : UnicodeString) : UnicodeString;
 var
@@ -26,33 +26,33 @@ begin
   s := '';
   for i := 1 to Length(a) do
     s := s + Format('#%x',[Word(a[i])]);
-  Result := s; 
+  Result := s;
 end;
-    
+
 procedure DoError(ACode : Integer; ACodePoint : UnicodeString); overload;
 begin
   WriteLn('Error #',ACode,' ; String = ',DumpStr(ACodePoint));
   Halt(Acode);
-end;         
+end;
 
 var
   e : Integer;
   s : UnicodeString;
-begin  
-  e := 1; 
+begin
+  e := 1;
   s := UnicodeChar(Word($D801)) + UnicodeChar(Word($DCA1));
   if not TCharacter.IsDigit(s,1) then begin
     WriteLn('s=',DumpStr(s),' ; TCharacter.IsDigit(s) = ',TCharacter.IsDigit(s,1));
     DoError(e,s);
-  end;  
+  end;
 
   Inc(e);
   s := UnicodeChar(Word($D801)) + UnicodeChar(Word($DCA3));
   if not TCharacter.IsDigit(s,1) then begin
     WriteLn('s=',DumpStr(s),' ; TCharacter.IsDigit(s) = ',TCharacter.IsDigit(s,1));
     DoError(e,s);
-  end;  
-  
+  end;
+
   WriteLn('ok');
 end.
 

@@ -40,7 +40,7 @@ begin
   l := l + s1;
   if l <> 127 then
     halt(5);
-  
+
   s1 := 126;
   s2 := -128;
   s1 := s1 or s2;
@@ -93,7 +93,7 @@ begin
   l := l + s1;
   if l <> 32767 then
     halt(5+6);
-  
+
   s1 := 32766;
   s2 := -32768;
   s1 := s1 or s2;

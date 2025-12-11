@@ -5,7 +5,7 @@ program test;
 
 uses
   SysUtils;
-  
+
 type
   vecteurF = array of extended;
   matriceF = array of vecteurF;
@@ -15,7 +15,7 @@ type
   end;
 
 var
-  A,B,C :matriceE;  
+  A,B,C :matriceE;
 
 function copyM(A:matriceE):matriceE;
 var

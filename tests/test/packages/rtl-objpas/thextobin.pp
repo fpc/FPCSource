@@ -42,12 +42,12 @@ procedure HexToBinTest(const hexValue: Pchar;
       exitCode := 1;
     end;
     FreeMem(binvalue);
-  end; 
+  end;
 
 const
   maxLen = 512;
   codes: array[0..15] of char = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
-  
+
 var
   i, j, binBufSize, value: integer;
   testbin: Pchar;

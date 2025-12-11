@@ -17,7 +17,7 @@ Type
 
 implementation
 
-function TStyledControl.FindStyleResource(const AStyleLookup: string; const Clone: Boolean = False): TFmxObject; 
+function TStyledControl.FindStyleResource(const AStyleLookup: string; const Clone: Boolean = False): TFmxObject;
 
 begin
   Result:=Nil;

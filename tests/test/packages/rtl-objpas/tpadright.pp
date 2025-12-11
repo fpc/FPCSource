@@ -17,11 +17,11 @@ procedure padRightTest(const s: ansistring;
   begin
     if padRight(s, n) <> expectation then
     begin
-      writeln('Testing strUtils/PadRight: Test ', testnr, 
+      writeln('Testing strUtils/PadRight: Test ', testnr,
               ' with N = ', n, ' failed.');
       exitCode := 1;
     end;
-  end; 
+  end;
 
 var
   i, j: integer;
@@ -35,6 +35,6 @@ begin
       testString := testString + ' ';
     padRightTest('abcd', i, testString, i);
   end;
-  
+
   halt(exitCode);
 end.

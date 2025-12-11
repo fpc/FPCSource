@@ -11,7 +11,7 @@ asm
      pop    %eax
      movl   test-.L1(%eax),%eax
 // This should also work (but it doesn't due to bugs in asmreader):
-//   movl   test-.L1+8(%eax),%eax     
+//   movl   test-.L1+8(%eax),%eax
 end;
 
 begin
@@ -20,5 +20,5 @@ begin
   test[2]:=7777;
   if proc<>5555 then
     Halt(1);
-  Halt(0);  
+  Halt(0);
 end.

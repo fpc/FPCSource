@@ -23,7 +23,7 @@ procedure Numb2USATest(const teststring: string;
       writeln('Expected String: ', expectation);
       exitCode := 1;
     end;
-  end; 
+  end;
 
 var
   i, j, len, value, pos, posusa, numberOfCommas, preDigits: integer;
@@ -76,6 +76,6 @@ begin
 
     Numb2USATest(teststring, usastring);
   end;
- 
+
   halt(exitCode);
 end.

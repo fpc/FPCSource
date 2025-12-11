@@ -11,10 +11,10 @@ tw3930a.pp(22) Error: Incompatible types: 'TMyStringList' and 'TStringList'
 {$endif}
 uses
   Classes;
-  
+
 type
   TMyStringList = type TStringlist;
-  
+
 var
   list : TMyStringList;
 
@@ -22,4 +22,4 @@ begin
   list:=TMyStringList.Create;
 end.
 
-    
+

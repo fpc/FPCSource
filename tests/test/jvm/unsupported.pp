@@ -89,7 +89,7 @@ var
   cr: tcclass;
 begin
   cr:=tc;
-end;  
+end;
 
 
 procedure callarrconst(a: array of const);

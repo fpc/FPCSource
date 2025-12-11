@@ -9,7 +9,7 @@ uses
 
 type
   TBuffer = packed record
-    Mask: Int64;     
+    Mask: Int64;
     DataArray: TObjectDynArray;
   end;
 
@@ -18,7 +18,7 @@ var
 
 implementation
 
-initialization  
+initialization
   GlobalBuffer := Default(TBuffer);
 
 end.

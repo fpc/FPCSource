@@ -23,5 +23,5 @@ begin
   test3(arrs);
   if teststring <> 'test' then
     Halt(1);
-  Halt(0);  
+  Halt(0);
 end.

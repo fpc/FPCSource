@@ -1,6 +1,6 @@
 { %norun }
 program BuggyProgram;
-    
+
 const
 SE_SysEvtMask = $144;
 SE_SysEvtMask2 = $14422241;
@@ -18,6 +18,6 @@ procedure StoreSystemEventMask (theMask: INTEGER);
         intPtr(SE_SysEvtMask)^ := theMask;
         intPtr(SE_SysEvtMask2)^ := theMask;
     end;
-    
+
 begin
 end.

@@ -40,7 +40,7 @@ end;
 
 var
   obj: tobj1;
-  
+
 procedure local;
 var
   instance: tobj1;

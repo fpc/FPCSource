@@ -4,7 +4,7 @@ program procparamvoidpointer2;
 
 type
   IntegerPtr = ^Integer;
-  ProcParam = procedure( p: univ Pointer); 
+  ProcParam = procedure( p: univ Pointer);
 
 var
   gi: Integer;

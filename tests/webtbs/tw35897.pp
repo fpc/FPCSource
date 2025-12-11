@@ -10,4 +10,4 @@ end;
 
 begin
    doit(23);
-end. 
+end.

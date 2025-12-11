@@ -6,7 +6,7 @@
 }
 
 program timpfuncspez9;
-	
+
 type
 	TMyObject = object
 		generic class procedure Call<T>(msg: T); static;

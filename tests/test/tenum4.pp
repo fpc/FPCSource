@@ -1,7 +1,7 @@
 { %fail}
 { %norun}
 
-// test checks that enumeration memebers are not present in the global/local symtables 
+// test checks that enumeration memebers are not present in the global/local symtables
 // if enumeration is defined with scopedenums directive
 
 program tenum4;

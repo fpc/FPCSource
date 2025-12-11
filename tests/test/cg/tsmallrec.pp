@@ -37,7 +37,7 @@ type
 
 const
   r1 : rec1 = ( c1 : 'a' );
-  r2 : rec2 = ( c1 : 'a'; c2 : 'b' ); 
+  r2 : rec2 = ( c1 : 'a'; c2 : 'b' );
   r3 : rec3 = ( c1 : 'a'; c2 : 'b'; c3 : 'c' );
   r4 : rec4 = ( c1 : 'a'; c2 : 'b'; c3 : 'c'; c4 : 'd' );
   r5 : rec5 = ( c1 : 'a'; c2 : 'b'; c3 : 'c'; c4 : 'd'; c5 : 'e' );
@@ -172,4 +172,4 @@ begin
       halt(1);
     end;
 end.
- 
+

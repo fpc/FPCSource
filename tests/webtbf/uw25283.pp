@@ -10,7 +10,7 @@ procedure proc( arg1: longint );
 begin
 end;
 
-procedure proc( arg1, arg2: longint ); 
+procedure proc( arg1, arg2: longint );
 begin
 end;
 

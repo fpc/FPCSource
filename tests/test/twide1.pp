@@ -23,12 +23,12 @@ uses
   cpall,
  {$endif}
   strings;
-  
+
 var
   w : widestring;
   u : unicodestring;
   a : ansistring;
-  
+
 begin
   a:='A';
   w:=a;

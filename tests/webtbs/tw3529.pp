@@ -5,15 +5,15 @@ var
   v1, v2: Variant;
   S1, S2: AnsiString;
 begin
-  S1:= 'aa'; 
+  S1:= 'aa';
   S2:= 'bb';
   v1:= S1;
   v2:= S2;
-  if v1 = v2 then 
+  if v1 = v2 then
     begin
       WriteLn('Equal');
       halt(1);
     end
-  else 
+  else
     writeln('not-equal');
 end.

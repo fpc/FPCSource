@@ -45,7 +45,7 @@ asm
   ldr  d0,[x29, #24]
   stur d0,[x0]
 end;
-       
+
 begin
    getdouble(1,2,3,4,5,6,7,8,9,10,@r);
 

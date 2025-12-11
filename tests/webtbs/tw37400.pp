@@ -2,7 +2,7 @@
 { %opt=-Cpcoreavx2 }
 function popc ( a, b: byte):byte;
 var z,v: byte;
-begin  
+begin
      z:=a+b;
      v:=popcnt(z); //-- this line
      popc:=v;

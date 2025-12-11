@@ -11,8 +11,8 @@ function floattof32(n: cfloat): cint32; inline;
     floattof32 := cint32(n);
   end;
 
-procedure glTranslate3f32({ x, y,} z: cint32); inline; 
-  begin 
+procedure glTranslate3f32({ x, y,} z: cint32); inline;
+  begin
     MATRIX_TRANSLATE^ := z;
   end;
 

@@ -7,7 +7,7 @@ var
   bits: TBits;
   i, j: Integer;
   count: Integer;
-  
+
 procedure AllocateSomething;
 begin
   Inc(count);

@@ -4,7 +4,7 @@ Copyright (c) 2009, Sergey Bochkanov (ALGLIB project).
 >>> SOURCE LICENSE >>>
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation (www.fsf.org); either version 2 of the 
+the Free Software Foundation (www.fsf.org); either version 2 of the
 License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -161,7 +161,7 @@ var
     i1_ : Integer;
 begin
     Assert((N>0) and (M>0), 'ConvC1DCircular: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer (at least - not shorter) that B.
@@ -190,7 +190,7 @@ begin
         CorrC1DCircular(Signal, M, B, M, C);
         Exit;
     end;
-    
+
     //
     // Task is normalized
     //
@@ -324,7 +324,7 @@ var
     J2 : Integer;
 begin
     Assert((N>0) and (M>0), 'ConvC1DCircular: incorrect N or M!');
-    
+
     //
     // normalize task: make M>=N,
     // so A will be longer (at least - not shorter) that B.
@@ -349,7 +349,7 @@ begin
         CorrR1DCircular(Signal, M, B, M, C);
         Exit;
     end;
-    
+
     //
     // Task is normalized
     //

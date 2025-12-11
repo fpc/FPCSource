@@ -16,7 +16,7 @@ begin
   WriteLn('     Calculated: ' , BinStr(v, 64));
   if v <> uint64($8000000000000000) then
     begin
-      WriteLn('FAIL - expected: 1000000000000000000000000000000000000000000000000000000000000000');      
+      WriteLn('FAIL - expected: 1000000000000000000000000000000000000000000000000000000000000000');
       code := 1;
     end
   else

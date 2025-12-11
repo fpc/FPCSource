@@ -34,11 +34,11 @@ type
   treadcounter = class(tcounter)
     procedure execute; override;
   end;
-  
+
   twritecounter = class(tcounter)
     procedure execute; override;
   end;
-  
+
   treadwritecounter = class(tcounter)
    private
     ftrywriteupgrade: boolean;
@@ -90,7 +90,7 @@ constructor tcounter.create;
     flock:=lock;
     flocalcount:=0;
   end;
-  
+
 procedure treadcounter.execute;
   var
     i: longint;
@@ -430,7 +430,7 @@ begin
   w2.waitfor;
   w3.waitfor;
   w4.waitfor;
-  
+
   { must not have caused any data races }
   if (gcount<>w1.localcount+w2.localcount+w3.localcount+w4.localcount) then
     begin

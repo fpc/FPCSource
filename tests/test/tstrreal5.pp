@@ -22,13 +22,13 @@ begin
     s := FloatToStrF(r, ffCurrency, 12, 1);
     writeln('NegCurrFormat: ',i,' value: ',s);
     case i of
-      0,4,14,15: 
+      0,4,14,15:
         if (Pos('(', s) = 0) and (Pos(')', s) = 0) then
           halt(1);
       else
       if Pos('-', s) = 0 then
         halt(1);
-    end; 
+    end;
   end;
 
   r := -0.001;
@@ -39,13 +39,13 @@ begin
     s := FloatToStrF(r, ffCurrency, 12, 4);
     writeln('NegCurrFormat: ',i,' value: ',s);
     case i of
-      0,4,14,15: 
+      0,4,14,15:
         if (Pos('(', s) = 0) and (Pos(')', s) = 0) then
           halt(1);
       else
       if Pos('-', s) = 0 then
         halt(1);
-    end; 
+    end;
   end;
 
   writeln('Tests for NegCurrFormat: SUCCESS');

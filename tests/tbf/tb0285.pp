@@ -2,7 +2,7 @@
 { %opt=-O4 -Sew }
 
 { This code can generate trouble because
-  uninitialized retrun value in f method 
+  uninitialized retrun value in f method
   can have a pattern that generates a
   floating point exception later.
 

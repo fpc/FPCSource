@@ -11,7 +11,7 @@ type
     constructor Create();
   end;
 
-constructor TClassA.Create(); 
+constructor TClassA.Create();
 var
   x : IInterface;
 begin

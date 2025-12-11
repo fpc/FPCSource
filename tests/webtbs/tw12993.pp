@@ -11,7 +11,7 @@
 
 {$ifndef USE_INTERNAL_UNICODE}
   {$ifdef unix}
-  uses 
+  uses
     {$ifdef darwin}
     iosxwstr
     {$else}

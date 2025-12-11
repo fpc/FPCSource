@@ -10,7 +10,7 @@ program tw39917;
 
 { Test optimization.  The self param passed to DlgAsync() and Checkout() several
   anon functions deep in TView.CopyFile cause compiler fatal internal error
-  200409241.  
+  200409241.
 
   If optimization is off there is no error.  If CopyFile is not an object method
   then there is no problem (though values passed to DlgASync) and CheckOut must

@@ -20,7 +20,7 @@ type
   published
     Property Nr : integer Read FNr Write FNr;
   end;
-  
+
   { TMyCollection }
 
   TMyCollection = Class(TCollection)
@@ -39,8 +39,8 @@ type
     Procedure ResetNotify;
     property PropName;
   end;
-  
-  
+
+
   { TTestTCollection }
 
   TTestTCollection= class(TTestCase)
@@ -55,8 +55,8 @@ type
     FColl : TMyCollection;
     Function MyItem(I : integer) : TMyItem;
     procedure AddItems(ACount : Integer);
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestCreate;
     procedure TestAdd;
@@ -115,7 +115,7 @@ procedure TTestTCollection.TestAddTwo;
 
 Var
   I: Integer;
-  
+
 begin
   AddItems(3);
   AssertEquals('Item count is 3 after add',3,FColl.Count);
@@ -180,7 +180,7 @@ procedure TTestTCollection.TestID;
 
 Var
   I : TMyItem;
-  
+
 begin
   AddItems(5);
   FColl.Delete(2);
@@ -248,7 +248,7 @@ procedure TTestTCollection.TestChangeCollection;
 Var
   FCol2 : TCollection;
   I : TCollectionItem;
-  
+
 begin
   AddItems(2);
   FCol2:=TCollection.Create(TMyItem);
@@ -355,7 +355,7 @@ begin
   FColl.BeginUpdate;
   Try
     AddItems(2);
-    
+
     AssertEquals('Beginupdate; adds. Update count is 0',0,FColl.FUpdateCount);
     If (FColl.FLastUpdate<>Nil) then
       Fail('Beginupdate; FlastUpdate not nil');
@@ -431,21 +431,21 @@ procedure TTestTCollection.AddItems(ACount: Integer);
 
 Var
   I : integer;
-  
+
 begin
   For I:=1 to ACount do
     TMyItem(FColl.Add).Nr:=I;
 end;
 
-procedure TTestTCollection.SetUp; 
+procedure TTestTCollection.SetUp;
 begin
   FColl:=TMyCollection.Create(TMyItem);
-end; 
+end;
 
-procedure TTestTCollection.TearDown; 
+procedure TTestTCollection.TearDown;
 begin
    FreeAndNil(FColl);
-end; 
+end;
 
 { TMyItem }
 
@@ -491,6 +491,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestTCollection); 
+  RegisterTest(TTestTCollection);
 end.
 

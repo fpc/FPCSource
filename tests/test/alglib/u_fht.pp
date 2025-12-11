@@ -4,7 +4,7 @@ Copyright (c) 2009, Sergey Bochkanov (ALGLIB project).
 >>> SOURCE LICENSE >>>
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation (www.fsf.org); either version 2 of the 
+the Free Software Foundation (www.fsf.org); either version 2 of the
 License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -34,7 +34,7 @@ Algorithm has O(N*logN) complexity for any N (composite or prime).
 INPUT PARAMETERS
     A   -   array[0..N-1] - real function to be transformed
     N   -   problem size
-    
+
 OUTPUT PARAMETERS
     A   -   FHT of a input array, array[0..N-1],
             A_out[k] = sum(A_in[j]*(cos(2*pi*j*k/N)+sin(2*pi*j*k/N)), j=0..N-1)
@@ -50,7 +50,7 @@ var
     FA : TComplex1DArray;
 begin
     Assert(N>0, 'FHTR1D: incorrect N!');
-    
+
     //
     // Special case: N=1, FHT is just identity transform.
     // After this block we assume that N is strictly greater than 1.
@@ -59,7 +59,7 @@ begin
     begin
         Exit;
     end;
-    
+
     //
     // Reduce FHt to real FFT
     //
@@ -94,7 +94,7 @@ var
     I : Integer;
 begin
     Assert(N>0, 'FHTR1DInv: incorrect N!');
-    
+
     //
     // Special case: N=1, iFHT is just identity transform.
     // After this block we assume that N is strictly greater than 1.
@@ -103,7 +103,7 @@ begin
     begin
         Exit;
     end;
-    
+
     //
     // Inverse FHT can be expressed in terms of the FHT as
     //

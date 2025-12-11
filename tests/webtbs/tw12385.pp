@@ -7,11 +7,11 @@ uses
   SysUtils;
 
 var
-  s: string; 
-  cr: Extended; 
+  s: string;
+  cr: Extended;
 
 Procedure TestIt(CR : Extended; Fmt,Expected : String);
-  
+
 begin
   S:=FormatFloat(Fmt,cr);
   If S<>Expected then

@@ -2,8 +2,8 @@
 uses
   unicodeducet, fpwidestring, cp866,
   sysutils;
-  
-type  
+
+type
   ts866 = type AnsiString(866);
 
   procedure doerror(ANumber : Integer);

@@ -11,7 +11,7 @@ uses
 var
   AnInt : Integer;
   AVar  : Variant;
-  
+
 begin
   AVar := Null;
   try
@@ -20,8 +20,8 @@ begin
     case AnInt of
       1 : ;
       end;
-    
-  except 
+
+  except
     on E: EVariantError do
       begin
       WriteLn('Handled EVariantError');
@@ -38,6 +38,6 @@ begin
       halt(2);
       end;
     end;
-  
+
 end.
 

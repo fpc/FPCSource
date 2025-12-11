@@ -21,8 +21,8 @@ uses
   cpall,
  {$endif}
   sysutils;
-  
-type  
+
+type
   ts850 = type AnsiString(850);
   ts1252 = type AnsiString(1252);
 

@@ -5,19 +5,19 @@ program project1;
 {$mode objfpc}{$H+}
 
 type
-  
+
   { TBoolObject }
 
   TBoolObject = class(TObject)
   private
     fBool: Boolean;
     procedure SetBool(const AValue: Boolean);
-  
+
   protected
     function GetBool: Boolean;
     property Bool: Boolean read GetBool write SetBool default True;
   end;
-  
+
   TSubBoolObject = class(TBoolObject)
   published
     property Bool default True;
@@ -30,11 +30,11 @@ begin
   fBool:=AValue;
 end;
 
-function TBoolObject.GetBool: Boolean; 
+function TBoolObject.GetBool: Boolean;
 begin
   Result:=fBool;
 end;
-  
+
 var
   b: TSubBoolObject;
 begin

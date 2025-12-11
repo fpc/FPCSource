@@ -6,7 +6,7 @@ VAR
    a: byte;
    b: shortint absolute a;
 BEGIN
-  for a := 0 to 255 do 
+  for a := 0 to 255 do
     begin
       writeln (a:4,b:5);
       if (a>127) and (a=b) then

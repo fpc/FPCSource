@@ -25,7 +25,7 @@ procedure IntToBinTest(const testinteger: integer;
       exitCode := 1;
     end;
   end;
-  
+
 const
   codes: array[0..1] of char = ('0','1');
 
