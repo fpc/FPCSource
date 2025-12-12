@@ -326,7 +326,10 @@ end;
 
 function TMarkDownTextNode.isEmpty: boolean;
 begin
-  Result:=FContent = '';
+  if Active then
+    Result:=FBuild = ''
+  else
+    Result:=FContent = '';
 end;
 
 procedure TMarkDownTextNode.removeChars(count : integer);
