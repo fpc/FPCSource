@@ -126,6 +126,11 @@ begin
         begin
           AddUnit('wformat');
         end;
+    T:=P.Targets.AddUnit('wtext.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('wformat');
+        end;
     T:=P.Targets.AddUnit('fpexprpars.pp');
       T.ResourceStrings:=true;
 

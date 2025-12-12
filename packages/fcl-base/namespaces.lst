@@ -2,6 +2,7 @@ src/basenenc.pp=namespaced/Fcl.BaseNEnc.pp
 {s*:src/}=namespaced/
 {i+:src/}
 src/wtex.pp=namespaced/Fcl.Wtex.pp
+src/wtext.pp=namespaced/Fcl.Wtext.pp
 src/iostream.pp=namespaced/Fcl.Streams.IO.pp
 src/contnrs.pp=namespaced/System.Contnrs.pp
 src/streamio.pp=namespaced/System.Streamio.pp

@@ -42,6 +42,7 @@ unit scandir;
         packenum,
         packrecords : shortint;
         asmmode : tasmmode;
+        optimizerswitches : toptimizerswitches;
       end;
 
     type
@@ -1221,15 +1222,17 @@ unit scandir;
         { Support also the ON and OFF as switch }
         hs:=current_scanner.readid;
         if (hs='ON') then
-          current_settings.optimizerswitches:=level2optimizerswitches
+          recordpendingoptimizerswitches(level2optimizerswitches)
         else if (hs='OFF') then
-          current_settings.optimizerswitches:=[]
+          recordpendingoptimizerswitches([])
         else if (hs='DEFAULT') then
-          current_settings.optimizerswitches:=init_settings.optimizerswitches
+          recordpendingoptimizerswitches(init_settings.optimizerswitches)
         else
           begin
             if not UpdateOptimizerStr(hs,current_settings.optimizerswitches) then
-              Message1(scan_e_illegal_optimization_specifier,hs);
+              Message1(scan_e_illegal_optimization_specifier,hs)
+            else
+              recordpendingoptimizerswitches(current_settings.optimizerswitches)
           end;
       end;
 
@@ -1355,6 +1358,7 @@ unit scandir;
           recordpendingpackrecords(switchesstatestack[switchesstatestackpos].packrecords);
           recordpendingsetalloc(switchesstatestack[switchesstatestackpos].setalloc);
           recordpendingasmmode(switchesstatestack[switchesstatestackpos].asmmode);
+          recordpendingoptimizerswitches(switchesstatestack[switchesstatestackpos].optimizerswitches);
           pendingstate.nextmessagerecord:=switchesstatestack[switchesstatestackpos].pmessage;
           { flushpendingswitchesstate will reset the message state }
           current_settings.pmessage:=nil;
@@ -1423,6 +1427,11 @@ unit scandir;
         switchesstatestack[switchesstatestackpos].asmmode:=pendingstate.nextasmmode
       else
         switchesstatestack[switchesstatestackpos].asmmode:=current_settings.asmmode;
+
+      if psf_optimizerswitches_changed in pendingstate.flags then
+        switchesstatestack[switchesstatestackpos].optimizerswitches:=pendingstate.nextoptimizerswitches
+      else
+        switchesstatestack[switchesstatestackpos].optimizerswitches:=current_settings.optimizerswitches;
 
       switchesstatestack[switchesstatestackpos].pmessage:=pendingstate.nextmessagerecord;
       Inc(switchesstatestackpos);
