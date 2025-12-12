@@ -220,8 +220,8 @@ implementation
 
     destructor TBinaryenAssembler.Destroy;
       begin
-        InstrWriter.free;
-        asmfiles.free;
+        FreeAndNil(InstrWriter);
+        FreeAndNil(asmfiles);
         inherited destroy;
       end;
 

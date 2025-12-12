@@ -194,7 +194,7 @@ implementation
               p:=Tai(load.next);
               { the load }
               list.remove(load);
-              load.free;
+              load.free; // no nil needed
 
               result:=true;
             end;
@@ -298,7 +298,7 @@ implementation
                             p.free;
                             p:=tai(next.next);
                             list.remove(next);
-                            next.free;
+                            next.free; // no nil needed
                             removedsomething:=true;
                             continue;
                           end;
@@ -469,7 +469,7 @@ implementation
         spill_temps[R_FPUREGISTER]:=Nil;
         spill_temps[R_FUNCREFREGISTER]:=Nil;
         spill_temps[R_EXTERNREFREGISTER]:=Nil;
-        templist.free;
+        templist.free; // no nil needed
         { Not needed anymore }
         wasmfuncreftype.owner.deletedef(wasmfuncreftype);
       end;

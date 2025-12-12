@@ -5,7 +5,7 @@ unit wasmdef;
 interface
 
 uses
-  symtype, symsym, symdef, symconst, constexp
+  sysutils, symtype, symsym, symdef, symconst, constexp
   ,defutil, procdefutil, cclasses;
 
 type
@@ -134,7 +134,7 @@ implementation
 
     destructor TWasmProcTypeLookup.Destroy;
       begin
-        list.Free;
+        FreeAndNil(list);
         inherited Destroy;
       end;
 

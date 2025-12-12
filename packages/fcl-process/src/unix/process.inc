@@ -482,8 +482,8 @@ end;
 Function TProcess.WaitOnExit : Boolean;
 begin
   if FRunning then
-    fexitcode:=waitprocess(handle);
-  Result:=(fexitcode>=0);
+    fexitcode:=Cardinal(waitprocess(handle));
+  Result:=(longint(fexitcode)>=0);
   FRunning:=False;
 end;
 
