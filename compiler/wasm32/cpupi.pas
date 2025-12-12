@@ -26,7 +26,7 @@ unit cpupi;
 interface
 
   uses
-    cutils,globtype,aasmdata,aasmcpu,aasmtai,
+    sysutils,cutils,globtype,aasmdata,aasmcpu,aasmtai,
     procinfo,cpubase,cpuinfo, symtype,aasmbase,cgbase,
     psub, cclasses;
 
@@ -501,7 +501,7 @@ implementation
 
     destructor tcpuprocinfo.destroy;
       begin
-        FGotoTargets.Free;
+        FreeAndNil(FGotoTargets);
         inherited destroy;
       end;
 
@@ -644,7 +644,7 @@ implementation
                              ((cblock.blockstart.opcode=a_try_table) and (lastinstr.opcode<>a_end_try_table)) or
                              ((cblock.blockstart.opcode=a_legacy_try) and (lastinstr.opcode<>a_end_legacy_try)) then
                             Message1(parser_f_unsupported_feature,'incompatible nesting level');
-                          cblock.free;
+                          FreeAndNil(cblock);
                         end;
 
                       else
@@ -673,7 +673,7 @@ implementation
             end;
           if cur_nesting_depth<>0 then
             Message1(parser_f_unsupported_feature,'unbalanced nesting level');
-          blockstack.free;
+          FreeAndNil(blockstack);
         end;
 
       function resolve_labels_pass2(asmlist: TAsmList): Boolean;
@@ -972,7 +972,7 @@ implementation
                 curr_block.Concat(taicpu.op_sym(a_br,state_machine_exit));
               asmlist.concatList(curr_block);
             end;
-          tmplist.Free;
+          FreeAndNil(tmplist);
           asmlist.Concat(taicpu.op_none(a_end_loop));
           asmlist.Concat(taicpu.op_none(a_end_block));
           asmlist.concat(tai_label.create(state_machine_exit));
@@ -1077,9 +1077,9 @@ implementation
           wasm_convert_to_flat_asmlist(asmlist);
 
           asmlist.insertList(entry_code);
-          entry_code.free;
+          FreeAndNil(entry_code);
           asmlist.concatList(exit_code);
-          exit_code.free;
+          FreeAndNil(exit_code);
 
           if not resolve_labels_simple(asmlist) then
             internalerror(2023102101);
@@ -1161,7 +1161,7 @@ implementation
                   vs.Validate(taicpu(hp));
                 hp:=tai(hp.next);
               end;
-            vs.Free;
+            FreeAndNil(vs);
           end;
 
         procedure postprocess_code_assembler;
@@ -1195,7 +1195,7 @@ implementation
 
         add_extra_allocated_locals(localslist);
         insert_localslist(aktproccode,localslist);
-        localslist.Free;
+        FreeAndNil(localslist);
 
 {$ifdef DEBUG_WASM_VALIDATION}
         validate_code;

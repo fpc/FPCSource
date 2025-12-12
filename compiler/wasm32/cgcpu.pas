@@ -26,7 +26,7 @@ unit cgcpu;
 interface
 
     uses
-       globtype,parabase,
+       sysutils,globtype,parabase,
        cgbase,cgutils,cgobj,cghlcpu,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,
@@ -85,11 +85,11 @@ implementation
 
     procedure TCgWasm.done_register_allocators;
       begin
-        rg[R_INTREGISTER].free;
-        rg[R_FPUREGISTER].free;
-        rg[R_MMREGISTER].free;
-        rg[R_FUNCREFREGISTER].free;
-        rg[R_EXTERNREFREGISTER].free;
+        FreeAndNil(rg[R_INTREGISTER]);
+        FreeAndNil(rg[R_FPUREGISTER]);
+        FreeAndNil(rg[R_MMREGISTER]);
+        FreeAndNil(rg[R_FUNCREFREGISTER]);
+        FreeAndNil(rg[R_EXTERNREFREGISTER]);
         inherited done_register_allocators;
       end;
 

@@ -26,7 +26,7 @@ unit aasmcpu;
 interface
 
 uses
-  cclasses,
+  sysutils,cclasses,
   globtype,globals,verbose,
   aasmbase,aasmtai,aasmdata,aasmsym,
   cgbase,cgutils,cpubase,cpuinfo,ogbase,
@@ -539,8 +539,8 @@ uses
 
     destructor TWasmValidationStacks.Destroy;
       begin
-        FValueStack.Free;
-        FCtrlStack.Free;
+        FreeAndNil(FValueStack);
+        FreeAndNil(FCtrlStack);
         inherited Destroy;
       end;
 
@@ -1272,9 +1272,9 @@ uses
 
     destructor tai_wasmstruc_if.Destroy;
       begin
-        then_asmlist.free;
-        else_asmlist.free;
-        if_instr.free;
+        FreeAndNil(then_asmlist);
+        FreeAndNil(else_asmlist);
+        FreeAndNil(if_instr);
         inherited Destroy;
       end;
 
@@ -1450,8 +1450,8 @@ uses
 
     destructor tai_wasmstruc_block.Destroy;
       begin
-        inner_asmlist.free;
-        block_instr.free;
+        FreeAndNil(inner_asmlist);
+        FreeAndNil(block_instr);
         inherited Destroy;
       end;
 
@@ -1519,8 +1519,8 @@ uses
 
     destructor tai_wasmstruc_loop.Destroy;
       begin
-        inner_asmlist.free;
-        loop_instr.free;
+        FreeAndNil(inner_asmlist);
+        FreeAndNil(loop_instr);
         inherited Destroy;
       end;
 
@@ -1605,7 +1605,7 @@ uses
 
     destructor tai_wasmstruc_legacy_try.Destroy;
       begin
-        try_asmlist.free;
+        FreeAndNil(try_asmlist);
         inherited Destroy;
       end;
 
@@ -1714,10 +1714,10 @@ uses
       begin
         for i:=low(catch_list) to high(catch_list) do
           begin
-            catch_list[i].asmlist.free;
-            catch_list[i].catch_instr.free;
+            FreeAndNil(catch_list[i].asmlist);
+            FreeAndNil(catch_list[i].catch_instr);
           end;
-        catch_all_asmlist.free;
+        FreeAndNil(catch_all_asmlist);
         inherited Destroy;
       end;
 
@@ -1811,8 +1811,8 @@ uses
 
     destructor tai_wasmstruc_try_table.Destroy;
       begin
-        inner_asmlist.free;
-        try_table_instr.free;
+        FreeAndNil(inner_asmlist);
+        FreeAndNil(try_table_instr);
         inherited Destroy;
       end;
 
@@ -1862,7 +1862,7 @@ uses
 
     destructor tai_wasmstruc_legacy_try_delegate.Destroy;
       begin
-        delegate_instr.free;
+        FreeAndNil(delegate_instr);
         inherited Destroy;
       end;
 
@@ -1967,7 +1967,7 @@ uses
 
     destructor tai_functype.destroy;
       begin
-        functype.free;
+        FreeAndNil(functype);
         inherited;
       end;
 
@@ -2028,7 +2028,7 @@ uses
 
     destructor taicpu.Destroy;
       begin
-        try_table_catch_clauses.free;
+        FreeAndNil(try_table_catch_clauses);
         inherited;
       end;
 
@@ -4011,7 +4011,7 @@ uses
             else
               destlist.Concat(p);
           end;
-        tmplist.free;
+        FreeAndNil(tmplist);
       end;
 
 
@@ -4060,7 +4060,7 @@ uses
                     begin
                       q:=tai(mapres.newlist.First);
                       l.insertListAfter(p,mapres.newlist);
-                      mapres.newlist.free;
+                      FreeAndNil(mapres.newlist);
                       l.Remove(p);
                       p:=q;
                     end;
@@ -4094,7 +4094,7 @@ uses
                     begin
                       q:=tai(mapres.newlist.First);
                       l.insertListAfter(p,mapres.newlist);
-                      mapres.newlist.free;
+                      FreeAndNil(mapres.newlist);
                       l.Remove(p);
                       p:=q;
                     end;
@@ -4116,7 +4116,7 @@ uses
       begin
         blockstack:=twasmstruc_stack.create;
         map_structured_asmlist_inner(l,f,blockstack);
-        blockstack.free;
+        FreeAndNil(blockstack);
       end;
 
 

@@ -26,6 +26,7 @@ unit symcpu;
 interface
 
 uses
+  sysutils,
   globtype,
   cpubase,
   aasmdata,
@@ -360,7 +361,7 @@ implementation
 
   destructor tcpuprocdef.destroy;
     begin
-      exprasmlist.free;
+      FreeAndNil(exprasmlist);
       inherited destroy;
     end;
 

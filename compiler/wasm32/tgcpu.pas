@@ -26,7 +26,7 @@ unit tgcpu;
   interface
 
     uses
-       globtype,
+       sysutils, globtype,
        aasmdata,
        cgutils, cpubase,
        symtype,tgobj;
@@ -198,7 +198,7 @@ unit tgcpu;
               begin
                 n:=t;
                 t:=t.nextseq;
-                n.Free;
+                n.free; // no nil needed
               end;
             inherited Destroy;
           end;
@@ -220,7 +220,7 @@ unit tgcpu;
 
     destructor ttgwasm.destroy;
       begin
-        localvars.Free;
+        FreeAndNil(localvars);
         inherited destroy;
       end;
 

@@ -27,7 +27,7 @@ unit hlcgcpu;
 interface
 
 uses
-  globtype,
+  sysutils,globtype,
   aasmbase,aasmdata,aasmcpu,
   symbase,symconst,symtype,symdef,symsym,
   node,
@@ -373,7 +373,7 @@ implementation
 
   destructor thlcgwasm.Destroy;
     begin
-      fntypelookup.Free;
+      FreeAndNil(fntypelookup);
       inherited Destroy;
     end;
 
@@ -2907,7 +2907,7 @@ implementation
         decstack(list,totalremovesize)
       else if totalremovesize<0 then
         incstack(list,-totalremovesize);
-      ft.free;
+      FreeAndNil(ft);
     end;
 
 

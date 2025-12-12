@@ -144,7 +144,7 @@ implementation
             current_asmdata.CurrAsmList.concat(taicpu.op_none(a_drop));
             thlcgwasm(hlcg).decstack(current_asmdata.CurrAsmList,1);
           end;
-        ft.free;
+        ft.free; // no nil needed
       end;
 
     procedure twasmcallnode.set_result_location(realresdef: tstoreddef);
