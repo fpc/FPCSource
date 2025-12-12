@@ -671,7 +671,7 @@ unit optloop;
         InitialRead: Boolean;
         FieldRead: Boolean;
         FieldWritten: Boolean;
-        Refs: LongInt;
+        Score: LongInt;
         FirstDepth: Integer;
       end;
 
@@ -732,7 +732,7 @@ unit optloop;
                     ThisTemp.TempCreate:=CTempCreateNode.Create(TSubscriptNode(n).vs.vardef,TSubscriptNode(n).vs.vardef.size,tt_persistent,True);
                     ThisTemp.InitialRead:=(nf_modify in TLoadNode(TSubscriptNode(n).left).flags) or not (nf_write in TLoadNode(TSubscriptNode(n).left).flags);
                     ThisTemp.FieldWritten:=False;
-                    ThisTemp.Refs:=0;
+                    ThisTemp.Score:=0;
                     ThisTemp.FirstDepth:=PRecordData(arg)^.Depth;
                     if not Assigned(PRecordData(arg)^.Fields.Last) then
                       PRecordData(arg)^.Fields.Insert(ThisTemp)
@@ -740,16 +740,23 @@ unit optloop;
                       PRecordData(arg)^.Fields.InsertAfter(ThisTemp,PRecordData(arg)^.Fields.Last);
                   end;
 
+                { A write is worth 1.5 times as much as a read under the scoring system }
                 if TLoadNode(TSubscriptNode(n).left).flags*[nf_write,nf_modify]<>[] then
                   begin
                     ThisTemp.FieldWritten:=True;
+                    Inc(ThisTemp.Score,3);
                     if nf_modify in TLoadNode(TSubscriptNode(n).left).flags then
-                      ThisTemp.FieldRead:=True;
+                      begin
+                        ThisTemp.FieldRead:=True;
+                        Inc(ThisTemp.Score,2);
+                      end;
                   end
                 else
-                  ThisTemp.FieldRead:=True;
+                  begin
+                    ThisTemp.FieldRead:=True;
+                    Inc(ThisTemp.Score,2);
+                  end;
 
-                Inc(ThisTemp.Refs);
                 result:=fen_true;
                 Exit;
               end;
@@ -843,7 +850,7 @@ unit optloop;
     function _optimize_record_writes(var n:tnode; arg: pointer): foreachnoderesult;
       var
         X, Y, SymCount: Integer;
-        MinRefs: LongInt;
+        MinScore: LongInt;
         CurrentSym: TSym;
         RecordData: TRecordData;
         AbortRecord: Boolean;
@@ -946,64 +953,20 @@ unit optloop;
                     if all of the non-record variables are discounted }
                   (RecordData.Fields.Count + record_limit > 0) then
                   begin
-                    { Remove any read-only fields with too low a reference count,
-                      since the saving isn't really worth it }
-                    ThisTemp:=TFieldTempPair(RecordData.Fields.First);
-                    while Assigned(ThisTemp) do
-                      begin
-                        NextTemp:=TFieldTempPair(ThisTemp.Next);
-                        if not ThisTemp.FieldWritten and (ThisTemp.Refs<3) then
-                          begin
-                            { Exclude, as saving is minimal at best and
-                              it risks too much register pressure }
-                            ThisTemp.TempCreate.Free;
-                            RecordData.Fields.Remove(ThisTemp);
-                          end;
-                        ThisTemp:=NextTemp;
-                      end;
-
                     { If we have too many record fields to potentially optimise,
-                      start excluding read-only ones that give a low return }
+                      start excluding ones that give a low return }
                     while (RecordData.Fields.Count > record_limit) do
                       begin
-                        MinRefs:=$7FFFFFFF;
+                        MinScore:=$7FFFFFFF;
                         NextTemp:=nil;
 
                         ThisTemp:=TFieldTempPair(RecordData.Fields.First);
                         while Assigned(ThisTemp) do
                           begin
-                            if not ThisTemp.FieldWritten and (ThisTemp.Refs<MinRefs) then
+                            if (ThisTemp.Score<MinScore) then
                               begin
                                 NextTemp:=ThisTemp;
-                                MinRefs:=ThisTemp.Refs;
-                              end;
-
-                            ThisTemp:=TFieldTempPair(ThisTemp.Next);
-                          end;
-
-                        if not Assigned(NextTemp) then
-                          { No more read-only temps }
-                          Break;
-
-                        TFieldTempPair(NextTemp).TempCreate.Free;
-                        RecordData.Fields.Remove(NextTemp);
-                      end;
-
-                    { If we're still over the limit, start removing ones that write
-                      back to the records }
-                    while (RecordData.Fields.Count > record_limit) do
-                      begin
-                        WriteLn(RecordData.Fields.Count, ' > ', record_limit);
-                        MinRefs:=$7FFFFFFF;
-                        NextTemp:=nil;
-
-                        ThisTemp:=TFieldTempPair(RecordData.Fields.First);
-                        while Assigned(ThisTemp) do
-                          begin
-                            if (ThisTemp.Refs<MinRefs) then
-                              begin
-                                NextTemp:=ThisTemp;
-                                MinRefs:=ThisTemp.Refs;
+                                MinScore:=ThisTemp.Score;
                               end;
 
                             ThisTemp:=TFieldTempPair(ThisTemp.Next);
