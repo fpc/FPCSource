@@ -688,6 +688,7 @@ Type
   { TDependencies }
 
   TDependencies = Class(TConditionalStrings)
+  Private
     function GetDependency(Index : Integer): TDependency;
     procedure SetDependency(Index : Integer; const AValue: TDependency);
   Public
@@ -1562,15 +1563,21 @@ Type
   { TValueItem }
 
   TValueItem = Class(TObject)
+  Private
     FValue : String;
+  Public  
     Constructor Create(AValue : String);
+    Property Value : String Read FValue;
   end;
 
   { TFunctionItem }
 
   TFunctionItem = Class(TObject)
+  Private
     FFunc : TReplaceFunction;
-    Constructor Create(AFunc : TReplaceFunction);
+  public  
+    Constructor Create(AFunc : TReplaceFunction); 
+    Property Func : TReplaceFunction Read FFunc;
   end;
 
 {$ifndef NO_THREADING}
