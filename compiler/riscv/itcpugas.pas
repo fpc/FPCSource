@@ -162,6 +162,7 @@ unit itcpugas;
         { q-extension }
         'flq','fsq',
         'fmax.q','fmax.q',
+        'feq.q','flt.q','fle.q','fclass.q',
 
         { Zihintpause }
         'pause',
