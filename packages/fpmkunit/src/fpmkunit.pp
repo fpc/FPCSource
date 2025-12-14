@@ -173,7 +173,7 @@ Type
   TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas,cmDelphiUnicode);
   TCompilerModes = Set of TCompilerMode;
 
-  TInstallMOde = (imInstall, imUnInstall);
+  TInstallMode = (imInstall, imUnInstall);
 
   TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram,ttFPDoc,ttSharedLibrary);
   TTargetTypes = set of TTargetType;
