@@ -781,7 +781,7 @@ Type
     procedure SetXML(const AValue: string);
     // Deprecated API
     Procedure GetCleanFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS; const aSubTarget : String); virtual; deprecated 'use TcompileTarget instead';
-    Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual; virtual; deprecated 'use TcompileTarget instead';
+    Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual; deprecated 'use TcompileTarget instead';
     Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS; const aSubTarget : String); virtual; deprecated 'use TcompileTarget instead';
     Procedure GetCleanFiles(List : TStrings; const APrefixU, APrefixB : String; const aTarget : TcompileTarget); virtual;
     Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB : String; const aTarget : TCompileTarget); virtual;
@@ -1055,8 +1055,9 @@ Type
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     procedure EnterResolveDirsCS;
     procedure LeaveResolveDirsCS;
-    procedure ApplyNameSpaces(aEngine : TBuildEngine; aFileName : string; aTarget : TCompileTarget);
+    Function AddTargetsFromDir(const aDirectory : String; const aMask : String = '') : longint;
     // applies namespaces if map is set
+    procedure ApplyNameSpaces(aEngine : TBuildEngine; aFileName : string; aTarget : TCompileTarget);
     procedure ApplyNameSpaces(aEngine : TBuildEngine; aTarget : TCompileTarget);
     Function SubTargetAllowed(Const aSubTarget : String) : Boolean;
     Property Version : String Read GetVersion Write SetVersion;
@@ -1238,7 +1239,7 @@ Type
   Public
     Constructor Create;
     Destructor Destroy; override;
-    Procedure InitDefaults;
+    Procedure InitDefaults; virtual;
     Function HaveOptions: Boolean;
     Procedure AddOption(const aValue : string);
     function IsBuildDifferentFromTarget: boolean;
@@ -1536,6 +1537,7 @@ Type
     Destructor destroy; override;
     Function AddPackage(Const AName : String) : TPackage;
     Function AddPackageVariant(AName: string; AIsInheritable: boolean; AutoAddToPackage: Boolean = false): TPackageVariants;
+    Function AddPackageFromDir(Const AName : String; const aDirectory : String; const aMask : string = '') : TPackage;
     Function Run : Boolean;
     Property FPMakeOptionsString: string read FFPMakeOptionsString;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
@@ -2070,6 +2072,7 @@ ResourceString
   sHelpPackageVariant4= ' +[variantname]*=[variant1],<variant2>,...';
   sHelpPackageVariant5= 'To add specific options for one package-variant:';
   sHelpPackageVariant6= ' --options_[variantname]_[variant1]=Value';
+  SSwitchingToBuildUnitCompilation = 'Switching to buildunit compilation of package %s';
 
 
 Const
@@ -5138,6 +5141,50 @@ begin
 {$endif}
 end;
 
+function TPackage.AddTargetsFromDir(const aDirectory: String; const aMask: String): longint;
+var
+  lMasks : Array of string;
+  lMask : string;
+  lDir,lFile : string;
+  lInfo : TSearchRec;
+begin
+  if aDirectory='' then
+    lDir:='./'
+  else
+    lDir:=IncludeTrailingPathDelimiter(aDirectory);
+  if not DirectoryExists(lDir) then
+    Exit(-1);
+  if aMask='' then
+    lMasks:=['*.pp','*.pas','*.lpr']
+  else
+    lMasks:=aMask.Split([';']);
+  Result:=0;
+  for lMask in lMasks do
+    begin
+    if FindFirst(lDir+lMask,0,lInfo)=0 then
+      try
+        repeat
+          lFile:=ldir+lInfo.Name;
+          if SameFileName(ExtractFileExt(lInfo.Name),'.lpr') then
+            Targets.AddProgram(lFile)
+          else
+            // Todo: add some detection for program/unit
+            Targets.AddUnit(lFile);
+          Installer.Log(vlInfo,Format('Adding unit %s to targets of %s',[lFile,Name]));
+          Inc(Result);
+        until FindNext(lInfo)<>0;
+      finally
+        FindClose(lInfo)
+      end;
+    end;
+  if Result>0 then
+    begin
+    Installer.Log(vlInfo, Format(SSwitchingToBuildUnitCompilation, [Name]));
+    Defaults.BuildMode:=bmBuildUnit;
+    FSupportBuildModes:=[bmBuildUnit];
+    end;
+end;
+
 procedure TPackage.ChangePaths(Aliases : TStrings; aTarget : TCompileTarget);
 
 var
@@ -6084,6 +6131,15 @@ begin
   result.FIsInheritable:=AIsInheritable;
   result.FAutoAddToPackage:=AutoAddToPackage;
   FPackageVariants.Add(result);
+end;
+
+function TCustomInstaller.AddPackageFromDir(const AName: String; const aDirectory: String; const aMask: string): TPackage;
+begin
+  Result:=AddPackage(aName);
+  if Result.AddTargetsFromDir(aDirectory,aMask)<=0 then
+    Result.Free
+  else
+    Result.Dependencies.Clear;
 end;
 
 procedure TCustomInstaller.AnalyzeOptions;
