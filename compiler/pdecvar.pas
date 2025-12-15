@@ -391,7 +391,10 @@ implementation
          { property parameters ? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-              if (p.visibility=vis_published) then
+              // Published indexed properties are allowed in Delphi in interfaces compiled with {$M+}.
+              if (p.visibility=vis_published)
+                  and (astruct is tobjectdef)
+                  and not (tobjectdef(aStruct).objecttype in [odt_interfacecom,odt_dispinterface]) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               p.parast:=tparasymtable.create(nil,0);
