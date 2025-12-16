@@ -240,7 +240,6 @@ asm
   mflr r4
   std r4, retaddress
   bl seterrno
-  li    r4,-1
   nop
   ld r4, retaddress
   li r3, -1
