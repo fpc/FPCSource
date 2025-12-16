@@ -1,3 +1,3 @@
-unit Fcl.Wtex;
+unit Fcl.Wtext;
 {$DEFINE FPC_DOTTEDUNITS}
-{$i wtex.pp}
+{$i wtext.pp}
