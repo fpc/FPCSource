@@ -2745,7 +2745,14 @@ begin
     tkBraceOpen:
       begin
       NextToken;
-      Last:=DoParseExpression(AParent);
+      // handle specializations like this: TA.X<B>()
+      if CurToken=tkBraceClose then
+        begin
+        Params:=TParamsExpr.Create( aParent,pekFuncParams);
+        Last:=Params;
+        end
+      else
+        Last:=DoParseExpression(AParent);
       if not Assigned(Last) then
         ParseExcSyntaxError;
       if (CurToken<>tkBraceClose) then
