@@ -3900,6 +3900,12 @@ begin
 end;
 
 function TJSONObject.IndexOfName(const AName: TJSONStringType; CaseInsensitive : Boolean = False): Integer;
+  function IndexOfNameCaseInsensetive: Integer;
+  begin
+    Result:=Count-1;
+    while (Result>=0) and (CompareText(Names[Result],AName)<>0) do
+      Dec(Result);
+  end;
 begin
   {$IFDEF PAS2JS}
   if FNames=nil then
@@ -3909,11 +3915,7 @@ begin
   Result:=FHash.FindIndexOf(AName);
   {$ENDIF}
   if (Result<0) and CaseInsensitive then
-    begin
-    Result:=Count-1;
-    While (Result>=0) and (CompareText(Names[Result],AName)<>0) do
-      Dec(Result);
-    end;
+    Result:=IndexOfNameCaseInsensetive;
 end;
 
 procedure TJSONObject.Clear;
