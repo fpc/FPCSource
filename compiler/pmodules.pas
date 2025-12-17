@@ -732,7 +732,7 @@ implementation
             if pu.in_uses and
                (pu.in_interface=frominterface) then
              begin
-               if (lu.state in [ms_processed, ms_compiled,ms_compiling_waitimpl]) then
+               if (lu.state in [ms_compiling_waitimpl..ms_compiled,ms_processed]) then
                  isLoaded:=true
                else if (lu.state=ms_registered) then
                   // try to load

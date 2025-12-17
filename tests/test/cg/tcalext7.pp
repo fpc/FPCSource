@@ -1,5 +1,3 @@
-{ %CPU=x86_64 }
-{ %TARGET=linux }
 
 program tcalext7;
 
