@@ -280,7 +280,7 @@ Var
   I64 : Int64;
   QW  : QWord;
   F : TJSONFloat;
-  S : String;
+  S : RawByteString;
 
 begin
   S:=CurrentTokenString;
