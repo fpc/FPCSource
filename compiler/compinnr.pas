@@ -231,7 +231,7 @@ type
      ,
      {$i riscv/ccpuinnr.inc}
 {$endif}
-{$if defined(POWERPC64)}
+{$if defined(POWERPC)}
      ,
      {$i ppcgen/ccpuinnr.inc}
 {$endif}
