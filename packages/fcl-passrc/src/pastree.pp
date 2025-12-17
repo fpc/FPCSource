@@ -823,7 +823,9 @@ type
   public
     VariantEl: TPasElement; // nil or TPasVariable or TPasType
     Variants: TFPList;	// list of TPasVariant elements, may be nil!
+    Align : Integer;
     Function IsAdvancedRecord : Boolean;
+
   end;
 
   TPasObjKind = (

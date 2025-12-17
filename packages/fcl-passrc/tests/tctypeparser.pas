@@ -377,6 +377,7 @@ type
     Procedure TestAdvRecordClassOperator;
     Procedure TestAdvRecordInitOperator;
     Procedure TestAdvRecordGenericFunction;
+    Procedure TestRecordAlign;
   end;
 
   { TTestProcedureTypeParser }
@@ -2809,6 +2810,21 @@ Const
     'generic class procedure TMyRecord.DoIt<T>(a: T);'+sLineBreak+
     'begin'+sLineBreak+
     'end;'+sLineBreak+
+    'begin'+sLineBreak+
+    'end.';
+begin
+  Source.Text:=Src;
+  ParseModule;   // We're just interested in that it parses.
+end;
+
+procedure TTestRecordTypeParser.TestRecordAlign;
+Const
+   SRC =
+    'program afile;'+sLineBreak+
+    'type'+sLineBreak+
+    '  TMyRecord = record'+sLineBreak+
+    '    x  : integer;'+sLineBreak+
+    '  end align 16;'+sLineBreak+
     'begin'+sLineBreak+
     'end.';
 begin

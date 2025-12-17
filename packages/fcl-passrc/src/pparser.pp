@@ -4814,6 +4814,11 @@ begin
                         (msAdvancedRecords in Scanner.CurrentModeSwitches)
                         and not (Parent is TProcedureBody)
                         and (RecordEl.Name<>''));
+       NextToken;
+       if CurTokenIsIdentifier('align') then
+         // ParseRecordAlign
+       else
+         UngetToken;
        CheckHint(RecordEl,True);
        Engine.FinishScope(stTypeDef,RecordEl);
        end;
@@ -7306,6 +7311,14 @@ begin
                  and not (Parent is TProcedureBody)
                  and (Result.Name<>'');
   ParseRecordMembers(Result,tkEnd,AllowAdvanced);
+  NextToken;
+  if CurTokenIsIdentifier('align') then
+    begin
+    ExpectToken(tkNumber);
+    Result.Align:=StrToInt(CurtokenString);
+    end
+  else
+    UngetToken;
   Engine.FinishScope(stTypeDef,Result);
 end;
 
