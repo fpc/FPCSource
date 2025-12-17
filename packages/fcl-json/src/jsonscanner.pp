@@ -525,8 +525,8 @@ begin
           Inc(Rp, CodepointToASCII(cp, Rp));
     end;
   end;
-  if not utf8 then
-    SetLength(FCurTokenString, Rp - PAnsiChar(Pointer(FCurTokenString)));
+  if utf8 then
+    SetCodePage(RawByteString(FCurTokenString), CP_UTF8, FALSE);
   FPartsBytes := -1;
 end;
 
