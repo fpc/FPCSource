@@ -46,6 +46,9 @@ interface
           procedure second_trunc_real; override;
           procedure second_round_real; override;
           procedure second_prefetch;override;
+          function pass_typecheck_cpu: tnode; override;
+          function first_cpu: tnode; override;
+          procedure pass_generate_code_cpu; override;
        protected
           procedure load_fpu_location;
           procedure second_trunc_round_real(op: tasmop);
@@ -55,6 +58,7 @@ implementation
 
     uses
       cutils,globals,verbose,globtype,
+      compinnr,
       aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       defutil,
@@ -66,6 +70,43 @@ implementation
 {*****************************************************************************
                               tgppcinlinenode
 *****************************************************************************}
+
+     function tgppcinlinenode.pass_typecheck_cpu: tnode;
+       begin
+         Result:=nil;
+         case inlinenumber of
+           in_ppc_yield:
+             resultdef:=voidtype;
+           else
+             result:=inherited;
+         end;
+       end;
+
+
+    function tgppcinlinenode.first_cpu : tnode;
+      begin
+        Result:=nil;
+        case inlinenumber of
+          in_ppc_yield:
+            begin
+              expectloc:=LOC_VOID;
+              resultdef:=voidtype;
+            end;
+          else
+            Result:=inherited first_cpu;
+        end;
+      end;
+
+
+     procedure tgppcinlinenode.pass_generate_code_cpu;
+       begin
+         case inlinenumber of
+           in_ppc_yield:
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,NR_R27,NR_R27,NR_R27));
+           else
+             inherited pass_generate_code_cpu;
+         end;
+       end;
 
     function tgppcinlinenode.first_sqrt_real : tnode;
       begin
