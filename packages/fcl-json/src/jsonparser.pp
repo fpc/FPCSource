@@ -134,23 +134,26 @@ function TJSONParser.NewValue(AValue: TJSONData): TJSONData;
 begin
   Result:=AValue;
   // Add to existing structural type
-  if (FStruct is TJSONObject) then
+  if FStruct<>nil then
     begin
-    if (Not (joIgnoreDuplicates in options)) then
-      try
-        TJSONObject(FStruct).Add(FKey,AValue);
-      except
+    if (FStruct.JSONType=jtObject) then
+      begin
+      if (Not (joIgnoreDuplicates in options)) then
+        try
+          TJSONObject(FStruct).Add(FKey,AValue);
+        except
+          AValue.Free;
+          Raise;
+        end
+      else if (TJSONObject(FStruct).IndexOfName(FKey)=-1) then
+        TJSONObject(FStruct).Add(FKey,AValue)
+      else
         AValue.Free;
-        Raise;
+      FKey:='';
       end
-    else if (TJSONObject(FStruct).IndexOfName(FKey)=-1) then
-      TJSONObject(FStruct).Add(FKey,AValue)
-    else
-      AValue.Free;
-    FKey:='';
-    end
-  else if (FStruct is TJSONArray) then
-    TJSONArray(FStruct).Add(AValue);
+    else if (FStruct.JSONType=jtArray) then
+      TJSONArray(FStruct).Add(AValue);
+    end;
   // The first actual value is our result
   if (FValue=Nil) then
     FValue:=AValue;
@@ -158,7 +161,7 @@ end;
 
 procedure TJSONParser.KeyValue(const AKey: TJSONStringType);
 begin
-  if (FStruct is TJSONObject) and (FKey='') then
+  if (FStruct<>nil) and (FStruct.JSONType=jtObject) and (FKey='') then
     FKey:=Akey
   else
     DoError('Duplicatekey or no object');
