@@ -154,7 +154,7 @@ type
     Procedure TestExpCaret;
     Procedure TestArrayAccess;
     Procedure TestHelperOnLiteral;
-
+    procedure TestSpecializedCall;
     procedure TestParseAdhocExpression;
   end;
 
@@ -698,6 +698,11 @@ begin
   Source.Add('writeln(''10''.toint);');
   Source.Add('end.');
   ParseModule;
+end;
+
+procedure TTestExpressions.TestSpecializedCall;
+begin
+  ParseExpression('TA.Resolve<IB>()');
 end;
 
 
