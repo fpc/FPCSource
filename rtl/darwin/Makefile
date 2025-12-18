@@ -5,7 +5,7 @@ default: all
 MAKEFILETARGETS=i386-darwin i386-iphonesim powerpc-darwin x86_64-darwin x86_64-iphonesim arm-ios powerpc64-darwin aarch64-darwin aarch64-iphonesim aarch64-ios
 BSDs = freebsd netbsd openbsd darwin dragonfly
 UNIXs = linux $(BSDs) solaris qnx haiku aix
-LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari human68k
+LIMIT83fs = go32v2 os2 emx watcom msdos win16 atari
 OSNeedsComspecToRunBatch = go32v2 watcom
 FORCE:
 .PHONY: FORCE
@@ -1303,9 +1303,8 @@ SHAREDLIBEXT=.so
 SHAREDLIBPREFIX=libfp
 STATICLIBPREFIX=libp
 IMPORTLIBPREFIX=libimp
-RSTEXT=.rsj
+RSTEXT=.rst
 EXEDBGEXT=.dbg
-ALL_EXEEXT=.exe
 ifeq ($(OS_TARGET),go32v1)
 STATICLIBPREFIX=
 SHORTSUFFIX=v1
@@ -1402,7 +1401,6 @@ ifeq ($(OS_TARGET),atari)
 EXEEXT=.ttp
 SHORTSUFFIX=ata
 endif
-ALL_EXEEXT+=.ttp
 ifeq ($(OS_TARGET),beos)
 BATCHEXT=.sh
 EXEEXT=
@@ -1429,7 +1427,6 @@ STATICLIBPREFIX=
 SHORTSUFFIX=nw
 IMPORTLIBPREFIX=imp
 endif
-ALL_EXEEXT+=.nlm
 ifeq ($(OS_TARGET),netwlibc)
 EXEEXT=.nlm
 STATICLIBPREFIX=
@@ -1455,7 +1452,6 @@ EXEEXT=.gba
 SHAREDLIBEXT=.so
 SHORTSUFFIX=gba
 endif
-ALL_EXEEXT+=.gba
 ifeq ($(OS_TARGET),symbian)
 SHAREDLIBEXT=.dll
 SHORTSUFFIX=symbian
@@ -1469,7 +1465,6 @@ EXEEXT=.dol
 SHAREDLIBEXT=.so
 SHORTSUFFIX=wii
 endif
-ALL_EXEEXT+=.dol
 ifeq ($(OS_TARGET),aix)
 BATCHEXT=.sh
 EXEEXT=
@@ -1512,7 +1507,6 @@ OEXT=.rel
 endif
 SHORTSUFFIX=emb
 endif
-ALL_EXEEXT+=.bin
 ifeq ($(OS_TARGET),win16)
 STATICLIBPREFIX=
 STATICLIBEXT=.a
@@ -1522,14 +1516,7 @@ endif
 ifeq ($(OS_TARGET),zxspectrum)
 OEXT=.rel
 endif
-ifeq ($(OS_TARGET),wasip1)
-EXEEXT=.wasm
-endif
-ALL_EXEEXT+=.wasm
-ifeq ($(OS_TARGET),wasip1threads)
-EXEEXT=.wasm
-endif
-ifeq ($(OS_TARGET),wasip2)
+ifeq ($(OS_TARGET),wasi)
 EXEEXT=.wasm
 endif
 ifneq ($(filter $(OS_SOURCE),$(LIMIT83fs)),)
@@ -2081,14 +2068,9 @@ ifdef INSTALL_CREATEPACKAGEFPC
 ifdef FPCMAKE
 ifdef PACKAGE_VERSION
 ifneq ($(wildcard Makefile.fpc),)
-ifdef FPCMAKENEW
-	$(MKDIR) $(INSTALL_UNITDIR)
-	$(FPCMAKENEW) -o $(INSTALL_UNITDIR)/Package.fpc -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
-else
 	$(FPCMAKE) -p -T$(CPU_TARGET)-$(OS_TARGET) Makefile.fpc
 	$(MKDIR) $(INSTALL_UNITDIR)
 	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
-endif
 endif
 endif
 endif
@@ -2131,7 +2113,6 @@ override CLEANEXEDBGFILES:=$(addprefix $(TARGETDIRPREFIX),$(CLEANEXEDBGFILES))
 endif
 ifdef CLEAN_PROGRAMS
 override CLEANEXEFILES+=$(addprefix $(TARGETDIRPREFIX),$(addsuffix $(EXEEXT), $(CLEAN_PROGRAMS)))
-override ALL_CLEANEXEFILES+=$(foreach lEXEEXT,$(ALL_EXEEXT),$(addprefix $(TARGETDIRPREFIX),$(addsuffix $(lEXEEXT), $(CLEAN_PROGRAMS))))
 override CLEANEXEDBGFILES+=$(addprefix $(TARGETDIRPREFIX),$(addsuffix $(EXEDBGEXT), $(CLEAN_PROGRAMS)))
 endif
 ifdef CLEAN_UNITS
@@ -2170,14 +2151,11 @@ ifdef LIB_NAME
 	-$(DEL) $(LIB_NAME) $(LIB_FULLNAME)
 endif
 	-$(DEL) $(FPCMADE) *$(FULL_TARGET).fpm Package.fpc *$(ASMEXT)
-	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res symbol_order*.fpc
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
 	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 fpc_cleanall: $(CLEANTARGET)
 ifdef CLEANEXEFILES
 	-$(DEL) $(CLEANEXEFILES)
-endif
-ifdef ALL_CLEANEXEFILES
-	-$(DEL) $(ALL_CLEANEXEFILES)
 endif
 ifdef COMPILER_UNITTARGETDIR
 ifdef CLEANPPUFILES
@@ -2200,8 +2178,8 @@ ifneq ($(PPUEXT),.ppu)
 	-$(DEL) *.o *.ppu *.a
 endif
 	-$(DELTREE) *$(SMARTEXT)
-	-$(DEL) fpcmade.* Package*.fpc *.fpm
-	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res symbol_order*.fpc
+	-$(DEL) fpcmade.* Package.fpc *.fpm
+	-$(DEL) $(FPCEXTFILE) $(REDIRFILE) script*.res link*.res *_script.res *_link.res
 	-$(DEL) $(PPAS) *_ppas$(BATCHEXT) ppas$(BATCHEXT) ppaslink$(BATCHEXT)
 ifdef AOUTEXT
 	-$(DEL) *$(AOUTEXT)
@@ -2616,7 +2594,7 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-ifneq ($(findstring $(ARCH),aarch64 arm powerpc powerpc64 riscv64 riscv32 i386 x86_64),)
+ifneq ($(findstring $(ARCH),aarch64 arm powerpc powerpc64 riscv64 riscv32),)
 CLASSES_DEPS_CPU:=$(CLASSES_DEPS_CPU) $(INTRINSICSUNIT)$(PPUEXT)
 endif
 CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \
