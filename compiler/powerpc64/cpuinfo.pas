@@ -34,7 +34,11 @@ type
 
   { possible supported processors for this target }
   tcputype = (cpu_none,
-    cpu_ppc970
+    cpu_power4,
+    cpu_ppc970,
+    cpu_power5,
+    cpu_power6,
+    cpu_power7
     );
 
   tfputype =
@@ -83,7 +87,11 @@ Const
     ];
 
   cputypestr: array[tcputype] of string[10] = ('',
-    '970'
+    'POWER4',
+    '970',
+    'POWER5',
+    'POWER6',
+    'POWER7'
     );
 
   fputypestr: array[tfputype] of string[8] = (
