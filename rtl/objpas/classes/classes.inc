@@ -923,6 +923,7 @@ begin
     {$ELSEIF defined(RISCV) and defined(CPURV_HAS_ZIHINTPAUSE)}
     fpc_riscv_pause;
     {$ifend}
+    {$endif FPC_USE_INTRINSICS}
     end;
 end;
 
