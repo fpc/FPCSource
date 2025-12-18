@@ -2180,6 +2180,8 @@ class function TDirectory.GetFilesAndDirectories(const aPath,
   aSearchPattern: string; const aSearchOption: TSearchOption;
   const SearchAttributes: TFileAttributes;
   const aPredicate: TFilterPredicateLocal): TStringDynArray;
+const
+   lfaDirectory = {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory;
 
   function FilterPredicate(const aPath: string; const SearchRec: TSearchRec): Boolean;
   begin
@@ -2194,14 +2196,23 @@ begin
   IntPath     :=IncludeTrailingPathDelimiter(aPath);
   Result      :=[];
   if (FindFirst(IntPath + aSearchPattern, TFile.FileAttributesToInteger(SearchAttributes), SearchRec) = 0) then
-    repeat
-      if (aSearchOption = TSearchOption.soAllDirectories) and ((SearchRec.Attr and {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.faDirectory) <> 0)
-         and (SearchRec.Name <> '.') and (SearchRec.Name <> '..') then
-        Result:=Result + GetFilesAndDirectories(IntPath + SearchRec.Name, aSearchPattern, aSearchOption, SearchAttributes, aPredicate)
-      else if FilterPredicate(aPath, SearchRec) then
-        Result:=Result + [IntPath + SearchRec.Name];
-    until FindNext(SearchRec) <> 0;
-  {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SearchRec);
+    try
+      repeat
+        if FilterPredicate(aPath, SearchRec) then
+          Result:=Result + [IntPath + SearchRec.Name];
+      until FindNext(SearchRec) <> 0;
+    finally
+      {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SearchRec);
+    end;
+  if (aSearchOption=TSearchOption.soAllDirectories) and (FindFirst(IntPath + AllFilesMask, lfaDirectory, SearchRec) = 0) then
+    try
+      repeat
+        if SearchRec.IsDirectory and not SearchRec.IsCurrentOrParentDir then
+           Result:=Result + GetFilesAndDirectories(IntPath + SearchRec.Name, aSearchPattern, aSearchOption, SearchAttributes, aPredicate)
+      until FindNext(SearchRec) <> 0;
+   Finally
+     {$IFDEF FPC_DOTTEDUNITS}System.{$ENDIF}SysUtils.FindClose(SearchRec);
+   end;
 end;
 
 class procedure TDirectory.Copy(const SourceDirName, DestDirName: string);
