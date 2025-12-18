@@ -16,9 +16,24 @@
 {$mode objfpc}
 {$h+}
 {$modeswitch advancedrecords}
-{$IF FPC_FULLVERSION>=30301}
+{$if FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
+{$ifndef CPULLVM}
+{$if DEFINED(CPUARM) or DEFINED(CPUAARCH64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{ Also set FPC_USE_INTRINSICS for i386 and x86_64 }
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
 {$endif}
 { determine the type of the resource/form file }
 {$define Win16Res}
@@ -39,11 +54,9 @@ uses
   System.FGL,
 {$endif}
   System.RtlConsts,
-{$IF FPC_FULLVERSION>=30301}
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) or defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+{$ifdef FPC_USE_INTRINSICS}
   System.Intrinsics,
-{$ENDIF}
-{$ENDIF}
+{$endif}
   System.SortBase;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -54,11 +67,9 @@ uses
   fgl,
 {$endif}
   rtlconsts,
-{$IF FPC_FULLVERSION>=30301}
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) or defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+{$ifdef FPC_USE_INTRINSICS}
   intrinsics,
-{$ENDIF}
-{$ENDIF}
+{$endif}
   sortbase;
 {$ENDIF FPC_DOTTEDUNITS}
 

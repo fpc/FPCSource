@@ -19,6 +19,21 @@
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
+{$ifndef CPULLVM}
+{$if DEFINED(CPUARM) or DEFINED(CPUAARCH64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{ Also set FPC_USE_INTRINSICS for i386 and x86_64 }
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
 {$endif}
 
 { determine the type of the resource/form file }
@@ -40,6 +55,9 @@ uses
   System.FGL,
 {$endif}
   System.TypInfo,
+{$ifdef FPC_USE_INTRINSICS}
+  System.Intrinsics,
+{$endif}
   WinApi.Windows;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -51,9 +69,9 @@ uses
   fgl,
 {$endif}
   typinfo,
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
+{$ifdef FPC_USE_INTRINSICS}
   intrinsics,
-{$ENDIF}
+{$endif}
   windows;
 {$ENDIF FPC_DOTTEDUNITS}
 

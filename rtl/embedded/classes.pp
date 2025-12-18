@@ -19,6 +19,21 @@
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
+{$ifndef CPULLVM}
+{$if DEFINED(CPUARM) or DEFINED(CPUAARCH64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{ Also set FPC_USE_INTRINSICS for i386 and x86_64 }
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
 {$endif}
 
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -36,6 +51,9 @@ uses
 {$ifdef FPC_TESTGENERICS}
   System.FGL,
 {$endif}
+{$ifdef FPC_USE_INTRINSICS}
+  System.Intrinsics,
+{$endif}
   System.TypInfo;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -46,9 +64,9 @@ uses
 {$ifdef FPC_TESTGENERICS}
   fgl,
 {$endif}
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
+{$ifdef FPC_USE_INTRINSICS}
   intrinsics,
-{$ENDIF}
+{$endif}
   typinfo;
 {$ENDIF FPC_DOTTEDUNITS}
 
