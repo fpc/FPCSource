@@ -918,6 +918,8 @@ begin
     fpc_arm_yield;
     {$ELSEIF defined(CPUAARCH64)}
     fpc_aarch64_yield;
+    {$ELSEIF defined(CPUPOWERPC64) or defined(CPUPOWERPC)}
+    fpc_ppc_yield;
     {$ELSEIF defined(RISCV) and defined(CPURV_HAS_ZIHINTPAUSE)}
     fpc_riscv_pause;
     {$ELSE}
