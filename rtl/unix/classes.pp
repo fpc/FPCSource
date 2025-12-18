@@ -39,6 +39,11 @@ uses
   System.FGL,
 {$endif}
   System.RtlConsts,
+{$IF FPC_FULLVERSION>=30301}
+{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) or defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+  System.Intrinsics,
+{$ENDIF}
+{$ENDIF}
   System.SortBase;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -49,8 +54,10 @@ uses
   fgl,
 {$endif}
   rtlconsts,
+{$IF FPC_FULLVERSION>=30301}
 {$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) or defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
   intrinsics,
+{$ENDIF}
 {$ENDIF}
   sortbase;
 {$ENDIF FPC_DOTTEDUNITS}
