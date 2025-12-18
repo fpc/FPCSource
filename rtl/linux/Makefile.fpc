@@ -107,6 +107,10 @@ ifeq ($(ARCH),aarch64)
 CPU_UNITS=$(INTRINSICSUNIT)
 endif
 
+ifeq ($(ARCH),powerpc)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
+
 ifeq ($(ARCH),powerpc64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
