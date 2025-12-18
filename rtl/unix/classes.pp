@@ -49,7 +49,7 @@ uses
   fgl,
 {$endif}
   rtlconsts,
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
+{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) or defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
   intrinsics,
 {$ENDIF}
   sortbase;
