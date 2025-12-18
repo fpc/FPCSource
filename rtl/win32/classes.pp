@@ -29,10 +29,6 @@
 {$if defined(CPURISCV32) or defined(CPURISCV64)}
    {$define FPC_USE_INTRINSICS}
 {$endif}
-{ Also set FPC_USE_INTRINSICS for i386 and x86_64 }
-{$if defined(CPURISCV32) or defined(CPURISCV64)}
-   {$define FPC_USE_INTRINSICS}
-{$endif}
 {$endif}
 {$endif}
 
@@ -74,6 +70,15 @@ uses
 {$endif}
   windows;
 {$ENDIF FPC_DOTTEDUNITS}
+
+{ Also set FPC_USE_INTRINSICS for i386 and x86_64,
+  but only after _USES clause as there
+  is not intinsics unit for those CPUs }
+{$if defined(CPUI386) or defined(CPUX86_64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+
+{$i classesh.inc}
 
 type
   TWndMethod = procedure(var msg : TMessage) of object;
