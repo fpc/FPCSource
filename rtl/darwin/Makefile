@@ -922,6 +922,12 @@ endif
 ifeq ($(ARCH),aarch64)
 CPU_UNITS=$(INTRINSICSUNIT)
 endif
+ifeq ($(ARCH),powerpc)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
+ifeq ($(ARCH),powerpc64)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
