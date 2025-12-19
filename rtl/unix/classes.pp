@@ -16,9 +16,20 @@
 {$mode objfpc}
 {$h+}
 {$modeswitch advancedrecords}
-{$IF FPC_FULLVERSION>=30301}
+{$if FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
+{$ifndef CPULLVM}
+{$if DEFINED(CPUARM) or DEFINED(CPUAARCH64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
 {$endif}
 { determine the type of the resource/form file }
 {$define Win16Res}
@@ -39,6 +50,9 @@ uses
   System.FGL,
 {$endif}
   System.RtlConsts,
+{$ifdef FPC_USE_INTRINSICS}
+  System.Intrinsics,
+{$endif}
   System.SortBase;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -49,11 +63,22 @@ uses
   fgl,
 {$endif}
   rtlconsts,
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
+{$ifdef FPC_USE_INTRINSICS}
   intrinsics,
-{$ENDIF}
+{$endif}
   sortbase;
 {$ENDIF FPC_DOTTEDUNITS}
+
+{ Also set FPC_USE_INTRINSICS for i386 and x86_64,
+  but only after _USES clause as there
+  is not intinsics unit for those CPUs }
+{$IF FPC_FULLVERSION>=30301}
+{$ifndef CPULLVM}
+{$if defined(CPUI386) or defined(CPUX86_64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
+{$endif}
 
 {$i classesh.inc}
 

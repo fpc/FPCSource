@@ -909,7 +909,7 @@ begin
     as volatile, so the access won't be optimized away by the compiler. (KB) }
   for i:=1 to aIterations do
     begin
-    {$if (FPC_FULLVERSION<30300) or defined(CPULLVM)}
+    {$ifndef FPC_USE_INTRINSICS}
     Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
     {$else}
     {$IF defined(CPUX86_64) or Defined(CPUI386)}
@@ -918,12 +918,12 @@ begin
     fpc_arm_yield;
     {$ELSEIF defined(CPUAARCH64)}
     fpc_aarch64_yield;
+    {$ELSEIF defined(CPUPOWERPC64) or defined(CPUPOWERPC)}
+    fpc_ppc_yield;
     {$ELSEIF defined(RISCV) and defined(CPURV_HAS_ZIHINTPAUSE)}
     fpc_riscv_pause;
-    {$ELSE}
-    Inc(SpinWaitDummy); // SpinWaitDummy *MUST* be global
-    {$ENDIF}
     {$ifend}
+    {$endif FPC_USE_INTRINSICS}
     end;
 end;
 

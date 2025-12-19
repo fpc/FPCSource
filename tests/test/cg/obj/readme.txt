@@ -13,7 +13,7 @@ Win32 :  2.95.3-5 (cygwin special)
 Amiga :  GCC 2.91.66
  (long long/double support is buggy in this version of GCC, so it cannot be used)
 Linux-m68k :  GCC 2.95.4 and 3.0.4
-Linux-i386 : GCC 2.95.4 20011002 (Debian prerelease)
+Linux-i386 : GCC: (GNU) 4.4.1 to GCC: (Debian 12.2.0-14+deb12u1) 12.2.0
 
 NetBSD-m68k : GCC 2.95.3 on NetBSD elf 1.6
 
@@ -57,8 +57,8 @@ android-arm-eabi : GCC: (GNU) 4.7.A*
 solaris-sparc : GCC: (GNU) 5.5.0
 linux-arm : GCC: (GNU) 2.95.1 19990816 (release)
 linux-arm-eabi : GCC: (Debian 4.3.2-1) 4.3.2
-linux-powerpc : GCC: (GNU) 2.95.4 20011002 (Debian prerelease)
-linux-powerpc64 : GCC: (GNU) 3.3.3 (SuSE Linux)
+linux-powerpc : GCC: (GNU) 4.0.0 to (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)
+linux-powerpc64 : GCC: (GNU) 3.3.3 (SuSE Linux) to (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)
 linux-powerpc64-le : GCC: (Red Hat 4.9.2-1) 4.9.2 20141101
 linux-x86_64 : GCC: (GNU) 3.3.5 (Debian 1:3.3.5-8)
 Data retrieved from Dwarf producer information:

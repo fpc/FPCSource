@@ -960,9 +960,13 @@ endif
 ifeq ($(ARCH),aarch64)
 CPU_UNITS=$(INTRINSICSUNIT)
 endif
+ifeq ($(ARCH),powerpc)
+CPU_UNITS=$(INTRINSICSUNIT)
+endif
 ifeq ($(ARCH),powerpc64)
 override LOADERS=
 SYSINIT_UNITS=si_prc si_c si_g si_dll
+CPU_UNITS=$(INTRINSICSUNIT)
 endif
 ifeq ($(ARCH),sparc64)
 override LOADERS=
@@ -3113,7 +3117,7 @@ sysutils$(PPUEXT) : $(SYSUTILS_DEPS)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $<
 System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 	$(COMPILER) $(SYSUTILS_OPT) -Fi$(OBJPASDIR)/sysutils -Fi$(SYSUTILSDIR) $<
-ifneq ($(findstring $(ARCH),aarch64 arm),)
+ifneq ($(findstring $(ARCH),aarch64 arm powerpc powerpc64 riscv64 riscv32),)
 CLASSES_DEPS_CPU:=$(CLASSES_DEPS_CPU) $(INTRINSICSUNIT)$(PPUEXT)
 endif
 CLASSES_DEPS=$(CLASSESDIR)/classes.pp $(TTHREADINCDIR)/tthread.inc $(wildcard $(OBJPASDIR)/classes/*.inc) \

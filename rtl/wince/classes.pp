@@ -19,6 +19,17 @@
 {$IF FPC_FULLVERSION>=30301}
 {$modeswitch FUNCTIONREFERENCES}
 {$define FPC_HAS_REFERENCE_PROCEDURE}
+{$ifndef CPULLVM}
+{$if DEFINED(CPUARM) or DEFINED(CPUAARCH64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$if defined(CPURISCV32) or defined(CPURISCV64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
 {$endif}
 
 
@@ -41,6 +52,9 @@ uses
   System.FGL,
 {$endif}
   System.TypInfo,
+{$ifdef FPC_USE_INTRINSICS}
+  System.Intrinsics,
+{$endif}
   WinApi.Windows;
 {$ELSE FPC_DOTTEDUNITS}
 uses
@@ -52,11 +66,22 @@ uses
   fgl,
 {$endif}
   typinfo,
-{$IF DEFINED(CPUARM) or DEFINED(CPUAARCH64) }
+{$ifdef FPC_USE_INTRINSICS}
   intrinsics,
-{$ENDIF}
+{$endif}
   windows;
 {$ENDIF FPC_DOTTEDUNITS}
+
+{ Also set FPC_USE_INTRINSICS for i386 and x86_64,
+  but only after _USES clause as there
+  is not intinsics unit for those CPUs }
+{$IF FPC_FULLVERSION>=30301}
+{$ifndef CPULLVM}
+{$if defined(CPUI386) or defined(CPUX86_64)}
+   {$define FPC_USE_INTRINSICS}
+{$endif}
+{$endif}
+{$endif}
 
 type
   TWndMethod = procedure(var msg : TMessage) of object;

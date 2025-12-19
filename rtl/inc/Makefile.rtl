@@ -1052,8 +1052,11 @@ System.SysUtils$(PPUEXT) : $(NSINC)/System.SysUtils.pp $(SYSUTILS_DEPS)
 #
 # Classes
 #
-# aarch64 and arm classes unit needs intrinsics unit
-ifneq ($(findstring $(ARCH),aarch64 arm),)
+# Add intrinsics unit dependency for all CPUs
+# which use internal CPU dependent compiler inline number
+# as we plan to externalize all such inlined CPU functions
+# into intrinsics unit
+ifneq ($(findstring $(ARCH),aarch64 arm powerpc powerpc64 riscv64 riscv32),)
 CLASSES_DEPS_CPU:=$(CLASSES_DEPS_CPU) $(INTRINSICSUNIT)$(PPUEXT)
 endif
 
