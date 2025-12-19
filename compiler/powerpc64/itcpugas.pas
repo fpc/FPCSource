@@ -94,7 +94,8 @@ const
     'mfxer',
     'fctid', 'fctid.', 'fctidz', 'fctidz.',
     'extrdi', 'extrdi.', 'insrdi', 'insrdi.',
-    'lwsync');
+    'lwsync',
+    'yield');
 
 function gas_regnum_search(const s: string): Tregister;
 function gas_regname(r: Tregister): string;
