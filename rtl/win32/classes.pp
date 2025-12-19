@@ -82,8 +82,6 @@ uses
 {$endif}
 {$endif}
 
-{$i classesh.inc}
-
 type
   TWndMethod = procedure(var msg : TMessage) of object;
 

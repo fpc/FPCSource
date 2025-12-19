@@ -1415,7 +1415,7 @@ parser_e_location_regpair_only_data=03358_E_显式位置寄存器对只支持数
 % AmigaOS/MorphOS 系统调用特定：对于 64 位寄存器对，只支持数据寄存器
 parser_e_location_regpair_only_consecutive=03359_E_显式位置寄存器对只支持连续寄存器
 % MorphOS 系统调用特定：64 位寄存器对只支持连续(例如：d1-d2)寄存器
-parser_e_constructurs_cannot_take_type_parameters=03360_E_构造函数不能接受类型参数
+parser_e_constructors_cannot_take_type_parameters=03360_E_构造函数不能接受类型参数
 % 不允许在构造函数中使用类型参数。
 parser_e_raise_with_noreturn_not_allowed=03361_E_在声明为 noreturn 的子程序中不允许 raise
 % \var{noreturn} 告诉编译器子程序的激活范围永远不会离开。这包括异常、

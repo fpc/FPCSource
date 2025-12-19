@@ -1698,7 +1698,7 @@ parser_e_location_regpair_only_data=03358_E_Nur Daten-Register werden fÅr expliz
 % AmigaOS/MorphOS syscall specific: for 64 bit register pairs, only data registers are supported
 parser_e_location_regpair_only_consecutive=03359_E_Nur aufeinander folgende Register werden fÅr explizite "location" Registerpaare unterstÅtzt
 % MorphOS syscall specific: only consecutive (f.e.: d1-d2) registers are supported for 64 bit register pairs
-parser_e_constructurs_cannot_take_type_parameters=03360_E_Konstruktoren kînnen keine Type-Parameter Åbernehmen
+parser_e_constructors_cannot_take_type_parameters=03360_E_Konstruktoren kînnen keine Type-Parameter Åbernehmen
 % The use of type parameters in constructors is not allowed.
 parser_e_raise_with_noreturn_not_allowed=03361_E_Deklaration von Raise in einer Subroutine als noreturn ist nicht erlaubt
 % \var{noreturn} tells the compiler that the activation scope of the subroutine is never left. This includes exceptions

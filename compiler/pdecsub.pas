@@ -1183,7 +1183,7 @@ implementation
           begin
             if potype=potype_constructor then
               begin
-                Message(parser_e_constructurs_cannot_take_type_parameters);
+                Message(parser_e_constructors_cannot_take_type_parameters);
                 genericparams.free;
                 genericparams:=nil;
               end
