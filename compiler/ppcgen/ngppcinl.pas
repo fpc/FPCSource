@@ -102,9 +102,11 @@ implementation
        begin
          case inlinenumber of
            in_ppc_yield:
+{$ifdef powerpc64}
              if current_settings.cputype >= cpu_power7 then
                current_asmdata.CurrAsmList.concat(taicpu.op_none(A_YIELD))
              else
+{$endif powerpc64}
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR,NR_R27,NR_R27,NR_R27));
            else
              inherited pass_generate_code_cpu;
