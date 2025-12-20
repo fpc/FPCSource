@@ -228,6 +228,7 @@ type
     class function GetRingtonesPath: string; static;
     class function GetSharedRingtonesPath: string; static;
     class function GetTemplatesPath: string;
+    class function Exists(const aPath: string; aFollowLink: Boolean = True): Boolean; static;
     class function GetAttributes(const aPath: string; aFollowLink: Boolean = True): TFileAttributes; static;
     class procedure SetAttributes(const aPath: string; const aAttributes: TFileAttributes); static;
     class function HasExtension(const aPath: string): Boolean; static;
@@ -1511,6 +1512,11 @@ begin
   {$ENDIF}
 {$EndIf}
 
+end;
+
+class function TPath.Exists(const aPath: string; aFollowLink: Boolean): Boolean;
+begin
+  Result:=TDirectory.Exists(aPath, aFollowLink) and TFile.Exists(aPath, aFollowLink);
 end;
 
 class function TPath.GetAttributes(const aPath: string; aFollowLink: Boolean
