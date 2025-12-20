@@ -224,7 +224,7 @@ uses cutils, cclasses;
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadsymbol(0,_op3,_op3ofs);
+         loadsymbol(2,_op3,_op3ofs);
       end;
 
      constructor taicpu.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
@@ -290,9 +290,9 @@ uses cutils, cclasses;
          inherited create(op);
          ops:=4;
          loadreg(0,_op1);
-         loadbool(0,_op2);
-         loadreg(0,_op3);
-         loadconst(0,cardinal(_op4));
+         loadbool(1,_op2);
+         loadreg(2,_op3);
+         loadconst(3,cardinal(_op4));
       end;
 
      constructor taicpu.op_reg_reg_reg_const(op : tasmop; _op1, _op2, _op3 : tregister; _op4 : aint);
