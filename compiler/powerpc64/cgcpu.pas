@@ -1435,6 +1435,24 @@ begin
 
   ref2 := ref;
   fixref(list, ref2);
+
+  { ELFv2 PIC: never materialize absolute symbol addresses.
+    Must load via TOC (r2), otherwise we emit illegal
+    R_PPC64_ADDR16_* relocations in shared objects. }
+  if (cs_create_pic in current_settings.moduleswitches) and
+     (target_info.abi = abi_powerpc_elfv2) and
+     assigned(ref2.symbol) then
+    begin
+      reference_reset(tmpref, ref2.alignment, ref2.volatility);
+      tmpref.symbol := ref2.symbol;
+      tmpref.offset := ref2.offset;
+      tmpref.base   := NR_RTOC;
+      tmpref.refaddr := addr_no;
+
+      a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, r);
+      exit;
+    end;
+
   { load a symbol }
   if (assigned(ref2.symbol) or (hasLargeOffset(ref2))) then begin
     { add the symbol's value to the base of the reference, and if the }
@@ -1736,6 +1754,19 @@ begin
   if (ref.index <> NR_NO) and ((ref.offset <> 0) or (assigned(ref.symbol))) then
     internalerror(200310131);
 
+  { ELFv2 PIC: symbol accesses must be TOC-relative.
+    Absolute address construction here produces forbidden
+    R_PPC64_ADDR16_* relocations in shared libraries. }
+  if (cs_create_pic in current_settings.moduleswitches) and
+     (target_info.abi = abi_powerpc_elfv2) and
+     assigned(ref.symbol) then
+    begin
+      ref.base := NR_RTOC;
+      ref.refaddr := addr_no;
+      list.concat(taicpu.op_reg_ref(op, reg, ref));
+      exit;
+    end;
+
   { if this is a PIC'ed address, handle it and exit }
   if (ref.refaddr in [addr_pic,addr_pic_no_got]) then begin
     if (ref.offset <> 0) then
@@ -1827,15 +1858,17 @@ begin
       end;
       list.concat(taicpu.op_reg_ref(op, reg, tmpref));
     end else begin
-      { when accessing value from a reference without a base register, use the
-        following code template:
+	  { ELFv2 PIC: load via TOC, never materialize absolute addresses }
+	  if (cs_create_pic in current_settings.moduleswitches) and
+		 (target_info.abi = abi_powerpc_elfv2) then
+		begin
+		  tmpref.base := NR_RTOC;
+          tmpref.refaddr := addr_no;
+          list.concat(taicpu.op_reg_ref(op, reg, tmpref));
+        exit;
+        end;
 
-        lis rT,SYM+offs@highesta
-        ori rT,SYM+offs@highera
-        sldi rT,rT,32
-        oris rT,rT,SYM+offs@ha
-        ld rD,SYM+offs@l(rT)
-      }
+      { NON-PIC fallback (static / non-shared only) }
       tmpref.refaddr := addr_highesta;
       list.concat(taicpu.op_reg_ref(A_LIS, tmpreg, tmpref));
       tmpref.refaddr := addr_highera;

@@ -244,7 +244,12 @@ asm
   ld r4, retaddress
   li r3, -1
   mtlr r4
+<<<<<<< HEAD
 .LDone
 end;
 
 
+=======
+.LDone:
+end;
+>>>>>>> f9fc27c694 (Update freebsd/powerpc64 startup files)

@@ -547,9 +547,10 @@ implemented
         { general rule: aggregate data is aligned in the most significant bits
           except for ELFv1 c) and Darwin a) }
         if (target_info.endian=endian_big) and
-           ((target_info.abi in [abi_powerpc_aix,abi_powerpc_elfv2]) or
-            ((target_info.abi=abi_powerpc_sysv) and
-             (paralen>8)) or
+           (((target_info.abi in [abi_powerpc_aix,abi_powerpc_elfv2])
+              and (target_info.system <> system_powerpc64_freebsd)) or
+            (((target_info.abi=abi_powerpc_sysv) or (target_info.system=system_powerpc64_freebsd))
+              and (paralen>8)) or
             ((target_info.abi=abi_powerpc_darwin) and
              not(paralen in [1,2,4]))) then
           tailpadding:=true

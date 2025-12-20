@@ -753,10 +753,10 @@ initialization
 {$endif powerpc}
 {$ifdef powerpc64}
  {$ifdef freebsd}
- 	{$ifdef powerpc64le}
-   		system_powerpc64_freebsd_info.endian:=endian_little;
-	 {$else}
+ 	{$ifdef powerpc64}
    		system_powerpc64_freebsd_info.endian:=endian_big;
+	 {$else}
+   		system_powerpc64_freebsd_info.endian:=endian_little;
   	{$endif powerpc64le}
   system_powerpc64_freebsd_info.abi:=abi_powerpc_elfv2;
  {$endif freebsd}

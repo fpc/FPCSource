@@ -5898,8 +5898,7 @@ begin
      if (target_info.abi=abi_powerpc_elfv2) and
          (target_info.endian=endian_big) then
         target_info.abi:=abi_powerpc_sysv;
-	if (target_info.system=system_powerpc64_freebsd) and
-         (target_info.endian=endian_big) then
+    if (target_info.system=system_powerpc64_freebsd)  then
         target_info.abi:=abi_powerpc_elfv2;
     end;
 {$endif}

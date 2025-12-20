@@ -5,16 +5,6 @@
         .machine        power8
         .abiversion     2
 
-/* --- helpers ------------------------------------------------------------ */
-
-.macro LOAD_64BIT_VAL ra, value
-    lis       \ra,\value@highest
-    ori       \ra,\ra,\value@higher
-    sldi      \ra,\ra,32
-    oris      \ra,\ra,\value@h
-    ori       \ra,\ra,\value@l
-.endm
-
 /* ELFv2: no function descriptors; establish TOC from r12 at entry */
 .macro FUNCTION_PROLOG fn
     .text
@@ -25,6 +15,16 @@
     addis     2,12,.TOC.-\fn@ha
     addi      2,2,.TOC.-\fn@l
     .localentry \fn, .-\fn
+.endm
+
+/* Load the *address* of a data symbol via TOC (large-TOC safe).
+ * Canonical sequence:
+ *   addis  ra,2,sym@toc@ha
+ *   ld     ra,sym@toc@l(ra)
+ */
+.macro LOAD_TOC_ADDR ra, sym
+    addis   \ra,2,\sym@toc@ha
+    ld      \ra,\sym@toc@l(\ra)
 .endm
 
 /* --- code --------------------------------------------------------------- */
@@ -38,26 +38,23 @@
 FUNCTION_PROLOG FPC_SHARED_LIB_START
     /* standard small frame */
     mflr    0
+    mr      9,1
     stdu    1,-144(1)
     std     0,16(1)
 
     /* store argc/argv/envp to RTL slots */
-    addis   10,2,operatingsystem_parameter_argc@toc@ha
-    addi    10,10,operatingsystem_parameter_argc@toc@l
+    LOAD_TOC_ADDR 10, operatingsystem_parameter_argc
     stw     3,0(10)
 
-    addis   10,2,operatingsystem_parameter_argv@toc@ha
-    addi    10,10,operatingsystem_parameter_argv@toc@l
+    LOAD_TOC_ADDR 10, operatingsystem_parameter_argv
     std     4,0(10)
 
-    addis   10,2,operatingsystem_parameter_envp@toc@ha
-    addi    10,10,operatingsystem_parameter_envp@toc@l
+    LOAD_TOC_ADDR 10, operatingsystem_parameter_envp
     std     5,0(10)
 
     /* stash initial SP */
-    addis   8,2,__stkptr@toc@ha
-    addi    8,8,__stkptr@toc@l
-    std     1,0(8)
+    LOAD_TOC_ADDR 8, __stkptr
+    std     9,0(8)
 
     /* call library initialization */
     bl      PASCALMAIN
@@ -74,12 +71,19 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
  * Called when the RTL in the shared library performs halt().
  * FreeBSD: no exit_group; just exit(status).
  */
-FUNCTION_PROLOG _haltproc
-    /* r3 = operatingsystem_result */
-    addis   3,2,operatingsystem_result@toc@ha
-    addi    3,3,operatingsystem_result@toc@l
+        .text
+        .align  4
+        .globl  _haltproc
+        .type   _haltproc, @function
+_haltproc:
+        .localentry _haltproc, 0
+    /* r12 = &operatingsystem_result via GOT (large-range safe) */
+	addis	12,2,operatingsystem_result@got@ha
+	ld		12,operatingsystem_result@got@l(12)
+	
     lwz     3,0(3)
-    bl      exit
+    li      0,1       /* syscall: exit */
+    sc
     nop
     /* should not return */
     trap
@@ -94,6 +98,7 @@ __data_start:
 data_start:
 
         .section ".bss"
+        .p2align 3
 
         .type   __stkptr, @object
         .size   __stkptr, 8
@@ -104,12 +109,12 @@ __stkptr:
         .type   operatingsystem_parameters, @object
         .size   operatingsystem_parameters, 24
 operatingsystem_parameters:
-        .skip   3*8
-
-        .globl  operatingsystem_parameter_argc
-        .globl  operatingsystem_parameter_argv
-        .globl  operatingsystem_parameter_envp
-        .set    operatingsystem_parameter_argc, operatingsystem_parameters+0
-        .set    operatingsystem_parameter_argv, operatingsystem_parameters+8
-        .set    operatingsystem_parameter_envp, operatingsystem_parameters+16
-
+		.globl operatingsystem_parameter_argc
+operatingsystem_parameter_argc:
+		.skip 8
+		.globl operatingsystem_parameter_argv
+operatingsystem_parameter_argv:
+		.skip 8
+		.globl operatingsystem_parameter_envp
+operatingsystem_parameter_envp:
+		.skip 8

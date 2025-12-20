@@ -20,7 +20,10 @@ var
   res: word;
 
 begin
-  res := 0;
+  res:=0;
+
+  { exception flags are turned off by kernel }
+  SysResetFPU;
   case sig of
     SIGFPE:
       begin
@@ -36,14 +39,15 @@ begin
         end;
         sysResetFPU;               { reset FPSCR on PowerPC64 }
       end;
+    SIGBUS :
+      res:=214;
     SIGILL,
-    SIGBUS,
-    SIGSEGV:
-      res := 216;
+    SIGSEGV :
+      res:=216;
     SIGINT:
-      res := 217;
+        res:=217;
     SIGQUIT:
-      res := 233;
+        res:=233;
   end;
 
   {$ifdef FPC_USE_SIGPROCMASK}
@@ -52,6 +56,8 @@ begin
 
   { give runtime error at the position where the signal was raised }
   if res <> 0 then
+    begin
     HandleError(res);
+    end;
 end;
 

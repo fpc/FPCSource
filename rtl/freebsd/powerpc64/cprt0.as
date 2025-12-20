@@ -3,6 +3,13 @@
         .machine        power8
         .abiversion     2
 
+        /* FreeBSD/ppc64: avoid @toc@ha/@toc@l relocations (not supported by some assemblers).
+           Use full 64-bit absolute address materialization for data symbols. */
+        .macro  LOAD_64BIT_ADDR ra, sym
+		addis     \ra,2,\sym@toc@ha
+		ld        \ra,\sym@toc@l(\ra)
+        .endm
+
         .section .rodata
 .LC0:
         .asciz  ""
@@ -15,8 +22,8 @@
 __progname:
         .quad   .LC0
 
+        /* Provided by startup on FreeBSD */
 		.comm	environ,8,8
-        # libc provides 'environ'
         .globl  environ
         .type   environ, @object
 
@@ -45,28 +52,25 @@ _start:
         addi    2,2,.TOC.-_start@l
         .localentry _start, .-_start
 
-        # Minimal frame (not strictly needed, but harmless)
+        # Minimal frame (save LR correctly if we create a frame)
         stdu    1,-32(1)
+        mflr    0
         std     0,16(1)
 
         # r3=argc, r4=argv, r5=envp (ELFv2 entry convention)
 
-        # Store argc (32-bit) / argv / envp into your globals (TOC-relative)
-        addis   9,2,operatingsystem_parameter_argc@toc@ha
-        addi    9,9,operatingsystem_parameter_argc@toc@l
+        # Store argc (32-bit) / argv / envp into your globals (absolute 64-bit addr)
+        LOAD_64BIT_ADDR 9, operatingsystem_parameter_argc
         stw     3,0(9)
 
-        addis   10,2,operatingsystem_parameter_argv@toc@ha
-        addi    10,10,operatingsystem_parameter_argv@toc@l
+        LOAD_64BIT_ADDR 10, operatingsystem_parameter_argv
         std     4,0(10)
 
-        addis   11,2,operatingsystem_parameter_envp@toc@ha
-        addi    11,11,operatingsystem_parameter_envp@toc@l
+        LOAD_64BIT_ADDR 11, operatingsystem_parameter_envp
         std     5,0(11)
 
         # environ = envp
-        addis   12,2,environ@toc@ha
-        addi    12,12,environ@toc@l
+        LOAD_64BIT_ADDR 12, environ
         std     5,0(12)
 
         # if (argc > 0 && argv[0] != NULL) { __progname = argv[0]; scan for last '/' }
@@ -78,8 +82,7 @@ _start:
         beq     1f
 
         # __progname = argv[0]
-        addis   7,2,__progname@toc@ha
-        addi    7,7,__progname@toc@l
+        LOAD_64BIT_ADDR 7, __progname
         std     6,0(7)
 
         # Scan for last '/' to set __progname past it
@@ -101,9 +104,9 @@ _start:
         nop
 
         # exit(main_ret)
-        mr      3,3
-        bl      exit
-        nop
+    	lwz     3,0(3)    /* r3 = exit code */
+    	li      0,1       /* syscall: exit */
+    	sc
 
         # Should not return; just in case, trap.
         trap
