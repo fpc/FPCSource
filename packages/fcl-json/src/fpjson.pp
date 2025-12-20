@@ -3732,6 +3732,7 @@ begin
         vtPChar      : AName:=TJSONUnicodeStringType(StrPas(VPChar));
       else
         DoError(SErrNameMustBeString,[I+1]);
+        AName:='';
       end;
     {$ENDIF}
     If (AName='') then

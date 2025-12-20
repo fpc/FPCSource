@@ -313,6 +313,7 @@ begin
       end;
     else
       InvalidCharacter(Sp);
+      Result := tkEOF;
   end;
   FPartsSrcPos := Start; // BuildCurTokenString uses it to read relative offsets from FParts.
   FCurPos := Sp;
