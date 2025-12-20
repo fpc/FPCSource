@@ -543,6 +543,8 @@ const
   SimpleEscapes_Spell: array[0 .. 8] of ansichar = 'tbnrf"''\/'; // Symbols starting from length(SimpleEscapes_Meant) are mapped to themselves.
   SimpleEscapes_Meant: array[0 .. 4] of ansichar = #9#8#10#13#12;
 var
+  utf8: boolean;
+  onepiece: boolean;
   StartChar: AnsiChar;
   LiteralStart: PAnsiChar;
   iEsc: SizeInt;
@@ -552,6 +554,7 @@ begin
   if (StartChar = '''') and (joStrict in Options) then
     InvalidCharacter(Sp);
   LiteralStart := Sp + 1;
+  onepiece := true;
   repeat
     Inc(Sp);
     // Fast test for irregularities instead of jumping through several 'if's each time.
@@ -564,7 +567,7 @@ begin
 
     if Sp^ = '\' then
     begin
-      AddPiece(LiteralStart, Sp);
+      onepiece := false;
       if Sp[1] = 'u' then
       begin
         Sp := ScanHex(Sp + 2, u);
@@ -612,7 +615,17 @@ begin
       else if Sp^ in [#13, #10] then
         Sp := ScanNewline(Sp) - 1; // Account for newlines when not joStrict.
   until false;
-  AddPiece(LiteralStart, Sp);
+  if not onepiece then
+    AddPiece(LiteralStart, Sp)
+  else
+    begin
+      SetLength(FCurTokenString, Sp-LiteralStart);
+      Move(LiteralStart^, PAnsiChar(Pointer(FCurTokenString))^, Sp-LiteralStart);
+      utf8 := (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8);
+      if utf8 then
+          SetCodePage(RawByteString(FCurTokenString), CP_UTF8, FALSE);
+      FPartsBytes := -1;
+    end;
   Result := Sp + 1;
 end;
 
