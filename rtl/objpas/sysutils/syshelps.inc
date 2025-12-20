@@ -419,12 +419,7 @@ begin
     end;
 end;
 
-function TStringHelper.Contains(const AValue: TStringType): Boolean; overload;
-begin
-    Result:=Pos(AValue,Self)>0;
-end;
-
-function TStringHelper.Contains(const AValue: TStringType; IgnoreCase: Boolean): Boolean; overload;
+function TStringHelper.Contains(const AValue: TStringType; IgnoreCase: Boolean = False): Boolean; 
 begin
   if IgnoreCase then
     Result:=Pos(LowerCase(AValue),LowerCase(Self))>0
