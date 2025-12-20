@@ -419,14 +419,18 @@ begin
     end;
 end;
 
-function TStringHelper.Contains(const AValue: TStringType; IgnoreCase: Boolean): Boolean;
+function TStringHelper.Contains(const AValue: TStringType): Boolean; overload;
+begin
+    Result:=Pos(AValue,Self)>0;
+end;
+
+function TStringHelper.Contains(const AValue: TStringType; IgnoreCase: Boolean): Boolean; overload;
 begin
   if IgnoreCase then
     Result:=Pos(LowerCase(AValue),LowerCase(Self))>0
   else
     Result:=Pos(AValue,Self)>0;
 end;
-
 
 function TStringHelper.CountChar(const C: TStringChar): SizeInt;
 
