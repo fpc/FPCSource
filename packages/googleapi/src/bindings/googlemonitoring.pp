@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TCreateCollectdTimeSeriesRequest = Class;
   TMonitoredResource = Class;
@@ -94,11 +94,11 @@ type
   TTypeTypefieldsArray = Array of TField;
   TTypeTypeoptionsArray = Array of TOption;
   TFieldTypeoptionsArray = Array of TOption;
-  
+
   { --------------------------------------------------------------------
     TCreateCollectdTimeSeriesRequest
     --------------------------------------------------------------------}
-  
+
   TCreateCollectdTimeSeriesRequest = Class(TGoogleBaseObject)
   Private
     Fresource : TMonitoredResource;
@@ -120,11 +120,11 @@ type
     Property collectdPayloads : TCreateCollectdTimeSeriesRequestTypecollectdPayloadsArray Index 16 Read FcollectdPayloads Write SetcollectdPayloads;
   end;
   TCreateCollectdTimeSeriesRequestClass = Class of TCreateCollectdTimeSeriesRequest;
-  
+
   { --------------------------------------------------------------------
     TMonitoredResourceTypelabels
     --------------------------------------------------------------------}
-  
+
   TMonitoredResourceTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -134,11 +134,11 @@ type
   Published
   end;
   TMonitoredResourceTypelabelsClass = Class of TMonitoredResourceTypelabels;
-  
+
   { --------------------------------------------------------------------
     TMonitoredResource
     --------------------------------------------------------------------}
-  
+
   TMonitoredResource = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -154,11 +154,11 @@ type
     Property labels : TMonitoredResourceTypelabels Index 8 Read Flabels Write Setlabels;
   end;
   TMonitoredResourceClass = Class of TMonitoredResource;
-  
+
   { --------------------------------------------------------------------
     TCollectdPayloadTypemetadata
     --------------------------------------------------------------------}
-  
+
   TCollectdPayloadTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -168,11 +168,11 @@ type
   Published
   end;
   TCollectdPayloadTypemetadataClass = Class of TCollectdPayloadTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TCollectdPayload
     --------------------------------------------------------------------}
-  
+
   TCollectdPayload = Class(TGoogleBaseObject)
   Private
     Fvalues : TCollectdPayloadTypevaluesArray;
@@ -210,11 +210,11 @@ type
     Property metadata : TCollectdPayloadTypemetadata Index 56 Read Fmetadata Write Setmetadata;
   end;
   TCollectdPayloadClass = Class of TCollectdPayload;
-  
+
   { --------------------------------------------------------------------
     TCollectdValue
     --------------------------------------------------------------------}
-  
+
   TCollectdValue = Class(TGoogleBaseObject)
   Private
     FdataSourceName : String;
@@ -232,11 +232,11 @@ type
     Property value : TTypedValue Index 16 Read Fvalue Write Setvalue;
   end;
   TCollectdValueClass = Class of TCollectdValue;
-  
+
   { --------------------------------------------------------------------
     TTypedValue
     --------------------------------------------------------------------}
-  
+
   TTypedValue = Class(TGoogleBaseObject)
   Private
     FboolValue : boolean;
@@ -260,11 +260,11 @@ type
     Property distributionValue : TDistribution Index 32 Read FdistributionValue Write SetdistributionValue;
   end;
   TTypedValueClass = Class of TTypedValue;
-  
+
   { --------------------------------------------------------------------
     TDistribution
     --------------------------------------------------------------------}
-  
+
   TDistribution = Class(TGoogleBaseObject)
   Private
     Fcount : String;
@@ -295,11 +295,11 @@ type
     Property bucketCounts : TStringArray Index 40 Read FbucketCounts Write SetbucketCounts;
   end;
   TDistributionClass = Class of TDistribution;
-  
+
   { --------------------------------------------------------------------
     TRange
     --------------------------------------------------------------------}
-  
+
   TRange = Class(TGoogleBaseObject)
   Private
     Fmin : double;
@@ -314,11 +314,11 @@ type
     Property max : double Index 8 Read Fmax Write Setmax;
   end;
   TRangeClass = Class of TRange;
-  
+
   { --------------------------------------------------------------------
     TBucketOptions
     --------------------------------------------------------------------}
-  
+
   TBucketOptions = Class(TGoogleBaseObject)
   Private
     FlinearBuckets : TLinear;
@@ -336,11 +336,11 @@ type
     Property explicitBuckets : TExplicit Index 16 Read FexplicitBuckets Write SetexplicitBuckets;
   end;
   TBucketOptionsClass = Class of TBucketOptions;
-  
+
   { --------------------------------------------------------------------
     TLinear
     --------------------------------------------------------------------}
-  
+
   TLinear = Class(TGoogleBaseObject)
   Private
     FnumFiniteBuckets : integer;
@@ -358,11 +358,11 @@ type
     Property offset : double Index 16 Read Foffset Write Setoffset;
   end;
   TLinearClass = Class of TLinear;
-  
+
   { --------------------------------------------------------------------
     TExponential
     --------------------------------------------------------------------}
-  
+
   TExponential = Class(TGoogleBaseObject)
   Private
     FnumFiniteBuckets : integer;
@@ -380,11 +380,11 @@ type
     Property scale : double Index 16 Read Fscale Write Setscale;
   end;
   TExponentialClass = Class of TExponential;
-  
+
   { --------------------------------------------------------------------
     TExplicit
     --------------------------------------------------------------------}
-  
+
   TExplicit = Class(TGoogleBaseObject)
   Private
     Fbounds : TdoubleArray;
@@ -400,11 +400,11 @@ type
     Property bounds : TdoubleArray Index 0 Read Fbounds Write Setbounds;
   end;
   TExplicitClass = Class of TExplicit;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -413,11 +413,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TListGroupsResponse
     --------------------------------------------------------------------}
-  
+
   TListGroupsResponse = Class(TGoogleBaseObject)
   Private
     Fgroup : TListGroupsResponseTypegroupArray;
@@ -436,11 +436,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListGroupsResponseClass = Class of TListGroupsResponse;
-  
+
   { --------------------------------------------------------------------
     TGroup
     --------------------------------------------------------------------}
-  
+
   TGroup = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -464,11 +464,11 @@ type
     Property isCluster : boolean Index 32 Read FisCluster Write SetisCluster;
   end;
   TGroupClass = Class of TGroup;
-  
+
   { --------------------------------------------------------------------
     TListGroupMembersResponse
     --------------------------------------------------------------------}
-  
+
   TListGroupMembersResponse = Class(TGoogleBaseObject)
   Private
     Fmembers : TListGroupMembersResponseTypemembersArray;
@@ -490,11 +490,11 @@ type
     Property totalSize : integer Index 16 Read FtotalSize Write SettotalSize;
   end;
   TListGroupMembersResponseClass = Class of TListGroupMembersResponse;
-  
+
   { --------------------------------------------------------------------
     TListMonitoredResourceDescriptorsResponse
     --------------------------------------------------------------------}
-  
+
   TListMonitoredResourceDescriptorsResponse = Class(TGoogleBaseObject)
   Private
     FresourceDescriptors : TListMonitoredResourceDescriptorsResponseTyperesourceDescriptorsArray;
@@ -513,11 +513,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListMonitoredResourceDescriptorsResponseClass = Class of TListMonitoredResourceDescriptorsResponse;
-  
+
   { --------------------------------------------------------------------
     TMonitoredResourceDescriptor
     --------------------------------------------------------------------}
-  
+
   TMonitoredResourceDescriptor = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -546,11 +546,11 @@ type
     Property labels : TMonitoredResourceDescriptorTypelabelsArray Index 32 Read Flabels Write Setlabels;
   end;
   TMonitoredResourceDescriptorClass = Class of TMonitoredResourceDescriptor;
-  
+
   { --------------------------------------------------------------------
     TLabelDescriptor
     --------------------------------------------------------------------}
-  
+
   TLabelDescriptor = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -568,11 +568,11 @@ type
     Property description : String Index 16 Read Fdescription Write Setdescription;
   end;
   TLabelDescriptorClass = Class of TLabelDescriptor;
-  
+
   { --------------------------------------------------------------------
     TListMetricDescriptorsResponse
     --------------------------------------------------------------------}
-  
+
   TListMetricDescriptorsResponse = Class(TGoogleBaseObject)
   Private
     FmetricDescriptors : TListMetricDescriptorsResponseTypemetricDescriptorsArray;
@@ -591,11 +591,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListMetricDescriptorsResponseClass = Class of TListMetricDescriptorsResponse;
-  
+
   { --------------------------------------------------------------------
     TMetricDescriptor
     --------------------------------------------------------------------}
-  
+
   TMetricDescriptor = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -633,11 +633,11 @@ type
     Property displayName : String Index 56 Read FdisplayName Write SetdisplayName;
   end;
   TMetricDescriptorClass = Class of TMetricDescriptor;
-  
+
   { --------------------------------------------------------------------
     TListTimeSeriesResponse
     --------------------------------------------------------------------}
-  
+
   TListTimeSeriesResponse = Class(TGoogleBaseObject)
   Private
     FtimeSeries : TListTimeSeriesResponseTypetimeSeriesArray;
@@ -656,11 +656,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListTimeSeriesResponseClass = Class of TListTimeSeriesResponse;
-  
+
   { --------------------------------------------------------------------
     TTimeSeries
     --------------------------------------------------------------------}
-  
+
   TTimeSeries = Class(TGoogleBaseObject)
   Private
     Fmetric : TMetric;
@@ -688,11 +688,11 @@ type
     Property points : TTimeSeriesTypepointsArray Index 32 Read Fpoints Write Setpoints;
   end;
   TTimeSeriesClass = Class of TTimeSeries;
-  
+
   { --------------------------------------------------------------------
     TMetricTypelabels
     --------------------------------------------------------------------}
-  
+
   TMetricTypelabels = Class(TGoogleBaseObject)
   Private
   Protected
@@ -702,11 +702,11 @@ type
   Published
   end;
   TMetricTypelabelsClass = Class of TMetricTypelabels;
-  
+
   { --------------------------------------------------------------------
     TMetric
     --------------------------------------------------------------------}
-  
+
   TMetric = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -722,11 +722,11 @@ type
     Property labels : TMetricTypelabels Index 8 Read Flabels Write Setlabels;
   end;
   TMetricClass = Class of TMetric;
-  
+
   { --------------------------------------------------------------------
     TPoint
     --------------------------------------------------------------------}
-  
+
   TPoint = Class(TGoogleBaseObject)
   Private
     Finterval : TTimeInterval;
@@ -741,11 +741,11 @@ type
     Property value : TTypedValue Index 8 Read Fvalue Write Setvalue;
   end;
   TPointClass = Class of TPoint;
-  
+
   { --------------------------------------------------------------------
     TTimeInterval
     --------------------------------------------------------------------}
-  
+
   TTimeInterval = Class(TGoogleBaseObject)
   Private
     FendTime : String;
@@ -760,11 +760,11 @@ type
     Property startTime : String Index 8 Read FstartTime Write SetstartTime;
   end;
   TTimeIntervalClass = Class of TTimeInterval;
-  
+
   { --------------------------------------------------------------------
     TCreateTimeSeriesRequest
     --------------------------------------------------------------------}
-  
+
   TCreateTimeSeriesRequest = Class(TGoogleBaseObject)
   Private
     FtimeSeries : TCreateTimeSeriesRequestTypetimeSeriesArray;
@@ -780,11 +780,11 @@ type
     Property timeSeries : TCreateTimeSeriesRequestTypetimeSeriesArray Index 0 Read FtimeSeries Write SettimeSeries;
   end;
   TCreateTimeSeriesRequestClass = Class of TCreateTimeSeriesRequest;
-  
+
   { --------------------------------------------------------------------
     TType
     --------------------------------------------------------------------}
-  
+
   TType = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -815,11 +815,11 @@ type
     Property syntax : String Index 40 Read Fsyntax Write Setsyntax;
   end;
   TTypeClass = Class of TType;
-  
+
   { --------------------------------------------------------------------
     TField
     --------------------------------------------------------------------}
-  
+
   TField = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -863,11 +863,11 @@ type
     Property defaultValue : String Index 72 Read FdefaultValue Write SetdefaultValue;
   end;
   TFieldClass = Class of TField;
-  
+
   { --------------------------------------------------------------------
     TOptionTypevalue
     --------------------------------------------------------------------}
-  
+
   TOptionTypevalue = Class(TGoogleBaseObject)
   Private
   Protected
@@ -877,11 +877,11 @@ type
   Published
   end;
   TOptionTypevalueClass = Class of TOptionTypevalue;
-  
+
   { --------------------------------------------------------------------
     TOption
     --------------------------------------------------------------------}
-  
+
   TOption = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -896,11 +896,11 @@ type
     Property value : TOptionTypevalue Index 8 Read Fvalue Write Setvalue;
   end;
   TOptionClass = Class of TOption;
-  
+
   { --------------------------------------------------------------------
     TSourceContext
     --------------------------------------------------------------------}
-  
+
   TSourceContext = Class(TGoogleBaseObject)
   Private
     FfileName : String;
@@ -912,26 +912,26 @@ type
     Property fileName : String Index 0 Read FfileName Write SetfileName;
   end;
   TSourceContextClass = Class of TSourceContext;
-  
+
   { --------------------------------------------------------------------
     TProjectsCollectdTimeSeriesResource
     --------------------------------------------------------------------}
-  
+
   TProjectsCollectdTimeSeriesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Create(_name: string; aCreateCollectdTimeSeriesRequest : TCreateCollectdTimeSeriesRequest) : TEmpty;overload;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsGroupsMembersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsGroupsMembersResource, method List
-  
+
   TProjectsGroupsMembersListOptions = Record
     pageSize : integer;
     pageToken : String;
@@ -939,7 +939,7 @@ type
     intervalendTime : String;
     intervalstartTime : String;
   end;
-  
+
   TProjectsGroupsMembersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -947,15 +947,15 @@ type
     Function List(_name: string; AQuery : string  = '') : TListGroupMembersResponse;
     Function List(_name: string; AQuery : TProjectsGroupsMemberslistOptions) : TListGroupMembersResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsGroupsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsGroupsResource, method List
-  
+
   TProjectsGroupsListOptions = Record
     childrenOfGroup : String;
     ancestorsOfGroup : String;
@@ -963,21 +963,21 @@ type
     pageSize : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsGroupsResource, method Create
-  
+
   TProjectsGroupsCreateOptions = Record
     validateOnly : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsGroupsResource, method Update
-  
+
   TProjectsGroupsUpdateOptions = Record
     validateOnly : boolean;
   end;
-  
+
   TProjectsGroupsResource = Class(TGoogleResource)
   Private
     FMembersInstance : TProjectsGroupsMembersResource;
@@ -997,21 +997,21 @@ type
     Function CreateMembersResource : TProjectsGroupsMembersResource;virtual;overload;
     Property MembersResource : TProjectsGroupsMembersResource Read GetMembersInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsMonitoredResourceDescriptorsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsMonitoredResourceDescriptorsResource, method List
-  
+
   TProjectsMonitoredResourceDescriptorsListOptions = Record
     filter : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsMonitoredResourceDescriptorsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1020,21 +1020,21 @@ type
     Function List(_name: string; AQuery : TProjectsMonitoredResourceDescriptorslistOptions) : TListMonitoredResourceDescriptorsResponse;
     Function Get(_name: string) : TMonitoredResourceDescriptor;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsMetricDescriptorsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsMetricDescriptorsResource, method List
-  
+
   TProjectsMetricDescriptorsListOptions = Record
     filter : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsMetricDescriptorsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1045,15 +1045,15 @@ type
     Function Create(_name: string; aMetricDescriptor : TMetricDescriptor) : TMetricDescriptor;overload;
     Function Delete(_name: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsTimeSeriesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsTimeSeriesResource, method List
-  
+
   TProjectsTimeSeriesListOptions = Record
     filter : String;
     intervalendTime : String;
@@ -1067,7 +1067,7 @@ type
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsTimeSeriesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1076,12 +1076,12 @@ type
     Function List(_name: string; AQuery : TProjectsTimeSerieslistOptions) : TListTimeSeriesResponse;
     Function Create(_name: string; aCreateTimeSeriesRequest : TCreateTimeSeriesRequest) : TEmpty;overload;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FCollectdTimeSeriesInstance : TProjectsCollectdTimeSeriesResource;
@@ -1118,12 +1118,12 @@ type
     Property MetricDescriptorsResource : TProjectsMetricDescriptorsResource Read GetMetricDescriptorsInstance;
     Property TimeSeriesResource : TProjectsTimeSeriesResource Read GetTimeSeriesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMonitoringAPI
     --------------------------------------------------------------------}
-  
+
   TMonitoringAPI = Class(TGoogleAPI)
   Private
     FProjectsCollectdTimeSeriesInstance : TProjectsCollectdTimeSeriesResource;
@@ -1195,7 +1195,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCreateCollectdTimeSeriesRequest.Setresource(AIndex : Integer; const AValue : TMonitoredResource); 
+Procedure TCreateCollectdTimeSeriesRequest.Setresource(AIndex : Integer; const AValue : TMonitoredResource);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1205,7 +1205,7 @@ end;
 
 
 
-Procedure TCreateCollectdTimeSeriesRequest.SetcollectdVersion(AIndex : Integer; const AValue : String); 
+Procedure TCreateCollectdTimeSeriesRequest.SetcollectdVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FcollectdVersion=AValue) then exit;
@@ -1215,7 +1215,7 @@ end;
 
 
 
-Procedure TCreateCollectdTimeSeriesRequest.SetcollectdPayloads(AIndex : Integer; const AValue : TCreateCollectdTimeSeriesRequestTypecollectdPayloadsArray); 
+Procedure TCreateCollectdTimeSeriesRequest.SetcollectdPayloads(AIndex : Integer; const AValue : TCreateCollectdTimeSeriesRequestTypecollectdPayloadsArray);
 
 begin
   If (FcollectdPayloads=AValue) then exit;
@@ -1226,7 +1226,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreateCollectdTimeSeriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreateCollectdTimeSeriesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1258,7 +1258,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMonitoredResource.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResource.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1268,7 +1268,7 @@ end;
 
 
 
-Procedure TMonitoredResource.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceTypelabels); 
+Procedure TMonitoredResource.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1309,7 +1309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCollectdPayload.Setvalues(AIndex : Integer; const AValue : TCollectdPayloadTypevaluesArray); 
+Procedure TCollectdPayload.Setvalues(AIndex : Integer; const AValue : TCollectdPayloadTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1319,7 +1319,7 @@ end;
 
 
 
-Procedure TCollectdPayload.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TCollectdPayload.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1329,7 +1329,7 @@ end;
 
 
 
-Procedure TCollectdPayload.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TCollectdPayload.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1339,7 +1339,7 @@ end;
 
 
 
-Procedure TCollectdPayload.Setplugin(AIndex : Integer; const AValue : String); 
+Procedure TCollectdPayload.Setplugin(AIndex : Integer; const AValue : String);
 
 begin
   If (Fplugin=AValue) then exit;
@@ -1349,7 +1349,7 @@ end;
 
 
 
-Procedure TCollectdPayload.SetpluginInstance(AIndex : Integer; const AValue : String); 
+Procedure TCollectdPayload.SetpluginInstance(AIndex : Integer; const AValue : String);
 
 begin
   If (FpluginInstance=AValue) then exit;
@@ -1359,7 +1359,7 @@ end;
 
 
 
-Procedure TCollectdPayload.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCollectdPayload.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1369,7 +1369,7 @@ end;
 
 
 
-Procedure TCollectdPayload.SettypeInstance(AIndex : Integer; const AValue : String); 
+Procedure TCollectdPayload.SettypeInstance(AIndex : Integer; const AValue : String);
 
 begin
   If (FtypeInstance=AValue) then exit;
@@ -1379,7 +1379,7 @@ end;
 
 
 
-Procedure TCollectdPayload.Setmetadata(AIndex : Integer; const AValue : TCollectdPayloadTypemetadata); 
+Procedure TCollectdPayload.Setmetadata(AIndex : Integer; const AValue : TCollectdPayloadTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCollectdPayload.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCollectdPayload.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1420,7 +1420,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCollectdValue.SetdataSourceName(AIndex : Integer; const AValue : String); 
+Procedure TCollectdValue.SetdataSourceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataSourceName=AValue) then exit;
@@ -1430,7 +1430,7 @@ end;
 
 
 
-Procedure TCollectdValue.SetdataSourceType(AIndex : Integer; const AValue : String); 
+Procedure TCollectdValue.SetdataSourceType(AIndex : Integer; const AValue : String);
 
 begin
   If (FdataSourceType=AValue) then exit;
@@ -1440,7 +1440,7 @@ end;
 
 
 
-Procedure TCollectdValue.Setvalue(AIndex : Integer; const AValue : TTypedValue); 
+Procedure TCollectdValue.Setvalue(AIndex : Integer; const AValue : TTypedValue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1457,7 +1457,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTypedValue.SetboolValue(AIndex : Integer; const AValue : boolean); 
+Procedure TTypedValue.SetboolValue(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FboolValue=AValue) then exit;
@@ -1467,7 +1467,7 @@ end;
 
 
 
-Procedure TTypedValue.Setint64Value(AIndex : Integer; const AValue : String); 
+Procedure TTypedValue.Setint64Value(AIndex : Integer; const AValue : String);
 
 begin
   If (Fint64Value=AValue) then exit;
@@ -1477,7 +1477,7 @@ end;
 
 
 
-Procedure TTypedValue.SetdoubleValue(AIndex : Integer; const AValue : double); 
+Procedure TTypedValue.SetdoubleValue(AIndex : Integer; const AValue : double);
 
 begin
   If (FdoubleValue=AValue) then exit;
@@ -1487,7 +1487,7 @@ end;
 
 
 
-Procedure TTypedValue.SetstringValue(AIndex : Integer; const AValue : String); 
+Procedure TTypedValue.SetstringValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FstringValue=AValue) then exit;
@@ -1497,7 +1497,7 @@ end;
 
 
 
-Procedure TTypedValue.SetdistributionValue(AIndex : Integer; const AValue : TDistribution); 
+Procedure TTypedValue.SetdistributionValue(AIndex : Integer; const AValue : TDistribution);
 
 begin
   If (FdistributionValue=AValue) then exit;
@@ -1514,7 +1514,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDistribution.Setcount(AIndex : Integer; const AValue : String); 
+Procedure TDistribution.Setcount(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcount=AValue) then exit;
@@ -1524,7 +1524,7 @@ end;
 
 
 
-Procedure TDistribution.Setmean(AIndex : Integer; const AValue : double); 
+Procedure TDistribution.Setmean(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmean=AValue) then exit;
@@ -1534,7 +1534,7 @@ end;
 
 
 
-Procedure TDistribution.SetsumOfSquaredDeviation(AIndex : Integer; const AValue : double); 
+Procedure TDistribution.SetsumOfSquaredDeviation(AIndex : Integer; const AValue : double);
 
 begin
   If (FsumOfSquaredDeviation=AValue) then exit;
@@ -1544,7 +1544,7 @@ end;
 
 
 
-Procedure TDistribution.Setrange(AIndex : Integer; const AValue : TRange); 
+Procedure TDistribution.Setrange(AIndex : Integer; const AValue : TRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -1554,7 +1554,7 @@ end;
 
 
 
-Procedure TDistribution.SetbucketOptions(AIndex : Integer; const AValue : TBucketOptions); 
+Procedure TDistribution.SetbucketOptions(AIndex : Integer; const AValue : TBucketOptions);
 
 begin
   If (FbucketOptions=AValue) then exit;
@@ -1564,7 +1564,7 @@ end;
 
 
 
-Procedure TDistribution.SetbucketCounts(AIndex : Integer; const AValue : TStringArray); 
+Procedure TDistribution.SetbucketCounts(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FbucketCounts=AValue) then exit;
@@ -1575,7 +1575,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDistribution.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDistribution.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1594,7 +1594,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRange.Setmin(AIndex : Integer; const AValue : double); 
+Procedure TRange.Setmin(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmin=AValue) then exit;
@@ -1604,7 +1604,7 @@ end;
 
 
 
-Procedure TRange.Setmax(AIndex : Integer; const AValue : double); 
+Procedure TRange.Setmax(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmax=AValue) then exit;
@@ -1621,7 +1621,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketOptions.SetlinearBuckets(AIndex : Integer; const AValue : TLinear); 
+Procedure TBucketOptions.SetlinearBuckets(AIndex : Integer; const AValue : TLinear);
 
 begin
   If (FlinearBuckets=AValue) then exit;
@@ -1631,7 +1631,7 @@ end;
 
 
 
-Procedure TBucketOptions.SetexponentialBuckets(AIndex : Integer; const AValue : TExponential); 
+Procedure TBucketOptions.SetexponentialBuckets(AIndex : Integer; const AValue : TExponential);
 
 begin
   If (FexponentialBuckets=AValue) then exit;
@@ -1641,7 +1641,7 @@ end;
 
 
 
-Procedure TBucketOptions.SetexplicitBuckets(AIndex : Integer; const AValue : TExplicit); 
+Procedure TBucketOptions.SetexplicitBuckets(AIndex : Integer; const AValue : TExplicit);
 
 begin
   If (FexplicitBuckets=AValue) then exit;
@@ -1658,7 +1658,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinear.SetnumFiniteBuckets(AIndex : Integer; const AValue : integer); 
+Procedure TLinear.SetnumFiniteBuckets(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumFiniteBuckets=AValue) then exit;
@@ -1668,7 +1668,7 @@ end;
 
 
 
-Procedure TLinear.Setwidth(AIndex : Integer; const AValue : double); 
+Procedure TLinear.Setwidth(AIndex : Integer; const AValue : double);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -1678,7 +1678,7 @@ end;
 
 
 
-Procedure TLinear.Setoffset(AIndex : Integer; const AValue : double); 
+Procedure TLinear.Setoffset(AIndex : Integer; const AValue : double);
 
 begin
   If (Foffset=AValue) then exit;
@@ -1695,7 +1695,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExponential.SetnumFiniteBuckets(AIndex : Integer; const AValue : integer); 
+Procedure TExponential.SetnumFiniteBuckets(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumFiniteBuckets=AValue) then exit;
@@ -1705,7 +1705,7 @@ end;
 
 
 
-Procedure TExponential.SetgrowthFactor(AIndex : Integer; const AValue : double); 
+Procedure TExponential.SetgrowthFactor(AIndex : Integer; const AValue : double);
 
 begin
   If (FgrowthFactor=AValue) then exit;
@@ -1715,7 +1715,7 @@ end;
 
 
 
-Procedure TExponential.Setscale(AIndex : Integer; const AValue : double); 
+Procedure TExponential.Setscale(AIndex : Integer; const AValue : double);
 
 begin
   If (Fscale=AValue) then exit;
@@ -1732,7 +1732,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExplicit.Setbounds(AIndex : Integer; const AValue : TdoubleArray); 
+Procedure TExplicit.Setbounds(AIndex : Integer; const AValue : TdoubleArray);
 
 begin
   If (Fbounds=AValue) then exit;
@@ -1743,7 +1743,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TExplicit.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TExplicit.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1769,7 +1769,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListGroupsResponse.Setgroup(AIndex : Integer; const AValue : TListGroupsResponseTypegroupArray); 
+Procedure TListGroupsResponse.Setgroup(AIndex : Integer; const AValue : TListGroupsResponseTypegroupArray);
 
 begin
   If (Fgroup=AValue) then exit;
@@ -1779,7 +1779,7 @@ end;
 
 
 
-Procedure TListGroupsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListGroupsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1790,7 +1790,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListGroupsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListGroupsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1809,7 +1809,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroup.Setname(AIndex : Integer; const AValue : String); 
+Procedure TGroup.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1819,7 +1819,7 @@ end;
 
 
 
-Procedure TGroup.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TGroup.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1829,7 +1829,7 @@ end;
 
 
 
-Procedure TGroup.SetparentName(AIndex : Integer; const AValue : String); 
+Procedure TGroup.SetparentName(AIndex : Integer; const AValue : String);
 
 begin
   If (FparentName=AValue) then exit;
@@ -1839,7 +1839,7 @@ end;
 
 
 
-Procedure TGroup.Setfilter(AIndex : Integer; const AValue : String); 
+Procedure TGroup.Setfilter(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -1849,7 +1849,7 @@ end;
 
 
 
-Procedure TGroup.SetisCluster(AIndex : Integer; const AValue : boolean); 
+Procedure TGroup.SetisCluster(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisCluster=AValue) then exit;
@@ -1866,7 +1866,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListGroupMembersResponse.Setmembers(AIndex : Integer; const AValue : TListGroupMembersResponseTypemembersArray); 
+Procedure TListGroupMembersResponse.Setmembers(AIndex : Integer; const AValue : TListGroupMembersResponseTypemembersArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -1876,7 +1876,7 @@ end;
 
 
 
-Procedure TListGroupMembersResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListGroupMembersResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1886,7 +1886,7 @@ end;
 
 
 
-Procedure TListGroupMembersResponse.SettotalSize(AIndex : Integer; const AValue : integer); 
+Procedure TListGroupMembersResponse.SettotalSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSize=AValue) then exit;
@@ -1897,7 +1897,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListGroupMembersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListGroupMembersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1916,7 +1916,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMonitoredResourceDescriptorsResponse.SetresourceDescriptors(AIndex : Integer; const AValue : TListMonitoredResourceDescriptorsResponseTyperesourceDescriptorsArray); 
+Procedure TListMonitoredResourceDescriptorsResponse.SetresourceDescriptors(AIndex : Integer; const AValue : TListMonitoredResourceDescriptorsResponseTyperesourceDescriptorsArray);
 
 begin
   If (FresourceDescriptors=AValue) then exit;
@@ -1926,7 +1926,7 @@ end;
 
 
 
-Procedure TListMonitoredResourceDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListMonitoredResourceDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1937,7 +1937,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListMonitoredResourceDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListMonitoredResourceDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1956,7 +1956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMonitoredResourceDescriptor.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1966,7 +1966,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1976,7 +1976,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1986,7 +1986,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TMonitoredResourceDescriptor.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1996,7 +1996,7 @@ end;
 
 
 
-Procedure TMonitoredResourceDescriptor.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceDescriptorTypelabelsArray); 
+Procedure TMonitoredResourceDescriptor.Setlabels(AIndex : Integer; const AValue : TMonitoredResourceDescriptorTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -2018,7 +2018,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMonitoredResourceDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMonitoredResourceDescriptor.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2037,7 +2037,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabelDescriptor.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TLabelDescriptor.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -2047,7 +2047,7 @@ end;
 
 
 
-Procedure TLabelDescriptor.SetvalueType(AIndex : Integer; const AValue : String); 
+Procedure TLabelDescriptor.SetvalueType(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalueType=AValue) then exit;
@@ -2057,7 +2057,7 @@ end;
 
 
 
-Procedure TLabelDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TLabelDescriptor.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2074,7 +2074,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMetricDescriptorsResponse.SetmetricDescriptors(AIndex : Integer; const AValue : TListMetricDescriptorsResponseTypemetricDescriptorsArray); 
+Procedure TListMetricDescriptorsResponse.SetmetricDescriptors(AIndex : Integer; const AValue : TListMetricDescriptorsResponseTypemetricDescriptorsArray);
 
 begin
   If (FmetricDescriptors=AValue) then exit;
@@ -2084,7 +2084,7 @@ end;
 
 
 
-Procedure TListMetricDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListMetricDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2095,7 +2095,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListMetricDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListMetricDescriptorsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2114,7 +2114,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptor.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2124,7 +2124,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2134,7 +2134,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setlabels(AIndex : Integer; const AValue : TMetricDescriptorTypelabelsArray); 
+Procedure TMetricDescriptor.Setlabels(AIndex : Integer; const AValue : TMetricDescriptorTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -2144,7 +2144,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.SetmetricKind(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.SetmetricKind(AIndex : Integer; const AValue : String);
 
 begin
   If (FmetricKind=AValue) then exit;
@@ -2154,7 +2154,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.SetvalueType(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.SetvalueType(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalueType=AValue) then exit;
@@ -2164,7 +2164,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Set_unit(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.Set_unit(AIndex : Integer; const AValue : String);
 
 begin
   If (F_unit=AValue) then exit;
@@ -2174,7 +2174,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2184,7 +2184,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TMetricDescriptor.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2207,7 +2207,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMetricDescriptor.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMetricDescriptor.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2226,7 +2226,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeSeriesResponse.SettimeSeries(AIndex : Integer; const AValue : TListTimeSeriesResponseTypetimeSeriesArray); 
+Procedure TListTimeSeriesResponse.SettimeSeries(AIndex : Integer; const AValue : TListTimeSeriesResponseTypetimeSeriesArray);
 
 begin
   If (FtimeSeries=AValue) then exit;
@@ -2236,7 +2236,7 @@ end;
 
 
 
-Procedure TListTimeSeriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListTimeSeriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2247,7 +2247,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListTimeSeriesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListTimeSeriesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2266,7 +2266,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeSeries.Setmetric(AIndex : Integer; const AValue : TMetric); 
+Procedure TTimeSeries.Setmetric(AIndex : Integer; const AValue : TMetric);
 
 begin
   If (Fmetric=AValue) then exit;
@@ -2276,7 +2276,7 @@ end;
 
 
 
-Procedure TTimeSeries.Setresource(AIndex : Integer; const AValue : TMonitoredResource); 
+Procedure TTimeSeries.Setresource(AIndex : Integer; const AValue : TMonitoredResource);
 
 begin
   If (Fresource=AValue) then exit;
@@ -2286,7 +2286,7 @@ end;
 
 
 
-Procedure TTimeSeries.SetmetricKind(AIndex : Integer; const AValue : String); 
+Procedure TTimeSeries.SetmetricKind(AIndex : Integer; const AValue : String);
 
 begin
   If (FmetricKind=AValue) then exit;
@@ -2296,7 +2296,7 @@ end;
 
 
 
-Procedure TTimeSeries.SetvalueType(AIndex : Integer; const AValue : String); 
+Procedure TTimeSeries.SetvalueType(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalueType=AValue) then exit;
@@ -2306,7 +2306,7 @@ end;
 
 
 
-Procedure TTimeSeries.Setpoints(AIndex : Integer; const AValue : TTimeSeriesTypepointsArray); 
+Procedure TTimeSeries.Setpoints(AIndex : Integer; const AValue : TTimeSeriesTypepointsArray);
 
 begin
   If (Fpoints=AValue) then exit;
@@ -2317,7 +2317,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTimeSeries.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTimeSeries.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2349,7 +2349,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetric.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMetric.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2359,7 +2359,7 @@ end;
 
 
 
-Procedure TMetric.Setlabels(AIndex : Integer; const AValue : TMetricTypelabels); 
+Procedure TMetric.Setlabels(AIndex : Integer; const AValue : TMetricTypelabels);
 
 begin
   If (Flabels=AValue) then exit;
@@ -2387,7 +2387,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPoint.Setinterval(AIndex : Integer; const AValue : TTimeInterval); 
+Procedure TPoint.Setinterval(AIndex : Integer; const AValue : TTimeInterval);
 
 begin
   If (Finterval=AValue) then exit;
@@ -2397,7 +2397,7 @@ end;
 
 
 
-Procedure TPoint.Setvalue(AIndex : Integer; const AValue : TTypedValue); 
+Procedure TPoint.Setvalue(AIndex : Integer; const AValue : TTypedValue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2414,7 +2414,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeInterval.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TTimeInterval.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -2424,7 +2424,7 @@ end;
 
 
 
-Procedure TTimeInterval.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TTimeInterval.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -2441,7 +2441,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateTimeSeriesRequest.SettimeSeries(AIndex : Integer; const AValue : TCreateTimeSeriesRequestTypetimeSeriesArray); 
+Procedure TCreateTimeSeriesRequest.SettimeSeries(AIndex : Integer; const AValue : TCreateTimeSeriesRequestTypetimeSeriesArray);
 
 begin
   If (FtimeSeries=AValue) then exit;
@@ -2452,7 +2452,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreateTimeSeriesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreateTimeSeriesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2471,7 +2471,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TType.Setname(AIndex : Integer; const AValue : String); 
+Procedure TType.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2481,7 +2481,7 @@ end;
 
 
 
-Procedure TType.Setfields(AIndex : Integer; const AValue : TTypeTypefieldsArray); 
+Procedure TType.Setfields(AIndex : Integer; const AValue : TTypeTypefieldsArray);
 
 begin
   If (Ffields=AValue) then exit;
@@ -2491,7 +2491,7 @@ end;
 
 
 
-Procedure TType.Setoneofs(AIndex : Integer; const AValue : TStringArray); 
+Procedure TType.Setoneofs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Foneofs=AValue) then exit;
@@ -2501,7 +2501,7 @@ end;
 
 
 
-Procedure TType.Setoptions(AIndex : Integer; const AValue : TTypeTypeoptionsArray); 
+Procedure TType.Setoptions(AIndex : Integer; const AValue : TTypeTypeoptionsArray);
 
 begin
   If (Foptions=AValue) then exit;
@@ -2511,7 +2511,7 @@ end;
 
 
 
-Procedure TType.SetsourceContext(AIndex : Integer; const AValue : TSourceContext); 
+Procedure TType.SetsourceContext(AIndex : Integer; const AValue : TSourceContext);
 
 begin
   If (FsourceContext=AValue) then exit;
@@ -2521,7 +2521,7 @@ end;
 
 
 
-Procedure TType.Setsyntax(AIndex : Integer; const AValue : String); 
+Procedure TType.Setsyntax(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsyntax=AValue) then exit;
@@ -2532,7 +2532,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TType.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TType.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2553,7 +2553,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TField.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TField.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2563,7 +2563,7 @@ end;
 
 
 
-Procedure TField.Setcardinality(AIndex : Integer; const AValue : String); 
+Procedure TField.Setcardinality(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcardinality=AValue) then exit;
@@ -2573,7 +2573,7 @@ end;
 
 
 
-Procedure TField.Setnumber(AIndex : Integer; const AValue : integer); 
+Procedure TField.Setnumber(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fnumber=AValue) then exit;
@@ -2583,7 +2583,7 @@ end;
 
 
 
-Procedure TField.Setname(AIndex : Integer; const AValue : String); 
+Procedure TField.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2593,7 +2593,7 @@ end;
 
 
 
-Procedure TField.SettypeUrl(AIndex : Integer; const AValue : String); 
+Procedure TField.SettypeUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FtypeUrl=AValue) then exit;
@@ -2603,7 +2603,7 @@ end;
 
 
 
-Procedure TField.SetoneofIndex(AIndex : Integer; const AValue : integer); 
+Procedure TField.SetoneofIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoneofIndex=AValue) then exit;
@@ -2613,7 +2613,7 @@ end;
 
 
 
-Procedure TField.Set_packed(AIndex : Integer; const AValue : boolean); 
+Procedure TField.Set_packed(AIndex : Integer; const AValue : boolean);
 
 begin
   If (F_packed=AValue) then exit;
@@ -2623,7 +2623,7 @@ end;
 
 
 
-Procedure TField.Setoptions(AIndex : Integer; const AValue : TFieldTypeoptionsArray); 
+Procedure TField.Setoptions(AIndex : Integer; const AValue : TFieldTypeoptionsArray);
 
 begin
   If (Foptions=AValue) then exit;
@@ -2633,7 +2633,7 @@ end;
 
 
 
-Procedure TField.SetjsonName(AIndex : Integer; const AValue : String); 
+Procedure TField.SetjsonName(AIndex : Integer; const AValue : String);
 
 begin
   If (FjsonName=AValue) then exit;
@@ -2643,7 +2643,7 @@ end;
 
 
 
-Procedure TField.SetdefaultValue(AIndex : Integer; const AValue : String); 
+Procedure TField.SetdefaultValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultValue=AValue) then exit;
@@ -2665,7 +2665,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TField.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TField.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2697,7 +2697,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOption.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOption.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2707,7 +2707,7 @@ end;
 
 
 
-Procedure TOption.Setvalue(AIndex : Integer; const AValue : TOptionTypevalue); 
+Procedure TOption.Setvalue(AIndex : Integer; const AValue : TOptionTypevalue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2724,7 +2724,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceContext.SetfileName(AIndex : Integer; const AValue : String); 
+Procedure TSourceContext.SetfileName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileName=AValue) then exit;
@@ -3486,7 +3486,7 @@ begin
   Result[2].Description:='View monitoring data for all of your Google Cloud and third-party projects';
   Result[3].Name:='https://www.googleapis.com/auth/monitoring.write';
   Result[3].Description:='Publish metric data to your Google Cloud projects';
-  
+
 end;
 
 Class Function TMonitoringAPI.APINeedsAuth : Boolean;

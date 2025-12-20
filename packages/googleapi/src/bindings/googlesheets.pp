@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAddNamedRangeResponse = Class;
   TUpdateProtectedRangeRequest = Class;
@@ -293,11 +293,11 @@ type
   TUpdateCellsRequestTyperowsArray = Array of TRowData;
   TBatchUpdateSpreadsheetResponseTyperepliesArray = Array of TResponse;
   TBatchGetValuesResponseTypevalueRangesArray = Array of TValueRange;
-  
+
   { --------------------------------------------------------------------
     TAddNamedRangeResponse
     --------------------------------------------------------------------}
-  
+
   TAddNamedRangeResponse = Class(TGoogleBaseObject)
   Private
     FnamedRange : TNamedRange;
@@ -309,11 +309,11 @@ type
     Property namedRange : TNamedRange Index 0 Read FnamedRange Write SetnamedRange;
   end;
   TAddNamedRangeResponseClass = Class of TAddNamedRangeResponse;
-  
+
   { --------------------------------------------------------------------
     TUpdateProtectedRangeRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateProtectedRangeRequest = Class(TGoogleBaseObject)
   Private
     FprotectedRange : TProtectedRange;
@@ -328,11 +328,11 @@ type
     Property fields : String Index 8 Read Ffields Write Setfields;
   end;
   TUpdateProtectedRangeRequestClass = Class of TUpdateProtectedRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TPadding
     --------------------------------------------------------------------}
-  
+
   TPadding = Class(TGoogleBaseObject)
   Private
     Fright : integer;
@@ -353,11 +353,11 @@ type
     Property bottom : integer Index 24 Read Fbottom Write Setbottom;
   end;
   TPaddingClass = Class of TPadding;
-  
+
   { --------------------------------------------------------------------
     TMergeCellsRequest
     --------------------------------------------------------------------}
-  
+
   TMergeCellsRequest = Class(TGoogleBaseObject)
   Private
     FmergeType : String;
@@ -372,11 +372,11 @@ type
     Property range : TGridRange Index 8 Read Frange Write Setrange;
   end;
   TMergeCellsRequestClass = Class of TMergeCellsRequest;
-  
+
   { --------------------------------------------------------------------
     TAddSheetResponse
     --------------------------------------------------------------------}
-  
+
   TAddSheetResponse = Class(TGoogleBaseObject)
   Private
     Fproperties : TSheetProperties;
@@ -388,11 +388,11 @@ type
     Property properties : TSheetProperties Index 0 Read Fproperties Write Setproperties;
   end;
   TAddSheetResponseClass = Class of TAddSheetResponse;
-  
+
   { --------------------------------------------------------------------
     TPivotGroupValueMetadata
     --------------------------------------------------------------------}
-  
+
   TPivotGroupValueMetadata = Class(TGoogleBaseObject)
   Private
     Fvalue : TExtendedValue;
@@ -407,11 +407,11 @@ type
     Property collapsed : boolean Index 8 Read Fcollapsed Write Setcollapsed;
   end;
   TPivotGroupValueMetadataClass = Class of TPivotGroupValueMetadata;
-  
+
   { --------------------------------------------------------------------
     TUpdateEmbeddedObjectPositionResponse
     --------------------------------------------------------------------}
-  
+
   TUpdateEmbeddedObjectPositionResponse = Class(TGoogleBaseObject)
   Private
     Fposition : TEmbeddedObjectPosition;
@@ -423,11 +423,11 @@ type
     Property position : TEmbeddedObjectPosition Index 0 Read Fposition Write Setposition;
   end;
   TUpdateEmbeddedObjectPositionResponseClass = Class of TUpdateEmbeddedObjectPositionResponse;
-  
+
   { --------------------------------------------------------------------
     TUpdateConditionalFormatRuleRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateConditionalFormatRuleRequest = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -448,11 +448,11 @@ type
     Property newIndex : integer Index 24 Read FnewIndex Write SetnewIndex;
   end;
   TUpdateConditionalFormatRuleRequestClass = Class of TUpdateConditionalFormatRuleRequest;
-  
+
   { --------------------------------------------------------------------
     TTextFormat
     --------------------------------------------------------------------}
-  
+
   TTextFormat = Class(TGoogleBaseObject)
   Private
     Fbold : boolean;
@@ -482,11 +482,11 @@ type
     Property underline : boolean Index 48 Read Funderline Write Setunderline;
   end;
   TTextFormatClass = Class of TTextFormat;
-  
+
   { --------------------------------------------------------------------
     TUpdateChartSpecRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateChartSpecRequest = Class(TGoogleBaseObject)
   Private
     FchartId : integer;
@@ -501,11 +501,11 @@ type
     Property spec : TChartSpec Index 8 Read Fspec Write Setspec;
   end;
   TUpdateChartSpecRequestClass = Class of TUpdateChartSpecRequest;
-  
+
   { --------------------------------------------------------------------
     TGridCoordinate
     --------------------------------------------------------------------}
-  
+
   TGridCoordinate = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -523,11 +523,11 @@ type
     Property columnIndex : integer Index 16 Read FcolumnIndex Write SetcolumnIndex;
   end;
   TGridCoordinateClass = Class of TGridCoordinate;
-  
+
   { --------------------------------------------------------------------
     TDeleteFilterViewRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteFilterViewRequest = Class(TGoogleBaseObject)
   Private
     FfilterId : integer;
@@ -539,11 +539,11 @@ type
     Property filterId : integer Index 0 Read FfilterId Write SetfilterId;
   end;
   TDeleteFilterViewRequestClass = Class of TDeleteFilterViewRequest;
-  
+
   { --------------------------------------------------------------------
     TBatchUpdateValuesResponse
     --------------------------------------------------------------------}
-  
+
   TBatchUpdateValuesResponse = Class(TGoogleBaseObject)
   Private
     FtotalUpdatedSheets : integer;
@@ -574,11 +574,11 @@ type
     Property totalUpdatedRows : integer Index 40 Read FtotalUpdatedRows Write SettotalUpdatedRows;
   end;
   TBatchUpdateValuesResponseClass = Class of TBatchUpdateValuesResponse;
-  
+
   { --------------------------------------------------------------------
     TUpdateNamedRangeRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateNamedRangeRequest = Class(TGoogleBaseObject)
   Private
     Ffields : String;
@@ -593,11 +593,11 @@ type
     Property namedRange : TNamedRange Index 8 Read FnamedRange Write SetnamedRange;
   end;
   TUpdateNamedRangeRequestClass = Class of TUpdateNamedRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TUpdateValuesResponse
     --------------------------------------------------------------------}
-  
+
   TUpdateValuesResponse = Class(TGoogleBaseObject)
   Private
     FupdatedRange : String;
@@ -621,11 +621,11 @@ type
     Property updatedCells : integer Index 32 Read FupdatedCells Write SetupdatedCells;
   end;
   TUpdateValuesResponseClass = Class of TUpdateValuesResponse;
-  
+
   { --------------------------------------------------------------------
     TSpreadsheetProperties
     --------------------------------------------------------------------}
-  
+
   TSpreadsheetProperties = Class(TGoogleBaseObject)
   Private
     FtimeZone : String;
@@ -649,11 +649,11 @@ type
     Property defaultFormat : TCellFormat Index 32 Read FdefaultFormat Write SetdefaultFormat;
   end;
   TSpreadsheetPropertiesClass = Class of TSpreadsheetProperties;
-  
+
   { --------------------------------------------------------------------
     TCellData
     --------------------------------------------------------------------}
-  
+
   TCellData = Class(TGoogleBaseObject)
   Private
     Fhyperlink : String;
@@ -696,11 +696,11 @@ type
     Property effectiveValue : TExtendedValue Index 72 Read FeffectiveValue Write SeteffectiveValue;
   end;
   TCellDataClass = Class of TCellData;
-  
+
   { --------------------------------------------------------------------
     TUnmergeCellsRequest
     --------------------------------------------------------------------}
-  
+
   TUnmergeCellsRequest = Class(TGoogleBaseObject)
   Private
     Frange : TGridRange;
@@ -712,11 +712,11 @@ type
     Property range : TGridRange Index 0 Read Frange Write Setrange;
   end;
   TUnmergeCellsRequestClass = Class of TUnmergeCellsRequest;
-  
+
   { --------------------------------------------------------------------
     TTextToColumnsRequest
     --------------------------------------------------------------------}
-  
+
   TTextToColumnsRequest = Class(TGoogleBaseObject)
   Private
     Fsource : TGridRange;
@@ -734,11 +734,11 @@ type
     Property delimiterType : String Index 16 Read FdelimiterType Write SetdelimiterType;
   end;
   TTextToColumnsRequestClass = Class of TTextToColumnsRequest;
-  
+
   { --------------------------------------------------------------------
     TAddProtectedRangeResponse
     --------------------------------------------------------------------}
-  
+
   TAddProtectedRangeResponse = Class(TGoogleBaseObject)
   Private
     FprotectedRange : TProtectedRange;
@@ -750,11 +750,11 @@ type
     Property protectedRange : TProtectedRange Index 0 Read FprotectedRange Write SetprotectedRange;
   end;
   TAddProtectedRangeResponseClass = Class of TAddProtectedRangeResponse;
-  
+
   { --------------------------------------------------------------------
     TBooleanCondition
     --------------------------------------------------------------------}
-  
+
   TBooleanCondition = Class(TGoogleBaseObject)
   Private
     Fvalues : TBooleanConditionTypevaluesArray;
@@ -774,11 +774,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TBooleanConditionClass = Class of TBooleanCondition;
-  
+
   { --------------------------------------------------------------------
     TDeleteProtectedRangeRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteProtectedRangeRequest = Class(TGoogleBaseObject)
   Private
     FprotectedRangeId : integer;
@@ -790,11 +790,11 @@ type
     Property protectedRangeId : integer Index 0 Read FprotectedRangeId Write SetprotectedRangeId;
   end;
   TDeleteProtectedRangeRequestClass = Class of TDeleteProtectedRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TBasicChartDomain
     --------------------------------------------------------------------}
-  
+
   TBasicChartDomain = Class(TGoogleBaseObject)
   Private
     Fdomain : TChartData;
@@ -806,11 +806,11 @@ type
     Property domain : TChartData Index 0 Read Fdomain Write Setdomain;
   end;
   TBasicChartDomainClass = Class of TBasicChartDomain;
-  
+
   { --------------------------------------------------------------------
     TDimensionRange
     --------------------------------------------------------------------}
-  
+
   TDimensionRange = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -831,11 +831,11 @@ type
     Property dimension : String Index 24 Read Fdimension Write Setdimension;
   end;
   TDimensionRangeClass = Class of TDimensionRange;
-  
+
   { --------------------------------------------------------------------
     TResponse
     --------------------------------------------------------------------}
-  
+
   TResponse = Class(TGoogleBaseObject)
   Private
     FupdateEmbeddedObjectPosition : TUpdateEmbeddedObjectPositionResponse;
@@ -877,11 +877,11 @@ type
     Property addNamedRange : TAddNamedRangeResponse Index 80 Read FaddNamedRange Write SetaddNamedRange;
   end;
   TResponseClass = Class of TResponse;
-  
+
   { --------------------------------------------------------------------
     TAddConditionalFormatRuleRequest
     --------------------------------------------------------------------}
-  
+
   TAddConditionalFormatRuleRequest = Class(TGoogleBaseObject)
   Private
     Frule : TConditionalFormatRule;
@@ -896,11 +896,11 @@ type
     Property index : integer Index 8 Read Findex Write Setindex;
   end;
   TAddConditionalFormatRuleRequestClass = Class of TAddConditionalFormatRuleRequest;
-  
+
   { --------------------------------------------------------------------
     TFilterViewTypecriteria
     --------------------------------------------------------------------}
-  
+
   TFilterViewTypecriteria = Class(TGoogleBaseObject)
   Private
   Protected
@@ -910,11 +910,11 @@ type
   Published
   end;
   TFilterViewTypecriteriaClass = Class of TFilterViewTypecriteria;
-  
+
   { --------------------------------------------------------------------
     TFilterView
     --------------------------------------------------------------------}
-  
+
   TFilterView = Class(TGoogleBaseObject)
   Private
     Ftitle : String;
@@ -945,11 +945,11 @@ type
     Property filterViewId : integer Index 40 Read FfilterViewId Write SetfilterViewId;
   end;
   TFilterViewClass = Class of TFilterView;
-  
+
   { --------------------------------------------------------------------
     TSortRangeRequest
     --------------------------------------------------------------------}
-  
+
   TSortRangeRequest = Class(TGoogleBaseObject)
   Private
     Frange : TGridRange;
@@ -968,11 +968,11 @@ type
     Property sortSpecs : TSortRangeRequestTypesortSpecsArray Index 8 Read FsortSpecs Write SetsortSpecs;
   end;
   TSortRangeRequestClass = Class of TSortRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TTextFormatRun
     --------------------------------------------------------------------}
-  
+
   TTextFormatRun = Class(TGoogleBaseObject)
   Private
     FstartIndex : integer;
@@ -987,11 +987,11 @@ type
     Property format : TTextFormat Index 8 Read Fformat Write Setformat;
   end;
   TTextFormatRunClass = Class of TTextFormatRun;
-  
+
   { --------------------------------------------------------------------
     TUpdateFilterViewRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateFilterViewRequest = Class(TGoogleBaseObject)
   Private
     Ffilter : TFilterView;
@@ -1006,11 +1006,11 @@ type
     Property fields : String Index 8 Read Ffields Write Setfields;
   end;
   TUpdateFilterViewRequestClass = Class of TUpdateFilterViewRequest;
-  
+
   { --------------------------------------------------------------------
     TUpdateConditionalFormatRuleResponse
     --------------------------------------------------------------------}
-  
+
   TUpdateConditionalFormatRuleResponse = Class(TGoogleBaseObject)
   Private
     FoldIndex : integer;
@@ -1031,11 +1031,11 @@ type
     Property newIndex : integer Index 24 Read FnewIndex Write SetnewIndex;
   end;
   TUpdateConditionalFormatRuleResponseClass = Class of TUpdateConditionalFormatRuleResponse;
-  
+
   { --------------------------------------------------------------------
     TFilterCriteria
     --------------------------------------------------------------------}
-  
+
   TFilterCriteria = Class(TGoogleBaseObject)
   Private
     Fcondition : TBooleanCondition;
@@ -1054,11 +1054,11 @@ type
     Property hiddenValues : TStringArray Index 8 Read FhiddenValues Write SethiddenValues;
   end;
   TFilterCriteriaClass = Class of TFilterCriteria;
-  
+
   { --------------------------------------------------------------------
     TDeleteDimensionRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteDimensionRequest = Class(TGoogleBaseObject)
   Private
     Frange : TDimensionRange;
@@ -1070,11 +1070,11 @@ type
     Property range : TDimensionRange Index 0 Read Frange Write Setrange;
   end;
   TDeleteDimensionRequestClass = Class of TDeleteDimensionRequest;
-  
+
   { --------------------------------------------------------------------
     TPivotTableTypecriteria
     --------------------------------------------------------------------}
-  
+
   TPivotTableTypecriteria = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1084,11 +1084,11 @@ type
   Published
   end;
   TPivotTableTypecriteriaClass = Class of TPivotTableTypecriteria;
-  
+
   { --------------------------------------------------------------------
     TPivotTable
     --------------------------------------------------------------------}
-  
+
   TPivotTable = Class(TGoogleBaseObject)
   Private
     FvalueLayout : String;
@@ -1119,11 +1119,11 @@ type
     Property criteria : TPivotTableTypecriteria Index 40 Read Fcriteria Write Setcriteria;
   end;
   TPivotTableClass = Class of TPivotTable;
-  
+
   { --------------------------------------------------------------------
     TDataValidationRule
     --------------------------------------------------------------------}
-  
+
   TDataValidationRule = Class(TGoogleBaseObject)
   Private
     Fcondition : TBooleanCondition;
@@ -1144,11 +1144,11 @@ type
     Property strict : boolean Index 24 Read Fstrict Write Setstrict;
   end;
   TDataValidationRuleClass = Class of TDataValidationRule;
-  
+
   { --------------------------------------------------------------------
     TUpdateSpreadsheetPropertiesRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateSpreadsheetPropertiesRequest = Class(TGoogleBaseObject)
   Private
     Ffields : String;
@@ -1163,11 +1163,11 @@ type
     Property properties : TSpreadsheetProperties Index 8 Read Fproperties Write Setproperties;
   end;
   TUpdateSpreadsheetPropertiesRequestClass = Class of TUpdateSpreadsheetPropertiesRequest;
-  
+
   { --------------------------------------------------------------------
     TChartSourceRange
     --------------------------------------------------------------------}
-  
+
   TChartSourceRange = Class(TGoogleBaseObject)
   Private
     Fsources : TChartSourceRangeTypesourcesArray;
@@ -1183,11 +1183,11 @@ type
     Property sources : TChartSourceRangeTypesourcesArray Index 0 Read Fsources Write Setsources;
   end;
   TChartSourceRangeClass = Class of TChartSourceRange;
-  
+
   { --------------------------------------------------------------------
     TBatchUpdateValuesRequest
     --------------------------------------------------------------------}
-  
+
   TBatchUpdateValuesRequest = Class(TGoogleBaseObject)
   Private
     FvalueInputOption : String;
@@ -1206,11 +1206,11 @@ type
     Property data : TBatchUpdateValuesRequestTypedataArray Index 8 Read Fdata Write Setdata;
   end;
   TBatchUpdateValuesRequestClass = Class of TBatchUpdateValuesRequest;
-  
+
   { --------------------------------------------------------------------
     TClearBasicFilterRequest
     --------------------------------------------------------------------}
-  
+
   TClearBasicFilterRequest = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -1222,11 +1222,11 @@ type
     Property sheetId : integer Index 0 Read FsheetId Write SetsheetId;
   end;
   TClearBasicFilterRequestClass = Class of TClearBasicFilterRequest;
-  
+
   { --------------------------------------------------------------------
     TConditionalFormatRule
     --------------------------------------------------------------------}
-  
+
   TConditionalFormatRule = Class(TGoogleBaseObject)
   Private
     FgradientRule : TGradientRule;
@@ -1248,11 +1248,11 @@ type
     Property ranges : TConditionalFormatRuleTyperangesArray Index 16 Read Franges Write Setranges;
   end;
   TConditionalFormatRuleClass = Class of TConditionalFormatRule;
-  
+
   { --------------------------------------------------------------------
     TUpdateBordersRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateBordersRequest = Class(TGoogleBaseObject)
   Private
     Fright : TBorder;
@@ -1282,11 +1282,11 @@ type
     Property left : TBorder Index 48 Read Fleft Write Setleft;
   end;
   TUpdateBordersRequestClass = Class of TUpdateBordersRequest;
-  
+
   { --------------------------------------------------------------------
     TPivotFilterCriteria
     --------------------------------------------------------------------}
-  
+
   TPivotFilterCriteria = Class(TGoogleBaseObject)
   Private
     FvisibleValues : TStringArray;
@@ -1302,11 +1302,11 @@ type
     Property visibleValues : TStringArray Index 0 Read FvisibleValues Write SetvisibleValues;
   end;
   TPivotFilterCriteriaClass = Class of TPivotFilterCriteria;
-  
+
   { --------------------------------------------------------------------
     TBorders
     --------------------------------------------------------------------}
-  
+
   TBorders = Class(TGoogleBaseObject)
   Private
     Fleft : TBorder;
@@ -1327,11 +1327,11 @@ type
     Property bottom : TBorder Index 24 Read Fbottom Write Setbottom;
   end;
   TBordersClass = Class of TBorders;
-  
+
   { --------------------------------------------------------------------
     TEmbeddedChart
     --------------------------------------------------------------------}
-  
+
   TEmbeddedChart = Class(TGoogleBaseObject)
   Private
     FchartId : integer;
@@ -1349,11 +1349,11 @@ type
     Property spec : TChartSpec Index 16 Read Fspec Write Setspec;
   end;
   TEmbeddedChartClass = Class of TEmbeddedChart;
-  
+
   { --------------------------------------------------------------------
     TColor
     --------------------------------------------------------------------}
-  
+
   TColor = Class(TGoogleBaseObject)
   Private
     Fgreen : integer;
@@ -1374,11 +1374,11 @@ type
     Property alpha : integer Index 24 Read Falpha Write Setalpha;
   end;
   TColorClass = Class of TColor;
-  
+
   { --------------------------------------------------------------------
     TAddSheetRequest
     --------------------------------------------------------------------}
-  
+
   TAddSheetRequest = Class(TGoogleBaseObject)
   Private
     Fproperties : TSheetProperties;
@@ -1390,11 +1390,11 @@ type
     Property properties : TSheetProperties Index 0 Read Fproperties Write Setproperties;
   end;
   TAddSheetRequestClass = Class of TAddSheetRequest;
-  
+
   { --------------------------------------------------------------------
     TAddProtectedRangeRequest
     --------------------------------------------------------------------}
-  
+
   TAddProtectedRangeRequest = Class(TGoogleBaseObject)
   Private
     FprotectedRange : TProtectedRange;
@@ -1406,11 +1406,11 @@ type
     Property protectedRange : TProtectedRange Index 0 Read FprotectedRange Write SetprotectedRange;
   end;
   TAddProtectedRangeRequestClass = Class of TAddProtectedRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TValueRange
     --------------------------------------------------------------------}
-  
+
   TValueRange = Class(TGoogleBaseObject)
   Private
     Fvalues : TValueRangeTypevaluesArray;
@@ -1432,11 +1432,11 @@ type
     Property majorDimension : String Index 16 Read FmajorDimension Write SetmajorDimension;
   end;
   TValueRangeClass = Class of TValueRange;
-  
+
   { --------------------------------------------------------------------
     TFindReplaceResponse
     --------------------------------------------------------------------}
-  
+
   TFindReplaceResponse = Class(TGoogleBaseObject)
   Private
     FvaluesChanged : integer;
@@ -1460,11 +1460,11 @@ type
     Property sheetsChanged : integer Index 32 Read FsheetsChanged Write SetsheetsChanged;
   end;
   TFindReplaceResponseClass = Class of TFindReplaceResponse;
-  
+
   { --------------------------------------------------------------------
     TCellFormat
     --------------------------------------------------------------------}
-  
+
   TCellFormat = Class(TGoogleBaseObject)
   Private
     FhorizontalAlignment : String;
@@ -1503,11 +1503,11 @@ type
     Property verticalAlignment : String Index 72 Read FverticalAlignment Write SetverticalAlignment;
   end;
   TCellFormatClass = Class of TCellFormat;
-  
+
   { --------------------------------------------------------------------
     TMoveDimensionRequest
     --------------------------------------------------------------------}
-  
+
   TMoveDimensionRequest = Class(TGoogleBaseObject)
   Private
     Fsource : TDimensionRange;
@@ -1522,11 +1522,11 @@ type
     Property destinationIndex : integer Index 8 Read FdestinationIndex Write SetdestinationIndex;
   end;
   TMoveDimensionRequestClass = Class of TMoveDimensionRequest;
-  
+
   { --------------------------------------------------------------------
     TBasicChartAxis
     --------------------------------------------------------------------}
-  
+
   TBasicChartAxis = Class(TGoogleBaseObject)
   Private
     Fposition : String;
@@ -1544,11 +1544,11 @@ type
     Property format : TTextFormat Index 16 Read Fformat Write Setformat;
   end;
   TBasicChartAxisClass = Class of TBasicChartAxis;
-  
+
   { --------------------------------------------------------------------
     TPivotGroupSortValueBucket
     --------------------------------------------------------------------}
-  
+
   TPivotGroupSortValueBucket = Class(TGoogleBaseObject)
   Private
     Fbuckets : TPivotGroupSortValueBucketTypebucketsArray;
@@ -1567,11 +1567,11 @@ type
     Property valuesIndex : integer Index 8 Read FvaluesIndex Write SetvaluesIndex;
   end;
   TPivotGroupSortValueBucketClass = Class of TPivotGroupSortValueBucket;
-  
+
   { --------------------------------------------------------------------
     TDimensionProperties
     --------------------------------------------------------------------}
-  
+
   TDimensionProperties = Class(TGoogleBaseObject)
   Private
     FhiddenByUser : boolean;
@@ -1589,11 +1589,11 @@ type
     Property hiddenByFilter : boolean Index 16 Read FhiddenByFilter Write SethiddenByFilter;
   end;
   TDimensionPropertiesClass = Class of TDimensionProperties;
-  
+
   { --------------------------------------------------------------------
     TEmbeddedObjectPosition
     --------------------------------------------------------------------}
-  
+
   TEmbeddedObjectPosition = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -1611,11 +1611,11 @@ type
     Property newSheet : boolean Index 16 Read FnewSheet Write SetnewSheet;
   end;
   TEmbeddedObjectPositionClass = Class of TEmbeddedObjectPosition;
-  
+
   { --------------------------------------------------------------------
     TInterpolationPoint
     --------------------------------------------------------------------}
-  
+
   TInterpolationPoint = Class(TGoogleBaseObject)
   Private
     Fvalue : String;
@@ -1634,11 +1634,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TInterpolationPointClass = Class of TInterpolationPoint;
-  
+
   { --------------------------------------------------------------------
     TErrorValue
     --------------------------------------------------------------------}
-  
+
   TErrorValue = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -1654,11 +1654,11 @@ type
     Property message : String Index 8 Read Fmessage Write Setmessage;
   end;
   TErrorValueClass = Class of TErrorValue;
-  
+
   { --------------------------------------------------------------------
     TDuplicateFilterViewRequest
     --------------------------------------------------------------------}
-  
+
   TDuplicateFilterViewRequest = Class(TGoogleBaseObject)
   Private
     FfilterId : integer;
@@ -1670,11 +1670,11 @@ type
     Property filterId : integer Index 0 Read FfilterId Write SetfilterId;
   end;
   TDuplicateFilterViewRequestClass = Class of TDuplicateFilterViewRequest;
-  
+
   { --------------------------------------------------------------------
     TBatchUpdateSpreadsheetRequest
     --------------------------------------------------------------------}
-  
+
   TBatchUpdateSpreadsheetRequest = Class(TGoogleBaseObject)
   Private
     Frequests : TBatchUpdateSpreadsheetRequestTyperequestsArray;
@@ -1690,11 +1690,11 @@ type
     Property requests : TBatchUpdateSpreadsheetRequestTyperequestsArray Index 0 Read Frequests Write Setrequests;
   end;
   TBatchUpdateSpreadsheetRequestClass = Class of TBatchUpdateSpreadsheetRequest;
-  
+
   { --------------------------------------------------------------------
     TSheetProperties
     --------------------------------------------------------------------}
-  
+
   TSheetProperties = Class(TGoogleBaseObject)
   Private
     Ftitle : String;
@@ -1727,11 +1727,11 @@ type
     Property sheetType : String Index 56 Read FsheetType Write SetsheetType;
   end;
   TSheetPropertiesClass = Class of TSheetProperties;
-  
+
   { --------------------------------------------------------------------
     TProtectedRange
     --------------------------------------------------------------------}
-  
+
   TProtectedRange = Class(TGoogleBaseObject)
   Private
     FunprotectedRanges : TProtectedRangeTypeunprotectedRangesArray;
@@ -1768,11 +1768,11 @@ type
     Property range : TGridRange Index 56 Read Frange Write Setrange;
   end;
   TProtectedRangeClass = Class of TProtectedRange;
-  
+
   { --------------------------------------------------------------------
     TDeleteConditionalFormatRuleRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteConditionalFormatRuleRequest = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -1787,11 +1787,11 @@ type
     Property index : integer Index 8 Read Findex Write Setindex;
   end;
   TDeleteConditionalFormatRuleRequestClass = Class of TDeleteConditionalFormatRuleRequest;
-  
+
   { --------------------------------------------------------------------
     TChartSpec
     --------------------------------------------------------------------}
-  
+
   TChartSpec = Class(TGoogleBaseObject)
   Private
     FhiddenDimensionStrategy : String;
@@ -1812,11 +1812,11 @@ type
     Property pieChart : TPieChartSpec Index 24 Read FpieChart Write SetpieChart;
   end;
   TChartSpecClass = Class of TChartSpec;
-  
+
   { --------------------------------------------------------------------
     TSourceAndDestination
     --------------------------------------------------------------------}
-  
+
   TSourceAndDestination = Class(TGoogleBaseObject)
   Private
     Fsource : TGridRange;
@@ -1834,11 +1834,11 @@ type
     Property dimension : String Index 16 Read Fdimension Write Setdimension;
   end;
   TSourceAndDestinationClass = Class of TSourceAndDestination;
-  
+
   { --------------------------------------------------------------------
     TConditionValue
     --------------------------------------------------------------------}
-  
+
   TConditionValue = Class(TGoogleBaseObject)
   Private
     FrelativeDate : String;
@@ -1853,11 +1853,11 @@ type
     Property userEnteredValue : String Index 8 Read FuserEnteredValue Write SetuserEnteredValue;
   end;
   TConditionValueClass = Class of TConditionValue;
-  
+
   { --------------------------------------------------------------------
     TPasteDataRequest
     --------------------------------------------------------------------}
-  
+
   TPasteDataRequest = Class(TGoogleBaseObject)
   Private
     Fdata : String;
@@ -1882,11 +1882,11 @@ type
     Property html : boolean Index 32 Read Fhtml Write Sethtml;
   end;
   TPasteDataRequestClass = Class of TPasteDataRequest;
-  
+
   { --------------------------------------------------------------------
     TFindReplaceRequest
     --------------------------------------------------------------------}
-  
+
   TFindReplaceRequest = Class(TGoogleBaseObject)
   Private
     Ffind : String;
@@ -1922,11 +1922,11 @@ type
     Property matchEntireCell : boolean Index 64 Read FmatchEntireCell Write SetmatchEntireCell;
   end;
   TFindReplaceRequestClass = Class of TFindReplaceRequest;
-  
+
   { --------------------------------------------------------------------
     TSortSpec
     --------------------------------------------------------------------}
-  
+
   TSortSpec = Class(TGoogleBaseObject)
   Private
     FsortOrder : String;
@@ -1941,11 +1941,11 @@ type
     Property dimensionIndex : integer Index 8 Read FdimensionIndex Write SetdimensionIndex;
   end;
   TSortSpecClass = Class of TSortSpec;
-  
+
   { --------------------------------------------------------------------
     TCopySheetToAnotherSpreadsheetRequest
     --------------------------------------------------------------------}
-  
+
   TCopySheetToAnotherSpreadsheetRequest = Class(TGoogleBaseObject)
   Private
     FdestinationSpreadsheetId : String;
@@ -1957,11 +1957,11 @@ type
     Property destinationSpreadsheetId : String Index 0 Read FdestinationSpreadsheetId Write SetdestinationSpreadsheetId;
   end;
   TCopySheetToAnotherSpreadsheetRequestClass = Class of TCopySheetToAnotherSpreadsheetRequest;
-  
+
   { --------------------------------------------------------------------
     TNumberFormat
     --------------------------------------------------------------------}
-  
+
   TNumberFormat = Class(TGoogleBaseObject)
   Private
     Fpattern : String;
@@ -1977,11 +1977,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TNumberFormatClass = Class of TNumberFormat;
-  
+
   { --------------------------------------------------------------------
     TUpdateDimensionPropertiesRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateDimensionPropertiesRequest = Class(TGoogleBaseObject)
   Private
     Ffields : String;
@@ -1999,11 +1999,11 @@ type
     Property properties : TDimensionProperties Index 16 Read Fproperties Write Setproperties;
   end;
   TUpdateDimensionPropertiesRequestClass = Class of TUpdateDimensionPropertiesRequest;
-  
+
   { --------------------------------------------------------------------
     TEditors
     --------------------------------------------------------------------}
-  
+
   TEditors = Class(TGoogleBaseObject)
   Private
     Fusers : TStringArray;
@@ -2025,11 +2025,11 @@ type
     Property domainUsersCanEdit : boolean Index 16 Read FdomainUsersCanEdit Write SetdomainUsersCanEdit;
   end;
   TEditorsClass = Class of TEditors;
-  
+
   { --------------------------------------------------------------------
     TSpreadsheet
     --------------------------------------------------------------------}
-  
+
   TSpreadsheet = Class(TGoogleBaseObject)
   Private
     FspreadsheetId : String;
@@ -2054,11 +2054,11 @@ type
     Property namedRanges : TSpreadsheetTypenamedRangesArray Index 24 Read FnamedRanges Write SetnamedRanges;
   end;
   TSpreadsheetClass = Class of TSpreadsheet;
-  
+
   { --------------------------------------------------------------------
     TGridData
     --------------------------------------------------------------------}
-  
+
   TGridData = Class(TGoogleBaseObject)
   Private
     FcolumnMetadata : TGridDataTypecolumnMetadataArray;
@@ -2086,11 +2086,11 @@ type
     Property startColumn : integer Index 32 Read FstartColumn Write SetstartColumn;
   end;
   TGridDataClass = Class of TGridData;
-  
+
   { --------------------------------------------------------------------
     TPivotValue
     --------------------------------------------------------------------}
-  
+
   TPivotValue = Class(TGoogleBaseObject)
   Private
     Fformula : String;
@@ -2111,11 +2111,11 @@ type
     Property name : String Index 24 Read Fname Write Setname;
   end;
   TPivotValueClass = Class of TPivotValue;
-  
+
   { --------------------------------------------------------------------
     TBasicFilterTypecriteria
     --------------------------------------------------------------------}
-  
+
   TBasicFilterTypecriteria = Class(TGoogleBaseObject)
   Private
   Protected
@@ -2125,11 +2125,11 @@ type
   Published
   end;
   TBasicFilterTypecriteriaClass = Class of TBasicFilterTypecriteria;
-  
+
   { --------------------------------------------------------------------
     TBasicFilter
     --------------------------------------------------------------------}
-  
+
   TBasicFilter = Class(TGoogleBaseObject)
   Private
     Fcriteria : TBasicFilterTypecriteria;
@@ -2151,11 +2151,11 @@ type
     Property sortSpecs : TBasicFilterTypesortSpecsArray Index 16 Read FsortSpecs Write SetsortSpecs;
   end;
   TBasicFilterClass = Class of TBasicFilter;
-  
+
   { --------------------------------------------------------------------
     TDuplicateSheetRequest
     --------------------------------------------------------------------}
-  
+
   TDuplicateSheetRequest = Class(TGoogleBaseObject)
   Private
     FsourceSheetId : integer;
@@ -2176,11 +2176,11 @@ type
     Property newSheetName : String Index 24 Read FnewSheetName Write SetnewSheetName;
   end;
   TDuplicateSheetRequestClass = Class of TDuplicateSheetRequest;
-  
+
   { --------------------------------------------------------------------
     TAddFilterViewResponse
     --------------------------------------------------------------------}
-  
+
   TAddFilterViewResponse = Class(TGoogleBaseObject)
   Private
     Ffilter : TFilterView;
@@ -2192,11 +2192,11 @@ type
     Property filter : TFilterView Index 0 Read Ffilter Write Setfilter;
   end;
   TAddFilterViewResponseClass = Class of TAddFilterViewResponse;
-  
+
   { --------------------------------------------------------------------
     TDuplicateSheetResponse
     --------------------------------------------------------------------}
-  
+
   TDuplicateSheetResponse = Class(TGoogleBaseObject)
   Private
     Fproperties : TSheetProperties;
@@ -2208,11 +2208,11 @@ type
     Property properties : TSheetProperties Index 0 Read Fproperties Write Setproperties;
   end;
   TDuplicateSheetResponseClass = Class of TDuplicateSheetResponse;
-  
+
   { --------------------------------------------------------------------
     TBorder
     --------------------------------------------------------------------}
-  
+
   TBorder = Class(TGoogleBaseObject)
   Private
     Fstyle : String;
@@ -2230,11 +2230,11 @@ type
     Property color : TColor Index 16 Read Fcolor Write Setcolor;
   end;
   TBorderClass = Class of TBorder;
-  
+
   { --------------------------------------------------------------------
     TAddNamedRangeRequest
     --------------------------------------------------------------------}
-  
+
   TAddNamedRangeRequest = Class(TGoogleBaseObject)
   Private
     FnamedRange : TNamedRange;
@@ -2246,11 +2246,11 @@ type
     Property namedRange : TNamedRange Index 0 Read FnamedRange Write SetnamedRange;
   end;
   TAddNamedRangeRequestClass = Class of TAddNamedRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TAddChartResponse
     --------------------------------------------------------------------}
-  
+
   TAddChartResponse = Class(TGoogleBaseObject)
   Private
     Fchart : TEmbeddedChart;
@@ -2262,11 +2262,11 @@ type
     Property chart : TEmbeddedChart Index 0 Read Fchart Write Setchart;
   end;
   TAddChartResponseClass = Class of TAddChartResponse;
-  
+
   { --------------------------------------------------------------------
     TAppendCellsRequest
     --------------------------------------------------------------------}
-  
+
   TAppendCellsRequest = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -2288,11 +2288,11 @@ type
     Property fields : String Index 16 Read Ffields Write Setfields;
   end;
   TAppendCellsRequestClass = Class of TAppendCellsRequest;
-  
+
   { --------------------------------------------------------------------
     TRowData
     --------------------------------------------------------------------}
-  
+
   TRowData = Class(TGoogleBaseObject)
   Private
     Fvalues : TRowDataTypevaluesArray;
@@ -2308,11 +2308,11 @@ type
     Property values : TRowDataTypevaluesArray Index 0 Read Fvalues Write Setvalues;
   end;
   TRowDataClass = Class of TRowData;
-  
+
   { --------------------------------------------------------------------
     TBasicChartSeries
     --------------------------------------------------------------------}
-  
+
   TBasicChartSeries = Class(TGoogleBaseObject)
   Private
     Fseries : TChartData;
@@ -2331,11 +2331,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TBasicChartSeriesClass = Class of TBasicChartSeries;
-  
+
   { --------------------------------------------------------------------
     TRepeatCellRequest
     --------------------------------------------------------------------}
-  
+
   TRepeatCellRequest = Class(TGoogleBaseObject)
   Private
     Fcell : TCellData;
@@ -2353,11 +2353,11 @@ type
     Property range : TGridRange Index 16 Read Frange Write Setrange;
   end;
   TRepeatCellRequestClass = Class of TRepeatCellRequest;
-  
+
   { --------------------------------------------------------------------
     TBasicChartSpec
     --------------------------------------------------------------------}
-  
+
   TBasicChartSpec = Class(TGoogleBaseObject)
   Private
     FchartType : String;
@@ -2388,11 +2388,11 @@ type
     Property axis : TBasicChartSpecTypeaxisArray Index 40 Read Faxis Write Setaxis;
   end;
   TBasicChartSpecClass = Class of TBasicChartSpec;
-  
+
   { --------------------------------------------------------------------
     TNamedRange
     --------------------------------------------------------------------}
-  
+
   TNamedRange = Class(TGoogleBaseObject)
   Private
     FnamedRangeId : String;
@@ -2410,11 +2410,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TNamedRangeClass = Class of TNamedRange;
-  
+
   { --------------------------------------------------------------------
     TSetBasicFilterRequest
     --------------------------------------------------------------------}
-  
+
   TSetBasicFilterRequest = Class(TGoogleBaseObject)
   Private
     Ffilter : TBasicFilter;
@@ -2426,11 +2426,11 @@ type
     Property filter : TBasicFilter Index 0 Read Ffilter Write Setfilter;
   end;
   TSetBasicFilterRequestClass = Class of TSetBasicFilterRequest;
-  
+
   { --------------------------------------------------------------------
     TUpdateEmbeddedObjectPositionRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateEmbeddedObjectPositionRequest = Class(TGoogleBaseObject)
   Private
     FnewPosition : TEmbeddedObjectPosition;
@@ -2448,11 +2448,11 @@ type
     Property fields : String Index 16 Read Ffields Write Setfields;
   end;
   TUpdateEmbeddedObjectPositionRequestClass = Class of TUpdateEmbeddedObjectPositionRequest;
-  
+
   { --------------------------------------------------------------------
     TAutoResizeDimensionsRequest
     --------------------------------------------------------------------}
-  
+
   TAutoResizeDimensionsRequest = Class(TGoogleBaseObject)
   Private
     Fdimensions : TDimensionRange;
@@ -2464,11 +2464,11 @@ type
     Property dimensions : TDimensionRange Index 0 Read Fdimensions Write Setdimensions;
   end;
   TAutoResizeDimensionsRequestClass = Class of TAutoResizeDimensionsRequest;
-  
+
   { --------------------------------------------------------------------
     TDuplicateFilterViewResponse
     --------------------------------------------------------------------}
-  
+
   TDuplicateFilterViewResponse = Class(TGoogleBaseObject)
   Private
     Ffilter : TFilterView;
@@ -2480,11 +2480,11 @@ type
     Property filter : TFilterView Index 0 Read Ffilter Write Setfilter;
   end;
   TDuplicateFilterViewResponseClass = Class of TDuplicateFilterViewResponse;
-  
+
   { --------------------------------------------------------------------
     TPivotGroup
     --------------------------------------------------------------------}
-  
+
   TPivotGroup = Class(TGoogleBaseObject)
   Private
     FsortOrder : String;
@@ -2512,11 +2512,11 @@ type
     Property valueMetadata : TPivotGroupTypevalueMetadataArray Index 32 Read FvalueMetadata Write SetvalueMetadata;
   end;
   TPivotGroupClass = Class of TPivotGroup;
-  
+
   { --------------------------------------------------------------------
     TGridRange
     --------------------------------------------------------------------}
-  
+
   TGridRange = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -2540,11 +2540,11 @@ type
     Property endColumnIndex : integer Index 32 Read FendColumnIndex Write SetendColumnIndex;
   end;
   TGridRangeClass = Class of TGridRange;
-  
+
   { --------------------------------------------------------------------
     TDeleteSheetRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteSheetRequest = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -2556,11 +2556,11 @@ type
     Property sheetId : integer Index 0 Read FsheetId Write SetsheetId;
   end;
   TDeleteSheetRequestClass = Class of TDeleteSheetRequest;
-  
+
   { --------------------------------------------------------------------
     TChartData
     --------------------------------------------------------------------}
-  
+
   TChartData = Class(TGoogleBaseObject)
   Private
     FsourceRange : TChartSourceRange;
@@ -2572,11 +2572,11 @@ type
     Property sourceRange : TChartSourceRange Index 0 Read FsourceRange Write SetsourceRange;
   end;
   TChartDataClass = Class of TChartData;
-  
+
   { --------------------------------------------------------------------
     TSheet
     --------------------------------------------------------------------}
-  
+
   TSheet = Class(TGoogleBaseObject)
   Private
     Fproperties : TSheetProperties;
@@ -2613,11 +2613,11 @@ type
     Property data : TSheetTypedataArray Index 56 Read Fdata Write Setdata;
   end;
   TSheetClass = Class of TSheet;
-  
+
   { --------------------------------------------------------------------
     TCopyPasteRequest
     --------------------------------------------------------------------}
-  
+
   TCopyPasteRequest = Class(TGoogleBaseObject)
   Private
     FpasteType : String;
@@ -2638,11 +2638,11 @@ type
     Property destination : TGridRange Index 24 Read Fdestination Write Setdestination;
   end;
   TCopyPasteRequestClass = Class of TCopyPasteRequest;
-  
+
   { --------------------------------------------------------------------
     TUpdateCellsRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateCellsRequest = Class(TGoogleBaseObject)
   Private
     Frows : TUpdateCellsRequestTyperowsArray;
@@ -2667,11 +2667,11 @@ type
     Property range : TGridRange Index 24 Read Frange Write Setrange;
   end;
   TUpdateCellsRequestClass = Class of TUpdateCellsRequest;
-  
+
   { --------------------------------------------------------------------
     TExtendedValue
     --------------------------------------------------------------------}
-  
+
   TExtendedValue = Class(TGoogleBaseObject)
   Private
     FformulaValue : String;
@@ -2695,11 +2695,11 @@ type
     Property stringValue : String Index 32 Read FstringValue Write SetstringValue;
   end;
   TExtendedValueClass = Class of TExtendedValue;
-  
+
   { --------------------------------------------------------------------
     TBatchUpdateSpreadsheetResponse
     --------------------------------------------------------------------}
-  
+
   TBatchUpdateSpreadsheetResponse = Class(TGoogleBaseObject)
   Private
     FspreadsheetId : String;
@@ -2718,11 +2718,11 @@ type
     Property replies : TBatchUpdateSpreadsheetResponseTyperepliesArray Index 8 Read Freplies Write Setreplies;
   end;
   TBatchUpdateSpreadsheetResponseClass = Class of TBatchUpdateSpreadsheetResponse;
-  
+
   { --------------------------------------------------------------------
     TGradientRule
     --------------------------------------------------------------------}
-  
+
   TGradientRule = Class(TGoogleBaseObject)
   Private
     Fmaxpoint : TInterpolationPoint;
@@ -2740,11 +2740,11 @@ type
     Property minpoint : TInterpolationPoint Index 16 Read Fminpoint Write Setminpoint;
   end;
   TGradientRuleClass = Class of TGradientRule;
-  
+
   { --------------------------------------------------------------------
     TCutPasteRequest
     --------------------------------------------------------------------}
-  
+
   TCutPasteRequest = Class(TGoogleBaseObject)
   Private
     FpasteType : String;
@@ -2762,11 +2762,11 @@ type
     Property destination : TGridCoordinate Index 16 Read Fdestination Write Setdestination;
   end;
   TCutPasteRequestClass = Class of TCutPasteRequest;
-  
+
   { --------------------------------------------------------------------
     TOverlayPosition
     --------------------------------------------------------------------}
-  
+
   TOverlayPosition = Class(TGoogleBaseObject)
   Private
     FwidthPixels : integer;
@@ -2790,11 +2790,11 @@ type
     Property offsetYPixels : integer Index 32 Read FoffsetYPixels Write SetoffsetYPixels;
   end;
   TOverlayPositionClass = Class of TOverlayPosition;
-  
+
   { --------------------------------------------------------------------
     TAutoFillRequest
     --------------------------------------------------------------------}
-  
+
   TAutoFillRequest = Class(TGoogleBaseObject)
   Private
     FuseAlternateSeries : boolean;
@@ -2812,11 +2812,11 @@ type
     Property sourceAndDestination : TSourceAndDestination Index 16 Read FsourceAndDestination Write SetsourceAndDestination;
   end;
   TAutoFillRequestClass = Class of TAutoFillRequest;
-  
+
   { --------------------------------------------------------------------
     TPieChartSpec
     --------------------------------------------------------------------}
-  
+
   TPieChartSpec = Class(TGoogleBaseObject)
   Private
     FlegendPosition : String;
@@ -2840,11 +2840,11 @@ type
     Property domain : TChartData Index 32 Read Fdomain Write Setdomain;
   end;
   TPieChartSpecClass = Class of TPieChartSpec;
-  
+
   { --------------------------------------------------------------------
     TUpdateSheetPropertiesRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateSheetPropertiesRequest = Class(TGoogleBaseObject)
   Private
     Ffields : String;
@@ -2859,11 +2859,11 @@ type
     Property properties : TSheetProperties Index 8 Read Fproperties Write Setproperties;
   end;
   TUpdateSheetPropertiesRequestClass = Class of TUpdateSheetPropertiesRequest;
-  
+
   { --------------------------------------------------------------------
     TBooleanRule
     --------------------------------------------------------------------}
-  
+
   TBooleanRule = Class(TGoogleBaseObject)
   Private
     Fcondition : TBooleanCondition;
@@ -2878,11 +2878,11 @@ type
     Property format : TCellFormat Index 8 Read Fformat Write Setformat;
   end;
   TBooleanRuleClass = Class of TBooleanRule;
-  
+
   { --------------------------------------------------------------------
     TAppendDimensionRequest
     --------------------------------------------------------------------}
-  
+
   TAppendDimensionRequest = Class(TGoogleBaseObject)
   Private
     FsheetId : integer;
@@ -2901,11 +2901,11 @@ type
     Property dimension : String Index 16 Read Fdimension Write Setdimension;
   end;
   TAppendDimensionRequestClass = Class of TAppendDimensionRequest;
-  
+
   { --------------------------------------------------------------------
     TAddFilterViewRequest
     --------------------------------------------------------------------}
-  
+
   TAddFilterViewRequest = Class(TGoogleBaseObject)
   Private
     Ffilter : TFilterView;
@@ -2917,11 +2917,11 @@ type
     Property filter : TFilterView Index 0 Read Ffilter Write Setfilter;
   end;
   TAddFilterViewRequestClass = Class of TAddFilterViewRequest;
-  
+
   { --------------------------------------------------------------------
     TGridProperties
     --------------------------------------------------------------------}
-  
+
   TGridProperties = Class(TGoogleBaseObject)
   Private
     FrowCount : integer;
@@ -2945,11 +2945,11 @@ type
     Property hideGridlines : boolean Index 32 Read FhideGridlines Write SethideGridlines;
   end;
   TGridPropertiesClass = Class of TGridProperties;
-  
+
   { --------------------------------------------------------------------
     TDeleteNamedRangeRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteNamedRangeRequest = Class(TGoogleBaseObject)
   Private
     FnamedRangeId : String;
@@ -2961,11 +2961,11 @@ type
     Property namedRangeId : String Index 0 Read FnamedRangeId Write SetnamedRangeId;
   end;
   TDeleteNamedRangeRequestClass = Class of TDeleteNamedRangeRequest;
-  
+
   { --------------------------------------------------------------------
     TAddChartRequest
     --------------------------------------------------------------------}
-  
+
   TAddChartRequest = Class(TGoogleBaseObject)
   Private
     Fchart : TEmbeddedChart;
@@ -2977,11 +2977,11 @@ type
     Property chart : TEmbeddedChart Index 0 Read Fchart Write Setchart;
   end;
   TAddChartRequestClass = Class of TAddChartRequest;
-  
+
   { --------------------------------------------------------------------
     TSetDataValidationRequest
     --------------------------------------------------------------------}
-  
+
   TSetDataValidationRequest = Class(TGoogleBaseObject)
   Private
     Frule : TDataValidationRule;
@@ -2996,11 +2996,11 @@ type
     Property range : TGridRange Index 8 Read Frange Write Setrange;
   end;
   TSetDataValidationRequestClass = Class of TSetDataValidationRequest;
-  
+
   { --------------------------------------------------------------------
     TRequest
     --------------------------------------------------------------------}
-  
+
   TRequest = Class(TGoogleBaseObject)
   Private
     FupdateEmbeddedObjectPosition : TUpdateEmbeddedObjectPositionRequest;
@@ -3141,11 +3141,11 @@ type
     Property copyPaste : TCopyPasteRequest Index 344 Read FcopyPaste Write SetcopyPaste;
   end;
   TRequestClass = Class of TRequest;
-  
+
   { --------------------------------------------------------------------
     TBatchGetValuesResponse
     --------------------------------------------------------------------}
-  
+
   TBatchGetValuesResponse = Class(TGoogleBaseObject)
   Private
     FvalueRanges : TBatchGetValuesResponseTypevalueRangesArray;
@@ -3164,11 +3164,11 @@ type
     Property spreadsheetId : String Index 8 Read FspreadsheetId Write SetspreadsheetId;
   end;
   TBatchGetValuesResponseClass = Class of TBatchGetValuesResponse;
-  
+
   { --------------------------------------------------------------------
     TInsertDimensionRequest
     --------------------------------------------------------------------}
-  
+
   TInsertDimensionRequest = Class(TGoogleBaseObject)
   Private
     FinheritFromBefore : boolean;
@@ -3183,11 +3183,11 @@ type
     Property range : TDimensionRange Index 8 Read Frange Write Setrange;
   end;
   TInsertDimensionRequestClass = Class of TInsertDimensionRequest;
-  
+
   { --------------------------------------------------------------------
     TDeleteEmbeddedObjectRequest
     --------------------------------------------------------------------}
-  
+
   TDeleteEmbeddedObjectRequest = Class(TGoogleBaseObject)
   Private
     FobjectId : integer;
@@ -3199,11 +3199,11 @@ type
     Property objectId : integer Index 0 Read FobjectId Write SetobjectId;
   end;
   TDeleteEmbeddedObjectRequestClass = Class of TDeleteEmbeddedObjectRequest;
-  
+
   { --------------------------------------------------------------------
     TDeleteConditionalFormatRuleResponse
     --------------------------------------------------------------------}
-  
+
   TDeleteConditionalFormatRuleResponse = Class(TGoogleBaseObject)
   Private
     Frule : TConditionalFormatRule;
@@ -3215,37 +3215,37 @@ type
     Property rule : TConditionalFormatRule Index 0 Read Frule Write Setrule;
   end;
   TDeleteConditionalFormatRuleResponseClass = Class of TDeleteConditionalFormatRuleResponse;
-  
+
   { --------------------------------------------------------------------
     TSpreadsheetsValuesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TSpreadsheetsValuesResource, method Update
-  
+
   TSpreadsheetsValuesUpdateOptions = Record
     valueInputOption : String;
   end;
-  
-  
+
+
   //Optional query Options for TSpreadsheetsValuesResource, method Get
-  
+
   TSpreadsheetsValuesGetOptions = Record
     valueRenderOption : String;
     dateTimeRenderOption : String;
     majorDimension : String;
   end;
-  
-  
+
+
   //Optional query Options for TSpreadsheetsValuesResource, method BatchGet
-  
+
   TSpreadsheetsValuesBatchGetOptions = Record
     ranges : String;
     valueRenderOption : String;
     dateTimeRenderOption : String;
     majorDimension : String;
   end;
-  
+
   TSpreadsheetsValuesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3258,32 +3258,32 @@ type
     Function BatchGet(spreadsheetId: string; AQuery : TSpreadsheetsValuesbatchGetOptions) : TBatchGetValuesResponse;
     Function BatchUpdate(spreadsheetId: string; aBatchUpdateValuesRequest : TBatchUpdateValuesRequest) : TBatchUpdateValuesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSpreadsheetsSheetsResource
     --------------------------------------------------------------------}
-  
+
   TSpreadsheetsSheetsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function CopyTo(sheetId: integer; spreadsheetId: string; aCopySheetToAnotherSpreadsheetRequest : TCopySheetToAnotherSpreadsheetRequest) : TSheetProperties;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSpreadsheetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TSpreadsheetsResource, method Get
-  
+
   TSpreadsheetsGetOptions = Record
     ranges : String;
     includeGridData : boolean;
   end;
-  
+
   TSpreadsheetsResource = Class(TGoogleResource)
   Private
     FValuesInstance : TSpreadsheetsValuesResource;
@@ -3304,12 +3304,12 @@ type
     Property ValuesResource : TSpreadsheetsValuesResource Read GetValuesInstance;
     Property SheetsResource : TSpreadsheetsSheetsResource Read GetSheetsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSheetsAPI
     --------------------------------------------------------------------}
-  
+
   TSheetsAPI = Class(TGoogleAPI)
   Private
     FSpreadsheetsValuesInstance : TSpreadsheetsValuesResource;
@@ -3361,7 +3361,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAddNamedRangeResponse.SetnamedRange(AIndex : Integer; const AValue : TNamedRange); 
+Procedure TAddNamedRangeResponse.SetnamedRange(AIndex : Integer; const AValue : TNamedRange);
 
 begin
   If (FnamedRange=AValue) then exit;
@@ -3378,7 +3378,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateProtectedRangeRequest.SetprotectedRange(AIndex : Integer; const AValue : TProtectedRange); 
+Procedure TUpdateProtectedRangeRequest.SetprotectedRange(AIndex : Integer; const AValue : TProtectedRange);
 
 begin
   If (FprotectedRange=AValue) then exit;
@@ -3388,7 +3388,7 @@ end;
 
 
 
-Procedure TUpdateProtectedRangeRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateProtectedRangeRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -3405,7 +3405,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPadding.Setright(AIndex : Integer; const AValue : integer); 
+Procedure TPadding.Setright(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fright=AValue) then exit;
@@ -3415,7 +3415,7 @@ end;
 
 
 
-Procedure TPadding.Setleft(AIndex : Integer; const AValue : integer); 
+Procedure TPadding.Setleft(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fleft=AValue) then exit;
@@ -3425,7 +3425,7 @@ end;
 
 
 
-Procedure TPadding.Settop(AIndex : Integer; const AValue : integer); 
+Procedure TPadding.Settop(AIndex : Integer; const AValue : integer);
 
 begin
   If (Ftop=AValue) then exit;
@@ -3435,7 +3435,7 @@ end;
 
 
 
-Procedure TPadding.Setbottom(AIndex : Integer; const AValue : integer); 
+Procedure TPadding.Setbottom(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fbottom=AValue) then exit;
@@ -3452,7 +3452,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMergeCellsRequest.SetmergeType(AIndex : Integer; const AValue : String); 
+Procedure TMergeCellsRequest.SetmergeType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmergeType=AValue) then exit;
@@ -3462,7 +3462,7 @@ end;
 
 
 
-Procedure TMergeCellsRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TMergeCellsRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -3479,7 +3479,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddSheetResponse.Setproperties(AIndex : Integer; const AValue : TSheetProperties); 
+Procedure TAddSheetResponse.Setproperties(AIndex : Integer; const AValue : TSheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -3496,7 +3496,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPivotGroupValueMetadata.Setvalue(AIndex : Integer; const AValue : TExtendedValue); 
+Procedure TPivotGroupValueMetadata.Setvalue(AIndex : Integer; const AValue : TExtendedValue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -3506,7 +3506,7 @@ end;
 
 
 
-Procedure TPivotGroupValueMetadata.Setcollapsed(AIndex : Integer; const AValue : boolean); 
+Procedure TPivotGroupValueMetadata.Setcollapsed(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fcollapsed=AValue) then exit;
@@ -3523,7 +3523,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateEmbeddedObjectPositionResponse.Setposition(AIndex : Integer; const AValue : TEmbeddedObjectPosition); 
+Procedure TUpdateEmbeddedObjectPositionResponse.Setposition(AIndex : Integer; const AValue : TEmbeddedObjectPosition);
 
 begin
   If (Fposition=AValue) then exit;
@@ -3540,7 +3540,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateConditionalFormatRuleRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateConditionalFormatRuleRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -3550,7 +3550,7 @@ end;
 
 
 
-Procedure TUpdateConditionalFormatRuleRequest.Setrule(AIndex : Integer; const AValue : TConditionalFormatRule); 
+Procedure TUpdateConditionalFormatRuleRequest.Setrule(AIndex : Integer; const AValue : TConditionalFormatRule);
 
 begin
   If (Frule=AValue) then exit;
@@ -3560,7 +3560,7 @@ end;
 
 
 
-Procedure TUpdateConditionalFormatRuleRequest.Setindex(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateConditionalFormatRuleRequest.Setindex(AIndex : Integer; const AValue : integer);
 
 begin
   If (Findex=AValue) then exit;
@@ -3570,7 +3570,7 @@ end;
 
 
 
-Procedure TUpdateConditionalFormatRuleRequest.SetnewIndex(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateConditionalFormatRuleRequest.SetnewIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnewIndex=AValue) then exit;
@@ -3587,7 +3587,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTextFormat.Setbold(AIndex : Integer; const AValue : boolean); 
+Procedure TTextFormat.Setbold(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fbold=AValue) then exit;
@@ -3597,7 +3597,7 @@ end;
 
 
 
-Procedure TTextFormat.Setitalic(AIndex : Integer; const AValue : boolean); 
+Procedure TTextFormat.Setitalic(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fitalic=AValue) then exit;
@@ -3607,7 +3607,7 @@ end;
 
 
 
-Procedure TTextFormat.SetforegroundColor(AIndex : Integer; const AValue : TColor); 
+Procedure TTextFormat.SetforegroundColor(AIndex : Integer; const AValue : TColor);
 
 begin
   If (FforegroundColor=AValue) then exit;
@@ -3617,7 +3617,7 @@ end;
 
 
 
-Procedure TTextFormat.SetfontFamily(AIndex : Integer; const AValue : String); 
+Procedure TTextFormat.SetfontFamily(AIndex : Integer; const AValue : String);
 
 begin
   If (FfontFamily=AValue) then exit;
@@ -3627,7 +3627,7 @@ end;
 
 
 
-Procedure TTextFormat.Setstrikethrough(AIndex : Integer; const AValue : boolean); 
+Procedure TTextFormat.Setstrikethrough(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fstrikethrough=AValue) then exit;
@@ -3637,7 +3637,7 @@ end;
 
 
 
-Procedure TTextFormat.SetfontSize(AIndex : Integer; const AValue : integer); 
+Procedure TTextFormat.SetfontSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfontSize=AValue) then exit;
@@ -3647,7 +3647,7 @@ end;
 
 
 
-Procedure TTextFormat.Setunderline(AIndex : Integer; const AValue : boolean); 
+Procedure TTextFormat.Setunderline(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Funderline=AValue) then exit;
@@ -3664,7 +3664,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateChartSpecRequest.SetchartId(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateChartSpecRequest.SetchartId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FchartId=AValue) then exit;
@@ -3674,7 +3674,7 @@ end;
 
 
 
-Procedure TUpdateChartSpecRequest.Setspec(AIndex : Integer; const AValue : TChartSpec); 
+Procedure TUpdateChartSpecRequest.Setspec(AIndex : Integer; const AValue : TChartSpec);
 
 begin
   If (Fspec=AValue) then exit;
@@ -3691,7 +3691,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGridCoordinate.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TGridCoordinate.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -3701,7 +3701,7 @@ end;
 
 
 
-Procedure TGridCoordinate.SetrowIndex(AIndex : Integer; const AValue : integer); 
+Procedure TGridCoordinate.SetrowIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrowIndex=AValue) then exit;
@@ -3711,7 +3711,7 @@ end;
 
 
 
-Procedure TGridCoordinate.SetcolumnIndex(AIndex : Integer; const AValue : integer); 
+Procedure TGridCoordinate.SetcolumnIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcolumnIndex=AValue) then exit;
@@ -3728,7 +3728,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteFilterViewRequest.SetfilterId(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteFilterViewRequest.SetfilterId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfilterId=AValue) then exit;
@@ -3745,7 +3745,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchUpdateValuesResponse.SettotalUpdatedSheets(AIndex : Integer; const AValue : integer); 
+Procedure TBatchUpdateValuesResponse.SettotalUpdatedSheets(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalUpdatedSheets=AValue) then exit;
@@ -3755,7 +3755,7 @@ end;
 
 
 
-Procedure TBatchUpdateValuesResponse.SettotalUpdatedColumns(AIndex : Integer; const AValue : integer); 
+Procedure TBatchUpdateValuesResponse.SettotalUpdatedColumns(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalUpdatedColumns=AValue) then exit;
@@ -3765,7 +3765,7 @@ end;
 
 
 
-Procedure TBatchUpdateValuesResponse.Setresponses(AIndex : Integer; const AValue : TBatchUpdateValuesResponseTyperesponsesArray); 
+Procedure TBatchUpdateValuesResponse.Setresponses(AIndex : Integer; const AValue : TBatchUpdateValuesResponseTyperesponsesArray);
 
 begin
   If (Fresponses=AValue) then exit;
@@ -3775,7 +3775,7 @@ end;
 
 
 
-Procedure TBatchUpdateValuesResponse.SettotalUpdatedCells(AIndex : Integer; const AValue : integer); 
+Procedure TBatchUpdateValuesResponse.SettotalUpdatedCells(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalUpdatedCells=AValue) then exit;
@@ -3785,7 +3785,7 @@ end;
 
 
 
-Procedure TBatchUpdateValuesResponse.SetspreadsheetId(AIndex : Integer; const AValue : String); 
+Procedure TBatchUpdateValuesResponse.SetspreadsheetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FspreadsheetId=AValue) then exit;
@@ -3795,7 +3795,7 @@ end;
 
 
 
-Procedure TBatchUpdateValuesResponse.SettotalUpdatedRows(AIndex : Integer; const AValue : integer); 
+Procedure TBatchUpdateValuesResponse.SettotalUpdatedRows(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalUpdatedRows=AValue) then exit;
@@ -3806,7 +3806,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchUpdateValuesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchUpdateValuesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3825,7 +3825,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateNamedRangeRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateNamedRangeRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -3835,7 +3835,7 @@ end;
 
 
 
-Procedure TUpdateNamedRangeRequest.SetnamedRange(AIndex : Integer; const AValue : TNamedRange); 
+Procedure TUpdateNamedRangeRequest.SetnamedRange(AIndex : Integer; const AValue : TNamedRange);
 
 begin
   If (FnamedRange=AValue) then exit;
@@ -3852,7 +3852,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateValuesResponse.SetupdatedRange(AIndex : Integer; const AValue : String); 
+Procedure TUpdateValuesResponse.SetupdatedRange(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdatedRange=AValue) then exit;
@@ -3862,7 +3862,7 @@ end;
 
 
 
-Procedure TUpdateValuesResponse.SetupdatedColumns(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateValuesResponse.SetupdatedColumns(AIndex : Integer; const AValue : integer);
 
 begin
   If (FupdatedColumns=AValue) then exit;
@@ -3872,7 +3872,7 @@ end;
 
 
 
-Procedure TUpdateValuesResponse.SetspreadsheetId(AIndex : Integer; const AValue : String); 
+Procedure TUpdateValuesResponse.SetspreadsheetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FspreadsheetId=AValue) then exit;
@@ -3882,7 +3882,7 @@ end;
 
 
 
-Procedure TUpdateValuesResponse.SetupdatedRows(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateValuesResponse.SetupdatedRows(AIndex : Integer; const AValue : integer);
 
 begin
   If (FupdatedRows=AValue) then exit;
@@ -3892,7 +3892,7 @@ end;
 
 
 
-Procedure TUpdateValuesResponse.SetupdatedCells(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateValuesResponse.SetupdatedCells(AIndex : Integer; const AValue : integer);
 
 begin
   If (FupdatedCells=AValue) then exit;
@@ -3909,7 +3909,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSpreadsheetProperties.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TSpreadsheetProperties.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3919,7 +3919,7 @@ end;
 
 
 
-Procedure TSpreadsheetProperties.SetautoRecalc(AIndex : Integer; const AValue : String); 
+Procedure TSpreadsheetProperties.SetautoRecalc(AIndex : Integer; const AValue : String);
 
 begin
   If (FautoRecalc=AValue) then exit;
@@ -3929,7 +3929,7 @@ end;
 
 
 
-Procedure TSpreadsheetProperties.Setlocale(AIndex : Integer; const AValue : String); 
+Procedure TSpreadsheetProperties.Setlocale(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocale=AValue) then exit;
@@ -3939,7 +3939,7 @@ end;
 
 
 
-Procedure TSpreadsheetProperties.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TSpreadsheetProperties.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -3949,7 +3949,7 @@ end;
 
 
 
-Procedure TSpreadsheetProperties.SetdefaultFormat(AIndex : Integer; const AValue : TCellFormat); 
+Procedure TSpreadsheetProperties.SetdefaultFormat(AIndex : Integer; const AValue : TCellFormat);
 
 begin
   If (FdefaultFormat=AValue) then exit;
@@ -3966,7 +3966,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCellData.Sethyperlink(AIndex : Integer; const AValue : String); 
+Procedure TCellData.Sethyperlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhyperlink=AValue) then exit;
@@ -3976,7 +3976,7 @@ end;
 
 
 
-Procedure TCellData.SeteffectiveFormat(AIndex : Integer; const AValue : TCellFormat); 
+Procedure TCellData.SeteffectiveFormat(AIndex : Integer; const AValue : TCellFormat);
 
 begin
   If (FeffectiveFormat=AValue) then exit;
@@ -3986,7 +3986,7 @@ end;
 
 
 
-Procedure TCellData.Setnote(AIndex : Integer; const AValue : String); 
+Procedure TCellData.Setnote(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnote=AValue) then exit;
@@ -3996,7 +3996,7 @@ end;
 
 
 
-Procedure TCellData.SetformattedValue(AIndex : Integer; const AValue : String); 
+Procedure TCellData.SetformattedValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -4006,7 +4006,7 @@ end;
 
 
 
-Procedure TCellData.SetuserEnteredValue(AIndex : Integer; const AValue : TExtendedValue); 
+Procedure TCellData.SetuserEnteredValue(AIndex : Integer; const AValue : TExtendedValue);
 
 begin
   If (FuserEnteredValue=AValue) then exit;
@@ -4016,7 +4016,7 @@ end;
 
 
 
-Procedure TCellData.SetdataValidation(AIndex : Integer; const AValue : TDataValidationRule); 
+Procedure TCellData.SetdataValidation(AIndex : Integer; const AValue : TDataValidationRule);
 
 begin
   If (FdataValidation=AValue) then exit;
@@ -4026,7 +4026,7 @@ end;
 
 
 
-Procedure TCellData.SetuserEnteredFormat(AIndex : Integer; const AValue : TCellFormat); 
+Procedure TCellData.SetuserEnteredFormat(AIndex : Integer; const AValue : TCellFormat);
 
 begin
   If (FuserEnteredFormat=AValue) then exit;
@@ -4036,7 +4036,7 @@ end;
 
 
 
-Procedure TCellData.SetpivotTable(AIndex : Integer; const AValue : TPivotTable); 
+Procedure TCellData.SetpivotTable(AIndex : Integer; const AValue : TPivotTable);
 
 begin
   If (FpivotTable=AValue) then exit;
@@ -4046,7 +4046,7 @@ end;
 
 
 
-Procedure TCellData.SettextFormatRuns(AIndex : Integer; const AValue : TCellDataTypetextFormatRunsArray); 
+Procedure TCellData.SettextFormatRuns(AIndex : Integer; const AValue : TCellDataTypetextFormatRunsArray);
 
 begin
   If (FtextFormatRuns=AValue) then exit;
@@ -4056,7 +4056,7 @@ end;
 
 
 
-Procedure TCellData.SeteffectiveValue(AIndex : Integer; const AValue : TExtendedValue); 
+Procedure TCellData.SeteffectiveValue(AIndex : Integer; const AValue : TExtendedValue);
 
 begin
   If (FeffectiveValue=AValue) then exit;
@@ -4067,7 +4067,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCellData.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCellData.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4086,7 +4086,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUnmergeCellsRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TUnmergeCellsRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -4103,7 +4103,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTextToColumnsRequest.Setsource(AIndex : Integer; const AValue : TGridRange); 
+Procedure TTextToColumnsRequest.Setsource(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Fsource=AValue) then exit;
@@ -4113,7 +4113,7 @@ end;
 
 
 
-Procedure TTextToColumnsRequest.Setdelimiter(AIndex : Integer; const AValue : String); 
+Procedure TTextToColumnsRequest.Setdelimiter(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdelimiter=AValue) then exit;
@@ -4123,7 +4123,7 @@ end;
 
 
 
-Procedure TTextToColumnsRequest.SetdelimiterType(AIndex : Integer; const AValue : String); 
+Procedure TTextToColumnsRequest.SetdelimiterType(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelimiterType=AValue) then exit;
@@ -4140,7 +4140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddProtectedRangeResponse.SetprotectedRange(AIndex : Integer; const AValue : TProtectedRange); 
+Procedure TAddProtectedRangeResponse.SetprotectedRange(AIndex : Integer; const AValue : TProtectedRange);
 
 begin
   If (FprotectedRange=AValue) then exit;
@@ -4157,7 +4157,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBooleanCondition.Setvalues(AIndex : Integer; const AValue : TBooleanConditionTypevaluesArray); 
+Procedure TBooleanCondition.Setvalues(AIndex : Integer; const AValue : TBooleanConditionTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -4167,7 +4167,7 @@ end;
 
 
 
-Procedure TBooleanCondition.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TBooleanCondition.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -4189,7 +4189,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBooleanCondition.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBooleanCondition.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4208,7 +4208,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteProtectedRangeRequest.SetprotectedRangeId(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteProtectedRangeRequest.SetprotectedRangeId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FprotectedRangeId=AValue) then exit;
@@ -4225,7 +4225,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBasicChartDomain.Setdomain(AIndex : Integer; const AValue : TChartData); 
+Procedure TBasicChartDomain.Setdomain(AIndex : Integer; const AValue : TChartData);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -4242,7 +4242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDimensionRange.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TDimensionRange.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -4252,7 +4252,7 @@ end;
 
 
 
-Procedure TDimensionRange.SetendIndex(AIndex : Integer; const AValue : integer); 
+Procedure TDimensionRange.SetendIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FendIndex=AValue) then exit;
@@ -4262,7 +4262,7 @@ end;
 
 
 
-Procedure TDimensionRange.SetstartIndex(AIndex : Integer; const AValue : integer); 
+Procedure TDimensionRange.SetstartIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartIndex=AValue) then exit;
@@ -4272,7 +4272,7 @@ end;
 
 
 
-Procedure TDimensionRange.Setdimension(AIndex : Integer; const AValue : String); 
+Procedure TDimensionRange.Setdimension(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdimension=AValue) then exit;
@@ -4289,7 +4289,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResponse.SetupdateEmbeddedObjectPosition(AIndex : Integer; const AValue : TUpdateEmbeddedObjectPositionResponse); 
+Procedure TResponse.SetupdateEmbeddedObjectPosition(AIndex : Integer; const AValue : TUpdateEmbeddedObjectPositionResponse);
 
 begin
   If (FupdateEmbeddedObjectPosition=AValue) then exit;
@@ -4299,7 +4299,7 @@ end;
 
 
 
-Procedure TResponse.SetaddFilterView(AIndex : Integer; const AValue : TAddFilterViewResponse); 
+Procedure TResponse.SetaddFilterView(AIndex : Integer; const AValue : TAddFilterViewResponse);
 
 begin
   If (FaddFilterView=AValue) then exit;
@@ -4309,7 +4309,7 @@ end;
 
 
 
-Procedure TResponse.SetaddSheet(AIndex : Integer; const AValue : TAddSheetResponse); 
+Procedure TResponse.SetaddSheet(AIndex : Integer; const AValue : TAddSheetResponse);
 
 begin
   If (FaddSheet=AValue) then exit;
@@ -4319,7 +4319,7 @@ end;
 
 
 
-Procedure TResponse.SetfindReplace(AIndex : Integer; const AValue : TFindReplaceResponse); 
+Procedure TResponse.SetfindReplace(AIndex : Integer; const AValue : TFindReplaceResponse);
 
 begin
   If (FfindReplace=AValue) then exit;
@@ -4329,7 +4329,7 @@ end;
 
 
 
-Procedure TResponse.SetaddProtectedRange(AIndex : Integer; const AValue : TAddProtectedRangeResponse); 
+Procedure TResponse.SetaddProtectedRange(AIndex : Integer; const AValue : TAddProtectedRangeResponse);
 
 begin
   If (FaddProtectedRange=AValue) then exit;
@@ -4339,7 +4339,7 @@ end;
 
 
 
-Procedure TResponse.SetupdateConditionalFormatRule(AIndex : Integer; const AValue : TUpdateConditionalFormatRuleResponse); 
+Procedure TResponse.SetupdateConditionalFormatRule(AIndex : Integer; const AValue : TUpdateConditionalFormatRuleResponse);
 
 begin
   If (FupdateConditionalFormatRule=AValue) then exit;
@@ -4349,7 +4349,7 @@ end;
 
 
 
-Procedure TResponse.SetaddChart(AIndex : Integer; const AValue : TAddChartResponse); 
+Procedure TResponse.SetaddChart(AIndex : Integer; const AValue : TAddChartResponse);
 
 begin
   If (FaddChart=AValue) then exit;
@@ -4359,7 +4359,7 @@ end;
 
 
 
-Procedure TResponse.SetdeleteConditionalFormatRule(AIndex : Integer; const AValue : TDeleteConditionalFormatRuleResponse); 
+Procedure TResponse.SetdeleteConditionalFormatRule(AIndex : Integer; const AValue : TDeleteConditionalFormatRuleResponse);
 
 begin
   If (FdeleteConditionalFormatRule=AValue) then exit;
@@ -4369,7 +4369,7 @@ end;
 
 
 
-Procedure TResponse.SetduplicateSheet(AIndex : Integer; const AValue : TDuplicateSheetResponse); 
+Procedure TResponse.SetduplicateSheet(AIndex : Integer; const AValue : TDuplicateSheetResponse);
 
 begin
   If (FduplicateSheet=AValue) then exit;
@@ -4379,7 +4379,7 @@ end;
 
 
 
-Procedure TResponse.SetduplicateFilterView(AIndex : Integer; const AValue : TDuplicateFilterViewResponse); 
+Procedure TResponse.SetduplicateFilterView(AIndex : Integer; const AValue : TDuplicateFilterViewResponse);
 
 begin
   If (FduplicateFilterView=AValue) then exit;
@@ -4389,7 +4389,7 @@ end;
 
 
 
-Procedure TResponse.SetaddNamedRange(AIndex : Integer; const AValue : TAddNamedRangeResponse); 
+Procedure TResponse.SetaddNamedRange(AIndex : Integer; const AValue : TAddNamedRangeResponse);
 
 begin
   If (FaddNamedRange=AValue) then exit;
@@ -4406,7 +4406,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddConditionalFormatRuleRequest.Setrule(AIndex : Integer; const AValue : TConditionalFormatRule); 
+Procedure TAddConditionalFormatRuleRequest.Setrule(AIndex : Integer; const AValue : TConditionalFormatRule);
 
 begin
   If (Frule=AValue) then exit;
@@ -4416,7 +4416,7 @@ end;
 
 
 
-Procedure TAddConditionalFormatRuleRequest.Setindex(AIndex : Integer; const AValue : integer); 
+Procedure TAddConditionalFormatRuleRequest.Setindex(AIndex : Integer; const AValue : integer);
 
 begin
   If (Findex=AValue) then exit;
@@ -4446,7 +4446,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterView.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TFilterView.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4456,7 +4456,7 @@ end;
 
 
 
-Procedure TFilterView.SetnamedRangeId(AIndex : Integer; const AValue : String); 
+Procedure TFilterView.SetnamedRangeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamedRangeId=AValue) then exit;
@@ -4466,7 +4466,7 @@ end;
 
 
 
-Procedure TFilterView.SetsortSpecs(AIndex : Integer; const AValue : TFilterViewTypesortSpecsArray); 
+Procedure TFilterView.SetsortSpecs(AIndex : Integer; const AValue : TFilterViewTypesortSpecsArray);
 
 begin
   If (FsortSpecs=AValue) then exit;
@@ -4476,7 +4476,7 @@ end;
 
 
 
-Procedure TFilterView.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TFilterView.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -4486,7 +4486,7 @@ end;
 
 
 
-Procedure TFilterView.Setcriteria(AIndex : Integer; const AValue : TFilterViewTypecriteria); 
+Procedure TFilterView.Setcriteria(AIndex : Integer; const AValue : TFilterViewTypecriteria);
 
 begin
   If (Fcriteria=AValue) then exit;
@@ -4496,7 +4496,7 @@ end;
 
 
 
-Procedure TFilterView.SetfilterViewId(AIndex : Integer; const AValue : integer); 
+Procedure TFilterView.SetfilterViewId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfilterViewId=AValue) then exit;
@@ -4507,7 +4507,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFilterView.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFilterView.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4526,7 +4526,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSortRangeRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TSortRangeRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -4536,7 +4536,7 @@ end;
 
 
 
-Procedure TSortRangeRequest.SetsortSpecs(AIndex : Integer; const AValue : TSortRangeRequestTypesortSpecsArray); 
+Procedure TSortRangeRequest.SetsortSpecs(AIndex : Integer; const AValue : TSortRangeRequestTypesortSpecsArray);
 
 begin
   If (FsortSpecs=AValue) then exit;
@@ -4547,7 +4547,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSortRangeRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSortRangeRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4566,7 +4566,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTextFormatRun.SetstartIndex(AIndex : Integer; const AValue : integer); 
+Procedure TTextFormatRun.SetstartIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartIndex=AValue) then exit;
@@ -4576,7 +4576,7 @@ end;
 
 
 
-Procedure TTextFormatRun.Setformat(AIndex : Integer; const AValue : TTextFormat); 
+Procedure TTextFormatRun.Setformat(AIndex : Integer; const AValue : TTextFormat);
 
 begin
   If (Fformat=AValue) then exit;
@@ -4593,7 +4593,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateFilterViewRequest.Setfilter(AIndex : Integer; const AValue : TFilterView); 
+Procedure TUpdateFilterViewRequest.Setfilter(AIndex : Integer; const AValue : TFilterView);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -4603,7 +4603,7 @@ end;
 
 
 
-Procedure TUpdateFilterViewRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateFilterViewRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -4620,7 +4620,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateConditionalFormatRuleResponse.SetoldIndex(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateConditionalFormatRuleResponse.SetoldIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoldIndex=AValue) then exit;
@@ -4630,7 +4630,7 @@ end;
 
 
 
-Procedure TUpdateConditionalFormatRuleResponse.SetnewRule(AIndex : Integer; const AValue : TConditionalFormatRule); 
+Procedure TUpdateConditionalFormatRuleResponse.SetnewRule(AIndex : Integer; const AValue : TConditionalFormatRule);
 
 begin
   If (FnewRule=AValue) then exit;
@@ -4640,7 +4640,7 @@ end;
 
 
 
-Procedure TUpdateConditionalFormatRuleResponse.SetoldRule(AIndex : Integer; const AValue : TConditionalFormatRule); 
+Procedure TUpdateConditionalFormatRuleResponse.SetoldRule(AIndex : Integer; const AValue : TConditionalFormatRule);
 
 begin
   If (FoldRule=AValue) then exit;
@@ -4650,7 +4650,7 @@ end;
 
 
 
-Procedure TUpdateConditionalFormatRuleResponse.SetnewIndex(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateConditionalFormatRuleResponse.SetnewIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnewIndex=AValue) then exit;
@@ -4667,7 +4667,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterCriteria.Setcondition(AIndex : Integer; const AValue : TBooleanCondition); 
+Procedure TFilterCriteria.Setcondition(AIndex : Integer; const AValue : TBooleanCondition);
 
 begin
   If (Fcondition=AValue) then exit;
@@ -4677,7 +4677,7 @@ end;
 
 
 
-Procedure TFilterCriteria.SethiddenValues(AIndex : Integer; const AValue : TStringArray); 
+Procedure TFilterCriteria.SethiddenValues(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FhiddenValues=AValue) then exit;
@@ -4688,7 +4688,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFilterCriteria.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFilterCriteria.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4707,7 +4707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteDimensionRequest.Setrange(AIndex : Integer; const AValue : TDimensionRange); 
+Procedure TDeleteDimensionRequest.Setrange(AIndex : Integer; const AValue : TDimensionRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -4737,7 +4737,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPivotTable.SetvalueLayout(AIndex : Integer; const AValue : String); 
+Procedure TPivotTable.SetvalueLayout(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalueLayout=AValue) then exit;
@@ -4747,7 +4747,7 @@ end;
 
 
 
-Procedure TPivotTable.Setcolumns(AIndex : Integer; const AValue : TPivotTableTypecolumnsArray); 
+Procedure TPivotTable.Setcolumns(AIndex : Integer; const AValue : TPivotTableTypecolumnsArray);
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -4757,7 +4757,7 @@ end;
 
 
 
-Procedure TPivotTable.Setsource(AIndex : Integer; const AValue : TGridRange); 
+Procedure TPivotTable.Setsource(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Fsource=AValue) then exit;
@@ -4767,7 +4767,7 @@ end;
 
 
 
-Procedure TPivotTable.Setrows(AIndex : Integer; const AValue : TPivotTableTyperowsArray); 
+Procedure TPivotTable.Setrows(AIndex : Integer; const AValue : TPivotTableTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -4777,7 +4777,7 @@ end;
 
 
 
-Procedure TPivotTable.Setvalues(AIndex : Integer; const AValue : TPivotTableTypevaluesArray); 
+Procedure TPivotTable.Setvalues(AIndex : Integer; const AValue : TPivotTableTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -4787,7 +4787,7 @@ end;
 
 
 
-Procedure TPivotTable.Setcriteria(AIndex : Integer; const AValue : TPivotTableTypecriteria); 
+Procedure TPivotTable.Setcriteria(AIndex : Integer; const AValue : TPivotTableTypecriteria);
 
 begin
   If (Fcriteria=AValue) then exit;
@@ -4798,7 +4798,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPivotTable.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPivotTable.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4819,7 +4819,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataValidationRule.Setcondition(AIndex : Integer; const AValue : TBooleanCondition); 
+Procedure TDataValidationRule.Setcondition(AIndex : Integer; const AValue : TBooleanCondition);
 
 begin
   If (Fcondition=AValue) then exit;
@@ -4829,7 +4829,7 @@ end;
 
 
 
-Procedure TDataValidationRule.SetinputMessage(AIndex : Integer; const AValue : String); 
+Procedure TDataValidationRule.SetinputMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FinputMessage=AValue) then exit;
@@ -4839,7 +4839,7 @@ end;
 
 
 
-Procedure TDataValidationRule.SetshowCustomUi(AIndex : Integer; const AValue : boolean); 
+Procedure TDataValidationRule.SetshowCustomUi(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FshowCustomUi=AValue) then exit;
@@ -4849,7 +4849,7 @@ end;
 
 
 
-Procedure TDataValidationRule.Setstrict(AIndex : Integer; const AValue : boolean); 
+Procedure TDataValidationRule.Setstrict(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fstrict=AValue) then exit;
@@ -4866,7 +4866,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateSpreadsheetPropertiesRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateSpreadsheetPropertiesRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -4876,7 +4876,7 @@ end;
 
 
 
-Procedure TUpdateSpreadsheetPropertiesRequest.Setproperties(AIndex : Integer; const AValue : TSpreadsheetProperties); 
+Procedure TUpdateSpreadsheetPropertiesRequest.Setproperties(AIndex : Integer; const AValue : TSpreadsheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -4893,7 +4893,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChartSourceRange.Setsources(AIndex : Integer; const AValue : TChartSourceRangeTypesourcesArray); 
+Procedure TChartSourceRange.Setsources(AIndex : Integer; const AValue : TChartSourceRangeTypesourcesArray);
 
 begin
   If (Fsources=AValue) then exit;
@@ -4904,7 +4904,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TChartSourceRange.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TChartSourceRange.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4923,7 +4923,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchUpdateValuesRequest.SetvalueInputOption(AIndex : Integer; const AValue : String); 
+Procedure TBatchUpdateValuesRequest.SetvalueInputOption(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalueInputOption=AValue) then exit;
@@ -4933,7 +4933,7 @@ end;
 
 
 
-Procedure TBatchUpdateValuesRequest.Setdata(AIndex : Integer; const AValue : TBatchUpdateValuesRequestTypedataArray); 
+Procedure TBatchUpdateValuesRequest.Setdata(AIndex : Integer; const AValue : TBatchUpdateValuesRequestTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -4944,7 +4944,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchUpdateValuesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchUpdateValuesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4963,7 +4963,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClearBasicFilterRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TClearBasicFilterRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -4980,7 +4980,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TConditionalFormatRule.SetgradientRule(AIndex : Integer; const AValue : TGradientRule); 
+Procedure TConditionalFormatRule.SetgradientRule(AIndex : Integer; const AValue : TGradientRule);
 
 begin
   If (FgradientRule=AValue) then exit;
@@ -4990,7 +4990,7 @@ end;
 
 
 
-Procedure TConditionalFormatRule.SetbooleanRule(AIndex : Integer; const AValue : TBooleanRule); 
+Procedure TConditionalFormatRule.SetbooleanRule(AIndex : Integer; const AValue : TBooleanRule);
 
 begin
   If (FbooleanRule=AValue) then exit;
@@ -5000,7 +5000,7 @@ end;
 
 
 
-Procedure TConditionalFormatRule.Setranges(AIndex : Integer; const AValue : TConditionalFormatRuleTyperangesArray); 
+Procedure TConditionalFormatRule.Setranges(AIndex : Integer; const AValue : TConditionalFormatRuleTyperangesArray);
 
 begin
   If (Franges=AValue) then exit;
@@ -5011,7 +5011,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TConditionalFormatRule.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TConditionalFormatRule.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5030,7 +5030,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateBordersRequest.Setright(AIndex : Integer; const AValue : TBorder); 
+Procedure TUpdateBordersRequest.Setright(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Fright=AValue) then exit;
@@ -5040,7 +5040,7 @@ end;
 
 
 
-Procedure TUpdateBordersRequest.SetinnerVertical(AIndex : Integer; const AValue : TBorder); 
+Procedure TUpdateBordersRequest.SetinnerVertical(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (FinnerVertical=AValue) then exit;
@@ -5050,7 +5050,7 @@ end;
 
 
 
-Procedure TUpdateBordersRequest.Settop(AIndex : Integer; const AValue : TBorder); 
+Procedure TUpdateBordersRequest.Settop(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Ftop=AValue) then exit;
@@ -5060,7 +5060,7 @@ end;
 
 
 
-Procedure TUpdateBordersRequest.SetinnerHorizontal(AIndex : Integer; const AValue : TBorder); 
+Procedure TUpdateBordersRequest.SetinnerHorizontal(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (FinnerHorizontal=AValue) then exit;
@@ -5070,7 +5070,7 @@ end;
 
 
 
-Procedure TUpdateBordersRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TUpdateBordersRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -5080,7 +5080,7 @@ end;
 
 
 
-Procedure TUpdateBordersRequest.Setbottom(AIndex : Integer; const AValue : TBorder); 
+Procedure TUpdateBordersRequest.Setbottom(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Fbottom=AValue) then exit;
@@ -5090,7 +5090,7 @@ end;
 
 
 
-Procedure TUpdateBordersRequest.Setleft(AIndex : Integer; const AValue : TBorder); 
+Procedure TUpdateBordersRequest.Setleft(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Fleft=AValue) then exit;
@@ -5107,7 +5107,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPivotFilterCriteria.SetvisibleValues(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPivotFilterCriteria.SetvisibleValues(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvisibleValues=AValue) then exit;
@@ -5118,7 +5118,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPivotFilterCriteria.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPivotFilterCriteria.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5137,7 +5137,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBorders.Setleft(AIndex : Integer; const AValue : TBorder); 
+Procedure TBorders.Setleft(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Fleft=AValue) then exit;
@@ -5147,7 +5147,7 @@ end;
 
 
 
-Procedure TBorders.Setright(AIndex : Integer; const AValue : TBorder); 
+Procedure TBorders.Setright(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Fright=AValue) then exit;
@@ -5157,7 +5157,7 @@ end;
 
 
 
-Procedure TBorders.Settop(AIndex : Integer; const AValue : TBorder); 
+Procedure TBorders.Settop(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Ftop=AValue) then exit;
@@ -5167,7 +5167,7 @@ end;
 
 
 
-Procedure TBorders.Setbottom(AIndex : Integer; const AValue : TBorder); 
+Procedure TBorders.Setbottom(AIndex : Integer; const AValue : TBorder);
 
 begin
   If (Fbottom=AValue) then exit;
@@ -5184,7 +5184,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEmbeddedChart.SetchartId(AIndex : Integer; const AValue : integer); 
+Procedure TEmbeddedChart.SetchartId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FchartId=AValue) then exit;
@@ -5194,7 +5194,7 @@ end;
 
 
 
-Procedure TEmbeddedChart.Setposition(AIndex : Integer; const AValue : TEmbeddedObjectPosition); 
+Procedure TEmbeddedChart.Setposition(AIndex : Integer; const AValue : TEmbeddedObjectPosition);
 
 begin
   If (Fposition=AValue) then exit;
@@ -5204,7 +5204,7 @@ end;
 
 
 
-Procedure TEmbeddedChart.Setspec(AIndex : Integer; const AValue : TChartSpec); 
+Procedure TEmbeddedChart.Setspec(AIndex : Integer; const AValue : TChartSpec);
 
 begin
   If (Fspec=AValue) then exit;
@@ -5221,7 +5221,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColor.Setgreen(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setgreen(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fgreen=AValue) then exit;
@@ -5231,7 +5231,7 @@ end;
 
 
 
-Procedure TColor.Setblue(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setblue(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fblue=AValue) then exit;
@@ -5241,7 +5241,7 @@ end;
 
 
 
-Procedure TColor.Setred(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setred(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fred=AValue) then exit;
@@ -5251,7 +5251,7 @@ end;
 
 
 
-Procedure TColor.Setalpha(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setalpha(AIndex : Integer; const AValue : integer);
 
 begin
   If (Falpha=AValue) then exit;
@@ -5268,7 +5268,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddSheetRequest.Setproperties(AIndex : Integer; const AValue : TSheetProperties); 
+Procedure TAddSheetRequest.Setproperties(AIndex : Integer; const AValue : TSheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -5285,7 +5285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddProtectedRangeRequest.SetprotectedRange(AIndex : Integer; const AValue : TProtectedRange); 
+Procedure TAddProtectedRangeRequest.SetprotectedRange(AIndex : Integer; const AValue : TProtectedRange);
 
 begin
   If (FprotectedRange=AValue) then exit;
@@ -5302,7 +5302,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValueRange.Setvalues(AIndex : Integer; const AValue : TValueRangeTypevaluesArray); 
+Procedure TValueRange.Setvalues(AIndex : Integer; const AValue : TValueRangeTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -5312,7 +5312,7 @@ end;
 
 
 
-Procedure TValueRange.Setrange(AIndex : Integer; const AValue : String); 
+Procedure TValueRange.Setrange(AIndex : Integer; const AValue : String);
 
 begin
   If (Frange=AValue) then exit;
@@ -5322,7 +5322,7 @@ end;
 
 
 
-Procedure TValueRange.SetmajorDimension(AIndex : Integer; const AValue : String); 
+Procedure TValueRange.SetmajorDimension(AIndex : Integer; const AValue : String);
 
 begin
   If (FmajorDimension=AValue) then exit;
@@ -5333,7 +5333,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TValueRange.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TValueRange.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5352,7 +5352,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFindReplaceResponse.SetvaluesChanged(AIndex : Integer; const AValue : integer); 
+Procedure TFindReplaceResponse.SetvaluesChanged(AIndex : Integer; const AValue : integer);
 
 begin
   If (FvaluesChanged=AValue) then exit;
@@ -5362,7 +5362,7 @@ end;
 
 
 
-Procedure TFindReplaceResponse.SetrowsChanged(AIndex : Integer; const AValue : integer); 
+Procedure TFindReplaceResponse.SetrowsChanged(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrowsChanged=AValue) then exit;
@@ -5372,7 +5372,7 @@ end;
 
 
 
-Procedure TFindReplaceResponse.SetoccurrencesChanged(AIndex : Integer; const AValue : integer); 
+Procedure TFindReplaceResponse.SetoccurrencesChanged(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoccurrencesChanged=AValue) then exit;
@@ -5382,7 +5382,7 @@ end;
 
 
 
-Procedure TFindReplaceResponse.SetformulasChanged(AIndex : Integer; const AValue : integer); 
+Procedure TFindReplaceResponse.SetformulasChanged(AIndex : Integer; const AValue : integer);
 
 begin
   If (FformulasChanged=AValue) then exit;
@@ -5392,7 +5392,7 @@ end;
 
 
 
-Procedure TFindReplaceResponse.SetsheetsChanged(AIndex : Integer; const AValue : integer); 
+Procedure TFindReplaceResponse.SetsheetsChanged(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetsChanged=AValue) then exit;
@@ -5409,7 +5409,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCellFormat.SethorizontalAlignment(AIndex : Integer; const AValue : String); 
+Procedure TCellFormat.SethorizontalAlignment(AIndex : Integer; const AValue : String);
 
 begin
   If (FhorizontalAlignment=AValue) then exit;
@@ -5419,7 +5419,7 @@ end;
 
 
 
-Procedure TCellFormat.SethyperlinkDisplayType(AIndex : Integer; const AValue : String); 
+Procedure TCellFormat.SethyperlinkDisplayType(AIndex : Integer; const AValue : String);
 
 begin
   If (FhyperlinkDisplayType=AValue) then exit;
@@ -5429,7 +5429,7 @@ end;
 
 
 
-Procedure TCellFormat.Setborders(AIndex : Integer; const AValue : TBorders); 
+Procedure TCellFormat.Setborders(AIndex : Integer; const AValue : TBorders);
 
 begin
   If (Fborders=AValue) then exit;
@@ -5439,7 +5439,7 @@ end;
 
 
 
-Procedure TCellFormat.SettextDirection(AIndex : Integer; const AValue : String); 
+Procedure TCellFormat.SettextDirection(AIndex : Integer; const AValue : String);
 
 begin
   If (FtextDirection=AValue) then exit;
@@ -5449,7 +5449,7 @@ end;
 
 
 
-Procedure TCellFormat.SettextFormat(AIndex : Integer; const AValue : TTextFormat); 
+Procedure TCellFormat.SettextFormat(AIndex : Integer; const AValue : TTextFormat);
 
 begin
   If (FtextFormat=AValue) then exit;
@@ -5459,7 +5459,7 @@ end;
 
 
 
-Procedure TCellFormat.Setpadding(AIndex : Integer; const AValue : TPadding); 
+Procedure TCellFormat.Setpadding(AIndex : Integer; const AValue : TPadding);
 
 begin
   If (Fpadding=AValue) then exit;
@@ -5469,7 +5469,7 @@ end;
 
 
 
-Procedure TCellFormat.SetnumberFormat(AIndex : Integer; const AValue : TNumberFormat); 
+Procedure TCellFormat.SetnumberFormat(AIndex : Integer; const AValue : TNumberFormat);
 
 begin
   If (FnumberFormat=AValue) then exit;
@@ -5479,7 +5479,7 @@ end;
 
 
 
-Procedure TCellFormat.SetwrapStrategy(AIndex : Integer; const AValue : String); 
+Procedure TCellFormat.SetwrapStrategy(AIndex : Integer; const AValue : String);
 
 begin
   If (FwrapStrategy=AValue) then exit;
@@ -5489,7 +5489,7 @@ end;
 
 
 
-Procedure TCellFormat.SetbackgroundColor(AIndex : Integer; const AValue : TColor); 
+Procedure TCellFormat.SetbackgroundColor(AIndex : Integer; const AValue : TColor);
 
 begin
   If (FbackgroundColor=AValue) then exit;
@@ -5499,7 +5499,7 @@ end;
 
 
 
-Procedure TCellFormat.SetverticalAlignment(AIndex : Integer; const AValue : String); 
+Procedure TCellFormat.SetverticalAlignment(AIndex : Integer; const AValue : String);
 
 begin
   If (FverticalAlignment=AValue) then exit;
@@ -5516,7 +5516,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMoveDimensionRequest.Setsource(AIndex : Integer; const AValue : TDimensionRange); 
+Procedure TMoveDimensionRequest.Setsource(AIndex : Integer; const AValue : TDimensionRange);
 
 begin
   If (Fsource=AValue) then exit;
@@ -5526,7 +5526,7 @@ end;
 
 
 
-Procedure TMoveDimensionRequest.SetdestinationIndex(AIndex : Integer; const AValue : integer); 
+Procedure TMoveDimensionRequest.SetdestinationIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FdestinationIndex=AValue) then exit;
@@ -5543,7 +5543,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBasicChartAxis.Setposition(AIndex : Integer; const AValue : String); 
+Procedure TBasicChartAxis.Setposition(AIndex : Integer; const AValue : String);
 
 begin
   If (Fposition=AValue) then exit;
@@ -5553,7 +5553,7 @@ end;
 
 
 
-Procedure TBasicChartAxis.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TBasicChartAxis.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -5563,7 +5563,7 @@ end;
 
 
 
-Procedure TBasicChartAxis.Setformat(AIndex : Integer; const AValue : TTextFormat); 
+Procedure TBasicChartAxis.Setformat(AIndex : Integer; const AValue : TTextFormat);
 
 begin
   If (Fformat=AValue) then exit;
@@ -5580,7 +5580,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPivotGroupSortValueBucket.Setbuckets(AIndex : Integer; const AValue : TPivotGroupSortValueBucketTypebucketsArray); 
+Procedure TPivotGroupSortValueBucket.Setbuckets(AIndex : Integer; const AValue : TPivotGroupSortValueBucketTypebucketsArray);
 
 begin
   If (Fbuckets=AValue) then exit;
@@ -5590,7 +5590,7 @@ end;
 
 
 
-Procedure TPivotGroupSortValueBucket.SetvaluesIndex(AIndex : Integer; const AValue : integer); 
+Procedure TPivotGroupSortValueBucket.SetvaluesIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FvaluesIndex=AValue) then exit;
@@ -5601,7 +5601,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPivotGroupSortValueBucket.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPivotGroupSortValueBucket.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5620,7 +5620,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDimensionProperties.SethiddenByUser(AIndex : Integer; const AValue : boolean); 
+Procedure TDimensionProperties.SethiddenByUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhiddenByUser=AValue) then exit;
@@ -5630,7 +5630,7 @@ end;
 
 
 
-Procedure TDimensionProperties.SetpixelSize(AIndex : Integer; const AValue : integer); 
+Procedure TDimensionProperties.SetpixelSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpixelSize=AValue) then exit;
@@ -5640,7 +5640,7 @@ end;
 
 
 
-Procedure TDimensionProperties.SethiddenByFilter(AIndex : Integer; const AValue : boolean); 
+Procedure TDimensionProperties.SethiddenByFilter(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhiddenByFilter=AValue) then exit;
@@ -5657,7 +5657,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEmbeddedObjectPosition.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TEmbeddedObjectPosition.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -5667,7 +5667,7 @@ end;
 
 
 
-Procedure TEmbeddedObjectPosition.SetoverlayPosition(AIndex : Integer; const AValue : TOverlayPosition); 
+Procedure TEmbeddedObjectPosition.SetoverlayPosition(AIndex : Integer; const AValue : TOverlayPosition);
 
 begin
   If (FoverlayPosition=AValue) then exit;
@@ -5677,7 +5677,7 @@ end;
 
 
 
-Procedure TEmbeddedObjectPosition.SetnewSheet(AIndex : Integer; const AValue : boolean); 
+Procedure TEmbeddedObjectPosition.SetnewSheet(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnewSheet=AValue) then exit;
@@ -5694,7 +5694,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInterpolationPoint.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TInterpolationPoint.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -5704,7 +5704,7 @@ end;
 
 
 
-Procedure TInterpolationPoint.Setcolor(AIndex : Integer; const AValue : TColor); 
+Procedure TInterpolationPoint.Setcolor(AIndex : Integer; const AValue : TColor);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -5714,7 +5714,7 @@ end;
 
 
 
-Procedure TInterpolationPoint.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TInterpolationPoint.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5742,7 +5742,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TErrorValue.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TErrorValue.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5752,7 +5752,7 @@ end;
 
 
 
-Procedure TErrorValue.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TErrorValue.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -5780,7 +5780,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDuplicateFilterViewRequest.SetfilterId(AIndex : Integer; const AValue : integer); 
+Procedure TDuplicateFilterViewRequest.SetfilterId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfilterId=AValue) then exit;
@@ -5797,7 +5797,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchUpdateSpreadsheetRequest.Setrequests(AIndex : Integer; const AValue : TBatchUpdateSpreadsheetRequestTyperequestsArray); 
+Procedure TBatchUpdateSpreadsheetRequest.Setrequests(AIndex : Integer; const AValue : TBatchUpdateSpreadsheetRequestTyperequestsArray);
 
 begin
   If (Frequests=AValue) then exit;
@@ -5808,7 +5808,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchUpdateSpreadsheetRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchUpdateSpreadsheetRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5827,7 +5827,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSheetProperties.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TSheetProperties.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -5837,7 +5837,7 @@ end;
 
 
 
-Procedure TSheetProperties.Setindex(AIndex : Integer; const AValue : integer); 
+Procedure TSheetProperties.Setindex(AIndex : Integer; const AValue : integer);
 
 begin
   If (Findex=AValue) then exit;
@@ -5847,7 +5847,7 @@ end;
 
 
 
-Procedure TSheetProperties.Sethidden(AIndex : Integer; const AValue : boolean); 
+Procedure TSheetProperties.Sethidden(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fhidden=AValue) then exit;
@@ -5857,7 +5857,7 @@ end;
 
 
 
-Procedure TSheetProperties.SetgridProperties(AIndex : Integer; const AValue : TGridProperties); 
+Procedure TSheetProperties.SetgridProperties(AIndex : Integer; const AValue : TGridProperties);
 
 begin
   If (FgridProperties=AValue) then exit;
@@ -5867,7 +5867,7 @@ end;
 
 
 
-Procedure TSheetProperties.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TSheetProperties.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -5877,7 +5877,7 @@ end;
 
 
 
-Procedure TSheetProperties.SetrightToLeft(AIndex : Integer; const AValue : boolean); 
+Procedure TSheetProperties.SetrightToLeft(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FrightToLeft=AValue) then exit;
@@ -5887,7 +5887,7 @@ end;
 
 
 
-Procedure TSheetProperties.SettabColor(AIndex : Integer; const AValue : TColor); 
+Procedure TSheetProperties.SettabColor(AIndex : Integer; const AValue : TColor);
 
 begin
   If (FtabColor=AValue) then exit;
@@ -5897,7 +5897,7 @@ end;
 
 
 
-Procedure TSheetProperties.SetsheetType(AIndex : Integer; const AValue : String); 
+Procedure TSheetProperties.SetsheetType(AIndex : Integer; const AValue : String);
 
 begin
   If (FsheetType=AValue) then exit;
@@ -5914,7 +5914,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProtectedRange.SetunprotectedRanges(AIndex : Integer; const AValue : TProtectedRangeTypeunprotectedRangesArray); 
+Procedure TProtectedRange.SetunprotectedRanges(AIndex : Integer; const AValue : TProtectedRangeTypeunprotectedRangesArray);
 
 begin
   If (FunprotectedRanges=AValue) then exit;
@@ -5924,7 +5924,7 @@ end;
 
 
 
-Procedure TProtectedRange.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TProtectedRange.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5934,7 +5934,7 @@ end;
 
 
 
-Procedure TProtectedRange.SetnamedRangeId(AIndex : Integer; const AValue : String); 
+Procedure TProtectedRange.SetnamedRangeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamedRangeId=AValue) then exit;
@@ -5944,7 +5944,7 @@ end;
 
 
 
-Procedure TProtectedRange.SetrequestingUserCanEdit(AIndex : Integer; const AValue : boolean); 
+Procedure TProtectedRange.SetrequestingUserCanEdit(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FrequestingUserCanEdit=AValue) then exit;
@@ -5954,7 +5954,7 @@ end;
 
 
 
-Procedure TProtectedRange.Seteditors(AIndex : Integer; const AValue : TEditors); 
+Procedure TProtectedRange.Seteditors(AIndex : Integer; const AValue : TEditors);
 
 begin
   If (Feditors=AValue) then exit;
@@ -5964,7 +5964,7 @@ end;
 
 
 
-Procedure TProtectedRange.SetprotectedRangeId(AIndex : Integer; const AValue : integer); 
+Procedure TProtectedRange.SetprotectedRangeId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FprotectedRangeId=AValue) then exit;
@@ -5974,7 +5974,7 @@ end;
 
 
 
-Procedure TProtectedRange.SetwarningOnly(AIndex : Integer; const AValue : boolean); 
+Procedure TProtectedRange.SetwarningOnly(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FwarningOnly=AValue) then exit;
@@ -5984,7 +5984,7 @@ end;
 
 
 
-Procedure TProtectedRange.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TProtectedRange.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -5995,7 +5995,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TProtectedRange.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TProtectedRange.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6014,7 +6014,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteConditionalFormatRuleRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteConditionalFormatRuleRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -6024,7 +6024,7 @@ end;
 
 
 
-Procedure TDeleteConditionalFormatRuleRequest.Setindex(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteConditionalFormatRuleRequest.Setindex(AIndex : Integer; const AValue : integer);
 
 begin
   If (Findex=AValue) then exit;
@@ -6041,7 +6041,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChartSpec.SethiddenDimensionStrategy(AIndex : Integer; const AValue : String); 
+Procedure TChartSpec.SethiddenDimensionStrategy(AIndex : Integer; const AValue : String);
 
 begin
   If (FhiddenDimensionStrategy=AValue) then exit;
@@ -6051,7 +6051,7 @@ end;
 
 
 
-Procedure TChartSpec.SetbasicChart(AIndex : Integer; const AValue : TBasicChartSpec); 
+Procedure TChartSpec.SetbasicChart(AIndex : Integer; const AValue : TBasicChartSpec);
 
 begin
   If (FbasicChart=AValue) then exit;
@@ -6061,7 +6061,7 @@ end;
 
 
 
-Procedure TChartSpec.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TChartSpec.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -6071,7 +6071,7 @@ end;
 
 
 
-Procedure TChartSpec.SetpieChart(AIndex : Integer; const AValue : TPieChartSpec); 
+Procedure TChartSpec.SetpieChart(AIndex : Integer; const AValue : TPieChartSpec);
 
 begin
   If (FpieChart=AValue) then exit;
@@ -6088,7 +6088,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceAndDestination.Setsource(AIndex : Integer; const AValue : TGridRange); 
+Procedure TSourceAndDestination.Setsource(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Fsource=AValue) then exit;
@@ -6098,7 +6098,7 @@ end;
 
 
 
-Procedure TSourceAndDestination.SetfillLength(AIndex : Integer; const AValue : integer); 
+Procedure TSourceAndDestination.SetfillLength(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfillLength=AValue) then exit;
@@ -6108,7 +6108,7 @@ end;
 
 
 
-Procedure TSourceAndDestination.Setdimension(AIndex : Integer; const AValue : String); 
+Procedure TSourceAndDestination.Setdimension(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdimension=AValue) then exit;
@@ -6125,7 +6125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TConditionValue.SetrelativeDate(AIndex : Integer; const AValue : String); 
+Procedure TConditionValue.SetrelativeDate(AIndex : Integer; const AValue : String);
 
 begin
   If (FrelativeDate=AValue) then exit;
@@ -6135,7 +6135,7 @@ end;
 
 
 
-Procedure TConditionValue.SetuserEnteredValue(AIndex : Integer; const AValue : String); 
+Procedure TConditionValue.SetuserEnteredValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserEnteredValue=AValue) then exit;
@@ -6152,7 +6152,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPasteDataRequest.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TPasteDataRequest.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -6162,7 +6162,7 @@ end;
 
 
 
-Procedure TPasteDataRequest.Setcoordinate(AIndex : Integer; const AValue : TGridCoordinate); 
+Procedure TPasteDataRequest.Setcoordinate(AIndex : Integer; const AValue : TGridCoordinate);
 
 begin
   If (Fcoordinate=AValue) then exit;
@@ -6172,7 +6172,7 @@ end;
 
 
 
-Procedure TPasteDataRequest.Setdelimiter(AIndex : Integer; const AValue : String); 
+Procedure TPasteDataRequest.Setdelimiter(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdelimiter=AValue) then exit;
@@ -6182,7 +6182,7 @@ end;
 
 
 
-Procedure TPasteDataRequest.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPasteDataRequest.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -6192,7 +6192,7 @@ end;
 
 
 
-Procedure TPasteDataRequest.Sethtml(AIndex : Integer; const AValue : boolean); 
+Procedure TPasteDataRequest.Sethtml(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fhtml=AValue) then exit;
@@ -6220,7 +6220,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFindReplaceRequest.Setfind(AIndex : Integer; const AValue : String); 
+Procedure TFindReplaceRequest.Setfind(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffind=AValue) then exit;
@@ -6230,7 +6230,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.Setreplacement(AIndex : Integer; const AValue : String); 
+Procedure TFindReplaceRequest.Setreplacement(AIndex : Integer; const AValue : String);
 
 begin
   If (Freplacement=AValue) then exit;
@@ -6240,7 +6240,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.SetsearchByRegex(AIndex : Integer; const AValue : boolean); 
+Procedure TFindReplaceRequest.SetsearchByRegex(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsearchByRegex=AValue) then exit;
@@ -6250,7 +6250,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TFindReplaceRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -6260,7 +6260,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.SetallSheets(AIndex : Integer; const AValue : boolean); 
+Procedure TFindReplaceRequest.SetallSheets(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FallSheets=AValue) then exit;
@@ -6270,7 +6270,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.SetmatchCase(AIndex : Integer; const AValue : boolean); 
+Procedure TFindReplaceRequest.SetmatchCase(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FmatchCase=AValue) then exit;
@@ -6280,7 +6280,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.SetincludeFormulas(AIndex : Integer; const AValue : boolean); 
+Procedure TFindReplaceRequest.SetincludeFormulas(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FincludeFormulas=AValue) then exit;
@@ -6290,7 +6290,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TFindReplaceRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -6300,7 +6300,7 @@ end;
 
 
 
-Procedure TFindReplaceRequest.SetmatchEntireCell(AIndex : Integer; const AValue : boolean); 
+Procedure TFindReplaceRequest.SetmatchEntireCell(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FmatchEntireCell=AValue) then exit;
@@ -6317,7 +6317,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSortSpec.SetsortOrder(AIndex : Integer; const AValue : String); 
+Procedure TSortSpec.SetsortOrder(AIndex : Integer; const AValue : String);
 
 begin
   If (FsortOrder=AValue) then exit;
@@ -6327,7 +6327,7 @@ end;
 
 
 
-Procedure TSortSpec.SetdimensionIndex(AIndex : Integer; const AValue : integer); 
+Procedure TSortSpec.SetdimensionIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FdimensionIndex=AValue) then exit;
@@ -6344,7 +6344,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCopySheetToAnotherSpreadsheetRequest.SetdestinationSpreadsheetId(AIndex : Integer; const AValue : String); 
+Procedure TCopySheetToAnotherSpreadsheetRequest.SetdestinationSpreadsheetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdestinationSpreadsheetId=AValue) then exit;
@@ -6361,7 +6361,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNumberFormat.Setpattern(AIndex : Integer; const AValue : String); 
+Procedure TNumberFormat.Setpattern(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpattern=AValue) then exit;
@@ -6371,7 +6371,7 @@ end;
 
 
 
-Procedure TNumberFormat.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TNumberFormat.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -6399,7 +6399,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateDimensionPropertiesRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateDimensionPropertiesRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -6409,7 +6409,7 @@ end;
 
 
 
-Procedure TUpdateDimensionPropertiesRequest.Setrange(AIndex : Integer; const AValue : TDimensionRange); 
+Procedure TUpdateDimensionPropertiesRequest.Setrange(AIndex : Integer; const AValue : TDimensionRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -6419,7 +6419,7 @@ end;
 
 
 
-Procedure TUpdateDimensionPropertiesRequest.Setproperties(AIndex : Integer; const AValue : TDimensionProperties); 
+Procedure TUpdateDimensionPropertiesRequest.Setproperties(AIndex : Integer; const AValue : TDimensionProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -6436,7 +6436,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEditors.Setusers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TEditors.Setusers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -6446,7 +6446,7 @@ end;
 
 
 
-Procedure TEditors.Setgroups(AIndex : Integer; const AValue : TStringArray); 
+Procedure TEditors.Setgroups(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fgroups=AValue) then exit;
@@ -6456,7 +6456,7 @@ end;
 
 
 
-Procedure TEditors.SetdomainUsersCanEdit(AIndex : Integer; const AValue : boolean); 
+Procedure TEditors.SetdomainUsersCanEdit(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FdomainUsersCanEdit=AValue) then exit;
@@ -6467,7 +6467,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEditors.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEditors.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6487,7 +6487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSpreadsheet.SetspreadsheetId(AIndex : Integer; const AValue : String); 
+Procedure TSpreadsheet.SetspreadsheetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FspreadsheetId=AValue) then exit;
@@ -6497,7 +6497,7 @@ end;
 
 
 
-Procedure TSpreadsheet.Setproperties(AIndex : Integer; const AValue : TSpreadsheetProperties); 
+Procedure TSpreadsheet.Setproperties(AIndex : Integer; const AValue : TSpreadsheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -6507,7 +6507,7 @@ end;
 
 
 
-Procedure TSpreadsheet.Setsheets(AIndex : Integer; const AValue : TSpreadsheetTypesheetsArray); 
+Procedure TSpreadsheet.Setsheets(AIndex : Integer; const AValue : TSpreadsheetTypesheetsArray);
 
 begin
   If (Fsheets=AValue) then exit;
@@ -6517,7 +6517,7 @@ end;
 
 
 
-Procedure TSpreadsheet.SetnamedRanges(AIndex : Integer; const AValue : TSpreadsheetTypenamedRangesArray); 
+Procedure TSpreadsheet.SetnamedRanges(AIndex : Integer; const AValue : TSpreadsheetTypenamedRangesArray);
 
 begin
   If (FnamedRanges=AValue) then exit;
@@ -6528,7 +6528,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSpreadsheet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSpreadsheet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6548,7 +6548,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGridData.SetcolumnMetadata(AIndex : Integer; const AValue : TGridDataTypecolumnMetadataArray); 
+Procedure TGridData.SetcolumnMetadata(AIndex : Integer; const AValue : TGridDataTypecolumnMetadataArray);
 
 begin
   If (FcolumnMetadata=AValue) then exit;
@@ -6558,7 +6558,7 @@ end;
 
 
 
-Procedure TGridData.SetrowData(AIndex : Integer; const AValue : TGridDataTyperowDataArray); 
+Procedure TGridData.SetrowData(AIndex : Integer; const AValue : TGridDataTyperowDataArray);
 
 begin
   If (FrowData=AValue) then exit;
@@ -6568,7 +6568,7 @@ end;
 
 
 
-Procedure TGridData.SetstartRow(AIndex : Integer; const AValue : integer); 
+Procedure TGridData.SetstartRow(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartRow=AValue) then exit;
@@ -6578,7 +6578,7 @@ end;
 
 
 
-Procedure TGridData.SetrowMetadata(AIndex : Integer; const AValue : TGridDataTyperowMetadataArray); 
+Procedure TGridData.SetrowMetadata(AIndex : Integer; const AValue : TGridDataTyperowMetadataArray);
 
 begin
   If (FrowMetadata=AValue) then exit;
@@ -6588,7 +6588,7 @@ end;
 
 
 
-Procedure TGridData.SetstartColumn(AIndex : Integer; const AValue : integer); 
+Procedure TGridData.SetstartColumn(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartColumn=AValue) then exit;
@@ -6599,7 +6599,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGridData.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGridData.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6620,7 +6620,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPivotValue.Setformula(AIndex : Integer; const AValue : String); 
+Procedure TPivotValue.Setformula(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformula=AValue) then exit;
@@ -6630,7 +6630,7 @@ end;
 
 
 
-Procedure TPivotValue.SetsourceColumnOffset(AIndex : Integer; const AValue : integer); 
+Procedure TPivotValue.SetsourceColumnOffset(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsourceColumnOffset=AValue) then exit;
@@ -6640,7 +6640,7 @@ end;
 
 
 
-Procedure TPivotValue.SetsummarizeFunction(AIndex : Integer; const AValue : String); 
+Procedure TPivotValue.SetsummarizeFunction(AIndex : Integer; const AValue : String);
 
 begin
   If (FsummarizeFunction=AValue) then exit;
@@ -6650,7 +6650,7 @@ end;
 
 
 
-Procedure TPivotValue.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPivotValue.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6680,7 +6680,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBasicFilter.Setcriteria(AIndex : Integer; const AValue : TBasicFilterTypecriteria); 
+Procedure TBasicFilter.Setcriteria(AIndex : Integer; const AValue : TBasicFilterTypecriteria);
 
 begin
   If (Fcriteria=AValue) then exit;
@@ -6690,7 +6690,7 @@ end;
 
 
 
-Procedure TBasicFilter.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TBasicFilter.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -6700,7 +6700,7 @@ end;
 
 
 
-Procedure TBasicFilter.SetsortSpecs(AIndex : Integer; const AValue : TBasicFilterTypesortSpecsArray); 
+Procedure TBasicFilter.SetsortSpecs(AIndex : Integer; const AValue : TBasicFilterTypesortSpecsArray);
 
 begin
   If (FsortSpecs=AValue) then exit;
@@ -6711,7 +6711,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBasicFilter.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBasicFilter.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6730,7 +6730,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDuplicateSheetRequest.SetsourceSheetId(AIndex : Integer; const AValue : integer); 
+Procedure TDuplicateSheetRequest.SetsourceSheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsourceSheetId=AValue) then exit;
@@ -6740,7 +6740,7 @@ end;
 
 
 
-Procedure TDuplicateSheetRequest.SetnewSheetId(AIndex : Integer; const AValue : integer); 
+Procedure TDuplicateSheetRequest.SetnewSheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnewSheetId=AValue) then exit;
@@ -6750,7 +6750,7 @@ end;
 
 
 
-Procedure TDuplicateSheetRequest.SetinsertSheetIndex(AIndex : Integer; const AValue : integer); 
+Procedure TDuplicateSheetRequest.SetinsertSheetIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FinsertSheetIndex=AValue) then exit;
@@ -6760,7 +6760,7 @@ end;
 
 
 
-Procedure TDuplicateSheetRequest.SetnewSheetName(AIndex : Integer; const AValue : String); 
+Procedure TDuplicateSheetRequest.SetnewSheetName(AIndex : Integer; const AValue : String);
 
 begin
   If (FnewSheetName=AValue) then exit;
@@ -6777,7 +6777,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddFilterViewResponse.Setfilter(AIndex : Integer; const AValue : TFilterView); 
+Procedure TAddFilterViewResponse.Setfilter(AIndex : Integer; const AValue : TFilterView);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -6794,7 +6794,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDuplicateSheetResponse.Setproperties(AIndex : Integer; const AValue : TSheetProperties); 
+Procedure TDuplicateSheetResponse.Setproperties(AIndex : Integer; const AValue : TSheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -6811,7 +6811,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBorder.Setstyle(AIndex : Integer; const AValue : String); 
+Procedure TBorder.Setstyle(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstyle=AValue) then exit;
@@ -6821,7 +6821,7 @@ end;
 
 
 
-Procedure TBorder.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TBorder.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -6831,7 +6831,7 @@ end;
 
 
 
-Procedure TBorder.Setcolor(AIndex : Integer; const AValue : TColor); 
+Procedure TBorder.Setcolor(AIndex : Integer; const AValue : TColor);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -6848,7 +6848,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddNamedRangeRequest.SetnamedRange(AIndex : Integer; const AValue : TNamedRange); 
+Procedure TAddNamedRangeRequest.SetnamedRange(AIndex : Integer; const AValue : TNamedRange);
 
 begin
   If (FnamedRange=AValue) then exit;
@@ -6865,7 +6865,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddChartResponse.Setchart(AIndex : Integer; const AValue : TEmbeddedChart); 
+Procedure TAddChartResponse.Setchart(AIndex : Integer; const AValue : TEmbeddedChart);
 
 begin
   If (Fchart=AValue) then exit;
@@ -6882,7 +6882,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAppendCellsRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TAppendCellsRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -6892,7 +6892,7 @@ end;
 
 
 
-Procedure TAppendCellsRequest.Setrows(AIndex : Integer; const AValue : TAppendCellsRequestTyperowsArray); 
+Procedure TAppendCellsRequest.Setrows(AIndex : Integer; const AValue : TAppendCellsRequestTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -6902,7 +6902,7 @@ end;
 
 
 
-Procedure TAppendCellsRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TAppendCellsRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -6913,7 +6913,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAppendCellsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAppendCellsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6932,7 +6932,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRowData.Setvalues(AIndex : Integer; const AValue : TRowDataTypevaluesArray); 
+Procedure TRowData.Setvalues(AIndex : Integer; const AValue : TRowDataTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -6943,7 +6943,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRowData.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRowData.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6962,7 +6962,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBasicChartSeries.Setseries(AIndex : Integer; const AValue : TChartData); 
+Procedure TBasicChartSeries.Setseries(AIndex : Integer; const AValue : TChartData);
 
 begin
   If (Fseries=AValue) then exit;
@@ -6972,7 +6972,7 @@ end;
 
 
 
-Procedure TBasicChartSeries.SettargetAxis(AIndex : Integer; const AValue : String); 
+Procedure TBasicChartSeries.SettargetAxis(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetAxis=AValue) then exit;
@@ -6982,7 +6982,7 @@ end;
 
 
 
-Procedure TBasicChartSeries.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TBasicChartSeries.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -7010,7 +7010,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRepeatCellRequest.Setcell(AIndex : Integer; const AValue : TCellData); 
+Procedure TRepeatCellRequest.Setcell(AIndex : Integer; const AValue : TCellData);
 
 begin
   If (Fcell=AValue) then exit;
@@ -7020,7 +7020,7 @@ end;
 
 
 
-Procedure TRepeatCellRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TRepeatCellRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -7030,7 +7030,7 @@ end;
 
 
 
-Procedure TRepeatCellRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TRepeatCellRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -7047,7 +7047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBasicChartSpec.SetchartType(AIndex : Integer; const AValue : String); 
+Procedure TBasicChartSpec.SetchartType(AIndex : Integer; const AValue : String);
 
 begin
   If (FchartType=AValue) then exit;
@@ -7057,7 +7057,7 @@ end;
 
 
 
-Procedure TBasicChartSpec.Setdomains(AIndex : Integer; const AValue : TBasicChartSpecTypedomainsArray); 
+Procedure TBasicChartSpec.Setdomains(AIndex : Integer; const AValue : TBasicChartSpecTypedomainsArray);
 
 begin
   If (Fdomains=AValue) then exit;
@@ -7067,7 +7067,7 @@ end;
 
 
 
-Procedure TBasicChartSpec.SetheaderCount(AIndex : Integer; const AValue : integer); 
+Procedure TBasicChartSpec.SetheaderCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FheaderCount=AValue) then exit;
@@ -7077,7 +7077,7 @@ end;
 
 
 
-Procedure TBasicChartSpec.Setseries(AIndex : Integer; const AValue : TBasicChartSpecTypeseriesArray); 
+Procedure TBasicChartSpec.Setseries(AIndex : Integer; const AValue : TBasicChartSpecTypeseriesArray);
 
 begin
   If (Fseries=AValue) then exit;
@@ -7087,7 +7087,7 @@ end;
 
 
 
-Procedure TBasicChartSpec.SetlegendPosition(AIndex : Integer; const AValue : String); 
+Procedure TBasicChartSpec.SetlegendPosition(AIndex : Integer; const AValue : String);
 
 begin
   If (FlegendPosition=AValue) then exit;
@@ -7097,7 +7097,7 @@ end;
 
 
 
-Procedure TBasicChartSpec.Setaxis(AIndex : Integer; const AValue : TBasicChartSpecTypeaxisArray); 
+Procedure TBasicChartSpec.Setaxis(AIndex : Integer; const AValue : TBasicChartSpecTypeaxisArray);
 
 begin
   If (Faxis=AValue) then exit;
@@ -7108,7 +7108,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBasicChartSpec.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBasicChartSpec.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7129,7 +7129,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNamedRange.SetnamedRangeId(AIndex : Integer; const AValue : String); 
+Procedure TNamedRange.SetnamedRangeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamedRangeId=AValue) then exit;
@@ -7139,7 +7139,7 @@ end;
 
 
 
-Procedure TNamedRange.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TNamedRange.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -7149,7 +7149,7 @@ end;
 
 
 
-Procedure TNamedRange.Setname(AIndex : Integer; const AValue : String); 
+Procedure TNamedRange.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -7166,7 +7166,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetBasicFilterRequest.Setfilter(AIndex : Integer; const AValue : TBasicFilter); 
+Procedure TSetBasicFilterRequest.Setfilter(AIndex : Integer; const AValue : TBasicFilter);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -7183,7 +7183,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateEmbeddedObjectPositionRequest.SetnewPosition(AIndex : Integer; const AValue : TEmbeddedObjectPosition); 
+Procedure TUpdateEmbeddedObjectPositionRequest.SetnewPosition(AIndex : Integer; const AValue : TEmbeddedObjectPosition);
 
 begin
   If (FnewPosition=AValue) then exit;
@@ -7193,7 +7193,7 @@ end;
 
 
 
-Procedure TUpdateEmbeddedObjectPositionRequest.SetobjectId(AIndex : Integer; const AValue : integer); 
+Procedure TUpdateEmbeddedObjectPositionRequest.SetobjectId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FobjectId=AValue) then exit;
@@ -7203,7 +7203,7 @@ end;
 
 
 
-Procedure TUpdateEmbeddedObjectPositionRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateEmbeddedObjectPositionRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -7220,7 +7220,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoResizeDimensionsRequest.Setdimensions(AIndex : Integer; const AValue : TDimensionRange); 
+Procedure TAutoResizeDimensionsRequest.Setdimensions(AIndex : Integer; const AValue : TDimensionRange);
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -7237,7 +7237,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDuplicateFilterViewResponse.Setfilter(AIndex : Integer; const AValue : TFilterView); 
+Procedure TDuplicateFilterViewResponse.Setfilter(AIndex : Integer; const AValue : TFilterView);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -7254,7 +7254,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPivotGroup.SetsortOrder(AIndex : Integer; const AValue : String); 
+Procedure TPivotGroup.SetsortOrder(AIndex : Integer; const AValue : String);
 
 begin
   If (FsortOrder=AValue) then exit;
@@ -7264,7 +7264,7 @@ end;
 
 
 
-Procedure TPivotGroup.SetsourceColumnOffset(AIndex : Integer; const AValue : integer); 
+Procedure TPivotGroup.SetsourceColumnOffset(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsourceColumnOffset=AValue) then exit;
@@ -7274,7 +7274,7 @@ end;
 
 
 
-Procedure TPivotGroup.SetshowTotals(AIndex : Integer; const AValue : boolean); 
+Procedure TPivotGroup.SetshowTotals(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FshowTotals=AValue) then exit;
@@ -7284,7 +7284,7 @@ end;
 
 
 
-Procedure TPivotGroup.SetvalueBucket(AIndex : Integer; const AValue : TPivotGroupSortValueBucket); 
+Procedure TPivotGroup.SetvalueBucket(AIndex : Integer; const AValue : TPivotGroupSortValueBucket);
 
 begin
   If (FvalueBucket=AValue) then exit;
@@ -7294,7 +7294,7 @@ end;
 
 
 
-Procedure TPivotGroup.SetvalueMetadata(AIndex : Integer; const AValue : TPivotGroupTypevalueMetadataArray); 
+Procedure TPivotGroup.SetvalueMetadata(AIndex : Integer; const AValue : TPivotGroupTypevalueMetadataArray);
 
 begin
   If (FvalueMetadata=AValue) then exit;
@@ -7305,7 +7305,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPivotGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPivotGroup.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7324,7 +7324,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGridRange.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TGridRange.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -7334,7 +7334,7 @@ end;
 
 
 
-Procedure TGridRange.SetstartColumnIndex(AIndex : Integer; const AValue : integer); 
+Procedure TGridRange.SetstartColumnIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartColumnIndex=AValue) then exit;
@@ -7344,7 +7344,7 @@ end;
 
 
 
-Procedure TGridRange.SetstartRowIndex(AIndex : Integer; const AValue : integer); 
+Procedure TGridRange.SetstartRowIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartRowIndex=AValue) then exit;
@@ -7354,7 +7354,7 @@ end;
 
 
 
-Procedure TGridRange.SetendRowIndex(AIndex : Integer; const AValue : integer); 
+Procedure TGridRange.SetendRowIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FendRowIndex=AValue) then exit;
@@ -7364,7 +7364,7 @@ end;
 
 
 
-Procedure TGridRange.SetendColumnIndex(AIndex : Integer; const AValue : integer); 
+Procedure TGridRange.SetendColumnIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FendColumnIndex=AValue) then exit;
@@ -7381,7 +7381,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteSheetRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteSheetRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -7398,7 +7398,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChartData.SetsourceRange(AIndex : Integer; const AValue : TChartSourceRange); 
+Procedure TChartData.SetsourceRange(AIndex : Integer; const AValue : TChartSourceRange);
 
 begin
   If (FsourceRange=AValue) then exit;
@@ -7415,7 +7415,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSheet.Setproperties(AIndex : Integer; const AValue : TSheetProperties); 
+Procedure TSheet.Setproperties(AIndex : Integer; const AValue : TSheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -7425,7 +7425,7 @@ end;
 
 
 
-Procedure TSheet.Setcharts(AIndex : Integer; const AValue : TSheetTypechartsArray); 
+Procedure TSheet.Setcharts(AIndex : Integer; const AValue : TSheetTypechartsArray);
 
 begin
   If (Fcharts=AValue) then exit;
@@ -7435,7 +7435,7 @@ end;
 
 
 
-Procedure TSheet.SetfilterViews(AIndex : Integer; const AValue : TSheetTypefilterViewsArray); 
+Procedure TSheet.SetfilterViews(AIndex : Integer; const AValue : TSheetTypefilterViewsArray);
 
 begin
   If (FfilterViews=AValue) then exit;
@@ -7445,7 +7445,7 @@ end;
 
 
 
-Procedure TSheet.SetconditionalFormats(AIndex : Integer; const AValue : TSheetTypeconditionalFormatsArray); 
+Procedure TSheet.SetconditionalFormats(AIndex : Integer; const AValue : TSheetTypeconditionalFormatsArray);
 
 begin
   If (FconditionalFormats=AValue) then exit;
@@ -7455,7 +7455,7 @@ end;
 
 
 
-Procedure TSheet.SetprotectedRanges(AIndex : Integer; const AValue : TSheetTypeprotectedRangesArray); 
+Procedure TSheet.SetprotectedRanges(AIndex : Integer; const AValue : TSheetTypeprotectedRangesArray);
 
 begin
   If (FprotectedRanges=AValue) then exit;
@@ -7465,7 +7465,7 @@ end;
 
 
 
-Procedure TSheet.SetbasicFilter(AIndex : Integer; const AValue : TBasicFilter); 
+Procedure TSheet.SetbasicFilter(AIndex : Integer; const AValue : TBasicFilter);
 
 begin
   If (FbasicFilter=AValue) then exit;
@@ -7475,7 +7475,7 @@ end;
 
 
 
-Procedure TSheet.Setmerges(AIndex : Integer; const AValue : TSheetTypemergesArray); 
+Procedure TSheet.Setmerges(AIndex : Integer; const AValue : TSheetTypemergesArray);
 
 begin
   If (Fmerges=AValue) then exit;
@@ -7485,7 +7485,7 @@ end;
 
 
 
-Procedure TSheet.Setdata(AIndex : Integer; const AValue : TSheetTypedataArray); 
+Procedure TSheet.Setdata(AIndex : Integer; const AValue : TSheetTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -7496,7 +7496,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSheet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSheet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7520,7 +7520,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCopyPasteRequest.SetpasteType(AIndex : Integer; const AValue : String); 
+Procedure TCopyPasteRequest.SetpasteType(AIndex : Integer; const AValue : String);
 
 begin
   If (FpasteType=AValue) then exit;
@@ -7530,7 +7530,7 @@ end;
 
 
 
-Procedure TCopyPasteRequest.SetpasteOrientation(AIndex : Integer; const AValue : String); 
+Procedure TCopyPasteRequest.SetpasteOrientation(AIndex : Integer; const AValue : String);
 
 begin
   If (FpasteOrientation=AValue) then exit;
@@ -7540,7 +7540,7 @@ end;
 
 
 
-Procedure TCopyPasteRequest.Setsource(AIndex : Integer; const AValue : TGridRange); 
+Procedure TCopyPasteRequest.Setsource(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Fsource=AValue) then exit;
@@ -7550,7 +7550,7 @@ end;
 
 
 
-Procedure TCopyPasteRequest.Setdestination(AIndex : Integer; const AValue : TGridRange); 
+Procedure TCopyPasteRequest.Setdestination(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Fdestination=AValue) then exit;
@@ -7567,7 +7567,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateCellsRequest.Setrows(AIndex : Integer; const AValue : TUpdateCellsRequestTyperowsArray); 
+Procedure TUpdateCellsRequest.Setrows(AIndex : Integer; const AValue : TUpdateCellsRequestTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -7577,7 +7577,7 @@ end;
 
 
 
-Procedure TUpdateCellsRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateCellsRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -7587,7 +7587,7 @@ end;
 
 
 
-Procedure TUpdateCellsRequest.Setstart(AIndex : Integer; const AValue : TGridCoordinate); 
+Procedure TUpdateCellsRequest.Setstart(AIndex : Integer; const AValue : TGridCoordinate);
 
 begin
   If (Fstart=AValue) then exit;
@@ -7597,7 +7597,7 @@ end;
 
 
 
-Procedure TUpdateCellsRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TUpdateCellsRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -7608,7 +7608,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUpdateCellsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUpdateCellsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7627,7 +7627,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExtendedValue.SetformulaValue(AIndex : Integer; const AValue : String); 
+Procedure TExtendedValue.SetformulaValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformulaValue=AValue) then exit;
@@ -7637,7 +7637,7 @@ end;
 
 
 
-Procedure TExtendedValue.SeterrorValue(AIndex : Integer; const AValue : TErrorValue); 
+Procedure TExtendedValue.SeterrorValue(AIndex : Integer; const AValue : TErrorValue);
 
 begin
   If (FerrorValue=AValue) then exit;
@@ -7647,7 +7647,7 @@ end;
 
 
 
-Procedure TExtendedValue.SetboolValue(AIndex : Integer; const AValue : boolean); 
+Procedure TExtendedValue.SetboolValue(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FboolValue=AValue) then exit;
@@ -7657,7 +7657,7 @@ end;
 
 
 
-Procedure TExtendedValue.SetnumberValue(AIndex : Integer; const AValue : double); 
+Procedure TExtendedValue.SetnumberValue(AIndex : Integer; const AValue : double);
 
 begin
   If (FnumberValue=AValue) then exit;
@@ -7667,7 +7667,7 @@ end;
 
 
 
-Procedure TExtendedValue.SetstringValue(AIndex : Integer; const AValue : String); 
+Procedure TExtendedValue.SetstringValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FstringValue=AValue) then exit;
@@ -7684,7 +7684,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchUpdateSpreadsheetResponse.SetspreadsheetId(AIndex : Integer; const AValue : String); 
+Procedure TBatchUpdateSpreadsheetResponse.SetspreadsheetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FspreadsheetId=AValue) then exit;
@@ -7694,7 +7694,7 @@ end;
 
 
 
-Procedure TBatchUpdateSpreadsheetResponse.Setreplies(AIndex : Integer; const AValue : TBatchUpdateSpreadsheetResponseTyperepliesArray); 
+Procedure TBatchUpdateSpreadsheetResponse.Setreplies(AIndex : Integer; const AValue : TBatchUpdateSpreadsheetResponseTyperepliesArray);
 
 begin
   If (Freplies=AValue) then exit;
@@ -7705,7 +7705,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchUpdateSpreadsheetResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchUpdateSpreadsheetResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7724,7 +7724,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGradientRule.Setmaxpoint(AIndex : Integer; const AValue : TInterpolationPoint); 
+Procedure TGradientRule.Setmaxpoint(AIndex : Integer; const AValue : TInterpolationPoint);
 
 begin
   If (Fmaxpoint=AValue) then exit;
@@ -7734,7 +7734,7 @@ end;
 
 
 
-Procedure TGradientRule.Setmidpoint(AIndex : Integer; const AValue : TInterpolationPoint); 
+Procedure TGradientRule.Setmidpoint(AIndex : Integer; const AValue : TInterpolationPoint);
 
 begin
   If (Fmidpoint=AValue) then exit;
@@ -7744,7 +7744,7 @@ end;
 
 
 
-Procedure TGradientRule.Setminpoint(AIndex : Integer; const AValue : TInterpolationPoint); 
+Procedure TGradientRule.Setminpoint(AIndex : Integer; const AValue : TInterpolationPoint);
 
 begin
   If (Fminpoint=AValue) then exit;
@@ -7761,7 +7761,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCutPasteRequest.SetpasteType(AIndex : Integer; const AValue : String); 
+Procedure TCutPasteRequest.SetpasteType(AIndex : Integer; const AValue : String);
 
 begin
   If (FpasteType=AValue) then exit;
@@ -7771,7 +7771,7 @@ end;
 
 
 
-Procedure TCutPasteRequest.Setsource(AIndex : Integer; const AValue : TGridRange); 
+Procedure TCutPasteRequest.Setsource(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Fsource=AValue) then exit;
@@ -7781,7 +7781,7 @@ end;
 
 
 
-Procedure TCutPasteRequest.Setdestination(AIndex : Integer; const AValue : TGridCoordinate); 
+Procedure TCutPasteRequest.Setdestination(AIndex : Integer; const AValue : TGridCoordinate);
 
 begin
   If (Fdestination=AValue) then exit;
@@ -7798,7 +7798,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOverlayPosition.SetwidthPixels(AIndex : Integer; const AValue : integer); 
+Procedure TOverlayPosition.SetwidthPixels(AIndex : Integer; const AValue : integer);
 
 begin
   If (FwidthPixels=AValue) then exit;
@@ -7808,7 +7808,7 @@ end;
 
 
 
-Procedure TOverlayPosition.SetanchorCell(AIndex : Integer; const AValue : TGridCoordinate); 
+Procedure TOverlayPosition.SetanchorCell(AIndex : Integer; const AValue : TGridCoordinate);
 
 begin
   If (FanchorCell=AValue) then exit;
@@ -7818,7 +7818,7 @@ end;
 
 
 
-Procedure TOverlayPosition.SetoffsetXPixels(AIndex : Integer; const AValue : integer); 
+Procedure TOverlayPosition.SetoffsetXPixels(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoffsetXPixels=AValue) then exit;
@@ -7828,7 +7828,7 @@ end;
 
 
 
-Procedure TOverlayPosition.SetheightPixels(AIndex : Integer; const AValue : integer); 
+Procedure TOverlayPosition.SetheightPixels(AIndex : Integer; const AValue : integer);
 
 begin
   If (FheightPixels=AValue) then exit;
@@ -7838,7 +7838,7 @@ end;
 
 
 
-Procedure TOverlayPosition.SetoffsetYPixels(AIndex : Integer; const AValue : integer); 
+Procedure TOverlayPosition.SetoffsetYPixels(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoffsetYPixels=AValue) then exit;
@@ -7855,7 +7855,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoFillRequest.SetuseAlternateSeries(AIndex : Integer; const AValue : boolean); 
+Procedure TAutoFillRequest.SetuseAlternateSeries(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FuseAlternateSeries=AValue) then exit;
@@ -7865,7 +7865,7 @@ end;
 
 
 
-Procedure TAutoFillRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TAutoFillRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -7875,7 +7875,7 @@ end;
 
 
 
-Procedure TAutoFillRequest.SetsourceAndDestination(AIndex : Integer; const AValue : TSourceAndDestination); 
+Procedure TAutoFillRequest.SetsourceAndDestination(AIndex : Integer; const AValue : TSourceAndDestination);
 
 begin
   If (FsourceAndDestination=AValue) then exit;
@@ -7892,7 +7892,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPieChartSpec.SetlegendPosition(AIndex : Integer; const AValue : String); 
+Procedure TPieChartSpec.SetlegendPosition(AIndex : Integer; const AValue : String);
 
 begin
   If (FlegendPosition=AValue) then exit;
@@ -7902,7 +7902,7 @@ end;
 
 
 
-Procedure TPieChartSpec.Setseries(AIndex : Integer; const AValue : TChartData); 
+Procedure TPieChartSpec.Setseries(AIndex : Integer; const AValue : TChartData);
 
 begin
   If (Fseries=AValue) then exit;
@@ -7912,7 +7912,7 @@ end;
 
 
 
-Procedure TPieChartSpec.SetpieHole(AIndex : Integer; const AValue : double); 
+Procedure TPieChartSpec.SetpieHole(AIndex : Integer; const AValue : double);
 
 begin
   If (FpieHole=AValue) then exit;
@@ -7922,7 +7922,7 @@ end;
 
 
 
-Procedure TPieChartSpec.SetthreeDimensional(AIndex : Integer; const AValue : boolean); 
+Procedure TPieChartSpec.SetthreeDimensional(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FthreeDimensional=AValue) then exit;
@@ -7932,7 +7932,7 @@ end;
 
 
 
-Procedure TPieChartSpec.Setdomain(AIndex : Integer; const AValue : TChartData); 
+Procedure TPieChartSpec.Setdomain(AIndex : Integer; const AValue : TChartData);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -7949,7 +7949,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateSheetPropertiesRequest.Setfields(AIndex : Integer; const AValue : String); 
+Procedure TUpdateSheetPropertiesRequest.Setfields(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffields=AValue) then exit;
@@ -7959,7 +7959,7 @@ end;
 
 
 
-Procedure TUpdateSheetPropertiesRequest.Setproperties(AIndex : Integer; const AValue : TSheetProperties); 
+Procedure TUpdateSheetPropertiesRequest.Setproperties(AIndex : Integer; const AValue : TSheetProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -7976,7 +7976,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBooleanRule.Setcondition(AIndex : Integer; const AValue : TBooleanCondition); 
+Procedure TBooleanRule.Setcondition(AIndex : Integer; const AValue : TBooleanCondition);
 
 begin
   If (Fcondition=AValue) then exit;
@@ -7986,7 +7986,7 @@ end;
 
 
 
-Procedure TBooleanRule.Setformat(AIndex : Integer; const AValue : TCellFormat); 
+Procedure TBooleanRule.Setformat(AIndex : Integer; const AValue : TCellFormat);
 
 begin
   If (Fformat=AValue) then exit;
@@ -8003,7 +8003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAppendDimensionRequest.SetsheetId(AIndex : Integer; const AValue : integer); 
+Procedure TAppendDimensionRequest.SetsheetId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FsheetId=AValue) then exit;
@@ -8013,7 +8013,7 @@ end;
 
 
 
-Procedure TAppendDimensionRequest.Set_length(AIndex : Integer; const AValue : integer); 
+Procedure TAppendDimensionRequest.Set_length(AIndex : Integer; const AValue : integer);
 
 begin
   If (F_length=AValue) then exit;
@@ -8023,7 +8023,7 @@ end;
 
 
 
-Procedure TAppendDimensionRequest.Setdimension(AIndex : Integer; const AValue : String); 
+Procedure TAppendDimensionRequest.Setdimension(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdimension=AValue) then exit;
@@ -8051,7 +8051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddFilterViewRequest.Setfilter(AIndex : Integer; const AValue : TFilterView); 
+Procedure TAddFilterViewRequest.Setfilter(AIndex : Integer; const AValue : TFilterView);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -8068,7 +8068,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGridProperties.SetrowCount(AIndex : Integer; const AValue : integer); 
+Procedure TGridProperties.SetrowCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrowCount=AValue) then exit;
@@ -8078,7 +8078,7 @@ end;
 
 
 
-Procedure TGridProperties.SetcolumnCount(AIndex : Integer; const AValue : integer); 
+Procedure TGridProperties.SetcolumnCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcolumnCount=AValue) then exit;
@@ -8088,7 +8088,7 @@ end;
 
 
 
-Procedure TGridProperties.SetfrozenRowCount(AIndex : Integer; const AValue : integer); 
+Procedure TGridProperties.SetfrozenRowCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfrozenRowCount=AValue) then exit;
@@ -8098,7 +8098,7 @@ end;
 
 
 
-Procedure TGridProperties.SetfrozenColumnCount(AIndex : Integer; const AValue : integer); 
+Procedure TGridProperties.SetfrozenColumnCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfrozenColumnCount=AValue) then exit;
@@ -8108,7 +8108,7 @@ end;
 
 
 
-Procedure TGridProperties.SethideGridlines(AIndex : Integer; const AValue : boolean); 
+Procedure TGridProperties.SethideGridlines(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhideGridlines=AValue) then exit;
@@ -8125,7 +8125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteNamedRangeRequest.SetnamedRangeId(AIndex : Integer; const AValue : String); 
+Procedure TDeleteNamedRangeRequest.SetnamedRangeId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamedRangeId=AValue) then exit;
@@ -8142,7 +8142,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddChartRequest.Setchart(AIndex : Integer; const AValue : TEmbeddedChart); 
+Procedure TAddChartRequest.Setchart(AIndex : Integer; const AValue : TEmbeddedChart);
 
 begin
   If (Fchart=AValue) then exit;
@@ -8159,7 +8159,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetDataValidationRequest.Setrule(AIndex : Integer; const AValue : TDataValidationRule); 
+Procedure TSetDataValidationRequest.Setrule(AIndex : Integer; const AValue : TDataValidationRule);
 
 begin
   If (Frule=AValue) then exit;
@@ -8169,7 +8169,7 @@ end;
 
 
 
-Procedure TSetDataValidationRequest.Setrange(AIndex : Integer; const AValue : TGridRange); 
+Procedure TSetDataValidationRequest.Setrange(AIndex : Integer; const AValue : TGridRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -8186,7 +8186,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRequest.SetupdateEmbeddedObjectPosition(AIndex : Integer; const AValue : TUpdateEmbeddedObjectPositionRequest); 
+Procedure TRequest.SetupdateEmbeddedObjectPosition(AIndex : Integer; const AValue : TUpdateEmbeddedObjectPositionRequest);
 
 begin
   If (FupdateEmbeddedObjectPosition=AValue) then exit;
@@ -8196,7 +8196,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteNamedRange(AIndex : Integer; const AValue : TDeleteNamedRangeRequest); 
+Procedure TRequest.SetdeleteNamedRange(AIndex : Integer; const AValue : TDeleteNamedRangeRequest);
 
 begin
   If (FdeleteNamedRange=AValue) then exit;
@@ -8206,7 +8206,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateNamedRange(AIndex : Integer; const AValue : TUpdateNamedRangeRequest); 
+Procedure TRequest.SetupdateNamedRange(AIndex : Integer; const AValue : TUpdateNamedRangeRequest);
 
 begin
   If (FupdateNamedRange=AValue) then exit;
@@ -8216,7 +8216,7 @@ end;
 
 
 
-Procedure TRequest.SetaddFilterView(AIndex : Integer; const AValue : TAddFilterViewRequest); 
+Procedure TRequest.SetaddFilterView(AIndex : Integer; const AValue : TAddFilterViewRequest);
 
 begin
   If (FaddFilterView=AValue) then exit;
@@ -8226,7 +8226,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateSpreadsheetProperties(AIndex : Integer; const AValue : TUpdateSpreadsheetPropertiesRequest); 
+Procedure TRequest.SetupdateSpreadsheetProperties(AIndex : Integer; const AValue : TUpdateSpreadsheetPropertiesRequest);
 
 begin
   If (FupdateSpreadsheetProperties=AValue) then exit;
@@ -8236,7 +8236,7 @@ end;
 
 
 
-Procedure TRequest.SetappendDimension(AIndex : Integer; const AValue : TAppendDimensionRequest); 
+Procedure TRequest.SetappendDimension(AIndex : Integer; const AValue : TAppendDimensionRequest);
 
 begin
   If (FappendDimension=AValue) then exit;
@@ -8246,7 +8246,7 @@ end;
 
 
 
-Procedure TRequest.SetunmergeCells(AIndex : Integer; const AValue : TUnmergeCellsRequest); 
+Procedure TRequest.SetunmergeCells(AIndex : Integer; const AValue : TUnmergeCellsRequest);
 
 begin
   If (FunmergeCells=AValue) then exit;
@@ -8256,7 +8256,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateProtectedRange(AIndex : Integer; const AValue : TUpdateProtectedRangeRequest); 
+Procedure TRequest.SetupdateProtectedRange(AIndex : Integer; const AValue : TUpdateProtectedRangeRequest);
 
 begin
   If (FupdateProtectedRange=AValue) then exit;
@@ -8266,7 +8266,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteFilterView(AIndex : Integer; const AValue : TDeleteFilterViewRequest); 
+Procedure TRequest.SetdeleteFilterView(AIndex : Integer; const AValue : TDeleteFilterViewRequest);
 
 begin
   If (FdeleteFilterView=AValue) then exit;
@@ -8276,7 +8276,7 @@ end;
 
 
 
-Procedure TRequest.SetclearBasicFilter(AIndex : Integer; const AValue : TClearBasicFilterRequest); 
+Procedure TRequest.SetclearBasicFilter(AIndex : Integer; const AValue : TClearBasicFilterRequest);
 
 begin
   If (FclearBasicFilter=AValue) then exit;
@@ -8286,7 +8286,7 @@ end;
 
 
 
-Procedure TRequest.SetsortRange(AIndex : Integer; const AValue : TSortRangeRequest); 
+Procedure TRequest.SetsortRange(AIndex : Integer; const AValue : TSortRangeRequest);
 
 begin
   If (FsortRange=AValue) then exit;
@@ -8296,7 +8296,7 @@ end;
 
 
 
-Procedure TRequest.SetrepeatCell(AIndex : Integer; const AValue : TRepeatCellRequest); 
+Procedure TRequest.SetrepeatCell(AIndex : Integer; const AValue : TRepeatCellRequest);
 
 begin
   If (FrepeatCell=AValue) then exit;
@@ -8306,7 +8306,7 @@ end;
 
 
 
-Procedure TRequest.SetsetDataValidation(AIndex : Integer; const AValue : TSetDataValidationRequest); 
+Procedure TRequest.SetsetDataValidation(AIndex : Integer; const AValue : TSetDataValidationRequest);
 
 begin
   If (FsetDataValidation=AValue) then exit;
@@ -8316,7 +8316,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateCells(AIndex : Integer; const AValue : TUpdateCellsRequest); 
+Procedure TRequest.SetupdateCells(AIndex : Integer; const AValue : TUpdateCellsRequest);
 
 begin
   If (FupdateCells=AValue) then exit;
@@ -8326,7 +8326,7 @@ end;
 
 
 
-Procedure TRequest.SetaddSheet(AIndex : Integer; const AValue : TAddSheetRequest); 
+Procedure TRequest.SetaddSheet(AIndex : Integer; const AValue : TAddSheetRequest);
 
 begin
   If (FaddSheet=AValue) then exit;
@@ -8336,7 +8336,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateFilterView(AIndex : Integer; const AValue : TUpdateFilterViewRequest); 
+Procedure TRequest.SetupdateFilterView(AIndex : Integer; const AValue : TUpdateFilterViewRequest);
 
 begin
   If (FupdateFilterView=AValue) then exit;
@@ -8346,7 +8346,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateSheetProperties(AIndex : Integer; const AValue : TUpdateSheetPropertiesRequest); 
+Procedure TRequest.SetupdateSheetProperties(AIndex : Integer; const AValue : TUpdateSheetPropertiesRequest);
 
 begin
   If (FupdateSheetProperties=AValue) then exit;
@@ -8356,7 +8356,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateDimensionProperties(AIndex : Integer; const AValue : TUpdateDimensionPropertiesRequest); 
+Procedure TRequest.SetupdateDimensionProperties(AIndex : Integer; const AValue : TUpdateDimensionPropertiesRequest);
 
 begin
   If (FupdateDimensionProperties=AValue) then exit;
@@ -8366,7 +8366,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteSheet(AIndex : Integer; const AValue : TDeleteSheetRequest); 
+Procedure TRequest.SetdeleteSheet(AIndex : Integer; const AValue : TDeleteSheetRequest);
 
 begin
   If (FdeleteSheet=AValue) then exit;
@@ -8376,7 +8376,7 @@ end;
 
 
 
-Procedure TRequest.SetfindReplace(AIndex : Integer; const AValue : TFindReplaceRequest); 
+Procedure TRequest.SetfindReplace(AIndex : Integer; const AValue : TFindReplaceRequest);
 
 begin
   If (FfindReplace=AValue) then exit;
@@ -8386,7 +8386,7 @@ end;
 
 
 
-Procedure TRequest.SetaddProtectedRange(AIndex : Integer; const AValue : TAddProtectedRangeRequest); 
+Procedure TRequest.SetaddProtectedRange(AIndex : Integer; const AValue : TAddProtectedRangeRequest);
 
 begin
   If (FaddProtectedRange=AValue) then exit;
@@ -8396,7 +8396,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteProtectedRange(AIndex : Integer; const AValue : TDeleteProtectedRangeRequest); 
+Procedure TRequest.SetdeleteProtectedRange(AIndex : Integer; const AValue : TDeleteProtectedRangeRequest);
 
 begin
   If (FdeleteProtectedRange=AValue) then exit;
@@ -8406,7 +8406,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateConditionalFormatRule(AIndex : Integer; const AValue : TUpdateConditionalFormatRuleRequest); 
+Procedure TRequest.SetupdateConditionalFormatRule(AIndex : Integer; const AValue : TUpdateConditionalFormatRuleRequest);
 
 begin
   If (FupdateConditionalFormatRule=AValue) then exit;
@@ -8416,7 +8416,7 @@ end;
 
 
 
-Procedure TRequest.SetsetBasicFilter(AIndex : Integer; const AValue : TSetBasicFilterRequest); 
+Procedure TRequest.SetsetBasicFilter(AIndex : Integer; const AValue : TSetBasicFilterRequest);
 
 begin
   If (FsetBasicFilter=AValue) then exit;
@@ -8426,7 +8426,7 @@ end;
 
 
 
-Procedure TRequest.SetmergeCells(AIndex : Integer; const AValue : TMergeCellsRequest); 
+Procedure TRequest.SetmergeCells(AIndex : Integer; const AValue : TMergeCellsRequest);
 
 begin
   If (FmergeCells=AValue) then exit;
@@ -8436,7 +8436,7 @@ end;
 
 
 
-Procedure TRequest.SetaddChart(AIndex : Integer; const AValue : TAddChartRequest); 
+Procedure TRequest.SetaddChart(AIndex : Integer; const AValue : TAddChartRequest);
 
 begin
   If (FaddChart=AValue) then exit;
@@ -8446,7 +8446,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteConditionalFormatRule(AIndex : Integer; const AValue : TDeleteConditionalFormatRuleRequest); 
+Procedure TRequest.SetdeleteConditionalFormatRule(AIndex : Integer; const AValue : TDeleteConditionalFormatRuleRequest);
 
 begin
   If (FdeleteConditionalFormatRule=AValue) then exit;
@@ -8456,7 +8456,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateChartSpec(AIndex : Integer; const AValue : TUpdateChartSpecRequest); 
+Procedure TRequest.SetupdateChartSpec(AIndex : Integer; const AValue : TUpdateChartSpecRequest);
 
 begin
   If (FupdateChartSpec=AValue) then exit;
@@ -8466,7 +8466,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteDimension(AIndex : Integer; const AValue : TDeleteDimensionRequest); 
+Procedure TRequest.SetdeleteDimension(AIndex : Integer; const AValue : TDeleteDimensionRequest);
 
 begin
   If (FdeleteDimension=AValue) then exit;
@@ -8476,7 +8476,7 @@ end;
 
 
 
-Procedure TRequest.SetdeleteEmbeddedObject(AIndex : Integer; const AValue : TDeleteEmbeddedObjectRequest); 
+Procedure TRequest.SetdeleteEmbeddedObject(AIndex : Integer; const AValue : TDeleteEmbeddedObjectRequest);
 
 begin
   If (FdeleteEmbeddedObject=AValue) then exit;
@@ -8486,7 +8486,7 @@ end;
 
 
 
-Procedure TRequest.SetpasteData(AIndex : Integer; const AValue : TPasteDataRequest); 
+Procedure TRequest.SetpasteData(AIndex : Integer; const AValue : TPasteDataRequest);
 
 begin
   If (FpasteData=AValue) then exit;
@@ -8496,7 +8496,7 @@ end;
 
 
 
-Procedure TRequest.SetaddConditionalFormatRule(AIndex : Integer; const AValue : TAddConditionalFormatRuleRequest); 
+Procedure TRequest.SetaddConditionalFormatRule(AIndex : Integer; const AValue : TAddConditionalFormatRuleRequest);
 
 begin
   If (FaddConditionalFormatRule=AValue) then exit;
@@ -8506,7 +8506,7 @@ end;
 
 
 
-Procedure TRequest.SetupdateBorders(AIndex : Integer; const AValue : TUpdateBordersRequest); 
+Procedure TRequest.SetupdateBorders(AIndex : Integer; const AValue : TUpdateBordersRequest);
 
 begin
   If (FupdateBorders=AValue) then exit;
@@ -8516,7 +8516,7 @@ end;
 
 
 
-Procedure TRequest.SetautoResizeDimensions(AIndex : Integer; const AValue : TAutoResizeDimensionsRequest); 
+Procedure TRequest.SetautoResizeDimensions(AIndex : Integer; const AValue : TAutoResizeDimensionsRequest);
 
 begin
   If (FautoResizeDimensions=AValue) then exit;
@@ -8526,7 +8526,7 @@ end;
 
 
 
-Procedure TRequest.SetduplicateSheet(AIndex : Integer; const AValue : TDuplicateSheetRequest); 
+Procedure TRequest.SetduplicateSheet(AIndex : Integer; const AValue : TDuplicateSheetRequest);
 
 begin
   If (FduplicateSheet=AValue) then exit;
@@ -8536,7 +8536,7 @@ end;
 
 
 
-Procedure TRequest.SetduplicateFilterView(AIndex : Integer; const AValue : TDuplicateFilterViewRequest); 
+Procedure TRequest.SetduplicateFilterView(AIndex : Integer; const AValue : TDuplicateFilterViewRequest);
 
 begin
   If (FduplicateFilterView=AValue) then exit;
@@ -8546,7 +8546,7 @@ end;
 
 
 
-Procedure TRequest.SetcutPaste(AIndex : Integer; const AValue : TCutPasteRequest); 
+Procedure TRequest.SetcutPaste(AIndex : Integer; const AValue : TCutPasteRequest);
 
 begin
   If (FcutPaste=AValue) then exit;
@@ -8556,7 +8556,7 @@ end;
 
 
 
-Procedure TRequest.SetappendCells(AIndex : Integer; const AValue : TAppendCellsRequest); 
+Procedure TRequest.SetappendCells(AIndex : Integer; const AValue : TAppendCellsRequest);
 
 begin
   If (FappendCells=AValue) then exit;
@@ -8566,7 +8566,7 @@ end;
 
 
 
-Procedure TRequest.SetaddNamedRange(AIndex : Integer; const AValue : TAddNamedRangeRequest); 
+Procedure TRequest.SetaddNamedRange(AIndex : Integer; const AValue : TAddNamedRangeRequest);
 
 begin
   If (FaddNamedRange=AValue) then exit;
@@ -8576,7 +8576,7 @@ end;
 
 
 
-Procedure TRequest.SetautoFill(AIndex : Integer; const AValue : TAutoFillRequest); 
+Procedure TRequest.SetautoFill(AIndex : Integer; const AValue : TAutoFillRequest);
 
 begin
   If (FautoFill=AValue) then exit;
@@ -8586,7 +8586,7 @@ end;
 
 
 
-Procedure TRequest.SetmoveDimension(AIndex : Integer; const AValue : TMoveDimensionRequest); 
+Procedure TRequest.SetmoveDimension(AIndex : Integer; const AValue : TMoveDimensionRequest);
 
 begin
   If (FmoveDimension=AValue) then exit;
@@ -8596,7 +8596,7 @@ end;
 
 
 
-Procedure TRequest.SettextToColumns(AIndex : Integer; const AValue : TTextToColumnsRequest); 
+Procedure TRequest.SettextToColumns(AIndex : Integer; const AValue : TTextToColumnsRequest);
 
 begin
   If (FtextToColumns=AValue) then exit;
@@ -8606,7 +8606,7 @@ end;
 
 
 
-Procedure TRequest.SetinsertDimension(AIndex : Integer; const AValue : TInsertDimensionRequest); 
+Procedure TRequest.SetinsertDimension(AIndex : Integer; const AValue : TInsertDimensionRequest);
 
 begin
   If (FinsertDimension=AValue) then exit;
@@ -8616,7 +8616,7 @@ end;
 
 
 
-Procedure TRequest.SetcopyPaste(AIndex : Integer; const AValue : TCopyPasteRequest); 
+Procedure TRequest.SetcopyPaste(AIndex : Integer; const AValue : TCopyPasteRequest);
 
 begin
   If (FcopyPaste=AValue) then exit;
@@ -8633,7 +8633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchGetValuesResponse.SetvalueRanges(AIndex : Integer; const AValue : TBatchGetValuesResponseTypevalueRangesArray); 
+Procedure TBatchGetValuesResponse.SetvalueRanges(AIndex : Integer; const AValue : TBatchGetValuesResponseTypevalueRangesArray);
 
 begin
   If (FvalueRanges=AValue) then exit;
@@ -8643,7 +8643,7 @@ end;
 
 
 
-Procedure TBatchGetValuesResponse.SetspreadsheetId(AIndex : Integer; const AValue : String); 
+Procedure TBatchGetValuesResponse.SetspreadsheetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FspreadsheetId=AValue) then exit;
@@ -8654,7 +8654,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchGetValuesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchGetValuesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8673,7 +8673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInsertDimensionRequest.SetinheritFromBefore(AIndex : Integer; const AValue : boolean); 
+Procedure TInsertDimensionRequest.SetinheritFromBefore(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FinheritFromBefore=AValue) then exit;
@@ -8683,7 +8683,7 @@ end;
 
 
 
-Procedure TInsertDimensionRequest.Setrange(AIndex : Integer; const AValue : TDimensionRange); 
+Procedure TInsertDimensionRequest.Setrange(AIndex : Integer; const AValue : TDimensionRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -8700,7 +8700,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteEmbeddedObjectRequest.SetobjectId(AIndex : Integer; const AValue : integer); 
+Procedure TDeleteEmbeddedObjectRequest.SetobjectId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FobjectId=AValue) then exit;
@@ -8717,7 +8717,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteConditionalFormatRuleResponse.Setrule(AIndex : Integer; const AValue : TConditionalFormatRule); 
+Procedure TDeleteConditionalFormatRuleResponse.Setrule(AIndex : Integer; const AValue : TConditionalFormatRule);
 
 begin
   If (Frule=AValue) then exit;
@@ -9122,7 +9122,7 @@ begin
   Result[2].Description:='View and manage the files in your Google Drive';
   Result[3].Name:='https://www.googleapis.com/auth/spreadsheets';
   Result[3].Description:='View and manage your spreadsheets in Google Drive';
-  
+
 end;
 
 Class Function TSheetsAPI.APINeedsAuth : Boolean;

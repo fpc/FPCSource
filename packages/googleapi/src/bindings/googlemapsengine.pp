@@ -5,14 +5,14 @@ unit googlemapsengine;
    **********************************************************************
       This file is part of the Free Component Library (FCL)
       Copyright (c) 2015 The free pascal team.
-  
+
       See the file COPYING.FPC, included in this distribution,
       for details about the copyright.
-  
+
       This program is distributed in the hope that it will be useful,
       but WITHOUT ANY WARRANTY; without even the implied warranty of
       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
+
    **********************************************************************
 }
 //Generated on: 16-5-15 08:53:05
@@ -28,7 +28,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAcquisitionTime = Class;
   TAsset = Class;
@@ -220,11 +220,11 @@ type
   TTableTypefilesArray = Array of TFile;
   TTablesListResponseTypetablesArray = Array of TTable;
   TVectorStyleTypedisplayRulesArray = Array of TDisplayRule;
-  
+
   { --------------------------------------------------------------------
     TAcquisitionTime
     --------------------------------------------------------------------}
-  
+
   TAcquisitionTime = Class(TGoogleBaseObject)
   Private
     F_end : TDatetime;
@@ -243,11 +243,11 @@ type
     Property start : TDatetime Index 16 Read Fstart Write Setstart;
   end;
   TAcquisitionTimeClass = Class of TAcquisitionTime;
-  
+
   { --------------------------------------------------------------------
     TAsset
     --------------------------------------------------------------------}
-  
+
   TAsset = Class(TGoogleBaseObject)
   Private
     Fbbox : TdoubleArray;
@@ -303,11 +303,11 @@ type
     Property writersCanEditPermissions : boolean Index 104 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TAssetClass = Class of TAsset;
-  
+
   { --------------------------------------------------------------------
     TAssetsListResponse
     --------------------------------------------------------------------}
-  
+
   TAssetsListResponse = Class(TGoogleBaseObject)
   Private
     Fassets : TAssetsListResponseTypeassetsArray;
@@ -326,11 +326,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TAssetsListResponseClass = Class of TAssetsListResponse;
-  
+
   { --------------------------------------------------------------------
     TBorder
     --------------------------------------------------------------------}
-  
+
   TBorder = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -348,11 +348,11 @@ type
     Property width : double Index 16 Read Fwidth Write Setwidth;
   end;
   TBorderClass = Class of TBorder;
-  
+
   { --------------------------------------------------------------------
     TColor
     --------------------------------------------------------------------}
-  
+
   TColor = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -367,11 +367,11 @@ type
     Property opacity : double Index 8 Read Fopacity Write Setopacity;
   end;
   TColorClass = Class of TColor;
-  
+
   { --------------------------------------------------------------------
     TDatasource
     --------------------------------------------------------------------}
-  
+
   TDatasource = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -383,11 +383,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TDatasourceClass = Class of TDatasource;
-  
+
   { --------------------------------------------------------------------
     TDisplayRule
     --------------------------------------------------------------------}
-  
+
   TDisplayRule = Class(TGoogleBaseObject)
   Private
     Ffilters : TDisplayRuleTypefiltersArray;
@@ -418,11 +418,11 @@ type
     Property zoomLevels : TZoomLevels Index 40 Read FzoomLevels Write SetzoomLevels;
   end;
   TDisplayRuleClass = Class of TDisplayRule;
-  
+
   { --------------------------------------------------------------------
     TFeature
     --------------------------------------------------------------------}
-  
+
   TFeature = Class(TGoogleBaseObject)
   Private
     Fgeometry : TGeoJsonGeometry;
@@ -441,11 +441,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TFeatureClass = Class of TFeature;
-  
+
   { --------------------------------------------------------------------
     TFeatureInfo
     --------------------------------------------------------------------}
-  
+
   TFeatureInfo = Class(TGoogleBaseObject)
   Private
     Fcontent : String;
@@ -457,11 +457,11 @@ type
     Property content : String Index 0 Read Fcontent Write Setcontent;
   end;
   TFeatureInfoClass = Class of TFeatureInfo;
-  
+
   { --------------------------------------------------------------------
     TFeaturesBatchDeleteRequest
     --------------------------------------------------------------------}
-  
+
   TFeaturesBatchDeleteRequest = Class(TGoogleBaseObject)
   Private
     Fgx_ids : TStringArray;
@@ -480,11 +480,11 @@ type
     Property primaryKeys : TStringArray Index 8 Read FprimaryKeys Write SetprimaryKeys;
   end;
   TFeaturesBatchDeleteRequestClass = Class of TFeaturesBatchDeleteRequest;
-  
+
   { --------------------------------------------------------------------
     TFeaturesBatchInsertRequest
     --------------------------------------------------------------------}
-  
+
   TFeaturesBatchInsertRequest = Class(TGoogleBaseObject)
   Private
     Ffeatures : TFeaturesBatchInsertRequestTypefeaturesArray;
@@ -503,11 +503,11 @@ type
     Property normalizeGeometries : boolean Index 8 Read FnormalizeGeometries Write SetnormalizeGeometries;
   end;
   TFeaturesBatchInsertRequestClass = Class of TFeaturesBatchInsertRequest;
-  
+
   { --------------------------------------------------------------------
     TFeaturesBatchPatchRequest
     --------------------------------------------------------------------}
-  
+
   TFeaturesBatchPatchRequest = Class(TGoogleBaseObject)
   Private
     Ffeatures : TFeaturesBatchPatchRequestTypefeaturesArray;
@@ -526,11 +526,11 @@ type
     Property normalizeGeometries : boolean Index 8 Read FnormalizeGeometries Write SetnormalizeGeometries;
   end;
   TFeaturesBatchPatchRequestClass = Class of TFeaturesBatchPatchRequest;
-  
+
   { --------------------------------------------------------------------
     TFeaturesListResponse
     --------------------------------------------------------------------}
-  
+
   TFeaturesListResponse = Class(TGoogleBaseObject)
   Private
     FallowedQueriesPerSecond : double;
@@ -559,11 +559,11 @@ type
     Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TFeaturesListResponseClass = Class of TFeaturesListResponse;
-  
+
   { --------------------------------------------------------------------
     TFile
     --------------------------------------------------------------------}
-  
+
   TFile = Class(TGoogleBaseObject)
   Private
     Ffilename : String;
@@ -581,11 +581,11 @@ type
     Property uploadStatus : String Index 16 Read FuploadStatus Write SetuploadStatus;
   end;
   TFileClass = Class of TFile;
-  
+
   { --------------------------------------------------------------------
     TFilter
     --------------------------------------------------------------------}
-  
+
   TFilter = Class(TGoogleBaseObject)
   Private
     Fcolumn : String;
@@ -604,11 +604,11 @@ type
     Property value : TJSONSchema Index 16 Read Fvalue Write Setvalue;
   end;
   TFilterClass = Class of TFilter;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonGeometry
     --------------------------------------------------------------------}
-  
+
   TGeoJsonGeometry = Class(TGoogleBaseObject)
   Private
   Protected
@@ -617,11 +617,11 @@ type
   Published
   end;
   TGeoJsonGeometryClass = Class of TGeoJsonGeometry;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonGeometryCollection
     --------------------------------------------------------------------}
-  
+
   TGeoJsonGeometryCollection = Class(TGoogleBaseObject)
   Private
     Fgeometries : TGeoJsonGeometryCollectionTypegeometriesArray;
@@ -641,11 +641,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonGeometryCollectionClass = Class of TGeoJsonGeometryCollection;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonLineString
     --------------------------------------------------------------------}
-  
+
   TGeoJsonLineString = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonLineStringTypecoordinatesArray;
@@ -665,11 +665,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonLineStringClass = Class of TGeoJsonLineString;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonMultiLineString
     --------------------------------------------------------------------}
-  
+
   TGeoJsonMultiLineString = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonMultiLineStringTypecoordinatesArray;
@@ -689,11 +689,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonMultiLineStringClass = Class of TGeoJsonMultiLineString;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonMultiPoint
     --------------------------------------------------------------------}
-  
+
   TGeoJsonMultiPoint = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonMultiPointTypecoordinatesArray;
@@ -713,11 +713,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonMultiPointClass = Class of TGeoJsonMultiPoint;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonMultiPolygon
     --------------------------------------------------------------------}
-  
+
   TGeoJsonMultiPolygon = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonMultiPolygonTypecoordinatesArray;
@@ -737,11 +737,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonMultiPolygonClass = Class of TGeoJsonMultiPolygon;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonPoint
     --------------------------------------------------------------------}
-  
+
   TGeoJsonPoint = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonPosition;
@@ -757,11 +757,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonPointClass = Class of TGeoJsonPoint;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonPolygon
     --------------------------------------------------------------------}
-  
+
   TGeoJsonPolygon = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TGeoJsonPolygonTypecoordinatesArray;
@@ -781,11 +781,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TGeoJsonPolygonClass = Class of TGeoJsonPolygon;
-  
+
   { --------------------------------------------------------------------
     TGeoJsonProperties
     --------------------------------------------------------------------}
-  
+
   TGeoJsonProperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -795,11 +795,11 @@ type
   Published
   end;
   TGeoJsonPropertiesClass = Class of TGeoJsonProperties;
-  
+
   { --------------------------------------------------------------------
     TIcon
     --------------------------------------------------------------------}
-  
+
   TIcon = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -817,11 +817,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TIconClass = Class of TIcon;
-  
+
   { --------------------------------------------------------------------
     TIconStyle
     --------------------------------------------------------------------}
-  
+
   TIconStyle = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -842,11 +842,11 @@ type
     Property scalingFunction : TScalingFunction Index 24 Read FscalingFunction Write SetscalingFunction;
   end;
   TIconStyleClass = Class of TIconStyle;
-  
+
   { --------------------------------------------------------------------
     TIconsListResponse
     --------------------------------------------------------------------}
-  
+
   TIconsListResponse = Class(TGoogleBaseObject)
   Private
     Ficons : TIconsListResponseTypeiconsArray;
@@ -865,11 +865,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TIconsListResponseClass = Class of TIconsListResponse;
-  
+
   { --------------------------------------------------------------------
     TLabelStyle
     --------------------------------------------------------------------}
-  
+
   TLabelStyle = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -899,11 +899,11 @@ type
     Property size : double Index 48 Read Fsize Write Setsize;
   end;
   TLabelStyleClass = Class of TLabelStyle;
-  
+
   { --------------------------------------------------------------------
     TLayer
     --------------------------------------------------------------------}
-  
+
   TLayer = Class(TGoogleBaseObject)
   Private
     Fbbox : TdoubleArray;
@@ -976,11 +976,11 @@ type
     Property writersCanEditPermissions : boolean Index 152 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TLayerClass = Class of TLayer;
-  
+
   { --------------------------------------------------------------------
     TLayersListResponse
     --------------------------------------------------------------------}
-  
+
   TLayersListResponse = Class(TGoogleBaseObject)
   Private
     Flayers : TLayersListResponseTypelayersArray;
@@ -999,11 +999,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TLayersListResponseClass = Class of TLayersListResponse;
-  
+
   { --------------------------------------------------------------------
     TLineStyleTypestroke
     --------------------------------------------------------------------}
-  
+
   TLineStyleTypestroke = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -1021,11 +1021,11 @@ type
     Property width : double Index 16 Read Fwidth Write Setwidth;
   end;
   TLineStyleTypestrokeClass = Class of TLineStyleTypestroke;
-  
+
   { --------------------------------------------------------------------
     TLineStyle
     --------------------------------------------------------------------}
-  
+
   TLineStyle = Class(TGoogleBaseObject)
   Private
     Fborder : TBorder;
@@ -1051,11 +1051,11 @@ type
     Property stroke : TLineStyleTypestroke Index 24 Read Fstroke Write Setstroke;
   end;
   TLineStyleClass = Class of TLineStyle;
-  
+
   { --------------------------------------------------------------------
     TMap
     --------------------------------------------------------------------}
-  
+
   TMap = Class(TGoogleBaseObject)
   Private
     Fbbox : TdoubleArray;
@@ -1125,11 +1125,11 @@ type
     Property writersCanEditPermissions : boolean Index 144 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TMapClass = Class of TMap;
-  
+
   { --------------------------------------------------------------------
     TMapFolder
     --------------------------------------------------------------------}
-  
+
   TMapFolder = Class(TGoogleBaseObject)
   Private
     Fcontents : TMapFolderTypecontentsArray;
@@ -1164,11 +1164,11 @@ type
     Property visibility : String Index 48 Read Fvisibility Write Setvisibility;
   end;
   TMapFolderClass = Class of TMapFolder;
-  
+
   { --------------------------------------------------------------------
     TMapItem
     --------------------------------------------------------------------}
-  
+
   TMapItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1177,11 +1177,11 @@ type
   Published
   end;
   TMapItemClass = Class of TMapItem;
-  
+
   { --------------------------------------------------------------------
     TMapKmlLink
     --------------------------------------------------------------------}
-  
+
   TMapKmlLink = Class(TGoogleBaseObject)
   Private
     FdefaultViewport : TdoubleArray;
@@ -1210,11 +1210,11 @@ type
     Property visibility : String Index 32 Read Fvisibility Write Setvisibility;
   end;
   TMapKmlLinkClass = Class of TMapKmlLink;
-  
+
   { --------------------------------------------------------------------
     TMapLayer
     --------------------------------------------------------------------}
-  
+
   TMapLayer = Class(TGoogleBaseObject)
   Private
     FdefaultViewport : TdoubleArray;
@@ -1246,11 +1246,11 @@ type
     Property visibility : String Index 40 Read Fvisibility Write Setvisibility;
   end;
   TMapLayerClass = Class of TMapLayer;
-  
+
   { --------------------------------------------------------------------
     TMapsListResponse
     --------------------------------------------------------------------}
-  
+
   TMapsListResponse = Class(TGoogleBaseObject)
   Private
     Fmaps : TMapsListResponseTypemapsArray;
@@ -1269,11 +1269,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TMapsListResponseClass = Class of TMapsListResponse;
-  
+
   { --------------------------------------------------------------------
     TParent
     --------------------------------------------------------------------}
-  
+
   TParent = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1285,11 +1285,11 @@ type
     Property id : String Index 0 Read Fid Write Setid;
   end;
   TParentClass = Class of TParent;
-  
+
   { --------------------------------------------------------------------
     TParentsListResponse
     --------------------------------------------------------------------}
-  
+
   TParentsListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -1308,11 +1308,11 @@ type
     Property parents : TParentsListResponseTypeparentsArray Index 8 Read Fparents Write Setparents;
   end;
   TParentsListResponseClass = Class of TParentsListResponse;
-  
+
   { --------------------------------------------------------------------
     TPermission
     --------------------------------------------------------------------}
-  
+
   TPermission = Class(TGoogleBaseObject)
   Private
     Fdiscoverable : boolean;
@@ -1334,11 +1334,11 @@ type
     Property _type : String Index 24 Read F_type Write Set_type;
   end;
   TPermissionClass = Class of TPermission;
-  
+
   { --------------------------------------------------------------------
     TPermissionsBatchDeleteRequest
     --------------------------------------------------------------------}
-  
+
   TPermissionsBatchDeleteRequest = Class(TGoogleBaseObject)
   Private
     Fids : TStringArray;
@@ -1354,11 +1354,11 @@ type
     Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TPermissionsBatchDeleteRequestClass = Class of TPermissionsBatchDeleteRequest;
-  
+
   { --------------------------------------------------------------------
     TPermissionsBatchDeleteResponse
     --------------------------------------------------------------------}
-  
+
   TPermissionsBatchDeleteResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1367,11 +1367,11 @@ type
   Published
   end;
   TPermissionsBatchDeleteResponseClass = Class of TPermissionsBatchDeleteResponse;
-  
+
   { --------------------------------------------------------------------
     TPermissionsBatchUpdateRequest
     --------------------------------------------------------------------}
-  
+
   TPermissionsBatchUpdateRequest = Class(TGoogleBaseObject)
   Private
     Fpermissions : TPermissionsBatchUpdateRequestTypepermissionsArray;
@@ -1387,11 +1387,11 @@ type
     Property permissions : TPermissionsBatchUpdateRequestTypepermissionsArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TPermissionsBatchUpdateRequestClass = Class of TPermissionsBatchUpdateRequest;
-  
+
   { --------------------------------------------------------------------
     TPermissionsBatchUpdateResponse
     --------------------------------------------------------------------}
-  
+
   TPermissionsBatchUpdateResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1400,11 +1400,11 @@ type
   Published
   end;
   TPermissionsBatchUpdateResponseClass = Class of TPermissionsBatchUpdateResponse;
-  
+
   { --------------------------------------------------------------------
     TPermissionsListResponse
     --------------------------------------------------------------------}
-  
+
   TPermissionsListResponse = Class(TGoogleBaseObject)
   Private
     Fpermissions : TPermissionsListResponseTypepermissionsArray;
@@ -1420,11 +1420,11 @@ type
     Property permissions : TPermissionsListResponseTypepermissionsArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TPermissionsListResponseClass = Class of TPermissionsListResponse;
-  
+
   { --------------------------------------------------------------------
     TPointStyle
     --------------------------------------------------------------------}
-  
+
   TPointStyle = Class(TGoogleBaseObject)
   Private
     Ficon : TIconStyle;
@@ -1440,11 +1440,11 @@ type
     Property _label : TLabelStyle Index 8 Read F_label Write Set_label;
   end;
   TPointStyleClass = Class of TPointStyle;
-  
+
   { --------------------------------------------------------------------
     TPolygonStyle
     --------------------------------------------------------------------}
-  
+
   TPolygonStyle = Class(TGoogleBaseObject)
   Private
     Ffill : TColor;
@@ -1463,11 +1463,11 @@ type
     Property stroke : TBorder Index 16 Read Fstroke Write Setstroke;
   end;
   TPolygonStyleClass = Class of TPolygonStyle;
-  
+
   { --------------------------------------------------------------------
     TProcessResponse
     --------------------------------------------------------------------}
-  
+
   TProcessResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1476,11 +1476,11 @@ type
   Published
   end;
   TProcessResponseClass = Class of TProcessResponse;
-  
+
   { --------------------------------------------------------------------
     TProject
     --------------------------------------------------------------------}
-  
+
   TProject = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -1495,11 +1495,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TProjectClass = Class of TProject;
-  
+
   { --------------------------------------------------------------------
     TProjectsListResponse
     --------------------------------------------------------------------}
-  
+
   TProjectsListResponse = Class(TGoogleBaseObject)
   Private
     Fprojects : TProjectsListResponseTypeprojectsArray;
@@ -1515,11 +1515,11 @@ type
     Property projects : TProjectsListResponseTypeprojectsArray Index 0 Read Fprojects Write Setprojects;
   end;
   TProjectsListResponseClass = Class of TProjectsListResponse;
-  
+
   { --------------------------------------------------------------------
     TPublishResponse
     --------------------------------------------------------------------}
-  
+
   TPublishResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1528,11 +1528,11 @@ type
   Published
   end;
   TPublishResponseClass = Class of TPublishResponse;
-  
+
   { --------------------------------------------------------------------
     TPublishedLayer
     --------------------------------------------------------------------}
-  
+
   TPublishedLayer = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -1556,11 +1556,11 @@ type
     Property projectId : String Index 32 Read FprojectId Write SetprojectId;
   end;
   TPublishedLayerClass = Class of TPublishedLayer;
-  
+
   { --------------------------------------------------------------------
     TPublishedLayersListResponse
     --------------------------------------------------------------------}
-  
+
   TPublishedLayersListResponse = Class(TGoogleBaseObject)
   Private
     Flayers : TPublishedLayersListResponseTypelayersArray;
@@ -1579,11 +1579,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TPublishedLayersListResponseClass = Class of TPublishedLayersListResponse;
-  
+
   { --------------------------------------------------------------------
     TPublishedMap
     --------------------------------------------------------------------}
-  
+
   TPublishedMap = Class(TGoogleBaseObject)
   Private
     Fcontents : TMapContents;
@@ -1610,11 +1610,11 @@ type
     Property projectId : String Index 40 Read FprojectId Write SetprojectId;
   end;
   TPublishedMapClass = Class of TPublishedMap;
-  
+
   { --------------------------------------------------------------------
     TPublishedMapsListResponse
     --------------------------------------------------------------------}
-  
+
   TPublishedMapsListResponse = Class(TGoogleBaseObject)
   Private
     Fmaps : TPublishedMapsListResponseTypemapsArray;
@@ -1633,11 +1633,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TPublishedMapsListResponseClass = Class of TPublishedMapsListResponse;
-  
+
   { --------------------------------------------------------------------
     TRaster
     --------------------------------------------------------------------}
-  
+
   TRaster = Class(TGoogleBaseObject)
   Private
     FacquisitionTime : TAcquisitionTime;
@@ -1707,11 +1707,11 @@ type
     Property writersCanEditPermissions : boolean Index 144 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TRasterClass = Class of TRaster;
-  
+
   { --------------------------------------------------------------------
     TRasterCollection
     --------------------------------------------------------------------}
-  
+
   TRasterCollection = Class(TGoogleBaseObject)
   Private
     Fattribution : String;
@@ -1775,11 +1775,11 @@ type
     Property writersCanEditPermissions : boolean Index 128 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TRasterCollectionClass = Class of TRasterCollection;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsListResponse
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -1798,11 +1798,11 @@ type
     Property rasterCollections : TRasterCollectionsListResponseTyperasterCollectionsArray Index 8 Read FrasterCollections Write SetrasterCollections;
   end;
   TRasterCollectionsListResponseClass = Class of TRasterCollectionsListResponse;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsRaster
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsRaster = Class(TGoogleBaseObject)
   Private
     Fbbox : TdoubleArray;
@@ -1842,11 +1842,11 @@ type
     Property tags : TStringArray Index 64 Read Ftags Write Settags;
   end;
   TRasterCollectionsRasterClass = Class of TRasterCollectionsRaster;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsRasterBatchDeleteRequest
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsRasterBatchDeleteRequest = Class(TGoogleBaseObject)
   Private
     Fids : TStringArray;
@@ -1862,11 +1862,11 @@ type
     Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TRasterCollectionsRasterBatchDeleteRequestClass = Class of TRasterCollectionsRasterBatchDeleteRequest;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsRastersBatchDeleteResponse
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsRastersBatchDeleteResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1875,11 +1875,11 @@ type
   Published
   end;
   TRasterCollectionsRastersBatchDeleteResponseClass = Class of TRasterCollectionsRastersBatchDeleteResponse;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsRastersBatchInsertRequest
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsRastersBatchInsertRequest = Class(TGoogleBaseObject)
   Private
     Fids : TStringArray;
@@ -1895,11 +1895,11 @@ type
     Property ids : TStringArray Index 0 Read Fids Write Setids;
   end;
   TRasterCollectionsRastersBatchInsertRequestClass = Class of TRasterCollectionsRastersBatchInsertRequest;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsRastersBatchInsertResponse
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsRastersBatchInsertResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1908,11 +1908,11 @@ type
   Published
   end;
   TRasterCollectionsRastersBatchInsertResponseClass = Class of TRasterCollectionsRastersBatchInsertResponse;
-  
+
   { --------------------------------------------------------------------
     TRasterCollectionsRastersListResponse
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsRastersListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -1931,11 +1931,11 @@ type
     Property rasters : TRasterCollectionsRastersListResponseTyperastersArray Index 8 Read Frasters Write Setrasters;
   end;
   TRasterCollectionsRastersListResponseClass = Class of TRasterCollectionsRastersListResponse;
-  
+
   { --------------------------------------------------------------------
     TRastersListResponse
     --------------------------------------------------------------------}
-  
+
   TRastersListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -1954,11 +1954,11 @@ type
     Property rasters : TRastersListResponseTyperastersArray Index 8 Read Frasters Write Setrasters;
   end;
   TRastersListResponseClass = Class of TRastersListResponse;
-  
+
   { --------------------------------------------------------------------
     TScaledShape
     --------------------------------------------------------------------}
-  
+
   TScaledShape = Class(TGoogleBaseObject)
   Private
     Fborder : TBorder;
@@ -1976,11 +1976,11 @@ type
     Property shape : String Index 16 Read Fshape Write Setshape;
   end;
   TScaledShapeClass = Class of TScaledShape;
-  
+
   { --------------------------------------------------------------------
     TScalingFunction
     --------------------------------------------------------------------}
-  
+
   TScalingFunction = Class(TGoogleBaseObject)
   Private
     Fcolumn : String;
@@ -2001,11 +2001,11 @@ type
     Property valueRange : TValueRange Index 24 Read FvalueRange Write SetvalueRange;
   end;
   TScalingFunctionClass = Class of TScalingFunction;
-  
+
   { --------------------------------------------------------------------
     TSchema
     --------------------------------------------------------------------}
-  
+
   TSchema = Class(TGoogleBaseObject)
   Private
     Fcolumns : TSchemaTypecolumnsArray;
@@ -2027,11 +2027,11 @@ type
     Property primaryKey : String Index 16 Read FprimaryKey Write SetprimaryKey;
   end;
   TSchemaClass = Class of TSchema;
-  
+
   { --------------------------------------------------------------------
     TSizeRange
     --------------------------------------------------------------------}
-  
+
   TSizeRange = Class(TGoogleBaseObject)
   Private
     Fmax : double;
@@ -2046,11 +2046,11 @@ type
     Property min : double Index 8 Read Fmin Write Setmin;
   end;
   TSizeRangeClass = Class of TSizeRange;
-  
+
   { --------------------------------------------------------------------
     TTable
     --------------------------------------------------------------------}
-  
+
   TTable = Class(TGoogleBaseObject)
   Private
     Fbbox : TdoubleArray;
@@ -2117,11 +2117,11 @@ type
     Property writersCanEditPermissions : boolean Index 136 Read FwritersCanEditPermissions Write SetwritersCanEditPermissions;
   end;
   TTableClass = Class of TTable;
-  
+
   { --------------------------------------------------------------------
     TTableColumn
     --------------------------------------------------------------------}
-  
+
   TTableColumn = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -2137,11 +2137,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TTableColumnClass = Class of TTableColumn;
-  
+
   { --------------------------------------------------------------------
     TTablesListResponse
     --------------------------------------------------------------------}
-  
+
   TTablesListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -2160,11 +2160,11 @@ type
     Property tables : TTablesListResponseTypetablesArray Index 8 Read Ftables Write Settables;
   end;
   TTablesListResponseClass = Class of TTablesListResponse;
-  
+
   { --------------------------------------------------------------------
     TValueRange
     --------------------------------------------------------------------}
-  
+
   TValueRange = Class(TGoogleBaseObject)
   Private
     Fmax : double;
@@ -2179,11 +2179,11 @@ type
     Property min : double Index 8 Read Fmin Write Setmin;
   end;
   TValueRangeClass = Class of TValueRange;
-  
+
   { --------------------------------------------------------------------
     TVectorStyle
     --------------------------------------------------------------------}
-  
+
   TVectorStyle = Class(TGoogleBaseObject)
   Private
     FdisplayRules : TVectorStyleTypedisplayRulesArray;
@@ -2206,11 +2206,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TVectorStyleClass = Class of TVectorStyle;
-  
+
   { --------------------------------------------------------------------
     TZoomLevels
     --------------------------------------------------------------------}
-  
+
   TZoomLevels = Class(TGoogleBaseObject)
   Private
     Fmax : integer;
@@ -2225,19 +2225,19 @@ type
     Property min : integer Index 8 Read Fmin Write Setmin;
   end;
   TZoomLevelsClass = Class of TZoomLevels;
-  
+
   { --------------------------------------------------------------------
     TAssetsParentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAssetsParentsResource, method List
-  
+
   TAssetsParentsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAssetsParentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2245,27 +2245,27 @@ type
     Function List(id: string; AQuery : string  = '') : TParentsListResponse;
     Function List(id: string; AQuery : TAssetsParentslistOptions) : TParentsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAssetsPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TAssetsPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(id: string) : TPermissionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAssetsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAssetsResource, method List
-  
+
   TAssetsListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2281,7 +2281,7 @@ type
     tags : String;
     _type : String;
   end;
-  
+
   TAssetsResource = Class(TGoogleResource)
   Private
     FParentsInstance : TAssetsParentsResource;
@@ -2301,20 +2301,20 @@ type
     Property ParentsResource : TAssetsParentsResource Read GetParentsInstance;
     Property PermissionsResource : TAssetsPermissionsResource Read GetPermissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLayersParentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLayersParentsResource, method List
-  
+
   TLayersParentsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TLayersParentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2322,12 +2322,12 @@ type
     Function List(id: string; AQuery : string  = '') : TParentsListResponse;
     Function List(id: string; AQuery : TLayersParentslistOptions) : TParentsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLayersPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TLayersPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2336,29 +2336,29 @@ type
     Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
     Function List(id: string) : TPermissionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLayersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLayersResource, method Create
-  
+
   TLayersCreateOptions = Record
     process : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TLayersResource, method Get
-  
+
   TLayersGetOptions = Record
     version : String;
   end;
-  
-  
+
+
   //Optional query Options for TLayersResource, method List
-  
+
   TLayersListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2374,23 +2374,23 @@ type
     search : String;
     tags : String;
   end;
-  
-  
+
+
   //Optional query Options for TLayersResource, method ListPublished
-  
+
   TLayersListPublishedOptions = Record
     maxResults : integer;
     pageToken : String;
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TLayersResource, method Publish
-  
+
   TLayersPublishOptions = Record
     force : boolean;
   end;
-  
+
   TLayersResource = Class(TGoogleResource)
   Private
     FParentsInstance : TLayersParentsResource;
@@ -2423,12 +2423,12 @@ type
     Property ParentsResource : TLayersParentsResource Read GetParentsInstance;
     Property PermissionsResource : TLayersPermissionsResource Read GetPermissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMapsPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TMapsPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2437,22 +2437,22 @@ type
     Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
     Function List(id: string) : TPermissionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMapsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TMapsResource, method Get
-  
+
   TMapsGetOptions = Record
     version : String;
   end;
-  
-  
+
+
   //Optional query Options for TMapsResource, method List
-  
+
   TMapsListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2468,23 +2468,23 @@ type
     search : String;
     tags : String;
   end;
-  
-  
+
+
   //Optional query Options for TMapsResource, method ListPublished
-  
+
   TMapsListPublishedOptions = Record
     maxResults : integer;
     pageToken : String;
     projectId : String;
   end;
-  
-  
+
+
   //Optional query Options for TMapsResource, method Publish
-  
+
   TMapsPublishOptions = Record
     force : boolean;
   end;
-  
+
   TMapsResource = Class(TGoogleResource)
   Private
     FPermissionsInstance : TMapsPermissionsResource;
@@ -2509,20 +2509,20 @@ type
     Function CreatePermissionsResource : TMapsPermissionsResource;virtual;overload;
     Property PermissionsResource : TMapsPermissionsResource Read GetPermissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsIconsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsIconsResource, method List
-  
+
   TProjectsIconsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TProjectsIconsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2532,12 +2532,12 @@ type
     Function List(projectId: string; AQuery : string  = '') : TIconsListResponse;
     Function List(projectId: string; AQuery : TProjectsIconslistOptions) : TIconsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FIconsInstance : TProjectsIconsResource;
@@ -2550,20 +2550,20 @@ type
     Function CreateIconsResource : TProjectsIconsResource;virtual;overload;
     Property IconsResource : TProjectsIconsResource Read GetIconsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRasterCollectionsParentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRasterCollectionsParentsResource, method List
-  
+
   TRasterCollectionsParentsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TRasterCollectionsParentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2571,12 +2571,12 @@ type
     Function List(id: string; AQuery : string  = '') : TParentsListResponse;
     Function List(id: string; AQuery : TRasterCollectionsParentslistOptions) : TParentsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRasterCollectionsPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TRasterCollectionsPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2585,15 +2585,15 @@ type
     Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
     Function List(id: string) : TPermissionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRasterCollectionsRastersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRasterCollectionsRastersResource, method List
-  
+
   TRasterCollectionsRastersListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2607,7 +2607,7 @@ type
     search : String;
     tags : String;
   end;
-  
+
   TRasterCollectionsRastersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2617,15 +2617,15 @@ type
     Function List(id: string; AQuery : string  = '') : TRasterCollectionsRastersListResponse;
     Function List(id: string; AQuery : TRasterCollectionsRasterslistOptions) : TRasterCollectionsRastersListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRasterCollectionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRasterCollectionsResource, method List
-  
+
   TRasterCollectionsListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2641,7 +2641,7 @@ type
     search : String;
     tags : String;
   end;
-  
+
   TRasterCollectionsResource = Class(TGoogleResource)
   Private
     FParentsInstance : TRasterCollectionsParentsResource;
@@ -2671,19 +2671,19 @@ type
     Property PermissionsResource : TRasterCollectionsPermissionsResource Read GetPermissionsInstance;
     Property RastersResource : TRasterCollectionsRastersResource Read GetRastersInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRastersFilesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRastersFilesResource, method Insert
-  
+
   TRastersFilesInsertOptions = Record
     filename : String;
   end;
-  
+
   TRastersFilesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2691,20 +2691,20 @@ type
     Procedure Insert(id: string; AQuery : string  = '');
     Procedure Insert(id: string; AQuery : TRastersFilesinsertOptions);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRastersParentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRastersParentsResource, method List
-  
+
   TRastersParentsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TRastersParentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2712,12 +2712,12 @@ type
     Function List(id: string; AQuery : string  = '') : TParentsListResponse;
     Function List(id: string; AQuery : TRastersParentslistOptions) : TParentsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRastersPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TRastersPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2726,15 +2726,15 @@ type
     Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
     Function List(id: string) : TPermissionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRastersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRastersResource, method List
-  
+
   TRastersListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2750,7 +2750,7 @@ type
     search : String;
     tags : String;
   end;
-  
+
   TRastersResource = Class(TGoogleResource)
   Private
     FFilesInstance : TRastersFilesResource;
@@ -2779,23 +2779,23 @@ type
     Property ParentsResource : TRastersParentsResource Read GetParentsInstance;
     Property PermissionsResource : TRastersPermissionsResource Read GetPermissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTablesFeaturesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTablesFeaturesResource, method Get
-  
+
   TTablesFeaturesGetOptions = Record
     select : String;
     version : String;
   end;
-  
-  
+
+
   //Optional query Options for TTablesFeaturesResource, method List
-  
+
   TTablesFeaturesListOptions = Record
     include : String;
     intersects : String;
@@ -2807,7 +2807,7 @@ type
     version : String;
     where : String;
   end;
-  
+
   TTablesFeaturesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2820,19 +2820,19 @@ type
     Function List(id: string; AQuery : string  = '') : TFeaturesListResponse;
     Function List(id: string; AQuery : TTablesFeatureslistOptions) : TFeaturesListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTablesFilesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTablesFilesResource, method Insert
-  
+
   TTablesFilesInsertOptions = Record
     filename : String;
   end;
-  
+
   TTablesFilesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2840,20 +2840,20 @@ type
     Procedure Insert(id: string; AQuery : string  = '');
     Procedure Insert(id: string; AQuery : TTablesFilesinsertOptions);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTablesParentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTablesParentsResource, method List
-  
+
   TTablesParentsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TTablesParentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2861,12 +2861,12 @@ type
     Function List(id: string; AQuery : string  = '') : TParentsListResponse;
     Function List(id: string; AQuery : TTablesParentslistOptions) : TParentsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTablesPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TTablesPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -2875,22 +2875,22 @@ type
     Function BatchUpdate(id: string; aPermissionsBatchUpdateRequest : TPermissionsBatchUpdateRequest) : TPermissionsBatchUpdateResponse;
     Function List(id: string) : TPermissionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTablesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTablesResource, method Get
-  
+
   TTablesGetOptions = Record
     version : String;
   end;
-  
-  
+
+
   //Optional query Options for TTablesResource, method List
-  
+
   TTablesListOptions = Record
     bbox : String;
     createdAfter : TDatetime;
@@ -2906,7 +2906,7 @@ type
     search : String;
     tags : String;
   end;
-  
+
   TTablesResource = Class(TGoogleResource)
   Private
     FFeaturesInstance : TTablesFeaturesResource;
@@ -2942,12 +2942,12 @@ type
     Property ParentsResource : TTablesParentsResource Read GetParentsInstance;
     Property PermissionsResource : TTablesPermissionsResource Read GetPermissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMapsengineAPI
     --------------------------------------------------------------------}
-  
+
   TMapsengineAPI = Class(TGoogleAPI)
   Private
     FAssetsParentsInstance : TAssetsParentsResource;
@@ -3099,7 +3099,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAcquisitionTime.Set_end(AIndex : Integer; AValue : TDatetime); 
+Procedure TAcquisitionTime.Set_end(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (F_end=AValue) then exit;
@@ -3109,7 +3109,7 @@ end;
 
 
 
-Procedure TAcquisitionTime.Setprecision(AIndex : Integer; const AValue : String); 
+Procedure TAcquisitionTime.Setprecision(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprecision=AValue) then exit;
@@ -3119,7 +3119,7 @@ end;
 
 
 
-Procedure TAcquisitionTime.Setstart(AIndex : Integer; AValue : TDatetime); 
+Procedure TAcquisitionTime.Setstart(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (Fstart=AValue) then exit;
@@ -3147,7 +3147,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAsset.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TAsset.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -3157,7 +3157,7 @@ end;
 
 
 
-Procedure TAsset.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TAsset.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -3167,7 +3167,7 @@ end;
 
 
 
-Procedure TAsset.SetcreatorEmail(AIndex : Integer; const AValue : String); 
+Procedure TAsset.SetcreatorEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -3177,7 +3177,7 @@ end;
 
 
 
-Procedure TAsset.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TAsset.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3187,7 +3187,7 @@ end;
 
 
 
-Procedure TAsset.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAsset.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -3197,7 +3197,7 @@ end;
 
 
 
-Procedure TAsset.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAsset.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3207,7 +3207,7 @@ end;
 
 
 
-Procedure TAsset.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TAsset.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -3217,7 +3217,7 @@ end;
 
 
 
-Procedure TAsset.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
+Procedure TAsset.SetlastModifierEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -3227,7 +3227,7 @@ end;
 
 
 
-Procedure TAsset.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAsset.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3237,7 +3237,7 @@ end;
 
 
 
-Procedure TAsset.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TAsset.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3247,7 +3247,7 @@ end;
 
 
 
-Procedure TAsset.Setresource(AIndex : Integer; const AValue : String); 
+Procedure TAsset.Setresource(AIndex : Integer; const AValue : String);
 
 begin
   If (Fresource=AValue) then exit;
@@ -3257,7 +3257,7 @@ end;
 
 
 
-Procedure TAsset.Settags(AIndex : Integer; AValue : TStringArray); 
+Procedure TAsset.Settags(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Ftags=AValue) then exit;
@@ -3267,7 +3267,7 @@ end;
 
 
 
-Procedure TAsset.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAsset.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3277,7 +3277,7 @@ end;
 
 
 
-Procedure TAsset.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); 
+Procedure TAsset.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean);
 
 begin
   If (FwritersCanEditPermissions=AValue) then exit;
@@ -3299,7 +3299,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAsset.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAsset.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3319,7 +3319,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAssetsListResponse.Setassets(AIndex : Integer; AValue : TAssetsListResponseTypeassetsArray); 
+Procedure TAssetsListResponse.Setassets(AIndex : Integer; AValue : TAssetsListResponseTypeassetsArray);
 
 begin
   If (Fassets=AValue) then exit;
@@ -3329,7 +3329,7 @@ end;
 
 
 
-Procedure TAssetsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAssetsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3340,7 +3340,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAssetsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAssetsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3359,7 +3359,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBorder.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TBorder.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -3369,7 +3369,7 @@ end;
 
 
 
-Procedure TBorder.Setopacity(AIndex : Integer; AValue : double); 
+Procedure TBorder.Setopacity(AIndex : Integer; AValue : double);
 
 begin
   If (Fopacity=AValue) then exit;
@@ -3379,7 +3379,7 @@ end;
 
 
 
-Procedure TBorder.Setwidth(AIndex : Integer; AValue : double); 
+Procedure TBorder.Setwidth(AIndex : Integer; AValue : double);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -3396,7 +3396,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColor.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TColor.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -3406,7 +3406,7 @@ end;
 
 
 
-Procedure TColor.Setopacity(AIndex : Integer; AValue : double); 
+Procedure TColor.Setopacity(AIndex : Integer; AValue : double);
 
 begin
   If (Fopacity=AValue) then exit;
@@ -3423,7 +3423,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatasource.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDatasource.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -3440,7 +3440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDisplayRule.Setfilters(AIndex : Integer; AValue : TDisplayRuleTypefiltersArray); 
+Procedure TDisplayRule.Setfilters(AIndex : Integer; AValue : TDisplayRuleTypefiltersArray);
 
 begin
   If (Ffilters=AValue) then exit;
@@ -3450,7 +3450,7 @@ end;
 
 
 
-Procedure TDisplayRule.SetlineOptions(AIndex : Integer; AValue : TLineStyle); 
+Procedure TDisplayRule.SetlineOptions(AIndex : Integer; AValue : TLineStyle);
 
 begin
   If (FlineOptions=AValue) then exit;
@@ -3460,7 +3460,7 @@ end;
 
 
 
-Procedure TDisplayRule.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDisplayRule.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3470,7 +3470,7 @@ end;
 
 
 
-Procedure TDisplayRule.SetpointOptions(AIndex : Integer; AValue : TPointStyle); 
+Procedure TDisplayRule.SetpointOptions(AIndex : Integer; AValue : TPointStyle);
 
 begin
   If (FpointOptions=AValue) then exit;
@@ -3480,7 +3480,7 @@ end;
 
 
 
-Procedure TDisplayRule.SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); 
+Procedure TDisplayRule.SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle);
 
 begin
   If (FpolygonOptions=AValue) then exit;
@@ -3490,7 +3490,7 @@ end;
 
 
 
-Procedure TDisplayRule.SetzoomLevels(AIndex : Integer; AValue : TZoomLevels); 
+Procedure TDisplayRule.SetzoomLevels(AIndex : Integer; AValue : TZoomLevels);
 
 begin
   If (FzoomLevels=AValue) then exit;
@@ -3501,7 +3501,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDisplayRule.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDisplayRule.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3520,7 +3520,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeature.Setgeometry(AIndex : Integer; AValue : TGeoJsonGeometry); 
+Procedure TFeature.Setgeometry(AIndex : Integer; AValue : TGeoJsonGeometry);
 
 begin
   If (Fgeometry=AValue) then exit;
@@ -3530,7 +3530,7 @@ end;
 
 
 
-Procedure TFeature.Setproperties(AIndex : Integer; AValue : TGeoJsonProperties); 
+Procedure TFeature.Setproperties(AIndex : Integer; AValue : TGeoJsonProperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -3540,7 +3540,7 @@ end;
 
 
 
-Procedure TFeature.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TFeature.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3568,7 +3568,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeatureInfo.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TFeatureInfo.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -3585,7 +3585,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesBatchDeleteRequest.Setgx_ids(AIndex : Integer; AValue : TStringArray); 
+Procedure TFeaturesBatchDeleteRequest.Setgx_ids(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fgx_ids=AValue) then exit;
@@ -3595,7 +3595,7 @@ end;
 
 
 
-Procedure TFeaturesBatchDeleteRequest.SetprimaryKeys(AIndex : Integer; AValue : TStringArray); 
+Procedure TFeaturesBatchDeleteRequest.SetprimaryKeys(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (FprimaryKeys=AValue) then exit;
@@ -3606,7 +3606,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFeaturesBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFeaturesBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3626,7 +3626,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesBatchInsertRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestTypefeaturesArray); 
+Procedure TFeaturesBatchInsertRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchInsertRequestTypefeaturesArray);
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -3636,7 +3636,7 @@ end;
 
 
 
-Procedure TFeaturesBatchInsertRequest.SetnormalizeGeometries(AIndex : Integer; AValue : boolean); 
+Procedure TFeaturesBatchInsertRequest.SetnormalizeGeometries(AIndex : Integer; AValue : boolean);
 
 begin
   If (FnormalizeGeometries=AValue) then exit;
@@ -3647,7 +3647,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFeaturesBatchInsertRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFeaturesBatchInsertRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3666,7 +3666,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesBatchPatchRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestTypefeaturesArray); 
+Procedure TFeaturesBatchPatchRequest.Setfeatures(AIndex : Integer; AValue : TFeaturesBatchPatchRequestTypefeaturesArray);
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -3676,7 +3676,7 @@ end;
 
 
 
-Procedure TFeaturesBatchPatchRequest.SetnormalizeGeometries(AIndex : Integer; AValue : boolean); 
+Procedure TFeaturesBatchPatchRequest.SetnormalizeGeometries(AIndex : Integer; AValue : boolean);
 
 begin
   If (FnormalizeGeometries=AValue) then exit;
@@ -3687,7 +3687,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFeaturesBatchPatchRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFeaturesBatchPatchRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3706,7 +3706,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeaturesListResponse.SetallowedQueriesPerSecond(AIndex : Integer; AValue : double); 
+Procedure TFeaturesListResponse.SetallowedQueriesPerSecond(AIndex : Integer; AValue : double);
 
 begin
   If (FallowedQueriesPerSecond=AValue) then exit;
@@ -3716,7 +3716,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.Setfeatures(AIndex : Integer; AValue : TFeaturesListResponseTypefeaturesArray); 
+Procedure TFeaturesListResponse.Setfeatures(AIndex : Integer; AValue : TFeaturesListResponseTypefeaturesArray);
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -3726,7 +3726,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TFeaturesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3736,7 +3736,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.Setschema(AIndex : Integer; AValue : TSchema); 
+Procedure TFeaturesListResponse.Setschema(AIndex : Integer; AValue : TSchema);
 
 begin
   If (Fschema=AValue) then exit;
@@ -3746,7 +3746,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TFeaturesListResponse.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3768,7 +3768,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFeaturesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFeaturesListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3787,7 +3787,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFile.Setfilename(AIndex : Integer; const AValue : String); 
+Procedure TFile.Setfilename(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilename=AValue) then exit;
@@ -3797,7 +3797,7 @@ end;
 
 
 
-Procedure TFile.Setsize(AIndex : Integer; const AValue : String); 
+Procedure TFile.Setsize(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsize=AValue) then exit;
@@ -3807,7 +3807,7 @@ end;
 
 
 
-Procedure TFile.SetuploadStatus(AIndex : Integer; const AValue : String); 
+Procedure TFile.SetuploadStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FuploadStatus=AValue) then exit;
@@ -3824,7 +3824,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilter.Setcolumn(AIndex : Integer; const AValue : String); 
+Procedure TFilter.Setcolumn(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -3834,7 +3834,7 @@ end;
 
 
 
-Procedure TFilter.Set_operator(AIndex : Integer; const AValue : String); 
+Procedure TFilter.Set_operator(AIndex : Integer; const AValue : String);
 
 begin
   If (F_operator=AValue) then exit;
@@ -3844,7 +3844,7 @@ end;
 
 
 
-Procedure TFilter.Setvalue(AIndex : Integer; AValue : TJSONSchema); 
+Procedure TFilter.Setvalue(AIndex : Integer; AValue : TJSONSchema);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -3879,7 +3879,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonGeometryCollection.Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectionTypegeometriesArray); 
+Procedure TGeoJsonGeometryCollection.Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectionTypegeometriesArray);
 
 begin
   If (Fgeometries=AValue) then exit;
@@ -3889,7 +3889,7 @@ end;
 
 
 
-Procedure TGeoJsonGeometryCollection.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonGeometryCollection.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3911,7 +3911,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeoJsonGeometryCollection.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeoJsonGeometryCollection.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3930,7 +3930,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringTypecoordinatesArray); 
+Procedure TGeoJsonLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -3940,7 +3940,7 @@ end;
 
 
 
-Procedure TGeoJsonLineString.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonLineString.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3962,7 +3962,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeoJsonLineString.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeoJsonLineString.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3981,7 +3981,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonMultiLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringTypecoordinatesArray); 
+Procedure TGeoJsonMultiLineString.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -3991,7 +3991,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiLineString.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonMultiLineString.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -4013,7 +4013,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeoJsonMultiLineString.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeoJsonMultiLineString.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4032,7 +4032,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonMultiPoint.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointTypecoordinatesArray); 
+Procedure TGeoJsonMultiPoint.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4042,7 +4042,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiPoint.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonMultiPoint.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -4064,7 +4064,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeoJsonMultiPoint.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeoJsonMultiPoint.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4083,7 +4083,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonMultiPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygonTypecoordinatesArray); 
+Procedure TGeoJsonMultiPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygonTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4093,7 +4093,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiPolygon.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonMultiPolygon.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -4115,7 +4115,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeoJsonMultiPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeoJsonMultiPolygon.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4134,7 +4134,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonPoint.Setcoordinates(AIndex : Integer; AValue : TGeoJsonPosition); 
+Procedure TGeoJsonPoint.Setcoordinates(AIndex : Integer; AValue : TGeoJsonPosition);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4144,7 +4144,7 @@ end;
 
 
 
-Procedure TGeoJsonPoint.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonPoint.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -4172,7 +4172,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoJsonPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygonTypecoordinatesArray); 
+Procedure TGeoJsonPolygon.Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygonTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -4182,7 +4182,7 @@ end;
 
 
 
-Procedure TGeoJsonPolygon.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeoJsonPolygon.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -4204,7 +4204,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeoJsonPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeoJsonPolygon.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4236,7 +4236,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIcon.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TIcon.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4246,7 +4246,7 @@ end;
 
 
 
-Procedure TIcon.Setid(AIndex : Integer; const AValue : String); 
+Procedure TIcon.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4256,7 +4256,7 @@ end;
 
 
 
-Procedure TIcon.Setname(AIndex : Integer; const AValue : String); 
+Procedure TIcon.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4273,7 +4273,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIconStyle.Setid(AIndex : Integer; const AValue : String); 
+Procedure TIconStyle.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4283,7 +4283,7 @@ end;
 
 
 
-Procedure TIconStyle.Setname(AIndex : Integer; const AValue : String); 
+Procedure TIconStyle.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4293,7 +4293,7 @@ end;
 
 
 
-Procedure TIconStyle.SetscaledShape(AIndex : Integer; AValue : TScaledShape); 
+Procedure TIconStyle.SetscaledShape(AIndex : Integer; AValue : TScaledShape);
 
 begin
   If (FscaledShape=AValue) then exit;
@@ -4303,7 +4303,7 @@ end;
 
 
 
-Procedure TIconStyle.SetscalingFunction(AIndex : Integer; AValue : TScalingFunction); 
+Procedure TIconStyle.SetscalingFunction(AIndex : Integer; AValue : TScalingFunction);
 
 begin
   If (FscalingFunction=AValue) then exit;
@@ -4320,7 +4320,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIconsListResponse.Seticons(AIndex : Integer; AValue : TIconsListResponseTypeiconsArray); 
+Procedure TIconsListResponse.Seticons(AIndex : Integer; AValue : TIconsListResponseTypeiconsArray);
 
 begin
   If (Ficons=AValue) then exit;
@@ -4330,7 +4330,7 @@ end;
 
 
 
-Procedure TIconsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TIconsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4341,7 +4341,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TIconsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TIconsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4360,7 +4360,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabelStyle.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TLabelStyle.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -4370,7 +4370,7 @@ end;
 
 
 
-Procedure TLabelStyle.Setcolumn(AIndex : Integer; const AValue : String); 
+Procedure TLabelStyle.Setcolumn(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -4380,7 +4380,7 @@ end;
 
 
 
-Procedure TLabelStyle.SetfontStyle(AIndex : Integer; const AValue : String); 
+Procedure TLabelStyle.SetfontStyle(AIndex : Integer; const AValue : String);
 
 begin
   If (FfontStyle=AValue) then exit;
@@ -4390,7 +4390,7 @@ end;
 
 
 
-Procedure TLabelStyle.SetfontWeight(AIndex : Integer; const AValue : String); 
+Procedure TLabelStyle.SetfontWeight(AIndex : Integer; const AValue : String);
 
 begin
   If (FfontWeight=AValue) then exit;
@@ -4400,7 +4400,7 @@ end;
 
 
 
-Procedure TLabelStyle.Setopacity(AIndex : Integer; AValue : double); 
+Procedure TLabelStyle.Setopacity(AIndex : Integer; AValue : double);
 
 begin
   If (Fopacity=AValue) then exit;
@@ -4410,7 +4410,7 @@ end;
 
 
 
-Procedure TLabelStyle.Setoutline(AIndex : Integer; AValue : TColor); 
+Procedure TLabelStyle.Setoutline(AIndex : Integer; AValue : TColor);
 
 begin
   If (Foutline=AValue) then exit;
@@ -4420,7 +4420,7 @@ end;
 
 
 
-Procedure TLabelStyle.Setsize(AIndex : Integer; AValue : double); 
+Procedure TLabelStyle.Setsize(AIndex : Integer; AValue : double);
 
 begin
   If (Fsize=AValue) then exit;
@@ -4437,7 +4437,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLayer.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TLayer.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -4447,7 +4447,7 @@ end;
 
 
 
-Procedure TLayer.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TLayer.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -4457,7 +4457,7 @@ end;
 
 
 
-Procedure TLayer.SetcreatorEmail(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetcreatorEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -4467,7 +4467,7 @@ end;
 
 
 
-Procedure TLayer.SetdatasourceType(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetdatasourceType(AIndex : Integer; const AValue : String);
 
 begin
   If (FdatasourceType=AValue) then exit;
@@ -4477,7 +4477,7 @@ end;
 
 
 
-Procedure TLayer.Setdatasources(AIndex : Integer; AValue : TDatasources); 
+Procedure TLayer.Setdatasources(AIndex : Integer; AValue : TDatasources);
 
 begin
   If (Fdatasources=AValue) then exit;
@@ -4487,7 +4487,7 @@ end;
 
 
 
-Procedure TLayer.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TLayer.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4497,7 +4497,7 @@ end;
 
 
 
-Procedure TLayer.SetdraftAccessList(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetdraftAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -4507,7 +4507,7 @@ end;
 
 
 
-Procedure TLayer.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TLayer.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -4517,7 +4517,7 @@ end;
 
 
 
-Procedure TLayer.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLayer.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4527,7 +4527,7 @@ end;
 
 
 
-Procedure TLayer.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TLayer.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -4537,7 +4537,7 @@ end;
 
 
 
-Procedure TLayer.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetlastModifierEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -4547,7 +4547,7 @@ end;
 
 
 
-Procedure TLayer.SetlayerType(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetlayerType(AIndex : Integer; const AValue : String);
 
 begin
   If (FlayerType=AValue) then exit;
@@ -4557,7 +4557,7 @@ end;
 
 
 
-Procedure TLayer.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLayer.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4567,7 +4567,7 @@ end;
 
 
 
-Procedure TLayer.SetprocessingStatus(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetprocessingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -4577,7 +4577,7 @@ end;
 
 
 
-Procedure TLayer.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4587,7 +4587,7 @@ end;
 
 
 
-Procedure TLayer.SetpublishedAccessList(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetpublishedAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -4597,7 +4597,7 @@ end;
 
 
 
-Procedure TLayer.SetpublishingStatus(AIndex : Integer; const AValue : String); 
+Procedure TLayer.SetpublishingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublishingStatus=AValue) then exit;
@@ -4607,7 +4607,7 @@ end;
 
 
 
-Procedure TLayer.Setstyle(AIndex : Integer; AValue : TVectorStyle); 
+Procedure TLayer.Setstyle(AIndex : Integer; AValue : TVectorStyle);
 
 begin
   If (Fstyle=AValue) then exit;
@@ -4617,7 +4617,7 @@ end;
 
 
 
-Procedure TLayer.Settags(AIndex : Integer; AValue : TTags); 
+Procedure TLayer.Settags(AIndex : Integer; AValue : TTags);
 
 begin
   If (Ftags=AValue) then exit;
@@ -4627,7 +4627,7 @@ end;
 
 
 
-Procedure TLayer.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); 
+Procedure TLayer.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean);
 
 begin
   If (FwritersCanEditPermissions=AValue) then exit;
@@ -4638,7 +4638,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLayer.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLayer.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4657,7 +4657,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLayersListResponse.Setlayers(AIndex : Integer; AValue : TLayersListResponseTypelayersArray); 
+Procedure TLayersListResponse.Setlayers(AIndex : Integer; AValue : TLayersListResponseTypelayersArray);
 
 begin
   If (Flayers=AValue) then exit;
@@ -4667,7 +4667,7 @@ end;
 
 
 
-Procedure TLayersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLayersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4678,7 +4678,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLayersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLayersListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4697,7 +4697,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLineStyleTypestroke.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TLineStyleTypestroke.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -4707,7 +4707,7 @@ end;
 
 
 
-Procedure TLineStyleTypestroke.Setopacity(AIndex : Integer; AValue : double); 
+Procedure TLineStyleTypestroke.Setopacity(AIndex : Integer; AValue : double);
 
 begin
   If (Fopacity=AValue) then exit;
@@ -4717,7 +4717,7 @@ end;
 
 
 
-Procedure TLineStyleTypestroke.Setwidth(AIndex : Integer; AValue : double); 
+Procedure TLineStyleTypestroke.Setwidth(AIndex : Integer; AValue : double);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -4734,7 +4734,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLineStyle.Setborder(AIndex : Integer; AValue : TBorder); 
+Procedure TLineStyle.Setborder(AIndex : Integer; AValue : TBorder);
 
 begin
   If (Fborder=AValue) then exit;
@@ -4744,7 +4744,7 @@ end;
 
 
 
-Procedure TLineStyle.Setdash(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TLineStyle.Setdash(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fdash=AValue) then exit;
@@ -4754,7 +4754,7 @@ end;
 
 
 
-Procedure TLineStyle.Set_label(AIndex : Integer; AValue : TLabelStyle); 
+Procedure TLineStyle.Set_label(AIndex : Integer; AValue : TLabelStyle);
 
 begin
   If (F_label=AValue) then exit;
@@ -4764,7 +4764,7 @@ end;
 
 
 
-Procedure TLineStyle.Setstroke(AIndex : Integer; AValue : TLineStyleTypestroke); 
+Procedure TLineStyle.Setstroke(AIndex : Integer; AValue : TLineStyleTypestroke);
 
 begin
   If (Fstroke=AValue) then exit;
@@ -4786,7 +4786,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLineStyle.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLineStyle.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4805,7 +4805,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMap.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TMap.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -4815,7 +4815,7 @@ end;
 
 
 
-Procedure TMap.Setcontents(AIndex : Integer; AValue : TMapContents); 
+Procedure TMap.Setcontents(AIndex : Integer; AValue : TMapContents);
 
 begin
   If (Fcontents=AValue) then exit;
@@ -4825,7 +4825,7 @@ end;
 
 
 
-Procedure TMap.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TMap.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -4835,7 +4835,7 @@ end;
 
 
 
-Procedure TMap.SetcreatorEmail(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetcreatorEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -4845,7 +4845,7 @@ end;
 
 
 
-Procedure TMap.SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox); 
+Procedure TMap.SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox);
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -4855,7 +4855,7 @@ end;
 
 
 
-Procedure TMap.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TMap.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4865,7 +4865,7 @@ end;
 
 
 
-Procedure TMap.SetdraftAccessList(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetdraftAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -4875,7 +4875,7 @@ end;
 
 
 
-Procedure TMap.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TMap.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -4885,7 +4885,7 @@ end;
 
 
 
-Procedure TMap.Setid(AIndex : Integer; const AValue : String); 
+Procedure TMap.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4895,7 +4895,7 @@ end;
 
 
 
-Procedure TMap.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TMap.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -4905,7 +4905,7 @@ end;
 
 
 
-Procedure TMap.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetlastModifierEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -4915,7 +4915,7 @@ end;
 
 
 
-Procedure TMap.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMap.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4925,7 +4925,7 @@ end;
 
 
 
-Procedure TMap.SetprocessingStatus(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetprocessingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -4935,7 +4935,7 @@ end;
 
 
 
-Procedure TMap.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4945,7 +4945,7 @@ end;
 
 
 
-Procedure TMap.SetpublishedAccessList(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetpublishedAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -4955,7 +4955,7 @@ end;
 
 
 
-Procedure TMap.SetpublishingStatus(AIndex : Integer; const AValue : String); 
+Procedure TMap.SetpublishingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublishingStatus=AValue) then exit;
@@ -4965,7 +4965,7 @@ end;
 
 
 
-Procedure TMap.Settags(AIndex : Integer; AValue : TTags); 
+Procedure TMap.Settags(AIndex : Integer; AValue : TTags);
 
 begin
   If (Ftags=AValue) then exit;
@@ -4975,7 +4975,7 @@ end;
 
 
 
-Procedure TMap.Setversions(AIndex : Integer; AValue : TStringArray); 
+Procedure TMap.Setversions(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fversions=AValue) then exit;
@@ -4985,7 +4985,7 @@ end;
 
 
 
-Procedure TMap.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); 
+Procedure TMap.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean);
 
 begin
   If (FwritersCanEditPermissions=AValue) then exit;
@@ -4996,7 +4996,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMap.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMap.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5016,7 +5016,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMapFolder.Setcontents(AIndex : Integer; AValue : TMapFolderTypecontentsArray); 
+Procedure TMapFolder.Setcontents(AIndex : Integer; AValue : TMapFolderTypecontentsArray);
 
 begin
   If (Fcontents=AValue) then exit;
@@ -5026,7 +5026,7 @@ end;
 
 
 
-Procedure TMapFolder.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TMapFolder.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5036,7 +5036,7 @@ end;
 
 
 
-Procedure TMapFolder.Setexpandable(AIndex : Integer; AValue : boolean); 
+Procedure TMapFolder.Setexpandable(AIndex : Integer; AValue : boolean);
 
 begin
   If (Fexpandable=AValue) then exit;
@@ -5046,7 +5046,7 @@ end;
 
 
 
-Procedure TMapFolder.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TMapFolder.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -5056,7 +5056,7 @@ end;
 
 
 
-Procedure TMapFolder.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMapFolder.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5066,7 +5066,7 @@ end;
 
 
 
-Procedure TMapFolder.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMapFolder.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5076,7 +5076,7 @@ end;
 
 
 
-Procedure TMapFolder.Setvisibility(AIndex : Integer; const AValue : String); 
+Procedure TMapFolder.Setvisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5098,7 +5098,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMapFolder.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMapFolder.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5125,7 +5125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMapKmlLink.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TMapKmlLink.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5135,7 +5135,7 @@ end;
 
 
 
-Procedure TMapKmlLink.SetkmlUrl(AIndex : Integer; const AValue : String); 
+Procedure TMapKmlLink.SetkmlUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FkmlUrl=AValue) then exit;
@@ -5145,7 +5145,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMapKmlLink.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5155,7 +5155,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMapKmlLink.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5165,7 +5165,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Setvisibility(AIndex : Integer; const AValue : String); 
+Procedure TMapKmlLink.Setvisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5187,7 +5187,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMapKmlLink.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMapKmlLink.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5206,7 +5206,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMapLayer.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TMapLayer.SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5216,7 +5216,7 @@ end;
 
 
 
-Procedure TMapLayer.Setid(AIndex : Integer; const AValue : String); 
+Procedure TMapLayer.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5226,7 +5226,7 @@ end;
 
 
 
-Procedure TMapLayer.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TMapLayer.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -5236,7 +5236,7 @@ end;
 
 
 
-Procedure TMapLayer.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMapLayer.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5246,7 +5246,7 @@ end;
 
 
 
-Procedure TMapLayer.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMapLayer.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5256,7 +5256,7 @@ end;
 
 
 
-Procedure TMapLayer.Setvisibility(AIndex : Integer; const AValue : String); 
+Procedure TMapLayer.Setvisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5278,7 +5278,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMapLayer.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMapLayer.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5297,7 +5297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMapsListResponse.Setmaps(AIndex : Integer; AValue : TMapsListResponseTypemapsArray); 
+Procedure TMapsListResponse.Setmaps(AIndex : Integer; AValue : TMapsListResponseTypemapsArray);
 
 begin
   If (Fmaps=AValue) then exit;
@@ -5307,7 +5307,7 @@ end;
 
 
 
-Procedure TMapsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TMapsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5318,7 +5318,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMapsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMapsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5337,7 +5337,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParent.Setid(AIndex : Integer; const AValue : String); 
+Procedure TParent.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5354,7 +5354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParentsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TParentsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5364,7 +5364,7 @@ end;
 
 
 
-Procedure TParentsListResponse.Setparents(AIndex : Integer; AValue : TParentsListResponseTypeparentsArray); 
+Procedure TParentsListResponse.Setparents(AIndex : Integer; AValue : TParentsListResponseTypeparentsArray);
 
 begin
   If (Fparents=AValue) then exit;
@@ -5375,7 +5375,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TParentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TParentsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5394,7 +5394,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermission.Setdiscoverable(AIndex : Integer; AValue : boolean); 
+Procedure TPermission.Setdiscoverable(AIndex : Integer; AValue : boolean);
 
 begin
   If (Fdiscoverable=AValue) then exit;
@@ -5404,7 +5404,7 @@ end;
 
 
 
-Procedure TPermission.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPermission.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5414,7 +5414,7 @@ end;
 
 
 
-Procedure TPermission.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TPermission.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -5424,7 +5424,7 @@ end;
 
 
 
-Procedure TPermission.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPermission.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -5452,7 +5452,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionsBatchDeleteRequest.Setids(AIndex : Integer; AValue : TStringArray); 
+Procedure TPermissionsBatchDeleteRequest.Setids(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fids=AValue) then exit;
@@ -5463,7 +5463,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPermissionsBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPermissionsBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5489,7 +5489,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionsBatchUpdateRequest.Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestTypepermissionsArray); 
+Procedure TPermissionsBatchUpdateRequest.Setpermissions(AIndex : Integer; AValue : TPermissionsBatchUpdateRequestTypepermissionsArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -5500,7 +5500,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPermissionsBatchUpdateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPermissionsBatchUpdateRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5526,7 +5526,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionsListResponse.Setpermissions(AIndex : Integer; AValue : TPermissionsListResponseTypepermissionsArray); 
+Procedure TPermissionsListResponse.Setpermissions(AIndex : Integer; AValue : TPermissionsListResponseTypepermissionsArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -5537,7 +5537,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPermissionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPermissionsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5556,7 +5556,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointStyle.Seticon(AIndex : Integer; AValue : TIconStyle); 
+Procedure TPointStyle.Seticon(AIndex : Integer; AValue : TIconStyle);
 
 begin
   If (Ficon=AValue) then exit;
@@ -5566,7 +5566,7 @@ end;
 
 
 
-Procedure TPointStyle.Set_label(AIndex : Integer; AValue : TLabelStyle); 
+Procedure TPointStyle.Set_label(AIndex : Integer; AValue : TLabelStyle);
 
 begin
   If (F_label=AValue) then exit;
@@ -5594,7 +5594,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolygonStyle.Setfill(AIndex : Integer; AValue : TColor); 
+Procedure TPolygonStyle.Setfill(AIndex : Integer; AValue : TColor);
 
 begin
   If (Ffill=AValue) then exit;
@@ -5604,7 +5604,7 @@ end;
 
 
 
-Procedure TPolygonStyle.Set_label(AIndex : Integer; AValue : TLabelStyle); 
+Procedure TPolygonStyle.Set_label(AIndex : Integer; AValue : TLabelStyle);
 
 begin
   If (F_label=AValue) then exit;
@@ -5614,7 +5614,7 @@ end;
 
 
 
-Procedure TPolygonStyle.Setstroke(AIndex : Integer; AValue : TBorder); 
+Procedure TPolygonStyle.Setstroke(AIndex : Integer; AValue : TBorder);
 
 begin
   If (Fstroke=AValue) then exit;
@@ -5649,7 +5649,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProject.Setid(AIndex : Integer; const AValue : String); 
+Procedure TProject.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5659,7 +5659,7 @@ end;
 
 
 
-Procedure TProject.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProject.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5676,7 +5676,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProjectsListResponse.Setprojects(AIndex : Integer; AValue : TProjectsListResponseTypeprojectsArray); 
+Procedure TProjectsListResponse.Setprojects(AIndex : Integer; AValue : TProjectsListResponseTypeprojectsArray);
 
 begin
   If (Fprojects=AValue) then exit;
@@ -5687,7 +5687,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TProjectsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TProjectsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5713,7 +5713,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedLayer.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TPublishedLayer.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5723,7 +5723,7 @@ end;
 
 
 
-Procedure TPublishedLayer.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPublishedLayer.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5733,7 +5733,7 @@ end;
 
 
 
-Procedure TPublishedLayer.SetlayerType(AIndex : Integer; const AValue : String); 
+Procedure TPublishedLayer.SetlayerType(AIndex : Integer; const AValue : String);
 
 begin
   If (FlayerType=AValue) then exit;
@@ -5743,7 +5743,7 @@ end;
 
 
 
-Procedure TPublishedLayer.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPublishedLayer.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5753,7 +5753,7 @@ end;
 
 
 
-Procedure TPublishedLayer.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TPublishedLayer.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5770,7 +5770,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedLayersListResponse.Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponseTypelayersArray); 
+Procedure TPublishedLayersListResponse.Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponseTypelayersArray);
 
 begin
   If (Flayers=AValue) then exit;
@@ -5780,7 +5780,7 @@ end;
 
 
 
-Procedure TPublishedLayersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPublishedLayersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5791,7 +5791,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublishedLayersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublishedLayersListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5810,7 +5810,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedMap.Setcontents(AIndex : Integer; AValue : TMapContents); 
+Procedure TPublishedMap.Setcontents(AIndex : Integer; AValue : TMapContents);
 
 begin
   If (Fcontents=AValue) then exit;
@@ -5820,7 +5820,7 @@ end;
 
 
 
-Procedure TPublishedMap.SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox); 
+Procedure TPublishedMap.SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox);
 
 begin
   If (FdefaultViewport=AValue) then exit;
@@ -5830,7 +5830,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TPublishedMap.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5840,7 +5840,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPublishedMap.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5850,7 +5850,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPublishedMap.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5860,7 +5860,7 @@ end;
 
 
 
-Procedure TPublishedMap.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TPublishedMap.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5877,7 +5877,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedMapsListResponse.Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponseTypemapsArray); 
+Procedure TPublishedMapsListResponse.Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponseTypemapsArray);
 
 begin
   If (Fmaps=AValue) then exit;
@@ -5887,7 +5887,7 @@ end;
 
 
 
-Procedure TPublishedMapsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPublishedMapsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5898,7 +5898,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublishedMapsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublishedMapsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5917,7 +5917,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRaster.SetacquisitionTime(AIndex : Integer; AValue : TAcquisitionTime); 
+Procedure TRaster.SetacquisitionTime(AIndex : Integer; AValue : TAcquisitionTime);
 
 begin
   If (FacquisitionTime=AValue) then exit;
@@ -5927,7 +5927,7 @@ end;
 
 
 
-Procedure TRaster.Setattribution(AIndex : Integer; const AValue : String); 
+Procedure TRaster.Setattribution(AIndex : Integer; const AValue : String);
 
 begin
   If (Fattribution=AValue) then exit;
@@ -5937,7 +5937,7 @@ end;
 
 
 
-Procedure TRaster.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TRaster.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -5947,7 +5947,7 @@ end;
 
 
 
-Procedure TRaster.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TRaster.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -5957,7 +5957,7 @@ end;
 
 
 
-Procedure TRaster.SetcreatorEmail(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetcreatorEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -5967,7 +5967,7 @@ end;
 
 
 
-Procedure TRaster.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRaster.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5977,7 +5977,7 @@ end;
 
 
 
-Procedure TRaster.SetdraftAccessList(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetdraftAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -5987,7 +5987,7 @@ end;
 
 
 
-Procedure TRaster.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TRaster.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -5997,7 +5997,7 @@ end;
 
 
 
-Procedure TRaster.Setfiles(AIndex : Integer; AValue : TRasterTypefilesArray); 
+Procedure TRaster.Setfiles(AIndex : Integer; AValue : TRasterTypefilesArray);
 
 begin
   If (Ffiles=AValue) then exit;
@@ -6007,7 +6007,7 @@ end;
 
 
 
-Procedure TRaster.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRaster.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6017,7 +6017,7 @@ end;
 
 
 
-Procedure TRaster.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TRaster.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -6027,7 +6027,7 @@ end;
 
 
 
-Procedure TRaster.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetlastModifierEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6037,7 +6037,7 @@ end;
 
 
 
-Procedure TRaster.SetmaskType(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetmaskType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaskType=AValue) then exit;
@@ -6047,7 +6047,7 @@ end;
 
 
 
-Procedure TRaster.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRaster.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6057,7 +6057,7 @@ end;
 
 
 
-Procedure TRaster.SetprocessingStatus(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetprocessingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6067,7 +6067,7 @@ end;
 
 
 
-Procedure TRaster.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6077,7 +6077,7 @@ end;
 
 
 
-Procedure TRaster.SetrasterType(AIndex : Integer; const AValue : String); 
+Procedure TRaster.SetrasterType(AIndex : Integer; const AValue : String);
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6087,7 +6087,7 @@ end;
 
 
 
-Procedure TRaster.Settags(AIndex : Integer; AValue : TTags); 
+Procedure TRaster.Settags(AIndex : Integer; AValue : TTags);
 
 begin
   If (Ftags=AValue) then exit;
@@ -6097,7 +6097,7 @@ end;
 
 
 
-Procedure TRaster.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); 
+Procedure TRaster.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean);
 
 begin
   If (FwritersCanEditPermissions=AValue) then exit;
@@ -6108,7 +6108,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRaster.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRaster.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6128,7 +6128,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollection.Setattribution(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.Setattribution(AIndex : Integer; const AValue : String);
 
 begin
   If (Fattribution=AValue) then exit;
@@ -6138,7 +6138,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TRasterCollection.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -6148,7 +6148,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TRasterCollection.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -6158,7 +6158,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetcreatorEmail(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.SetcreatorEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -6168,7 +6168,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6178,7 +6178,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetdraftAccessList(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.SetdraftAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -6188,7 +6188,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -6198,7 +6198,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6208,7 +6208,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TRasterCollection.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -6218,7 +6218,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.SetlastModifierEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6228,7 +6228,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setmosaic(AIndex : Integer; AValue : boolean); 
+Procedure TRasterCollection.Setmosaic(AIndex : Integer; AValue : boolean);
 
 begin
   If (Fmosaic=AValue) then exit;
@@ -6238,7 +6238,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6248,7 +6248,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetprocessingStatus(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.SetprocessingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6258,7 +6258,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6268,7 +6268,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetrasterType(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollection.SetrasterType(AIndex : Integer; const AValue : String);
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6278,7 +6278,7 @@ end;
 
 
 
-Procedure TRasterCollection.Settags(AIndex : Integer; AValue : TTags); 
+Procedure TRasterCollection.Settags(AIndex : Integer; AValue : TTags);
 
 begin
   If (Ftags=AValue) then exit;
@@ -6288,7 +6288,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); 
+Procedure TRasterCollection.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean);
 
 begin
   If (FwritersCanEditPermissions=AValue) then exit;
@@ -6299,7 +6299,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRasterCollection.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRasterCollection.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6318,7 +6318,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6328,7 +6328,7 @@ end;
 
 
 
-Procedure TRasterCollectionsListResponse.SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponseTyperasterCollectionsArray); 
+Procedure TRasterCollectionsListResponse.SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponseTyperasterCollectionsArray);
 
 begin
   If (FrasterCollections=AValue) then exit;
@@ -6339,7 +6339,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRasterCollectionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRasterCollectionsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6358,7 +6358,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRaster.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TRasterCollectionsRaster.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -6368,7 +6368,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TRasterCollectionsRaster.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -6378,7 +6378,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsRaster.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6388,7 +6388,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsRaster.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6398,7 +6398,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TRasterCollectionsRaster.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -6408,7 +6408,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsRaster.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6418,7 +6418,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsRaster.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6428,7 +6428,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetrasterType(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsRaster.SetrasterType(AIndex : Integer; const AValue : String);
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6438,7 +6438,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Settags(AIndex : Integer; AValue : TStringArray); 
+Procedure TRasterCollectionsRaster.Settags(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Ftags=AValue) then exit;
@@ -6449,7 +6449,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRasterCollectionsRaster.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRasterCollectionsRaster.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6469,7 +6469,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRasterBatchDeleteRequest.Setids(AIndex : Integer; AValue : TStringArray); 
+Procedure TRasterCollectionsRasterBatchDeleteRequest.Setids(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fids=AValue) then exit;
@@ -6480,7 +6480,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRasterCollectionsRasterBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRasterCollectionsRasterBatchDeleteRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6506,7 +6506,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRastersBatchInsertRequest.Setids(AIndex : Integer; AValue : TStringArray); 
+Procedure TRasterCollectionsRastersBatchInsertRequest.Setids(AIndex : Integer; AValue : TStringArray);
 
 begin
   If (Fids=AValue) then exit;
@@ -6517,7 +6517,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRasterCollectionsRastersBatchInsertRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRasterCollectionsRastersBatchInsertRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6543,7 +6543,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRastersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TRasterCollectionsRastersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6553,7 +6553,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRastersListResponse.Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponseTyperastersArray); 
+Procedure TRasterCollectionsRastersListResponse.Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponseTyperastersArray);
 
 begin
   If (Frasters=AValue) then exit;
@@ -6564,7 +6564,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRasterCollectionsRastersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRasterCollectionsRastersListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6583,7 +6583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRastersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TRastersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6593,7 +6593,7 @@ end;
 
 
 
-Procedure TRastersListResponse.Setrasters(AIndex : Integer; AValue : TRastersListResponseTyperastersArray); 
+Procedure TRastersListResponse.Setrasters(AIndex : Integer; AValue : TRastersListResponseTyperastersArray);
 
 begin
   If (Frasters=AValue) then exit;
@@ -6604,7 +6604,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRastersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRastersListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6623,7 +6623,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScaledShape.Setborder(AIndex : Integer; AValue : TBorder); 
+Procedure TScaledShape.Setborder(AIndex : Integer; AValue : TBorder);
 
 begin
   If (Fborder=AValue) then exit;
@@ -6633,7 +6633,7 @@ end;
 
 
 
-Procedure TScaledShape.Setfill(AIndex : Integer; AValue : TColor); 
+Procedure TScaledShape.Setfill(AIndex : Integer; AValue : TColor);
 
 begin
   If (Ffill=AValue) then exit;
@@ -6643,7 +6643,7 @@ end;
 
 
 
-Procedure TScaledShape.Setshape(AIndex : Integer; const AValue : String); 
+Procedure TScaledShape.Setshape(AIndex : Integer; const AValue : String);
 
 begin
   If (Fshape=AValue) then exit;
@@ -6660,7 +6660,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScalingFunction.Setcolumn(AIndex : Integer; const AValue : String); 
+Procedure TScalingFunction.Setcolumn(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -6670,7 +6670,7 @@ end;
 
 
 
-Procedure TScalingFunction.SetscalingType(AIndex : Integer; const AValue : String); 
+Procedure TScalingFunction.SetscalingType(AIndex : Integer; const AValue : String);
 
 begin
   If (FscalingType=AValue) then exit;
@@ -6680,7 +6680,7 @@ end;
 
 
 
-Procedure TScalingFunction.SetsizeRange(AIndex : Integer; AValue : TSizeRange); 
+Procedure TScalingFunction.SetsizeRange(AIndex : Integer; AValue : TSizeRange);
 
 begin
   If (FsizeRange=AValue) then exit;
@@ -6690,7 +6690,7 @@ end;
 
 
 
-Procedure TScalingFunction.SetvalueRange(AIndex : Integer; AValue : TValueRange); 
+Procedure TScalingFunction.SetvalueRange(AIndex : Integer; AValue : TValueRange);
 
 begin
   If (FvalueRange=AValue) then exit;
@@ -6707,7 +6707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSchema.Setcolumns(AIndex : Integer; AValue : TSchemaTypecolumnsArray); 
+Procedure TSchema.Setcolumns(AIndex : Integer; AValue : TSchemaTypecolumnsArray);
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -6717,7 +6717,7 @@ end;
 
 
 
-Procedure TSchema.SetprimaryGeometry(AIndex : Integer; const AValue : String); 
+Procedure TSchema.SetprimaryGeometry(AIndex : Integer; const AValue : String);
 
 begin
   If (FprimaryGeometry=AValue) then exit;
@@ -6727,7 +6727,7 @@ end;
 
 
 
-Procedure TSchema.SetprimaryKey(AIndex : Integer; const AValue : String); 
+Procedure TSchema.SetprimaryKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FprimaryKey=AValue) then exit;
@@ -6738,7 +6738,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSchema.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSchema.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6757,7 +6757,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSizeRange.Setmax(AIndex : Integer; AValue : double); 
+Procedure TSizeRange.Setmax(AIndex : Integer; AValue : double);
 
 begin
   If (Fmax=AValue) then exit;
@@ -6767,7 +6767,7 @@ end;
 
 
 
-Procedure TSizeRange.Setmin(AIndex : Integer; AValue : double); 
+Procedure TSizeRange.Setmin(AIndex : Integer; AValue : double);
 
 begin
   If (Fmin=AValue) then exit;
@@ -6784,7 +6784,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTable.Setbbox(AIndex : Integer; AValue : TdoubleArray); 
+Procedure TTable.Setbbox(AIndex : Integer; AValue : TdoubleArray);
 
 begin
   If (Fbbox=AValue) then exit;
@@ -6794,7 +6794,7 @@ end;
 
 
 
-Procedure TTable.SetcreationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TTable.SetcreationTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -6804,7 +6804,7 @@ end;
 
 
 
-Procedure TTable.SetcreatorEmail(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetcreatorEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -6814,7 +6814,7 @@ end;
 
 
 
-Procedure TTable.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6824,7 +6824,7 @@ end;
 
 
 
-Procedure TTable.SetdraftAccessList(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetdraftAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -6834,7 +6834,7 @@ end;
 
 
 
-Procedure TTable.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -6844,7 +6844,7 @@ end;
 
 
 
-Procedure TTable.Setfiles(AIndex : Integer; AValue : TTableTypefilesArray); 
+Procedure TTable.Setfiles(AIndex : Integer; AValue : TTableTypefilesArray);
 
 begin
   If (Ffiles=AValue) then exit;
@@ -6854,7 +6854,7 @@ end;
 
 
 
-Procedure TTable.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6864,7 +6864,7 @@ end;
 
 
 
-Procedure TTable.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TTable.SetlastModifiedTime(AIndex : Integer; AValue : TDatetime);
 
 begin
   If (FlastModifiedTime=AValue) then exit;
@@ -6874,7 +6874,7 @@ end;
 
 
 
-Procedure TTable.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetlastModifierEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6884,7 +6884,7 @@ end;
 
 
 
-Procedure TTable.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6894,7 +6894,7 @@ end;
 
 
 
-Procedure TTable.SetprocessingStatus(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetprocessingStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6904,7 +6904,7 @@ end;
 
 
 
-Procedure TTable.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6914,7 +6914,7 @@ end;
 
 
 
-Procedure TTable.SetpublishedAccessList(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetpublishedAccessList(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -6924,7 +6924,7 @@ end;
 
 
 
-Procedure TTable.Setschema(AIndex : Integer; AValue : TSchema); 
+Procedure TTable.Setschema(AIndex : Integer; AValue : TSchema);
 
 begin
   If (Fschema=AValue) then exit;
@@ -6934,7 +6934,7 @@ end;
 
 
 
-Procedure TTable.SetsourceEncoding(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetsourceEncoding(AIndex : Integer; const AValue : String);
 
 begin
   If (FsourceEncoding=AValue) then exit;
@@ -6944,7 +6944,7 @@ end;
 
 
 
-Procedure TTable.Settags(AIndex : Integer; AValue : TTags); 
+Procedure TTable.Settags(AIndex : Integer; AValue : TTags);
 
 begin
   If (Ftags=AValue) then exit;
@@ -6954,7 +6954,7 @@ end;
 
 
 
-Procedure TTable.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); 
+Procedure TTable.SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean);
 
 begin
   If (FwritersCanEditPermissions=AValue) then exit;
@@ -6965,7 +6965,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTable.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTable.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6985,7 +6985,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTableColumn.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTableColumn.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -6995,7 +6995,7 @@ end;
 
 
 
-Procedure TTableColumn.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TTableColumn.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -7023,7 +7023,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTablesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTablesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7033,7 +7033,7 @@ end;
 
 
 
-Procedure TTablesListResponse.Settables(AIndex : Integer; AValue : TTablesListResponseTypetablesArray); 
+Procedure TTablesListResponse.Settables(AIndex : Integer; AValue : TTablesListResponseTypetablesArray);
 
 begin
   If (Ftables=AValue) then exit;
@@ -7044,7 +7044,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTablesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTablesListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7063,7 +7063,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValueRange.Setmax(AIndex : Integer; AValue : double); 
+Procedure TValueRange.Setmax(AIndex : Integer; AValue : double);
 
 begin
   If (Fmax=AValue) then exit;
@@ -7073,7 +7073,7 @@ end;
 
 
 
-Procedure TValueRange.Setmin(AIndex : Integer; AValue : double); 
+Procedure TValueRange.Setmin(AIndex : Integer; AValue : double);
 
 begin
   If (Fmin=AValue) then exit;
@@ -7090,7 +7090,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVectorStyle.SetdisplayRules(AIndex : Integer; AValue : TVectorStyleTypedisplayRulesArray); 
+Procedure TVectorStyle.SetdisplayRules(AIndex : Integer; AValue : TVectorStyleTypedisplayRulesArray);
 
 begin
   If (FdisplayRules=AValue) then exit;
@@ -7100,7 +7100,7 @@ end;
 
 
 
-Procedure TVectorStyle.SetfeatureInfo(AIndex : Integer; AValue : TFeatureInfo); 
+Procedure TVectorStyle.SetfeatureInfo(AIndex : Integer; AValue : TFeatureInfo);
 
 begin
   If (FfeatureInfo=AValue) then exit;
@@ -7110,7 +7110,7 @@ end;
 
 
 
-Procedure TVectorStyle.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TVectorStyle.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -7132,7 +7132,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVectorStyle.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVectorStyle.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7151,7 +7151,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoomLevels.Setmax(AIndex : Integer; AValue : integer); 
+Procedure TZoomLevels.Setmax(AIndex : Integer; AValue : integer);
 
 begin
   If (Fmax=AValue) then exit;
@@ -7161,7 +7161,7 @@ end;
 
 
 
-Procedure TZoomLevels.Setmin(AIndex : Integer; AValue : integer); 
+Procedure TZoomLevels.Setmin(AIndex : Integer; AValue : integer);
 
 begin
   If (Fmin=AValue) then exit;
@@ -9604,7 +9604,7 @@ begin
   Result[0].Description:='View and manage your Google My Maps data';
   Result[1].Name:='https://www.googleapis.com/auth/mapsengine.readonly';
   Result[1].Description:='View your Google My Maps data';
-  
+
 end;
 
 Class Function TMapsengineAPI.APINeedsAuth : Boolean;

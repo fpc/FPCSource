@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAccount = Class;
   TAccountAccess = Class;
@@ -110,11 +110,11 @@ type
   TTriggerTypefilterArray = Array of TCondition;
   TUserAccessTypecontainerAccessArray = Array of TContainerAccess;
   TVariableTypeparameterArray = Array of TParameter;
-  
+
   { --------------------------------------------------------------------
     TAccount
     --------------------------------------------------------------------}
-  
+
   TAccount = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -135,11 +135,11 @@ type
     Property shareData : boolean Index 24 Read FshareData Write SetshareData;
   end;
   TAccountClass = Class of TAccount;
-  
+
   { --------------------------------------------------------------------
     TAccountAccess
     --------------------------------------------------------------------}
-  
+
   TAccountAccess = Class(TGoogleBaseObject)
   Private
     Fpermission : TStringArray;
@@ -155,11 +155,11 @@ type
     Property permission : TStringArray Index 0 Read Fpermission Write Setpermission;
   end;
   TAccountAccessClass = Class of TAccountAccess;
-  
+
   { --------------------------------------------------------------------
     TCondition
     --------------------------------------------------------------------}
-  
+
   TCondition = Class(TGoogleBaseObject)
   Private
     Fparameter : TConditionTypeparameterArray;
@@ -179,11 +179,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TConditionClass = Class of TCondition;
-  
+
   { --------------------------------------------------------------------
     TContainer
     --------------------------------------------------------------------}
-  
+
   TContainer = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -229,11 +229,11 @@ type
     Property usageContext : TStringArray Index 80 Read FusageContext Write SetusageContext;
   end;
   TContainerClass = Class of TContainer;
-  
+
   { --------------------------------------------------------------------
     TContainerAccess
     --------------------------------------------------------------------}
-  
+
   TContainerAccess = Class(TGoogleBaseObject)
   Private
     FcontainerId : String;
@@ -252,11 +252,11 @@ type
     Property permission : TStringArray Index 8 Read Fpermission Write Setpermission;
   end;
   TContainerAccessClass = Class of TContainerAccess;
-  
+
   { --------------------------------------------------------------------
     TContainerVersion
     --------------------------------------------------------------------}
-  
+
   TContainerVersion = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -311,11 +311,11 @@ type
     Property variable : TContainerVersionTypevariableArray Index 104 Read Fvariable Write Setvariable;
   end;
   TContainerVersionClass = Class of TContainerVersion;
-  
+
   { --------------------------------------------------------------------
     TContainerVersionHeader
     --------------------------------------------------------------------}
-  
+
   TContainerVersionHeader = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -354,11 +354,11 @@ type
     Property numVariables : String Index 72 Read FnumVariables Write SetnumVariables;
   end;
   TContainerVersionHeaderClass = Class of TContainerVersionHeader;
-  
+
   { --------------------------------------------------------------------
     TCreateContainerVersionRequestVersionOptions
     --------------------------------------------------------------------}
-  
+
   TCreateContainerVersionRequestVersionOptions = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -376,11 +376,11 @@ type
     Property quickPreview : boolean Index 16 Read FquickPreview Write SetquickPreview;
   end;
   TCreateContainerVersionRequestVersionOptionsClass = Class of TCreateContainerVersionRequestVersionOptions;
-  
+
   { --------------------------------------------------------------------
     TCreateContainerVersionResponse
     --------------------------------------------------------------------}
-  
+
   TCreateContainerVersionResponse = Class(TGoogleBaseObject)
   Private
     FcompilerError : boolean;
@@ -395,11 +395,11 @@ type
     Property containerVersion : TContainerVersion Index 8 Read FcontainerVersion Write SetcontainerVersion;
   end;
   TCreateContainerVersionResponseClass = Class of TCreateContainerVersionResponse;
-  
+
   { --------------------------------------------------------------------
     TEnvironment
     --------------------------------------------------------------------}
-  
+
   TEnvironment = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -445,11 +445,11 @@ type
     Property url : String Index 88 Read Furl Write Seturl;
   end;
   TEnvironmentClass = Class of TEnvironment;
-  
+
   { --------------------------------------------------------------------
     TFolder
     --------------------------------------------------------------------}
-  
+
   TFolder = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -473,11 +473,11 @@ type
     Property name : String Index 32 Read Fname Write Setname;
   end;
   TFolderClass = Class of TFolder;
-  
+
   { --------------------------------------------------------------------
     TFolderEntities
     --------------------------------------------------------------------}
-  
+
   TFolderEntities = Class(TGoogleBaseObject)
   Private
     Ftag : TFolderEntitiesTypetagArray;
@@ -499,11 +499,11 @@ type
     Property variable : TFolderEntitiesTypevariableArray Index 16 Read Fvariable Write Setvariable;
   end;
   TFolderEntitiesClass = Class of TFolderEntities;
-  
+
   { --------------------------------------------------------------------
     TListAccountUsersResponse
     --------------------------------------------------------------------}
-  
+
   TListAccountUsersResponse = Class(TGoogleBaseObject)
   Private
     FuserAccess : TListAccountUsersResponseTypeuserAccessArray;
@@ -519,11 +519,11 @@ type
     Property userAccess : TListAccountUsersResponseTypeuserAccessArray Index 0 Read FuserAccess Write SetuserAccess;
   end;
   TListAccountUsersResponseClass = Class of TListAccountUsersResponse;
-  
+
   { --------------------------------------------------------------------
     TListAccountsResponse
     --------------------------------------------------------------------}
-  
+
   TListAccountsResponse = Class(TGoogleBaseObject)
   Private
     Faccounts : TListAccountsResponseTypeaccountsArray;
@@ -539,11 +539,11 @@ type
     Property accounts : TListAccountsResponseTypeaccountsArray Index 0 Read Faccounts Write Setaccounts;
   end;
   TListAccountsResponseClass = Class of TListAccountsResponse;
-  
+
   { --------------------------------------------------------------------
     TListContainerVersionsResponse
     --------------------------------------------------------------------}
-  
+
   TListContainerVersionsResponse = Class(TGoogleBaseObject)
   Private
     FcontainerVersion : TListContainerVersionsResponseTypecontainerVersionArray;
@@ -562,11 +562,11 @@ type
     Property containerVersionHeader : TListContainerVersionsResponseTypecontainerVersionHeaderArray Index 8 Read FcontainerVersionHeader Write SetcontainerVersionHeader;
   end;
   TListContainerVersionsResponseClass = Class of TListContainerVersionsResponse;
-  
+
   { --------------------------------------------------------------------
     TListContainersResponse
     --------------------------------------------------------------------}
-  
+
   TListContainersResponse = Class(TGoogleBaseObject)
   Private
     Fcontainers : TListContainersResponseTypecontainersArray;
@@ -582,11 +582,11 @@ type
     Property containers : TListContainersResponseTypecontainersArray Index 0 Read Fcontainers Write Setcontainers;
   end;
   TListContainersResponseClass = Class of TListContainersResponse;
-  
+
   { --------------------------------------------------------------------
     TListEnvironmentsResponse
     --------------------------------------------------------------------}
-  
+
   TListEnvironmentsResponse = Class(TGoogleBaseObject)
   Private
     Fenvironments : TListEnvironmentsResponseTypeenvironmentsArray;
@@ -602,11 +602,11 @@ type
     Property environments : TListEnvironmentsResponseTypeenvironmentsArray Index 0 Read Fenvironments Write Setenvironments;
   end;
   TListEnvironmentsResponseClass = Class of TListEnvironmentsResponse;
-  
+
   { --------------------------------------------------------------------
     TListFoldersResponse
     --------------------------------------------------------------------}
-  
+
   TListFoldersResponse = Class(TGoogleBaseObject)
   Private
     Ffolders : TListFoldersResponseTypefoldersArray;
@@ -622,11 +622,11 @@ type
     Property folders : TListFoldersResponseTypefoldersArray Index 0 Read Ffolders Write Setfolders;
   end;
   TListFoldersResponseClass = Class of TListFoldersResponse;
-  
+
   { --------------------------------------------------------------------
     TListTagsResponse
     --------------------------------------------------------------------}
-  
+
   TListTagsResponse = Class(TGoogleBaseObject)
   Private
     Ftags : TListTagsResponseTypetagsArray;
@@ -642,11 +642,11 @@ type
     Property tags : TListTagsResponseTypetagsArray Index 0 Read Ftags Write Settags;
   end;
   TListTagsResponseClass = Class of TListTagsResponse;
-  
+
   { --------------------------------------------------------------------
     TListTriggersResponse
     --------------------------------------------------------------------}
-  
+
   TListTriggersResponse = Class(TGoogleBaseObject)
   Private
     Ftriggers : TListTriggersResponseTypetriggersArray;
@@ -662,11 +662,11 @@ type
     Property triggers : TListTriggersResponseTypetriggersArray Index 0 Read Ftriggers Write Settriggers;
   end;
   TListTriggersResponseClass = Class of TListTriggersResponse;
-  
+
   { --------------------------------------------------------------------
     TListVariablesResponse
     --------------------------------------------------------------------}
-  
+
   TListVariablesResponse = Class(TGoogleBaseObject)
   Private
     Fvariables : TListVariablesResponseTypevariablesArray;
@@ -682,11 +682,11 @@ type
     Property variables : TListVariablesResponseTypevariablesArray Index 0 Read Fvariables Write Setvariables;
   end;
   TListVariablesResponseClass = Class of TListVariablesResponse;
-  
+
   { --------------------------------------------------------------------
     TMacro
     --------------------------------------------------------------------}
-  
+
   TMacro = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -739,11 +739,11 @@ type
     Property _type : String Index 96 Read F_type Write Set_type;
   end;
   TMacroClass = Class of TMacro;
-  
+
   { --------------------------------------------------------------------
     TParameter
     --------------------------------------------------------------------}
-  
+
   TParameter = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -772,11 +772,11 @@ type
     Property value : String Index 32 Read Fvalue Write Setvalue;
   end;
   TParameterClass = Class of TParameter;
-  
+
   { --------------------------------------------------------------------
     TPublishContainerVersionResponse
     --------------------------------------------------------------------}
-  
+
   TPublishContainerVersionResponse = Class(TGoogleBaseObject)
   Private
     FcompilerError : boolean;
@@ -791,11 +791,11 @@ type
     Property containerVersion : TContainerVersion Index 8 Read FcontainerVersion Write SetcontainerVersion;
   end;
   TPublishContainerVersionResponseClass = Class of TPublishContainerVersionResponse;
-  
+
   { --------------------------------------------------------------------
     TRule
     --------------------------------------------------------------------}
-  
+
   TRule = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -829,11 +829,11 @@ type
     Property ruleId : String Index 48 Read FruleId Write SetruleId;
   end;
   TRuleClass = Class of TRule;
-  
+
   { --------------------------------------------------------------------
     TSetupTag
     --------------------------------------------------------------------}
-  
+
   TSetupTag = Class(TGoogleBaseObject)
   Private
     FstopOnSetupFailure : boolean;
@@ -848,11 +848,11 @@ type
     Property tagName : String Index 8 Read FtagName Write SettagName;
   end;
   TSetupTagClass = Class of TSetupTag;
-  
+
   { --------------------------------------------------------------------
     TTag
     --------------------------------------------------------------------}
-  
+
   TTag = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -926,11 +926,11 @@ type
     Property _type : String Index 152 Read F_type Write Set_type;
   end;
   TTagClass = Class of TTag;
-  
+
   { --------------------------------------------------------------------
     TTeardownTag
     --------------------------------------------------------------------}
-  
+
   TTeardownTag = Class(TGoogleBaseObject)
   Private
     FstopTeardownOnFailure : boolean;
@@ -945,11 +945,11 @@ type
     Property tagName : String Index 8 Read FtagName Write SettagName;
   end;
   TTeardownTagClass = Class of TTeardownTag;
-  
+
   { --------------------------------------------------------------------
     TTrigger
     --------------------------------------------------------------------}
-  
+
   TTrigger = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -1020,11 +1020,11 @@ type
     Property waitForTagsTimeout : TParameter Index 144 Read FwaitForTagsTimeout Write SetwaitForTagsTimeout;
   end;
   TTriggerClass = Class of TTrigger;
-  
+
   { --------------------------------------------------------------------
     TUserAccess
     --------------------------------------------------------------------}
-  
+
   TUserAccess = Class(TGoogleBaseObject)
   Private
     FaccountAccess : TAccountAccess;
@@ -1052,11 +1052,11 @@ type
     Property permissionId : String Index 32 Read FpermissionId Write SetpermissionId;
   end;
   TUserAccessClass = Class of TUserAccess;
-  
+
   { --------------------------------------------------------------------
     TVariable
     --------------------------------------------------------------------}
-  
+
   TVariable = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -1109,25 +1109,25 @@ type
     Property variableId : String Index 96 Read FvariableId Write SetvariableId;
   end;
   TVariableClass = Class of TVariable;
-  
+
   { --------------------------------------------------------------------
     TAccountsContainersEnvironmentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersEnvironmentsResource, method Patch
-  
+
   TAccountsContainersEnvironmentsPatchOptions = Record
     fingerprint : String;
   end;
-  
-  
+
+
   //Optional query Options for TAccountsContainersEnvironmentsResource, method Update
-  
+
   TAccountsContainersEnvironmentsUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersEnvironmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1141,31 +1141,31 @@ type
     Function Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : string  = '') : TEnvironment;
     Function Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : TAccountsContainersEnvironmentsupdateOptions) : TEnvironment;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersFoldersEntitiesResource
     --------------------------------------------------------------------}
-  
+
   TAccountsContainersFoldersEntitiesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List(accountId: string; containerId: string; folderId: string) : TFolderEntities;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersFoldersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersFoldersResource, method Update
-  
+
   TAccountsContainersFoldersUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersFoldersResource = Class(TGoogleResource)
   Private
     FEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
@@ -1183,21 +1183,21 @@ type
     Function CreateEntitiesResource : TAccountsContainersFoldersEntitiesResource;virtual;overload;
     Property EntitiesResource : TAccountsContainersFoldersEntitiesResource Read GetEntitiesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersMove_foldersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersMove_foldersResource, method Update
-  
+
   TAccountsContainersMove_foldersUpdateOptions = Record
     tagId : String;
     triggerId : String;
     variableId : String;
   end;
-  
+
   TAccountsContainersMove_foldersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1205,31 +1205,31 @@ type
     Procedure Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : string  = '');
     Procedure Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : TAccountsContainersMove_foldersupdateOptions);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersReauthorize_environmentsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsContainersReauthorize_environmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment) : TEnvironment;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersTagsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersTagsResource, method Update
-  
+
   TAccountsContainersTagsUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersTagsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1241,19 +1241,19 @@ type
     Function Update(accountId: string; containerId: string; tagId: string; aTag : TTag; AQuery : string  = '') : TTag;
     Function Update(accountId: string; containerId: string; tagId: string; aTag : TTag; AQuery : TAccountsContainersTagsupdateOptions) : TTag;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersTriggersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersTriggersResource, method Update
-  
+
   TAccountsContainersTriggersUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersTriggersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1265,19 +1265,19 @@ type
     Function Update(accountId: string; containerId: string; triggerId: string; aTrigger : TTrigger; AQuery : string  = '') : TTrigger;
     Function Update(accountId: string; containerId: string; triggerId: string; aTrigger : TTrigger; AQuery : TAccountsContainersTriggersupdateOptions) : TTrigger;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersVariablesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersVariablesResource, method Update
-  
+
   TAccountsContainersVariablesUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersVariablesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1289,34 +1289,34 @@ type
     Function Update(accountId: string; containerId: string; variableId: string; aVariable : TVariable; AQuery : string  = '') : TVariable;
     Function Update(accountId: string; containerId: string; variableId: string; aVariable : TVariable; AQuery : TAccountsContainersVariablesupdateOptions) : TVariable;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersVersionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersVersionsResource, method List
-  
+
   TAccountsContainersVersionsListOptions = Record
     headers : boolean;
     includeDeleted : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TAccountsContainersVersionsResource, method Publish
-  
+
   TAccountsContainersVersionsPublishOptions = Record
     fingerprint : String;
   end;
-  
-  
+
+
   //Optional query Options for TAccountsContainersVersionsResource, method Update
-  
+
   TAccountsContainersVersionsUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersVersionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1333,19 +1333,19 @@ type
     Function Update(accountId: string; containerId: string; containerVersionId: string; aContainerVersion : TContainerVersion; AQuery : string  = '') : TContainerVersion;
     Function Update(accountId: string; containerId: string; containerVersionId: string; aContainerVersion : TContainerVersion; AQuery : TAccountsContainersVersionsupdateOptions) : TContainerVersion;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsContainersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsContainersResource, method Update
-  
+
   TAccountsContainersUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsContainersResource = Class(TGoogleResource)
   Private
     FEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
@@ -1403,12 +1403,12 @@ type
     Property VariablesResource : TAccountsContainersVariablesResource Read GetVariablesInstance;
     Property VersionsResource : TAccountsContainersVersionsResource Read GetVersionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsPermissionsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsPermissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1419,19 +1419,19 @@ type
     Function List(accountId: string) : TListAccountUsersResponse;
     Function Update(accountId: string; permissionId: string; aUserAccess : TUserAccess) : TUserAccess;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsResource, method Update
-  
+
   TAccountsUpdateOptions = Record
     fingerprint : String;
   end;
-  
+
   TAccountsResource = Class(TGoogleResource)
   Private
     FContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
@@ -1497,12 +1497,12 @@ type
     Property ContainersResource : TAccountsContainersResource Read GetContainersInstance;
     Property PermissionsResource : TAccountsPermissionsResource Read GetPermissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTagmanagerAPI
     --------------------------------------------------------------------}
-  
+
   TTagmanagerAPI = Class(TGoogleAPI)
   Private
     FAccountsContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
@@ -1599,7 +1599,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TAccount.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1609,7 +1609,7 @@ end;
 
 
 
-Procedure TAccount.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1619,7 +1619,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1629,7 +1629,7 @@ end;
 
 
 
-Procedure TAccount.SetshareData(AIndex : Integer; const AValue : boolean); 
+Procedure TAccount.SetshareData(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FshareData=AValue) then exit;
@@ -1646,7 +1646,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountAccess.Setpermission(AIndex : Integer; const AValue : TStringArray); 
+Procedure TAccountAccess.Setpermission(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermission=AValue) then exit;
@@ -1657,7 +1657,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAccountAccess.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAccountAccess.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1676,7 +1676,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCondition.Setparameter(AIndex : Integer; const AValue : TConditionTypeparameterArray); 
+Procedure TCondition.Setparameter(AIndex : Integer; const AValue : TConditionTypeparameterArray);
 
 begin
   If (Fparameter=AValue) then exit;
@@ -1686,7 +1686,7 @@ end;
 
 
 
-Procedure TCondition.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCondition.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1708,7 +1708,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCondition.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCondition.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1727,7 +1727,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainer.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TContainer.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1737,7 +1737,7 @@ end;
 
 
 
-Procedure TContainer.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TContainer.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1747,7 +1747,7 @@ end;
 
 
 
-Procedure TContainer.SetdomainName(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContainer.SetdomainName(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdomainName=AValue) then exit;
@@ -1757,7 +1757,7 @@ end;
 
 
 
-Procedure TContainer.SetenabledBuiltInVariable(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContainer.SetenabledBuiltInVariable(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FenabledBuiltInVariable=AValue) then exit;
@@ -1767,7 +1767,7 @@ end;
 
 
 
-Procedure TContainer.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TContainer.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1777,7 +1777,7 @@ end;
 
 
 
-Procedure TContainer.Setname(AIndex : Integer; const AValue : String); 
+Procedure TContainer.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1787,7 +1787,7 @@ end;
 
 
 
-Procedure TContainer.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TContainer.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -1797,7 +1797,7 @@ end;
 
 
 
-Procedure TContainer.SetpublicId(AIndex : Integer; const AValue : String); 
+Procedure TContainer.SetpublicId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublicId=AValue) then exit;
@@ -1807,7 +1807,7 @@ end;
 
 
 
-Procedure TContainer.SettimeZoneCountryId(AIndex : Integer; const AValue : String); 
+Procedure TContainer.SettimeZoneCountryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZoneCountryId=AValue) then exit;
@@ -1817,7 +1817,7 @@ end;
 
 
 
-Procedure TContainer.SettimeZoneId(AIndex : Integer; const AValue : String); 
+Procedure TContainer.SettimeZoneId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZoneId=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
 
 
 
-Procedure TContainer.SetusageContext(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContainer.SetusageContext(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FusageContext=AValue) then exit;
@@ -1838,7 +1838,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TContainer.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TContainer.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1859,7 +1859,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerAccess.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TContainerAccess.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1869,7 +1869,7 @@ end;
 
 
 
-Procedure TContainerAccess.Setpermission(AIndex : Integer; const AValue : TStringArray); 
+Procedure TContainerAccess.Setpermission(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermission=AValue) then exit;
@@ -1880,7 +1880,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TContainerAccess.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TContainerAccess.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1899,7 +1899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerVersion.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersion.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1909,7 +1909,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setcontainer(AIndex : Integer; const AValue : TContainer); 
+Procedure TContainerVersion.Setcontainer(AIndex : Integer; const AValue : TContainer);
 
 begin
   If (Fcontainer=AValue) then exit;
@@ -1919,7 +1919,7 @@ end;
 
 
 
-Procedure TContainerVersion.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersion.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1929,7 +1929,7 @@ end;
 
 
 
-Procedure TContainerVersion.SetcontainerVersionId(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersion.SetcontainerVersionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -1939,7 +1939,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setdeleted(AIndex : Integer; const AValue : boolean); 
+Procedure TContainerVersion.Setdeleted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -1949,7 +1949,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersion.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1959,7 +1959,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setfolder(AIndex : Integer; const AValue : TContainerVersionTypefolderArray); 
+Procedure TContainerVersion.Setfolder(AIndex : Integer; const AValue : TContainerVersionTypefolderArray);
 
 begin
   If (Ffolder=AValue) then exit;
@@ -1969,7 +1969,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setmacro(AIndex : Integer; const AValue : TContainerVersionTypemacroArray); 
+Procedure TContainerVersion.Setmacro(AIndex : Integer; const AValue : TContainerVersionTypemacroArray);
 
 begin
   If (Fmacro=AValue) then exit;
@@ -1979,7 +1979,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setname(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersion.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1989,7 +1989,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersion.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -1999,7 +1999,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setrule(AIndex : Integer; const AValue : TContainerVersionTyperuleArray); 
+Procedure TContainerVersion.Setrule(AIndex : Integer; const AValue : TContainerVersionTyperuleArray);
 
 begin
   If (Frule=AValue) then exit;
@@ -2009,7 +2009,7 @@ end;
 
 
 
-Procedure TContainerVersion.Settag(AIndex : Integer; const AValue : TContainerVersionTypetagArray); 
+Procedure TContainerVersion.Settag(AIndex : Integer; const AValue : TContainerVersionTypetagArray);
 
 begin
   If (Ftag=AValue) then exit;
@@ -2019,7 +2019,7 @@ end;
 
 
 
-Procedure TContainerVersion.Settrigger(AIndex : Integer; const AValue : TContainerVersionTypetriggerArray); 
+Procedure TContainerVersion.Settrigger(AIndex : Integer; const AValue : TContainerVersionTypetriggerArray);
 
 begin
   If (Ftrigger=AValue) then exit;
@@ -2029,7 +2029,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setvariable(AIndex : Integer; const AValue : TContainerVersionTypevariableArray); 
+Procedure TContainerVersion.Setvariable(AIndex : Integer; const AValue : TContainerVersionTypevariableArray);
 
 begin
   If (Fvariable=AValue) then exit;
@@ -2040,7 +2040,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TContainerVersion.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TContainerVersion.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2064,7 +2064,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerVersionHeader.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2074,7 +2074,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2084,7 +2084,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetcontainerVersionId(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetcontainerVersionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -2094,7 +2094,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.Setdeleted(AIndex : Integer; const AValue : boolean); 
+Procedure TContainerVersionHeader.Setdeleted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -2104,7 +2104,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.Setname(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2114,7 +2114,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumMacros(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetnumMacros(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumMacros=AValue) then exit;
@@ -2124,7 +2124,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumRules(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetnumRules(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumRules=AValue) then exit;
@@ -2134,7 +2134,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumTags(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetnumTags(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumTags=AValue) then exit;
@@ -2144,7 +2144,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumTriggers(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetnumTriggers(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumTriggers=AValue) then exit;
@@ -2154,7 +2154,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumVariables(AIndex : Integer; const AValue : String); 
+Procedure TContainerVersionHeader.SetnumVariables(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumVariables=AValue) then exit;
@@ -2171,7 +2171,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCreateContainerVersionRequestVersionOptions.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2181,7 +2181,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TCreateContainerVersionRequestVersionOptions.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2191,7 +2191,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.SetquickPreview(AIndex : Integer; const AValue : boolean); 
+Procedure TCreateContainerVersionRequestVersionOptions.SetquickPreview(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FquickPreview=AValue) then exit;
@@ -2208,7 +2208,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateContainerVersionResponse.SetcompilerError(AIndex : Integer; const AValue : boolean); 
+Procedure TCreateContainerVersionResponse.SetcompilerError(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcompilerError=AValue) then exit;
@@ -2218,7 +2218,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionResponse.SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion); 
+Procedure TCreateContainerVersionResponse.SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion);
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -2235,7 +2235,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnvironment.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2245,7 +2245,7 @@ end;
 
 
 
-Procedure TEnvironment.SetauthorizationCode(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.SetauthorizationCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthorizationCode=AValue) then exit;
@@ -2255,7 +2255,7 @@ end;
 
 
 
-Procedure TEnvironment.SetauthorizationTimestampMs(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.SetauthorizationTimestampMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthorizationTimestampMs=AValue) then exit;
@@ -2265,7 +2265,7 @@ end;
 
 
 
-Procedure TEnvironment.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2275,7 +2275,7 @@ end;
 
 
 
-Procedure TEnvironment.SetcontainerVersionId(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.SetcontainerVersionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -2285,7 +2285,7 @@ end;
 
 
 
-Procedure TEnvironment.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2295,7 +2295,7 @@ end;
 
 
 
-Procedure TEnvironment.SetenableDebug(AIndex : Integer; const AValue : boolean); 
+Procedure TEnvironment.SetenableDebug(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FenableDebug=AValue) then exit;
@@ -2305,7 +2305,7 @@ end;
 
 
 
-Procedure TEnvironment.SetenvironmentId(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.SetenvironmentId(AIndex : Integer; const AValue : String);
 
 begin
   If (FenvironmentId=AValue) then exit;
@@ -2315,7 +2315,7 @@ end;
 
 
 
-Procedure TEnvironment.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2325,7 +2325,7 @@ end;
 
 
 
-Procedure TEnvironment.Setname(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2335,7 +2335,7 @@ end;
 
 
 
-Procedure TEnvironment.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2345,7 +2345,7 @@ end;
 
 
 
-Procedure TEnvironment.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TEnvironment.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2373,7 +2373,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFolder.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TFolder.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2383,7 +2383,7 @@ end;
 
 
 
-Procedure TFolder.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TFolder.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2393,7 +2393,7 @@ end;
 
 
 
-Procedure TFolder.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TFolder.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2403,7 +2403,7 @@ end;
 
 
 
-Procedure TFolder.SetfolderId(AIndex : Integer; const AValue : String); 
+Procedure TFolder.SetfolderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FfolderId=AValue) then exit;
@@ -2413,7 +2413,7 @@ end;
 
 
 
-Procedure TFolder.Setname(AIndex : Integer; const AValue : String); 
+Procedure TFolder.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2430,7 +2430,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFolderEntities.Settag(AIndex : Integer; const AValue : TFolderEntitiesTypetagArray); 
+Procedure TFolderEntities.Settag(AIndex : Integer; const AValue : TFolderEntitiesTypetagArray);
 
 begin
   If (Ftag=AValue) then exit;
@@ -2440,7 +2440,7 @@ end;
 
 
 
-Procedure TFolderEntities.Settrigger(AIndex : Integer; const AValue : TFolderEntitiesTypetriggerArray); 
+Procedure TFolderEntities.Settrigger(AIndex : Integer; const AValue : TFolderEntitiesTypetriggerArray);
 
 begin
   If (Ftrigger=AValue) then exit;
@@ -2450,7 +2450,7 @@ end;
 
 
 
-Procedure TFolderEntities.Setvariable(AIndex : Integer; const AValue : TFolderEntitiesTypevariableArray); 
+Procedure TFolderEntities.Setvariable(AIndex : Integer; const AValue : TFolderEntitiesTypevariableArray);
 
 begin
   If (Fvariable=AValue) then exit;
@@ -2461,7 +2461,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFolderEntities.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFolderEntities.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2482,7 +2482,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAccountUsersResponse.SetuserAccess(AIndex : Integer; const AValue : TListAccountUsersResponseTypeuserAccessArray); 
+Procedure TListAccountUsersResponse.SetuserAccess(AIndex : Integer; const AValue : TListAccountUsersResponseTypeuserAccessArray);
 
 begin
   If (FuserAccess=AValue) then exit;
@@ -2493,7 +2493,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListAccountUsersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListAccountUsersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2512,7 +2512,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAccountsResponse.Setaccounts(AIndex : Integer; const AValue : TListAccountsResponseTypeaccountsArray); 
+Procedure TListAccountsResponse.Setaccounts(AIndex : Integer; const AValue : TListAccountsResponseTypeaccountsArray);
 
 begin
   If (Faccounts=AValue) then exit;
@@ -2523,7 +2523,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListAccountsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2542,7 +2542,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListContainerVersionsResponse.SetcontainerVersion(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionArray); 
+Procedure TListContainerVersionsResponse.SetcontainerVersion(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionArray);
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -2552,7 +2552,7 @@ end;
 
 
 
-Procedure TListContainerVersionsResponse.SetcontainerVersionHeader(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); 
+Procedure TListContainerVersionsResponse.SetcontainerVersionHeader(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray);
 
 begin
   If (FcontainerVersionHeader=AValue) then exit;
@@ -2563,7 +2563,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListContainerVersionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListContainerVersionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2583,7 +2583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListContainersResponse.Setcontainers(AIndex : Integer; const AValue : TListContainersResponseTypecontainersArray); 
+Procedure TListContainersResponse.Setcontainers(AIndex : Integer; const AValue : TListContainersResponseTypecontainersArray);
 
 begin
   If (Fcontainers=AValue) then exit;
@@ -2594,7 +2594,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListContainersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListContainersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2613,7 +2613,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListEnvironmentsResponse.Setenvironments(AIndex : Integer; const AValue : TListEnvironmentsResponseTypeenvironmentsArray); 
+Procedure TListEnvironmentsResponse.Setenvironments(AIndex : Integer; const AValue : TListEnvironmentsResponseTypeenvironmentsArray);
 
 begin
   If (Fenvironments=AValue) then exit;
@@ -2624,7 +2624,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListEnvironmentsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListEnvironmentsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2643,7 +2643,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListFoldersResponse.Setfolders(AIndex : Integer; const AValue : TListFoldersResponseTypefoldersArray); 
+Procedure TListFoldersResponse.Setfolders(AIndex : Integer; const AValue : TListFoldersResponseTypefoldersArray);
 
 begin
   If (Ffolders=AValue) then exit;
@@ -2654,7 +2654,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListFoldersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListFoldersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2673,7 +2673,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTagsResponse.Settags(AIndex : Integer; const AValue : TListTagsResponseTypetagsArray); 
+Procedure TListTagsResponse.Settags(AIndex : Integer; const AValue : TListTagsResponseTypetagsArray);
 
 begin
   If (Ftags=AValue) then exit;
@@ -2684,7 +2684,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListTagsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListTagsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2703,7 +2703,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTriggersResponse.Settriggers(AIndex : Integer; const AValue : TListTriggersResponseTypetriggersArray); 
+Procedure TListTriggersResponse.Settriggers(AIndex : Integer; const AValue : TListTriggersResponseTypetriggersArray);
 
 begin
   If (Ftriggers=AValue) then exit;
@@ -2714,7 +2714,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListTriggersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListTriggersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2733,7 +2733,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListVariablesResponse.Setvariables(AIndex : Integer; const AValue : TListVariablesResponseTypevariablesArray); 
+Procedure TListVariablesResponse.Setvariables(AIndex : Integer; const AValue : TListVariablesResponseTypevariablesArray);
 
 begin
   If (Fvariables=AValue) then exit;
@@ -2744,7 +2744,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListVariablesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListVariablesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2763,7 +2763,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMacro.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TMacro.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2773,7 +2773,7 @@ end;
 
 
 
-Procedure TMacro.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TMacro.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2783,7 +2783,7 @@ end;
 
 
 
-Procedure TMacro.SetdisablingRuleId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TMacro.SetdisablingRuleId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdisablingRuleId=AValue) then exit;
@@ -2793,7 +2793,7 @@ end;
 
 
 
-Procedure TMacro.SetenablingRuleId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TMacro.SetenablingRuleId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FenablingRuleId=AValue) then exit;
@@ -2803,7 +2803,7 @@ end;
 
 
 
-Procedure TMacro.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TMacro.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2813,7 +2813,7 @@ end;
 
 
 
-Procedure TMacro.SetmacroId(AIndex : Integer; const AValue : String); 
+Procedure TMacro.SetmacroId(AIndex : Integer; const AValue : String);
 
 begin
   If (FmacroId=AValue) then exit;
@@ -2823,7 +2823,7 @@ end;
 
 
 
-Procedure TMacro.Setname(AIndex : Integer; const AValue : String); 
+Procedure TMacro.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2833,7 +2833,7 @@ end;
 
 
 
-Procedure TMacro.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TMacro.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2843,7 +2843,7 @@ end;
 
 
 
-Procedure TMacro.Setparameter(AIndex : Integer; const AValue : TMacroTypeparameterArray); 
+Procedure TMacro.Setparameter(AIndex : Integer; const AValue : TMacroTypeparameterArray);
 
 begin
   If (Fparameter=AValue) then exit;
@@ -2853,7 +2853,7 @@ end;
 
 
 
-Procedure TMacro.SetparentFolderId(AIndex : Integer; const AValue : String); 
+Procedure TMacro.SetparentFolderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparentFolderId=AValue) then exit;
@@ -2863,7 +2863,7 @@ end;
 
 
 
-Procedure TMacro.SetscheduleEndMs(AIndex : Integer; const AValue : String); 
+Procedure TMacro.SetscheduleEndMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -2873,7 +2873,7 @@ end;
 
 
 
-Procedure TMacro.SetscheduleStartMs(AIndex : Integer; const AValue : String); 
+Procedure TMacro.SetscheduleStartMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -2883,7 +2883,7 @@ end;
 
 
 
-Procedure TMacro.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TMacro.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2905,7 +2905,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMacro.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMacro.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2926,7 +2926,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParameter.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TParameter.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -2936,7 +2936,7 @@ end;
 
 
 
-Procedure TParameter.Setlist(AIndex : Integer; const AValue : TParameterTypelistArray); 
+Procedure TParameter.Setlist(AIndex : Integer; const AValue : TParameterTypelistArray);
 
 begin
   If (Flist=AValue) then exit;
@@ -2946,7 +2946,7 @@ end;
 
 
 
-Procedure TParameter.Setmap(AIndex : Integer; const AValue : TParameterTypemapArray); 
+Procedure TParameter.Setmap(AIndex : Integer; const AValue : TParameterTypemapArray);
 
 begin
   If (Fmap=AValue) then exit;
@@ -2956,7 +2956,7 @@ end;
 
 
 
-Procedure TParameter.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TParameter.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2966,7 +2966,7 @@ end;
 
 
 
-Procedure TParameter.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TParameter.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2988,7 +2988,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TParameter.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TParameter.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3008,7 +3008,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishContainerVersionResponse.SetcompilerError(AIndex : Integer; const AValue : boolean); 
+Procedure TPublishContainerVersionResponse.SetcompilerError(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcompilerError=AValue) then exit;
@@ -3018,7 +3018,7 @@ end;
 
 
 
-Procedure TPublishContainerVersionResponse.SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion); 
+Procedure TPublishContainerVersionResponse.SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion);
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -3035,7 +3035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRule.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TRule.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3045,7 +3045,7 @@ end;
 
 
 
-Procedure TRule.Setcondition(AIndex : Integer; const AValue : TRuleTypeconditionArray); 
+Procedure TRule.Setcondition(AIndex : Integer; const AValue : TRuleTypeconditionArray);
 
 begin
   If (Fcondition=AValue) then exit;
@@ -3055,7 +3055,7 @@ end;
 
 
 
-Procedure TRule.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TRule.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -3065,7 +3065,7 @@ end;
 
 
 
-Procedure TRule.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TRule.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3075,7 +3075,7 @@ end;
 
 
 
-Procedure TRule.Setname(AIndex : Integer; const AValue : String); 
+Procedure TRule.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3085,7 +3085,7 @@ end;
 
 
 
-Procedure TRule.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TRule.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -3095,7 +3095,7 @@ end;
 
 
 
-Procedure TRule.SetruleId(AIndex : Integer; const AValue : String); 
+Procedure TRule.SetruleId(AIndex : Integer; const AValue : String);
 
 begin
   If (FruleId=AValue) then exit;
@@ -3106,7 +3106,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRule.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRule.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3125,7 +3125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetupTag.SetstopOnSetupFailure(AIndex : Integer; const AValue : boolean); 
+Procedure TSetupTag.SetstopOnSetupFailure(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FstopOnSetupFailure=AValue) then exit;
@@ -3135,7 +3135,7 @@ end;
 
 
 
-Procedure TSetupTag.SettagName(AIndex : Integer; const AValue : String); 
+Procedure TSetupTag.SettagName(AIndex : Integer; const AValue : String);
 
 begin
   If (FtagName=AValue) then exit;
@@ -3152,7 +3152,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTag.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TTag.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3162,7 +3162,7 @@ end;
 
 
 
-Procedure TTag.SetblockingRuleId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTag.SetblockingRuleId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FblockingRuleId=AValue) then exit;
@@ -3172,7 +3172,7 @@ end;
 
 
 
-Procedure TTag.SetblockingTriggerId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTag.SetblockingTriggerId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FblockingTriggerId=AValue) then exit;
@@ -3182,7 +3182,7 @@ end;
 
 
 
-Procedure TTag.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TTag.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -3192,7 +3192,7 @@ end;
 
 
 
-Procedure TTag.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TTag.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3202,7 +3202,7 @@ end;
 
 
 
-Procedure TTag.SetfiringRuleId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTag.SetfiringRuleId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FfiringRuleId=AValue) then exit;
@@ -3212,7 +3212,7 @@ end;
 
 
 
-Procedure TTag.SetfiringTriggerId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTag.SetfiringTriggerId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FfiringTriggerId=AValue) then exit;
@@ -3222,7 +3222,7 @@ end;
 
 
 
-Procedure TTag.SetliveOnly(AIndex : Integer; const AValue : boolean); 
+Procedure TTag.SetliveOnly(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FliveOnly=AValue) then exit;
@@ -3232,7 +3232,7 @@ end;
 
 
 
-Procedure TTag.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTag.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3242,7 +3242,7 @@ end;
 
 
 
-Procedure TTag.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TTag.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -3252,7 +3252,7 @@ end;
 
 
 
-Procedure TTag.Setparameter(AIndex : Integer; const AValue : TTagTypeparameterArray); 
+Procedure TTag.Setparameter(AIndex : Integer; const AValue : TTagTypeparameterArray);
 
 begin
   If (Fparameter=AValue) then exit;
@@ -3262,7 +3262,7 @@ end;
 
 
 
-Procedure TTag.SetparentFolderId(AIndex : Integer; const AValue : String); 
+Procedure TTag.SetparentFolderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparentFolderId=AValue) then exit;
@@ -3272,7 +3272,7 @@ end;
 
 
 
-Procedure TTag.Setpriority(AIndex : Integer; const AValue : TParameter); 
+Procedure TTag.Setpriority(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (Fpriority=AValue) then exit;
@@ -3282,7 +3282,7 @@ end;
 
 
 
-Procedure TTag.SetscheduleEndMs(AIndex : Integer; const AValue : String); 
+Procedure TTag.SetscheduleEndMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -3292,7 +3292,7 @@ end;
 
 
 
-Procedure TTag.SetscheduleStartMs(AIndex : Integer; const AValue : String); 
+Procedure TTag.SetscheduleStartMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -3302,7 +3302,7 @@ end;
 
 
 
-Procedure TTag.SetsetupTag(AIndex : Integer; const AValue : TTagTypesetupTagArray); 
+Procedure TTag.SetsetupTag(AIndex : Integer; const AValue : TTagTypesetupTagArray);
 
 begin
   If (FsetupTag=AValue) then exit;
@@ -3312,7 +3312,7 @@ end;
 
 
 
-Procedure TTag.SettagFiringOption(AIndex : Integer; const AValue : String); 
+Procedure TTag.SettagFiringOption(AIndex : Integer; const AValue : String);
 
 begin
   If (FtagFiringOption=AValue) then exit;
@@ -3322,7 +3322,7 @@ end;
 
 
 
-Procedure TTag.SettagId(AIndex : Integer; const AValue : String); 
+Procedure TTag.SettagId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtagId=AValue) then exit;
@@ -3332,7 +3332,7 @@ end;
 
 
 
-Procedure TTag.SetteardownTag(AIndex : Integer; const AValue : TTagTypeteardownTagArray); 
+Procedure TTag.SetteardownTag(AIndex : Integer; const AValue : TTagTypeteardownTagArray);
 
 begin
   If (FteardownTag=AValue) then exit;
@@ -3342,7 +3342,7 @@ end;
 
 
 
-Procedure TTag.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TTag.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3364,7 +3364,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTag.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTag.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3389,7 +3389,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeardownTag.SetstopTeardownOnFailure(AIndex : Integer; const AValue : boolean); 
+Procedure TTeardownTag.SetstopTeardownOnFailure(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FstopTeardownOnFailure=AValue) then exit;
@@ -3399,7 +3399,7 @@ end;
 
 
 
-Procedure TTeardownTag.SettagName(AIndex : Integer; const AValue : String); 
+Procedure TTeardownTag.SettagName(AIndex : Integer; const AValue : String);
 
 begin
   If (FtagName=AValue) then exit;
@@ -3416,7 +3416,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTrigger.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3426,7 +3426,7 @@ end;
 
 
 
-Procedure TTrigger.SetautoEventFilter(AIndex : Integer; const AValue : TTriggerTypeautoEventFilterArray); 
+Procedure TTrigger.SetautoEventFilter(AIndex : Integer; const AValue : TTriggerTypeautoEventFilterArray);
 
 begin
   If (FautoEventFilter=AValue) then exit;
@@ -3436,7 +3436,7 @@ end;
 
 
 
-Procedure TTrigger.SetcheckValidation(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SetcheckValidation(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FcheckValidation=AValue) then exit;
@@ -3446,7 +3446,7 @@ end;
 
 
 
-Procedure TTrigger.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -3456,7 +3456,7 @@ end;
 
 
 
-Procedure TTrigger.SetcustomEventFilter(AIndex : Integer; const AValue : TTriggerTypecustomEventFilterArray); 
+Procedure TTrigger.SetcustomEventFilter(AIndex : Integer; const AValue : TTriggerTypecustomEventFilterArray);
 
 begin
   If (FcustomEventFilter=AValue) then exit;
@@ -3466,7 +3466,7 @@ end;
 
 
 
-Procedure TTrigger.SetenableAllVideos(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SetenableAllVideos(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FenableAllVideos=AValue) then exit;
@@ -3476,7 +3476,7 @@ end;
 
 
 
-Procedure TTrigger.SeteventName(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SeteventName(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FeventName=AValue) then exit;
@@ -3486,7 +3486,7 @@ end;
 
 
 
-Procedure TTrigger.Setfilter(AIndex : Integer; const AValue : TTriggerTypefilterArray); 
+Procedure TTrigger.Setfilter(AIndex : Integer; const AValue : TTriggerTypefilterArray);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -3496,7 +3496,7 @@ end;
 
 
 
-Procedure TTrigger.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3506,7 +3506,7 @@ end;
 
 
 
-Procedure TTrigger.Setinterval(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.Setinterval(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (Finterval=AValue) then exit;
@@ -3516,7 +3516,7 @@ end;
 
 
 
-Procedure TTrigger.Setlimit(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.Setlimit(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (Flimit=AValue) then exit;
@@ -3526,7 +3526,7 @@ end;
 
 
 
-Procedure TTrigger.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3536,7 +3536,7 @@ end;
 
 
 
-Procedure TTrigger.SetparentFolderId(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.SetparentFolderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparentFolderId=AValue) then exit;
@@ -3546,7 +3546,7 @@ end;
 
 
 
-Procedure TTrigger.SettriggerId(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.SettriggerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtriggerId=AValue) then exit;
@@ -3556,7 +3556,7 @@ end;
 
 
 
-Procedure TTrigger.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TTrigger.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3566,7 +3566,7 @@ end;
 
 
 
-Procedure TTrigger.SetuniqueTriggerId(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SetuniqueTriggerId(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FuniqueTriggerId=AValue) then exit;
@@ -3576,7 +3576,7 @@ end;
 
 
 
-Procedure TTrigger.SetvideoPercentageList(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SetvideoPercentageList(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FvideoPercentageList=AValue) then exit;
@@ -3586,7 +3586,7 @@ end;
 
 
 
-Procedure TTrigger.SetwaitForTags(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SetwaitForTags(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FwaitForTags=AValue) then exit;
@@ -3596,7 +3596,7 @@ end;
 
 
 
-Procedure TTrigger.SetwaitForTagsTimeout(AIndex : Integer; const AValue : TParameter); 
+Procedure TTrigger.SetwaitForTagsTimeout(AIndex : Integer; const AValue : TParameter);
 
 begin
   If (FwaitForTagsTimeout=AValue) then exit;
@@ -3618,7 +3618,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTrigger.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTrigger.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3639,7 +3639,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserAccess.SetaccountAccess(AIndex : Integer; const AValue : TAccountAccess); 
+Procedure TUserAccess.SetaccountAccess(AIndex : Integer; const AValue : TAccountAccess);
 
 begin
   If (FaccountAccess=AValue) then exit;
@@ -3649,7 +3649,7 @@ end;
 
 
 
-Procedure TUserAccess.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TUserAccess.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3659,7 +3659,7 @@ end;
 
 
 
-Procedure TUserAccess.SetcontainerAccess(AIndex : Integer; const AValue : TUserAccessTypecontainerAccessArray); 
+Procedure TUserAccess.SetcontainerAccess(AIndex : Integer; const AValue : TUserAccessTypecontainerAccessArray);
 
 begin
   If (FcontainerAccess=AValue) then exit;
@@ -3669,7 +3669,7 @@ end;
 
 
 
-Procedure TUserAccess.SetemailAddress(AIndex : Integer; const AValue : String); 
+Procedure TUserAccess.SetemailAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -3679,7 +3679,7 @@ end;
 
 
 
-Procedure TUserAccess.SetpermissionId(AIndex : Integer; const AValue : String); 
+Procedure TUserAccess.SetpermissionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -3690,7 +3690,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUserAccess.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUserAccess.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3709,7 +3709,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariable.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TVariable.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3719,7 +3719,7 @@ end;
 
 
 
-Procedure TVariable.SetcontainerId(AIndex : Integer; const AValue : String); 
+Procedure TVariable.SetcontainerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -3729,7 +3729,7 @@ end;
 
 
 
-Procedure TVariable.SetdisablingTriggerId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVariable.SetdisablingTriggerId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdisablingTriggerId=AValue) then exit;
@@ -3739,7 +3739,7 @@ end;
 
 
 
-Procedure TVariable.SetenablingTriggerId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVariable.SetenablingTriggerId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FenablingTriggerId=AValue) then exit;
@@ -3749,7 +3749,7 @@ end;
 
 
 
-Procedure TVariable.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3759,7 +3759,7 @@ end;
 
 
 
-Procedure TVariable.Setname(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -3769,7 +3769,7 @@ end;
 
 
 
-Procedure TVariable.Setnotes(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Setnotes(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnotes=AValue) then exit;
@@ -3779,7 +3779,7 @@ end;
 
 
 
-Procedure TVariable.Setparameter(AIndex : Integer; const AValue : TVariableTypeparameterArray); 
+Procedure TVariable.Setparameter(AIndex : Integer; const AValue : TVariableTypeparameterArray);
 
 begin
   If (Fparameter=AValue) then exit;
@@ -3789,7 +3789,7 @@ end;
 
 
 
-Procedure TVariable.SetparentFolderId(AIndex : Integer; const AValue : String); 
+Procedure TVariable.SetparentFolderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparentFolderId=AValue) then exit;
@@ -3799,7 +3799,7 @@ end;
 
 
 
-Procedure TVariable.SetscheduleEndMs(AIndex : Integer; const AValue : String); 
+Procedure TVariable.SetscheduleEndMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -3809,7 +3809,7 @@ end;
 
 
 
-Procedure TVariable.SetscheduleStartMs(AIndex : Integer; const AValue : String); 
+Procedure TVariable.SetscheduleStartMs(AIndex : Integer; const AValue : String);
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -3819,7 +3819,7 @@ end;
 
 
 
-Procedure TVariable.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TVariable.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -3829,7 +3829,7 @@ end;
 
 
 
-Procedure TVariable.SetvariableId(AIndex : Integer; const AValue : String); 
+Procedure TVariable.SetvariableId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvariableId=AValue) then exit;
@@ -3851,7 +3851,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVariable.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVariable.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5616,7 +5616,7 @@ begin
   Result[5].Description:='Publish your Google Tag Manager containers';
   Result[6].Name:='https://www.googleapis.com/auth/tagmanager.readonly';
   Result[6].Description:='View your Google Tag Manager containers';
-  
+
 end;
 
 Class Function TTagmanagerAPI.APINeedsAuth : Boolean;

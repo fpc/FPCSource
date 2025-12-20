@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TValue = Class;
   TReadOptions = Class;
@@ -103,11 +103,11 @@ type
   TCommitResponseTypemutationResultsArray = Array of TMutationResult;
   TCompositeFilterTypefiltersArray = Array of TFilter;
   TLookupRequestTypekeysArray = Array of TKey;
-  
+
   { --------------------------------------------------------------------
     TValue
     --------------------------------------------------------------------}
-  
+
   TValue = Class(TGoogleBaseObject)
   Private
     FstringValue : String;
@@ -155,11 +155,11 @@ type
     Property timestampValue : String Index 96 Read FtimestampValue Write SettimestampValue;
   end;
   TValueClass = Class of TValue;
-  
+
   { --------------------------------------------------------------------
     TReadOptions
     --------------------------------------------------------------------}
-  
+
   TReadOptions = Class(TGoogleBaseObject)
   Private
     Ftransaction : String;
@@ -174,11 +174,11 @@ type
     Property readConsistency : String Index 8 Read FreadConsistency Write SetreadConsistency;
   end;
   TReadOptionsClass = Class of TReadOptions;
-  
+
   { --------------------------------------------------------------------
     TPropertyOrder
     --------------------------------------------------------------------}
-  
+
   TPropertyOrder = Class(TGoogleBaseObject)
   Private
     Fdirection : String;
@@ -194,11 +194,11 @@ type
     Property _property : TPropertyReference Index 8 Read F_property Write Set_property;
   end;
   TPropertyOrderClass = Class of TPropertyOrder;
-  
+
   { --------------------------------------------------------------------
     TCommitRequest
     --------------------------------------------------------------------}
-  
+
   TCommitRequest = Class(TGoogleBaseObject)
   Private
     Ftransaction : String;
@@ -220,11 +220,11 @@ type
     Property mode : String Index 16 Read Fmode Write Setmode;
   end;
   TCommitRequestClass = Class of TCommitRequest;
-  
+
   { --------------------------------------------------------------------
     TRollbackRequest
     --------------------------------------------------------------------}
-  
+
   TRollbackRequest = Class(TGoogleBaseObject)
   Private
     Ftransaction : String;
@@ -236,11 +236,11 @@ type
     Property transaction : String Index 0 Read Ftransaction Write Settransaction;
   end;
   TRollbackRequestClass = Class of TRollbackRequest;
-  
+
   { --------------------------------------------------------------------
     TQuery
     --------------------------------------------------------------------}
-  
+
   TQuery = Class(TGoogleBaseObject)
   Private
     Flimit : integer;
@@ -280,11 +280,11 @@ type
     Property kind : TQueryTypekindArray Index 64 Read Fkind Write Setkind;
   end;
   TQueryClass = Class of TQuery;
-  
+
   { --------------------------------------------------------------------
     TEntityResult
     --------------------------------------------------------------------}
-  
+
   TEntityResult = Class(TGoogleBaseObject)
   Private
     Fcursor : String;
@@ -299,11 +299,11 @@ type
     Property entity : TEntity Index 8 Read Fentity Write Setentity;
   end;
   TEntityResultClass = Class of TEntityResult;
-  
+
   { --------------------------------------------------------------------
     TGqlQueryParameter
     --------------------------------------------------------------------}
-  
+
   TGqlQueryParameter = Class(TGoogleBaseObject)
   Private
     Fcursor : String;
@@ -318,11 +318,11 @@ type
     Property value : TValue Index 8 Read Fvalue Write Setvalue;
   end;
   TGqlQueryParameterClass = Class of TGqlQueryParameter;
-  
+
   { --------------------------------------------------------------------
     TBeginTransactionResponse
     --------------------------------------------------------------------}
-  
+
   TBeginTransactionResponse = Class(TGoogleBaseObject)
   Private
     Ftransaction : String;
@@ -334,11 +334,11 @@ type
     Property transaction : String Index 0 Read Ftransaction Write Settransaction;
   end;
   TBeginTransactionResponseClass = Class of TBeginTransactionResponse;
-  
+
   { --------------------------------------------------------------------
     TFilter
     --------------------------------------------------------------------}
-  
+
   TFilter = Class(TGoogleBaseObject)
   Private
     FpropertyFilter : TPropertyFilter;
@@ -353,11 +353,11 @@ type
     Property compositeFilter : TCompositeFilter Index 8 Read FcompositeFilter Write SetcompositeFilter;
   end;
   TFilterClass = Class of TFilter;
-  
+
   { --------------------------------------------------------------------
     TArrayValue
     --------------------------------------------------------------------}
-  
+
   TArrayValue = Class(TGoogleBaseObject)
   Private
     Fvalues : TArrayValueTypevaluesArray;
@@ -373,11 +373,11 @@ type
     Property values : TArrayValueTypevaluesArray Index 0 Read Fvalues Write Setvalues;
   end;
   TArrayValueClass = Class of TArrayValue;
-  
+
   { --------------------------------------------------------------------
     TPartitionId
     --------------------------------------------------------------------}
-  
+
   TPartitionId = Class(TGoogleBaseObject)
   Private
     FnamespaceId : String;
@@ -392,11 +392,11 @@ type
     Property projectId : String Index 8 Read FprojectId Write SetprojectId;
   end;
   TPartitionIdClass = Class of TPartitionId;
-  
+
   { --------------------------------------------------------------------
     TQueryResultBatch
     --------------------------------------------------------------------}
-  
+
   TQueryResultBatch = Class(TGoogleBaseObject)
   Private
     FendCursor : String;
@@ -427,11 +427,11 @@ type
     Property skippedResults : integer Index 40 Read FskippedResults Write SetskippedResults;
   end;
   TQueryResultBatchClass = Class of TQueryResultBatch;
-  
+
   { --------------------------------------------------------------------
     TAllocateIdsRequest
     --------------------------------------------------------------------}
-  
+
   TAllocateIdsRequest = Class(TGoogleBaseObject)
   Private
     Fkeys : TAllocateIdsRequestTypekeysArray;
@@ -447,11 +447,11 @@ type
     Property keys : TAllocateIdsRequestTypekeysArray Index 0 Read Fkeys Write Setkeys;
   end;
   TAllocateIdsRequestClass = Class of TAllocateIdsRequest;
-  
+
   { --------------------------------------------------------------------
     TPropertyFilter
     --------------------------------------------------------------------}
-  
+
   TPropertyFilter = Class(TGoogleBaseObject)
   Private
     Fvalue : TValue;
@@ -470,11 +470,11 @@ type
     Property _property : TPropertyReference Index 16 Read F_property Write Set_property;
   end;
   TPropertyFilterClass = Class of TPropertyFilter;
-  
+
   { --------------------------------------------------------------------
     TKindExpression
     --------------------------------------------------------------------}
-  
+
   TKindExpression = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -486,11 +486,11 @@ type
     Property name : String Index 0 Read Fname Write Setname;
   end;
   TKindExpressionClass = Class of TKindExpression;
-  
+
   { --------------------------------------------------------------------
     TPathElement
     --------------------------------------------------------------------}
-  
+
   TPathElement = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -508,11 +508,11 @@ type
     Property id : String Index 16 Read Fid Write Setid;
   end;
   TPathElementClass = Class of TPathElement;
-  
+
   { --------------------------------------------------------------------
     TRollbackResponse
     --------------------------------------------------------------------}
-  
+
   TRollbackResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -521,11 +521,11 @@ type
   Published
   end;
   TRollbackResponseClass = Class of TRollbackResponse;
-  
+
   { --------------------------------------------------------------------
     TPropertyReference
     --------------------------------------------------------------------}
-  
+
   TPropertyReference = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -537,11 +537,11 @@ type
     Property name : String Index 0 Read Fname Write Setname;
   end;
   TPropertyReferenceClass = Class of TPropertyReference;
-  
+
   { --------------------------------------------------------------------
     TProjection
     --------------------------------------------------------------------}
-  
+
   TProjection = Class(TGoogleBaseObject)
   Private
     F_property : TPropertyReference;
@@ -554,11 +554,11 @@ type
     Property _property : TPropertyReference Index 0 Read F_property Write Set_property;
   end;
   TProjectionClass = Class of TProjection;
-  
+
   { --------------------------------------------------------------------
     TAllocateIdsResponse
     --------------------------------------------------------------------}
-  
+
   TAllocateIdsResponse = Class(TGoogleBaseObject)
   Private
     Fkeys : TAllocateIdsResponseTypekeysArray;
@@ -574,11 +574,11 @@ type
     Property keys : TAllocateIdsResponseTypekeysArray Index 0 Read Fkeys Write Setkeys;
   end;
   TAllocateIdsResponseClass = Class of TAllocateIdsResponse;
-  
+
   { --------------------------------------------------------------------
     TMutationResult
     --------------------------------------------------------------------}
-  
+
   TMutationResult = Class(TGoogleBaseObject)
   Private
     Fkey : TKey;
@@ -590,11 +590,11 @@ type
     Property key : TKey Index 0 Read Fkey Write Setkey;
   end;
   TMutationResultClass = Class of TMutationResult;
-  
+
   { --------------------------------------------------------------------
     TLookupResponse
     --------------------------------------------------------------------}
-  
+
   TLookupResponse = Class(TGoogleBaseObject)
   Private
     Ffound : TLookupResponseTypefoundArray;
@@ -616,11 +616,11 @@ type
     Property missing : TLookupResponseTypemissingArray Index 16 Read Fmissing Write Setmissing;
   end;
   TLookupResponseClass = Class of TLookupResponse;
-  
+
   { --------------------------------------------------------------------
     TBeginTransactionRequest
     --------------------------------------------------------------------}
-  
+
   TBeginTransactionRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -629,11 +629,11 @@ type
   Published
   end;
   TBeginTransactionRequestClass = Class of TBeginTransactionRequest;
-  
+
   { --------------------------------------------------------------------
     TKey
     --------------------------------------------------------------------}
-  
+
   TKey = Class(TGoogleBaseObject)
   Private
     FpartitionId : TPartitionId;
@@ -652,11 +652,11 @@ type
     Property path : TKeyTypepathArray Index 8 Read Fpath Write Setpath;
   end;
   TKeyClass = Class of TKey;
-  
+
   { --------------------------------------------------------------------
     TRunQueryResponse
     --------------------------------------------------------------------}
-  
+
   TRunQueryResponse = Class(TGoogleBaseObject)
   Private
     Fbatch : TQueryResultBatch;
@@ -671,11 +671,11 @@ type
     Property query : TQuery Index 8 Read Fquery Write Setquery;
   end;
   TRunQueryResponseClass = Class of TRunQueryResponse;
-  
+
   { --------------------------------------------------------------------
     TEntityTypeproperties
     --------------------------------------------------------------------}
-  
+
   TEntityTypeproperties = Class(TGoogleBaseObject)
   Private
   Protected
@@ -685,11 +685,11 @@ type
   Published
   end;
   TEntityTypepropertiesClass = Class of TEntityTypeproperties;
-  
+
   { --------------------------------------------------------------------
     TEntity
     --------------------------------------------------------------------}
-  
+
   TEntity = Class(TGoogleBaseObject)
   Private
     Fproperties : TEntityTypeproperties;
@@ -704,11 +704,11 @@ type
     Property key : TKey Index 8 Read Fkey Write Setkey;
   end;
   TEntityClass = Class of TEntity;
-  
+
   { --------------------------------------------------------------------
     TGqlQueryTypenamedBindings
     --------------------------------------------------------------------}
-  
+
   TGqlQueryTypenamedBindings = Class(TGoogleBaseObject)
   Private
   Protected
@@ -718,11 +718,11 @@ type
   Published
   end;
   TGqlQueryTypenamedBindingsClass = Class of TGqlQueryTypenamedBindings;
-  
+
   { --------------------------------------------------------------------
     TGqlQuery
     --------------------------------------------------------------------}
-  
+
   TGqlQuery = Class(TGoogleBaseObject)
   Private
     FnamedBindings : TGqlQueryTypenamedBindings;
@@ -747,11 +747,11 @@ type
     Property positionalBindings : TGqlQueryTypepositionalBindingsArray Index 24 Read FpositionalBindings Write SetpositionalBindings;
   end;
   TGqlQueryClass = Class of TGqlQuery;
-  
+
   { --------------------------------------------------------------------
     TCommitResponse
     --------------------------------------------------------------------}
-  
+
   TCommitResponse = Class(TGoogleBaseObject)
   Private
     FmutationResults : TCommitResponseTypemutationResultsArray;
@@ -770,11 +770,11 @@ type
     Property indexUpdates : integer Index 8 Read FindexUpdates Write SetindexUpdates;
   end;
   TCommitResponseClass = Class of TCommitResponse;
-  
+
   { --------------------------------------------------------------------
     TMutation
     --------------------------------------------------------------------}
-  
+
   TMutation = Class(TGoogleBaseObject)
   Private
     Fupdate : TEntity;
@@ -795,11 +795,11 @@ type
     Property upsert : TEntity Index 24 Read Fupsert Write Setupsert;
   end;
   TMutationClass = Class of TMutation;
-  
+
   { --------------------------------------------------------------------
     TRunQueryRequest
     --------------------------------------------------------------------}
-  
+
   TRunQueryRequest = Class(TGoogleBaseObject)
   Private
     FpartitionId : TPartitionId;
@@ -820,11 +820,11 @@ type
     Property readOptions : TReadOptions Index 24 Read FreadOptions Write SetreadOptions;
   end;
   TRunQueryRequestClass = Class of TRunQueryRequest;
-  
+
   { --------------------------------------------------------------------
     TCompositeFilter
     --------------------------------------------------------------------}
-  
+
   TCompositeFilter = Class(TGoogleBaseObject)
   Private
     Fop : String;
@@ -843,11 +843,11 @@ type
     Property filters : TCompositeFilterTypefiltersArray Index 8 Read Ffilters Write Setfilters;
   end;
   TCompositeFilterClass = Class of TCompositeFilter;
-  
+
   { --------------------------------------------------------------------
     TLatLng
     --------------------------------------------------------------------}
-  
+
   TLatLng = Class(TGoogleBaseObject)
   Private
     Flongitude : double;
@@ -862,11 +862,11 @@ type
     Property latitude : double Index 8 Read Flatitude Write Setlatitude;
   end;
   TLatLngClass = Class of TLatLng;
-  
+
   { --------------------------------------------------------------------
     TLookupRequest
     --------------------------------------------------------------------}
-  
+
   TLookupRequest = Class(TGoogleBaseObject)
   Private
     Fkeys : TLookupRequestTypekeysArray;
@@ -885,11 +885,11 @@ type
     Property readOptions : TReadOptions Index 8 Read FreadOptions Write SetreadOptions;
   end;
   TLookupRequestClass = Class of TLookupRequest;
-  
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -901,12 +901,12 @@ type
     Function Commit(projectId: string; aCommitRequest : TCommitRequest) : TCommitResponse;
     Function Rollback(projectId: string; aRollbackRequest : TRollbackRequest) : TRollbackResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDatastoreAPI
     --------------------------------------------------------------------}
-  
+
   TDatastoreAPI = Class(TGoogleAPI)
   Private
     FProjectsInstance : TProjectsResource;
@@ -948,7 +948,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TValue.SetstringValue(AIndex : Integer; const AValue : String); 
+Procedure TValue.SetstringValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FstringValue=AValue) then exit;
@@ -958,7 +958,7 @@ end;
 
 
 
-Procedure TValue.SetarrayValue(AIndex : Integer; const AValue : TArrayValue); 
+Procedure TValue.SetarrayValue(AIndex : Integer; const AValue : TArrayValue);
 
 begin
   If (FarrayValue=AValue) then exit;
@@ -968,7 +968,7 @@ end;
 
 
 
-Procedure TValue.SetentityValue(AIndex : Integer; const AValue : TEntity); 
+Procedure TValue.SetentityValue(AIndex : Integer; const AValue : TEntity);
 
 begin
   If (FentityValue=AValue) then exit;
@@ -978,7 +978,7 @@ end;
 
 
 
-Procedure TValue.Setmeaning(AIndex : Integer; const AValue : integer); 
+Procedure TValue.Setmeaning(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fmeaning=AValue) then exit;
@@ -988,7 +988,7 @@ end;
 
 
 
-Procedure TValue.SetintegerValue(AIndex : Integer; const AValue : String); 
+Procedure TValue.SetintegerValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FintegerValue=AValue) then exit;
@@ -998,7 +998,7 @@ end;
 
 
 
-Procedure TValue.SetdoubleValue(AIndex : Integer; const AValue : double); 
+Procedure TValue.SetdoubleValue(AIndex : Integer; const AValue : double);
 
 begin
   If (FdoubleValue=AValue) then exit;
@@ -1008,7 +1008,7 @@ end;
 
 
 
-Procedure TValue.SetgeoPointValue(AIndex : Integer; const AValue : TLatLng); 
+Procedure TValue.SetgeoPointValue(AIndex : Integer; const AValue : TLatLng);
 
 begin
   If (FgeoPointValue=AValue) then exit;
@@ -1018,7 +1018,7 @@ end;
 
 
 
-Procedure TValue.SetblobValue(AIndex : Integer; const AValue : String); 
+Procedure TValue.SetblobValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FblobValue=AValue) then exit;
@@ -1028,7 +1028,7 @@ end;
 
 
 
-Procedure TValue.SetnullValue(AIndex : Integer; const AValue : String); 
+Procedure TValue.SetnullValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FnullValue=AValue) then exit;
@@ -1038,7 +1038,7 @@ end;
 
 
 
-Procedure TValue.SetkeyValue(AIndex : Integer; const AValue : TKey); 
+Procedure TValue.SetkeyValue(AIndex : Integer; const AValue : TKey);
 
 begin
   If (FkeyValue=AValue) then exit;
@@ -1048,7 +1048,7 @@ end;
 
 
 
-Procedure TValue.SetbooleanValue(AIndex : Integer; const AValue : boolean); 
+Procedure TValue.SetbooleanValue(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FbooleanValue=AValue) then exit;
@@ -1058,7 +1058,7 @@ end;
 
 
 
-Procedure TValue.SetexcludeFromIndexes(AIndex : Integer; const AValue : boolean); 
+Procedure TValue.SetexcludeFromIndexes(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FexcludeFromIndexes=AValue) then exit;
@@ -1068,7 +1068,7 @@ end;
 
 
 
-Procedure TValue.SettimestampValue(AIndex : Integer; const AValue : String); 
+Procedure TValue.SettimestampValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimestampValue=AValue) then exit;
@@ -1085,7 +1085,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadOptions.Settransaction(AIndex : Integer; const AValue : String); 
+Procedure TReadOptions.Settransaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1095,7 +1095,7 @@ end;
 
 
 
-Procedure TReadOptions.SetreadConsistency(AIndex : Integer; const AValue : String); 
+Procedure TReadOptions.SetreadConsistency(AIndex : Integer; const AValue : String);
 
 begin
   If (FreadConsistency=AValue) then exit;
@@ -1112,7 +1112,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyOrder.Setdirection(AIndex : Integer; const AValue : String); 
+Procedure TPropertyOrder.Setdirection(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdirection=AValue) then exit;
@@ -1122,7 +1122,7 @@ end;
 
 
 
-Procedure TPropertyOrder.Set_property(AIndex : Integer; const AValue : TPropertyReference); 
+Procedure TPropertyOrder.Set_property(AIndex : Integer; const AValue : TPropertyReference);
 
 begin
   If (F_property=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommitRequest.Settransaction(AIndex : Integer; const AValue : String); 
+Procedure TCommitRequest.Settransaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 
 
-Procedure TCommitRequest.Setmutations(AIndex : Integer; const AValue : TCommitRequestTypemutationsArray); 
+Procedure TCommitRequest.Setmutations(AIndex : Integer; const AValue : TCommitRequestTypemutationsArray);
 
 begin
   If (Fmutations=AValue) then exit;
@@ -1170,7 +1170,7 @@ end;
 
 
 
-Procedure TCommitRequest.Setmode(AIndex : Integer; const AValue : String); 
+Procedure TCommitRequest.Setmode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmode=AValue) then exit;
@@ -1181,7 +1181,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCommitRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCommitRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1200,7 +1200,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRollbackRequest.Settransaction(AIndex : Integer; const AValue : String); 
+Procedure TRollbackRequest.Settransaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1217,7 +1217,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuery.Setlimit(AIndex : Integer; const AValue : integer); 
+Procedure TQuery.Setlimit(AIndex : Integer; const AValue : integer);
 
 begin
   If (Flimit=AValue) then exit;
@@ -1227,7 +1227,7 @@ end;
 
 
 
-Procedure TQuery.Setfilter(AIndex : Integer; const AValue : TFilter); 
+Procedure TQuery.Setfilter(AIndex : Integer; const AValue : TFilter);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -1237,7 +1237,7 @@ end;
 
 
 
-Procedure TQuery.SetendCursor(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetendCursor(AIndex : Integer; const AValue : String);
 
 begin
   If (FendCursor=AValue) then exit;
@@ -1247,7 +1247,7 @@ end;
 
 
 
-Procedure TQuery.SetdistinctOn(AIndex : Integer; const AValue : TQueryTypedistinctOnArray); 
+Procedure TQuery.SetdistinctOn(AIndex : Integer; const AValue : TQueryTypedistinctOnArray);
 
 begin
   If (FdistinctOn=AValue) then exit;
@@ -1257,7 +1257,7 @@ end;
 
 
 
-Procedure TQuery.Setoffset(AIndex : Integer; const AValue : integer); 
+Procedure TQuery.Setoffset(AIndex : Integer; const AValue : integer);
 
 begin
   If (Foffset=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
 
 
 
-Procedure TQuery.Setprojection(AIndex : Integer; const AValue : TQueryTypeprojectionArray); 
+Procedure TQuery.Setprojection(AIndex : Integer; const AValue : TQueryTypeprojectionArray);
 
 begin
   If (Fprojection=AValue) then exit;
@@ -1277,7 +1277,7 @@ end;
 
 
 
-Procedure TQuery.SetstartCursor(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetstartCursor(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartCursor=AValue) then exit;
@@ -1287,7 +1287,7 @@ end;
 
 
 
-Procedure TQuery.Setorder(AIndex : Integer; const AValue : TQueryTypeorderArray); 
+Procedure TQuery.Setorder(AIndex : Integer; const AValue : TQueryTypeorderArray);
 
 begin
   If (Forder=AValue) then exit;
@@ -1297,7 +1297,7 @@ end;
 
 
 
-Procedure TQuery.Setkind(AIndex : Integer; const AValue : TQueryTypekindArray); 
+Procedure TQuery.Setkind(AIndex : Integer; const AValue : TQueryTypekindArray);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1308,7 +1308,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TQuery.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TQuery.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1330,7 +1330,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntityResult.Setcursor(AIndex : Integer; const AValue : String); 
+Procedure TEntityResult.Setcursor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcursor=AValue) then exit;
@@ -1340,7 +1340,7 @@ end;
 
 
 
-Procedure TEntityResult.Setentity(AIndex : Integer; const AValue : TEntity); 
+Procedure TEntityResult.Setentity(AIndex : Integer; const AValue : TEntity);
 
 begin
   If (Fentity=AValue) then exit;
@@ -1357,7 +1357,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGqlQueryParameter.Setcursor(AIndex : Integer; const AValue : String); 
+Procedure TGqlQueryParameter.Setcursor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcursor=AValue) then exit;
@@ -1367,7 +1367,7 @@ end;
 
 
 
-Procedure TGqlQueryParameter.Setvalue(AIndex : Integer; const AValue : TValue); 
+Procedure TGqlQueryParameter.Setvalue(AIndex : Integer; const AValue : TValue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1384,7 +1384,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBeginTransactionResponse.Settransaction(AIndex : Integer; const AValue : String); 
+Procedure TBeginTransactionResponse.Settransaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilter.SetpropertyFilter(AIndex : Integer; const AValue : TPropertyFilter); 
+Procedure TFilter.SetpropertyFilter(AIndex : Integer; const AValue : TPropertyFilter);
 
 begin
   If (FpropertyFilter=AValue) then exit;
@@ -1411,7 +1411,7 @@ end;
 
 
 
-Procedure TFilter.SetcompositeFilter(AIndex : Integer; const AValue : TCompositeFilter); 
+Procedure TFilter.SetcompositeFilter(AIndex : Integer; const AValue : TCompositeFilter);
 
 begin
   If (FcompositeFilter=AValue) then exit;
@@ -1428,7 +1428,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TArrayValue.Setvalues(AIndex : Integer; const AValue : TArrayValueTypevaluesArray); 
+Procedure TArrayValue.Setvalues(AIndex : Integer; const AValue : TArrayValueTypevaluesArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1439,7 +1439,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TArrayValue.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TArrayValue.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1458,7 +1458,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPartitionId.SetnamespaceId(AIndex : Integer; const AValue : String); 
+Procedure TPartitionId.SetnamespaceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FnamespaceId=AValue) then exit;
@@ -1468,7 +1468,7 @@ end;
 
 
 
-Procedure TPartitionId.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TPartitionId.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -1485,7 +1485,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryResultBatch.SetendCursor(AIndex : Integer; const AValue : String); 
+Procedure TQueryResultBatch.SetendCursor(AIndex : Integer; const AValue : String);
 
 begin
   If (FendCursor=AValue) then exit;
@@ -1495,7 +1495,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetskippedCursor(AIndex : Integer; const AValue : String); 
+Procedure TQueryResultBatch.SetskippedCursor(AIndex : Integer; const AValue : String);
 
 begin
   If (FskippedCursor=AValue) then exit;
@@ -1505,7 +1505,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetentityResultType(AIndex : Integer; const AValue : String); 
+Procedure TQueryResultBatch.SetentityResultType(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityResultType=AValue) then exit;
@@ -1515,7 +1515,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetmoreResults(AIndex : Integer; const AValue : String); 
+Procedure TQueryResultBatch.SetmoreResults(AIndex : Integer; const AValue : String);
 
 begin
   If (FmoreResults=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetentityResults(AIndex : Integer; const AValue : TQueryResultBatchTypeentityResultsArray); 
+Procedure TQueryResultBatch.SetentityResults(AIndex : Integer; const AValue : TQueryResultBatchTypeentityResultsArray);
 
 begin
   If (FentityResults=AValue) then exit;
@@ -1535,7 +1535,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetskippedResults(AIndex : Integer; const AValue : integer); 
+Procedure TQueryResultBatch.SetskippedResults(AIndex : Integer; const AValue : integer);
 
 begin
   If (FskippedResults=AValue) then exit;
@@ -1546,7 +1546,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TQueryResultBatch.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TQueryResultBatch.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1565,7 +1565,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAllocateIdsRequest.Setkeys(AIndex : Integer; const AValue : TAllocateIdsRequestTypekeysArray); 
+Procedure TAllocateIdsRequest.Setkeys(AIndex : Integer; const AValue : TAllocateIdsRequestTypekeysArray);
 
 begin
   If (Fkeys=AValue) then exit;
@@ -1576,7 +1576,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAllocateIdsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAllocateIdsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1595,7 +1595,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyFilter.Setvalue(AIndex : Integer; const AValue : TValue); 
+Procedure TPropertyFilter.Setvalue(AIndex : Integer; const AValue : TValue);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1605,7 +1605,7 @@ end;
 
 
 
-Procedure TPropertyFilter.Setop(AIndex : Integer; const AValue : String); 
+Procedure TPropertyFilter.Setop(AIndex : Integer; const AValue : String);
 
 begin
   If (Fop=AValue) then exit;
@@ -1615,7 +1615,7 @@ end;
 
 
 
-Procedure TPropertyFilter.Set_property(AIndex : Integer; const AValue : TPropertyReference); 
+Procedure TPropertyFilter.Set_property(AIndex : Integer; const AValue : TPropertyReference);
 
 begin
   If (F_property=AValue) then exit;
@@ -1643,7 +1643,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKindExpression.Setname(AIndex : Integer; const AValue : String); 
+Procedure TKindExpression.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1660,7 +1660,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPathElement.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPathElement.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1670,7 +1670,7 @@ end;
 
 
 
-Procedure TPathElement.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPathElement.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1680,7 +1680,7 @@ end;
 
 
 
-Procedure TPathElement.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPathElement.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1704,7 +1704,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyReference.Setname(AIndex : Integer; const AValue : String); 
+Procedure TPropertyReference.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1721,7 +1721,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProjection.Set_property(AIndex : Integer; const AValue : TPropertyReference); 
+Procedure TProjection.Set_property(AIndex : Integer; const AValue : TPropertyReference);
 
 begin
   If (F_property=AValue) then exit;
@@ -1749,7 +1749,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAllocateIdsResponse.Setkeys(AIndex : Integer; const AValue : TAllocateIdsResponseTypekeysArray); 
+Procedure TAllocateIdsResponse.Setkeys(AIndex : Integer; const AValue : TAllocateIdsResponseTypekeysArray);
 
 begin
   If (Fkeys=AValue) then exit;
@@ -1760,7 +1760,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAllocateIdsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAllocateIdsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1779,7 +1779,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMutationResult.Setkey(AIndex : Integer; const AValue : TKey); 
+Procedure TMutationResult.Setkey(AIndex : Integer; const AValue : TKey);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1796,7 +1796,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLookupResponse.Setfound(AIndex : Integer; const AValue : TLookupResponseTypefoundArray); 
+Procedure TLookupResponse.Setfound(AIndex : Integer; const AValue : TLookupResponseTypefoundArray);
 
 begin
   If (Ffound=AValue) then exit;
@@ -1806,7 +1806,7 @@ end;
 
 
 
-Procedure TLookupResponse.Setdeferred(AIndex : Integer; const AValue : TLookupResponseTypedeferredArray); 
+Procedure TLookupResponse.Setdeferred(AIndex : Integer; const AValue : TLookupResponseTypedeferredArray);
 
 begin
   If (Fdeferred=AValue) then exit;
@@ -1816,7 +1816,7 @@ end;
 
 
 
-Procedure TLookupResponse.Setmissing(AIndex : Integer; const AValue : TLookupResponseTypemissingArray); 
+Procedure TLookupResponse.Setmissing(AIndex : Integer; const AValue : TLookupResponseTypemissingArray);
 
 begin
   If (Fmissing=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLookupResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLookupResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1855,7 +1855,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKey.SetpartitionId(AIndex : Integer; const AValue : TPartitionId); 
+Procedure TKey.SetpartitionId(AIndex : Integer; const AValue : TPartitionId);
 
 begin
   If (FpartitionId=AValue) then exit;
@@ -1865,7 +1865,7 @@ end;
 
 
 
-Procedure TKey.Setpath(AIndex : Integer; const AValue : TKeyTypepathArray); 
+Procedure TKey.Setpath(AIndex : Integer; const AValue : TKeyTypepathArray);
 
 begin
   If (Fpath=AValue) then exit;
@@ -1876,7 +1876,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TKey.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TKey.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1895,7 +1895,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRunQueryResponse.Setbatch(AIndex : Integer; const AValue : TQueryResultBatch); 
+Procedure TRunQueryResponse.Setbatch(AIndex : Integer; const AValue : TQueryResultBatch);
 
 begin
   If (Fbatch=AValue) then exit;
@@ -1905,7 +1905,7 @@ end;
 
 
 
-Procedure TRunQueryResponse.Setquery(AIndex : Integer; const AValue : TQuery); 
+Procedure TRunQueryResponse.Setquery(AIndex : Integer; const AValue : TQuery);
 
 begin
   If (Fquery=AValue) then exit;
@@ -1935,7 +1935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntity.Setproperties(AIndex : Integer; const AValue : TEntityTypeproperties); 
+Procedure TEntity.Setproperties(AIndex : Integer; const AValue : TEntityTypeproperties);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -1945,7 +1945,7 @@ end;
 
 
 
-Procedure TEntity.Setkey(AIndex : Integer; const AValue : TKey); 
+Procedure TEntity.Setkey(AIndex : Integer; const AValue : TKey);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1975,7 +1975,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGqlQuery.SetnamedBindings(AIndex : Integer; const AValue : TGqlQueryTypenamedBindings); 
+Procedure TGqlQuery.SetnamedBindings(AIndex : Integer; const AValue : TGqlQueryTypenamedBindings);
 
 begin
   If (FnamedBindings=AValue) then exit;
@@ -1985,7 +1985,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetqueryString(AIndex : Integer; const AValue : String); 
+Procedure TGqlQuery.SetqueryString(AIndex : Integer; const AValue : String);
 
 begin
   If (FqueryString=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetallowLiterals(AIndex : Integer; const AValue : boolean); 
+Procedure TGqlQuery.SetallowLiterals(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FallowLiterals=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetpositionalBindings(AIndex : Integer; const AValue : TGqlQueryTypepositionalBindingsArray); 
+Procedure TGqlQuery.SetpositionalBindings(AIndex : Integer; const AValue : TGqlQueryTypepositionalBindingsArray);
 
 begin
   If (FpositionalBindings=AValue) then exit;
@@ -2016,7 +2016,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGqlQuery.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGqlQuery.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2035,7 +2035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommitResponse.SetmutationResults(AIndex : Integer; const AValue : TCommitResponseTypemutationResultsArray); 
+Procedure TCommitResponse.SetmutationResults(AIndex : Integer; const AValue : TCommitResponseTypemutationResultsArray);
 
 begin
   If (FmutationResults=AValue) then exit;
@@ -2045,7 +2045,7 @@ end;
 
 
 
-Procedure TCommitResponse.SetindexUpdates(AIndex : Integer; const AValue : integer); 
+Procedure TCommitResponse.SetindexUpdates(AIndex : Integer; const AValue : integer);
 
 begin
   If (FindexUpdates=AValue) then exit;
@@ -2056,7 +2056,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCommitResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCommitResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2075,7 +2075,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMutation.Setupdate(AIndex : Integer; const AValue : TEntity); 
+Procedure TMutation.Setupdate(AIndex : Integer; const AValue : TEntity);
 
 begin
   If (Fupdate=AValue) then exit;
@@ -2085,7 +2085,7 @@ end;
 
 
 
-Procedure TMutation.Setinsert(AIndex : Integer; const AValue : TEntity); 
+Procedure TMutation.Setinsert(AIndex : Integer; const AValue : TEntity);
 
 begin
   If (Finsert=AValue) then exit;
@@ -2095,7 +2095,7 @@ end;
 
 
 
-Procedure TMutation.Setdelete(AIndex : Integer; const AValue : TKey); 
+Procedure TMutation.Setdelete(AIndex : Integer; const AValue : TKey);
 
 begin
   If (Fdelete=AValue) then exit;
@@ -2105,7 +2105,7 @@ end;
 
 
 
-Procedure TMutation.Setupsert(AIndex : Integer; const AValue : TEntity); 
+Procedure TMutation.Setupsert(AIndex : Integer; const AValue : TEntity);
 
 begin
   If (Fupsert=AValue) then exit;
@@ -2122,7 +2122,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRunQueryRequest.SetpartitionId(AIndex : Integer; const AValue : TPartitionId); 
+Procedure TRunQueryRequest.SetpartitionId(AIndex : Integer; const AValue : TPartitionId);
 
 begin
   If (FpartitionId=AValue) then exit;
@@ -2132,7 +2132,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SetgqlQuery(AIndex : Integer; const AValue : TGqlQuery); 
+Procedure TRunQueryRequest.SetgqlQuery(AIndex : Integer; const AValue : TGqlQuery);
 
 begin
   If (FgqlQuery=AValue) then exit;
@@ -2142,7 +2142,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.Setquery(AIndex : Integer; const AValue : TQuery); 
+Procedure TRunQueryRequest.Setquery(AIndex : Integer; const AValue : TQuery);
 
 begin
   If (Fquery=AValue) then exit;
@@ -2152,7 +2152,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SetreadOptions(AIndex : Integer; const AValue : TReadOptions); 
+Procedure TRunQueryRequest.SetreadOptions(AIndex : Integer; const AValue : TReadOptions);
 
 begin
   If (FreadOptions=AValue) then exit;
@@ -2169,7 +2169,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCompositeFilter.Setop(AIndex : Integer; const AValue : String); 
+Procedure TCompositeFilter.Setop(AIndex : Integer; const AValue : String);
 
 begin
   If (Fop=AValue) then exit;
@@ -2179,7 +2179,7 @@ end;
 
 
 
-Procedure TCompositeFilter.Setfilters(AIndex : Integer; const AValue : TCompositeFilterTypefiltersArray); 
+Procedure TCompositeFilter.Setfilters(AIndex : Integer; const AValue : TCompositeFilterTypefiltersArray);
 
 begin
   If (Ffilters=AValue) then exit;
@@ -2190,7 +2190,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCompositeFilter.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCompositeFilter.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2209,7 +2209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flongitude=AValue) then exit;
@@ -2219,7 +2219,7 @@ end;
 
 
 
-Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatitude=AValue) then exit;
@@ -2236,7 +2236,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLookupRequest.Setkeys(AIndex : Integer; const AValue : TLookupRequestTypekeysArray); 
+Procedure TLookupRequest.Setkeys(AIndex : Integer; const AValue : TLookupRequestTypekeysArray);
 
 begin
   If (Fkeys=AValue) then exit;
@@ -2246,7 +2246,7 @@ end;
 
 
 
-Procedure TLookupRequest.SetreadOptions(AIndex : Integer; const AValue : TReadOptions); 
+Procedure TLookupRequest.SetreadOptions(AIndex : Integer; const AValue : TReadOptions);
 
 begin
   If (FreadOptions=AValue) then exit;
@@ -2257,7 +2257,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLookupRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLookupRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2494,7 +2494,7 @@ begin
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
   Result[1].Name:='https://www.googleapis.com/auth/datastore';
   Result[1].Description:='View and manage your Google Cloud Datastore data';
-  
+
 end;
 
 Class Function TDatastoreAPI.APINeedsAuth : Boolean;

@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TFieldMask = Class;
   TPageInfo = Class;
@@ -51,11 +51,11 @@ type
   TSurveyTypequestionsArray = Array of TSurveyQuestion;
   TSurveyQuestionTypeimagesArray = Array of TSurveyQuestionImage;
   TSurveysListResponseTyperesourcesArray = Array of TSurvey;
-  
+
   { --------------------------------------------------------------------
     TFieldMask
     --------------------------------------------------------------------}
-  
+
   TFieldMask = Class(TGoogleBaseObject)
   Private
     Ffields : TFieldMaskTypefieldsArray;
@@ -74,11 +74,11 @@ type
     Property id : integer Index 8 Read Fid Write Setid;
   end;
   TFieldMaskClass = Class of TFieldMask;
-  
+
   { --------------------------------------------------------------------
     TPageInfo
     --------------------------------------------------------------------}
-  
+
   TPageInfo = Class(TGoogleBaseObject)
   Private
     FresultPerPage : integer;
@@ -96,11 +96,11 @@ type
     Property totalResults : integer Index 16 Read FtotalResults Write SettotalResults;
   end;
   TPageInfoClass = Class of TPageInfo;
-  
+
   { --------------------------------------------------------------------
     TResultsGetRequest
     --------------------------------------------------------------------}
-  
+
   TResultsGetRequest = Class(TGoogleBaseObject)
   Private
     FresultMask : TResultsMask;
@@ -112,11 +112,11 @@ type
     Property resultMask : TResultsMask Index 0 Read FresultMask Write SetresultMask;
   end;
   TResultsGetRequestClass = Class of TResultsGetRequest;
-  
+
   { --------------------------------------------------------------------
     TResultsMask
     --------------------------------------------------------------------}
-  
+
   TResultsMask = Class(TGoogleBaseObject)
   Private
     Ffields : TResultsMaskTypefieldsArray;
@@ -135,11 +135,11 @@ type
     Property projection : String Index 8 Read Fprojection Write Setprojection;
   end;
   TResultsMaskClass = Class of TResultsMask;
-  
+
   { --------------------------------------------------------------------
     TSurvey
     --------------------------------------------------------------------}
-  
+
   TSurvey = Class(TGoogleBaseObject)
   Private
     Faudience : TSurveyAudience;
@@ -182,11 +182,11 @@ type
     Property wantedResponseCount : integer Index 72 Read FwantedResponseCount Write SetwantedResponseCount;
   end;
   TSurveyClass = Class of TSurvey;
-  
+
   { --------------------------------------------------------------------
     TSurveyAudience
     --------------------------------------------------------------------}
-  
+
   TSurveyAudience = Class(TGoogleBaseObject)
   Private
     Fages : TStringArray;
@@ -220,11 +220,11 @@ type
     Property populationSource : String Index 48 Read FpopulationSource Write SetpopulationSource;
   end;
   TSurveyAudienceClass = Class of TSurveyAudience;
-  
+
   { --------------------------------------------------------------------
     TSurveyCost
     --------------------------------------------------------------------}
-  
+
   TSurveyCost = Class(TGoogleBaseObject)
   Private
     FcostPerResponseNanos : String;
@@ -245,11 +245,11 @@ type
     Property nanos : String Index 24 Read Fnanos Write Setnanos;
   end;
   TSurveyCostClass = Class of TSurveyCost;
-  
+
   { --------------------------------------------------------------------
     TSurveyQuestion
     --------------------------------------------------------------------}
-  
+
   TSurveyQuestion = Class(TGoogleBaseObject)
   Private
     FanswerOrder : String;
@@ -317,11 +317,11 @@ type
     Property videoId : String Index 136 Read FvideoId Write SetvideoId;
   end;
   TSurveyQuestionClass = Class of TSurveyQuestion;
-  
+
   { --------------------------------------------------------------------
     TSurveyQuestionImage
     --------------------------------------------------------------------}
-  
+
   TSurveyQuestionImage = Class(TGoogleBaseObject)
   Private
     FaltText : String;
@@ -339,11 +339,11 @@ type
     Property url : String Index 16 Read Furl Write Seturl;
   end;
   TSurveyQuestionImageClass = Class of TSurveyQuestionImage;
-  
+
   { --------------------------------------------------------------------
     TSurveyResults
     --------------------------------------------------------------------}
-  
+
   TSurveyResults = Class(TGoogleBaseObject)
   Private
     Fstatus : String;
@@ -358,11 +358,11 @@ type
     Property surveyUrlId : String Index 8 Read FsurveyUrlId Write SetsurveyUrlId;
   end;
   TSurveyResultsClass = Class of TSurveyResults;
-  
+
   { --------------------------------------------------------------------
     TSurveysListResponse
     --------------------------------------------------------------------}
-  
+
   TSurveysListResponse = Class(TGoogleBaseObject)
   Private
     FpageInfo : TPageInfo;
@@ -387,11 +387,11 @@ type
     Property tokenPagination : TTokenPagination Index 24 Read FtokenPagination Write SettokenPagination;
   end;
   TSurveysListResponseClass = Class of TSurveysListResponse;
-  
+
   { --------------------------------------------------------------------
     TSurveysStartRequest
     --------------------------------------------------------------------}
-  
+
   TSurveysStartRequest = Class(TGoogleBaseObject)
   Private
     FmaxCostPerResponseNanos : String;
@@ -403,11 +403,11 @@ type
     Property maxCostPerResponseNanos : String Index 0 Read FmaxCostPerResponseNanos Write SetmaxCostPerResponseNanos;
   end;
   TSurveysStartRequestClass = Class of TSurveysStartRequest;
-  
+
   { --------------------------------------------------------------------
     TSurveysStartResponse
     --------------------------------------------------------------------}
-  
+
   TSurveysStartResponse = Class(TGoogleBaseObject)
   Private
     FrequestId : String;
@@ -422,11 +422,11 @@ type
     Property resource : TSurvey Index 8 Read Fresource Write Setresource;
   end;
   TSurveysStartResponseClass = Class of TSurveysStartResponse;
-  
+
   { --------------------------------------------------------------------
     TSurveysStopResponse
     --------------------------------------------------------------------}
-  
+
   TSurveysStopResponse = Class(TGoogleBaseObject)
   Private
     FrequestId : String;
@@ -441,11 +441,11 @@ type
     Property resource : TSurvey Index 8 Read Fresource Write Setresource;
   end;
   TSurveysStopResponseClass = Class of TSurveysStopResponse;
-  
+
   { --------------------------------------------------------------------
     TTokenPagination
     --------------------------------------------------------------------}
-  
+
   TTokenPagination = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -460,32 +460,32 @@ type
     Property previousPageToken : String Index 8 Read FpreviousPageToken Write SetpreviousPageToken;
   end;
   TTokenPaginationClass = Class of TTokenPagination;
-  
+
   { --------------------------------------------------------------------
     TResultsResource
     --------------------------------------------------------------------}
-  
+
   TResultsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(surveyUrlId: string; aResultsGetRequest : TResultsGetRequest) : TSurveyResults;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSurveysResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TSurveysResource, method List
-  
+
   TSurveysListOptions = Record
     maxResults : integer;
     startIndex : integer;
     token : String;
   end;
-  
+
   TSurveysResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -498,12 +498,12 @@ type
     Function Stop(resourceId: string) : TSurveysStopResponse;
     Function Update(surveyUrlId: string; aSurvey : TSurvey) : TSurvey;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TConsumersurveysAPI
     --------------------------------------------------------------------}
-  
+
   TConsumersurveysAPI = Class(TGoogleAPI)
   Private
     FResultsInstance : TResultsResource;
@@ -550,7 +550,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TFieldMask.Setfields(AIndex : Integer; const AValue : TFieldMaskTypefieldsArray); 
+Procedure TFieldMask.Setfields(AIndex : Integer; const AValue : TFieldMaskTypefieldsArray);
 
 begin
   If (Ffields=AValue) then exit;
@@ -560,7 +560,7 @@ end;
 
 
 
-Procedure TFieldMask.Setid(AIndex : Integer; const AValue : integer); 
+Procedure TFieldMask.Setid(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fid=AValue) then exit;
@@ -571,7 +571,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFieldMask.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFieldMask.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -590,7 +590,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageInfo.SetresultPerPage(AIndex : Integer; const AValue : integer); 
+Procedure TPageInfo.SetresultPerPage(AIndex : Integer; const AValue : integer);
 
 begin
   If (FresultPerPage=AValue) then exit;
@@ -600,7 +600,7 @@ end;
 
 
 
-Procedure TPageInfo.SetstartIndex(AIndex : Integer; const AValue : integer); 
+Procedure TPageInfo.SetstartIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartIndex=AValue) then exit;
@@ -610,7 +610,7 @@ end;
 
 
 
-Procedure TPageInfo.SettotalResults(AIndex : Integer; const AValue : integer); 
+Procedure TPageInfo.SettotalResults(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalResults=AValue) then exit;
@@ -627,7 +627,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultsGetRequest.SetresultMask(AIndex : Integer; const AValue : TResultsMask); 
+Procedure TResultsGetRequest.SetresultMask(AIndex : Integer; const AValue : TResultsMask);
 
 begin
   If (FresultMask=AValue) then exit;
@@ -644,7 +644,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultsMask.Setfields(AIndex : Integer; const AValue : TResultsMaskTypefieldsArray); 
+Procedure TResultsMask.Setfields(AIndex : Integer; const AValue : TResultsMaskTypefieldsArray);
 
 begin
   If (Ffields=AValue) then exit;
@@ -654,7 +654,7 @@ end;
 
 
 
-Procedure TResultsMask.Setprojection(AIndex : Integer; const AValue : String); 
+Procedure TResultsMask.Setprojection(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprojection=AValue) then exit;
@@ -665,7 +665,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResultsMask.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResultsMask.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -684,7 +684,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurvey.Setaudience(AIndex : Integer; const AValue : TSurveyAudience); 
+Procedure TSurvey.Setaudience(AIndex : Integer; const AValue : TSurveyAudience);
 
 begin
   If (Faudience=AValue) then exit;
@@ -694,7 +694,7 @@ end;
 
 
 
-Procedure TSurvey.Setcost(AIndex : Integer; const AValue : TSurveyCost); 
+Procedure TSurvey.Setcost(AIndex : Integer; const AValue : TSurveyCost);
 
 begin
   If (Fcost=AValue) then exit;
@@ -704,7 +704,7 @@ end;
 
 
 
-Procedure TSurvey.SetcustomerData(AIndex : Integer; const AValue : String); 
+Procedure TSurvey.SetcustomerData(AIndex : Integer; const AValue : String);
 
 begin
   If (FcustomerData=AValue) then exit;
@@ -714,7 +714,7 @@ end;
 
 
 
-Procedure TSurvey.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TSurvey.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -724,7 +724,7 @@ end;
 
 
 
-Procedure TSurvey.Setowners(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSurvey.Setowners(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fowners=AValue) then exit;
@@ -734,7 +734,7 @@ end;
 
 
 
-Procedure TSurvey.Setquestions(AIndex : Integer; const AValue : TSurveyTypequestionsArray); 
+Procedure TSurvey.Setquestions(AIndex : Integer; const AValue : TSurveyTypequestionsArray);
 
 begin
   If (Fquestions=AValue) then exit;
@@ -744,7 +744,7 @@ end;
 
 
 
-Procedure TSurvey.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TSurvey.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -754,7 +754,7 @@ end;
 
 
 
-Procedure TSurvey.SetsurveyUrlId(AIndex : Integer; const AValue : String); 
+Procedure TSurvey.SetsurveyUrlId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsurveyUrlId=AValue) then exit;
@@ -764,7 +764,7 @@ end;
 
 
 
-Procedure TSurvey.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TSurvey.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -774,7 +774,7 @@ end;
 
 
 
-Procedure TSurvey.SetwantedResponseCount(AIndex : Integer; const AValue : integer); 
+Procedure TSurvey.SetwantedResponseCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FwantedResponseCount=AValue) then exit;
@@ -785,7 +785,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSurvey.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSurvey.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -805,7 +805,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveyAudience.Setages(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSurveyAudience.Setages(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fages=AValue) then exit;
@@ -815,7 +815,7 @@ end;
 
 
 
-Procedure TSurveyAudience.Setcountry(AIndex : Integer; const AValue : String); 
+Procedure TSurveyAudience.Setcountry(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcountry=AValue) then exit;
@@ -825,7 +825,7 @@ end;
 
 
 
-Procedure TSurveyAudience.SetcountrySubdivision(AIndex : Integer; const AValue : String); 
+Procedure TSurveyAudience.SetcountrySubdivision(AIndex : Integer; const AValue : String);
 
 begin
   If (FcountrySubdivision=AValue) then exit;
@@ -835,7 +835,7 @@ end;
 
 
 
-Procedure TSurveyAudience.Setgender(AIndex : Integer; const AValue : String); 
+Procedure TSurveyAudience.Setgender(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgender=AValue) then exit;
@@ -845,7 +845,7 @@ end;
 
 
 
-Procedure TSurveyAudience.Setlanguages(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSurveyAudience.Setlanguages(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Flanguages=AValue) then exit;
@@ -855,7 +855,7 @@ end;
 
 
 
-Procedure TSurveyAudience.SetmobileAppPanelId(AIndex : Integer; const AValue : String); 
+Procedure TSurveyAudience.SetmobileAppPanelId(AIndex : Integer; const AValue : String);
 
 begin
   If (FmobileAppPanelId=AValue) then exit;
@@ -865,7 +865,7 @@ end;
 
 
 
-Procedure TSurveyAudience.SetpopulationSource(AIndex : Integer; const AValue : String); 
+Procedure TSurveyAudience.SetpopulationSource(AIndex : Integer; const AValue : String);
 
 begin
   If (FpopulationSource=AValue) then exit;
@@ -876,7 +876,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSurveyAudience.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSurveyAudience.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -896,7 +896,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveyCost.SetcostPerResponseNanos(AIndex : Integer; const AValue : String); 
+Procedure TSurveyCost.SetcostPerResponseNanos(AIndex : Integer; const AValue : String);
 
 begin
   If (FcostPerResponseNanos=AValue) then exit;
@@ -906,7 +906,7 @@ end;
 
 
 
-Procedure TSurveyCost.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TSurveyCost.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -916,7 +916,7 @@ end;
 
 
 
-Procedure TSurveyCost.SetmaxCostPerResponseNanos(AIndex : Integer; const AValue : String); 
+Procedure TSurveyCost.SetmaxCostPerResponseNanos(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaxCostPerResponseNanos=AValue) then exit;
@@ -926,7 +926,7 @@ end;
 
 
 
-Procedure TSurveyCost.Setnanos(AIndex : Integer; const AValue : String); 
+Procedure TSurveyCost.Setnanos(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnanos=AValue) then exit;
@@ -943,7 +943,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveyQuestion.SetanswerOrder(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetanswerOrder(AIndex : Integer; const AValue : String);
 
 begin
   If (FanswerOrder=AValue) then exit;
@@ -953,7 +953,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.Setanswers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSurveyQuestion.Setanswers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fanswers=AValue) then exit;
@@ -963,7 +963,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SethasOther(AIndex : Integer; const AValue : boolean); 
+Procedure TSurveyQuestion.SethasOther(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasOther=AValue) then exit;
@@ -973,7 +973,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SethighValueLabel(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SethighValueLabel(AIndex : Integer; const AValue : String);
 
 begin
   If (FhighValueLabel=AValue) then exit;
@@ -983,7 +983,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.Setimages(AIndex : Integer; const AValue : TSurveyQuestionTypeimagesArray); 
+Procedure TSurveyQuestion.Setimages(AIndex : Integer; const AValue : TSurveyQuestionTypeimagesArray);
 
 begin
   If (Fimages=AValue) then exit;
@@ -993,7 +993,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetlastAnswerPositionPinned(AIndex : Integer; const AValue : boolean); 
+Procedure TSurveyQuestion.SetlastAnswerPositionPinned(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FlastAnswerPositionPinned=AValue) then exit;
@@ -1003,7 +1003,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetlowValueLabel(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetlowValueLabel(AIndex : Integer; const AValue : String);
 
 begin
   If (FlowValueLabel=AValue) then exit;
@@ -1013,7 +1013,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetmustPickSuggestion(AIndex : Integer; const AValue : boolean); 
+Procedure TSurveyQuestion.SetmustPickSuggestion(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FmustPickSuggestion=AValue) then exit;
@@ -1023,7 +1023,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetnumStars(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetnumStars(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumStars=AValue) then exit;
@@ -1033,7 +1033,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetopenTextPlaceholder(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetopenTextPlaceholder(AIndex : Integer; const AValue : String);
 
 begin
   If (FopenTextPlaceholder=AValue) then exit;
@@ -1043,7 +1043,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetopenTextSuggestions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSurveyQuestion.SetopenTextSuggestions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FopenTextSuggestions=AValue) then exit;
@@ -1053,7 +1053,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.Setquestion(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.Setquestion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fquestion=AValue) then exit;
@@ -1063,7 +1063,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetsentimentText(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetsentimentText(AIndex : Integer; const AValue : String);
 
 begin
   If (FsentimentText=AValue) then exit;
@@ -1073,7 +1073,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetsingleLineResponse(AIndex : Integer; const AValue : boolean); 
+Procedure TSurveyQuestion.SetsingleLineResponse(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsingleLineResponse=AValue) then exit;
@@ -1083,7 +1083,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetthresholdAnswers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSurveyQuestion.SetthresholdAnswers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FthresholdAnswers=AValue) then exit;
@@ -1093,7 +1093,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1103,7 +1103,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetunitOfMeasurementLabel(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetunitOfMeasurementLabel(AIndex : Integer; const AValue : String);
 
 begin
   If (FunitOfMeasurementLabel=AValue) then exit;
@@ -1113,7 +1113,7 @@ end;
 
 
 
-Procedure TSurveyQuestion.SetvideoId(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestion.SetvideoId(AIndex : Integer; const AValue : String);
 
 begin
   If (FvideoId=AValue) then exit;
@@ -1135,7 +1135,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSurveyQuestion.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSurveyQuestion.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1157,7 +1157,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveyQuestionImage.SetaltText(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestionImage.SetaltText(AIndex : Integer; const AValue : String);
 
 begin
   If (FaltText=AValue) then exit;
@@ -1167,7 +1167,7 @@ end;
 
 
 
-Procedure TSurveyQuestionImage.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestionImage.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1177,7 +1177,7 @@ end;
 
 
 
-Procedure TSurveyQuestionImage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TSurveyQuestionImage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1194,7 +1194,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveyResults.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TSurveyResults.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1204,7 +1204,7 @@ end;
 
 
 
-Procedure TSurveyResults.SetsurveyUrlId(AIndex : Integer; const AValue : String); 
+Procedure TSurveyResults.SetsurveyUrlId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsurveyUrlId=AValue) then exit;
@@ -1221,7 +1221,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveysListResponse.SetpageInfo(AIndex : Integer; const AValue : TPageInfo); 
+Procedure TSurveysListResponse.SetpageInfo(AIndex : Integer; const AValue : TPageInfo);
 
 begin
   If (FpageInfo=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
 
 
 
-Procedure TSurveysListResponse.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TSurveysListResponse.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TSurveysListResponse.Setresources(AIndex : Integer; const AValue : TSurveysListResponseTyperesourcesArray); 
+Procedure TSurveysListResponse.Setresources(AIndex : Integer; const AValue : TSurveysListResponseTyperesourcesArray);
 
 begin
   If (Fresources=AValue) then exit;
@@ -1251,7 +1251,7 @@ end;
 
 
 
-Procedure TSurveysListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
+Procedure TSurveysListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination);
 
 begin
   If (FtokenPagination=AValue) then exit;
@@ -1262,7 +1262,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSurveysListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSurveysListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1281,7 +1281,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveysStartRequest.SetmaxCostPerResponseNanos(AIndex : Integer; const AValue : String); 
+Procedure TSurveysStartRequest.SetmaxCostPerResponseNanos(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaxCostPerResponseNanos=AValue) then exit;
@@ -1298,7 +1298,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveysStartResponse.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TSurveysStartResponse.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -1308,7 +1308,7 @@ end;
 
 
 
-Procedure TSurveysStartResponse.Setresource(AIndex : Integer; const AValue : TSurvey); 
+Procedure TSurveysStartResponse.Setresource(AIndex : Integer; const AValue : TSurvey);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1325,7 +1325,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSurveysStopResponse.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TSurveysStopResponse.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -1335,7 +1335,7 @@ end;
 
 
 
-Procedure TSurveysStopResponse.Setresource(AIndex : Integer; const AValue : TSurvey); 
+Procedure TSurveysStopResponse.Setresource(AIndex : Integer; const AValue : TSurvey);
 
 begin
   If (Fresource=AValue) then exit;
@@ -1352,7 +1352,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1362,7 +1362,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpreviousPageToken=AValue) then exit;
@@ -1639,7 +1639,7 @@ begin
   Result[1].Description:='View the results for your surveys';
   Result[2].Name:='https://www.googleapis.com/auth/userinfo.email';
   Result[2].Description:='View your email address';
-  
+
 end;
 
 Class Function TConsumersurveysAPI.APINeedsAuth : Boolean;

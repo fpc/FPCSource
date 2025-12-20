@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TCourse = Class;
   TDriveFolder = Class;
@@ -107,11 +107,11 @@ type
   TAssignmentSubmissionTypeattachmentsArray = Array of TAttachment;
   TListStudentSubmissionsResponseTypestudentSubmissionsArray = Array of TStudentSubmission;
   TModifyAttachmentsRequestTypeaddAttachmentsArray = Array of TAttachment;
-  
+
   { --------------------------------------------------------------------
     TCourse
     --------------------------------------------------------------------}
-  
+
   TCourse = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -172,11 +172,11 @@ type
     Property courseMaterialSets : TCourseTypecourseMaterialSetsArray Index 120 Read FcourseMaterialSets Write SetcourseMaterialSets;
   end;
   TCourseClass = Class of TCourse;
-  
+
   { --------------------------------------------------------------------
     TDriveFolder
     --------------------------------------------------------------------}
-  
+
   TDriveFolder = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -194,11 +194,11 @@ type
     Property alternateLink : String Index 16 Read FalternateLink Write SetalternateLink;
   end;
   TDriveFolderClass = Class of TDriveFolder;
-  
+
   { --------------------------------------------------------------------
     TCourseMaterialSet
     --------------------------------------------------------------------}
-  
+
   TCourseMaterialSet = Class(TGoogleBaseObject)
   Private
     Ftitle : String;
@@ -217,11 +217,11 @@ type
     Property materials : TCourseMaterialSetTypematerialsArray Index 8 Read Fmaterials Write Setmaterials;
   end;
   TCourseMaterialSetClass = Class of TCourseMaterialSet;
-  
+
   { --------------------------------------------------------------------
     TCourseMaterial
     --------------------------------------------------------------------}
-  
+
   TCourseMaterial = Class(TGoogleBaseObject)
   Private
     FdriveFile : TDriveFile;
@@ -242,11 +242,11 @@ type
     Property form : TForm Index 24 Read Fform Write Setform;
   end;
   TCourseMaterialClass = Class of TCourseMaterial;
-  
+
   { --------------------------------------------------------------------
     TDriveFile
     --------------------------------------------------------------------}
-  
+
   TDriveFile = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -267,11 +267,11 @@ type
     Property thumbnailUrl : String Index 24 Read FthumbnailUrl Write SetthumbnailUrl;
   end;
   TDriveFileClass = Class of TDriveFile;
-  
+
   { --------------------------------------------------------------------
     TYouTubeVideo
     --------------------------------------------------------------------}
-  
+
   TYouTubeVideo = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -292,11 +292,11 @@ type
     Property thumbnailUrl : String Index 24 Read FthumbnailUrl Write SetthumbnailUrl;
   end;
   TYouTubeVideoClass = Class of TYouTubeVideo;
-  
+
   { --------------------------------------------------------------------
     TLink
     --------------------------------------------------------------------}
-  
+
   TLink = Class(TGoogleBaseObject)
   Private
     Furl : String;
@@ -314,11 +314,11 @@ type
     Property thumbnailUrl : String Index 16 Read FthumbnailUrl Write SetthumbnailUrl;
   end;
   TLinkClass = Class of TLink;
-  
+
   { --------------------------------------------------------------------
     TForm
     --------------------------------------------------------------------}
-  
+
   TForm = Class(TGoogleBaseObject)
   Private
     FformUrl : String;
@@ -339,11 +339,11 @@ type
     Property thumbnailUrl : String Index 24 Read FthumbnailUrl Write SetthumbnailUrl;
   end;
   TFormClass = Class of TForm;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -352,11 +352,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TListCoursesResponse
     --------------------------------------------------------------------}
-  
+
   TListCoursesResponse = Class(TGoogleBaseObject)
   Private
     Fcourses : TListCoursesResponseTypecoursesArray;
@@ -375,11 +375,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListCoursesResponseClass = Class of TListCoursesResponse;
-  
+
   { --------------------------------------------------------------------
     TCourseAlias
     --------------------------------------------------------------------}
-  
+
   TCourseAlias = Class(TGoogleBaseObject)
   Private
     Falias : String;
@@ -391,11 +391,11 @@ type
     Property alias : String Index 0 Read Falias Write Setalias;
   end;
   TCourseAliasClass = Class of TCourseAlias;
-  
+
   { --------------------------------------------------------------------
     TListCourseAliasesResponse
     --------------------------------------------------------------------}
-  
+
   TListCourseAliasesResponse = Class(TGoogleBaseObject)
   Private
     Faliases : TListCourseAliasesResponseTypealiasesArray;
@@ -414,11 +414,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListCourseAliasesResponseClass = Class of TListCourseAliasesResponse;
-  
+
   { --------------------------------------------------------------------
     TInvitation
     --------------------------------------------------------------------}
-  
+
   TInvitation = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -439,11 +439,11 @@ type
     Property role : String Index 24 Read Frole Write Setrole;
   end;
   TInvitationClass = Class of TInvitation;
-  
+
   { --------------------------------------------------------------------
     TListInvitationsResponse
     --------------------------------------------------------------------}
-  
+
   TListInvitationsResponse = Class(TGoogleBaseObject)
   Private
     Finvitations : TListInvitationsResponseTypeinvitationsArray;
@@ -462,11 +462,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListInvitationsResponseClass = Class of TListInvitationsResponse;
-  
+
   { --------------------------------------------------------------------
     TUserProfile
     --------------------------------------------------------------------}
-  
+
   TUserProfile = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -494,11 +494,11 @@ type
     Property permissions : TUserProfileTypepermissionsArray Index 32 Read Fpermissions Write Setpermissions;
   end;
   TUserProfileClass = Class of TUserProfile;
-  
+
   { --------------------------------------------------------------------
     TName
     --------------------------------------------------------------------}
-  
+
   TName = Class(TGoogleBaseObject)
   Private
     FgivenName : String;
@@ -516,11 +516,11 @@ type
     Property fullName : String Index 16 Read FfullName Write SetfullName;
   end;
   TNameClass = Class of TName;
-  
+
   { --------------------------------------------------------------------
     TGlobalPermission
     --------------------------------------------------------------------}
-  
+
   TGlobalPermission = Class(TGoogleBaseObject)
   Private
     Fpermission : String;
@@ -532,11 +532,11 @@ type
     Property permission : String Index 0 Read Fpermission Write Setpermission;
   end;
   TGlobalPermissionClass = Class of TGlobalPermission;
-  
+
   { --------------------------------------------------------------------
     TTeacher
     --------------------------------------------------------------------}
-  
+
   TTeacher = Class(TGoogleBaseObject)
   Private
     FcourseId : String;
@@ -554,11 +554,11 @@ type
     Property profile : TUserProfile Index 16 Read Fprofile Write Setprofile;
   end;
   TTeacherClass = Class of TTeacher;
-  
+
   { --------------------------------------------------------------------
     TListTeachersResponse
     --------------------------------------------------------------------}
-  
+
   TListTeachersResponse = Class(TGoogleBaseObject)
   Private
     Fteachers : TListTeachersResponseTypeteachersArray;
@@ -577,11 +577,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListTeachersResponseClass = Class of TListTeachersResponse;
-  
+
   { --------------------------------------------------------------------
     TStudent
     --------------------------------------------------------------------}
-  
+
   TStudent = Class(TGoogleBaseObject)
   Private
     FcourseId : String;
@@ -602,11 +602,11 @@ type
     Property studentWorkFolder : TDriveFolder Index 24 Read FstudentWorkFolder Write SetstudentWorkFolder;
   end;
   TStudentClass = Class of TStudent;
-  
+
   { --------------------------------------------------------------------
     TListStudentsResponse
     --------------------------------------------------------------------}
-  
+
   TListStudentsResponse = Class(TGoogleBaseObject)
   Private
     Fstudents : TListStudentsResponseTypestudentsArray;
@@ -625,11 +625,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListStudentsResponseClass = Class of TListStudentsResponse;
-  
+
   { --------------------------------------------------------------------
     TCourseWork
     --------------------------------------------------------------------}
-  
+
   TCourseWork = Class(TGoogleBaseObject)
   Private
     FcourseId : String;
@@ -693,11 +693,11 @@ type
     Property multipleChoiceQuestion : TMultipleChoiceQuestion Index 128 Read FmultipleChoiceQuestion Write SetmultipleChoiceQuestion;
   end;
   TCourseWorkClass = Class of TCourseWork;
-  
+
   { --------------------------------------------------------------------
     TMaterial
     --------------------------------------------------------------------}
-  
+
   TMaterial = Class(TGoogleBaseObject)
   Private
     FdriveFile : TSharedDriveFile;
@@ -718,11 +718,11 @@ type
     Property form : TForm Index 24 Read Fform Write Setform;
   end;
   TMaterialClass = Class of TMaterial;
-  
+
   { --------------------------------------------------------------------
     TSharedDriveFile
     --------------------------------------------------------------------}
-  
+
   TSharedDriveFile = Class(TGoogleBaseObject)
   Private
     FdriveFile : TDriveFile;
@@ -737,11 +737,11 @@ type
     Property shareMode : String Index 8 Read FshareMode Write SetshareMode;
   end;
   TSharedDriveFileClass = Class of TSharedDriveFile;
-  
+
   { --------------------------------------------------------------------
     TDate
     --------------------------------------------------------------------}
-  
+
   TDate = Class(TGoogleBaseObject)
   Private
     Fyear : integer;
@@ -759,11 +759,11 @@ type
     Property day : integer Index 16 Read Fday Write Setday;
   end;
   TDateClass = Class of TDate;
-  
+
   { --------------------------------------------------------------------
     TTimeOfDay
     --------------------------------------------------------------------}
-  
+
   TTimeOfDay = Class(TGoogleBaseObject)
   Private
     Fhours : integer;
@@ -784,11 +784,11 @@ type
     Property nanos : integer Index 24 Read Fnanos Write Setnanos;
   end;
   TTimeOfDayClass = Class of TTimeOfDay;
-  
+
   { --------------------------------------------------------------------
     TAssignment
     --------------------------------------------------------------------}
-  
+
   TAssignment = Class(TGoogleBaseObject)
   Private
     FstudentWorkFolder : TDriveFolder;
@@ -800,11 +800,11 @@ type
     Property studentWorkFolder : TDriveFolder Index 0 Read FstudentWorkFolder Write SetstudentWorkFolder;
   end;
   TAssignmentClass = Class of TAssignment;
-  
+
   { --------------------------------------------------------------------
     TMultipleChoiceQuestion
     --------------------------------------------------------------------}
-  
+
   TMultipleChoiceQuestion = Class(TGoogleBaseObject)
   Private
     Fchoices : TStringArray;
@@ -820,11 +820,11 @@ type
     Property choices : TStringArray Index 0 Read Fchoices Write Setchoices;
   end;
   TMultipleChoiceQuestionClass = Class of TMultipleChoiceQuestion;
-  
+
   { --------------------------------------------------------------------
     TListCourseWorkResponse
     --------------------------------------------------------------------}
-  
+
   TListCourseWorkResponse = Class(TGoogleBaseObject)
   Private
     FcourseWork : TListCourseWorkResponseTypecourseWorkArray;
@@ -843,11 +843,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListCourseWorkResponseClass = Class of TListCourseWorkResponse;
-  
+
   { --------------------------------------------------------------------
     TStudentSubmission
     --------------------------------------------------------------------}
-  
+
   TStudentSubmission = Class(TGoogleBaseObject)
   Private
     FcourseId : String;
@@ -904,11 +904,11 @@ type
     Property multipleChoiceSubmission : TMultipleChoiceSubmission Index 120 Read FmultipleChoiceSubmission Write SetmultipleChoiceSubmission;
   end;
   TStudentSubmissionClass = Class of TStudentSubmission;
-  
+
   { --------------------------------------------------------------------
     TAssignmentSubmission
     --------------------------------------------------------------------}
-  
+
   TAssignmentSubmission = Class(TGoogleBaseObject)
   Private
     Fattachments : TAssignmentSubmissionTypeattachmentsArray;
@@ -924,11 +924,11 @@ type
     Property attachments : TAssignmentSubmissionTypeattachmentsArray Index 0 Read Fattachments Write Setattachments;
   end;
   TAssignmentSubmissionClass = Class of TAssignmentSubmission;
-  
+
   { --------------------------------------------------------------------
     TAttachment
     --------------------------------------------------------------------}
-  
+
   TAttachment = Class(TGoogleBaseObject)
   Private
     FdriveFile : TDriveFile;
@@ -949,11 +949,11 @@ type
     Property form : TForm Index 24 Read Fform Write Setform;
   end;
   TAttachmentClass = Class of TAttachment;
-  
+
   { --------------------------------------------------------------------
     TShortAnswerSubmission
     --------------------------------------------------------------------}
-  
+
   TShortAnswerSubmission = Class(TGoogleBaseObject)
   Private
     Fanswer : String;
@@ -965,11 +965,11 @@ type
     Property answer : String Index 0 Read Fanswer Write Setanswer;
   end;
   TShortAnswerSubmissionClass = Class of TShortAnswerSubmission;
-  
+
   { --------------------------------------------------------------------
     TMultipleChoiceSubmission
     --------------------------------------------------------------------}
-  
+
   TMultipleChoiceSubmission = Class(TGoogleBaseObject)
   Private
     Fanswer : String;
@@ -981,11 +981,11 @@ type
     Property answer : String Index 0 Read Fanswer Write Setanswer;
   end;
   TMultipleChoiceSubmissionClass = Class of TMultipleChoiceSubmission;
-  
+
   { --------------------------------------------------------------------
     TListStudentSubmissionsResponse
     --------------------------------------------------------------------}
-  
+
   TListStudentSubmissionsResponse = Class(TGoogleBaseObject)
   Private
     FstudentSubmissions : TListStudentSubmissionsResponseTypestudentSubmissionsArray;
@@ -1004,11 +1004,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListStudentSubmissionsResponseClass = Class of TListStudentSubmissionsResponse;
-  
+
   { --------------------------------------------------------------------
     TTurnInStudentSubmissionRequest
     --------------------------------------------------------------------}
-  
+
   TTurnInStudentSubmissionRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1017,11 +1017,11 @@ type
   Published
   end;
   TTurnInStudentSubmissionRequestClass = Class of TTurnInStudentSubmissionRequest;
-  
+
   { --------------------------------------------------------------------
     TReclaimStudentSubmissionRequest
     --------------------------------------------------------------------}
-  
+
   TReclaimStudentSubmissionRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1030,11 +1030,11 @@ type
   Published
   end;
   TReclaimStudentSubmissionRequestClass = Class of TReclaimStudentSubmissionRequest;
-  
+
   { --------------------------------------------------------------------
     TReturnStudentSubmissionRequest
     --------------------------------------------------------------------}
-  
+
   TReturnStudentSubmissionRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -1043,11 +1043,11 @@ type
   Published
   end;
   TReturnStudentSubmissionRequestClass = Class of TReturnStudentSubmissionRequest;
-  
+
   { --------------------------------------------------------------------
     TModifyAttachmentsRequest
     --------------------------------------------------------------------}
-  
+
   TModifyAttachmentsRequest = Class(TGoogleBaseObject)
   Private
     FaddAttachments : TModifyAttachmentsRequestTypeaddAttachmentsArray;
@@ -1063,19 +1063,19 @@ type
     Property addAttachments : TModifyAttachmentsRequestTypeaddAttachmentsArray Index 0 Read FaddAttachments Write SetaddAttachments;
   end;
   TModifyAttachmentsRequestClass = Class of TModifyAttachmentsRequest;
-  
+
   { --------------------------------------------------------------------
     TCoursesAliasesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCoursesAliasesResource, method List
-  
+
   TCoursesAliasesListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TCoursesAliasesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1085,20 +1085,20 @@ type
     Function List(courseId: string; AQuery : string  = '') : TListCourseAliasesResponse;
     Function List(courseId: string; AQuery : TCoursesAliaseslistOptions) : TListCourseAliasesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCoursesTeachersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCoursesTeachersResource, method List
-  
+
   TCoursesTeachersListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TCoursesTeachersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1109,27 +1109,27 @@ type
     Function List(courseId: string; AQuery : string  = '') : TListTeachersResponse;
     Function List(courseId: string; AQuery : TCoursesTeacherslistOptions) : TListTeachersResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCoursesStudentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCoursesStudentsResource, method Create
-  
+
   TCoursesStudentsCreateOptions = Record
     enrollmentCode : String;
   end;
-  
-  
+
+
   //Optional query Options for TCoursesStudentsResource, method List
-  
+
   TCoursesStudentsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TCoursesStudentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1141,22 +1141,22 @@ type
     Function List(courseId: string; AQuery : string  = '') : TListStudentsResponse;
     Function List(courseId: string; AQuery : TCoursesStudentslistOptions) : TListStudentsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCoursesCourseWorkStudentSubmissionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCoursesCourseWorkStudentSubmissionsResource, method Patch
-  
+
   TCoursesCourseWorkStudentSubmissionsPatchOptions = Record
     updateMask : String;
   end;
-  
-  
+
+
   //Optional query Options for TCoursesCourseWorkStudentSubmissionsResource, method List
-  
+
   TCoursesCourseWorkStudentSubmissionsListOptions = Record
     userId : String;
     states : String;
@@ -1164,7 +1164,7 @@ type
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TCoursesCourseWorkStudentSubmissionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1179,22 +1179,22 @@ type
     Function Return(courseId: string; courseWorkId: string; id: string; aReturnStudentSubmissionRequest : TReturnStudentSubmissionRequest) : TEmpty;
     Function ModifyAttachments(courseId: string; courseWorkId: string; id: string; aModifyAttachmentsRequest : TModifyAttachmentsRequest) : TStudentSubmission;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCoursesCourseWorkResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCoursesCourseWorkResource, method List
-  
+
   TCoursesCourseWorkListOptions = Record
     courseWorkStates : String;
     orderBy : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TCoursesCourseWorkResource = Class(TGoogleResource)
   Private
     FStudentSubmissionsInstance : TCoursesCourseWorkStudentSubmissionsResource;
@@ -1210,29 +1210,29 @@ type
     Function CreateStudentSubmissionsResource : TCoursesCourseWorkStudentSubmissionsResource;virtual;overload;
     Property StudentSubmissionsResource : TCoursesCourseWorkStudentSubmissionsResource Read GetStudentSubmissionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCoursesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCoursesResource, method Patch
-  
+
   TCoursesPatchOptions = Record
     updateMask : String;
   end;
-  
-  
+
+
   //Optional query Options for TCoursesResource, method List
-  
+
   TCoursesListOptions = Record
     studentId : String;
     teacherId : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TCoursesResource = Class(TGoogleResource)
   Private
     FAliasesInstance : TCoursesAliasesResource;
@@ -1272,22 +1272,22 @@ type
     Property CourseWorkStudentSubmissionsResource : TCoursesCourseWorkStudentSubmissionsResource Read GetCourseWorkStudentSubmissionsInstance;
     Property CourseWorkResource : TCoursesCourseWorkResource Read GetCourseWorkInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TInvitationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TInvitationsResource, method List
-  
+
   TInvitationsListOptions = Record
     userId : String;
     courseId : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TInvitationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1299,24 +1299,24 @@ type
     Function List(AQuery : TInvitationslistOptions) : TListInvitationsResponse;
     Function Accept(id: string) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUserProfilesResource
     --------------------------------------------------------------------}
-  
+
   TUserProfilesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(userId: string) : TUserProfile;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TClassroomAPI
     --------------------------------------------------------------------}
-  
+
   TClassroomAPI = Class(TGoogleAPI)
   Private
     FCoursesAliasesInstance : TCoursesAliasesResource;
@@ -1393,7 +1393,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCourse.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCourse.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1403,7 +1403,7 @@ end;
 
 
 
-Procedure TCourse.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCourse.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1413,7 +1413,7 @@ end;
 
 
 
-Procedure TCourse.Setsection(AIndex : Integer; const AValue : String); 
+Procedure TCourse.Setsection(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsection=AValue) then exit;
@@ -1423,7 +1423,7 @@ end;
 
 
 
-Procedure TCourse.SetdescriptionHeading(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetdescriptionHeading(AIndex : Integer; const AValue : String);
 
 begin
   If (FdescriptionHeading=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 
 
-Procedure TCourse.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TCourse.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TCourse.Setroom(AIndex : Integer; const AValue : String); 
+Procedure TCourse.Setroom(AIndex : Integer; const AValue : String);
 
 begin
   If (Froom=AValue) then exit;
@@ -1453,7 +1453,7 @@ end;
 
 
 
-Procedure TCourse.SetownerId(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetownerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FownerId=AValue) then exit;
@@ -1463,7 +1463,7 @@ end;
 
 
 
-Procedure TCourse.SetcreationTime(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetcreationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -1473,7 +1473,7 @@ end;
 
 
 
-Procedure TCourse.SetupdateTime(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetupdateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -1483,7 +1483,7 @@ end;
 
 
 
-Procedure TCourse.SetenrollmentCode(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetenrollmentCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FenrollmentCode=AValue) then exit;
@@ -1493,7 +1493,7 @@ end;
 
 
 
-Procedure TCourse.SetcourseState(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetcourseState(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseState=AValue) then exit;
@@ -1503,7 +1503,7 @@ end;
 
 
 
-Procedure TCourse.SetalternateLink(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetalternateLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateLink=AValue) then exit;
@@ -1513,7 +1513,7 @@ end;
 
 
 
-Procedure TCourse.SetteacherGroupEmail(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetteacherGroupEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FteacherGroupEmail=AValue) then exit;
@@ -1523,7 +1523,7 @@ end;
 
 
 
-Procedure TCourse.SetcourseGroupEmail(AIndex : Integer; const AValue : String); 
+Procedure TCourse.SetcourseGroupEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseGroupEmail=AValue) then exit;
@@ -1533,7 +1533,7 @@ end;
 
 
 
-Procedure TCourse.SetteacherFolder(AIndex : Integer; const AValue : TDriveFolder); 
+Procedure TCourse.SetteacherFolder(AIndex : Integer; const AValue : TDriveFolder);
 
 begin
   If (FteacherFolder=AValue) then exit;
@@ -1543,7 +1543,7 @@ end;
 
 
 
-Procedure TCourse.SetcourseMaterialSets(AIndex : Integer; const AValue : TCourseTypecourseMaterialSetsArray); 
+Procedure TCourse.SetcourseMaterialSets(AIndex : Integer; const AValue : TCourseTypecourseMaterialSetsArray);
 
 begin
   If (FcourseMaterialSets=AValue) then exit;
@@ -1554,7 +1554,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCourse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCourse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1573,7 +1573,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDriveFolder.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDriveFolder.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1583,7 +1583,7 @@ end;
 
 
 
-Procedure TDriveFolder.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TDriveFolder.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1593,7 +1593,7 @@ end;
 
 
 
-Procedure TDriveFolder.SetalternateLink(AIndex : Integer; const AValue : String); 
+Procedure TDriveFolder.SetalternateLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateLink=AValue) then exit;
@@ -1610,7 +1610,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCourseMaterialSet.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TCourseMaterialSet.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1620,7 +1620,7 @@ end;
 
 
 
-Procedure TCourseMaterialSet.Setmaterials(AIndex : Integer; const AValue : TCourseMaterialSetTypematerialsArray); 
+Procedure TCourseMaterialSet.Setmaterials(AIndex : Integer; const AValue : TCourseMaterialSetTypematerialsArray);
 
 begin
   If (Fmaterials=AValue) then exit;
@@ -1631,7 +1631,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCourseMaterialSet.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCourseMaterialSet.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1650,7 +1650,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCourseMaterial.SetdriveFile(AIndex : Integer; const AValue : TDriveFile); 
+Procedure TCourseMaterial.SetdriveFile(AIndex : Integer; const AValue : TDriveFile);
 
 begin
   If (FdriveFile=AValue) then exit;
@@ -1660,7 +1660,7 @@ end;
 
 
 
-Procedure TCourseMaterial.SetyouTubeVideo(AIndex : Integer; const AValue : TYouTubeVideo); 
+Procedure TCourseMaterial.SetyouTubeVideo(AIndex : Integer; const AValue : TYouTubeVideo);
 
 begin
   If (FyouTubeVideo=AValue) then exit;
@@ -1670,7 +1670,7 @@ end;
 
 
 
-Procedure TCourseMaterial.Setlink(AIndex : Integer; const AValue : TLink); 
+Procedure TCourseMaterial.Setlink(AIndex : Integer; const AValue : TLink);
 
 begin
   If (Flink=AValue) then exit;
@@ -1680,7 +1680,7 @@ end;
 
 
 
-Procedure TCourseMaterial.Setform(AIndex : Integer; const AValue : TForm); 
+Procedure TCourseMaterial.Setform(AIndex : Integer; const AValue : TForm);
 
 begin
   If (Fform=AValue) then exit;
@@ -1697,7 +1697,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDriveFile.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDriveFile.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1707,7 +1707,7 @@ end;
 
 
 
-Procedure TDriveFile.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TDriveFile.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1717,7 +1717,7 @@ end;
 
 
 
-Procedure TDriveFile.SetalternateLink(AIndex : Integer; const AValue : String); 
+Procedure TDriveFile.SetalternateLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateLink=AValue) then exit;
@@ -1727,7 +1727,7 @@ end;
 
 
 
-Procedure TDriveFile.SetthumbnailUrl(AIndex : Integer; const AValue : String); 
+Procedure TDriveFile.SetthumbnailUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FthumbnailUrl=AValue) then exit;
@@ -1744,7 +1744,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TYouTubeVideo.Setid(AIndex : Integer; const AValue : String); 
+Procedure TYouTubeVideo.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1754,7 +1754,7 @@ end;
 
 
 
-Procedure TYouTubeVideo.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TYouTubeVideo.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1764,7 +1764,7 @@ end;
 
 
 
-Procedure TYouTubeVideo.SetalternateLink(AIndex : Integer; const AValue : String); 
+Procedure TYouTubeVideo.SetalternateLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateLink=AValue) then exit;
@@ -1774,7 +1774,7 @@ end;
 
 
 
-Procedure TYouTubeVideo.SetthumbnailUrl(AIndex : Integer; const AValue : String); 
+Procedure TYouTubeVideo.SetthumbnailUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FthumbnailUrl=AValue) then exit;
@@ -1791,7 +1791,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLink.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TLink.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1801,7 +1801,7 @@ end;
 
 
 
-Procedure TLink.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TLink.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1811,7 +1811,7 @@ end;
 
 
 
-Procedure TLink.SetthumbnailUrl(AIndex : Integer; const AValue : String); 
+Procedure TLink.SetthumbnailUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FthumbnailUrl=AValue) then exit;
@@ -1828,7 +1828,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TForm.SetformUrl(AIndex : Integer; const AValue : String); 
+Procedure TForm.SetformUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FformUrl=AValue) then exit;
@@ -1838,7 +1838,7 @@ end;
 
 
 
-Procedure TForm.SetresponseUrl(AIndex : Integer; const AValue : String); 
+Procedure TForm.SetresponseUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FresponseUrl=AValue) then exit;
@@ -1848,7 +1848,7 @@ end;
 
 
 
-Procedure TForm.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TForm.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1858,7 +1858,7 @@ end;
 
 
 
-Procedure TForm.SetthumbnailUrl(AIndex : Integer; const AValue : String); 
+Procedure TForm.SetthumbnailUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FthumbnailUrl=AValue) then exit;
@@ -1882,7 +1882,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCoursesResponse.Setcourses(AIndex : Integer; const AValue : TListCoursesResponseTypecoursesArray); 
+Procedure TListCoursesResponse.Setcourses(AIndex : Integer; const AValue : TListCoursesResponseTypecoursesArray);
 
 begin
   If (Fcourses=AValue) then exit;
@@ -1892,7 +1892,7 @@ end;
 
 
 
-Procedure TListCoursesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListCoursesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1903,7 +1903,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListCoursesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListCoursesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1922,7 +1922,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCourseAlias.Setalias(AIndex : Integer; const AValue : String); 
+Procedure TCourseAlias.Setalias(AIndex : Integer; const AValue : String);
 
 begin
   If (Falias=AValue) then exit;
@@ -1939,7 +1939,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCourseAliasesResponse.Setaliases(AIndex : Integer; const AValue : TListCourseAliasesResponseTypealiasesArray); 
+Procedure TListCourseAliasesResponse.Setaliases(AIndex : Integer; const AValue : TListCourseAliasesResponseTypealiasesArray);
 
 begin
   If (Faliases=AValue) then exit;
@@ -1949,7 +1949,7 @@ end;
 
 
 
-Procedure TListCourseAliasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListCourseAliasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1960,7 +1960,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListCourseAliasesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListCourseAliasesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1979,7 +1979,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInvitation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TInvitation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1989,7 +1989,7 @@ end;
 
 
 
-Procedure TInvitation.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TInvitation.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -1999,7 +1999,7 @@ end;
 
 
 
-Procedure TInvitation.SetcourseId(AIndex : Integer; const AValue : String); 
+Procedure TInvitation.SetcourseId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseId=AValue) then exit;
@@ -2009,7 +2009,7 @@ end;
 
 
 
-Procedure TInvitation.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TInvitation.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -2026,7 +2026,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListInvitationsResponse.Setinvitations(AIndex : Integer; const AValue : TListInvitationsResponseTypeinvitationsArray); 
+Procedure TListInvitationsResponse.Setinvitations(AIndex : Integer; const AValue : TListInvitationsResponseTypeinvitationsArray);
 
 begin
   If (Finvitations=AValue) then exit;
@@ -2036,7 +2036,7 @@ end;
 
 
 
-Procedure TListInvitationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListInvitationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2047,7 +2047,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListInvitationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListInvitationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2066,7 +2066,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserProfile.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUserProfile.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2076,7 +2076,7 @@ end;
 
 
 
-Procedure TUserProfile.Setname(AIndex : Integer; const AValue : TName); 
+Procedure TUserProfile.Setname(AIndex : Integer; const AValue : TName);
 
 begin
   If (Fname=AValue) then exit;
@@ -2086,7 +2086,7 @@ end;
 
 
 
-Procedure TUserProfile.SetemailAddress(AIndex : Integer; const AValue : String); 
+Procedure TUserProfile.SetemailAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -2096,7 +2096,7 @@ end;
 
 
 
-Procedure TUserProfile.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TUserProfile.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -2106,7 +2106,7 @@ end;
 
 
 
-Procedure TUserProfile.Setpermissions(AIndex : Integer; const AValue : TUserProfileTypepermissionsArray); 
+Procedure TUserProfile.Setpermissions(AIndex : Integer; const AValue : TUserProfileTypepermissionsArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -2117,7 +2117,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUserProfile.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUserProfile.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2136,7 +2136,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TName.SetgivenName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetgivenName(AIndex : Integer; const AValue : String);
 
 begin
   If (FgivenName=AValue) then exit;
@@ -2146,7 +2146,7 @@ end;
 
 
 
-Procedure TName.SetfamilyName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetfamilyName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -2156,7 +2156,7 @@ end;
 
 
 
-Procedure TName.SetfullName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetfullName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfullName=AValue) then exit;
@@ -2173,7 +2173,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGlobalPermission.Setpermission(AIndex : Integer; const AValue : String); 
+Procedure TGlobalPermission.Setpermission(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpermission=AValue) then exit;
@@ -2190,7 +2190,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeacher.SetcourseId(AIndex : Integer; const AValue : String); 
+Procedure TTeacher.SetcourseId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseId=AValue) then exit;
@@ -2200,7 +2200,7 @@ end;
 
 
 
-Procedure TTeacher.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TTeacher.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -2210,7 +2210,7 @@ end;
 
 
 
-Procedure TTeacher.Setprofile(AIndex : Integer; const AValue : TUserProfile); 
+Procedure TTeacher.Setprofile(AIndex : Integer; const AValue : TUserProfile);
 
 begin
   If (Fprofile=AValue) then exit;
@@ -2227,7 +2227,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTeachersResponse.Setteachers(AIndex : Integer; const AValue : TListTeachersResponseTypeteachersArray); 
+Procedure TListTeachersResponse.Setteachers(AIndex : Integer; const AValue : TListTeachersResponseTypeteachersArray);
 
 begin
   If (Fteachers=AValue) then exit;
@@ -2237,7 +2237,7 @@ end;
 
 
 
-Procedure TListTeachersResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListTeachersResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2248,7 +2248,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListTeachersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListTeachersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2267,7 +2267,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStudent.SetcourseId(AIndex : Integer; const AValue : String); 
+Procedure TStudent.SetcourseId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseId=AValue) then exit;
@@ -2277,7 +2277,7 @@ end;
 
 
 
-Procedure TStudent.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TStudent.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -2287,7 +2287,7 @@ end;
 
 
 
-Procedure TStudent.Setprofile(AIndex : Integer; const AValue : TUserProfile); 
+Procedure TStudent.Setprofile(AIndex : Integer; const AValue : TUserProfile);
 
 begin
   If (Fprofile=AValue) then exit;
@@ -2297,7 +2297,7 @@ end;
 
 
 
-Procedure TStudent.SetstudentWorkFolder(AIndex : Integer; const AValue : TDriveFolder); 
+Procedure TStudent.SetstudentWorkFolder(AIndex : Integer; const AValue : TDriveFolder);
 
 begin
   If (FstudentWorkFolder=AValue) then exit;
@@ -2314,7 +2314,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListStudentsResponse.Setstudents(AIndex : Integer; const AValue : TListStudentsResponseTypestudentsArray); 
+Procedure TListStudentsResponse.Setstudents(AIndex : Integer; const AValue : TListStudentsResponseTypestudentsArray);
 
 begin
   If (Fstudents=AValue) then exit;
@@ -2324,7 +2324,7 @@ end;
 
 
 
-Procedure TListStudentsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListStudentsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2335,7 +2335,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListStudentsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListStudentsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2354,7 +2354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCourseWork.SetcourseId(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.SetcourseId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseId=AValue) then exit;
@@ -2364,7 +2364,7 @@ end;
 
 
 
-Procedure TCourseWork.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2374,7 +2374,7 @@ end;
 
 
 
-Procedure TCourseWork.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2384,7 +2384,7 @@ end;
 
 
 
-Procedure TCourseWork.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2394,7 +2394,7 @@ end;
 
 
 
-Procedure TCourseWork.Setmaterials(AIndex : Integer; const AValue : TCourseWorkTypematerialsArray); 
+Procedure TCourseWork.Setmaterials(AIndex : Integer; const AValue : TCourseWorkTypematerialsArray);
 
 begin
   If (Fmaterials=AValue) then exit;
@@ -2404,7 +2404,7 @@ end;
 
 
 
-Procedure TCourseWork.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -2414,7 +2414,7 @@ end;
 
 
 
-Procedure TCourseWork.SetalternateLink(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.SetalternateLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateLink=AValue) then exit;
@@ -2424,7 +2424,7 @@ end;
 
 
 
-Procedure TCourseWork.SetcreationTime(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.SetcreationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -2434,7 +2434,7 @@ end;
 
 
 
-Procedure TCourseWork.SetupdateTime(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.SetupdateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -2444,7 +2444,7 @@ end;
 
 
 
-Procedure TCourseWork.SetdueDate(AIndex : Integer; const AValue : TDate); 
+Procedure TCourseWork.SetdueDate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (FdueDate=AValue) then exit;
@@ -2454,7 +2454,7 @@ end;
 
 
 
-Procedure TCourseWork.SetdueTime(AIndex : Integer; const AValue : TTimeOfDay); 
+Procedure TCourseWork.SetdueTime(AIndex : Integer; const AValue : TTimeOfDay);
 
 begin
   If (FdueTime=AValue) then exit;
@@ -2464,7 +2464,7 @@ end;
 
 
 
-Procedure TCourseWork.SetmaxPoints(AIndex : Integer; const AValue : double); 
+Procedure TCourseWork.SetmaxPoints(AIndex : Integer; const AValue : double);
 
 begin
   If (FmaxPoints=AValue) then exit;
@@ -2474,7 +2474,7 @@ end;
 
 
 
-Procedure TCourseWork.SetworkType(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.SetworkType(AIndex : Integer; const AValue : String);
 
 begin
   If (FworkType=AValue) then exit;
@@ -2484,7 +2484,7 @@ end;
 
 
 
-Procedure TCourseWork.SetassociatedWithDeveloper(AIndex : Integer; const AValue : boolean); 
+Procedure TCourseWork.SetassociatedWithDeveloper(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FassociatedWithDeveloper=AValue) then exit;
@@ -2494,7 +2494,7 @@ end;
 
 
 
-Procedure TCourseWork.SetsubmissionModificationMode(AIndex : Integer; const AValue : String); 
+Procedure TCourseWork.SetsubmissionModificationMode(AIndex : Integer; const AValue : String);
 
 begin
   If (FsubmissionModificationMode=AValue) then exit;
@@ -2504,7 +2504,7 @@ end;
 
 
 
-Procedure TCourseWork.Setassignment(AIndex : Integer; const AValue : TAssignment); 
+Procedure TCourseWork.Setassignment(AIndex : Integer; const AValue : TAssignment);
 
 begin
   If (Fassignment=AValue) then exit;
@@ -2514,7 +2514,7 @@ end;
 
 
 
-Procedure TCourseWork.SetmultipleChoiceQuestion(AIndex : Integer; const AValue : TMultipleChoiceQuestion); 
+Procedure TCourseWork.SetmultipleChoiceQuestion(AIndex : Integer; const AValue : TMultipleChoiceQuestion);
 
 begin
   If (FmultipleChoiceQuestion=AValue) then exit;
@@ -2525,7 +2525,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCourseWork.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCourseWork.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2544,7 +2544,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMaterial.SetdriveFile(AIndex : Integer; const AValue : TSharedDriveFile); 
+Procedure TMaterial.SetdriveFile(AIndex : Integer; const AValue : TSharedDriveFile);
 
 begin
   If (FdriveFile=AValue) then exit;
@@ -2554,7 +2554,7 @@ end;
 
 
 
-Procedure TMaterial.SetyoutubeVideo(AIndex : Integer; const AValue : TYouTubeVideo); 
+Procedure TMaterial.SetyoutubeVideo(AIndex : Integer; const AValue : TYouTubeVideo);
 
 begin
   If (FyoutubeVideo=AValue) then exit;
@@ -2564,7 +2564,7 @@ end;
 
 
 
-Procedure TMaterial.Setlink(AIndex : Integer; const AValue : TLink); 
+Procedure TMaterial.Setlink(AIndex : Integer; const AValue : TLink);
 
 begin
   If (Flink=AValue) then exit;
@@ -2574,7 +2574,7 @@ end;
 
 
 
-Procedure TMaterial.Setform(AIndex : Integer; const AValue : TForm); 
+Procedure TMaterial.Setform(AIndex : Integer; const AValue : TForm);
 
 begin
   If (Fform=AValue) then exit;
@@ -2591,7 +2591,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSharedDriveFile.SetdriveFile(AIndex : Integer; const AValue : TDriveFile); 
+Procedure TSharedDriveFile.SetdriveFile(AIndex : Integer; const AValue : TDriveFile);
 
 begin
   If (FdriveFile=AValue) then exit;
@@ -2601,7 +2601,7 @@ end;
 
 
 
-Procedure TSharedDriveFile.SetshareMode(AIndex : Integer; const AValue : String); 
+Procedure TSharedDriveFile.SetshareMode(AIndex : Integer; const AValue : String);
 
 begin
   If (FshareMode=AValue) then exit;
@@ -2618,7 +2618,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDate.Setyear(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setyear(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fyear=AValue) then exit;
@@ -2628,7 +2628,7 @@ end;
 
 
 
-Procedure TDate.Setmonth(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setmonth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fmonth=AValue) then exit;
@@ -2638,7 +2638,7 @@ end;
 
 
 
-Procedure TDate.Setday(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setday(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fday=AValue) then exit;
@@ -2655,7 +2655,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeOfDay.Sethours(AIndex : Integer; const AValue : integer); 
+Procedure TTimeOfDay.Sethours(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fhours=AValue) then exit;
@@ -2665,7 +2665,7 @@ end;
 
 
 
-Procedure TTimeOfDay.Setminutes(AIndex : Integer; const AValue : integer); 
+Procedure TTimeOfDay.Setminutes(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fminutes=AValue) then exit;
@@ -2675,7 +2675,7 @@ end;
 
 
 
-Procedure TTimeOfDay.Setseconds(AIndex : Integer; const AValue : integer); 
+Procedure TTimeOfDay.Setseconds(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fseconds=AValue) then exit;
@@ -2685,7 +2685,7 @@ end;
 
 
 
-Procedure TTimeOfDay.Setnanos(AIndex : Integer; const AValue : integer); 
+Procedure TTimeOfDay.Setnanos(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fnanos=AValue) then exit;
@@ -2702,7 +2702,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAssignment.SetstudentWorkFolder(AIndex : Integer; const AValue : TDriveFolder); 
+Procedure TAssignment.SetstudentWorkFolder(AIndex : Integer; const AValue : TDriveFolder);
 
 begin
   If (FstudentWorkFolder=AValue) then exit;
@@ -2719,7 +2719,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMultipleChoiceQuestion.Setchoices(AIndex : Integer; const AValue : TStringArray); 
+Procedure TMultipleChoiceQuestion.Setchoices(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fchoices=AValue) then exit;
@@ -2730,7 +2730,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMultipleChoiceQuestion.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMultipleChoiceQuestion.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2749,7 +2749,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCourseWorkResponse.SetcourseWork(AIndex : Integer; const AValue : TListCourseWorkResponseTypecourseWorkArray); 
+Procedure TListCourseWorkResponse.SetcourseWork(AIndex : Integer; const AValue : TListCourseWorkResponseTypecourseWorkArray);
 
 begin
   If (FcourseWork=AValue) then exit;
@@ -2759,7 +2759,7 @@ end;
 
 
 
-Procedure TListCourseWorkResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListCourseWorkResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2770,7 +2770,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListCourseWorkResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListCourseWorkResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2789,7 +2789,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStudentSubmission.SetcourseId(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetcourseId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseId=AValue) then exit;
@@ -2799,7 +2799,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetcourseWorkId(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetcourseWorkId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseWorkId=AValue) then exit;
@@ -2809,7 +2809,7 @@ end;
 
 
 
-Procedure TStudentSubmission.Setid(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2819,7 +2819,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -2829,7 +2829,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetcreationTime(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetcreationTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -2839,7 +2839,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetupdateTime(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetupdateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -2849,7 +2849,7 @@ end;
 
 
 
-Procedure TStudentSubmission.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -2859,7 +2859,7 @@ end;
 
 
 
-Procedure TStudentSubmission.Setlate(AIndex : Integer; const AValue : boolean); 
+Procedure TStudentSubmission.Setlate(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Flate=AValue) then exit;
@@ -2869,7 +2869,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetdraftGrade(AIndex : Integer; const AValue : double); 
+Procedure TStudentSubmission.SetdraftGrade(AIndex : Integer; const AValue : double);
 
 begin
   If (FdraftGrade=AValue) then exit;
@@ -2879,7 +2879,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetassignedGrade(AIndex : Integer; const AValue : double); 
+Procedure TStudentSubmission.SetassignedGrade(AIndex : Integer; const AValue : double);
 
 begin
   If (FassignedGrade=AValue) then exit;
@@ -2889,7 +2889,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetalternateLink(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetalternateLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FalternateLink=AValue) then exit;
@@ -2899,7 +2899,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetcourseWorkType(AIndex : Integer; const AValue : String); 
+Procedure TStudentSubmission.SetcourseWorkType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcourseWorkType=AValue) then exit;
@@ -2909,7 +2909,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetassociatedWithDeveloper(AIndex : Integer; const AValue : boolean); 
+Procedure TStudentSubmission.SetassociatedWithDeveloper(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FassociatedWithDeveloper=AValue) then exit;
@@ -2919,7 +2919,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetassignmentSubmission(AIndex : Integer; const AValue : TAssignmentSubmission); 
+Procedure TStudentSubmission.SetassignmentSubmission(AIndex : Integer; const AValue : TAssignmentSubmission);
 
 begin
   If (FassignmentSubmission=AValue) then exit;
@@ -2929,7 +2929,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetshortAnswerSubmission(AIndex : Integer; const AValue : TShortAnswerSubmission); 
+Procedure TStudentSubmission.SetshortAnswerSubmission(AIndex : Integer; const AValue : TShortAnswerSubmission);
 
 begin
   If (FshortAnswerSubmission=AValue) then exit;
@@ -2939,7 +2939,7 @@ end;
 
 
 
-Procedure TStudentSubmission.SetmultipleChoiceSubmission(AIndex : Integer; const AValue : TMultipleChoiceSubmission); 
+Procedure TStudentSubmission.SetmultipleChoiceSubmission(AIndex : Integer; const AValue : TMultipleChoiceSubmission);
 
 begin
   If (FmultipleChoiceSubmission=AValue) then exit;
@@ -2956,7 +2956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAssignmentSubmission.Setattachments(AIndex : Integer; const AValue : TAssignmentSubmissionTypeattachmentsArray); 
+Procedure TAssignmentSubmission.Setattachments(AIndex : Integer; const AValue : TAssignmentSubmissionTypeattachmentsArray);
 
 begin
   If (Fattachments=AValue) then exit;
@@ -2967,7 +2967,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAssignmentSubmission.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAssignmentSubmission.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2986,7 +2986,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAttachment.SetdriveFile(AIndex : Integer; const AValue : TDriveFile); 
+Procedure TAttachment.SetdriveFile(AIndex : Integer; const AValue : TDriveFile);
 
 begin
   If (FdriveFile=AValue) then exit;
@@ -2996,7 +2996,7 @@ end;
 
 
 
-Procedure TAttachment.SetyouTubeVideo(AIndex : Integer; const AValue : TYouTubeVideo); 
+Procedure TAttachment.SetyouTubeVideo(AIndex : Integer; const AValue : TYouTubeVideo);
 
 begin
   If (FyouTubeVideo=AValue) then exit;
@@ -3006,7 +3006,7 @@ end;
 
 
 
-Procedure TAttachment.Setlink(AIndex : Integer; const AValue : TLink); 
+Procedure TAttachment.Setlink(AIndex : Integer; const AValue : TLink);
 
 begin
   If (Flink=AValue) then exit;
@@ -3016,7 +3016,7 @@ end;
 
 
 
-Procedure TAttachment.Setform(AIndex : Integer; const AValue : TForm); 
+Procedure TAttachment.Setform(AIndex : Integer; const AValue : TForm);
 
 begin
   If (Fform=AValue) then exit;
@@ -3033,7 +3033,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TShortAnswerSubmission.Setanswer(AIndex : Integer; const AValue : String); 
+Procedure TShortAnswerSubmission.Setanswer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fanswer=AValue) then exit;
@@ -3050,7 +3050,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMultipleChoiceSubmission.Setanswer(AIndex : Integer; const AValue : String); 
+Procedure TMultipleChoiceSubmission.Setanswer(AIndex : Integer; const AValue : String);
 
 begin
   If (Fanswer=AValue) then exit;
@@ -3067,7 +3067,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListStudentSubmissionsResponse.SetstudentSubmissions(AIndex : Integer; const AValue : TListStudentSubmissionsResponseTypestudentSubmissionsArray); 
+Procedure TListStudentSubmissionsResponse.SetstudentSubmissions(AIndex : Integer; const AValue : TListStudentSubmissionsResponseTypestudentSubmissionsArray);
 
 begin
   If (FstudentSubmissions=AValue) then exit;
@@ -3077,7 +3077,7 @@ end;
 
 
 
-Procedure TListStudentSubmissionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListStudentSubmissionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3088,7 +3088,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListStudentSubmissionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListStudentSubmissionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3128,7 +3128,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyAttachmentsRequest.SetaddAttachments(AIndex : Integer; const AValue : TModifyAttachmentsRequestTypeaddAttachmentsArray); 
+Procedure TModifyAttachmentsRequest.SetaddAttachments(AIndex : Integer; const AValue : TModifyAttachmentsRequestTypeaddAttachmentsArray);
 
 begin
   If (FaddAttachments=AValue) then exit;
@@ -3139,7 +3139,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TModifyAttachmentsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TModifyAttachmentsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4200,7 +4200,7 @@ begin
   Result[11].Description:='View your course work and grades in Google Classroom';
   Result[12].Name:='https://www.googleapis.com/auth/classroom.student-submissions.students.readonly';
   Result[12].Description:='View course work and grades for students in the Google Classroom classes you teach or administer';
-  
+
 end;
 
 Class Function TClassroomAPI.APINeedsAuth : Boolean;

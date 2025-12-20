@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TTask = Class;
   TTaskQueue = Class;
@@ -28,11 +28,11 @@ type
   TTaskQueueTypestats = Class;
   TTasksTypeitemsArray = Array of TTask;
   TTasks2TypeitemsArray = Array of TTask;
-  
+
   { --------------------------------------------------------------------
     TTask
     --------------------------------------------------------------------}
-  
+
   TTask = Class(TGoogleBaseObject)
   Private
     FenqueueTimestamp : String;
@@ -65,11 +65,11 @@ type
     Property tag : String Index 56 Read Ftag Write Settag;
   end;
   TTaskClass = Class of TTask;
-  
+
   { --------------------------------------------------------------------
     TTaskQueueTypeacl
     --------------------------------------------------------------------}
-  
+
   TTaskQueueTypeacl = Class(TGoogleBaseObject)
   Private
     FadminEmails : TStringArray;
@@ -91,11 +91,11 @@ type
     Property producerEmails : TStringArray Index 16 Read FproducerEmails Write SetproducerEmails;
   end;
   TTaskQueueTypeaclClass = Class of TTaskQueueTypeacl;
-  
+
   { --------------------------------------------------------------------
     TTaskQueueTypestats
     --------------------------------------------------------------------}
-  
+
   TTaskQueueTypestats = Class(TGoogleBaseObject)
   Private
     FleasedLastHour : String;
@@ -116,11 +116,11 @@ type
     Property totalTasks : integer Index 24 Read FtotalTasks Write SettotalTasks;
   end;
   TTaskQueueTypestatsClass = Class of TTaskQueueTypestats;
-  
+
   { --------------------------------------------------------------------
     TTaskQueue
     --------------------------------------------------------------------}
-  
+
   TTaskQueue = Class(TGoogleBaseObject)
   Private
     Facl : TTaskQueueTypeacl;
@@ -144,11 +144,11 @@ type
     Property stats : TTaskQueueTypestats Index 32 Read Fstats Write Setstats;
   end;
   TTaskQueueClass = Class of TTaskQueue;
-  
+
   { --------------------------------------------------------------------
     TTasks
     --------------------------------------------------------------------}
-  
+
   TTasks = Class(TGoogleBaseObject)
   Private
     Fitems : TTasksTypeitemsArray;
@@ -167,11 +167,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTasksClass = Class of TTasks;
-  
+
   { --------------------------------------------------------------------
     TTasks2
     --------------------------------------------------------------------}
-  
+
   TTasks2 = Class(TGoogleBaseObject)
   Private
     Fitems : TTasks2TypeitemsArray;
@@ -190,18 +190,18 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTasks2Class = Class of TTasks2;
-  
+
   { --------------------------------------------------------------------
     TTaskqueuesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTaskqueuesResource, method Get
-  
+
   TTaskqueuesGetOptions = Record
     getStats : boolean;
   end;
-  
+
   TTaskqueuesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -209,36 +209,36 @@ type
     Function Get(project: string; taskqueue: string; AQuery : string  = '') : TTaskQueue;
     Function Get(project: string; taskqueue: string; AQuery : TTaskqueuesgetOptions) : TTaskQueue;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTasksResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTasksResource, method Lease
-  
+
   TTasksLeaseOptions = Record
     groupByTag : boolean;
     leaseSecs : integer;
     numTasks : integer;
     tag : String;
   end;
-  
-  
+
+
   //Optional query Options for TTasksResource, method Patch
-  
+
   TTasksPatchOptions = Record
     newLeaseSeconds : integer;
   end;
-  
-  
+
+
   //Optional query Options for TTasksResource, method Update
-  
+
   TTasksUpdateOptions = Record
     newLeaseSeconds : integer;
   end;
-  
+
   TTasksResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -254,12 +254,12 @@ type
     Function Update(project: string; task: string; taskqueue: string; aTask : TTask; AQuery : string  = '') : TTask;
     Function Update(project: string; task: string; taskqueue: string; aTask : TTask; AQuery : TTasksupdateOptions) : TTask;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTaskqueueAPI
     --------------------------------------------------------------------}
-  
+
   TTaskqueueAPI = Class(TGoogleAPI)
   Private
     FTaskqueuesInstance : TTaskqueuesResource;
@@ -306,7 +306,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TTask.SetenqueueTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TTask.SetenqueueTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FenqueueTimestamp=AValue) then exit;
@@ -316,7 +316,7 @@ end;
 
 
 
-Procedure TTask.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -326,7 +326,7 @@ end;
 
 
 
-Procedure TTask.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -336,7 +336,7 @@ end;
 
 
 
-Procedure TTask.SetleaseTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TTask.SetleaseTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FleaseTimestamp=AValue) then exit;
@@ -346,7 +346,7 @@ end;
 
 
 
-Procedure TTask.SetpayloadBase64(AIndex : Integer; const AValue : String); 
+Procedure TTask.SetpayloadBase64(AIndex : Integer; const AValue : String);
 
 begin
   If (FpayloadBase64=AValue) then exit;
@@ -356,7 +356,7 @@ end;
 
 
 
-Procedure TTask.SetqueueName(AIndex : Integer; const AValue : String); 
+Procedure TTask.SetqueueName(AIndex : Integer; const AValue : String);
 
 begin
   If (FqueueName=AValue) then exit;
@@ -366,7 +366,7 @@ end;
 
 
 
-Procedure TTask.Setretry_count(AIndex : Integer; const AValue : integer); 
+Procedure TTask.Setretry_count(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fretry_count=AValue) then exit;
@@ -376,7 +376,7 @@ end;
 
 
 
-Procedure TTask.Settag(AIndex : Integer; const AValue : String); 
+Procedure TTask.Settag(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftag=AValue) then exit;
@@ -393,7 +393,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueueTypeacl.SetadminEmails(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTaskQueueTypeacl.SetadminEmails(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FadminEmails=AValue) then exit;
@@ -403,7 +403,7 @@ end;
 
 
 
-Procedure TTaskQueueTypeacl.SetconsumerEmails(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTaskQueueTypeacl.SetconsumerEmails(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FconsumerEmails=AValue) then exit;
@@ -413,7 +413,7 @@ end;
 
 
 
-Procedure TTaskQueueTypeacl.SetproducerEmails(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTaskQueueTypeacl.SetproducerEmails(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FproducerEmails=AValue) then exit;
@@ -424,7 +424,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTaskQueueTypeacl.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTaskQueueTypeacl.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -445,7 +445,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueueTypestats.SetleasedLastHour(AIndex : Integer; const AValue : String); 
+Procedure TTaskQueueTypestats.SetleasedLastHour(AIndex : Integer; const AValue : String);
 
 begin
   If (FleasedLastHour=AValue) then exit;
@@ -455,7 +455,7 @@ end;
 
 
 
-Procedure TTaskQueueTypestats.SetleasedLastMinute(AIndex : Integer; const AValue : String); 
+Procedure TTaskQueueTypestats.SetleasedLastMinute(AIndex : Integer; const AValue : String);
 
 begin
   If (FleasedLastMinute=AValue) then exit;
@@ -465,7 +465,7 @@ end;
 
 
 
-Procedure TTaskQueueTypestats.SetoldestTask(AIndex : Integer; const AValue : String); 
+Procedure TTaskQueueTypestats.SetoldestTask(AIndex : Integer; const AValue : String);
 
 begin
   If (FoldestTask=AValue) then exit;
@@ -475,7 +475,7 @@ end;
 
 
 
-Procedure TTaskQueueTypestats.SettotalTasks(AIndex : Integer; const AValue : integer); 
+Procedure TTaskQueueTypestats.SettotalTasks(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalTasks=AValue) then exit;
@@ -492,7 +492,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueue.Setacl(AIndex : Integer; const AValue : TTaskQueueTypeacl); 
+Procedure TTaskQueue.Setacl(AIndex : Integer; const AValue : TTaskQueueTypeacl);
 
 begin
   If (Facl=AValue) then exit;
@@ -502,7 +502,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTaskQueue.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -512,7 +512,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTaskQueue.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -522,7 +522,7 @@ end;
 
 
 
-Procedure TTaskQueue.SetmaxLeases(AIndex : Integer; const AValue : integer); 
+Procedure TTaskQueue.SetmaxLeases(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxLeases=AValue) then exit;
@@ -532,7 +532,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setstats(AIndex : Integer; const AValue : TTaskQueueTypestats); 
+Procedure TTaskQueue.Setstats(AIndex : Integer; const AValue : TTaskQueueTypestats);
 
 begin
   If (Fstats=AValue) then exit;
@@ -549,7 +549,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks.Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray); 
+Procedure TTasks.Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -559,7 +559,7 @@ end;
 
 
 
-Procedure TTasks.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTasks.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -570,7 +570,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTasks.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTasks.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -589,7 +589,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks2.Setitems(AIndex : Integer; const AValue : TTasks2TypeitemsArray); 
+Procedure TTasks2.Setitems(AIndex : Integer; const AValue : TTasks2TypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -599,7 +599,7 @@ end;
 
 
 
-Procedure TTasks2.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTasks2.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -610,7 +610,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTasks2.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTasks2.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -947,7 +947,7 @@ begin
   Result[0].Description:='Manage your Tasks and Taskqueues';
   Result[1].Name:='https://www.googleapis.com/auth/taskqueue.consumer';
   Result[1].Description:='Consume Tasks from your Taskqueues';
-  
+
 end;
 
 Class Function TTaskqueueAPI.APINeedsAuth : Boolean;

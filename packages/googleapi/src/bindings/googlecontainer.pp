@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TListClustersResponse = Class;
   TCluster = Class;
@@ -53,11 +53,11 @@ type
   TClusterTypenodePoolsArray = Array of TNodePool;
   TListOperationsResponseTypeoperationsArray = Array of TOperation;
   TListNodePoolsResponseTypenodePoolsArray = Array of TNodePool;
-  
+
   { --------------------------------------------------------------------
     TListClustersResponse
     --------------------------------------------------------------------}
-  
+
   TListClustersResponse = Class(TGoogleBaseObject)
   Private
     Fclusters : TListClustersResponseTypeclustersArray;
@@ -76,11 +76,11 @@ type
     Property missingZones : TStringArray Index 8 Read FmissingZones Write SetmissingZones;
   end;
   TListClustersResponseClass = Class of TListClustersResponse;
-  
+
   { --------------------------------------------------------------------
     TCluster
     --------------------------------------------------------------------}
-  
+
   TCluster = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -171,11 +171,11 @@ type
     Property currentNodeCount : integer Index 200 Read FcurrentNodeCount Write SetcurrentNodeCount;
   end;
   TClusterClass = Class of TCluster;
-  
+
   { --------------------------------------------------------------------
     TNodeConfigTypemetadata
     --------------------------------------------------------------------}
-  
+
   TNodeConfigTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -185,11 +185,11 @@ type
   Published
   end;
   TNodeConfigTypemetadataClass = Class of TNodeConfigTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TNodeConfig
     --------------------------------------------------------------------}
-  
+
   TNodeConfig = Class(TGoogleBaseObject)
   Private
     FmachineType : String;
@@ -214,11 +214,11 @@ type
     Property metadata : TNodeConfigTypemetadata Index 24 Read Fmetadata Write Setmetadata;
   end;
   TNodeConfigClass = Class of TNodeConfig;
-  
+
   { --------------------------------------------------------------------
     TMasterAuth
     --------------------------------------------------------------------}
-  
+
   TMasterAuth = Class(TGoogleBaseObject)
   Private
     Fusername : String;
@@ -242,11 +242,11 @@ type
     Property clientKey : String Index 32 Read FclientKey Write SetclientKey;
   end;
   TMasterAuthClass = Class of TMasterAuth;
-  
+
   { --------------------------------------------------------------------
     TAddonsConfig
     --------------------------------------------------------------------}
-  
+
   TAddonsConfig = Class(TGoogleBaseObject)
   Private
     FhttpLoadBalancing : THttpLoadBalancing;
@@ -261,11 +261,11 @@ type
     Property horizontalPodAutoscaling : THorizontalPodAutoscaling Index 8 Read FhorizontalPodAutoscaling Write SethorizontalPodAutoscaling;
   end;
   TAddonsConfigClass = Class of TAddonsConfig;
-  
+
   { --------------------------------------------------------------------
     THttpLoadBalancing
     --------------------------------------------------------------------}
-  
+
   THttpLoadBalancing = Class(TGoogleBaseObject)
   Private
     Fdisabled : boolean;
@@ -277,11 +277,11 @@ type
     Property disabled : boolean Index 0 Read Fdisabled Write Setdisabled;
   end;
   THttpLoadBalancingClass = Class of THttpLoadBalancing;
-  
+
   { --------------------------------------------------------------------
     THorizontalPodAutoscaling
     --------------------------------------------------------------------}
-  
+
   THorizontalPodAutoscaling = Class(TGoogleBaseObject)
   Private
     Fdisabled : boolean;
@@ -293,11 +293,11 @@ type
     Property disabled : boolean Index 0 Read Fdisabled Write Setdisabled;
   end;
   THorizontalPodAutoscalingClass = Class of THorizontalPodAutoscaling;
-  
+
   { --------------------------------------------------------------------
     TNodePool
     --------------------------------------------------------------------}
-  
+
   TNodePool = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -334,11 +334,11 @@ type
     Property statusMessage : String Index 56 Read FstatusMessage Write SetstatusMessage;
   end;
   TNodePoolClass = Class of TNodePool;
-  
+
   { --------------------------------------------------------------------
     TCreateClusterRequest
     --------------------------------------------------------------------}
-  
+
   TCreateClusterRequest = Class(TGoogleBaseObject)
   Private
     Fcluster : TCluster;
@@ -350,11 +350,11 @@ type
     Property cluster : TCluster Index 0 Read Fcluster Write Setcluster;
   end;
   TCreateClusterRequestClass = Class of TCreateClusterRequest;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -387,11 +387,11 @@ type
     Property targetLink : String Index 56 Read FtargetLink Write SettargetLink;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TUpdateClusterRequest
     --------------------------------------------------------------------}
-  
+
   TUpdateClusterRequest = Class(TGoogleBaseObject)
   Private
     Fupdate : TClusterUpdate;
@@ -403,11 +403,11 @@ type
     Property update : TClusterUpdate Index 0 Read Fupdate Write Setupdate;
   end;
   TUpdateClusterRequestClass = Class of TUpdateClusterRequest;
-  
+
   { --------------------------------------------------------------------
     TClusterUpdate
     --------------------------------------------------------------------}
-  
+
   TClusterUpdate = Class(TGoogleBaseObject)
   Private
     FdesiredNodeVersion : String;
@@ -431,11 +431,11 @@ type
     Property desiredMasterVersion : String Index 32 Read FdesiredMasterVersion Write SetdesiredMasterVersion;
   end;
   TClusterUpdateClass = Class of TClusterUpdate;
-  
+
   { --------------------------------------------------------------------
     TListOperationsResponse
     --------------------------------------------------------------------}
-  
+
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
     Foperations : TListOperationsResponseTypeoperationsArray;
@@ -454,11 +454,11 @@ type
     Property missingZones : TStringArray Index 8 Read FmissingZones Write SetmissingZones;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
-  
+
   { --------------------------------------------------------------------
     TServerConfig
     --------------------------------------------------------------------}
-  
+
   TServerConfig = Class(TGoogleBaseObject)
   Private
     FdefaultClusterVersion : String;
@@ -483,11 +483,11 @@ type
     Property validImageFamilies : TStringArray Index 24 Read FvalidImageFamilies Write SetvalidImageFamilies;
   end;
   TServerConfigClass = Class of TServerConfig;
-  
+
   { --------------------------------------------------------------------
     TListNodePoolsResponse
     --------------------------------------------------------------------}
-  
+
   TListNodePoolsResponse = Class(TGoogleBaseObject)
   Private
     FnodePools : TListNodePoolsResponseTypenodePoolsArray;
@@ -503,11 +503,11 @@ type
     Property nodePools : TListNodePoolsResponseTypenodePoolsArray Index 0 Read FnodePools Write SetnodePools;
   end;
   TListNodePoolsResponseClass = Class of TListNodePoolsResponse;
-  
+
   { --------------------------------------------------------------------
     TCreateNodePoolRequest
     --------------------------------------------------------------------}
-  
+
   TCreateNodePoolRequest = Class(TGoogleBaseObject)
   Private
     FnodePool : TNodePool;
@@ -519,11 +519,11 @@ type
     Property nodePool : TNodePool Index 0 Read FnodePool Write SetnodePool;
   end;
   TCreateNodePoolRequestClass = Class of TCreateNodePoolRequest;
-  
+
   { --------------------------------------------------------------------
     TProjectsZonesClustersNodePoolsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsZonesClustersNodePoolsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -533,12 +533,12 @@ type
     Function Create(projectId: string; zone: string; clusterId: string; aCreateNodePoolRequest : TCreateNodePoolRequest) : TOperation;overload;
     Function Delete(projectId: string; zone: string; clusterId: string; nodePoolId: string) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsZonesClustersResource
     --------------------------------------------------------------------}
-  
+
   TProjectsZonesClustersResource = Class(TGoogleResource)
   Private
     FNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
@@ -555,12 +555,12 @@ type
     Function CreateNodePoolsResource : TProjectsZonesClustersNodePoolsResource;virtual;overload;
     Property NodePoolsResource : TProjectsZonesClustersNodePoolsResource Read GetNodePoolsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsZonesOperationsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsZonesOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -568,12 +568,12 @@ type
     Function List(projectId: string; zone: string) : TListOperationsResponse;
     Function Get(projectId: string; zone: string; operationId: string) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsZonesResource
     --------------------------------------------------------------------}
-  
+
   TProjectsZonesResource = Class(TGoogleResource)
   Private
     FClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
@@ -596,12 +596,12 @@ type
     Property ClustersResource : TProjectsZonesClustersResource Read GetClustersInstance;
     Property OperationsResource : TProjectsZonesOperationsResource Read GetOperationsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
@@ -628,12 +628,12 @@ type
     Property ZonesOperationsResource : TProjectsZonesOperationsResource Read GetZonesOperationsInstance;
     Property ZonesResource : TProjectsZonesResource Read GetZonesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TContainerAPI
     --------------------------------------------------------------------}
-  
+
   TContainerAPI = Class(TGoogleAPI)
   Private
     FProjectsZonesClustersNodePoolsInstance : TProjectsZonesClustersNodePoolsResource;
@@ -695,7 +695,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TListClustersResponse.Setclusters(AIndex : Integer; const AValue : TListClustersResponseTypeclustersArray); 
+Procedure TListClustersResponse.Setclusters(AIndex : Integer; const AValue : TListClustersResponseTypeclustersArray);
 
 begin
   If (Fclusters=AValue) then exit;
@@ -705,7 +705,7 @@ end;
 
 
 
-Procedure TListClustersResponse.SetmissingZones(AIndex : Integer; const AValue : TStringArray); 
+Procedure TListClustersResponse.SetmissingZones(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FmissingZones=AValue) then exit;
@@ -716,7 +716,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListClustersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -736,7 +736,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCluster.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -746,7 +746,7 @@ end;
 
 
 
-Procedure TCluster.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -756,7 +756,7 @@ end;
 
 
 
-Procedure TCluster.SetinitialNodeCount(AIndex : Integer; const AValue : integer); 
+Procedure TCluster.SetinitialNodeCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FinitialNodeCount=AValue) then exit;
@@ -766,7 +766,7 @@ end;
 
 
 
-Procedure TCluster.SetnodeConfig(AIndex : Integer; const AValue : TNodeConfig); 
+Procedure TCluster.SetnodeConfig(AIndex : Integer; const AValue : TNodeConfig);
 
 begin
   If (FnodeConfig=AValue) then exit;
@@ -776,7 +776,7 @@ end;
 
 
 
-Procedure TCluster.SetmasterAuth(AIndex : Integer; const AValue : TMasterAuth); 
+Procedure TCluster.SetmasterAuth(AIndex : Integer; const AValue : TMasterAuth);
 
 begin
   If (FmasterAuth=AValue) then exit;
@@ -786,7 +786,7 @@ end;
 
 
 
-Procedure TCluster.SetloggingService(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetloggingService(AIndex : Integer; const AValue : String);
 
 begin
   If (FloggingService=AValue) then exit;
@@ -796,7 +796,7 @@ end;
 
 
 
-Procedure TCluster.SetmonitoringService(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetmonitoringService(AIndex : Integer; const AValue : String);
 
 begin
   If (FmonitoringService=AValue) then exit;
@@ -806,7 +806,7 @@ end;
 
 
 
-Procedure TCluster.Setnetwork(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setnetwork(AIndex : Integer; const AValue : String);
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -816,7 +816,7 @@ end;
 
 
 
-Procedure TCluster.SetclusterIpv4Cidr(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetclusterIpv4Cidr(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterIpv4Cidr=AValue) then exit;
@@ -826,7 +826,7 @@ end;
 
 
 
-Procedure TCluster.SetaddonsConfig(AIndex : Integer; const AValue : TAddonsConfig); 
+Procedure TCluster.SetaddonsConfig(AIndex : Integer; const AValue : TAddonsConfig);
 
 begin
   If (FaddonsConfig=AValue) then exit;
@@ -836,7 +836,7 @@ end;
 
 
 
-Procedure TCluster.Setsubnetwork(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setsubnetwork(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsubnetwork=AValue) then exit;
@@ -846,7 +846,7 @@ end;
 
 
 
-Procedure TCluster.SetnodePools(AIndex : Integer; const AValue : TClusterTypenodePoolsArray); 
+Procedure TCluster.SetnodePools(AIndex : Integer; const AValue : TClusterTypenodePoolsArray);
 
 begin
   If (FnodePools=AValue) then exit;
@@ -856,7 +856,7 @@ end;
 
 
 
-Procedure TCluster.Setlocations(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCluster.Setlocations(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Flocations=AValue) then exit;
@@ -866,7 +866,7 @@ end;
 
 
 
-Procedure TCluster.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -876,7 +876,7 @@ end;
 
 
 
-Procedure TCluster.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setzone(AIndex : Integer; const AValue : String);
 
 begin
   If (Fzone=AValue) then exit;
@@ -886,7 +886,7 @@ end;
 
 
 
-Procedure TCluster.Setendpoint(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setendpoint(AIndex : Integer; const AValue : String);
 
 begin
   If (Fendpoint=AValue) then exit;
@@ -896,7 +896,7 @@ end;
 
 
 
-Procedure TCluster.SetinitialClusterVersion(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetinitialClusterVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FinitialClusterVersion=AValue) then exit;
@@ -906,7 +906,7 @@ end;
 
 
 
-Procedure TCluster.SetcurrentMasterVersion(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetcurrentMasterVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentMasterVersion=AValue) then exit;
@@ -916,7 +916,7 @@ end;
 
 
 
-Procedure TCluster.SetcurrentNodeVersion(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetcurrentNodeVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentNodeVersion=AValue) then exit;
@@ -926,7 +926,7 @@ end;
 
 
 
-Procedure TCluster.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -936,7 +936,7 @@ end;
 
 
 
-Procedure TCluster.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TCluster.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -946,7 +946,7 @@ end;
 
 
 
-Procedure TCluster.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -956,7 +956,7 @@ end;
 
 
 
-Procedure TCluster.SetnodeIpv4CidrSize(AIndex : Integer; const AValue : integer); 
+Procedure TCluster.SetnodeIpv4CidrSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnodeIpv4CidrSize=AValue) then exit;
@@ -966,7 +966,7 @@ end;
 
 
 
-Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); 
+Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; const AValue : String);
 
 begin
   If (FservicesIpv4Cidr=AValue) then exit;
@@ -976,7 +976,7 @@ end;
 
 
 
-Procedure TCluster.SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCluster.SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FinstanceGroupUrls=AValue) then exit;
@@ -986,7 +986,7 @@ end;
 
 
 
-Procedure TCluster.SetcurrentNodeCount(AIndex : Integer; const AValue : integer); 
+Procedure TCluster.SetcurrentNodeCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentNodeCount=AValue) then exit;
@@ -997,7 +997,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCluster.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCluster.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1031,7 +1031,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNodeConfig.SetmachineType(AIndex : Integer; const AValue : String); 
+Procedure TNodeConfig.SetmachineType(AIndex : Integer; const AValue : String);
 
 begin
   If (FmachineType=AValue) then exit;
@@ -1041,7 +1041,7 @@ end;
 
 
 
-Procedure TNodeConfig.SetdiskSizeGb(AIndex : Integer; const AValue : integer); 
+Procedure TNodeConfig.SetdiskSizeGb(AIndex : Integer; const AValue : integer);
 
 begin
   If (FdiskSizeGb=AValue) then exit;
@@ -1051,7 +1051,7 @@ end;
 
 
 
-Procedure TNodeConfig.SetoauthScopes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TNodeConfig.SetoauthScopes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FoauthScopes=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
 
 
 
-Procedure TNodeConfig.Setmetadata(AIndex : Integer; const AValue : TNodeConfigTypemetadata); 
+Procedure TNodeConfig.Setmetadata(AIndex : Integer; const AValue : TNodeConfigTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1072,7 +1072,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TNodeConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TNodeConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1091,7 +1091,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMasterAuth.Setusername(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.Setusername(AIndex : Integer; const AValue : String);
 
 begin
   If (Fusername=AValue) then exit;
@@ -1101,7 +1101,7 @@ end;
 
 
 
-Procedure TMasterAuth.Setpassword(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.Setpassword(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpassword=AValue) then exit;
@@ -1111,7 +1111,7 @@ end;
 
 
 
-Procedure TMasterAuth.SetclusterCaCertificate(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.SetclusterCaCertificate(AIndex : Integer; const AValue : String);
 
 begin
   If (FclusterCaCertificate=AValue) then exit;
@@ -1121,7 +1121,7 @@ end;
 
 
 
-Procedure TMasterAuth.SetclientCertificate(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.SetclientCertificate(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientCertificate=AValue) then exit;
@@ -1131,7 +1131,7 @@ end;
 
 
 
-Procedure TMasterAuth.SetclientKey(AIndex : Integer; const AValue : String); 
+Procedure TMasterAuth.SetclientKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientKey=AValue) then exit;
@@ -1148,7 +1148,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddonsConfig.SethttpLoadBalancing(AIndex : Integer; const AValue : THttpLoadBalancing); 
+Procedure TAddonsConfig.SethttpLoadBalancing(AIndex : Integer; const AValue : THttpLoadBalancing);
 
 begin
   If (FhttpLoadBalancing=AValue) then exit;
@@ -1158,7 +1158,7 @@ end;
 
 
 
-Procedure TAddonsConfig.SethorizontalPodAutoscaling(AIndex : Integer; const AValue : THorizontalPodAutoscaling); 
+Procedure TAddonsConfig.SethorizontalPodAutoscaling(AIndex : Integer; const AValue : THorizontalPodAutoscaling);
 
 begin
   If (FhorizontalPodAutoscaling=AValue) then exit;
@@ -1175,7 +1175,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THttpLoadBalancing.Setdisabled(AIndex : Integer; const AValue : boolean); 
+Procedure THttpLoadBalancing.Setdisabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdisabled=AValue) then exit;
@@ -1192,7 +1192,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THorizontalPodAutoscaling.Setdisabled(AIndex : Integer; const AValue : boolean); 
+Procedure THorizontalPodAutoscaling.Setdisabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdisabled=AValue) then exit;
@@ -1209,7 +1209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNodePool.Setname(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1219,7 +1219,7 @@ end;
 
 
 
-Procedure TNodePool.Setconfig(AIndex : Integer; const AValue : TNodeConfig); 
+Procedure TNodePool.Setconfig(AIndex : Integer; const AValue : TNodeConfig);
 
 begin
   If (Fconfig=AValue) then exit;
@@ -1229,7 +1229,7 @@ end;
 
 
 
-Procedure TNodePool.SetinitialNodeCount(AIndex : Integer; const AValue : integer); 
+Procedure TNodePool.SetinitialNodeCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FinitialNodeCount=AValue) then exit;
@@ -1239,7 +1239,7 @@ end;
 
 
 
-Procedure TNodePool.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1249,7 +1249,7 @@ end;
 
 
 
-Procedure TNodePool.Setversion(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.Setversion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fversion=AValue) then exit;
@@ -1259,7 +1259,7 @@ end;
 
 
 
-Procedure TNodePool.SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray); 
+Procedure TNodePool.SetinstanceGroupUrls(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FinstanceGroupUrls=AValue) then exit;
@@ -1269,7 +1269,7 @@ end;
 
 
 
-Procedure TNodePool.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1279,7 +1279,7 @@ end;
 
 
 
-Procedure TNodePool.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TNodePool.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1290,7 +1290,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TNodePool.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TNodePool.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1309,7 +1309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateClusterRequest.Setcluster(AIndex : Integer; const AValue : TCluster); 
+Procedure TCreateClusterRequest.Setcluster(AIndex : Integer; const AValue : TCluster);
 
 begin
   If (Fcluster=AValue) then exit;
@@ -1326,7 +1326,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1336,7 +1336,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String);
 
 begin
   If (Fzone=AValue) then exit;
@@ -1346,7 +1346,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -1356,7 +1356,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1366,7 +1366,7 @@ end;
 
 
 
-Procedure TOperation.Setdetail(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setdetail(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetail=AValue) then exit;
@@ -1376,7 +1376,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1386,7 +1386,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1396,7 +1396,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1413,7 +1413,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateClusterRequest.Setupdate(AIndex : Integer; const AValue : TClusterUpdate); 
+Procedure TUpdateClusterRequest.Setupdate(AIndex : Integer; const AValue : TClusterUpdate);
 
 begin
   If (Fupdate=AValue) then exit;
@@ -1430,7 +1430,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClusterUpdate.SetdesiredNodeVersion(AIndex : Integer; const AValue : String); 
+Procedure TClusterUpdate.SetdesiredNodeVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FdesiredNodeVersion=AValue) then exit;
@@ -1440,7 +1440,7 @@ end;
 
 
 
-Procedure TClusterUpdate.SetdesiredMonitoringService(AIndex : Integer; const AValue : String); 
+Procedure TClusterUpdate.SetdesiredMonitoringService(AIndex : Integer; const AValue : String);
 
 begin
   If (FdesiredMonitoringService=AValue) then exit;
@@ -1450,7 +1450,7 @@ end;
 
 
 
-Procedure TClusterUpdate.SetdesiredAddonsConfig(AIndex : Integer; const AValue : TAddonsConfig); 
+Procedure TClusterUpdate.SetdesiredAddonsConfig(AIndex : Integer; const AValue : TAddonsConfig);
 
 begin
   If (FdesiredAddonsConfig=AValue) then exit;
@@ -1460,7 +1460,7 @@ end;
 
 
 
-Procedure TClusterUpdate.SetdesiredNodePoolId(AIndex : Integer; const AValue : String); 
+Procedure TClusterUpdate.SetdesiredNodePoolId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdesiredNodePoolId=AValue) then exit;
@@ -1470,7 +1470,7 @@ end;
 
 
 
-Procedure TClusterUpdate.SetdesiredMasterVersion(AIndex : Integer; const AValue : String); 
+Procedure TClusterUpdate.SetdesiredMasterVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FdesiredMasterVersion=AValue) then exit;
@@ -1487,7 +1487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); 
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray);
 
 begin
   If (Foperations=AValue) then exit;
@@ -1497,7 +1497,7 @@ end;
 
 
 
-Procedure TListOperationsResponse.SetmissingZones(AIndex : Integer; const AValue : TStringArray); 
+Procedure TListOperationsResponse.SetmissingZones(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FmissingZones=AValue) then exit;
@@ -1508,7 +1508,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1528,7 +1528,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServerConfig.SetdefaultClusterVersion(AIndex : Integer; const AValue : String); 
+Procedure TServerConfig.SetdefaultClusterVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultClusterVersion=AValue) then exit;
@@ -1538,7 +1538,7 @@ end;
 
 
 
-Procedure TServerConfig.SetvalidNodeVersions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TServerConfig.SetvalidNodeVersions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvalidNodeVersions=AValue) then exit;
@@ -1548,7 +1548,7 @@ end;
 
 
 
-Procedure TServerConfig.SetdefaultImageFamily(AIndex : Integer; const AValue : String); 
+Procedure TServerConfig.SetdefaultImageFamily(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultImageFamily=AValue) then exit;
@@ -1558,7 +1558,7 @@ end;
 
 
 
-Procedure TServerConfig.SetvalidImageFamilies(AIndex : Integer; const AValue : TStringArray); 
+Procedure TServerConfig.SetvalidImageFamilies(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvalidImageFamilies=AValue) then exit;
@@ -1569,7 +1569,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TServerConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TServerConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1589,7 +1589,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListNodePoolsResponse.SetnodePools(AIndex : Integer; const AValue : TListNodePoolsResponseTypenodePoolsArray); 
+Procedure TListNodePoolsResponse.SetnodePools(AIndex : Integer; const AValue : TListNodePoolsResponseTypenodePoolsArray);
 
 begin
   If (FnodePools=AValue) then exit;
@@ -1600,7 +1600,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListNodePoolsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListNodePoolsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1619,7 +1619,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateNodePoolRequest.SetnodePool(AIndex : Integer; const AValue : TNodePool); 
+Procedure TCreateNodePoolRequest.SetnodePool(AIndex : Integer; const AValue : TNodePool);
 
 begin
   If (FnodePool=AValue) then exit;
@@ -2210,7 +2210,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TContainerAPI.APINeedsAuth : Boolean;

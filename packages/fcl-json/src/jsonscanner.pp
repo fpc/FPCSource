@@ -78,6 +78,7 @@ Type
     FCurRow: Integer;
     FCurToken: TJSONToken;
     FCurTokenString: AnsiString; // Calculated lazily from FParts. FPartsBytes = -1 if ready.
+    FCurTokenStringLen: SizeInt;
 
     // Sequence of varints that describes how to build FCurTokenString if asked.
     // Number X with lowest bit 0 means piece with start = FPartsSrcPos + X shr 1, length = next number; FPartsSrcPos advances to start + length.
@@ -234,6 +235,7 @@ function TJSONScanner.FetchToken: TJSONToken;
 var
   Sp, Start: PAnsiChar;
 begin
+  FCurTokenStringLen := 0;
   FPartsBytes := 0;
   Sp := FCurPos;
   // Don't consider such newline a tkWhitespace.
@@ -311,6 +313,7 @@ begin
       end;
     else
       InvalidCharacter(Sp);
+      Result := tkEOF;
   end;
   FPartsSrcPos := Start; // BuildCurTokenString uses it to read relative offsets from FParts.
   FCurPos := Sp;
@@ -425,6 +428,12 @@ end;
 procedure TJSONScanner.AddCodepoint(cp: uint32);
 begin
   inc(FPartsBytes, ViWrite(EnsurePartsSpace(MaxViLen), cp shl 1 or 1));
+
+  if cp <= $7F then inc(FCurTokenStringLen) // First 128 characters use 1 byte both in UTF-8 or ANSI encodings.
+  // Use 2 in non-utf8 mode as ceiling value, assuming ANSI encodings use at most 2 bytes per codepoint. (Eg: Shift JIS uses 1 or 2.)
+  else if (cp <= $7FF) {or not utf8} then inc(FCurTokenStringLen, 2)
+  else if cp <= $FFFF then inc(FCurTokenStringLen, 3)
+  else inc(FCurTokenStringLen, 4);
 end;
 
 procedure TJSONScanner.AddPiece(start, ed: PAnsiChar);
@@ -439,6 +448,7 @@ begin
   n := ViWrite(pp, (start - FPartsSrcPos) shl 1);
   inc(FPartsBytes, n + ViWrite(pp + n, ed - start));
   FPartsSrcPos := ed;
+  FCurTokenStringLen := FCurTokenStringLen + ed - start;
 end;
 
 function TJSONScanner.GetCurTokenString: ansistring;
@@ -452,37 +462,16 @@ procedure TJSONScanner.BuildCurTokenString;
 var
   utf8: boolean;
   partp, parte: PUint8;
-  len: SizeInt;
   v, v2: SizeUint;
   cp: uint32;
   Srcp, Rp: PAnsiChar;
 begin
   utf8 := (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8);
-  len := 0;
-  // Prepass for length. Exact if utf8, otherwise ceiling.
-  partp := PUint8(FParts);
-  parte := partp + FPartsBytes;
-  while partp < parte do
-  begin
-    inc(partp, ViRead(partp, v));
-    if v and 1 = 0 then
-    begin
-      inc(partp, ViRead(partp, v));
-      inc(len, v);
-    end else
-    begin
-      cp := v shr 1;
-      if cp <= $7F then inc(len) // First 128 characters use 1 byte both in UTF-8 or ANSI encodings.
-      // Use 2 in non-utf8 mode as ceiling value, assuming ANSI encodings use at most 2 bytes per codepoint. (Eg: Shift JIS uses 1 or 2.)
-      else if (cp <= $7FF) or not utf8 then inc(len, 2)
-      else if cp <= $FFFF then inc(len, 3)
-      else inc(len, 4);
-    end;
-  end;
-  SetLength(FCurTokenString, len);
+  SetLength(FCurTokenString, FCurTokenStringLen);
   Srcp := FPartsSrcPos;
   Rp := PAnsiChar(Pointer(FCurTokenString));
   partp := PUint8(FParts);
+  parte := partp + FPartsBytes;
   while partp < parte do
   begin
     inc(partp, ViRead(partp, v));
@@ -525,8 +514,8 @@ begin
           Inc(Rp, CodepointToASCII(cp, Rp));
     end;
   end;
-  if not utf8 then
-    SetLength(FCurTokenString, Rp - PAnsiChar(Pointer(FCurTokenString)));
+  if utf8 then
+    SetCodePage(RawByteString(FCurTokenString), CP_UTF8, FALSE);
   FPartsBytes := -1;
 end;
 
@@ -555,6 +544,8 @@ const
   SimpleEscapes_Spell: array[0 .. 8] of ansichar = 'tbnrf"''\/'; // Symbols starting from length(SimpleEscapes_Meant) are mapped to themselves.
   SimpleEscapes_Meant: array[0 .. 4] of ansichar = #9#8#10#13#12;
 var
+  utf8: boolean;
+  onepiece: boolean;
   StartChar: AnsiChar;
   LiteralStart: PAnsiChar;
   iEsc: SizeInt;
@@ -564,6 +555,7 @@ begin
   if (StartChar = '''') and (joStrict in Options) then
     InvalidCharacter(Sp);
   LiteralStart := Sp + 1;
+  onepiece := true;
   repeat
     Inc(Sp);
     // Fast test for irregularities instead of jumping through several 'if's each time.
@@ -576,7 +568,7 @@ begin
 
     if Sp^ = '\' then
     begin
-      AddPiece(LiteralStart, Sp);
+      onepiece := false;
       if Sp[1] = 'u' then
       begin
         Sp := ScanHex(Sp + 2, u);
@@ -624,7 +616,17 @@ begin
       else if Sp^ in [#13, #10] then
         Sp := ScanNewline(Sp) - 1; // Account for newlines when not joStrict.
   until false;
-  AddPiece(LiteralStart, Sp);
+  if not onepiece then
+    AddPiece(LiteralStart, Sp)
+  else
+    begin
+      SetLength(FCurTokenString, Sp-LiteralStart);
+      Move(LiteralStart^, PAnsiChar(Pointer(FCurTokenString))^, Sp-LiteralStart);
+      utf8 := (joUTF8 in Options) or (DefaultSystemCodePage=CP_UTF8);
+      if utf8 then
+          SetCodePage(RawByteString(FCurTokenString), CP_UTF8, FALSE);
+      FPartsBytes := -1;
+    end;
   Result := Sp + 1;
 end;
 

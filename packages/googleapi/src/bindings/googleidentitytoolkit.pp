@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TCreateAuthUriResponse = Class;
   TDeleteAccountResponse = Class;
@@ -95,11 +95,11 @@ type
   TSetAccountInfoResponseTypeproviderUserInfoArray = Array of TSetAccountInfoResponseTypeproviderUserInfoItem;
   TUploadAccountResponseTypeerrorArray = Array of TUploadAccountResponseTypeerrorItem;
   TUserInfoTypeproviderUserInfoArray = Array of TUserInfoTypeproviderUserInfoItem;
-  
+
   { --------------------------------------------------------------------
     TCreateAuthUriResponse
     --------------------------------------------------------------------}
-  
+
   TCreateAuthUriResponse = Class(TGoogleBaseObject)
   Private
     FallProviders : TStringArray;
@@ -136,11 +136,11 @@ type
     Property sessionId : String Index 56 Read FsessionId Write SetsessionId;
   end;
   TCreateAuthUriResponseClass = Class of TCreateAuthUriResponse;
-  
+
   { --------------------------------------------------------------------
     TDeleteAccountResponse
     --------------------------------------------------------------------}
-  
+
   TDeleteAccountResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -152,11 +152,11 @@ type
     Property kind : String Index 0 Read Fkind Write Setkind;
   end;
   TDeleteAccountResponseClass = Class of TDeleteAccountResponse;
-  
+
   { --------------------------------------------------------------------
     TDownloadAccountResponse
     --------------------------------------------------------------------}
-  
+
   TDownloadAccountResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -178,11 +178,11 @@ type
     Property users : TDownloadAccountResponseTypeusersArray Index 16 Read Fusers Write Setusers;
   end;
   TDownloadAccountResponseClass = Class of TDownloadAccountResponse;
-  
+
   { --------------------------------------------------------------------
     TEmailTemplate
     --------------------------------------------------------------------}
-  
+
   TEmailTemplate = Class(TGoogleBaseObject)
   Private
     Fbody : String;
@@ -209,11 +209,11 @@ type
     Property subject : String Index 40 Read Fsubject Write Setsubject;
   end;
   TEmailTemplateClass = Class of TEmailTemplate;
-  
+
   { --------------------------------------------------------------------
     TGetAccountInfoResponse
     --------------------------------------------------------------------}
-  
+
   TGetAccountInfoResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -232,11 +232,11 @@ type
     Property users : TGetAccountInfoResponseTypeusersArray Index 8 Read Fusers Write Setusers;
   end;
   TGetAccountInfoResponseClass = Class of TGetAccountInfoResponse;
-  
+
   { --------------------------------------------------------------------
     TGetOobConfirmationCodeResponse
     --------------------------------------------------------------------}
-  
+
   TGetOobConfirmationCodeResponse = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -254,11 +254,11 @@ type
     Property oobCode : String Index 16 Read FoobCode Write SetoobCode;
   end;
   TGetOobConfirmationCodeResponseClass = Class of TGetOobConfirmationCodeResponse;
-  
+
   { --------------------------------------------------------------------
     TGetRecaptchaParamResponse
     --------------------------------------------------------------------}
-  
+
   TGetRecaptchaParamResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -276,11 +276,11 @@ type
     Property recaptchaStoken : String Index 16 Read FrecaptchaStoken Write SetrecaptchaStoken;
   end;
   TGetRecaptchaParamResponseClass = Class of TGetRecaptchaParamResponse;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyCreateAuthUriRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyCreateAuthUriRequest = Class(TGoogleBaseObject)
   Private
     FappId : String;
@@ -319,11 +319,11 @@ type
     Property providerId : String Index 72 Read FproviderId Write SetproviderId;
   end;
   TIdentitytoolkitRelyingpartyCreateAuthUriRequestClass = Class of TIdentitytoolkitRelyingpartyCreateAuthUriRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyDeleteAccountRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyDeleteAccountRequest = Class(TGoogleBaseObject)
   Private
     FdelegatedProjectNumber : String;
@@ -341,11 +341,11 @@ type
     Property localId : String Index 16 Read FlocalId Write SetlocalId;
   end;
   TIdentitytoolkitRelyingpartyDeleteAccountRequestClass = Class of TIdentitytoolkitRelyingpartyDeleteAccountRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyDownloadAccountRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyDownloadAccountRequest = Class(TGoogleBaseObject)
   Private
     FdelegatedProjectNumber : String;
@@ -363,11 +363,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TIdentitytoolkitRelyingpartyDownloadAccountRequestClass = Class of TIdentitytoolkitRelyingpartyDownloadAccountRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyGetAccountInfoRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyGetAccountInfoRequest = Class(TGoogleBaseObject)
   Private
     FdelegatedProjectNumber : String;
@@ -392,11 +392,11 @@ type
     Property localId : TStringArray Index 24 Read FlocalId Write SetlocalId;
   end;
   TIdentitytoolkitRelyingpartyGetAccountInfoRequestClass = Class of TIdentitytoolkitRelyingpartyGetAccountInfoRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyGetProjectConfigResponse
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyGetProjectConfigResponse = Class(TGoogleBaseObject)
   Private
     FallowPasswordUser : boolean;
@@ -442,11 +442,11 @@ type
     Property verifyEmailTemplate : TEmailTemplate Index 80 Read FverifyEmailTemplate Write SetverifyEmailTemplate;
   end;
   TIdentitytoolkitRelyingpartyGetProjectConfigResponseClass = Class of TIdentitytoolkitRelyingpartyGetProjectConfigResponse;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyGetPublicKeysResponse
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyGetPublicKeysResponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -456,11 +456,11 @@ type
   Published
   end;
   TIdentitytoolkitRelyingpartyGetPublicKeysResponseClass = Class of TIdentitytoolkitRelyingpartyGetPublicKeysResponse;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyResetPasswordRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyResetPasswordRequest = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -481,11 +481,11 @@ type
     Property oobCode : String Index 24 Read FoobCode Write SetoobCode;
   end;
   TIdentitytoolkitRelyingpartyResetPasswordRequestClass = Class of TIdentitytoolkitRelyingpartyResetPasswordRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartySetAccountInfoRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartySetAccountInfoRequest = Class(TGoogleBaseObject)
   Private
     FcaptchaChallenge : String;
@@ -555,11 +555,11 @@ type
     Property validSince : String Index 144 Read FvalidSince Write SetvalidSince;
   end;
   TIdentitytoolkitRelyingpartySetAccountInfoRequestClass = Class of TIdentitytoolkitRelyingpartySetAccountInfoRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartySetProjectConfigRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartySetProjectConfigRequest = Class(TGoogleBaseObject)
   Private
     FallowPasswordUser : boolean;
@@ -605,11 +605,11 @@ type
     Property verifyEmailTemplate : TEmailTemplate Index 80 Read FverifyEmailTemplate Write SetverifyEmailTemplate;
   end;
   TIdentitytoolkitRelyingpartySetProjectConfigRequestClass = Class of TIdentitytoolkitRelyingpartySetProjectConfigRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartySetProjectConfigResponse
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartySetProjectConfigResponse = Class(TGoogleBaseObject)
   Private
     FprojectId : String;
@@ -621,11 +621,11 @@ type
     Property projectId : String Index 0 Read FprojectId Write SetprojectId;
   end;
   TIdentitytoolkitRelyingpartySetProjectConfigResponseClass = Class of TIdentitytoolkitRelyingpartySetProjectConfigResponse;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartySignOutUserRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartySignOutUserRequest = Class(TGoogleBaseObject)
   Private
     FinstanceId : String;
@@ -640,11 +640,11 @@ type
     Property localId : String Index 8 Read FlocalId Write SetlocalId;
   end;
   TIdentitytoolkitRelyingpartySignOutUserRequestClass = Class of TIdentitytoolkitRelyingpartySignOutUserRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartySignOutUserResponse
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartySignOutUserResponse = Class(TGoogleBaseObject)
   Private
     FlocalId : String;
@@ -656,11 +656,11 @@ type
     Property localId : String Index 0 Read FlocalId Write SetlocalId;
   end;
   TIdentitytoolkitRelyingpartySignOutUserResponseClass = Class of TIdentitytoolkitRelyingpartySignOutUserResponse;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartySignupNewUserRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartySignupNewUserRequest = Class(TGoogleBaseObject)
   Private
     FcaptchaChallenge : String;
@@ -690,11 +690,11 @@ type
     Property password : String Index 48 Read Fpassword Write Setpassword;
   end;
   TIdentitytoolkitRelyingpartySignupNewUserRequestClass = Class of TIdentitytoolkitRelyingpartySignupNewUserRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyUploadAccountRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyUploadAccountRequest = Class(TGoogleBaseObject)
   Private
     FdelegatedProjectNumber : String;
@@ -728,11 +728,11 @@ type
     Property users : TIdentitytoolkitRelyingpartyUploadAccountRequestTypeusersArray Index 48 Read Fusers Write Setusers;
   end;
   TIdentitytoolkitRelyingpartyUploadAccountRequestClass = Class of TIdentitytoolkitRelyingpartyUploadAccountRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyVerifyAssertionRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyVerifyAssertionRequest = Class(TGoogleBaseObject)
   Private
     FdelegatedProjectNumber : String;
@@ -768,11 +768,11 @@ type
     Property sessionId : String Index 64 Read FsessionId Write SetsessionId;
   end;
   TIdentitytoolkitRelyingpartyVerifyAssertionRequestClass = Class of TIdentitytoolkitRelyingpartyVerifyAssertionRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest = Class(TGoogleBaseObject)
   Private
     FdelegatedProjectNumber : String;
@@ -793,11 +793,11 @@ type
     Property token : String Index 24 Read Ftoken Write Settoken;
   end;
   TIdentitytoolkitRelyingpartyVerifyCustomTokenRequestClass = Class of TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest;
-  
+
   { --------------------------------------------------------------------
     TIdentitytoolkitRelyingpartyVerifyPasswordRequest
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitRelyingpartyVerifyPasswordRequest = Class(TGoogleBaseObject)
   Private
     FcaptchaChallenge : String;
@@ -833,11 +833,11 @@ type
     Property returnSecureToken : boolean Index 64 Read FreturnSecureToken Write SetreturnSecureToken;
   end;
   TIdentitytoolkitRelyingpartyVerifyPasswordRequestClass = Class of TIdentitytoolkitRelyingpartyVerifyPasswordRequest;
-  
+
   { --------------------------------------------------------------------
     TIdpConfig
     --------------------------------------------------------------------}
-  
+
   TIdpConfig = Class(TGoogleBaseObject)
   Private
     FclientId : String;
@@ -861,11 +861,11 @@ type
     Property secret : String Index 32 Read Fsecret Write Setsecret;
   end;
   TIdpConfigClass = Class of TIdpConfig;
-  
+
   { --------------------------------------------------------------------
     TRelyingparty
     --------------------------------------------------------------------}
-  
+
   TRelyingparty = Class(TGoogleBaseObject)
   Private
     FcaptchaResp : String;
@@ -898,11 +898,11 @@ type
     Property userIp : String Index 56 Read FuserIp Write SetuserIp;
   end;
   TRelyingpartyClass = Class of TRelyingparty;
-  
+
   { --------------------------------------------------------------------
     TResetPasswordResponse
     --------------------------------------------------------------------}
-  
+
   TResetPasswordResponse = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -917,11 +917,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TResetPasswordResponseClass = Class of TResetPasswordResponse;
-  
+
   { --------------------------------------------------------------------
     TSetAccountInfoResponseTypeproviderUserInfoItem
     --------------------------------------------------------------------}
-  
+
   TSetAccountInfoResponseTypeproviderUserInfoItem = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -942,11 +942,11 @@ type
     Property providerId : String Index 24 Read FproviderId Write SetproviderId;
   end;
   TSetAccountInfoResponseTypeproviderUserInfoItemClass = Class of TSetAccountInfoResponseTypeproviderUserInfoItem;
-  
+
   { --------------------------------------------------------------------
     TSetAccountInfoResponse
     --------------------------------------------------------------------}
-  
+
   TSetAccountInfoResponse = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -992,11 +992,11 @@ type
     Property refreshToken : String Index 80 Read FrefreshToken Write SetrefreshToken;
   end;
   TSetAccountInfoResponseClass = Class of TSetAccountInfoResponse;
-  
+
   { --------------------------------------------------------------------
     TSignupNewUserResponse
     --------------------------------------------------------------------}
-  
+
   TSignupNewUserResponse = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -1026,11 +1026,11 @@ type
     Property refreshToken : String Index 48 Read FrefreshToken Write SetrefreshToken;
   end;
   TSignupNewUserResponseClass = Class of TSignupNewUserResponse;
-  
+
   { --------------------------------------------------------------------
     TUploadAccountResponseTypeerrorItem
     --------------------------------------------------------------------}
-  
+
   TUploadAccountResponseTypeerrorItem = Class(TGoogleBaseObject)
   Private
     Findex : integer;
@@ -1045,11 +1045,11 @@ type
     Property message : String Index 8 Read Fmessage Write Setmessage;
   end;
   TUploadAccountResponseTypeerrorItemClass = Class of TUploadAccountResponseTypeerrorItem;
-  
+
   { --------------------------------------------------------------------
     TUploadAccountResponse
     --------------------------------------------------------------------}
-  
+
   TUploadAccountResponse = Class(TGoogleBaseObject)
   Private
     Ferror : TUploadAccountResponseTypeerrorArray;
@@ -1068,11 +1068,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TUploadAccountResponseClass = Class of TUploadAccountResponse;
-  
+
   { --------------------------------------------------------------------
     TUserInfoTypeproviderUserInfoItem
     --------------------------------------------------------------------}
-  
+
   TUserInfoTypeproviderUserInfoItem = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -1099,11 +1099,11 @@ type
     Property rawId : String Index 40 Read FrawId Write SetrawId;
   end;
   TUserInfoTypeproviderUserInfoItemClass = Class of TUserInfoTypeproviderUserInfoItem;
-  
+
   { --------------------------------------------------------------------
     TUserInfo
     --------------------------------------------------------------------}
-  
+
   TUserInfo = Class(TGoogleBaseObject)
   Private
     Fdisabled : boolean;
@@ -1152,11 +1152,11 @@ type
     Property version : integer Index 88 Read Fversion Write Setversion;
   end;
   TUserInfoClass = Class of TUserInfo;
-  
+
   { --------------------------------------------------------------------
     TVerifyAssertionResponse
     --------------------------------------------------------------------}
-  
+
   TVerifyAssertionResponse = Class(TGoogleBaseObject)
   Private
     Faction : String;
@@ -1274,11 +1274,11 @@ type
     Property verifiedProvider : TStringArray Index 272 Read FverifiedProvider Write SetverifiedProvider;
   end;
   TVerifyAssertionResponseClass = Class of TVerifyAssertionResponse;
-  
+
   { --------------------------------------------------------------------
     TVerifyCustomTokenResponse
     --------------------------------------------------------------------}
-  
+
   TVerifyCustomTokenResponse = Class(TGoogleBaseObject)
   Private
     FexpiresIn : String;
@@ -1299,11 +1299,11 @@ type
     Property refreshToken : String Index 24 Read FrefreshToken Write SetrefreshToken;
   end;
   TVerifyCustomTokenResponseClass = Class of TVerifyCustomTokenResponse;
-  
+
   { --------------------------------------------------------------------
     TVerifyPasswordResponse
     --------------------------------------------------------------------}
-  
+
   TVerifyPasswordResponse = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -1348,19 +1348,19 @@ type
     Property registered : boolean Index 88 Read Fregistered Write Setregistered;
   end;
   TVerifyPasswordResponseClass = Class of TVerifyPasswordResponse;
-  
+
   { --------------------------------------------------------------------
     TRelyingpartyResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRelyingpartyResource, method GetProjectConfig
-  
+
   TRelyingpartyGetProjectConfigOptions = Record
     delegatedProjectNumber : String;
     projectNumber : String;
   end;
-  
+
   TRelyingpartyResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1384,12 +1384,12 @@ type
     Function VerifyCustomToken(aIdentitytoolkitRelyingpartyVerifyCustomTokenRequest : TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest) : TVerifyCustomTokenResponse;
     Function VerifyPassword(aIdentitytoolkitRelyingpartyVerifyPasswordRequest : TIdentitytoolkitRelyingpartyVerifyPasswordRequest) : TVerifyPasswordResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TIdentitytoolkitAPI
     --------------------------------------------------------------------}
-  
+
   TIdentitytoolkitAPI = Class(TGoogleAPI)
   Private
     FRelyingpartyInstance : TRelyingpartyResource;
@@ -1431,7 +1431,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCreateAuthUriResponse.SetallProviders(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCreateAuthUriResponse.SetallProviders(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FallProviders=AValue) then exit;
@@ -1441,7 +1441,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.SetauthUri(AIndex : Integer; const AValue : String); 
+Procedure TCreateAuthUriResponse.SetauthUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FauthUri=AValue) then exit;
@@ -1451,7 +1451,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.SetcaptchaRequired(AIndex : Integer; const AValue : boolean); 
+Procedure TCreateAuthUriResponse.SetcaptchaRequired(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FcaptchaRequired=AValue) then exit;
@@ -1461,7 +1461,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.SetforExistingProvider(AIndex : Integer; const AValue : boolean); 
+Procedure TCreateAuthUriResponse.SetforExistingProvider(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FforExistingProvider=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCreateAuthUriResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1481,7 +1481,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.SetproviderId(AIndex : Integer; const AValue : String); 
+Procedure TCreateAuthUriResponse.SetproviderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproviderId=AValue) then exit;
@@ -1491,7 +1491,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.Setregistered(AIndex : Integer; const AValue : boolean); 
+Procedure TCreateAuthUriResponse.Setregistered(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fregistered=AValue) then exit;
@@ -1501,7 +1501,7 @@ end;
 
 
 
-Procedure TCreateAuthUriResponse.SetsessionId(AIndex : Integer; const AValue : String); 
+Procedure TCreateAuthUriResponse.SetsessionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsessionId=AValue) then exit;
@@ -1512,7 +1512,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCreateAuthUriResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCreateAuthUriResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1531,7 +1531,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteAccountResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TDeleteAccountResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1548,7 +1548,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDownloadAccountResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TDownloadAccountResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1558,7 +1558,7 @@ end;
 
 
 
-Procedure TDownloadAccountResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TDownloadAccountResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1568,7 +1568,7 @@ end;
 
 
 
-Procedure TDownloadAccountResponse.Setusers(AIndex : Integer; const AValue : TDownloadAccountResponseTypeusersArray); 
+Procedure TDownloadAccountResponse.Setusers(AIndex : Integer; const AValue : TDownloadAccountResponseTypeusersArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -1579,7 +1579,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDownloadAccountResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDownloadAccountResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1598,7 +1598,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEmailTemplate.Setbody(AIndex : Integer; const AValue : String); 
+Procedure TEmailTemplate.Setbody(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbody=AValue) then exit;
@@ -1608,7 +1608,7 @@ end;
 
 
 
-Procedure TEmailTemplate.Setformat(AIndex : Integer; const AValue : String); 
+Procedure TEmailTemplate.Setformat(AIndex : Integer; const AValue : String);
 
 begin
   If (Fformat=AValue) then exit;
@@ -1618,7 +1618,7 @@ end;
 
 
 
-Procedure TEmailTemplate.Setfrom(AIndex : Integer; const AValue : String); 
+Procedure TEmailTemplate.Setfrom(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffrom=AValue) then exit;
@@ -1628,7 +1628,7 @@ end;
 
 
 
-Procedure TEmailTemplate.SetfromDisplayName(AIndex : Integer; const AValue : String); 
+Procedure TEmailTemplate.SetfromDisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfromDisplayName=AValue) then exit;
@@ -1638,7 +1638,7 @@ end;
 
 
 
-Procedure TEmailTemplate.SetreplyTo(AIndex : Integer; const AValue : String); 
+Procedure TEmailTemplate.SetreplyTo(AIndex : Integer; const AValue : String);
 
 begin
   If (FreplyTo=AValue) then exit;
@@ -1648,7 +1648,7 @@ end;
 
 
 
-Procedure TEmailTemplate.Setsubject(AIndex : Integer; const AValue : String); 
+Procedure TEmailTemplate.Setsubject(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsubject=AValue) then exit;
@@ -1665,7 +1665,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetAccountInfoResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGetAccountInfoResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1675,7 +1675,7 @@ end;
 
 
 
-Procedure TGetAccountInfoResponse.Setusers(AIndex : Integer; const AValue : TGetAccountInfoResponseTypeusersArray); 
+Procedure TGetAccountInfoResponse.Setusers(AIndex : Integer; const AValue : TGetAccountInfoResponseTypeusersArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -1686,7 +1686,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetAccountInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetAccountInfoResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1705,7 +1705,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetOobConfirmationCodeResponse.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TGetOobConfirmationCodeResponse.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -1715,7 +1715,7 @@ end;
 
 
 
-Procedure TGetOobConfirmationCodeResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGetOobConfirmationCodeResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1725,7 +1725,7 @@ end;
 
 
 
-Procedure TGetOobConfirmationCodeResponse.SetoobCode(AIndex : Integer; const AValue : String); 
+Procedure TGetOobConfirmationCodeResponse.SetoobCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FoobCode=AValue) then exit;
@@ -1742,7 +1742,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetRecaptchaParamResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGetRecaptchaParamResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1752,7 +1752,7 @@ end;
 
 
 
-Procedure TGetRecaptchaParamResponse.SetrecaptchaSiteKey(AIndex : Integer; const AValue : String); 
+Procedure TGetRecaptchaParamResponse.SetrecaptchaSiteKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FrecaptchaSiteKey=AValue) then exit;
@@ -1762,7 +1762,7 @@ end;
 
 
 
-Procedure TGetRecaptchaParamResponse.SetrecaptchaStoken(AIndex : Integer; const AValue : String); 
+Procedure TGetRecaptchaParamResponse.SetrecaptchaStoken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrecaptchaStoken=AValue) then exit;
@@ -1779,7 +1779,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetappId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetappId(AIndex : Integer; const AValue : String);
 
 begin
   If (FappId=AValue) then exit;
@@ -1789,7 +1789,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetclientId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetclientId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientId=AValue) then exit;
@@ -1799,7 +1799,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.Setcontext(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.Setcontext(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontext=AValue) then exit;
@@ -1809,7 +1809,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetcontinueUri(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetcontinueUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontinueUri=AValue) then exit;
@@ -1819,7 +1819,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.Setidentifier(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.Setidentifier(AIndex : Integer; const AValue : String);
 
 begin
   If (Fidentifier=AValue) then exit;
@@ -1829,7 +1829,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetoauthConsumerKey(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetoauthConsumerKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthConsumerKey=AValue) then exit;
@@ -1839,7 +1839,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetoauthScope(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetoauthScope(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthScope=AValue) then exit;
@@ -1849,7 +1849,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetopenidRealm(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetopenidRealm(AIndex : Integer; const AValue : String);
 
 begin
   If (FopenidRealm=AValue) then exit;
@@ -1859,7 +1859,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetotaApp(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetotaApp(AIndex : Integer; const AValue : String);
 
 begin
   If (FotaApp=AValue) then exit;
@@ -1869,7 +1869,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetproviderId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyCreateAuthUriRequest.SetproviderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproviderId=AValue) then exit;
@@ -1886,7 +1886,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyDeleteAccountRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyDeleteAccountRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -1896,7 +1896,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyDeleteAccountRequest.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyDeleteAccountRequest.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -1906,7 +1906,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyDeleteAccountRequest.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyDeleteAccountRequest.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -1923,7 +1923,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyDownloadAccountRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyDownloadAccountRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -1933,7 +1933,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyDownloadAccountRequest.SetmaxResults(AIndex : Integer; const AValue : integer); 
+Procedure TIdentitytoolkitRelyingpartyDownloadAccountRequest.SetmaxResults(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxResults=AValue) then exit;
@@ -1943,7 +1943,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyDownloadAccountRequest.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyDownloadAccountRequest.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1960,7 +1960,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -1970,7 +1970,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.Setemail(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.Setemail(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Femail=AValue) then exit;
@@ -1980,7 +1980,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -1990,7 +1990,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetlocalId(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetlocalId(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -2001,7 +2001,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TIdentitytoolkitRelyingpartyGetAccountInfoRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2021,7 +2021,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetallowPasswordUser(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetallowPasswordUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FallowPasswordUser=AValue) then exit;
@@ -2031,7 +2031,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetapiKey(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetapiKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FapiKey=AValue) then exit;
@@ -2041,7 +2041,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetauthorizedDomains(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetauthorizedDomains(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FauthorizedDomains=AValue) then exit;
@@ -2051,7 +2051,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetchangeEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetchangeEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FchangeEmailTemplate=AValue) then exit;
@@ -2061,7 +2061,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetenableAnonymousUser(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetenableAnonymousUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FenableAnonymousUser=AValue) then exit;
@@ -2071,7 +2071,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetidpConfig(AIndex : Integer; const AValue : TIdentitytoolkitRelyingpartyGetProjectConfigResponseTypeidpConfigArray); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetidpConfig(AIndex : Integer; const AValue : TIdentitytoolkitRelyingpartyGetProjectConfigResponseTypeidpConfigArray);
 
 begin
   If (FidpConfig=AValue) then exit;
@@ -2081,7 +2081,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetlegacyResetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetlegacyResetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FlegacyResetPasswordTemplate=AValue) then exit;
@@ -2091,7 +2091,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -2101,7 +2101,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetresetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetresetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FresetPasswordTemplate=AValue) then exit;
@@ -2111,7 +2111,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetuseEmailSending(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetuseEmailSending(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FuseEmailSending=AValue) then exit;
@@ -2121,7 +2121,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetverifyEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetverifyEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FverifyEmailTemplate=AValue) then exit;
@@ -2132,7 +2132,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TIdentitytoolkitRelyingpartyGetProjectConfigResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2165,7 +2165,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2175,7 +2175,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.SetnewPassword(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.SetnewPassword(AIndex : Integer; const AValue : String);
 
 begin
   If (FnewPassword=AValue) then exit;
@@ -2185,7 +2185,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.SetoldPassword(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.SetoldPassword(AIndex : Integer; const AValue : String);
 
 begin
   If (FoldPassword=AValue) then exit;
@@ -2195,7 +2195,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.SetoobCode(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyResetPasswordRequest.SetoobCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FoobCode=AValue) then exit;
@@ -2212,7 +2212,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetcaptchaChallenge(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetcaptchaChallenge(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaChallenge=AValue) then exit;
@@ -2222,7 +2222,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetcaptchaResponse(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetcaptchaResponse(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaResponse=AValue) then exit;
@@ -2232,7 +2232,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -2242,7 +2242,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdeleteAttribute(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdeleteAttribute(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdeleteAttribute=AValue) then exit;
@@ -2252,7 +2252,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdeleteProvider(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdeleteProvider(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FdeleteProvider=AValue) then exit;
@@ -2262,7 +2262,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdisableUser(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdisableUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FdisableUser=AValue) then exit;
@@ -2272,7 +2272,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2282,7 +2282,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2292,7 +2292,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetemailVerified(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetemailVerified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FemailVerified=AValue) then exit;
@@ -2302,7 +2302,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -2312,7 +2312,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2322,7 +2322,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -2332,7 +2332,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetoobCode(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetoobCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FoobCode=AValue) then exit;
@@ -2342,7 +2342,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.Setpassword(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.Setpassword(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpassword=AValue) then exit;
@@ -2352,7 +2352,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -2362,7 +2362,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.Setprovider(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.Setprovider(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fprovider=AValue) then exit;
@@ -2372,7 +2372,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreturnSecureToken=AValue) then exit;
@@ -2382,7 +2382,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetupgradeToFederatedLogin(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetupgradeToFederatedLogin(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FupgradeToFederatedLogin=AValue) then exit;
@@ -2392,7 +2392,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetvalidSince(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetvalidSince(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalidSince=AValue) then exit;
@@ -2403,7 +2403,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TIdentitytoolkitRelyingpartySetAccountInfoRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2424,7 +2424,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetallowPasswordUser(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetallowPasswordUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FallowPasswordUser=AValue) then exit;
@@ -2434,7 +2434,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetapiKey(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetapiKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FapiKey=AValue) then exit;
@@ -2444,7 +2444,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetauthorizedDomains(AIndex : Integer; const AValue : TStringArray); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetauthorizedDomains(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FauthorizedDomains=AValue) then exit;
@@ -2454,7 +2454,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetchangeEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetchangeEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FchangeEmailTemplate=AValue) then exit;
@@ -2464,7 +2464,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -2474,7 +2474,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetenableAnonymousUser(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetenableAnonymousUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FenableAnonymousUser=AValue) then exit;
@@ -2484,7 +2484,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetidpConfig(AIndex : Integer; const AValue : TIdentitytoolkitRelyingpartySetProjectConfigRequestTypeidpConfigArray); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetidpConfig(AIndex : Integer; const AValue : TIdentitytoolkitRelyingpartySetProjectConfigRequestTypeidpConfigArray);
 
 begin
   If (FidpConfig=AValue) then exit;
@@ -2494,7 +2494,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetlegacyResetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetlegacyResetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FlegacyResetPasswordTemplate=AValue) then exit;
@@ -2504,7 +2504,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetresetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetresetPasswordTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FresetPasswordTemplate=AValue) then exit;
@@ -2514,7 +2514,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetuseEmailSending(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetuseEmailSending(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FuseEmailSending=AValue) then exit;
@@ -2524,7 +2524,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetverifyEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetverifyEmailTemplate(AIndex : Integer; const AValue : TEmailTemplate);
 
 begin
   If (FverifyEmailTemplate=AValue) then exit;
@@ -2535,7 +2535,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2555,7 +2555,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartySetProjectConfigResponse.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySetProjectConfigResponse.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -2572,7 +2572,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartySignOutUserRequest.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignOutUserRequest.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2582,7 +2582,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignOutUserRequest.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignOutUserRequest.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -2599,7 +2599,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartySignOutUserResponse.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignOutUserResponse.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -2616,7 +2616,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetcaptchaChallenge(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetcaptchaChallenge(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaChallenge=AValue) then exit;
@@ -2626,7 +2626,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetcaptchaResponse(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetcaptchaResponse(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaResponse=AValue) then exit;
@@ -2636,7 +2636,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2646,7 +2646,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2656,7 +2656,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -2666,7 +2666,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2676,7 +2676,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.Setpassword(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartySignupNewUserRequest.Setpassword(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpassword=AValue) then exit;
@@ -2693,7 +2693,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -2703,7 +2703,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SethashAlgorithm(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SethashAlgorithm(AIndex : Integer; const AValue : String);
 
 begin
   If (FhashAlgorithm=AValue) then exit;
@@ -2713,7 +2713,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetmemoryCost(AIndex : Integer; const AValue : integer); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetmemoryCost(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmemoryCost=AValue) then exit;
@@ -2723,7 +2723,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.Setrounds(AIndex : Integer; const AValue : integer); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.Setrounds(AIndex : Integer; const AValue : integer);
 
 begin
   If (Frounds=AValue) then exit;
@@ -2733,7 +2733,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetsaltSeparator(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetsaltSeparator(AIndex : Integer; const AValue : String);
 
 begin
   If (FsaltSeparator=AValue) then exit;
@@ -2743,7 +2743,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetsignerKey(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetsignerKey(AIndex : Integer; const AValue : String);
 
 begin
   If (FsignerKey=AValue) then exit;
@@ -2753,7 +2753,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.Setusers(AIndex : Integer; const AValue : TIdentitytoolkitRelyingpartyUploadAccountRequestTypeusersArray); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.Setusers(AIndex : Integer; const AValue : TIdentitytoolkitRelyingpartyUploadAccountRequestTypeusersArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -2764,7 +2764,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TIdentitytoolkitRelyingpartyUploadAccountRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2783,7 +2783,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -2793,7 +2793,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -2803,7 +2803,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2813,7 +2813,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetpendingIdToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetpendingIdToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpendingIdToken=AValue) then exit;
@@ -2823,7 +2823,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetpostBody(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetpostBody(AIndex : Integer; const AValue : String);
 
 begin
   If (FpostBody=AValue) then exit;
@@ -2833,7 +2833,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetrequestUri(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetrequestUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestUri=AValue) then exit;
@@ -2843,7 +2843,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetreturnRefreshToken(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetreturnRefreshToken(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreturnRefreshToken=AValue) then exit;
@@ -2853,7 +2853,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreturnSecureToken=AValue) then exit;
@@ -2863,7 +2863,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetsessionId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyAssertionRequest.SetsessionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FsessionId=AValue) then exit;
@@ -2880,7 +2880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -2890,7 +2890,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2900,7 +2900,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreturnSecureToken=AValue) then exit;
@@ -2910,7 +2910,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyCustomTokenRequest.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2927,7 +2927,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetcaptchaChallenge(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetcaptchaChallenge(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaChallenge=AValue) then exit;
@@ -2937,7 +2937,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetcaptchaResponse(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetcaptchaResponse(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaResponse=AValue) then exit;
@@ -2947,7 +2947,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetdelegatedProjectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FdelegatedProjectNumber=AValue) then exit;
@@ -2957,7 +2957,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2967,7 +2967,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -2977,7 +2977,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetinstanceId(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetinstanceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -2987,7 +2987,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.Setpassword(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.Setpassword(AIndex : Integer; const AValue : String);
 
 begin
   If (Fpassword=AValue) then exit;
@@ -2997,7 +2997,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetpendingIdToken(AIndex : Integer; const AValue : String); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetpendingIdToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FpendingIdToken=AValue) then exit;
@@ -3007,7 +3007,7 @@ end;
 
 
 
-Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean); 
+Procedure TIdentitytoolkitRelyingpartyVerifyPasswordRequest.SetreturnSecureToken(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreturnSecureToken=AValue) then exit;
@@ -3024,7 +3024,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIdpConfig.SetclientId(AIndex : Integer; const AValue : String); 
+Procedure TIdpConfig.SetclientId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientId=AValue) then exit;
@@ -3034,7 +3034,7 @@ end;
 
 
 
-Procedure TIdpConfig.Setenabled(AIndex : Integer; const AValue : boolean); 
+Procedure TIdpConfig.Setenabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fenabled=AValue) then exit;
@@ -3044,7 +3044,7 @@ end;
 
 
 
-Procedure TIdpConfig.SetexperimentPercent(AIndex : Integer; const AValue : integer); 
+Procedure TIdpConfig.SetexperimentPercent(AIndex : Integer; const AValue : integer);
 
 begin
   If (FexperimentPercent=AValue) then exit;
@@ -3054,7 +3054,7 @@ end;
 
 
 
-Procedure TIdpConfig.Setprovider(AIndex : Integer; const AValue : String); 
+Procedure TIdpConfig.Setprovider(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprovider=AValue) then exit;
@@ -3064,7 +3064,7 @@ end;
 
 
 
-Procedure TIdpConfig.Setsecret(AIndex : Integer; const AValue : String); 
+Procedure TIdpConfig.Setsecret(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsecret=AValue) then exit;
@@ -3081,7 +3081,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRelyingparty.SetcaptchaResp(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.SetcaptchaResp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcaptchaResp=AValue) then exit;
@@ -3091,7 +3091,7 @@ end;
 
 
 
-Procedure TRelyingparty.Setchallenge(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.Setchallenge(AIndex : Integer; const AValue : String);
 
 begin
   If (Fchallenge=AValue) then exit;
@@ -3101,7 +3101,7 @@ end;
 
 
 
-Procedure TRelyingparty.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3111,7 +3111,7 @@ end;
 
 
 
-Procedure TRelyingparty.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -3121,7 +3121,7 @@ end;
 
 
 
-Procedure TRelyingparty.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3131,7 +3131,7 @@ end;
 
 
 
-Procedure TRelyingparty.SetnewEmail(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.SetnewEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FnewEmail=AValue) then exit;
@@ -3141,7 +3141,7 @@ end;
 
 
 
-Procedure TRelyingparty.SetrequestType(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.SetrequestType(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestType=AValue) then exit;
@@ -3151,7 +3151,7 @@ end;
 
 
 
-Procedure TRelyingparty.SetuserIp(AIndex : Integer; const AValue : String); 
+Procedure TRelyingparty.SetuserIp(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserIp=AValue) then exit;
@@ -3168,7 +3168,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResetPasswordResponse.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TResetPasswordResponse.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3178,7 +3178,7 @@ end;
 
 
 
-Procedure TResetPasswordResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TResetPasswordResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3195,7 +3195,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3205,7 +3205,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetfederatedId(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetfederatedId(AIndex : Integer; const AValue : String);
 
 begin
   If (FfederatedId=AValue) then exit;
@@ -3215,7 +3215,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -3225,7 +3225,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetproviderId(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponseTypeproviderUserInfoItem.SetproviderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproviderId=AValue) then exit;
@@ -3242,7 +3242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetAccountInfoResponse.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3252,7 +3252,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3262,7 +3262,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetexpiresIn(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetexpiresIn(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpiresIn=AValue) then exit;
@@ -3272,7 +3272,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -3282,7 +3282,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3292,7 +3292,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -3302,7 +3302,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetnewEmail(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetnewEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FnewEmail=AValue) then exit;
@@ -3312,7 +3312,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetpasswordHash(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetpasswordHash(AIndex : Integer; const AValue : String);
 
 begin
   If (FpasswordHash=AValue) then exit;
@@ -3322,7 +3322,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -3332,7 +3332,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetproviderUserInfo(AIndex : Integer; const AValue : TSetAccountInfoResponseTypeproviderUserInfoArray); 
+Procedure TSetAccountInfoResponse.SetproviderUserInfo(AIndex : Integer; const AValue : TSetAccountInfoResponseTypeproviderUserInfoArray);
 
 begin
   If (FproviderUserInfo=AValue) then exit;
@@ -3342,7 +3342,7 @@ end;
 
 
 
-Procedure TSetAccountInfoResponse.SetrefreshToken(AIndex : Integer; const AValue : String); 
+Procedure TSetAccountInfoResponse.SetrefreshToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrefreshToken=AValue) then exit;
@@ -3353,7 +3353,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSetAccountInfoResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSetAccountInfoResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3372,7 +3372,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSignupNewUserResponse.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3382,7 +3382,7 @@ end;
 
 
 
-Procedure TSignupNewUserResponse.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3392,7 +3392,7 @@ end;
 
 
 
-Procedure TSignupNewUserResponse.SetexpiresIn(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.SetexpiresIn(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpiresIn=AValue) then exit;
@@ -3402,7 +3402,7 @@ end;
 
 
 
-Procedure TSignupNewUserResponse.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -3412,7 +3412,7 @@ end;
 
 
 
-Procedure TSignupNewUserResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3422,7 +3422,7 @@ end;
 
 
 
-Procedure TSignupNewUserResponse.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -3432,7 +3432,7 @@ end;
 
 
 
-Procedure TSignupNewUserResponse.SetrefreshToken(AIndex : Integer; const AValue : String); 
+Procedure TSignupNewUserResponse.SetrefreshToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrefreshToken=AValue) then exit;
@@ -3449,7 +3449,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUploadAccountResponseTypeerrorItem.Setindex(AIndex : Integer; const AValue : integer); 
+Procedure TUploadAccountResponseTypeerrorItem.Setindex(AIndex : Integer; const AValue : integer);
 
 begin
   If (Findex=AValue) then exit;
@@ -3459,7 +3459,7 @@ end;
 
 
 
-Procedure TUploadAccountResponseTypeerrorItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TUploadAccountResponseTypeerrorItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -3476,7 +3476,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUploadAccountResponse.Seterror(AIndex : Integer; const AValue : TUploadAccountResponseTypeerrorArray); 
+Procedure TUploadAccountResponse.Seterror(AIndex : Integer; const AValue : TUploadAccountResponseTypeerrorArray);
 
 begin
   If (Ferror=AValue) then exit;
@@ -3486,7 +3486,7 @@ end;
 
 
 
-Procedure TUploadAccountResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUploadAccountResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3497,7 +3497,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUploadAccountResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUploadAccountResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3516,7 +3516,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserInfoTypeproviderUserInfoItem.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TUserInfoTypeproviderUserInfoItem.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3526,7 +3526,7 @@ end;
 
 
 
-Procedure TUserInfoTypeproviderUserInfoItem.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TUserInfoTypeproviderUserInfoItem.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3536,7 +3536,7 @@ end;
 
 
 
-Procedure TUserInfoTypeproviderUserInfoItem.SetfederatedId(AIndex : Integer; const AValue : String); 
+Procedure TUserInfoTypeproviderUserInfoItem.SetfederatedId(AIndex : Integer; const AValue : String);
 
 begin
   If (FfederatedId=AValue) then exit;
@@ -3546,7 +3546,7 @@ end;
 
 
 
-Procedure TUserInfoTypeproviderUserInfoItem.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TUserInfoTypeproviderUserInfoItem.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -3556,7 +3556,7 @@ end;
 
 
 
-Procedure TUserInfoTypeproviderUserInfoItem.SetproviderId(AIndex : Integer; const AValue : String); 
+Procedure TUserInfoTypeproviderUserInfoItem.SetproviderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproviderId=AValue) then exit;
@@ -3566,7 +3566,7 @@ end;
 
 
 
-Procedure TUserInfoTypeproviderUserInfoItem.SetrawId(AIndex : Integer; const AValue : String); 
+Procedure TUserInfoTypeproviderUserInfoItem.SetrawId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrawId=AValue) then exit;
@@ -3583,7 +3583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserInfo.Setdisabled(AIndex : Integer; const AValue : boolean); 
+Procedure TUserInfo.Setdisabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdisabled=AValue) then exit;
@@ -3593,7 +3593,7 @@ end;
 
 
 
-Procedure TUserInfo.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3603,7 +3603,7 @@ end;
 
 
 
-Procedure TUserInfo.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3613,7 +3613,7 @@ end;
 
 
 
-Procedure TUserInfo.SetemailVerified(AIndex : Integer; const AValue : boolean); 
+Procedure TUserInfo.SetemailVerified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FemailVerified=AValue) then exit;
@@ -3623,7 +3623,7 @@ end;
 
 
 
-Procedure TUserInfo.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -3633,7 +3633,7 @@ end;
 
 
 
-Procedure TUserInfo.SetpasswordHash(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.SetpasswordHash(AIndex : Integer; const AValue : String);
 
 begin
   If (FpasswordHash=AValue) then exit;
@@ -3643,7 +3643,7 @@ end;
 
 
 
-Procedure TUserInfo.SetpasswordUpdatedAt(AIndex : Integer; const AValue : double); 
+Procedure TUserInfo.SetpasswordUpdatedAt(AIndex : Integer; const AValue : double);
 
 begin
   If (FpasswordUpdatedAt=AValue) then exit;
@@ -3653,7 +3653,7 @@ end;
 
 
 
-Procedure TUserInfo.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -3663,7 +3663,7 @@ end;
 
 
 
-Procedure TUserInfo.SetproviderUserInfo(AIndex : Integer; const AValue : TUserInfoTypeproviderUserInfoArray); 
+Procedure TUserInfo.SetproviderUserInfo(AIndex : Integer; const AValue : TUserInfoTypeproviderUserInfoArray);
 
 begin
   If (FproviderUserInfo=AValue) then exit;
@@ -3673,7 +3673,7 @@ end;
 
 
 
-Procedure TUserInfo.Setsalt(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.Setsalt(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsalt=AValue) then exit;
@@ -3683,7 +3683,7 @@ end;
 
 
 
-Procedure TUserInfo.SetvalidSince(AIndex : Integer; const AValue : String); 
+Procedure TUserInfo.SetvalidSince(AIndex : Integer; const AValue : String);
 
 begin
   If (FvalidSince=AValue) then exit;
@@ -3693,7 +3693,7 @@ end;
 
 
 
-Procedure TUserInfo.Setversion(AIndex : Integer; const AValue : integer); 
+Procedure TUserInfo.Setversion(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fversion=AValue) then exit;
@@ -3704,7 +3704,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUserInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUserInfo.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3723,7 +3723,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVerifyAssertionResponse.Setaction(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.Setaction(AIndex : Integer; const AValue : String);
 
 begin
   If (Faction=AValue) then exit;
@@ -3733,7 +3733,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetappInstallationUrl(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetappInstallationUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FappInstallationUrl=AValue) then exit;
@@ -3743,7 +3743,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetappScheme(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetappScheme(AIndex : Integer; const AValue : String);
 
 begin
   If (FappScheme=AValue) then exit;
@@ -3753,7 +3753,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.Setcontext(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.Setcontext(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontext=AValue) then exit;
@@ -3763,7 +3763,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetdateOfBirth(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetdateOfBirth(AIndex : Integer; const AValue : String);
 
 begin
   If (FdateOfBirth=AValue) then exit;
@@ -3773,7 +3773,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3783,7 +3783,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -3793,7 +3793,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetemailRecycled(AIndex : Integer; const AValue : boolean); 
+Procedure TVerifyAssertionResponse.SetemailRecycled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FemailRecycled=AValue) then exit;
@@ -3803,7 +3803,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetemailVerified(AIndex : Integer; const AValue : boolean); 
+Procedure TVerifyAssertionResponse.SetemailVerified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FemailVerified=AValue) then exit;
@@ -3813,7 +3813,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetexpiresIn(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetexpiresIn(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpiresIn=AValue) then exit;
@@ -3823,7 +3823,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetfederatedId(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetfederatedId(AIndex : Integer; const AValue : String);
 
 begin
   If (FfederatedId=AValue) then exit;
@@ -3833,7 +3833,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetfirstName(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetfirstName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfirstName=AValue) then exit;
@@ -3843,7 +3843,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetfullName(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetfullName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfullName=AValue) then exit;
@@ -3853,7 +3853,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -3863,7 +3863,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetinputEmail(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetinputEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (FinputEmail=AValue) then exit;
@@ -3873,7 +3873,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -3883,7 +3883,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -3893,7 +3893,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetlastName(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetlastName(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastName=AValue) then exit;
@@ -3903,7 +3903,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -3913,7 +3913,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetneedConfirmation(AIndex : Integer; const AValue : boolean); 
+Procedure TVerifyAssertionResponse.SetneedConfirmation(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FneedConfirmation=AValue) then exit;
@@ -3923,7 +3923,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetneedEmail(AIndex : Integer; const AValue : boolean); 
+Procedure TVerifyAssertionResponse.SetneedEmail(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FneedEmail=AValue) then exit;
@@ -3933,7 +3933,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetnickName(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetnickName(AIndex : Integer; const AValue : String);
 
 begin
   If (FnickName=AValue) then exit;
@@ -3943,7 +3943,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthAccessToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoauthAccessToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthAccessToken=AValue) then exit;
@@ -3953,7 +3953,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthAuthorizationCode(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoauthAuthorizationCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthAuthorizationCode=AValue) then exit;
@@ -3963,7 +3963,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthExpireIn(AIndex : Integer; const AValue : integer); 
+Procedure TVerifyAssertionResponse.SetoauthExpireIn(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoauthExpireIn=AValue) then exit;
@@ -3973,7 +3973,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthIdToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoauthIdToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthIdToken=AValue) then exit;
@@ -3983,7 +3983,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthRequestToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoauthRequestToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthRequestToken=AValue) then exit;
@@ -3993,7 +3993,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthScope(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoauthScope(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthScope=AValue) then exit;
@@ -4003,7 +4003,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoauthTokenSecret(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoauthTokenSecret(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthTokenSecret=AValue) then exit;
@@ -4013,7 +4013,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetoriginalEmail(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetoriginalEmail(AIndex : Integer; const AValue : String);
 
 begin
   If (ForiginalEmail=AValue) then exit;
@@ -4023,7 +4023,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -4033,7 +4033,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetproviderId(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetproviderId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproviderId=AValue) then exit;
@@ -4043,7 +4043,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetrefreshToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SetrefreshToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrefreshToken=AValue) then exit;
@@ -4053,7 +4053,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SettimeZone(AIndex : Integer; const AValue : String); 
+Procedure TVerifyAssertionResponse.SettimeZone(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -4063,7 +4063,7 @@ end;
 
 
 
-Procedure TVerifyAssertionResponse.SetverifiedProvider(AIndex : Integer; const AValue : TStringArray); 
+Procedure TVerifyAssertionResponse.SetverifiedProvider(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FverifiedProvider=AValue) then exit;
@@ -4074,7 +4074,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TVerifyAssertionResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TVerifyAssertionResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4093,7 +4093,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVerifyCustomTokenResponse.SetexpiresIn(AIndex : Integer; const AValue : String); 
+Procedure TVerifyCustomTokenResponse.SetexpiresIn(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpiresIn=AValue) then exit;
@@ -4103,7 +4103,7 @@ end;
 
 
 
-Procedure TVerifyCustomTokenResponse.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyCustomTokenResponse.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -4113,7 +4113,7 @@ end;
 
 
 
-Procedure TVerifyCustomTokenResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TVerifyCustomTokenResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4123,7 +4123,7 @@ end;
 
 
 
-Procedure TVerifyCustomTokenResponse.SetrefreshToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyCustomTokenResponse.SetrefreshToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrefreshToken=AValue) then exit;
@@ -4140,7 +4140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVerifyPasswordResponse.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -4150,7 +4150,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -4160,7 +4160,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetexpiresIn(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetexpiresIn(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpiresIn=AValue) then exit;
@@ -4170,7 +4170,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetidToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetidToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FidToken=AValue) then exit;
@@ -4180,7 +4180,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4190,7 +4190,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetlocalId(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetlocalId(AIndex : Integer; const AValue : String);
 
 begin
   If (FlocalId=AValue) then exit;
@@ -4200,7 +4200,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetoauthAccessToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetoauthAccessToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthAccessToken=AValue) then exit;
@@ -4210,7 +4210,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetoauthAuthorizationCode(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetoauthAuthorizationCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FoauthAuthorizationCode=AValue) then exit;
@@ -4220,7 +4220,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetoauthExpireIn(AIndex : Integer; const AValue : integer); 
+Procedure TVerifyPasswordResponse.SetoauthExpireIn(AIndex : Integer; const AValue : integer);
 
 begin
   If (FoauthExpireIn=AValue) then exit;
@@ -4230,7 +4230,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetphotoUrl(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetphotoUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FphotoUrl=AValue) then exit;
@@ -4240,7 +4240,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.SetrefreshToken(AIndex : Integer; const AValue : String); 
+Procedure TVerifyPasswordResponse.SetrefreshToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrefreshToken=AValue) then exit;
@@ -4250,7 +4250,7 @@ end;
 
 
 
-Procedure TVerifyPasswordResponse.Setregistered(AIndex : Integer; const AValue : boolean); 
+Procedure TVerifyPasswordResponse.Setregistered(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fregistered=AValue) then exit;
@@ -4591,7 +4591,7 @@ Class Function TIdentitytoolkitAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TIdentitytoolkitAPI.APINeedsAuth : Boolean;

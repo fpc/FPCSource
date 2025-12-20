@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TStatus = Class;
   TBuildOperationMetadata = Class;
@@ -48,11 +48,11 @@ type
   TBuildTypestepsArray = Array of TBuildStep;
   TListOperationsResponseTypeoperationsArray = Array of TOperation;
   TListBuildsResponseTypebuildsArray = Array of TBuild;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -62,11 +62,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -88,11 +88,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TBuildOperationMetadata
     --------------------------------------------------------------------}
-  
+
   TBuildOperationMetadata = Class(TGoogleBaseObject)
   Private
     Fbuild : TBuild;
@@ -104,11 +104,11 @@ type
     Property build : TBuild Index 0 Read Fbuild Write Setbuild;
   end;
   TBuildOperationMetadataClass = Class of TBuildOperationMetadata;
-  
+
   { --------------------------------------------------------------------
     TSource
     --------------------------------------------------------------------}
-  
+
   TSource = Class(TGoogleBaseObject)
   Private
     FstorageSource : TStorageSource;
@@ -120,11 +120,11 @@ type
     Property storageSource : TStorageSource Index 0 Read FstorageSource Write SetstorageSource;
   end;
   TSourceClass = Class of TSource;
-  
+
   { --------------------------------------------------------------------
     TOperationTypemetadata
     --------------------------------------------------------------------}
-  
+
   TOperationTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -134,11 +134,11 @@ type
   Published
   end;
   TOperationTypemetadataClass = Class of TOperationTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationTyperesponse
     --------------------------------------------------------------------}
-  
+
   TOperationTyperesponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -148,11 +148,11 @@ type
   Published
   end;
   TOperationTyperesponseClass = Class of TOperationTyperesponse;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     Ferror : TStatus;
@@ -176,11 +176,11 @@ type
     Property name : String Index 32 Read Fname Write Setname;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TBuiltImage
     --------------------------------------------------------------------}
-  
+
   TBuiltImage = Class(TGoogleBaseObject)
   Private
     Fdigest : String;
@@ -195,11 +195,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TBuiltImageClass = Class of TBuiltImage;
-  
+
   { --------------------------------------------------------------------
     TStorageSource
     --------------------------------------------------------------------}
-  
+
   TStorageSource = Class(TGoogleBaseObject)
   Private
     Fbucket : String;
@@ -218,11 +218,11 @@ type
     Property _object : String Index 16 Read F_object Write Set_object;
   end;
   TStorageSourceClass = Class of TStorageSource;
-  
+
   { --------------------------------------------------------------------
     TResults
     --------------------------------------------------------------------}
-  
+
   TResults = Class(TGoogleBaseObject)
   Private
     Fimages : TResultsTypeimagesArray;
@@ -238,11 +238,11 @@ type
     Property images : TResultsTypeimagesArray Index 0 Read Fimages Write Setimages;
   end;
   TResultsClass = Class of TResults;
-  
+
   { --------------------------------------------------------------------
     TBuild
     --------------------------------------------------------------------}
-  
+
   TBuild = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -294,11 +294,11 @@ type
     Property projectId : String Index 96 Read FprojectId Write SetprojectId;
   end;
   TBuildClass = Class of TBuild;
-  
+
   { --------------------------------------------------------------------
     TCancelBuildRequest
     --------------------------------------------------------------------}
-  
+
   TCancelBuildRequest = Class(TGoogleBaseObject)
   Private
   Protected
@@ -307,11 +307,11 @@ type
   Published
   end;
   TCancelBuildRequestClass = Class of TCancelBuildRequest;
-  
+
   { --------------------------------------------------------------------
     TListOperationsResponse
     --------------------------------------------------------------------}
-  
+
   TListOperationsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -330,11 +330,11 @@ type
     Property operations : TListOperationsResponseTypeoperationsArray Index 8 Read Foperations Write Setoperations;
   end;
   TListOperationsResponseClass = Class of TListOperationsResponse;
-  
+
   { --------------------------------------------------------------------
     TBuildStep
     --------------------------------------------------------------------}
-  
+
   TBuildStep = Class(TGoogleBaseObject)
   Private
     Fargs : TStringArray;
@@ -359,11 +359,11 @@ type
     Property env : TStringArray Index 24 Read Fenv Write Setenv;
   end;
   TBuildStepClass = Class of TBuildStep;
-  
+
   { --------------------------------------------------------------------
     TListBuildsResponse
     --------------------------------------------------------------------}
-  
+
   TListBuildsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -382,19 +382,19 @@ type
     Property builds : TListBuildsResponseTypebuildsArray Index 8 Read Fbuilds Write Setbuilds;
   end;
   TListBuildsResponseClass = Class of TListBuildsResponse;
-  
+
   { --------------------------------------------------------------------
     TProjectsBuildsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsBuildsResource, method List
-  
+
   TProjectsBuildsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsBuildsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -405,12 +405,12 @@ type
     Function List(projectId: string; AQuery : TProjectsBuildslistOptions) : TListBuildsResponse;
     Function Cancel(projectId: string; id: string; aCancelBuildRequest : TCancelBuildRequest) : TBuild;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FBuildsInstance : TProjectsBuildsResource;
@@ -422,21 +422,21 @@ type
     Function CreateBuildsResource : TProjectsBuildsResource;virtual;overload;
     Property BuildsResource : TProjectsBuildsResource Read GetBuildsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TOperationsResource, method List
-  
+
   TOperationsListOptions = Record
     pageSize : integer;
     filter : String;
     pageToken : String;
   end;
-  
+
   TOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -445,12 +445,12 @@ type
     Function List(_name: string; AQuery : string  = '') : TListOperationsResponse;
     Function List(_name: string; AQuery : TOperationslistOptions) : TListOperationsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCloudbuildAPI
     --------------------------------------------------------------------}
-  
+
   TCloudbuildAPI = Class(TGoogleAPI)
   Private
     FProjectsBuildsInstance : TProjectsBuildsResource;
@@ -515,7 +515,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -525,7 +525,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -535,7 +535,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -546,7 +546,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -565,7 +565,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuildOperationMetadata.Setbuild(AIndex : Integer; const AValue : TBuild); 
+Procedure TBuildOperationMetadata.Setbuild(AIndex : Integer; const AValue : TBuild);
 
 begin
   If (Fbuild=AValue) then exit;
@@ -582,7 +582,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSource.SetstorageSource(AIndex : Integer; const AValue : TStorageSource); 
+Procedure TSource.SetstorageSource(AIndex : Integer; const AValue : TStorageSource);
 
 begin
   If (FstorageSource=AValue) then exit;
@@ -625,7 +625,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -635,7 +635,7 @@ end;
 
 
 
-Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean); 
+Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdone=AValue) then exit;
@@ -645,7 +645,7 @@ end;
 
 
 
-Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata); 
+Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -655,7 +655,7 @@ end;
 
 
 
-Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse); 
+Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -665,7 +665,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -682,7 +682,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuiltImage.Setdigest(AIndex : Integer; const AValue : String); 
+Procedure TBuiltImage.Setdigest(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdigest=AValue) then exit;
@@ -692,7 +692,7 @@ end;
 
 
 
-Procedure TBuiltImage.Setname(AIndex : Integer; const AValue : String); 
+Procedure TBuiltImage.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -709,7 +709,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStorageSource.Setbucket(AIndex : Integer; const AValue : String); 
+Procedure TStorageSource.Setbucket(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbucket=AValue) then exit;
@@ -719,7 +719,7 @@ end;
 
 
 
-Procedure TStorageSource.Setgeneration(AIndex : Integer; const AValue : String); 
+Procedure TStorageSource.Setgeneration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgeneration=AValue) then exit;
@@ -729,7 +729,7 @@ end;
 
 
 
-Procedure TStorageSource.Set_object(AIndex : Integer; const AValue : String); 
+Procedure TStorageSource.Set_object(AIndex : Integer; const AValue : String);
 
 begin
   If (F_object=AValue) then exit;
@@ -757,7 +757,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResults.Setimages(AIndex : Integer; const AValue : TResultsTypeimagesArray); 
+Procedure TResults.Setimages(AIndex : Integer; const AValue : TResultsTypeimagesArray);
 
 begin
   If (Fimages=AValue) then exit;
@@ -768,7 +768,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResults.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResults.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -787,7 +787,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuild.Setid(AIndex : Integer; const AValue : String); 
+Procedure TBuild.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -797,7 +797,7 @@ end;
 
 
 
-Procedure TBuild.Setresults(AIndex : Integer; const AValue : TResults); 
+Procedure TBuild.Setresults(AIndex : Integer; const AValue : TResults);
 
 begin
   If (Fresults=AValue) then exit;
@@ -807,7 +807,7 @@ end;
 
 
 
-Procedure TBuild.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TBuild.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -817,7 +817,7 @@ end;
 
 
 
-Procedure TBuild.SetfinishTime(AIndex : Integer; const AValue : String); 
+Procedure TBuild.SetfinishTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FfinishTime=AValue) then exit;
@@ -827,7 +827,7 @@ end;
 
 
 
-Procedure TBuild.Settimeout(AIndex : Integer; const AValue : String); 
+Procedure TBuild.Settimeout(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftimeout=AValue) then exit;
@@ -837,7 +837,7 @@ end;
 
 
 
-Procedure TBuild.Setsteps(AIndex : Integer; const AValue : TBuildTypestepsArray); 
+Procedure TBuild.Setsteps(AIndex : Integer; const AValue : TBuildTypestepsArray);
 
 begin
   If (Fsteps=AValue) then exit;
@@ -847,7 +847,7 @@ end;
 
 
 
-Procedure TBuild.Setsource(AIndex : Integer; const AValue : TSource); 
+Procedure TBuild.Setsource(AIndex : Integer; const AValue : TSource);
 
 begin
   If (Fsource=AValue) then exit;
@@ -857,7 +857,7 @@ end;
 
 
 
-Procedure TBuild.SetcreateTime(AIndex : Integer; const AValue : String); 
+Procedure TBuild.SetcreateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -867,7 +867,7 @@ end;
 
 
 
-Procedure TBuild.SetstatusDetail(AIndex : Integer; const AValue : String); 
+Procedure TBuild.SetstatusDetail(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusDetail=AValue) then exit;
@@ -877,7 +877,7 @@ end;
 
 
 
-Procedure TBuild.Setimages(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBuild.Setimages(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fimages=AValue) then exit;
@@ -887,7 +887,7 @@ end;
 
 
 
-Procedure TBuild.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TBuild.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -897,7 +897,7 @@ end;
 
 
 
-Procedure TBuild.SetlogsBucket(AIndex : Integer; const AValue : String); 
+Procedure TBuild.SetlogsBucket(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogsBucket=AValue) then exit;
@@ -907,7 +907,7 @@ end;
 
 
 
-Procedure TBuild.SetprojectId(AIndex : Integer; const AValue : String); 
+Procedure TBuild.SetprojectId(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectId=AValue) then exit;
@@ -918,7 +918,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBuild.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBuild.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -945,7 +945,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListOperationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -955,7 +955,7 @@ end;
 
 
 
-Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray); 
+Procedure TListOperationsResponse.Setoperations(AIndex : Integer; const AValue : TListOperationsResponseTypeoperationsArray);
 
 begin
   If (Foperations=AValue) then exit;
@@ -966,7 +966,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListOperationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -985,7 +985,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuildStep.Setargs(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBuildStep.Setargs(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fargs=AValue) then exit;
@@ -995,7 +995,7 @@ end;
 
 
 
-Procedure TBuildStep.Setdir(AIndex : Integer; const AValue : String); 
+Procedure TBuildStep.Setdir(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdir=AValue) then exit;
@@ -1005,7 +1005,7 @@ end;
 
 
 
-Procedure TBuildStep.Setname(AIndex : Integer; const AValue : String); 
+Procedure TBuildStep.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1015,7 +1015,7 @@ end;
 
 
 
-Procedure TBuildStep.Setenv(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBuildStep.Setenv(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fenv=AValue) then exit;
@@ -1026,7 +1026,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBuildStep.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBuildStep.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1046,7 +1046,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBuildsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListBuildsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1056,7 +1056,7 @@ end;
 
 
 
-Procedure TListBuildsResponse.Setbuilds(AIndex : Integer; const AValue : TListBuildsResponseTypebuildsArray); 
+Procedure TListBuildsResponse.Setbuilds(AIndex : Integer; const AValue : TListBuildsResponseTypebuildsArray);
 
 begin
   If (Fbuilds=AValue) then exit;
@@ -1067,7 +1067,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListBuildsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListBuildsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1391,7 +1391,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TCloudbuildAPI.APINeedsAuth : Boolean;

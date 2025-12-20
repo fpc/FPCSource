@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TBucket = Class;
   TBucketAccessControl = Class;
@@ -64,11 +64,11 @@ type
   TComposeRequestTypesourceObjectsArray = Array of TComposeRequestTypesourceObjectsItem;
   TObjectTypeaclArray = Array of TObjectAccessControl;
   TObjectsTypeitemsArray = Array of TObject;
-  
+
   { --------------------------------------------------------------------
     TBucketTypecorsItem
     --------------------------------------------------------------------}
-  
+
   TBucketTypecorsItem = Class(TGoogleBaseObject)
   Private
     FmaxAgeSeconds : integer;
@@ -93,11 +93,11 @@ type
     Property responseHeader : TStringArray Index 24 Read FresponseHeader Write SetresponseHeader;
   end;
   TBucketTypecorsItemClass = Class of TBucketTypecorsItem;
-  
+
   { --------------------------------------------------------------------
     TBucketTypelifecycleTyperuleItemTypeaction
     --------------------------------------------------------------------}
-  
+
   TBucketTypelifecycleTyperuleItemTypeaction = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -110,11 +110,11 @@ type
     Property _type : String Index 0 Read F_type Write Set_type;
   end;
   TBucketTypelifecycleTyperuleItemTypeactionClass = Class of TBucketTypelifecycleTyperuleItemTypeaction;
-  
+
   { --------------------------------------------------------------------
     TBucketTypelifecycleTyperuleItemTypecondition
     --------------------------------------------------------------------}
-  
+
   TBucketTypelifecycleTyperuleItemTypecondition = Class(TGoogleBaseObject)
   Private
     Fage : integer;
@@ -135,11 +135,11 @@ type
     Property numNewerVersions : integer Index 24 Read FnumNewerVersions Write SetnumNewerVersions;
   end;
   TBucketTypelifecycleTyperuleItemTypeconditionClass = Class of TBucketTypelifecycleTyperuleItemTypecondition;
-  
+
   { --------------------------------------------------------------------
     TBucketTypelifecycleTyperuleItem
     --------------------------------------------------------------------}
-  
+
   TBucketTypelifecycleTyperuleItem = Class(TGoogleBaseObject)
   Private
     Faction : TBucketTypelifecycleTyperuleItemTypeaction;
@@ -154,11 +154,11 @@ type
     Property condition : TBucketTypelifecycleTyperuleItemTypecondition Index 8 Read Fcondition Write Setcondition;
   end;
   TBucketTypelifecycleTyperuleItemClass = Class of TBucketTypelifecycleTyperuleItem;
-  
+
   { --------------------------------------------------------------------
     TBucketTypelifecycle
     --------------------------------------------------------------------}
-  
+
   TBucketTypelifecycle = Class(TGoogleBaseObject)
   Private
     Frule : TBucketTypelifecycleTyperuleArray;
@@ -174,11 +174,11 @@ type
     Property rule : TBucketTypelifecycleTyperuleArray Index 0 Read Frule Write Setrule;
   end;
   TBucketTypelifecycleClass = Class of TBucketTypelifecycle;
-  
+
   { --------------------------------------------------------------------
     TBucketTypelogging
     --------------------------------------------------------------------}
-  
+
   TBucketTypelogging = Class(TGoogleBaseObject)
   Private
     FlogBucket : String;
@@ -193,11 +193,11 @@ type
     Property logObjectPrefix : String Index 8 Read FlogObjectPrefix Write SetlogObjectPrefix;
   end;
   TBucketTypeloggingClass = Class of TBucketTypelogging;
-  
+
   { --------------------------------------------------------------------
     TBucketTypeowner
     --------------------------------------------------------------------}
-  
+
   TBucketTypeowner = Class(TGoogleBaseObject)
   Private
     Fentity : String;
@@ -212,11 +212,11 @@ type
     Property entityId : String Index 8 Read FentityId Write SetentityId;
   end;
   TBucketTypeownerClass = Class of TBucketTypeowner;
-  
+
   { --------------------------------------------------------------------
     TBucketTypeversioning
     --------------------------------------------------------------------}
-  
+
   TBucketTypeversioning = Class(TGoogleBaseObject)
   Private
     Fenabled : boolean;
@@ -228,11 +228,11 @@ type
     Property enabled : boolean Index 0 Read Fenabled Write Setenabled;
   end;
   TBucketTypeversioningClass = Class of TBucketTypeversioning;
-  
+
   { --------------------------------------------------------------------
     TBucketTypewebsite
     --------------------------------------------------------------------}
-  
+
   TBucketTypewebsite = Class(TGoogleBaseObject)
   Private
     FmainPageSuffix : String;
@@ -247,11 +247,11 @@ type
     Property notFoundPage : String Index 8 Read FnotFoundPage Write SetnotFoundPage;
   end;
   TBucketTypewebsiteClass = Class of TBucketTypewebsite;
-  
+
   { --------------------------------------------------------------------
     TBucket
     --------------------------------------------------------------------}
-  
+
   TBucket = Class(TGoogleBaseObject)
   Private
     Facl : TBucketTypeaclArray;
@@ -321,11 +321,11 @@ type
     Property website : TBucketTypewebsite Index 144 Read Fwebsite Write Setwebsite;
   end;
   TBucketClass = Class of TBucket;
-  
+
   { --------------------------------------------------------------------
     TBucketAccessControlTypeprojectTeam
     --------------------------------------------------------------------}
-  
+
   TBucketAccessControlTypeprojectTeam = Class(TGoogleBaseObject)
   Private
     FprojectNumber : String;
@@ -340,11 +340,11 @@ type
     Property team : String Index 8 Read Fteam Write Setteam;
   end;
   TBucketAccessControlTypeprojectTeamClass = Class of TBucketAccessControlTypeprojectTeam;
-  
+
   { --------------------------------------------------------------------
     TBucketAccessControl
     --------------------------------------------------------------------}
-  
+
   TBucketAccessControl = Class(TGoogleBaseObject)
   Private
     Fbucket : String;
@@ -386,11 +386,11 @@ type
     Property selfLink : String Index 80 Read FselfLink Write SetselfLink;
   end;
   TBucketAccessControlClass = Class of TBucketAccessControl;
-  
+
   { --------------------------------------------------------------------
     TBucketAccessControls
     --------------------------------------------------------------------}
-  
+
   TBucketAccessControls = Class(TGoogleBaseObject)
   Private
     Fitems : TBucketAccessControlsTypeitemsArray;
@@ -409,11 +409,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TBucketAccessControlsClass = Class of TBucketAccessControls;
-  
+
   { --------------------------------------------------------------------
     TBuckets
     --------------------------------------------------------------------}
-  
+
   TBuckets = Class(TGoogleBaseObject)
   Private
     Fitems : TBucketsTypeitemsArray;
@@ -435,11 +435,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TBucketsClass = Class of TBuckets;
-  
+
   { --------------------------------------------------------------------
     TChannelTypeparams
     --------------------------------------------------------------------}
-  
+
   TChannelTypeparams = Class(TGoogleBaseObject)
   Private
   Protected
@@ -449,11 +449,11 @@ type
   Published
   end;
   TChannelTypeparamsClass = Class of TChannelTypeparams;
-  
+
   { --------------------------------------------------------------------
     TChannel
     --------------------------------------------------------------------}
-  
+
   TChannel = Class(TGoogleBaseObject)
   Private
     Faddress : String;
@@ -493,11 +493,11 @@ type
     Property _type : String Index 72 Read F_type Write Set_type;
   end;
   TChannelClass = Class of TChannel;
-  
+
   { --------------------------------------------------------------------
     TComposeRequestTypesourceObjectsItemTypeobjectPreconditions
     --------------------------------------------------------------------}
-  
+
   TComposeRequestTypesourceObjectsItemTypeobjectPreconditions = Class(TGoogleBaseObject)
   Private
     FifGenerationMatch : String;
@@ -509,11 +509,11 @@ type
     Property ifGenerationMatch : String Index 0 Read FifGenerationMatch Write SetifGenerationMatch;
   end;
   TComposeRequestTypesourceObjectsItemTypeobjectPreconditionsClass = Class of TComposeRequestTypesourceObjectsItemTypeobjectPreconditions;
-  
+
   { --------------------------------------------------------------------
     TComposeRequestTypesourceObjectsItem
     --------------------------------------------------------------------}
-  
+
   TComposeRequestTypesourceObjectsItem = Class(TGoogleBaseObject)
   Private
     Fgeneration : String;
@@ -531,11 +531,11 @@ type
     Property objectPreconditions : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions Index 16 Read FobjectPreconditions Write SetobjectPreconditions;
   end;
   TComposeRequestTypesourceObjectsItemClass = Class of TComposeRequestTypesourceObjectsItem;
-  
+
   { --------------------------------------------------------------------
     TComposeRequest
     --------------------------------------------------------------------}
-  
+
   TComposeRequest = Class(TGoogleBaseObject)
   Private
     Fdestination : TObject;
@@ -557,11 +557,11 @@ type
     Property sourceObjects : TComposeRequestTypesourceObjectsArray Index 16 Read FsourceObjects Write SetsourceObjects;
   end;
   TComposeRequestClass = Class of TComposeRequest;
-  
+
   { --------------------------------------------------------------------
     TObjectTypecustomerEncryption
     --------------------------------------------------------------------}
-  
+
   TObjectTypecustomerEncryption = Class(TGoogleBaseObject)
   Private
     FencryptionAlgorithm : String;
@@ -576,11 +576,11 @@ type
     Property keySha256 : String Index 8 Read FkeySha256 Write SetkeySha256;
   end;
   TObjectTypecustomerEncryptionClass = Class of TObjectTypecustomerEncryption;
-  
+
   { --------------------------------------------------------------------
     TObjectTypemetadata
     --------------------------------------------------------------------}
-  
+
   TObjectTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -590,11 +590,11 @@ type
   Published
   end;
   TObjectTypemetadataClass = Class of TObjectTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TObjectTypeowner
     --------------------------------------------------------------------}
-  
+
   TObjectTypeowner = Class(TGoogleBaseObject)
   Private
     Fentity : String;
@@ -609,11 +609,11 @@ type
     Property entityId : String Index 8 Read FentityId Write SetentityId;
   end;
   TObjectTypeownerClass = Class of TObjectTypeowner;
-  
+
   { --------------------------------------------------------------------
     TObject
     --------------------------------------------------------------------}
-  
+
   TObject = Class(TGoogleBaseObject)
   Private
     Facl : TObjectTypeaclArray;
@@ -704,11 +704,11 @@ type
     Property updated : TDatetime Index 200 Read Fupdated Write Setupdated;
   end;
   TObjectClass = Class of TObject;
-  
+
   { --------------------------------------------------------------------
     TObjectAccessControlTypeprojectTeam
     --------------------------------------------------------------------}
-  
+
   TObjectAccessControlTypeprojectTeam = Class(TGoogleBaseObject)
   Private
     FprojectNumber : String;
@@ -723,11 +723,11 @@ type
     Property team : String Index 8 Read Fteam Write Setteam;
   end;
   TObjectAccessControlTypeprojectTeamClass = Class of TObjectAccessControlTypeprojectTeam;
-  
+
   { --------------------------------------------------------------------
     TObjectAccessControl
     --------------------------------------------------------------------}
-  
+
   TObjectAccessControl = Class(TGoogleBaseObject)
   Private
     Fbucket : String;
@@ -776,11 +776,11 @@ type
     Property selfLink : String Index 96 Read FselfLink Write SetselfLink;
   end;
   TObjectAccessControlClass = Class of TObjectAccessControl;
-  
+
   { --------------------------------------------------------------------
     TObjectAccessControls
     --------------------------------------------------------------------}
-  
+
   TObjectAccessControls = Class(TGoogleBaseObject)
   Private
     Fitems : TTJSONSchemaArray;
@@ -799,11 +799,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TObjectAccessControlsClass = Class of TObjectAccessControls;
-  
+
   { --------------------------------------------------------------------
     TObjects
     --------------------------------------------------------------------}
-  
+
   TObjects = Class(TGoogleBaseObject)
   Private
     Fitems : TObjectsTypeitemsArray;
@@ -828,11 +828,11 @@ type
     Property prefixes : TStringArray Index 24 Read Fprefixes Write Setprefixes;
   end;
   TObjectsClass = Class of TObjects;
-  
+
   { --------------------------------------------------------------------
     TRewriteResponse
     --------------------------------------------------------------------}
-  
+
   TRewriteResponse = Class(TGoogleBaseObject)
   Private
     Fdone : boolean;
@@ -859,11 +859,11 @@ type
     Property totalBytesRewritten : String Index 40 Read FtotalBytesRewritten Write SettotalBytesRewritten;
   end;
   TRewriteResponseClass = Class of TRewriteResponse;
-  
+
   { --------------------------------------------------------------------
     TBucketAccessControlsResource
     --------------------------------------------------------------------}
-  
+
   TBucketAccessControlsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -875,42 +875,42 @@ type
     Function Patch(bucket: string; entity: string; aBucketAccessControl : TBucketAccessControl) : TBucketAccessControl;
     Function Update(bucket: string; entity: string; aBucketAccessControl : TBucketAccessControl) : TBucketAccessControl;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TBucketsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TBucketsResource, method Delete
-  
+
   TBucketsDeleteOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
   end;
-  
-  
+
+
   //Optional query Options for TBucketsResource, method Get
-  
+
   TBucketsGetOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TBucketsResource, method Insert
-  
+
   TBucketsInsertOptions = Record
     predefinedAcl : String;
     predefinedDefaultObjectAcl : String;
     project : String;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TBucketsResource, method List
-  
+
   TBucketsListOptions = Record
     maxResults : integer;
     pageToken : String;
@@ -918,10 +918,10 @@ type
     project : String;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TBucketsResource, method Patch
-  
+
   TBucketsPatchOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
@@ -929,10 +929,10 @@ type
     predefinedDefaultObjectAcl : String;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TBucketsResource, method Update
-  
+
   TBucketsUpdateOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
@@ -940,7 +940,7 @@ type
     predefinedDefaultObjectAcl : String;
     projection : String;
   end;
-  
+
   TBucketsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -958,32 +958,32 @@ type
     Function Update(bucket: string; aBucket : TBucket; AQuery : string  = '') : TBucket;
     Function Update(bucket: string; aBucket : TBucket; AQuery : TBucketsupdateOptions) : TBucket;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TChannelsResource
     --------------------------------------------------------------------}
-  
+
   TChannelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Procedure Stop(aChannel : TChannel);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDefaultObjectAccessControlsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TDefaultObjectAccessControlsResource, method List
-  
+
   TDefaultObjectAccessControlsListOptions = Record
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
   end;
-  
+
   TDefaultObjectAccessControlsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -996,54 +996,54 @@ type
     Function Patch(bucket: string; entity: string; aObjectAccessControl : TObjectAccessControl) : TObjectAccessControl;
     Function Update(bucket: string; entity: string; aObjectAccessControl : TObjectAccessControl) : TObjectAccessControl;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TObjectAccessControlsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TObjectAccessControlsResource, method Delete
-  
+
   TObjectAccessControlsDeleteOptions = Record
     generation : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectAccessControlsResource, method Get
-  
+
   TObjectAccessControlsGetOptions = Record
     generation : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectAccessControlsResource, method Insert
-  
+
   TObjectAccessControlsInsertOptions = Record
     generation : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectAccessControlsResource, method List
-  
+
   TObjectAccessControlsListOptions = Record
     generation : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectAccessControlsResource, method Patch
-  
+
   TObjectAccessControlsPatchOptions = Record
     generation : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectAccessControlsResource, method Update
-  
+
   TObjectAccessControlsUpdateOptions = Record
     generation : int64;
   end;
-  
+
   TObjectAccessControlsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1061,24 +1061,24 @@ type
     Function Update(bucket: string; entity: string; _object: string; aObjectAccessControl : TObjectAccessControl; AQuery : string  = '') : TObjectAccessControl;
     Function Update(bucket: string; entity: string; _object: string; aObjectAccessControl : TObjectAccessControl; AQuery : TObjectAccessControlsupdateOptions) : TObjectAccessControl;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TObjectsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Compose
-  
+
   TObjectsComposeOptions = Record
     destinationPredefinedAcl : String;
     ifGenerationMatch : int64;
     ifMetagenerationMatch : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Copy
-  
+
   TObjectsCopyOptions = Record
     destinationPredefinedAcl : String;
     ifGenerationMatch : int64;
@@ -1092,10 +1092,10 @@ type
     projection : String;
     sourceGeneration : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Delete
-  
+
   TObjectsDeleteOptions = Record
     generation : int64;
     ifGenerationMatch : int64;
@@ -1103,10 +1103,10 @@ type
     ifMetagenerationMatch : int64;
     ifMetagenerationNotMatch : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Get
-  
+
   TObjectsGetOptions = Record
     generation : int64;
     ifGenerationMatch : int64;
@@ -1115,10 +1115,10 @@ type
     ifMetagenerationNotMatch : int64;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Insert
-  
+
   TObjectsInsertOptions = Record
     contentEncoding : String;
     ifGenerationMatch : int64;
@@ -1129,10 +1129,10 @@ type
     predefinedAcl : String;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method List
-  
+
   TObjectsListOptions = Record
     delimiter : String;
     maxResults : integer;
@@ -1141,10 +1141,10 @@ type
     projection : String;
     versions : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Patch
-  
+
   TObjectsPatchOptions = Record
     generation : int64;
     ifGenerationMatch : int64;
@@ -1154,10 +1154,10 @@ type
     predefinedAcl : String;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Rewrite
-  
+
   TObjectsRewriteOptions = Record
     destinationPredefinedAcl : String;
     ifGenerationMatch : int64;
@@ -1173,10 +1173,10 @@ type
     rewriteToken : String;
     sourceGeneration : int64;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method Update
-  
+
   TObjectsUpdateOptions = Record
     generation : int64;
     ifGenerationMatch : int64;
@@ -1186,10 +1186,10 @@ type
     predefinedAcl : String;
     projection : String;
   end;
-  
-  
+
+
   //Optional query Options for TObjectsResource, method WatchAll
-  
+
   TObjectsWatchAllOptions = Record
     delimiter : String;
     maxResults : integer;
@@ -1198,7 +1198,7 @@ type
     projection : String;
     versions : boolean;
   end;
-  
+
   TObjectsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1224,12 +1224,12 @@ type
     Function WatchAll(bucket: string; aChannel : TChannel; AQuery : string  = '') : TChannel;
     Function WatchAll(bucket: string; aChannel : TChannel; AQuery : TObjectswatchAllOptions) : TChannel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TStorageAPI
     --------------------------------------------------------------------}
-  
+
   TStorageAPI = Class(TGoogleAPI)
   Private
     FBucketAccessControlsInstance : TBucketAccessControlsResource;
@@ -1296,7 +1296,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypecorsItem.SetmaxAgeSeconds(AIndex : Integer; const AValue : integer); 
+Procedure TBucketTypecorsItem.SetmaxAgeSeconds(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxAgeSeconds=AValue) then exit;
@@ -1306,7 +1306,7 @@ end;
 
 
 
-Procedure TBucketTypecorsItem.Setmethod(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBucketTypecorsItem.Setmethod(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmethod=AValue) then exit;
@@ -1316,7 +1316,7 @@ end;
 
 
 
-Procedure TBucketTypecorsItem.Setorigin(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBucketTypecorsItem.Setorigin(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Forigin=AValue) then exit;
@@ -1326,7 +1326,7 @@ end;
 
 
 
-Procedure TBucketTypecorsItem.SetresponseHeader(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBucketTypecorsItem.SetresponseHeader(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FresponseHeader=AValue) then exit;
@@ -1337,7 +1337,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBucketTypecorsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBucketTypecorsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1358,7 +1358,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypeaction.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypelifecycleTyperuleItemTypeaction.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1386,7 +1386,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.Setage(AIndex : Integer; const AValue : integer); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.Setage(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fage=AValue) then exit;
@@ -1396,7 +1396,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetcreatedBefore(AIndex : Integer; const AValue : TDate); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetcreatedBefore(AIndex : Integer; const AValue : TDate);
 
 begin
   If (FcreatedBefore=AValue) then exit;
@@ -1406,7 +1406,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetisLive(AIndex : Integer; const AValue : boolean); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetisLive(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisLive=AValue) then exit;
@@ -1416,7 +1416,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetnumNewerVersions(AIndex : Integer; const AValue : integer); 
+Procedure TBucketTypelifecycleTyperuleItemTypecondition.SetnumNewerVersions(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumNewerVersions=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycleTyperuleItem.Setaction(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypeaction); 
+Procedure TBucketTypelifecycleTyperuleItem.Setaction(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypeaction);
 
 begin
   If (Faction=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TBucketTypelifecycleTyperuleItem.Setcondition(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypecondition); 
+Procedure TBucketTypelifecycleTyperuleItem.Setcondition(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleItemTypecondition);
 
 begin
   If (Fcondition=AValue) then exit;
@@ -1460,7 +1460,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelifecycle.Setrule(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleArray); 
+Procedure TBucketTypelifecycle.Setrule(AIndex : Integer; const AValue : TBucketTypelifecycleTyperuleArray);
 
 begin
   If (Frule=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBucketTypelifecycle.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBucketTypelifecycle.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1490,7 +1490,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypelogging.SetlogBucket(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypelogging.SetlogBucket(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogBucket=AValue) then exit;
@@ -1500,7 +1500,7 @@ end;
 
 
 
-Procedure TBucketTypelogging.SetlogObjectPrefix(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypelogging.SetlogObjectPrefix(AIndex : Integer; const AValue : String);
 
 begin
   If (FlogObjectPrefix=AValue) then exit;
@@ -1517,7 +1517,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypeowner.Setentity(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypeowner.Setentity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fentity=AValue) then exit;
@@ -1527,7 +1527,7 @@ end;
 
 
 
-Procedure TBucketTypeowner.SetentityId(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypeowner.SetentityId(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityId=AValue) then exit;
@@ -1544,7 +1544,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypeversioning.Setenabled(AIndex : Integer; const AValue : boolean); 
+Procedure TBucketTypeversioning.Setenabled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fenabled=AValue) then exit;
@@ -1561,7 +1561,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketTypewebsite.SetmainPageSuffix(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypewebsite.SetmainPageSuffix(AIndex : Integer; const AValue : String);
 
 begin
   If (FmainPageSuffix=AValue) then exit;
@@ -1571,7 +1571,7 @@ end;
 
 
 
-Procedure TBucketTypewebsite.SetnotFoundPage(AIndex : Integer; const AValue : String); 
+Procedure TBucketTypewebsite.SetnotFoundPage(AIndex : Integer; const AValue : String);
 
 begin
   If (FnotFoundPage=AValue) then exit;
@@ -1588,7 +1588,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucket.Setacl(AIndex : Integer; const AValue : TBucketTypeaclArray); 
+Procedure TBucket.Setacl(AIndex : Integer; const AValue : TBucketTypeaclArray);
 
 begin
   If (Facl=AValue) then exit;
@@ -1598,7 +1598,7 @@ end;
 
 
 
-Procedure TBucket.Setcors(AIndex : Integer; const AValue : TBucketTypecorsArray); 
+Procedure TBucket.Setcors(AIndex : Integer; const AValue : TBucketTypecorsArray);
 
 begin
   If (Fcors=AValue) then exit;
@@ -1608,7 +1608,7 @@ end;
 
 
 
-Procedure TBucket.SetdefaultObjectAcl(AIndex : Integer; const AValue : TBucketTypedefaultObjectAclArray); 
+Procedure TBucket.SetdefaultObjectAcl(AIndex : Integer; const AValue : TBucketTypedefaultObjectAclArray);
 
 begin
   If (FdefaultObjectAcl=AValue) then exit;
@@ -1618,7 +1618,7 @@ end;
 
 
 
-Procedure TBucket.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1628,7 +1628,7 @@ end;
 
 
 
-Procedure TBucket.Setid(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1638,7 +1638,7 @@ end;
 
 
 
-Procedure TBucket.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1648,7 +1648,7 @@ end;
 
 
 
-Procedure TBucket.Setlifecycle(AIndex : Integer; const AValue : TBucketTypelifecycle); 
+Procedure TBucket.Setlifecycle(AIndex : Integer; const AValue : TBucketTypelifecycle);
 
 begin
   If (Flifecycle=AValue) then exit;
@@ -1658,7 +1658,7 @@ end;
 
 
 
-Procedure TBucket.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1668,7 +1668,7 @@ end;
 
 
 
-Procedure TBucket.Setlogging(AIndex : Integer; const AValue : TBucketTypelogging); 
+Procedure TBucket.Setlogging(AIndex : Integer; const AValue : TBucketTypelogging);
 
 begin
   If (Flogging=AValue) then exit;
@@ -1678,7 +1678,7 @@ end;
 
 
 
-Procedure TBucket.Setmetageneration(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setmetageneration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmetageneration=AValue) then exit;
@@ -1688,7 +1688,7 @@ end;
 
 
 
-Procedure TBucket.Setname(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1698,7 +1698,7 @@ end;
 
 
 
-Procedure TBucket.Setowner(AIndex : Integer; const AValue : TBucketTypeowner); 
+Procedure TBucket.Setowner(AIndex : Integer; const AValue : TBucketTypeowner);
 
 begin
   If (Fowner=AValue) then exit;
@@ -1708,7 +1708,7 @@ end;
 
 
 
-Procedure TBucket.SetprojectNumber(AIndex : Integer; const AValue : String); 
+Procedure TBucket.SetprojectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -1718,7 +1718,7 @@ end;
 
 
 
-Procedure TBucket.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TBucket.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1728,7 +1728,7 @@ end;
 
 
 
-Procedure TBucket.SetstorageClass(AIndex : Integer; const AValue : String); 
+Procedure TBucket.SetstorageClass(AIndex : Integer; const AValue : String);
 
 begin
   If (FstorageClass=AValue) then exit;
@@ -1738,7 +1738,7 @@ end;
 
 
 
-Procedure TBucket.SettimeCreated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TBucket.SettimeCreated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeCreated=AValue) then exit;
@@ -1748,7 +1748,7 @@ end;
 
 
 
-Procedure TBucket.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TBucket.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -1758,7 +1758,7 @@ end;
 
 
 
-Procedure TBucket.Setversioning(AIndex : Integer; const AValue : TBucketTypeversioning); 
+Procedure TBucket.Setversioning(AIndex : Integer; const AValue : TBucketTypeversioning);
 
 begin
   If (Fversioning=AValue) then exit;
@@ -1768,7 +1768,7 @@ end;
 
 
 
-Procedure TBucket.Setwebsite(AIndex : Integer; const AValue : TBucketTypewebsite); 
+Procedure TBucket.Setwebsite(AIndex : Integer; const AValue : TBucketTypewebsite);
 
 begin
   If (Fwebsite=AValue) then exit;
@@ -1779,7 +1779,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBucket.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBucket.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1800,7 +1800,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketAccessControlTypeprojectTeam.SetprojectNumber(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControlTypeprojectTeam.SetprojectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -1810,7 +1810,7 @@ end;
 
 
 
-Procedure TBucketAccessControlTypeprojectTeam.Setteam(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControlTypeprojectTeam.Setteam(AIndex : Integer; const AValue : String);
 
 begin
   If (Fteam=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketAccessControl.Setbucket(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setbucket(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbucket=AValue) then exit;
@@ -1837,7 +1837,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setdomain(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setdomain(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -1847,7 +1847,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -1857,7 +1857,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setentity(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setentity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fentity=AValue) then exit;
@@ -1867,7 +1867,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.SetentityId(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.SetentityId(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityId=AValue) then exit;
@@ -1877,7 +1877,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1887,7 +1887,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setid(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1897,7 +1897,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1907,7 +1907,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.SetprojectTeam(AIndex : Integer; const AValue : TBucketAccessControlTypeprojectTeam); 
+Procedure TBucketAccessControl.SetprojectTeam(AIndex : Integer; const AValue : TBucketAccessControlTypeprojectTeam);
 
 begin
   If (FprojectTeam=AValue) then exit;
@@ -1917,7 +1917,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -1927,7 +1927,7 @@ end;
 
 
 
-Procedure TBucketAccessControl.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControl.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1944,7 +1944,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBucketAccessControls.Setitems(AIndex : Integer; const AValue : TBucketAccessControlsTypeitemsArray); 
+Procedure TBucketAccessControls.Setitems(AIndex : Integer; const AValue : TBucketAccessControlsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1954,7 +1954,7 @@ end;
 
 
 
-Procedure TBucketAccessControls.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBucketAccessControls.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1965,7 +1965,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBucketAccessControls.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBucketAccessControls.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1984,7 +1984,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBuckets.Setitems(AIndex : Integer; const AValue : TBucketsTypeitemsArray); 
+Procedure TBuckets.Setitems(AIndex : Integer; const AValue : TBucketsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1994,7 +1994,7 @@ end;
 
 
 
-Procedure TBuckets.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TBuckets.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2004,7 +2004,7 @@ end;
 
 
 
-Procedure TBuckets.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TBuckets.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBuckets.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBuckets.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2047,7 +2047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String);
 
 begin
   If (Faddress=AValue) then exit;
@@ -2057,7 +2057,7 @@ end;
 
 
 
-Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -2067,7 +2067,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2077,7 +2077,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2087,7 +2087,7 @@ end;
 
 
 
-Procedure TChannel.Setparams(AIndex : Integer; const AValue : TChannelTypeparams); 
+Procedure TChannel.Setparams(AIndex : Integer; const AValue : TChannelTypeparams);
 
 begin
   If (Fparams=AValue) then exit;
@@ -2097,7 +2097,7 @@ end;
 
 
 
-Procedure TChannel.Setpayload(AIndex : Integer; const AValue : boolean); 
+Procedure TChannel.Setpayload(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fpayload=AValue) then exit;
@@ -2107,7 +2107,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String); 
+Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceId=AValue) then exit;
@@ -2117,7 +2117,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String); 
+Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceUri=AValue) then exit;
@@ -2127,7 +2127,7 @@ end;
 
 
 
-Procedure TChannel.Settoken(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Settoken(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2137,7 +2137,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TChannel.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2165,7 +2165,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComposeRequestTypesourceObjectsItemTypeobjectPreconditions.SetifGenerationMatch(AIndex : Integer; const AValue : String); 
+Procedure TComposeRequestTypesourceObjectsItemTypeobjectPreconditions.SetifGenerationMatch(AIndex : Integer; const AValue : String);
 
 begin
   If (FifGenerationMatch=AValue) then exit;
@@ -2182,7 +2182,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComposeRequestTypesourceObjectsItem.Setgeneration(AIndex : Integer; const AValue : String); 
+Procedure TComposeRequestTypesourceObjectsItem.Setgeneration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgeneration=AValue) then exit;
@@ -2192,7 +2192,7 @@ end;
 
 
 
-Procedure TComposeRequestTypesourceObjectsItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TComposeRequestTypesourceObjectsItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2202,7 +2202,7 @@ end;
 
 
 
-Procedure TComposeRequestTypesourceObjectsItem.SetobjectPreconditions(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions); 
+Procedure TComposeRequestTypesourceObjectsItem.SetobjectPreconditions(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsItemTypeobjectPreconditions);
 
 begin
   If (FobjectPreconditions=AValue) then exit;
@@ -2219,7 +2219,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComposeRequest.Setdestination(AIndex : Integer; const AValue : TObject); 
+Procedure TComposeRequest.Setdestination(AIndex : Integer; const AValue : TObject);
 
 begin
   If (Fdestination=AValue) then exit;
@@ -2229,7 +2229,7 @@ end;
 
 
 
-Procedure TComposeRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TComposeRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2239,7 +2239,7 @@ end;
 
 
 
-Procedure TComposeRequest.SetsourceObjects(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsArray); 
+Procedure TComposeRequest.SetsourceObjects(AIndex : Integer; const AValue : TComposeRequestTypesourceObjectsArray);
 
 begin
   If (FsourceObjects=AValue) then exit;
@@ -2250,7 +2250,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TComposeRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TComposeRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2269,7 +2269,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectTypecustomerEncryption.SetencryptionAlgorithm(AIndex : Integer; const AValue : String); 
+Procedure TObjectTypecustomerEncryption.SetencryptionAlgorithm(AIndex : Integer; const AValue : String);
 
 begin
   If (FencryptionAlgorithm=AValue) then exit;
@@ -2279,7 +2279,7 @@ end;
 
 
 
-Procedure TObjectTypecustomerEncryption.SetkeySha256(AIndex : Integer; const AValue : String); 
+Procedure TObjectTypecustomerEncryption.SetkeySha256(AIndex : Integer; const AValue : String);
 
 begin
   If (FkeySha256=AValue) then exit;
@@ -2309,7 +2309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectTypeowner.Setentity(AIndex : Integer; const AValue : String); 
+Procedure TObjectTypeowner.Setentity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fentity=AValue) then exit;
@@ -2319,7 +2319,7 @@ end;
 
 
 
-Procedure TObjectTypeowner.SetentityId(AIndex : Integer; const AValue : String); 
+Procedure TObjectTypeowner.SetentityId(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityId=AValue) then exit;
@@ -2336,7 +2336,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObject.Setacl(AIndex : Integer; const AValue : TObjectTypeaclArray); 
+Procedure TObject.Setacl(AIndex : Integer; const AValue : TObjectTypeaclArray);
 
 begin
   If (Facl=AValue) then exit;
@@ -2346,7 +2346,7 @@ end;
 
 
 
-Procedure TObject.Setbucket(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setbucket(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbucket=AValue) then exit;
@@ -2356,7 +2356,7 @@ end;
 
 
 
-Procedure TObject.SetcacheControl(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetcacheControl(AIndex : Integer; const AValue : String);
 
 begin
   If (FcacheControl=AValue) then exit;
@@ -2366,7 +2366,7 @@ end;
 
 
 
-Procedure TObject.SetcomponentCount(AIndex : Integer; const AValue : integer); 
+Procedure TObject.SetcomponentCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcomponentCount=AValue) then exit;
@@ -2376,7 +2376,7 @@ end;
 
 
 
-Procedure TObject.SetcontentDisposition(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetcontentDisposition(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentDisposition=AValue) then exit;
@@ -2386,7 +2386,7 @@ end;
 
 
 
-Procedure TObject.SetcontentEncoding(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetcontentEncoding(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentEncoding=AValue) then exit;
@@ -2396,7 +2396,7 @@ end;
 
 
 
-Procedure TObject.SetcontentLanguage(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetcontentLanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentLanguage=AValue) then exit;
@@ -2406,7 +2406,7 @@ end;
 
 
 
-Procedure TObject.SetcontentType(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetcontentType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentType=AValue) then exit;
@@ -2416,7 +2416,7 @@ end;
 
 
 
-Procedure TObject.Setcrc32c(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setcrc32c(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcrc32c=AValue) then exit;
@@ -2426,7 +2426,7 @@ end;
 
 
 
-Procedure TObject.SetcustomerEncryption(AIndex : Integer; const AValue : TObjectTypecustomerEncryption); 
+Procedure TObject.SetcustomerEncryption(AIndex : Integer; const AValue : TObjectTypecustomerEncryption);
 
 begin
   If (FcustomerEncryption=AValue) then exit;
@@ -2436,7 +2436,7 @@ end;
 
 
 
-Procedure TObject.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2446,7 +2446,7 @@ end;
 
 
 
-Procedure TObject.Setgeneration(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setgeneration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgeneration=AValue) then exit;
@@ -2456,7 +2456,7 @@ end;
 
 
 
-Procedure TObject.Setid(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2466,7 +2466,7 @@ end;
 
 
 
-Procedure TObject.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2476,7 +2476,7 @@ end;
 
 
 
-Procedure TObject.Setmd5Hash(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setmd5Hash(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmd5Hash=AValue) then exit;
@@ -2486,7 +2486,7 @@ end;
 
 
 
-Procedure TObject.SetmediaLink(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetmediaLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FmediaLink=AValue) then exit;
@@ -2496,7 +2496,7 @@ end;
 
 
 
-Procedure TObject.Setmetadata(AIndex : Integer; const AValue : TObjectTypemetadata); 
+Procedure TObject.Setmetadata(AIndex : Integer; const AValue : TObjectTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2506,7 +2506,7 @@ end;
 
 
 
-Procedure TObject.Setmetageneration(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setmetageneration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmetageneration=AValue) then exit;
@@ -2516,7 +2516,7 @@ end;
 
 
 
-Procedure TObject.Setname(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2526,7 +2526,7 @@ end;
 
 
 
-Procedure TObject.Setowner(AIndex : Integer; const AValue : TObjectTypeowner); 
+Procedure TObject.Setowner(AIndex : Integer; const AValue : TObjectTypeowner);
 
 begin
   If (Fowner=AValue) then exit;
@@ -2536,7 +2536,7 @@ end;
 
 
 
-Procedure TObject.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2546,7 +2546,7 @@ end;
 
 
 
-Procedure TObject.Setsize(AIndex : Integer; const AValue : String); 
+Procedure TObject.Setsize(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsize=AValue) then exit;
@@ -2556,7 +2556,7 @@ end;
 
 
 
-Procedure TObject.SetstorageClass(AIndex : Integer; const AValue : String); 
+Procedure TObject.SetstorageClass(AIndex : Integer; const AValue : String);
 
 begin
   If (FstorageClass=AValue) then exit;
@@ -2566,7 +2566,7 @@ end;
 
 
 
-Procedure TObject.SettimeCreated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TObject.SettimeCreated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeCreated=AValue) then exit;
@@ -2576,7 +2576,7 @@ end;
 
 
 
-Procedure TObject.SettimeDeleted(AIndex : Integer; const AValue : TDatetime); 
+Procedure TObject.SettimeDeleted(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (FtimeDeleted=AValue) then exit;
@@ -2586,7 +2586,7 @@ end;
 
 
 
-Procedure TObject.Setupdated(AIndex : Integer; const AValue : TDatetime); 
+Procedure TObject.Setupdated(AIndex : Integer; const AValue : TDatetime);
 
 begin
   If (Fupdated=AValue) then exit;
@@ -2597,7 +2597,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TObject.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TObject.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2616,7 +2616,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectAccessControlTypeprojectTeam.SetprojectNumber(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControlTypeprojectTeam.SetprojectNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -2626,7 +2626,7 @@ end;
 
 
 
-Procedure TObjectAccessControlTypeprojectTeam.Setteam(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControlTypeprojectTeam.Setteam(AIndex : Integer; const AValue : String);
 
 begin
   If (Fteam=AValue) then exit;
@@ -2643,7 +2643,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectAccessControl.Setbucket(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setbucket(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbucket=AValue) then exit;
@@ -2653,7 +2653,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setdomain(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setdomain(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -2663,7 +2663,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -2673,7 +2673,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setentity(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setentity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fentity=AValue) then exit;
@@ -2683,7 +2683,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetentityId(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.SetentityId(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityId=AValue) then exit;
@@ -2693,7 +2693,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2703,7 +2703,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setgeneration(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setgeneration(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgeneration=AValue) then exit;
@@ -2713,7 +2713,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setid(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2723,7 +2723,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2733,7 +2733,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Set_object(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Set_object(AIndex : Integer; const AValue : String);
 
 begin
   If (F_object=AValue) then exit;
@@ -2743,7 +2743,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetprojectTeam(AIndex : Integer; const AValue : TObjectAccessControlTypeprojectTeam); 
+Procedure TObjectAccessControl.SetprojectTeam(AIndex : Integer; const AValue : TObjectAccessControlTypeprojectTeam);
 
 begin
   If (FprojectTeam=AValue) then exit;
@@ -2753,7 +2753,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -2763,7 +2763,7 @@ end;
 
 
 
-Procedure TObjectAccessControl.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControl.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2791,7 +2791,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjectAccessControls.Setitems(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TObjectAccessControls.Setitems(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2801,7 +2801,7 @@ end;
 
 
 
-Procedure TObjectAccessControls.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TObjectAccessControls.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2812,7 +2812,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TObjectAccessControls.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TObjectAccessControls.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2831,7 +2831,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TObjects.Setitems(AIndex : Integer; const AValue : TObjectsTypeitemsArray); 
+Procedure TObjects.Setitems(AIndex : Integer; const AValue : TObjectsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2841,7 +2841,7 @@ end;
 
 
 
-Procedure TObjects.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TObjects.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2851,7 +2851,7 @@ end;
 
 
 
-Procedure TObjects.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TObjects.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2861,7 +2861,7 @@ end;
 
 
 
-Procedure TObjects.Setprefixes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TObjects.Setprefixes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fprefixes=AValue) then exit;
@@ -2872,7 +2872,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TObjects.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TObjects.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2892,7 +2892,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRewriteResponse.Setdone(AIndex : Integer; const AValue : boolean); 
+Procedure TRewriteResponse.Setdone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdone=AValue) then exit;
@@ -2902,7 +2902,7 @@ end;
 
 
 
-Procedure TRewriteResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRewriteResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2912,7 +2912,7 @@ end;
 
 
 
-Procedure TRewriteResponse.SetobjectSize(AIndex : Integer; const AValue : String); 
+Procedure TRewriteResponse.SetobjectSize(AIndex : Integer; const AValue : String);
 
 begin
   If (FobjectSize=AValue) then exit;
@@ -2922,7 +2922,7 @@ end;
 
 
 
-Procedure TRewriteResponse.Setresource(AIndex : Integer; const AValue : TObject); 
+Procedure TRewriteResponse.Setresource(AIndex : Integer; const AValue : TObject);
 
 begin
   If (Fresource=AValue) then exit;
@@ -2932,7 +2932,7 @@ end;
 
 
 
-Procedure TRewriteResponse.SetrewriteToken(AIndex : Integer; const AValue : String); 
+Procedure TRewriteResponse.SetrewriteToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FrewriteToken=AValue) then exit;
@@ -2942,7 +2942,7 @@ end;
 
 
 
-Procedure TRewriteResponse.SettotalBytesRewritten(AIndex : Integer; const AValue : String); 
+Procedure TRewriteResponse.SettotalBytesRewritten(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalBytesRewritten=AValue) then exit;
@@ -4058,7 +4058,7 @@ begin
   Result[3].Description:='View your data in Google Cloud Storage';
   Result[4].Name:='https://www.googleapis.com/auth/devstorage.read_write';
   Result[4].Description:='Manage your data in Google Cloud Storage';
-  
+
 end;
 
 Class Function TStorageAPI.APINeedsAuth : Boolean;

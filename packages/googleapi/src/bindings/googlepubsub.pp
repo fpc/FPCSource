@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TSetIamPolicyRequest = Class;
   TPolicy = Class;
@@ -65,11 +65,11 @@ type
   TListTopicsResponseTypetopicsArray = Array of TTopic;
   TListSubscriptionsResponseTypesubscriptionsArray = Array of TSubscription;
   TPullResponseTypereceivedMessagesArray = Array of TReceivedMessage;
-  
+
   { --------------------------------------------------------------------
     TSetIamPolicyRequest
     --------------------------------------------------------------------}
-  
+
   TSetIamPolicyRequest = Class(TGoogleBaseObject)
   Private
     Fpolicy : TPolicy;
@@ -81,11 +81,11 @@ type
     Property policy : TPolicy Index 0 Read Fpolicy Write Setpolicy;
   end;
   TSetIamPolicyRequestClass = Class of TSetIamPolicyRequest;
-  
+
   { --------------------------------------------------------------------
     TPolicy
     --------------------------------------------------------------------}
-  
+
   TPolicy = Class(TGoogleBaseObject)
   Private
     Fversion : integer;
@@ -107,11 +107,11 @@ type
     Property etag : String Index 16 Read Fetag Write Setetag;
   end;
   TPolicyClass = Class of TPolicy;
-  
+
   { --------------------------------------------------------------------
     TBinding
     --------------------------------------------------------------------}
-  
+
   TBinding = Class(TGoogleBaseObject)
   Private
     Frole : String;
@@ -130,11 +130,11 @@ type
     Property members : TStringArray Index 8 Read Fmembers Write Setmembers;
   end;
   TBindingClass = Class of TBinding;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsRequest
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsRequest = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -150,11 +150,11 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsRequestClass = Class of TTestIamPermissionsRequest;
-  
+
   { --------------------------------------------------------------------
     TTestIamPermissionsResponse
     --------------------------------------------------------------------}
-  
+
   TTestIamPermissionsResponse = Class(TGoogleBaseObject)
   Private
     Fpermissions : TStringArray;
@@ -170,11 +170,11 @@ type
     Property permissions : TStringArray Index 0 Read Fpermissions Write Setpermissions;
   end;
   TTestIamPermissionsResponseClass = Class of TTestIamPermissionsResponse;
-  
+
   { --------------------------------------------------------------------
     TTopic
     --------------------------------------------------------------------}
-  
+
   TTopic = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -186,11 +186,11 @@ type
     Property name : String Index 0 Read Fname Write Setname;
   end;
   TTopicClass = Class of TTopic;
-  
+
   { --------------------------------------------------------------------
     TPublishRequest
     --------------------------------------------------------------------}
-  
+
   TPublishRequest = Class(TGoogleBaseObject)
   Private
     Fmessages : TPublishRequestTypemessagesArray;
@@ -206,11 +206,11 @@ type
     Property messages : TPublishRequestTypemessagesArray Index 0 Read Fmessages Write Setmessages;
   end;
   TPublishRequestClass = Class of TPublishRequest;
-  
+
   { --------------------------------------------------------------------
     TPubsubMessageTypeattributes
     --------------------------------------------------------------------}
-  
+
   TPubsubMessageTypeattributes = Class(TGoogleBaseObject)
   Private
   Protected
@@ -220,11 +220,11 @@ type
   Published
   end;
   TPubsubMessageTypeattributesClass = Class of TPubsubMessageTypeattributes;
-  
+
   { --------------------------------------------------------------------
     TPubsubMessage
     --------------------------------------------------------------------}
-  
+
   TPubsubMessage = Class(TGoogleBaseObject)
   Private
     Fdata : String;
@@ -245,11 +245,11 @@ type
     Property publishTime : String Index 24 Read FpublishTime Write SetpublishTime;
   end;
   TPubsubMessageClass = Class of TPubsubMessage;
-  
+
   { --------------------------------------------------------------------
     TPublishResponse
     --------------------------------------------------------------------}
-  
+
   TPublishResponse = Class(TGoogleBaseObject)
   Private
     FmessageIds : TStringArray;
@@ -265,11 +265,11 @@ type
     Property messageIds : TStringArray Index 0 Read FmessageIds Write SetmessageIds;
   end;
   TPublishResponseClass = Class of TPublishResponse;
-  
+
   { --------------------------------------------------------------------
     TListTopicsResponse
     --------------------------------------------------------------------}
-  
+
   TListTopicsResponse = Class(TGoogleBaseObject)
   Private
     Ftopics : TListTopicsResponseTypetopicsArray;
@@ -288,11 +288,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListTopicsResponseClass = Class of TListTopicsResponse;
-  
+
   { --------------------------------------------------------------------
     TListTopicSubscriptionsResponse
     --------------------------------------------------------------------}
-  
+
   TListTopicSubscriptionsResponse = Class(TGoogleBaseObject)
   Private
     Fsubscriptions : TStringArray;
@@ -311,11 +311,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListTopicSubscriptionsResponseClass = Class of TListTopicSubscriptionsResponse;
-  
+
   { --------------------------------------------------------------------
     TEmpty
     --------------------------------------------------------------------}
-  
+
   TEmpty = Class(TGoogleBaseObject)
   Private
   Protected
@@ -324,11 +324,11 @@ type
   Published
   end;
   TEmptyClass = Class of TEmpty;
-  
+
   { --------------------------------------------------------------------
     TSubscription
     --------------------------------------------------------------------}
-  
+
   TSubscription = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -349,11 +349,11 @@ type
     Property ackDeadlineSeconds : integer Index 24 Read FackDeadlineSeconds Write SetackDeadlineSeconds;
   end;
   TSubscriptionClass = Class of TSubscription;
-  
+
   { --------------------------------------------------------------------
     TPushConfigTypeattributes
     --------------------------------------------------------------------}
-  
+
   TPushConfigTypeattributes = Class(TGoogleBaseObject)
   Private
   Protected
@@ -363,11 +363,11 @@ type
   Published
   end;
   TPushConfigTypeattributesClass = Class of TPushConfigTypeattributes;
-  
+
   { --------------------------------------------------------------------
     TPushConfig
     --------------------------------------------------------------------}
-  
+
   TPushConfig = Class(TGoogleBaseObject)
   Private
     FpushEndpoint : String;
@@ -382,11 +382,11 @@ type
     Property attributes : TPushConfigTypeattributes Index 8 Read Fattributes Write Setattributes;
   end;
   TPushConfigClass = Class of TPushConfig;
-  
+
   { --------------------------------------------------------------------
     TListSubscriptionsResponse
     --------------------------------------------------------------------}
-  
+
   TListSubscriptionsResponse = Class(TGoogleBaseObject)
   Private
     Fsubscriptions : TListSubscriptionsResponseTypesubscriptionsArray;
@@ -405,11 +405,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListSubscriptionsResponseClass = Class of TListSubscriptionsResponse;
-  
+
   { --------------------------------------------------------------------
     TModifyAckDeadlineRequest
     --------------------------------------------------------------------}
-  
+
   TModifyAckDeadlineRequest = Class(TGoogleBaseObject)
   Private
     FackIds : TStringArray;
@@ -428,11 +428,11 @@ type
     Property ackDeadlineSeconds : integer Index 8 Read FackDeadlineSeconds Write SetackDeadlineSeconds;
   end;
   TModifyAckDeadlineRequestClass = Class of TModifyAckDeadlineRequest;
-  
+
   { --------------------------------------------------------------------
     TAcknowledgeRequest
     --------------------------------------------------------------------}
-  
+
   TAcknowledgeRequest = Class(TGoogleBaseObject)
   Private
     FackIds : TStringArray;
@@ -448,11 +448,11 @@ type
     Property ackIds : TStringArray Index 0 Read FackIds Write SetackIds;
   end;
   TAcknowledgeRequestClass = Class of TAcknowledgeRequest;
-  
+
   { --------------------------------------------------------------------
     TPullRequest
     --------------------------------------------------------------------}
-  
+
   TPullRequest = Class(TGoogleBaseObject)
   Private
     FreturnImmediately : boolean;
@@ -467,11 +467,11 @@ type
     Property maxMessages : integer Index 8 Read FmaxMessages Write SetmaxMessages;
   end;
   TPullRequestClass = Class of TPullRequest;
-  
+
   { --------------------------------------------------------------------
     TPullResponse
     --------------------------------------------------------------------}
-  
+
   TPullResponse = Class(TGoogleBaseObject)
   Private
     FreceivedMessages : TPullResponseTypereceivedMessagesArray;
@@ -487,11 +487,11 @@ type
     Property receivedMessages : TPullResponseTypereceivedMessagesArray Index 0 Read FreceivedMessages Write SetreceivedMessages;
   end;
   TPullResponseClass = Class of TPullResponse;
-  
+
   { --------------------------------------------------------------------
     TReceivedMessage
     --------------------------------------------------------------------}
-  
+
   TReceivedMessage = Class(TGoogleBaseObject)
   Private
     FackId : String;
@@ -506,11 +506,11 @@ type
     Property message : TPubsubMessage Index 8 Read Fmessage Write Setmessage;
   end;
   TReceivedMessageClass = Class of TReceivedMessage;
-  
+
   { --------------------------------------------------------------------
     TModifyPushConfigRequest
     --------------------------------------------------------------------}
-  
+
   TModifyPushConfigRequest = Class(TGoogleBaseObject)
   Private
     FpushConfig : TPushConfig;
@@ -522,19 +522,19 @@ type
     Property pushConfig : TPushConfig Index 0 Read FpushConfig Write SetpushConfig;
   end;
   TModifyPushConfigRequestClass = Class of TModifyPushConfigRequest;
-  
+
   { --------------------------------------------------------------------
     TProjectsTopicsSubscriptionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsTopicsSubscriptionsResource, method List
-  
+
   TProjectsTopicsSubscriptionsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsTopicsSubscriptionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -542,20 +542,20 @@ type
     Function List(topic: string; AQuery : string  = '') : TListTopicSubscriptionsResponse;
     Function List(topic: string; AQuery : TProjectsTopicsSubscriptionslistOptions) : TListTopicSubscriptionsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsTopicsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsTopicsResource, method List
-  
+
   TProjectsTopicsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsTopicsResource = Class(TGoogleResource)
   Private
     FSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
@@ -576,20 +576,20 @@ type
     Function CreateSubscriptionsResource : TProjectsTopicsSubscriptionsResource;virtual;overload;
     Property SubscriptionsResource : TProjectsTopicsSubscriptionsResource Read GetSubscriptionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsSubscriptionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsSubscriptionsResource, method List
-  
+
   TProjectsSubscriptionsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsSubscriptionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -607,12 +607,12 @@ type
     Function Pull(subscription: string; aPullRequest : TPullRequest) : TPullResponse;
     Function ModifyPushConfig(subscription: string; aModifyPushConfigRequest : TModifyPushConfigRequest) : TEmpty;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
@@ -634,12 +634,12 @@ type
     Property TopicsResource : TProjectsTopicsResource Read GetTopicsInstance;
     Property SubscriptionsResource : TProjectsSubscriptionsResource Read GetSubscriptionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPubsubAPI
     --------------------------------------------------------------------}
-  
+
   TPubsubAPI = Class(TGoogleAPI)
   Private
     FProjectsTopicsSubscriptionsInstance : TProjectsTopicsSubscriptionsResource;
@@ -696,7 +696,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy); 
+Procedure TSetIamPolicyRequest.Setpolicy(AIndex : Integer; const AValue : TPolicy);
 
 begin
   If (Fpolicy=AValue) then exit;
@@ -713,7 +713,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer); 
+Procedure TPolicy.Setversion(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fversion=AValue) then exit;
@@ -723,7 +723,7 @@ end;
 
 
 
-Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray); 
+Procedure TPolicy.Setbindings(AIndex : Integer; const AValue : TPolicyTypebindingsArray);
 
 begin
   If (Fbindings=AValue) then exit;
@@ -733,7 +733,7 @@ end;
 
 
 
-Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPolicy.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -744,7 +744,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPolicy.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -763,7 +763,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBinding.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TBinding.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -773,7 +773,7 @@ end;
 
 
 
-Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray); 
+Procedure TBinding.Setmembers(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fmembers=AValue) then exit;
@@ -784,7 +784,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBinding.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -803,7 +803,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsRequest.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -814,7 +814,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -833,7 +833,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTestIamPermissionsResponse.Setpermissions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fpermissions=AValue) then exit;
@@ -844,7 +844,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestIamPermissionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -863,7 +863,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTopic.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTopic.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -880,7 +880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishRequest.Setmessages(AIndex : Integer; const AValue : TPublishRequestTypemessagesArray); 
+Procedure TPublishRequest.Setmessages(AIndex : Integer; const AValue : TPublishRequestTypemessagesArray);
 
 begin
   If (Fmessages=AValue) then exit;
@@ -891,7 +891,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublishRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublishRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -923,7 +923,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPubsubMessage.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TPubsubMessage.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -933,7 +933,7 @@ end;
 
 
 
-Procedure TPubsubMessage.Setattributes(AIndex : Integer; const AValue : TPubsubMessageTypeattributes); 
+Procedure TPubsubMessage.Setattributes(AIndex : Integer; const AValue : TPubsubMessageTypeattributes);
 
 begin
   If (Fattributes=AValue) then exit;
@@ -943,7 +943,7 @@ end;
 
 
 
-Procedure TPubsubMessage.SetmessageId(AIndex : Integer; const AValue : String); 
+Procedure TPubsubMessage.SetmessageId(AIndex : Integer; const AValue : String);
 
 begin
   If (FmessageId=AValue) then exit;
@@ -953,7 +953,7 @@ end;
 
 
 
-Procedure TPubsubMessage.SetpublishTime(AIndex : Integer; const AValue : String); 
+Procedure TPubsubMessage.SetpublishTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FpublishTime=AValue) then exit;
@@ -970,7 +970,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishResponse.SetmessageIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPublishResponse.SetmessageIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FmessageIds=AValue) then exit;
@@ -981,7 +981,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublishResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublishResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1000,7 +1000,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTopicsResponse.Settopics(AIndex : Integer; const AValue : TListTopicsResponseTypetopicsArray); 
+Procedure TListTopicsResponse.Settopics(AIndex : Integer; const AValue : TListTopicsResponseTypetopicsArray);
 
 begin
   If (Ftopics=AValue) then exit;
@@ -1010,7 +1010,7 @@ end;
 
 
 
-Procedure TListTopicsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListTopicsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1021,7 +1021,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListTopicsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListTopicsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1040,7 +1040,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTopicSubscriptionsResponse.Setsubscriptions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TListTopicSubscriptionsResponse.Setsubscriptions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -1050,7 +1050,7 @@ end;
 
 
 
-Procedure TListTopicSubscriptionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListTopicSubscriptionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListTopicSubscriptionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListTopicSubscriptionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1087,7 +1087,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscription.Setname(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1097,7 +1097,7 @@ end;
 
 
 
-Procedure TSubscription.Settopic(AIndex : Integer; const AValue : String); 
+Procedure TSubscription.Settopic(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftopic=AValue) then exit;
@@ -1107,7 +1107,7 @@ end;
 
 
 
-Procedure TSubscription.SetpushConfig(AIndex : Integer; const AValue : TPushConfig); 
+Procedure TSubscription.SetpushConfig(AIndex : Integer; const AValue : TPushConfig);
 
 begin
   If (FpushConfig=AValue) then exit;
@@ -1117,7 +1117,7 @@ end;
 
 
 
-Procedure TSubscription.SetackDeadlineSeconds(AIndex : Integer; const AValue : integer); 
+Procedure TSubscription.SetackDeadlineSeconds(AIndex : Integer; const AValue : integer);
 
 begin
   If (FackDeadlineSeconds=AValue) then exit;
@@ -1147,7 +1147,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushConfig.SetpushEndpoint(AIndex : Integer; const AValue : String); 
+Procedure TPushConfig.SetpushEndpoint(AIndex : Integer; const AValue : String);
 
 begin
   If (FpushEndpoint=AValue) then exit;
@@ -1157,7 +1157,7 @@ end;
 
 
 
-Procedure TPushConfig.Setattributes(AIndex : Integer; const AValue : TPushConfigTypeattributes); 
+Procedure TPushConfig.Setattributes(AIndex : Integer; const AValue : TPushConfigTypeattributes);
 
 begin
   If (Fattributes=AValue) then exit;
@@ -1174,7 +1174,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListSubscriptionsResponse.Setsubscriptions(AIndex : Integer; const AValue : TListSubscriptionsResponseTypesubscriptionsArray); 
+Procedure TListSubscriptionsResponse.Setsubscriptions(AIndex : Integer; const AValue : TListSubscriptionsResponseTypesubscriptionsArray);
 
 begin
   If (Fsubscriptions=AValue) then exit;
@@ -1184,7 +1184,7 @@ end;
 
 
 
-Procedure TListSubscriptionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListSubscriptionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1195,7 +1195,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListSubscriptionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListSubscriptionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1214,7 +1214,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyAckDeadlineRequest.SetackIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TModifyAckDeadlineRequest.SetackIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FackIds=AValue) then exit;
@@ -1224,7 +1224,7 @@ end;
 
 
 
-Procedure TModifyAckDeadlineRequest.SetackDeadlineSeconds(AIndex : Integer; const AValue : integer); 
+Procedure TModifyAckDeadlineRequest.SetackDeadlineSeconds(AIndex : Integer; const AValue : integer);
 
 begin
   If (FackDeadlineSeconds=AValue) then exit;
@@ -1235,7 +1235,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TModifyAckDeadlineRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TModifyAckDeadlineRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1254,7 +1254,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAcknowledgeRequest.SetackIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TAcknowledgeRequest.SetackIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FackIds=AValue) then exit;
@@ -1265,7 +1265,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAcknowledgeRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAcknowledgeRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1284,7 +1284,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPullRequest.SetreturnImmediately(AIndex : Integer; const AValue : boolean); 
+Procedure TPullRequest.SetreturnImmediately(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FreturnImmediately=AValue) then exit;
@@ -1294,7 +1294,7 @@ end;
 
 
 
-Procedure TPullRequest.SetmaxMessages(AIndex : Integer; const AValue : integer); 
+Procedure TPullRequest.SetmaxMessages(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxMessages=AValue) then exit;
@@ -1311,7 +1311,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPullResponse.SetreceivedMessages(AIndex : Integer; const AValue : TPullResponseTypereceivedMessagesArray); 
+Procedure TPullResponse.SetreceivedMessages(AIndex : Integer; const AValue : TPullResponseTypereceivedMessagesArray);
 
 begin
   If (FreceivedMessages=AValue) then exit;
@@ -1322,7 +1322,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPullResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPullResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1341,7 +1341,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReceivedMessage.SetackId(AIndex : Integer; const AValue : String); 
+Procedure TReceivedMessage.SetackId(AIndex : Integer; const AValue : String);
 
 begin
   If (FackId=AValue) then exit;
@@ -1351,7 +1351,7 @@ end;
 
 
 
-Procedure TReceivedMessage.Setmessage(AIndex : Integer; const AValue : TPubsubMessage); 
+Procedure TReceivedMessage.Setmessage(AIndex : Integer; const AValue : TPubsubMessage);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1368,7 +1368,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TModifyPushConfigRequest.SetpushConfig(AIndex : Integer; const AValue : TPushConfig); 
+Procedure TModifyPushConfigRequest.SetpushConfig(AIndex : Integer; const AValue : TPushConfig);
 
 begin
   If (FpushConfig=AValue) then exit;
@@ -2005,7 +2005,7 @@ begin
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
   Result[1].Name:='https://www.googleapis.com/auth/pubsub';
   Result[1].Description:='View and manage Pub/Sub topics and subscriptions';
-  
+
 end;
 
 Class Function TPubsubAPI.APINeedsAuth : Boolean;

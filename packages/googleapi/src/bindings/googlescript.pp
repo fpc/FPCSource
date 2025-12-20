@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TExecutionRequest = Class;
   TOperation = Class;
@@ -33,11 +33,11 @@ type
   TStatusTypedetailsItem = Class;
   TStatusTypedetailsArray = Array of TStatusTypedetailsItem;
   TExecutionErrorTypescriptStackTraceElementsArray = Array of TScriptStackTraceElement;
-  
+
   { --------------------------------------------------------------------
     TExecutionRequest
     --------------------------------------------------------------------}
-  
+
   TExecutionRequest = Class(TGoogleBaseObject)
   Private
     F_function : String;
@@ -63,11 +63,11 @@ type
     Property devMode : boolean Index 24 Read FdevMode Write SetdevMode;
   end;
   TExecutionRequestClass = Class of TExecutionRequest;
-  
+
   { --------------------------------------------------------------------
     TOperationTypemetadata
     --------------------------------------------------------------------}
-  
+
   TOperationTypemetadata = Class(TGoogleBaseObject)
   Private
   Protected
@@ -77,11 +77,11 @@ type
   Published
   end;
   TOperationTypemetadataClass = Class of TOperationTypemetadata;
-  
+
   { --------------------------------------------------------------------
     TOperationTyperesponse
     --------------------------------------------------------------------}
-  
+
   TOperationTyperesponse = Class(TGoogleBaseObject)
   Private
   Protected
@@ -91,11 +91,11 @@ type
   Published
   end;
   TOperationTyperesponseClass = Class of TOperationTyperesponse;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     Fname : String;
@@ -119,11 +119,11 @@ type
     Property response : TOperationTyperesponse Index 32 Read Fresponse Write Setresponse;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -133,11 +133,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -159,11 +159,11 @@ type
     Property details : TStatusTypedetailsArray Index 16 Read Fdetails Write Setdetails;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TExecutionError
     --------------------------------------------------------------------}
-  
+
   TExecutionError = Class(TGoogleBaseObject)
   Private
     FscriptStackTraceElements : TExecutionErrorTypescriptStackTraceElementsArray;
@@ -185,11 +185,11 @@ type
     Property errorType : String Index 16 Read FerrorType Write SeterrorType;
   end;
   TExecutionErrorClass = Class of TExecutionError;
-  
+
   { --------------------------------------------------------------------
     TScriptStackTraceElement
     --------------------------------------------------------------------}
-  
+
   TScriptStackTraceElement = Class(TGoogleBaseObject)
   Private
     F_function : String;
@@ -205,11 +205,11 @@ type
     Property lineNumber : integer Index 8 Read FlineNumber Write SetlineNumber;
   end;
   TScriptStackTraceElementClass = Class of TScriptStackTraceElement;
-  
+
   { --------------------------------------------------------------------
     TExecutionResponse
     --------------------------------------------------------------------}
-  
+
   TExecutionResponse = Class(TGoogleBaseObject)
   Private
     Fresult : TJSONSchema;
@@ -221,23 +221,23 @@ type
     Property result : TJSONSchema Index 0 Read Fresult Write Setresult;
   end;
   TExecutionResponseClass = Class of TExecutionResponse;
-  
+
   { --------------------------------------------------------------------
     TScriptsResource
     --------------------------------------------------------------------}
-  
+
   TScriptsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Run(scriptId: string; aExecutionRequest : TExecutionRequest) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TScriptAPI
     --------------------------------------------------------------------}
-  
+
   TScriptAPI = Class(TGoogleAPI)
   Private
     FScriptsInstance : TScriptsResource;
@@ -279,7 +279,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TExecutionRequest.Set_function(AIndex : Integer; const AValue : String); 
+Procedure TExecutionRequest.Set_function(AIndex : Integer; const AValue : String);
 
 begin
   If (F_function=AValue) then exit;
@@ -289,7 +289,7 @@ end;
 
 
 
-Procedure TExecutionRequest.Setparameters(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TExecutionRequest.Setparameters(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (Fparameters=AValue) then exit;
@@ -299,7 +299,7 @@ end;
 
 
 
-Procedure TExecutionRequest.SetsessionState(AIndex : Integer; const AValue : String); 
+Procedure TExecutionRequest.SetsessionState(AIndex : Integer; const AValue : String);
 
 begin
   If (FsessionState=AValue) then exit;
@@ -309,7 +309,7 @@ end;
 
 
 
-Procedure TExecutionRequest.SetdevMode(AIndex : Integer; const AValue : boolean); 
+Procedure TExecutionRequest.SetdevMode(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FdevMode=AValue) then exit;
@@ -331,7 +331,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TExecutionRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TExecutionRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -376,7 +376,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -386,7 +386,7 @@ end;
 
 
 
-Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata); 
+Procedure TOperation.Setmetadata(AIndex : Integer; const AValue : TOperationTypemetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -396,7 +396,7 @@ end;
 
 
 
-Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean); 
+Procedure TOperation.Setdone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdone=AValue) then exit;
@@ -406,7 +406,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -416,7 +416,7 @@ end;
 
 
 
-Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse); 
+Procedure TOperation.Setresponse(AIndex : Integer; const AValue : TOperationTyperesponse);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -446,7 +446,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -456,7 +456,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -466,7 +466,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -477,7 +477,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -496,7 +496,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExecutionError.SetscriptStackTraceElements(AIndex : Integer; const AValue : TExecutionErrorTypescriptStackTraceElementsArray); 
+Procedure TExecutionError.SetscriptStackTraceElements(AIndex : Integer; const AValue : TExecutionErrorTypescriptStackTraceElementsArray);
 
 begin
   If (FscriptStackTraceElements=AValue) then exit;
@@ -506,7 +506,7 @@ end;
 
 
 
-Procedure TExecutionError.SeterrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TExecutionError.SeterrorMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FerrorMessage=AValue) then exit;
@@ -516,7 +516,7 @@ end;
 
 
 
-Procedure TExecutionError.SeterrorType(AIndex : Integer; const AValue : String); 
+Procedure TExecutionError.SeterrorType(AIndex : Integer; const AValue : String);
 
 begin
   If (FerrorType=AValue) then exit;
@@ -527,7 +527,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TExecutionError.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TExecutionError.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -546,7 +546,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScriptStackTraceElement.Set_function(AIndex : Integer; const AValue : String); 
+Procedure TScriptStackTraceElement.Set_function(AIndex : Integer; const AValue : String);
 
 begin
   If (F_function=AValue) then exit;
@@ -556,7 +556,7 @@ end;
 
 
 
-Procedure TScriptStackTraceElement.SetlineNumber(AIndex : Integer; const AValue : integer); 
+Procedure TScriptStackTraceElement.SetlineNumber(AIndex : Integer; const AValue : integer);
 
 begin
   If (FlineNumber=AValue) then exit;
@@ -584,7 +584,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExecutionResponse.Setresult(AIndex : Integer; const AValue : TJSONSchema); 
+Procedure TExecutionResponse.Setresult(AIndex : Integer; const AValue : TJSONSchema);
 
 begin
   If (Fresult=AValue) then exit;
@@ -762,7 +762,7 @@ begin
   Result[9].Description:='View and manage your spreadsheets in Google Drive';
   Result[10].Name:='https://www.googleapis.com/auth/userinfo.email';
   Result[10].Description:='View your email address';
-  
+
 end;
 
 Class Function TScriptAPI.APINeedsAuth : Boolean;

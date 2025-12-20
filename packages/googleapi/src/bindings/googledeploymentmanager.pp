@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TConfigFile = Class;
   TDeployment = Class;
@@ -81,11 +81,11 @@ type
   TResourcesListResponseTyperesourcesArray = Array of TResource;
   TTargetConfigurationTypeimportsArray = Array of TImportFile;
   TTypesListResponseTypetypesArray = Array of TType;
-  
+
   { --------------------------------------------------------------------
     TConfigFile
     --------------------------------------------------------------------}
-  
+
   TConfigFile = Class(TGoogleBaseObject)
   Private
     Fcontent : String;
@@ -97,11 +97,11 @@ type
     Property content : String Index 0 Read Fcontent Write Setcontent;
   end;
   TConfigFileClass = Class of TConfigFile;
-  
+
   { --------------------------------------------------------------------
     TDeployment
     --------------------------------------------------------------------}
-  
+
   TDeployment = Class(TGoogleBaseObject)
   Private
     Fdescription : String;
@@ -147,11 +147,11 @@ type
     Property update : TDeploymentUpdate Index 80 Read Fupdate Write Setupdate;
   end;
   TDeploymentClass = Class of TDeployment;
-  
+
   { --------------------------------------------------------------------
     TDeploymentLabelEntry
     --------------------------------------------------------------------}
-  
+
   TDeploymentLabelEntry = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -166,11 +166,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TDeploymentLabelEntryClass = Class of TDeploymentLabelEntry;
-  
+
   { --------------------------------------------------------------------
     TDeploymentUpdate
     --------------------------------------------------------------------}
-  
+
   TDeploymentUpdate = Class(TGoogleBaseObject)
   Private
     Flabels : TDeploymentUpdateTypelabelsArray;
@@ -189,11 +189,11 @@ type
     Property manifest : String Index 8 Read Fmanifest Write Setmanifest;
   end;
   TDeploymentUpdateClass = Class of TDeploymentUpdate;
-  
+
   { --------------------------------------------------------------------
     TDeploymentUpdateLabelEntry
     --------------------------------------------------------------------}
-  
+
   TDeploymentUpdateLabelEntry = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -208,11 +208,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TDeploymentUpdateLabelEntryClass = Class of TDeploymentUpdateLabelEntry;
-  
+
   { --------------------------------------------------------------------
     TDeploymentsCancelPreviewRequest
     --------------------------------------------------------------------}
-  
+
   TDeploymentsCancelPreviewRequest = Class(TGoogleBaseObject)
   Private
     Ffingerprint : String;
@@ -224,11 +224,11 @@ type
     Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
   end;
   TDeploymentsCancelPreviewRequestClass = Class of TDeploymentsCancelPreviewRequest;
-  
+
   { --------------------------------------------------------------------
     TDeploymentsListResponse
     --------------------------------------------------------------------}
-  
+
   TDeploymentsListResponse = Class(TGoogleBaseObject)
   Private
     Fdeployments : TDeploymentsListResponseTypedeploymentsArray;
@@ -247,11 +247,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TDeploymentsListResponseClass = Class of TDeploymentsListResponse;
-  
+
   { --------------------------------------------------------------------
     TDeploymentsStopRequest
     --------------------------------------------------------------------}
-  
+
   TDeploymentsStopRequest = Class(TGoogleBaseObject)
   Private
     Ffingerprint : String;
@@ -263,11 +263,11 @@ type
     Property fingerprint : String Index 0 Read Ffingerprint Write Setfingerprint;
   end;
   TDeploymentsStopRequestClass = Class of TDeploymentsStopRequest;
-  
+
   { --------------------------------------------------------------------
     TImportFile
     --------------------------------------------------------------------}
-  
+
   TImportFile = Class(TGoogleBaseObject)
   Private
     Fcontent : String;
@@ -282,11 +282,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TImportFileClass = Class of TImportFile;
-  
+
   { --------------------------------------------------------------------
     TManifest
     --------------------------------------------------------------------}
-  
+
   TManifest = Class(TGoogleBaseObject)
   Private
     Fconfig : TConfigFile;
@@ -323,11 +323,11 @@ type
     Property selfLink : String Index 56 Read FselfLink Write SetselfLink;
   end;
   TManifestClass = Class of TManifest;
-  
+
   { --------------------------------------------------------------------
     TManifestsListResponse
     --------------------------------------------------------------------}
-  
+
   TManifestsListResponse = Class(TGoogleBaseObject)
   Private
     Fmanifests : TManifestsListResponseTypemanifestsArray;
@@ -346,11 +346,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TManifestsListResponseClass = Class of TManifestsListResponse;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -368,11 +368,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerror
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerror = Class(TGoogleBaseObject)
   Private
     Ferrors : TOperationTypeerrorTypeerrorsArray;
@@ -388,11 +388,11 @@ type
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
   TOperationTypeerrorClass = Class of TOperationTypeerror;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItemTypedataItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -407,11 +407,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -433,11 +433,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     FclientOperationId : String;
@@ -519,11 +519,11 @@ type
     Property zone : String Index 176 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TOperationsListResponse
     --------------------------------------------------------------------}
-  
+
   TOperationsListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -542,11 +542,11 @@ type
     Property operations : TOperationsListResponseTypeoperationsArray Index 8 Read Foperations Write Setoperations;
   end;
   TOperationsListResponseClass = Class of TOperationsListResponse;
-  
+
   { --------------------------------------------------------------------
     TResourceTypewarningsItemTypedataItem
     --------------------------------------------------------------------}
-  
+
   TResourceTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -561,11 +561,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TResourceTypewarningsItemTypedataItemClass = Class of TResourceTypewarningsItemTypedataItem;
-  
+
   { --------------------------------------------------------------------
     TResourceTypewarningsItem
     --------------------------------------------------------------------}
-  
+
   TResourceTypewarningsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -587,11 +587,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TResourceTypewarningsItemClass = Class of TResourceTypewarningsItem;
-  
+
   { --------------------------------------------------------------------
     TResource
     --------------------------------------------------------------------}
-  
+
   TResource = Class(TGoogleBaseObject)
   Private
     FfinalProperties : String;
@@ -638,11 +638,11 @@ type
     Property warnings : TResourceTypewarningsArray Index 80 Read Fwarnings Write Setwarnings;
   end;
   TResourceClass = Class of TResource;
-  
+
   { --------------------------------------------------------------------
     TResourceUpdateTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
-  
+
   TResourceUpdateTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -660,11 +660,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TResourceUpdateTypeerrorTypeerrorsItemClass = Class of TResourceUpdateTypeerrorTypeerrorsItem;
-  
+
   { --------------------------------------------------------------------
     TResourceUpdateTypeerror
     --------------------------------------------------------------------}
-  
+
   TResourceUpdateTypeerror = Class(TGoogleBaseObject)
   Private
     Ferrors : TResourceUpdateTypeerrorTypeerrorsArray;
@@ -680,11 +680,11 @@ type
     Property errors : TResourceUpdateTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
   TResourceUpdateTypeerrorClass = Class of TResourceUpdateTypeerror;
-  
+
   { --------------------------------------------------------------------
     TResourceUpdateTypewarningsItemTypedataItem
     --------------------------------------------------------------------}
-  
+
   TResourceUpdateTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -699,11 +699,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TResourceUpdateTypewarningsItemTypedataItemClass = Class of TResourceUpdateTypewarningsItemTypedataItem;
-  
+
   { --------------------------------------------------------------------
     TResourceUpdateTypewarningsItem
     --------------------------------------------------------------------}
-  
+
   TResourceUpdateTypewarningsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -725,11 +725,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TResourceUpdateTypewarningsItemClass = Class of TResourceUpdateTypewarningsItem;
-  
+
   { --------------------------------------------------------------------
     TResourceUpdate
     --------------------------------------------------------------------}
-  
+
   TResourceUpdate = Class(TGoogleBaseObject)
   Private
     Ferror : TResourceUpdateTypeerror;
@@ -763,11 +763,11 @@ type
     Property warnings : TResourceUpdateTypewarningsArray Index 48 Read Fwarnings Write Setwarnings;
   end;
   TResourceUpdateClass = Class of TResourceUpdate;
-  
+
   { --------------------------------------------------------------------
     TResourcesListResponse
     --------------------------------------------------------------------}
-  
+
   TResourcesListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -786,11 +786,11 @@ type
     Property resources : TResourcesListResponseTyperesourcesArray Index 8 Read Fresources Write Setresources;
   end;
   TResourcesListResponseClass = Class of TResourcesListResponse;
-  
+
   { --------------------------------------------------------------------
     TTargetConfiguration
     --------------------------------------------------------------------}
-  
+
   TTargetConfiguration = Class(TGoogleBaseObject)
   Private
     Fconfig : TConfigFile;
@@ -809,11 +809,11 @@ type
     Property imports : TTargetConfigurationTypeimportsArray Index 8 Read Fimports Write Setimports;
   end;
   TTargetConfigurationClass = Class of TTargetConfiguration;
-  
+
   { --------------------------------------------------------------------
     TType
     --------------------------------------------------------------------}
-  
+
   TType = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -834,11 +834,11 @@ type
     Property selfLink : String Index 24 Read FselfLink Write SetselfLink;
   end;
   TTypeClass = Class of TType;
-  
+
   { --------------------------------------------------------------------
     TTypesListResponse
     --------------------------------------------------------------------}
-  
+
   TTypesListResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -857,45 +857,45 @@ type
     Property types : TTypesListResponseTypetypesArray Index 8 Read Ftypes Write Settypes;
   end;
   TTypesListResponseClass = Class of TTypesListResponse;
-  
+
   { --------------------------------------------------------------------
     TDeploymentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TDeploymentsResource, method Insert
-  
+
   TDeploymentsInsertOptions = Record
     preview : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TDeploymentsResource, method List
-  
+
   TDeploymentsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TDeploymentsResource, method Patch
-  
+
   TDeploymentsPatchOptions = Record
     createPolicy : String;
     deletePolicy : String;
     preview : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TDeploymentsResource, method Update
-  
+
   TDeploymentsUpdateOptions = Record
     createPolicy : String;
     deletePolicy : String;
     preview : boolean;
   end;
-  
+
   TDeploymentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -913,21 +913,21 @@ type
     Function Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : string  = '') : TOperation;
     Function Update(deployment: string; project: string; aDeployment : TDeployment; AQuery : TDeploymentsupdateOptions) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TManifestsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TManifestsResource, method List
-  
+
   TManifestsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TManifestsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -936,21 +936,21 @@ type
     Function List(deployment: string; project: string; AQuery : string  = '') : TManifestsListResponse;
     Function List(deployment: string; project: string; AQuery : TManifestslistOptions) : TManifestsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TOperationsResource, method List
-  
+
   TOperationsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -959,21 +959,21 @@ type
     Function List(project: string; AQuery : string  = '') : TOperationsListResponse;
     Function List(project: string; AQuery : TOperationslistOptions) : TOperationsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TResourcesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TResourcesResource, method List
-  
+
   TResourcesListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TResourcesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -982,21 +982,21 @@ type
     Function List(deployment: string; project: string; AQuery : string  = '') : TResourcesListResponse;
     Function List(deployment: string; project: string; AQuery : TResourceslistOptions) : TResourcesListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTypesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTypesResource, method List
-  
+
   TTypesListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TTypesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1004,12 +1004,12 @@ type
     Function List(project: string; AQuery : string  = '') : TTypesListResponse;
     Function List(project: string; AQuery : TTypeslistOptions) : TTypesListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TDeploymentmanagerAPI
     --------------------------------------------------------------------}
-  
+
   TDeploymentmanagerAPI = Class(TGoogleAPI)
   Private
     FDeploymentsInstance : TDeploymentsResource;
@@ -1071,7 +1071,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TConfigFile.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TConfigFile.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -1088,7 +1088,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeployment.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1098,7 +1098,7 @@ end;
 
 
 
-Procedure TDeployment.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1108,7 +1108,7 @@ end;
 
 
 
-Procedure TDeployment.Setid(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1118,7 +1118,7 @@ end;
 
 
 
-Procedure TDeployment.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1128,7 +1128,7 @@ end;
 
 
 
-Procedure TDeployment.Setlabels(AIndex : Integer; const AValue : TDeploymentTypelabelsArray); 
+Procedure TDeployment.Setlabels(AIndex : Integer; const AValue : TDeploymentTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1138,7 +1138,7 @@ end;
 
 
 
-Procedure TDeployment.Setmanifest(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.Setmanifest(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmanifest=AValue) then exit;
@@ -1148,7 +1148,7 @@ end;
 
 
 
-Procedure TDeployment.Setname(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1158,7 +1158,7 @@ end;
 
 
 
-Procedure TDeployment.Setoperation(AIndex : Integer; const AValue : TOperation); 
+Procedure TDeployment.Setoperation(AIndex : Integer; const AValue : TOperation);
 
 begin
   If (Foperation=AValue) then exit;
@@ -1168,7 +1168,7 @@ end;
 
 
 
-Procedure TDeployment.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TDeployment.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1178,7 +1178,7 @@ end;
 
 
 
-Procedure TDeployment.Settarget(AIndex : Integer; const AValue : TTargetConfiguration); 
+Procedure TDeployment.Settarget(AIndex : Integer; const AValue : TTargetConfiguration);
 
 begin
   If (Ftarget=AValue) then exit;
@@ -1188,7 +1188,7 @@ end;
 
 
 
-Procedure TDeployment.Setupdate(AIndex : Integer; const AValue : TDeploymentUpdate); 
+Procedure TDeployment.Setupdate(AIndex : Integer; const AValue : TDeploymentUpdate);
 
 begin
   If (Fupdate=AValue) then exit;
@@ -1199,7 +1199,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeployment.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeployment.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1218,7 +1218,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentLabelEntry.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentLabelEntry.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1228,7 +1228,7 @@ end;
 
 
 
-Procedure TDeploymentLabelEntry.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentLabelEntry.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1245,7 +1245,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentUpdate.Setlabels(AIndex : Integer; const AValue : TDeploymentUpdateTypelabelsArray); 
+Procedure TDeploymentUpdate.Setlabels(AIndex : Integer; const AValue : TDeploymentUpdateTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1255,7 +1255,7 @@ end;
 
 
 
-Procedure TDeploymentUpdate.Setmanifest(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentUpdate.Setmanifest(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmanifest=AValue) then exit;
@@ -1266,7 +1266,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeploymentUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeploymentUpdate.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1285,7 +1285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentUpdateLabelEntry.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentUpdateLabelEntry.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 
 
-Procedure TDeploymentUpdateLabelEntry.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentUpdateLabelEntry.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1312,7 +1312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsCancelPreviewRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentsCancelPreviewRequest.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1329,7 +1329,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsListResponse.Setdeployments(AIndex : Integer; const AValue : TDeploymentsListResponseTypedeploymentsArray); 
+Procedure TDeploymentsListResponse.Setdeployments(AIndex : Integer; const AValue : TDeploymentsListResponseTypedeploymentsArray);
 
 begin
   If (Fdeployments=AValue) then exit;
@@ -1339,7 +1339,7 @@ end;
 
 
 
-Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1350,7 +1350,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDeploymentsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDeploymentsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1369,7 +1369,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsStopRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TDeploymentsStopRequest.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1386,7 +1386,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportFile.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TImportFile.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -1396,7 +1396,7 @@ end;
 
 
 
-Procedure TImportFile.Setname(AIndex : Integer; const AValue : String); 
+Procedure TImportFile.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1413,7 +1413,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManifest.Setconfig(AIndex : Integer; const AValue : TConfigFile); 
+Procedure TManifest.Setconfig(AIndex : Integer; const AValue : TConfigFile);
 
 begin
   If (Fconfig=AValue) then exit;
@@ -1423,7 +1423,7 @@ end;
 
 
 
-Procedure TManifest.SetexpandedConfig(AIndex : Integer; const AValue : String); 
+Procedure TManifest.SetexpandedConfig(AIndex : Integer; const AValue : String);
 
 begin
   If (FexpandedConfig=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 
 
-Procedure TManifest.Setid(AIndex : Integer; const AValue : String); 
+Procedure TManifest.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TManifest.Setimports(AIndex : Integer; const AValue : TManifestTypeimportsArray); 
+Procedure TManifest.Setimports(AIndex : Integer; const AValue : TManifestTypeimportsArray);
 
 begin
   If (Fimports=AValue) then exit;
@@ -1453,7 +1453,7 @@ end;
 
 
 
-Procedure TManifest.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TManifest.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1463,7 +1463,7 @@ end;
 
 
 
-Procedure TManifest.Setlayout(AIndex : Integer; const AValue : String); 
+Procedure TManifest.Setlayout(AIndex : Integer; const AValue : String);
 
 begin
   If (Flayout=AValue) then exit;
@@ -1473,7 +1473,7 @@ end;
 
 
 
-Procedure TManifest.Setname(AIndex : Integer; const AValue : String); 
+Procedure TManifest.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1483,7 +1483,7 @@ end;
 
 
 
-Procedure TManifest.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TManifest.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1494,7 +1494,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TManifest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TManifest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1513,7 +1513,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManifestsListResponse.Setmanifests(AIndex : Integer; const AValue : TManifestsListResponseTypemanifestsArray); 
+Procedure TManifestsListResponse.Setmanifests(AIndex : Integer; const AValue : TManifestsListResponseTypemanifestsArray);
 
 begin
   If (Fmanifests=AValue) then exit;
@@ -1523,7 +1523,7 @@ end;
 
 
 
-Procedure TManifestsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TManifestsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1534,7 +1534,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TManifestsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TManifestsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1553,7 +1553,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1563,7 +1563,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -1573,7 +1573,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1590,7 +1590,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1601,7 +1601,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1620,7 +1620,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1630,7 +1630,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1647,7 +1647,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1657,7 +1657,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1667,7 +1667,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1678,7 +1678,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1697,7 +1697,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientOperationId=AValue) then exit;
@@ -1707,7 +1707,7 @@ end;
 
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1717,7 +1717,7 @@ end;
 
 
 
-Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1727,7 +1727,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1737,7 +1737,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror);
 
 begin
   If (Ferror=AValue) then exit;
@@ -1747,7 +1747,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -1757,7 +1757,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer);
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1767,7 +1767,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1777,7 +1777,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1787,7 +1787,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1797,7 +1797,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1807,7 +1807,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -1817,7 +1817,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
 
 
 
-Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -1837,7 +1837,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1847,7 +1847,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1857,7 +1857,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1867,7 +1867,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1877,7 +1877,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetId=AValue) then exit;
@@ -1887,7 +1887,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1897,7 +1897,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -1907,7 +1907,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1917,7 +1917,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String);
 
 begin
   If (Fzone=AValue) then exit;
@@ -1928,7 +1928,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1947,7 +1947,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TOperationsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1957,7 +1957,7 @@ end;
 
 
 
-Procedure TOperationsListResponse.Setoperations(AIndex : Integer; const AValue : TOperationsListResponseTypeoperationsArray); 
+Procedure TOperationsListResponse.Setoperations(AIndex : Integer; const AValue : TOperationsListResponseTypeoperationsArray);
 
 begin
   If (Foperations=AValue) then exit;
@@ -1968,7 +1968,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1987,7 +1987,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TResourceTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1997,7 +1997,7 @@ end;
 
 
 
-Procedure TResourceTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TResourceTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2014,7 +2014,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TResourceTypewarningsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -2024,7 +2024,7 @@ end;
 
 
 
-Procedure TResourceTypewarningsItem.Setdata(AIndex : Integer; const AValue : TResourceTypewarningsItemTypedataArray); 
+Procedure TResourceTypewarningsItem.Setdata(AIndex : Integer; const AValue : TResourceTypewarningsItemTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -2034,7 +2034,7 @@ end;
 
 
 
-Procedure TResourceTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TResourceTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -2045,7 +2045,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourceTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourceTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2064,7 +2064,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResource.SetfinalProperties(AIndex : Integer; const AValue : String); 
+Procedure TResource.SetfinalProperties(AIndex : Integer; const AValue : String);
 
 begin
   If (FfinalProperties=AValue) then exit;
@@ -2074,7 +2074,7 @@ end;
 
 
 
-Procedure TResource.Setid(AIndex : Integer; const AValue : String); 
+Procedure TResource.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2084,7 +2084,7 @@ end;
 
 
 
-Procedure TResource.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TResource.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -2094,7 +2094,7 @@ end;
 
 
 
-Procedure TResource.Setmanifest(AIndex : Integer; const AValue : String); 
+Procedure TResource.Setmanifest(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmanifest=AValue) then exit;
@@ -2104,7 +2104,7 @@ end;
 
 
 
-Procedure TResource.Setname(AIndex : Integer; const AValue : String); 
+Procedure TResource.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2114,7 +2114,7 @@ end;
 
 
 
-Procedure TResource.Setproperties(AIndex : Integer; const AValue : String); 
+Procedure TResource.Setproperties(AIndex : Integer; const AValue : String);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -2124,7 +2124,7 @@ end;
 
 
 
-Procedure TResource.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TResource.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2134,7 +2134,7 @@ end;
 
 
 
-Procedure TResource.Setupdate(AIndex : Integer; const AValue : TResourceUpdate); 
+Procedure TResource.Setupdate(AIndex : Integer; const AValue : TResourceUpdate);
 
 begin
   If (Fupdate=AValue) then exit;
@@ -2144,7 +2144,7 @@ end;
 
 
 
-Procedure TResource.SetupdateTime(AIndex : Integer; const AValue : String); 
+Procedure TResource.SetupdateTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -2154,7 +2154,7 @@ end;
 
 
 
-Procedure TResource.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TResource.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -2164,7 +2164,7 @@ end;
 
 
 
-Procedure TResource.Setwarnings(AIndex : Integer; const AValue : TResourceTypewarningsArray); 
+Procedure TResource.Setwarnings(AIndex : Integer; const AValue : TResourceTypewarningsArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -2186,7 +2186,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResource.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResource.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2205,7 +2205,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -2215,7 +2215,7 @@ end;
 
 
 
-Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -2225,7 +2225,7 @@ end;
 
 
 
-Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -2242,7 +2242,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceUpdateTypeerror.Seterrors(AIndex : Integer; const AValue : TResourceUpdateTypeerrorTypeerrorsArray); 
+Procedure TResourceUpdateTypeerror.Seterrors(AIndex : Integer; const AValue : TResourceUpdateTypeerrorTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -2253,7 +2253,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourceUpdateTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourceUpdateTypeerror.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2272,7 +2272,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceUpdateTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -2282,7 +2282,7 @@ end;
 
 
 
-Procedure TResourceUpdateTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2299,7 +2299,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceUpdateTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypewarningsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -2309,7 +2309,7 @@ end;
 
 
 
-Procedure TResourceUpdateTypewarningsItem.Setdata(AIndex : Integer; const AValue : TResourceUpdateTypewarningsItemTypedataArray); 
+Procedure TResourceUpdateTypewarningsItem.Setdata(AIndex : Integer; const AValue : TResourceUpdateTypewarningsItemTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -2319,7 +2319,7 @@ end;
 
 
 
-Procedure TResourceUpdateTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdateTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -2330,7 +2330,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourceUpdateTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourceUpdateTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2349,7 +2349,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceUpdate.Seterror(AIndex : Integer; const AValue : TResourceUpdateTypeerror); 
+Procedure TResourceUpdate.Seterror(AIndex : Integer; const AValue : TResourceUpdateTypeerror);
 
 begin
   If (Ferror=AValue) then exit;
@@ -2359,7 +2359,7 @@ end;
 
 
 
-Procedure TResourceUpdate.SetfinalProperties(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdate.SetfinalProperties(AIndex : Integer; const AValue : String);
 
 begin
   If (FfinalProperties=AValue) then exit;
@@ -2369,7 +2369,7 @@ end;
 
 
 
-Procedure TResourceUpdate.Setintent(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdate.Setintent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fintent=AValue) then exit;
@@ -2379,7 +2379,7 @@ end;
 
 
 
-Procedure TResourceUpdate.Setmanifest(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdate.Setmanifest(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmanifest=AValue) then exit;
@@ -2389,7 +2389,7 @@ end;
 
 
 
-Procedure TResourceUpdate.Setproperties(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdate.Setproperties(AIndex : Integer; const AValue : String);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -2399,7 +2399,7 @@ end;
 
 
 
-Procedure TResourceUpdate.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TResourceUpdate.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -2409,7 +2409,7 @@ end;
 
 
 
-Procedure TResourceUpdate.Setwarnings(AIndex : Integer; const AValue : TResourceUpdateTypewarningsArray); 
+Procedure TResourceUpdate.Setwarnings(AIndex : Integer; const AValue : TResourceUpdateTypewarningsArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -2420,7 +2420,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourceUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourceUpdate.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2439,7 +2439,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourcesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TResourcesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2449,7 +2449,7 @@ end;
 
 
 
-Procedure TResourcesListResponse.Setresources(AIndex : Integer; const AValue : TResourcesListResponseTyperesourcesArray); 
+Procedure TResourcesListResponse.Setresources(AIndex : Integer; const AValue : TResourcesListResponseTyperesourcesArray);
 
 begin
   If (Fresources=AValue) then exit;
@@ -2460,7 +2460,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResourcesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResourcesListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2479,7 +2479,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTargetConfiguration.Setconfig(AIndex : Integer; const AValue : TConfigFile); 
+Procedure TTargetConfiguration.Setconfig(AIndex : Integer; const AValue : TConfigFile);
 
 begin
   If (Fconfig=AValue) then exit;
@@ -2489,7 +2489,7 @@ end;
 
 
 
-Procedure TTargetConfiguration.Setimports(AIndex : Integer; const AValue : TTargetConfigurationTypeimportsArray); 
+Procedure TTargetConfiguration.Setimports(AIndex : Integer; const AValue : TTargetConfigurationTypeimportsArray);
 
 begin
   If (Fimports=AValue) then exit;
@@ -2500,7 +2500,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTargetConfiguration.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTargetConfiguration.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2519,7 +2519,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TType.Setid(AIndex : Integer; const AValue : String); 
+Procedure TType.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2529,7 +2529,7 @@ end;
 
 
 
-Procedure TType.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TType.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -2539,7 +2539,7 @@ end;
 
 
 
-Procedure TType.Setname(AIndex : Integer; const AValue : String); 
+Procedure TType.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2549,7 +2549,7 @@ end;
 
 
 
-Procedure TType.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TType.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2566,7 +2566,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTypesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTypesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2576,7 +2576,7 @@ end;
 
 
 
-Procedure TTypesListResponse.Settypes(AIndex : Integer; const AValue : TTypesListResponseTypetypesArray); 
+Procedure TTypesListResponse.Settypes(AIndex : Integer; const AValue : TTypesListResponseTypetypesArray);
 
 begin
   If (Ftypes=AValue) then exit;
@@ -2587,7 +2587,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTypesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTypesListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3149,7 +3149,7 @@ begin
   Result[2].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
   Result[3].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
   Result[3].Description:='View your Google Cloud Platform management resources and deployment status information';
-  
+
 end;
 
 Class Function TDeploymentmanagerAPI.APINeedsAuth : Boolean;

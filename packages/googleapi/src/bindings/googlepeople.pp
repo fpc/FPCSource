@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TPerson = Class;
   TPersonMetadata = Class;
@@ -114,11 +114,11 @@ type
   TPersonMetadataTypesourcesArray = Array of TSource;
   TGetPeopleResponseTyperesponsesArray = Array of TPersonResponse;
   TListConnectionsResponseTypeconnectionsArray = Array of TPerson;
-  
+
   { --------------------------------------------------------------------
     TPerson
     --------------------------------------------------------------------}
-  
+
   TPerson = Class(TGoogleBaseObject)
   Private
     FresourceName : String;
@@ -218,11 +218,11 @@ type
     Property memberships : TPersonTypemembershipsArray Index 224 Read Fmemberships Write Setmemberships;
   end;
   TPersonClass = Class of TPerson;
-  
+
   { --------------------------------------------------------------------
     TPersonMetadata
     --------------------------------------------------------------------}
-  
+
   TPersonMetadata = Class(TGoogleBaseObject)
   Private
     Fsources : TPersonMetadataTypesourcesArray;
@@ -247,11 +247,11 @@ type
     Property objectType : String Index 24 Read FobjectType Write SetobjectType;
   end;
   TPersonMetadataClass = Class of TPersonMetadata;
-  
+
   { --------------------------------------------------------------------
     TSource
     --------------------------------------------------------------------}
-  
+
   TSource = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -267,11 +267,11 @@ type
     Property id : String Index 8 Read Fid Write Setid;
   end;
   TSourceClass = Class of TSource;
-  
+
   { --------------------------------------------------------------------
     TLocale
     --------------------------------------------------------------------}
-  
+
   TLocale = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -286,11 +286,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TLocaleClass = Class of TLocale;
-  
+
   { --------------------------------------------------------------------
     TFieldMetadata
     --------------------------------------------------------------------}
-  
+
   TFieldMetadata = Class(TGoogleBaseObject)
   Private
     Fprimary : boolean;
@@ -308,11 +308,11 @@ type
     Property source : TSource Index 16 Read Fsource Write Setsource;
   end;
   TFieldMetadataClass = Class of TFieldMetadata;
-  
+
   { --------------------------------------------------------------------
     TName
     --------------------------------------------------------------------}
-  
+
   TName = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -357,11 +357,11 @@ type
     Property phoneticHonorificSuffix : String Index 88 Read FphoneticHonorificSuffix Write SetphoneticHonorificSuffix;
   end;
   TNameClass = Class of TName;
-  
+
   { --------------------------------------------------------------------
     TNickname
     --------------------------------------------------------------------}
-  
+
   TNickname = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -380,11 +380,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TNicknameClass = Class of TNickname;
-  
+
   { --------------------------------------------------------------------
     TCoverPhoto
     --------------------------------------------------------------------}
-  
+
   TCoverPhoto = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -402,11 +402,11 @@ type
     Property default : boolean Index 16 Read Fdefault Write Setdefault;
   end;
   TCoverPhotoClass = Class of TCoverPhoto;
-  
+
   { --------------------------------------------------------------------
     TPhoto
     --------------------------------------------------------------------}
-  
+
   TPhoto = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -421,11 +421,11 @@ type
     Property url : String Index 8 Read Furl Write Seturl;
   end;
   TPhotoClass = Class of TPhoto;
-  
+
   { --------------------------------------------------------------------
     TGender
     --------------------------------------------------------------------}
-  
+
   TGender = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -443,11 +443,11 @@ type
     Property formattedValue : String Index 16 Read FformattedValue Write SetformattedValue;
   end;
   TGenderClass = Class of TGender;
-  
+
   { --------------------------------------------------------------------
     TBirthday
     --------------------------------------------------------------------}
-  
+
   TBirthday = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -465,11 +465,11 @@ type
     Property text : String Index 16 Read Ftext Write Settext;
   end;
   TBirthdayClass = Class of TBirthday;
-  
+
   { --------------------------------------------------------------------
     TDate
     --------------------------------------------------------------------}
-  
+
   TDate = Class(TGoogleBaseObject)
   Private
     Fyear : integer;
@@ -487,11 +487,11 @@ type
     Property day : integer Index 16 Read Fday Write Setday;
   end;
   TDateClass = Class of TDate;
-  
+
   { --------------------------------------------------------------------
     TEvent
     --------------------------------------------------------------------}
-  
+
   TEvent = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -513,11 +513,11 @@ type
     Property formattedType : String Index 24 Read FformattedType Write SetformattedType;
   end;
   TEventClass = Class of TEvent;
-  
+
   { --------------------------------------------------------------------
     TAddress
     --------------------------------------------------------------------}
-  
+
   TAddress = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -563,11 +563,11 @@ type
     Property countryCode : String Index 88 Read FcountryCode Write SetcountryCode;
   end;
   TAddressClass = Class of TAddress;
-  
+
   { --------------------------------------------------------------------
     TResidence
     --------------------------------------------------------------------}
-  
+
   TResidence = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -585,11 +585,11 @@ type
     Property current : boolean Index 16 Read Fcurrent Write Setcurrent;
   end;
   TResidenceClass = Class of TResidence;
-  
+
   { --------------------------------------------------------------------
     TEmailAddress
     --------------------------------------------------------------------}
-  
+
   TEmailAddress = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -611,11 +611,11 @@ type
     Property formattedType : String Index 24 Read FformattedType Write SetformattedType;
   end;
   TEmailAddressClass = Class of TEmailAddress;
-  
+
   { --------------------------------------------------------------------
     TPhoneNumber
     --------------------------------------------------------------------}
-  
+
   TPhoneNumber = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -640,11 +640,11 @@ type
     Property formattedType : String Index 32 Read FformattedType Write SetformattedType;
   end;
   TPhoneNumberClass = Class of TPhoneNumber;
-  
+
   { --------------------------------------------------------------------
     TImClient
     --------------------------------------------------------------------}
-  
+
   TImClient = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -672,11 +672,11 @@ type
     Property formattedProtocol : String Index 40 Read FformattedProtocol Write SetformattedProtocol;
   end;
   TImClientClass = Class of TImClient;
-  
+
   { --------------------------------------------------------------------
     TTagline
     --------------------------------------------------------------------}
-  
+
   TTagline = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -691,11 +691,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TTaglineClass = Class of TTagline;
-  
+
   { --------------------------------------------------------------------
     TBiography
     --------------------------------------------------------------------}
-  
+
   TBiography = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -710,11 +710,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TBiographyClass = Class of TBiography;
-  
+
   { --------------------------------------------------------------------
     TUrl
     --------------------------------------------------------------------}
-  
+
   TUrl = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -736,11 +736,11 @@ type
     Property formattedType : String Index 24 Read FformattedType Write SetformattedType;
   end;
   TUrlClass = Class of TUrl;
-  
+
   { --------------------------------------------------------------------
     TOrganization
     --------------------------------------------------------------------}
-  
+
   TOrganization = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -792,11 +792,11 @@ type
     Property location : String Index 104 Read Flocation Write Setlocation;
   end;
   TOrganizationClass = Class of TOrganization;
-  
+
   { --------------------------------------------------------------------
     TOccupation
     --------------------------------------------------------------------}
-  
+
   TOccupation = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -811,11 +811,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TOccupationClass = Class of TOccupation;
-  
+
   { --------------------------------------------------------------------
     TInterest
     --------------------------------------------------------------------}
-  
+
   TInterest = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -830,11 +830,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TInterestClass = Class of TInterest;
-  
+
   { --------------------------------------------------------------------
     TSkill
     --------------------------------------------------------------------}
-  
+
   TSkill = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -849,11 +849,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TSkillClass = Class of TSkill;
-  
+
   { --------------------------------------------------------------------
     TBraggingRights
     --------------------------------------------------------------------}
-  
+
   TBraggingRights = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -868,11 +868,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TBraggingRightsClass = Class of TBraggingRights;
-  
+
   { --------------------------------------------------------------------
     TRelation
     --------------------------------------------------------------------}
-  
+
   TRelation = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -894,11 +894,11 @@ type
     Property formattedType : String Index 24 Read FformattedType Write SetformattedType;
   end;
   TRelationClass = Class of TRelation;
-  
+
   { --------------------------------------------------------------------
     TRelationshipInterest
     --------------------------------------------------------------------}
-  
+
   TRelationshipInterest = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -916,11 +916,11 @@ type
     Property formattedValue : String Index 16 Read FformattedValue Write SetformattedValue;
   end;
   TRelationshipInterestClass = Class of TRelationshipInterest;
-  
+
   { --------------------------------------------------------------------
     TRelationshipStatus
     --------------------------------------------------------------------}
-  
+
   TRelationshipStatus = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -938,11 +938,11 @@ type
     Property formattedValue : String Index 16 Read FformattedValue Write SetformattedValue;
   end;
   TRelationshipStatusClass = Class of TRelationshipStatus;
-  
+
   { --------------------------------------------------------------------
     TMembership
     --------------------------------------------------------------------}
-  
+
   TMembership = Class(TGoogleBaseObject)
   Private
     Fmetadata : TFieldMetadata;
@@ -960,11 +960,11 @@ type
     Property domainMembership : TDomainMembership Index 16 Read FdomainMembership Write SetdomainMembership;
   end;
   TMembershipClass = Class of TMembership;
-  
+
   { --------------------------------------------------------------------
     TContactGroupMembership
     --------------------------------------------------------------------}
-  
+
   TContactGroupMembership = Class(TGoogleBaseObject)
   Private
     FcontactGroupId : String;
@@ -976,11 +976,11 @@ type
     Property contactGroupId : String Index 0 Read FcontactGroupId Write SetcontactGroupId;
   end;
   TContactGroupMembershipClass = Class of TContactGroupMembership;
-  
+
   { --------------------------------------------------------------------
     TDomainMembership
     --------------------------------------------------------------------}
-  
+
   TDomainMembership = Class(TGoogleBaseObject)
   Private
     FinViewerDomain : boolean;
@@ -992,11 +992,11 @@ type
     Property inViewerDomain : boolean Index 0 Read FinViewerDomain Write SetinViewerDomain;
   end;
   TDomainMembershipClass = Class of TDomainMembership;
-  
+
   { --------------------------------------------------------------------
     TGetPeopleResponse
     --------------------------------------------------------------------}
-  
+
   TGetPeopleResponse = Class(TGoogleBaseObject)
   Private
     Fresponses : TGetPeopleResponseTyperesponsesArray;
@@ -1012,11 +1012,11 @@ type
     Property responses : TGetPeopleResponseTyperesponsesArray Index 0 Read Fresponses Write Setresponses;
   end;
   TGetPeopleResponseClass = Class of TGetPeopleResponse;
-  
+
   { --------------------------------------------------------------------
     TPersonResponse
     --------------------------------------------------------------------}
-  
+
   TPersonResponse = Class(TGoogleBaseObject)
   Private
     FhttpStatusCode : integer;
@@ -1034,11 +1034,11 @@ type
     Property requestedResourceName : String Index 16 Read FrequestedResourceName Write SetrequestedResourceName;
   end;
   TPersonResponseClass = Class of TPersonResponse;
-  
+
   { --------------------------------------------------------------------
     TListConnectionsResponse
     --------------------------------------------------------------------}
-  
+
   TListConnectionsResponse = Class(TGoogleBaseObject)
   Private
     Fconnections : TListConnectionsResponseTypeconnectionsArray;
@@ -1060,14 +1060,14 @@ type
     Property nextSyncToken : String Index 16 Read FnextSyncToken Write SetnextSyncToken;
   end;
   TListConnectionsResponseClass = Class of TListConnectionsResponse;
-  
+
   { --------------------------------------------------------------------
     TPeopleConnectionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPeopleConnectionsResource, method List
-  
+
   TPeopleConnectionsListOptions = Record
     pageToken : String;
     pageSize : integer;
@@ -1075,7 +1075,7 @@ type
     syncToken : String;
     requestMaskincludeField : String;
   end;
-  
+
   TPeopleConnectionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -1083,27 +1083,27 @@ type
     Function List(_resourceName: string; AQuery : string  = '') : TListConnectionsResponse;
     Function List(_resourceName: string; AQuery : TPeopleConnectionslistOptions) : TListConnectionsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPeopleResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPeopleResource, method Get
-  
+
   TPeopleGetOptions = Record
     requestMaskincludeField : String;
   end;
-  
-  
+
+
   //Optional query Options for TPeopleResource, method GetBatchGet
-  
+
   TPeopleGetBatchGetOptions = Record
     resourceNames : String;
     requestMaskincludeField : String;
   end;
-  
+
   TPeopleResource = Class(TGoogleResource)
   Private
     FConnectionsInstance : TPeopleConnectionsResource;
@@ -1119,12 +1119,12 @@ type
     Function CreateConnectionsResource : TPeopleConnectionsResource;virtual;overload;
     Property ConnectionsResource : TPeopleConnectionsResource Read GetConnectionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPeopleAPI
     --------------------------------------------------------------------}
-  
+
   TPeopleAPI = Class(TGoogleAPI)
   Private
     FPeopleConnectionsInstance : TPeopleConnectionsResource;
@@ -1171,7 +1171,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TPerson.SetresourceName(AIndex : Integer; const AValue : String); 
+Procedure TPerson.SetresourceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FresourceName=AValue) then exit;
@@ -1181,7 +1181,7 @@ end;
 
 
 
-Procedure TPerson.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TPerson.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1191,7 +1191,7 @@ end;
 
 
 
-Procedure TPerson.Setmetadata(AIndex : Integer; const AValue : TPersonMetadata); 
+Procedure TPerson.Setmetadata(AIndex : Integer; const AValue : TPersonMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1201,7 +1201,7 @@ end;
 
 
 
-Procedure TPerson.Setlocales(AIndex : Integer; const AValue : TPersonTypelocalesArray); 
+Procedure TPerson.Setlocales(AIndex : Integer; const AValue : TPersonTypelocalesArray);
 
 begin
   If (Flocales=AValue) then exit;
@@ -1211,7 +1211,7 @@ end;
 
 
 
-Procedure TPerson.Setnames(AIndex : Integer; const AValue : TPersonTypenamesArray); 
+Procedure TPerson.Setnames(AIndex : Integer; const AValue : TPersonTypenamesArray);
 
 begin
   If (Fnames=AValue) then exit;
@@ -1221,7 +1221,7 @@ end;
 
 
 
-Procedure TPerson.Setnicknames(AIndex : Integer; const AValue : TPersonTypenicknamesArray); 
+Procedure TPerson.Setnicknames(AIndex : Integer; const AValue : TPersonTypenicknamesArray);
 
 begin
   If (Fnicknames=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
 
 
 
-Procedure TPerson.SetcoverPhotos(AIndex : Integer; const AValue : TPersonTypecoverPhotosArray); 
+Procedure TPerson.SetcoverPhotos(AIndex : Integer; const AValue : TPersonTypecoverPhotosArray);
 
 begin
   If (FcoverPhotos=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TPerson.Setphotos(AIndex : Integer; const AValue : TPersonTypephotosArray); 
+Procedure TPerson.Setphotos(AIndex : Integer; const AValue : TPersonTypephotosArray);
 
 begin
   If (Fphotos=AValue) then exit;
@@ -1251,7 +1251,7 @@ end;
 
 
 
-Procedure TPerson.Setgenders(AIndex : Integer; const AValue : TPersonTypegendersArray); 
+Procedure TPerson.Setgenders(AIndex : Integer; const AValue : TPersonTypegendersArray);
 
 begin
   If (Fgenders=AValue) then exit;
@@ -1261,7 +1261,7 @@ end;
 
 
 
-Procedure TPerson.SetageRange(AIndex : Integer; const AValue : String); 
+Procedure TPerson.SetageRange(AIndex : Integer; const AValue : String);
 
 begin
   If (FageRange=AValue) then exit;
@@ -1271,7 +1271,7 @@ end;
 
 
 
-Procedure TPerson.Setbirthdays(AIndex : Integer; const AValue : TPersonTypebirthdaysArray); 
+Procedure TPerson.Setbirthdays(AIndex : Integer; const AValue : TPersonTypebirthdaysArray);
 
 begin
   If (Fbirthdays=AValue) then exit;
@@ -1281,7 +1281,7 @@ end;
 
 
 
-Procedure TPerson.Setevents(AIndex : Integer; const AValue : TPersonTypeeventsArray); 
+Procedure TPerson.Setevents(AIndex : Integer; const AValue : TPersonTypeeventsArray);
 
 begin
   If (Fevents=AValue) then exit;
@@ -1291,7 +1291,7 @@ end;
 
 
 
-Procedure TPerson.Setaddresses(AIndex : Integer; const AValue : TPersonTypeaddressesArray); 
+Procedure TPerson.Setaddresses(AIndex : Integer; const AValue : TPersonTypeaddressesArray);
 
 begin
   If (Faddresses=AValue) then exit;
@@ -1301,7 +1301,7 @@ end;
 
 
 
-Procedure TPerson.Setresidences(AIndex : Integer; const AValue : TPersonTyperesidencesArray); 
+Procedure TPerson.Setresidences(AIndex : Integer; const AValue : TPersonTyperesidencesArray);
 
 begin
   If (Fresidences=AValue) then exit;
@@ -1311,7 +1311,7 @@ end;
 
 
 
-Procedure TPerson.SetemailAddresses(AIndex : Integer; const AValue : TPersonTypeemailAddressesArray); 
+Procedure TPerson.SetemailAddresses(AIndex : Integer; const AValue : TPersonTypeemailAddressesArray);
 
 begin
   If (FemailAddresses=AValue) then exit;
@@ -1321,7 +1321,7 @@ end;
 
 
 
-Procedure TPerson.SetphoneNumbers(AIndex : Integer; const AValue : TPersonTypephoneNumbersArray); 
+Procedure TPerson.SetphoneNumbers(AIndex : Integer; const AValue : TPersonTypephoneNumbersArray);
 
 begin
   If (FphoneNumbers=AValue) then exit;
@@ -1331,7 +1331,7 @@ end;
 
 
 
-Procedure TPerson.SetimClients(AIndex : Integer; const AValue : TPersonTypeimClientsArray); 
+Procedure TPerson.SetimClients(AIndex : Integer; const AValue : TPersonTypeimClientsArray);
 
 begin
   If (FimClients=AValue) then exit;
@@ -1341,7 +1341,7 @@ end;
 
 
 
-Procedure TPerson.Settaglines(AIndex : Integer; const AValue : TPersonTypetaglinesArray); 
+Procedure TPerson.Settaglines(AIndex : Integer; const AValue : TPersonTypetaglinesArray);
 
 begin
   If (Ftaglines=AValue) then exit;
@@ -1351,7 +1351,7 @@ end;
 
 
 
-Procedure TPerson.Setbiographies(AIndex : Integer; const AValue : TPersonTypebiographiesArray); 
+Procedure TPerson.Setbiographies(AIndex : Integer; const AValue : TPersonTypebiographiesArray);
 
 begin
   If (Fbiographies=AValue) then exit;
@@ -1361,7 +1361,7 @@ end;
 
 
 
-Procedure TPerson.Seturls(AIndex : Integer; const AValue : TPersonTypeurlsArray); 
+Procedure TPerson.Seturls(AIndex : Integer; const AValue : TPersonTypeurlsArray);
 
 begin
   If (Furls=AValue) then exit;
@@ -1371,7 +1371,7 @@ end;
 
 
 
-Procedure TPerson.Setorganizations(AIndex : Integer; const AValue : TPersonTypeorganizationsArray); 
+Procedure TPerson.Setorganizations(AIndex : Integer; const AValue : TPersonTypeorganizationsArray);
 
 begin
   If (Forganizations=AValue) then exit;
@@ -1381,7 +1381,7 @@ end;
 
 
 
-Procedure TPerson.Setoccupations(AIndex : Integer; const AValue : TPersonTypeoccupationsArray); 
+Procedure TPerson.Setoccupations(AIndex : Integer; const AValue : TPersonTypeoccupationsArray);
 
 begin
   If (Foccupations=AValue) then exit;
@@ -1391,7 +1391,7 @@ end;
 
 
 
-Procedure TPerson.Setinterests(AIndex : Integer; const AValue : TPersonTypeinterestsArray); 
+Procedure TPerson.Setinterests(AIndex : Integer; const AValue : TPersonTypeinterestsArray);
 
 begin
   If (Finterests=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
 
 
 
-Procedure TPerson.Setskills(AIndex : Integer; const AValue : TPersonTypeskillsArray); 
+Procedure TPerson.Setskills(AIndex : Integer; const AValue : TPersonTypeskillsArray);
 
 begin
   If (Fskills=AValue) then exit;
@@ -1411,7 +1411,7 @@ end;
 
 
 
-Procedure TPerson.SetbraggingRights(AIndex : Integer; const AValue : TPersonTypebraggingRightsArray); 
+Procedure TPerson.SetbraggingRights(AIndex : Integer; const AValue : TPersonTypebraggingRightsArray);
 
 begin
   If (FbraggingRights=AValue) then exit;
@@ -1421,7 +1421,7 @@ end;
 
 
 
-Procedure TPerson.Setrelations(AIndex : Integer; const AValue : TPersonTyperelationsArray); 
+Procedure TPerson.Setrelations(AIndex : Integer; const AValue : TPersonTyperelationsArray);
 
 begin
   If (Frelations=AValue) then exit;
@@ -1431,7 +1431,7 @@ end;
 
 
 
-Procedure TPerson.SetrelationshipInterests(AIndex : Integer; const AValue : TPersonTyperelationshipInterestsArray); 
+Procedure TPerson.SetrelationshipInterests(AIndex : Integer; const AValue : TPersonTyperelationshipInterestsArray);
 
 begin
   If (FrelationshipInterests=AValue) then exit;
@@ -1441,7 +1441,7 @@ end;
 
 
 
-Procedure TPerson.SetrelationshipStatuses(AIndex : Integer; const AValue : TPersonTyperelationshipStatusesArray); 
+Procedure TPerson.SetrelationshipStatuses(AIndex : Integer; const AValue : TPersonTyperelationshipStatusesArray);
 
 begin
   If (FrelationshipStatuses=AValue) then exit;
@@ -1451,7 +1451,7 @@ end;
 
 
 
-Procedure TPerson.Setmemberships(AIndex : Integer; const AValue : TPersonTypemembershipsArray); 
+Procedure TPerson.Setmemberships(AIndex : Integer; const AValue : TPersonTypemembershipsArray);
 
 begin
   If (Fmemberships=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPerson.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPerson.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1505,7 +1505,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPersonMetadata.Setsources(AIndex : Integer; const AValue : TPersonMetadataTypesourcesArray); 
+Procedure TPersonMetadata.Setsources(AIndex : Integer; const AValue : TPersonMetadataTypesourcesArray);
 
 begin
   If (Fsources=AValue) then exit;
@@ -1515,7 +1515,7 @@ end;
 
 
 
-Procedure TPersonMetadata.SetpreviousResourceNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPersonMetadata.SetpreviousResourceNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FpreviousResourceNames=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TPersonMetadata.Setdeleted(AIndex : Integer; const AValue : boolean); 
+Procedure TPersonMetadata.Setdeleted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -1535,7 +1535,7 @@ end;
 
 
 
-Procedure TPersonMetadata.SetobjectType(AIndex : Integer; const AValue : String); 
+Procedure TPersonMetadata.SetobjectType(AIndex : Integer; const AValue : String);
 
 begin
   If (FobjectType=AValue) then exit;
@@ -1546,7 +1546,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPersonMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPersonMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1566,7 +1566,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSource.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TSource.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1576,7 +1576,7 @@ end;
 
 
 
-Procedure TSource.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSource.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1604,7 +1604,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocale.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TLocale.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1614,7 +1614,7 @@ end;
 
 
 
-Procedure TLocale.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TLocale.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1631,7 +1631,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFieldMetadata.Setprimary(AIndex : Integer; const AValue : boolean); 
+Procedure TFieldMetadata.Setprimary(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fprimary=AValue) then exit;
@@ -1641,7 +1641,7 @@ end;
 
 
 
-Procedure TFieldMetadata.Setverified(AIndex : Integer; const AValue : boolean); 
+Procedure TFieldMetadata.Setverified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fverified=AValue) then exit;
@@ -1651,7 +1651,7 @@ end;
 
 
 
-Procedure TFieldMetadata.Setsource(AIndex : Integer; const AValue : TSource); 
+Procedure TFieldMetadata.Setsource(AIndex : Integer; const AValue : TSource);
 
 begin
   If (Fsource=AValue) then exit;
@@ -1668,7 +1668,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TName.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TName.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1678,7 +1678,7 @@ end;
 
 
 
-Procedure TName.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1688,7 +1688,7 @@ end;
 
 
 
-Procedure TName.SetfamilyName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetfamilyName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -1698,7 +1698,7 @@ end;
 
 
 
-Procedure TName.SetgivenName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetgivenName(AIndex : Integer; const AValue : String);
 
 begin
   If (FgivenName=AValue) then exit;
@@ -1708,7 +1708,7 @@ end;
 
 
 
-Procedure TName.SetmiddleName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetmiddleName(AIndex : Integer; const AValue : String);
 
 begin
   If (FmiddleName=AValue) then exit;
@@ -1718,7 +1718,7 @@ end;
 
 
 
-Procedure TName.SethonorificPrefix(AIndex : Integer; const AValue : String); 
+Procedure TName.SethonorificPrefix(AIndex : Integer; const AValue : String);
 
 begin
   If (FhonorificPrefix=AValue) then exit;
@@ -1728,7 +1728,7 @@ end;
 
 
 
-Procedure TName.SethonorificSuffix(AIndex : Integer; const AValue : String); 
+Procedure TName.SethonorificSuffix(AIndex : Integer; const AValue : String);
 
 begin
   If (FhonorificSuffix=AValue) then exit;
@@ -1738,7 +1738,7 @@ end;
 
 
 
-Procedure TName.SetphoneticFamilyName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetphoneticFamilyName(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneticFamilyName=AValue) then exit;
@@ -1748,7 +1748,7 @@ end;
 
 
 
-Procedure TName.SetphoneticGivenName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetphoneticGivenName(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneticGivenName=AValue) then exit;
@@ -1758,7 +1758,7 @@ end;
 
 
 
-Procedure TName.SetphoneticMiddleName(AIndex : Integer; const AValue : String); 
+Procedure TName.SetphoneticMiddleName(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneticMiddleName=AValue) then exit;
@@ -1768,7 +1768,7 @@ end;
 
 
 
-Procedure TName.SetphoneticHonorificPrefix(AIndex : Integer; const AValue : String); 
+Procedure TName.SetphoneticHonorificPrefix(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneticHonorificPrefix=AValue) then exit;
@@ -1778,7 +1778,7 @@ end;
 
 
 
-Procedure TName.SetphoneticHonorificSuffix(AIndex : Integer; const AValue : String); 
+Procedure TName.SetphoneticHonorificSuffix(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneticHonorificSuffix=AValue) then exit;
@@ -1795,7 +1795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNickname.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TNickname.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1805,7 +1805,7 @@ end;
 
 
 
-Procedure TNickname.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TNickname.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1815,7 +1815,7 @@ end;
 
 
 
-Procedure TNickname.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TNickname.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1843,7 +1843,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCoverPhoto.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TCoverPhoto.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1853,7 +1853,7 @@ end;
 
 
 
-Procedure TCoverPhoto.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TCoverPhoto.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1863,7 +1863,7 @@ end;
 
 
 
-Procedure TCoverPhoto.Setdefault(AIndex : Integer; const AValue : boolean); 
+Procedure TCoverPhoto.Setdefault(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fdefault=AValue) then exit;
@@ -1880,7 +1880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPhoto.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TPhoto.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1890,7 +1890,7 @@ end;
 
 
 
-Procedure TPhoto.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPhoto.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1907,7 +1907,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGender.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TGender.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1917,7 +1917,7 @@ end;
 
 
 
-Procedure TGender.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TGender.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1927,7 +1927,7 @@ end;
 
 
 
-Procedure TGender.SetformattedValue(AIndex : Integer; const AValue : String); 
+Procedure TGender.SetformattedValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -1944,7 +1944,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBirthday.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TBirthday.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -1954,7 +1954,7 @@ end;
 
 
 
-Procedure TBirthday.Setdate(AIndex : Integer; const AValue : TDate); 
+Procedure TBirthday.Setdate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (Fdate=AValue) then exit;
@@ -1964,7 +1964,7 @@ end;
 
 
 
-Procedure TBirthday.Settext(AIndex : Integer; const AValue : String); 
+Procedure TBirthday.Settext(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftext=AValue) then exit;
@@ -1981,7 +1981,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDate.Setyear(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setyear(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fyear=AValue) then exit;
@@ -1991,7 +1991,7 @@ end;
 
 
 
-Procedure TDate.Setmonth(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setmonth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fmonth=AValue) then exit;
@@ -2001,7 +2001,7 @@ end;
 
 
 
-Procedure TDate.Setday(AIndex : Integer; const AValue : integer); 
+Procedure TDate.Setday(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fday=AValue) then exit;
@@ -2018,7 +2018,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvent.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TEvent.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2028,7 +2028,7 @@ end;
 
 
 
-Procedure TEvent.Setdate(AIndex : Integer; const AValue : TDate); 
+Procedure TEvent.Setdate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (Fdate=AValue) then exit;
@@ -2038,7 +2038,7 @@ end;
 
 
 
-Procedure TEvent.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TEvent.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2048,7 +2048,7 @@ end;
 
 
 
-Procedure TEvent.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TEvent.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2076,7 +2076,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAddress.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TAddress.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2086,7 +2086,7 @@ end;
 
 
 
-Procedure TAddress.SetformattedValue(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetformattedValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -2096,7 +2096,7 @@ end;
 
 
 
-Procedure TAddress.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2106,7 +2106,7 @@ end;
 
 
 
-Procedure TAddress.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2116,7 +2116,7 @@ end;
 
 
 
-Procedure TAddress.SetpoBox(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetpoBox(AIndex : Integer; const AValue : String);
 
 begin
   If (FpoBox=AValue) then exit;
@@ -2126,7 +2126,7 @@ end;
 
 
 
-Procedure TAddress.SetstreetAddress(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetstreetAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FstreetAddress=AValue) then exit;
@@ -2136,7 +2136,7 @@ end;
 
 
 
-Procedure TAddress.SetextendedAddress(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetextendedAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FextendedAddress=AValue) then exit;
@@ -2146,7 +2146,7 @@ end;
 
 
 
-Procedure TAddress.Setcity(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Setcity(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcity=AValue) then exit;
@@ -2156,7 +2156,7 @@ end;
 
 
 
-Procedure TAddress.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -2166,7 +2166,7 @@ end;
 
 
 
-Procedure TAddress.SetpostalCode(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetpostalCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -2176,7 +2176,7 @@ end;
 
 
 
-Procedure TAddress.Setcountry(AIndex : Integer; const AValue : String); 
+Procedure TAddress.Setcountry(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcountry=AValue) then exit;
@@ -2186,7 +2186,7 @@ end;
 
 
 
-Procedure TAddress.SetcountryCode(AIndex : Integer; const AValue : String); 
+Procedure TAddress.SetcountryCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcountryCode=AValue) then exit;
@@ -2214,7 +2214,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResidence.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TResidence.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2224,7 +2224,7 @@ end;
 
 
 
-Procedure TResidence.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TResidence.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2234,7 +2234,7 @@ end;
 
 
 
-Procedure TResidence.Setcurrent(AIndex : Integer; const AValue : boolean); 
+Procedure TResidence.Setcurrent(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fcurrent=AValue) then exit;
@@ -2251,7 +2251,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEmailAddress.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TEmailAddress.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2261,7 +2261,7 @@ end;
 
 
 
-Procedure TEmailAddress.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TEmailAddress.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2271,7 +2271,7 @@ end;
 
 
 
-Procedure TEmailAddress.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TEmailAddress.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2281,7 +2281,7 @@ end;
 
 
 
-Procedure TEmailAddress.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TEmailAddress.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2309,7 +2309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPhoneNumber.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TPhoneNumber.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2319,7 +2319,7 @@ end;
 
 
 
-Procedure TPhoneNumber.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TPhoneNumber.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2329,7 +2329,7 @@ end;
 
 
 
-Procedure TPhoneNumber.SetcanonicalForm(AIndex : Integer; const AValue : String); 
+Procedure TPhoneNumber.SetcanonicalForm(AIndex : Integer; const AValue : String);
 
 begin
   If (FcanonicalForm=AValue) then exit;
@@ -2339,7 +2339,7 @@ end;
 
 
 
-Procedure TPhoneNumber.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPhoneNumber.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2349,7 +2349,7 @@ end;
 
 
 
-Procedure TPhoneNumber.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TPhoneNumber.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2377,7 +2377,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImClient.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TImClient.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2387,7 +2387,7 @@ end;
 
 
 
-Procedure TImClient.Setusername(AIndex : Integer; const AValue : String); 
+Procedure TImClient.Setusername(AIndex : Integer; const AValue : String);
 
 begin
   If (Fusername=AValue) then exit;
@@ -2397,7 +2397,7 @@ end;
 
 
 
-Procedure TImClient.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TImClient.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2407,7 +2407,7 @@ end;
 
 
 
-Procedure TImClient.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TImClient.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2417,7 +2417,7 @@ end;
 
 
 
-Procedure TImClient.Setprotocol(AIndex : Integer; const AValue : String); 
+Procedure TImClient.Setprotocol(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprotocol=AValue) then exit;
@@ -2427,7 +2427,7 @@ end;
 
 
 
-Procedure TImClient.SetformattedProtocol(AIndex : Integer; const AValue : String); 
+Procedure TImClient.SetformattedProtocol(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedProtocol=AValue) then exit;
@@ -2455,7 +2455,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTagline.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TTagline.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2465,7 +2465,7 @@ end;
 
 
 
-Procedure TTagline.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TTagline.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2482,7 +2482,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBiography.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TBiography.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2492,7 +2492,7 @@ end;
 
 
 
-Procedure TBiography.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TBiography.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2509,7 +2509,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrl.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TUrl.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2519,7 +2519,7 @@ end;
 
 
 
-Procedure TUrl.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TUrl.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2529,7 +2529,7 @@ end;
 
 
 
-Procedure TUrl.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TUrl.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2539,7 +2539,7 @@ end;
 
 
 
-Procedure TUrl.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TUrl.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2567,7 +2567,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOrganization.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TOrganization.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2577,7 +2577,7 @@ end;
 
 
 
-Procedure TOrganization.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2587,7 +2587,7 @@ end;
 
 
 
-Procedure TOrganization.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2597,7 +2597,7 @@ end;
 
 
 
-Procedure TOrganization.SetstartDate(AIndex : Integer; const AValue : TDate); 
+Procedure TOrganization.SetstartDate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (FstartDate=AValue) then exit;
@@ -2607,7 +2607,7 @@ end;
 
 
 
-Procedure TOrganization.SetendDate(AIndex : Integer; const AValue : TDate); 
+Procedure TOrganization.SetendDate(AIndex : Integer; const AValue : TDate);
 
 begin
   If (FendDate=AValue) then exit;
@@ -2617,7 +2617,7 @@ end;
 
 
 
-Procedure TOrganization.Setcurrent(AIndex : Integer; const AValue : boolean); 
+Procedure TOrganization.Setcurrent(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fcurrent=AValue) then exit;
@@ -2627,7 +2627,7 @@ end;
 
 
 
-Procedure TOrganization.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2637,7 +2637,7 @@ end;
 
 
 
-Procedure TOrganization.SetphoneticName(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.SetphoneticName(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneticName=AValue) then exit;
@@ -2647,7 +2647,7 @@ end;
 
 
 
-Procedure TOrganization.Setdepartment(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Setdepartment(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdepartment=AValue) then exit;
@@ -2657,7 +2657,7 @@ end;
 
 
 
-Procedure TOrganization.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2667,7 +2667,7 @@ end;
 
 
 
-Procedure TOrganization.SetjobDescription(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.SetjobDescription(AIndex : Integer; const AValue : String);
 
 begin
   If (FjobDescription=AValue) then exit;
@@ -2677,7 +2677,7 @@ end;
 
 
 
-Procedure TOrganization.Setsymbol(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Setsymbol(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsymbol=AValue) then exit;
@@ -2687,7 +2687,7 @@ end;
 
 
 
-Procedure TOrganization.Setdomain(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Setdomain(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdomain=AValue) then exit;
@@ -2697,7 +2697,7 @@ end;
 
 
 
-Procedure TOrganization.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TOrganization.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -2725,7 +2725,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOccupation.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TOccupation.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2735,7 +2735,7 @@ end;
 
 
 
-Procedure TOccupation.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TOccupation.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2752,7 +2752,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInterest.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TInterest.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2762,7 +2762,7 @@ end;
 
 
 
-Procedure TInterest.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TInterest.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2779,7 +2779,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSkill.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TSkill.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2789,7 +2789,7 @@ end;
 
 
 
-Procedure TSkill.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TSkill.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2806,7 +2806,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBraggingRights.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TBraggingRights.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2816,7 +2816,7 @@ end;
 
 
 
-Procedure TBraggingRights.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TBraggingRights.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2833,7 +2833,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRelation.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TRelation.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2843,7 +2843,7 @@ end;
 
 
 
-Procedure TRelation.Setperson(AIndex : Integer; const AValue : String); 
+Procedure TRelation.Setperson(AIndex : Integer; const AValue : String);
 
 begin
   If (Fperson=AValue) then exit;
@@ -2853,7 +2853,7 @@ end;
 
 
 
-Procedure TRelation.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TRelation.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2863,7 +2863,7 @@ end;
 
 
 
-Procedure TRelation.SetformattedType(AIndex : Integer; const AValue : String); 
+Procedure TRelation.SetformattedType(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedType=AValue) then exit;
@@ -2891,7 +2891,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRelationshipInterest.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TRelationshipInterest.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2901,7 +2901,7 @@ end;
 
 
 
-Procedure TRelationshipInterest.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TRelationshipInterest.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2911,7 +2911,7 @@ end;
 
 
 
-Procedure TRelationshipInterest.SetformattedValue(AIndex : Integer; const AValue : String); 
+Procedure TRelationshipInterest.SetformattedValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -2928,7 +2928,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRelationshipStatus.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TRelationshipStatus.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2938,7 +2938,7 @@ end;
 
 
 
-Procedure TRelationshipStatus.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TRelationshipStatus.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2948,7 +2948,7 @@ end;
 
 
 
-Procedure TRelationshipStatus.SetformattedValue(AIndex : Integer; const AValue : String); 
+Procedure TRelationshipStatus.SetformattedValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -2965,7 +2965,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMembership.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata); 
+Procedure TMembership.Setmetadata(AIndex : Integer; const AValue : TFieldMetadata);
 
 begin
   If (Fmetadata=AValue) then exit;
@@ -2975,7 +2975,7 @@ end;
 
 
 
-Procedure TMembership.SetcontactGroupMembership(AIndex : Integer; const AValue : TContactGroupMembership); 
+Procedure TMembership.SetcontactGroupMembership(AIndex : Integer; const AValue : TContactGroupMembership);
 
 begin
   If (FcontactGroupMembership=AValue) then exit;
@@ -2985,7 +2985,7 @@ end;
 
 
 
-Procedure TMembership.SetdomainMembership(AIndex : Integer; const AValue : TDomainMembership); 
+Procedure TMembership.SetdomainMembership(AIndex : Integer; const AValue : TDomainMembership);
 
 begin
   If (FdomainMembership=AValue) then exit;
@@ -3002,7 +3002,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContactGroupMembership.SetcontactGroupId(AIndex : Integer; const AValue : String); 
+Procedure TContactGroupMembership.SetcontactGroupId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontactGroupId=AValue) then exit;
@@ -3019,7 +3019,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDomainMembership.SetinViewerDomain(AIndex : Integer; const AValue : boolean); 
+Procedure TDomainMembership.SetinViewerDomain(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FinViewerDomain=AValue) then exit;
@@ -3036,7 +3036,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetPeopleResponse.Setresponses(AIndex : Integer; const AValue : TGetPeopleResponseTyperesponsesArray); 
+Procedure TGetPeopleResponse.Setresponses(AIndex : Integer; const AValue : TGetPeopleResponseTyperesponsesArray);
 
 begin
   If (Fresponses=AValue) then exit;
@@ -3047,7 +3047,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGetPeopleResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGetPeopleResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3066,7 +3066,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPersonResponse.SethttpStatusCode(AIndex : Integer; const AValue : integer); 
+Procedure TPersonResponse.SethttpStatusCode(AIndex : Integer; const AValue : integer);
 
 begin
   If (FhttpStatusCode=AValue) then exit;
@@ -3076,7 +3076,7 @@ end;
 
 
 
-Procedure TPersonResponse.Setperson(AIndex : Integer; const AValue : TPerson); 
+Procedure TPersonResponse.Setperson(AIndex : Integer; const AValue : TPerson);
 
 begin
   If (Fperson=AValue) then exit;
@@ -3086,7 +3086,7 @@ end;
 
 
 
-Procedure TPersonResponse.SetrequestedResourceName(AIndex : Integer; const AValue : String); 
+Procedure TPersonResponse.SetrequestedResourceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestedResourceName=AValue) then exit;
@@ -3103,7 +3103,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListConnectionsResponse.Setconnections(AIndex : Integer; const AValue : TListConnectionsResponseTypeconnectionsArray); 
+Procedure TListConnectionsResponse.Setconnections(AIndex : Integer; const AValue : TListConnectionsResponseTypeconnectionsArray);
 
 begin
   If (Fconnections=AValue) then exit;
@@ -3113,7 +3113,7 @@ end;
 
 
 
-Procedure TListConnectionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListConnectionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3123,7 +3123,7 @@ end;
 
 
 
-Procedure TListConnectionsResponse.SetnextSyncToken(AIndex : Integer; const AValue : String); 
+Procedure TListConnectionsResponse.SetnextSyncToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -3134,7 +3134,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListConnectionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListConnectionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3420,7 +3420,7 @@ begin
   Result[7].Description:='View your email address';
   Result[8].Name:='https://www.googleapis.com/auth/userinfo.profile';
   Result[8].Description:='View your basic profile info';
-  
+
 end;
 
 Class Function TPeopleAPI.APINeedsAuth : Boolean;

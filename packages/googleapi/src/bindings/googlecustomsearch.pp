@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TContext = Class;
   TPromotion = Class;
@@ -42,11 +42,11 @@ type
   TResultTypelabelsArray = Array of TResultTypelabelsItem;
   TSearchTypeitemsArray = Array of TResult;
   TSearchTypepromotionsArray = Array of TPromotion;
-  
+
   { --------------------------------------------------------------------
     TContextTypefacetsItemItem
     --------------------------------------------------------------------}
-  
+
   TContextTypefacetsItemItem = Class(TGoogleBaseObject)
   Private
     Fanchor : String;
@@ -65,11 +65,11 @@ type
     Property label_with_op : String Index 16 Read Flabel_with_op Write Setlabel_with_op;
   end;
   TContextTypefacetsItemItemClass = Class of TContextTypefacetsItemItem;
-  
+
   { --------------------------------------------------------------------
     TContext
     --------------------------------------------------------------------}
-  
+
   TContext = Class(TGoogleBaseObject)
   Private
     Ffacets : TContextTypefacetsArray;
@@ -88,11 +88,11 @@ type
     Property title : String Index 8 Read Ftitle Write Settitle;
   end;
   TContextClass = Class of TContext;
-  
+
   { --------------------------------------------------------------------
     TPromotionTypebodyLinesItem
     --------------------------------------------------------------------}
-  
+
   TPromotionTypebodyLinesItem = Class(TGoogleBaseObject)
   Private
     FhtmlTitle : String;
@@ -113,11 +113,11 @@ type
     Property url : String Index 24 Read Furl Write Seturl;
   end;
   TPromotionTypebodyLinesItemClass = Class of TPromotionTypebodyLinesItem;
-  
+
   { --------------------------------------------------------------------
     TPromotionTypeimage
     --------------------------------------------------------------------}
-  
+
   TPromotionTypeimage = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -135,11 +135,11 @@ type
     Property width : integer Index 16 Read Fwidth Write Setwidth;
   end;
   TPromotionTypeimageClass = Class of TPromotionTypeimage;
-  
+
   { --------------------------------------------------------------------
     TPromotion
     --------------------------------------------------------------------}
-  
+
   TPromotion = Class(TGoogleBaseObject)
   Private
     FbodyLines : TPromotionTypebodyLinesArray;
@@ -170,11 +170,11 @@ type
     Property title : String Index 40 Read Ftitle Write Settitle;
   end;
   TPromotionClass = Class of TPromotion;
-  
+
   { --------------------------------------------------------------------
     TQuery
     --------------------------------------------------------------------}
-  
+
   TQuery = Class(TGoogleBaseObject)
   Private
     Fcount : integer;
@@ -294,11 +294,11 @@ type
     Property totalResults : String Index 288 Read FtotalResults Write SettotalResults;
   end;
   TQueryClass = Class of TQuery;
-  
+
   { --------------------------------------------------------------------
     TResultTypeimage
     --------------------------------------------------------------------}
-  
+
   TResultTypeimage = Class(TGoogleBaseObject)
   Private
     FbyteSize : integer;
@@ -328,11 +328,11 @@ type
     Property width : integer Index 48 Read Fwidth Write Setwidth;
   end;
   TResultTypeimageClass = Class of TResultTypeimage;
-  
+
   { --------------------------------------------------------------------
     TResultTypelabelsItem
     --------------------------------------------------------------------}
-  
+
   TResultTypelabelsItem = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -350,11 +350,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   TResultTypelabelsItemClass = Class of TResultTypelabelsItem;
-  
+
   { --------------------------------------------------------------------
     TResultTypepagemap
     --------------------------------------------------------------------}
-  
+
   TResultTypepagemap = Class(TGoogleBaseObject)
   Private
   Protected
@@ -364,11 +364,11 @@ type
   Published
   end;
   TResultTypepagemapClass = Class of TResultTypepagemap;
-  
+
   { --------------------------------------------------------------------
     TResult
     --------------------------------------------------------------------}
-  
+
   TResult = Class(TGoogleBaseObject)
   Private
     FcacheId : String;
@@ -426,11 +426,11 @@ type
     Property title : String Index 112 Read Ftitle Write Settitle;
   end;
   TResultClass = Class of TResult;
-  
+
   { --------------------------------------------------------------------
     TSearchTypequeries
     --------------------------------------------------------------------}
-  
+
   TSearchTypequeries = Class(TGoogleBaseObject)
   Private
   Protected
@@ -440,11 +440,11 @@ type
   Published
   end;
   TSearchTypequeriesClass = Class of TSearchTypequeries;
-  
+
   { --------------------------------------------------------------------
     TSearchTypesearchInformation
     --------------------------------------------------------------------}
-  
+
   TSearchTypesearchInformation = Class(TGoogleBaseObject)
   Private
     FformattedSearchTime : String;
@@ -465,11 +465,11 @@ type
     Property totalResults : String Index 24 Read FtotalResults Write SettotalResults;
   end;
   TSearchTypesearchInformationClass = Class of TSearchTypesearchInformation;
-  
+
   { --------------------------------------------------------------------
     TSearchTypespelling
     --------------------------------------------------------------------}
-  
+
   TSearchTypespelling = Class(TGoogleBaseObject)
   Private
     FcorrectedQuery : String;
@@ -484,11 +484,11 @@ type
     Property htmlCorrectedQuery : String Index 8 Read FhtmlCorrectedQuery Write SethtmlCorrectedQuery;
   end;
   TSearchTypespellingClass = Class of TSearchTypespelling;
-  
+
   { --------------------------------------------------------------------
     TSearchTypeurl
     --------------------------------------------------------------------}
-  
+
   TSearchTypeurl = Class(TGoogleBaseObject)
   Private
     Ftemplate : String;
@@ -504,11 +504,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TSearchTypeurlClass = Class of TSearchTypeurl;
-  
+
   { --------------------------------------------------------------------
     TSearch
     --------------------------------------------------------------------}
-  
+
   TSearch = Class(TGoogleBaseObject)
   Private
     Fcontext : TContext;
@@ -545,14 +545,14 @@ type
     Property url : TSearchTypeurl Index 56 Read Furl Write Seturl;
   end;
   TSearchClass = Class of TSearch;
-  
+
   { --------------------------------------------------------------------
     TCseResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCseResource, method List
-  
+
   TCseListOptions = Record
     c2coff : String;
     cr : String;
@@ -587,7 +587,7 @@ type
     sort : String;
     start : integer;
   end;
-  
+
   TCseResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -595,12 +595,12 @@ type
     Function List(AQuery : string  = '') : TSearch;
     Function List(AQuery : TCselistOptions) : TSearch;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCustomsearchAPI
     --------------------------------------------------------------------}
-  
+
   TCustomsearchAPI = Class(TGoogleAPI)
   Private
     FCseInstance : TCseResource;
@@ -642,7 +642,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TContextTypefacetsItemItem.Setanchor(AIndex : Integer; const AValue : String); 
+Procedure TContextTypefacetsItemItem.Setanchor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fanchor=AValue) then exit;
@@ -652,7 +652,7 @@ end;
 
 
 
-Procedure TContextTypefacetsItemItem.Set_label(AIndex : Integer; const AValue : String); 
+Procedure TContextTypefacetsItemItem.Set_label(AIndex : Integer; const AValue : String);
 
 begin
   If (F_label=AValue) then exit;
@@ -662,7 +662,7 @@ end;
 
 
 
-Procedure TContextTypefacetsItemItem.Setlabel_with_op(AIndex : Integer; const AValue : String); 
+Procedure TContextTypefacetsItemItem.Setlabel_with_op(AIndex : Integer; const AValue : String);
 
 begin
   If (Flabel_with_op=AValue) then exit;
@@ -690,7 +690,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContext.Setfacets(AIndex : Integer; const AValue : TContextTypefacetsArray); 
+Procedure TContext.Setfacets(AIndex : Integer; const AValue : TContextTypefacetsArray);
 
 begin
   If (Ffacets=AValue) then exit;
@@ -700,7 +700,7 @@ end;
 
 
 
-Procedure TContext.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TContext.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -711,7 +711,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TContext.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TContext.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -730,7 +730,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotionTypebodyLinesItem.SethtmlTitle(AIndex : Integer; const AValue : String); 
+Procedure TPromotionTypebodyLinesItem.SethtmlTitle(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlTitle=AValue) then exit;
@@ -740,7 +740,7 @@ end;
 
 
 
-Procedure TPromotionTypebodyLinesItem.Setlink(AIndex : Integer; const AValue : String); 
+Procedure TPromotionTypebodyLinesItem.Setlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Flink=AValue) then exit;
@@ -750,7 +750,7 @@ end;
 
 
 
-Procedure TPromotionTypebodyLinesItem.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TPromotionTypebodyLinesItem.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -760,7 +760,7 @@ end;
 
 
 
-Procedure TPromotionTypebodyLinesItem.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPromotionTypebodyLinesItem.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -777,7 +777,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotionTypeimage.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TPromotionTypeimage.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -787,7 +787,7 @@ end;
 
 
 
-Procedure TPromotionTypeimage.Setsource(AIndex : Integer; const AValue : String); 
+Procedure TPromotionTypeimage.Setsource(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsource=AValue) then exit;
@@ -797,7 +797,7 @@ end;
 
 
 
-Procedure TPromotionTypeimage.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TPromotionTypeimage.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -814,7 +814,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotion.SetbodyLines(AIndex : Integer; const AValue : TPromotionTypebodyLinesArray); 
+Procedure TPromotion.SetbodyLines(AIndex : Integer; const AValue : TPromotionTypebodyLinesArray);
 
 begin
   If (FbodyLines=AValue) then exit;
@@ -824,7 +824,7 @@ end;
 
 
 
-Procedure TPromotion.SetdisplayLink(AIndex : Integer; const AValue : String); 
+Procedure TPromotion.SetdisplayLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayLink=AValue) then exit;
@@ -834,7 +834,7 @@ end;
 
 
 
-Procedure TPromotion.SethtmlTitle(AIndex : Integer; const AValue : String); 
+Procedure TPromotion.SethtmlTitle(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlTitle=AValue) then exit;
@@ -844,7 +844,7 @@ end;
 
 
 
-Procedure TPromotion.Setimage(AIndex : Integer; const AValue : TPromotionTypeimage); 
+Procedure TPromotion.Setimage(AIndex : Integer; const AValue : TPromotionTypeimage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -854,7 +854,7 @@ end;
 
 
 
-Procedure TPromotion.Setlink(AIndex : Integer; const AValue : String); 
+Procedure TPromotion.Setlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Flink=AValue) then exit;
@@ -864,7 +864,7 @@ end;
 
 
 
-Procedure TPromotion.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TPromotion.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -875,7 +875,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPromotion.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPromotion.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -894,7 +894,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuery.Setcount(AIndex : Integer; const AValue : integer); 
+Procedure TQuery.Setcount(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcount=AValue) then exit;
@@ -904,7 +904,7 @@ end;
 
 
 
-Procedure TQuery.Setcr(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setcr(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcr=AValue) then exit;
@@ -914,7 +914,7 @@ end;
 
 
 
-Procedure TQuery.Setcref(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setcref(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcref=AValue) then exit;
@@ -924,7 +924,7 @@ end;
 
 
 
-Procedure TQuery.Setcx(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setcx(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcx=AValue) then exit;
@@ -934,7 +934,7 @@ end;
 
 
 
-Procedure TQuery.SetdateRestrict(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetdateRestrict(AIndex : Integer; const AValue : String);
 
 begin
   If (FdateRestrict=AValue) then exit;
@@ -944,7 +944,7 @@ end;
 
 
 
-Procedure TQuery.SetdisableCnTwTranslation(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetdisableCnTwTranslation(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisableCnTwTranslation=AValue) then exit;
@@ -954,7 +954,7 @@ end;
 
 
 
-Procedure TQuery.SetexactTerms(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetexactTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FexactTerms=AValue) then exit;
@@ -964,7 +964,7 @@ end;
 
 
 
-Procedure TQuery.SetexcludeTerms(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetexcludeTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FexcludeTerms=AValue) then exit;
@@ -974,7 +974,7 @@ end;
 
 
 
-Procedure TQuery.SetfileType(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetfileType(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileType=AValue) then exit;
@@ -984,7 +984,7 @@ end;
 
 
 
-Procedure TQuery.Setfilter(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setfilter(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffilter=AValue) then exit;
@@ -994,7 +994,7 @@ end;
 
 
 
-Procedure TQuery.Setgl(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setgl(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgl=AValue) then exit;
@@ -1004,7 +1004,7 @@ end;
 
 
 
-Procedure TQuery.SetgoogleHost(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetgoogleHost(AIndex : Integer; const AValue : String);
 
 begin
   If (FgoogleHost=AValue) then exit;
@@ -1014,7 +1014,7 @@ end;
 
 
 
-Procedure TQuery.SethighRange(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SethighRange(AIndex : Integer; const AValue : String);
 
 begin
   If (FhighRange=AValue) then exit;
@@ -1024,7 +1024,7 @@ end;
 
 
 
-Procedure TQuery.Sethl(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Sethl(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhl=AValue) then exit;
@@ -1034,7 +1034,7 @@ end;
 
 
 
-Procedure TQuery.Sethq(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Sethq(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhq=AValue) then exit;
@@ -1044,7 +1044,7 @@ end;
 
 
 
-Procedure TQuery.SetimgColorType(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetimgColorType(AIndex : Integer; const AValue : String);
 
 begin
   If (FimgColorType=AValue) then exit;
@@ -1054,7 +1054,7 @@ end;
 
 
 
-Procedure TQuery.SetimgDominantColor(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetimgDominantColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FimgDominantColor=AValue) then exit;
@@ -1064,7 +1064,7 @@ end;
 
 
 
-Procedure TQuery.SetimgSize(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetimgSize(AIndex : Integer; const AValue : String);
 
 begin
   If (FimgSize=AValue) then exit;
@@ -1074,7 +1074,7 @@ end;
 
 
 
-Procedure TQuery.SetimgType(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetimgType(AIndex : Integer; const AValue : String);
 
 begin
   If (FimgType=AValue) then exit;
@@ -1084,7 +1084,7 @@ end;
 
 
 
-Procedure TQuery.SetinputEncoding(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetinputEncoding(AIndex : Integer; const AValue : String);
 
 begin
   If (FinputEncoding=AValue) then exit;
@@ -1094,7 +1094,7 @@ end;
 
 
 
-Procedure TQuery.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -1104,7 +1104,7 @@ end;
 
 
 
-Procedure TQuery.SetlinkSite(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetlinkSite(AIndex : Integer; const AValue : String);
 
 begin
   If (FlinkSite=AValue) then exit;
@@ -1114,7 +1114,7 @@ end;
 
 
 
-Procedure TQuery.SetlowRange(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetlowRange(AIndex : Integer; const AValue : String);
 
 begin
   If (FlowRange=AValue) then exit;
@@ -1124,7 +1124,7 @@ end;
 
 
 
-Procedure TQuery.SetorTerms(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetorTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (ForTerms=AValue) then exit;
@@ -1134,7 +1134,7 @@ end;
 
 
 
-Procedure TQuery.SetoutputEncoding(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetoutputEncoding(AIndex : Integer; const AValue : String);
 
 begin
   If (FoutputEncoding=AValue) then exit;
@@ -1144,7 +1144,7 @@ end;
 
 
 
-Procedure TQuery.SetrelatedSite(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetrelatedSite(AIndex : Integer; const AValue : String);
 
 begin
   If (FrelatedSite=AValue) then exit;
@@ -1154,7 +1154,7 @@ end;
 
 
 
-Procedure TQuery.Setrights(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setrights(AIndex : Integer; const AValue : String);
 
 begin
   If (Frights=AValue) then exit;
@@ -1164,7 +1164,7 @@ end;
 
 
 
-Procedure TQuery.Setsafe(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setsafe(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsafe=AValue) then exit;
@@ -1174,7 +1174,7 @@ end;
 
 
 
-Procedure TQuery.SetsearchTerms(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetsearchTerms(AIndex : Integer; const AValue : String);
 
 begin
   If (FsearchTerms=AValue) then exit;
@@ -1184,7 +1184,7 @@ end;
 
 
 
-Procedure TQuery.SetsearchType(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetsearchType(AIndex : Integer; const AValue : String);
 
 begin
   If (FsearchType=AValue) then exit;
@@ -1194,7 +1194,7 @@ end;
 
 
 
-Procedure TQuery.SetsiteSearch(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetsiteSearch(AIndex : Integer; const AValue : String);
 
 begin
   If (FsiteSearch=AValue) then exit;
@@ -1204,7 +1204,7 @@ end;
 
 
 
-Procedure TQuery.SetsiteSearchFilter(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SetsiteSearchFilter(AIndex : Integer; const AValue : String);
 
 begin
   If (FsiteSearchFilter=AValue) then exit;
@@ -1214,7 +1214,7 @@ end;
 
 
 
-Procedure TQuery.Setsort(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Setsort(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsort=AValue) then exit;
@@ -1224,7 +1224,7 @@ end;
 
 
 
-Procedure TQuery.SetstartIndex(AIndex : Integer; const AValue : integer); 
+Procedure TQuery.SetstartIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartIndex=AValue) then exit;
@@ -1234,7 +1234,7 @@ end;
 
 
 
-Procedure TQuery.SetstartPage(AIndex : Integer; const AValue : integer); 
+Procedure TQuery.SetstartPage(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstartPage=AValue) then exit;
@@ -1244,7 +1244,7 @@ end;
 
 
 
-Procedure TQuery.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TQuery.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1254,7 +1254,7 @@ end;
 
 
 
-Procedure TQuery.SettotalResults(AIndex : Integer; const AValue : String); 
+Procedure TQuery.SettotalResults(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalResults=AValue) then exit;
@@ -1271,7 +1271,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTypeimage.SetbyteSize(AIndex : Integer; const AValue : integer); 
+Procedure TResultTypeimage.SetbyteSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FbyteSize=AValue) then exit;
@@ -1281,7 +1281,7 @@ end;
 
 
 
-Procedure TResultTypeimage.SetcontextLink(AIndex : Integer; const AValue : String); 
+Procedure TResultTypeimage.SetcontextLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontextLink=AValue) then exit;
@@ -1291,7 +1291,7 @@ end;
 
 
 
-Procedure TResultTypeimage.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TResultTypeimage.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -1301,7 +1301,7 @@ end;
 
 
 
-Procedure TResultTypeimage.SetthumbnailHeight(AIndex : Integer; const AValue : integer); 
+Procedure TResultTypeimage.SetthumbnailHeight(AIndex : Integer; const AValue : integer);
 
 begin
   If (FthumbnailHeight=AValue) then exit;
@@ -1311,7 +1311,7 @@ end;
 
 
 
-Procedure TResultTypeimage.SetthumbnailLink(AIndex : Integer; const AValue : String); 
+Procedure TResultTypeimage.SetthumbnailLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FthumbnailLink=AValue) then exit;
@@ -1321,7 +1321,7 @@ end;
 
 
 
-Procedure TResultTypeimage.SetthumbnailWidth(AIndex : Integer; const AValue : integer); 
+Procedure TResultTypeimage.SetthumbnailWidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (FthumbnailWidth=AValue) then exit;
@@ -1331,7 +1331,7 @@ end;
 
 
 
-Procedure TResultTypeimage.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TResultTypeimage.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -1348,7 +1348,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTypelabelsItem.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TResultTypelabelsItem.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1358,7 +1358,7 @@ end;
 
 
 
-Procedure TResultTypelabelsItem.Setlabel_with_op(AIndex : Integer; const AValue : String); 
+Procedure TResultTypelabelsItem.Setlabel_with_op(AIndex : Integer; const AValue : String);
 
 begin
   If (Flabel_with_op=AValue) then exit;
@@ -1368,7 +1368,7 @@ end;
 
 
 
-Procedure TResultTypelabelsItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TResultTypelabelsItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1398,7 +1398,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResult.SetcacheId(AIndex : Integer; const AValue : String); 
+Procedure TResult.SetcacheId(AIndex : Integer; const AValue : String);
 
 begin
   If (FcacheId=AValue) then exit;
@@ -1408,7 +1408,7 @@ end;
 
 
 
-Procedure TResult.SetdisplayLink(AIndex : Integer; const AValue : String); 
+Procedure TResult.SetdisplayLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayLink=AValue) then exit;
@@ -1418,7 +1418,7 @@ end;
 
 
 
-Procedure TResult.SetfileFormat(AIndex : Integer; const AValue : String); 
+Procedure TResult.SetfileFormat(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileFormat=AValue) then exit;
@@ -1428,7 +1428,7 @@ end;
 
 
 
-Procedure TResult.SetformattedUrl(AIndex : Integer; const AValue : String); 
+Procedure TResult.SetformattedUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedUrl=AValue) then exit;
@@ -1438,7 +1438,7 @@ end;
 
 
 
-Procedure TResult.SethtmlFormattedUrl(AIndex : Integer; const AValue : String); 
+Procedure TResult.SethtmlFormattedUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlFormattedUrl=AValue) then exit;
@@ -1448,7 +1448,7 @@ end;
 
 
 
-Procedure TResult.SethtmlSnippet(AIndex : Integer; const AValue : String); 
+Procedure TResult.SethtmlSnippet(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlSnippet=AValue) then exit;
@@ -1458,7 +1458,7 @@ end;
 
 
 
-Procedure TResult.SethtmlTitle(AIndex : Integer; const AValue : String); 
+Procedure TResult.SethtmlTitle(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlTitle=AValue) then exit;
@@ -1468,7 +1468,7 @@ end;
 
 
 
-Procedure TResult.Setimage(AIndex : Integer; const AValue : TResultTypeimage); 
+Procedure TResult.Setimage(AIndex : Integer; const AValue : TResultTypeimage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -1478,7 +1478,7 @@ end;
 
 
 
-Procedure TResult.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TResult.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1488,7 +1488,7 @@ end;
 
 
 
-Procedure TResult.Setlabels(AIndex : Integer; const AValue : TResultTypelabelsArray); 
+Procedure TResult.Setlabels(AIndex : Integer; const AValue : TResultTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1498,7 +1498,7 @@ end;
 
 
 
-Procedure TResult.Setlink(AIndex : Integer; const AValue : String); 
+Procedure TResult.Setlink(AIndex : Integer; const AValue : String);
 
 begin
   If (Flink=AValue) then exit;
@@ -1508,7 +1508,7 @@ end;
 
 
 
-Procedure TResult.Setmime(AIndex : Integer; const AValue : String); 
+Procedure TResult.Setmime(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmime=AValue) then exit;
@@ -1518,7 +1518,7 @@ end;
 
 
 
-Procedure TResult.Setpagemap(AIndex : Integer; const AValue : TResultTypepagemap); 
+Procedure TResult.Setpagemap(AIndex : Integer; const AValue : TResultTypepagemap);
 
 begin
   If (Fpagemap=AValue) then exit;
@@ -1528,7 +1528,7 @@ end;
 
 
 
-Procedure TResult.Setsnippet(AIndex : Integer; const AValue : String); 
+Procedure TResult.Setsnippet(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1538,7 +1538,7 @@ end;
 
 
 
-Procedure TResult.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TResult.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1549,7 +1549,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TResult.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TResult.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1581,7 +1581,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchTypesearchInformation.SetformattedSearchTime(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypesearchInformation.SetformattedSearchTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedSearchTime=AValue) then exit;
@@ -1591,7 +1591,7 @@ end;
 
 
 
-Procedure TSearchTypesearchInformation.SetformattedTotalResults(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypesearchInformation.SetformattedTotalResults(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedTotalResults=AValue) then exit;
@@ -1601,7 +1601,7 @@ end;
 
 
 
-Procedure TSearchTypesearchInformation.SetsearchTime(AIndex : Integer; const AValue : double); 
+Procedure TSearchTypesearchInformation.SetsearchTime(AIndex : Integer; const AValue : double);
 
 begin
   If (FsearchTime=AValue) then exit;
@@ -1611,7 +1611,7 @@ end;
 
 
 
-Procedure TSearchTypesearchInformation.SettotalResults(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypesearchInformation.SettotalResults(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalResults=AValue) then exit;
@@ -1628,7 +1628,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchTypespelling.SetcorrectedQuery(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypespelling.SetcorrectedQuery(AIndex : Integer; const AValue : String);
 
 begin
   If (FcorrectedQuery=AValue) then exit;
@@ -1638,7 +1638,7 @@ end;
 
 
 
-Procedure TSearchTypespelling.SethtmlCorrectedQuery(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypespelling.SethtmlCorrectedQuery(AIndex : Integer; const AValue : String);
 
 begin
   If (FhtmlCorrectedQuery=AValue) then exit;
@@ -1655,7 +1655,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchTypeurl.Settemplate(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypeurl.Settemplate(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftemplate=AValue) then exit;
@@ -1665,7 +1665,7 @@ end;
 
 
 
-Procedure TSearchTypeurl.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TSearchTypeurl.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearch.Setcontext(AIndex : Integer; const AValue : TContext); 
+Procedure TSearch.Setcontext(AIndex : Integer; const AValue : TContext);
 
 begin
   If (Fcontext=AValue) then exit;
@@ -1703,7 +1703,7 @@ end;
 
 
 
-Procedure TSearch.Setitems(AIndex : Integer; const AValue : TSearchTypeitemsArray); 
+Procedure TSearch.Setitems(AIndex : Integer; const AValue : TSearchTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 
 
-Procedure TSearch.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSearch.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1723,7 +1723,7 @@ end;
 
 
 
-Procedure TSearch.Setpromotions(AIndex : Integer; const AValue : TSearchTypepromotionsArray); 
+Procedure TSearch.Setpromotions(AIndex : Integer; const AValue : TSearchTypepromotionsArray);
 
 begin
   If (Fpromotions=AValue) then exit;
@@ -1733,7 +1733,7 @@ end;
 
 
 
-Procedure TSearch.Setqueries(AIndex : Integer; const AValue : TSearchTypequeries); 
+Procedure TSearch.Setqueries(AIndex : Integer; const AValue : TSearchTypequeries);
 
 begin
   If (Fqueries=AValue) then exit;
@@ -1743,7 +1743,7 @@ end;
 
 
 
-Procedure TSearch.SetsearchInformation(AIndex : Integer; const AValue : TSearchTypesearchInformation); 
+Procedure TSearch.SetsearchInformation(AIndex : Integer; const AValue : TSearchTypesearchInformation);
 
 begin
   If (FsearchInformation=AValue) then exit;
@@ -1753,7 +1753,7 @@ end;
 
 
 
-Procedure TSearch.Setspelling(AIndex : Integer; const AValue : TSearchTypespelling); 
+Procedure TSearch.Setspelling(AIndex : Integer; const AValue : TSearchTypespelling);
 
 begin
   If (Fspelling=AValue) then exit;
@@ -1763,7 +1763,7 @@ end;
 
 
 
-Procedure TSearch.Seturl(AIndex : Integer; const AValue : TSearchTypeurl); 
+Procedure TSearch.Seturl(AIndex : Integer; const AValue : TSearchTypeurl);
 
 begin
   If (Furl=AValue) then exit;
@@ -1774,7 +1774,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSearch.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSearch.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1972,7 +1972,7 @@ Class Function TCustomsearchAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TCustomsearchAPI.APINeedsAuth : Boolean;

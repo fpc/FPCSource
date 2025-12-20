@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TInstanceGroupManager = Class;
   TInstanceGroupManagerList = Class;
@@ -46,11 +46,11 @@ type
   TOperationTypewarningsItemTypedataArray = Array of TOperationTypewarningsItemTypedataItem;
   TOperationTypewarningsArray = Array of TOperationTypewarningsItem;
   TOperationListTypeitemsArray = Array of TOperation;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManager
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManager = Class(TGoogleBaseObject)
   Private
     FautoHealingPolicies : TInstanceGroupManagerTypeautoHealingPoliciesArray;
@@ -105,11 +105,11 @@ type
     Property targetSize : integer Index 104 Read FtargetSize Write SettargetSize;
   end;
   TInstanceGroupManagerClass = Class of TInstanceGroupManager;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagerList
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManagerList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -137,11 +137,11 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TInstanceGroupManagerListClass = Class of TInstanceGroupManagerList;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagersAbandonInstancesRequest
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManagersAbandonInstancesRequest = Class(TGoogleBaseObject)
   Private
     Finstances : TStringArray;
@@ -157,11 +157,11 @@ type
     Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
   end;
   TInstanceGroupManagersAbandonInstancesRequestClass = Class of TInstanceGroupManagersAbandonInstancesRequest;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagersDeleteInstancesRequest
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManagersDeleteInstancesRequest = Class(TGoogleBaseObject)
   Private
     Finstances : TStringArray;
@@ -177,11 +177,11 @@ type
     Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
   end;
   TInstanceGroupManagersDeleteInstancesRequestClass = Class of TInstanceGroupManagersDeleteInstancesRequest;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagersRecreateInstancesRequest
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManagersRecreateInstancesRequest = Class(TGoogleBaseObject)
   Private
     Finstances : TStringArray;
@@ -197,11 +197,11 @@ type
     Property instances : TStringArray Index 0 Read Finstances Write Setinstances;
   end;
   TInstanceGroupManagersRecreateInstancesRequestClass = Class of TInstanceGroupManagersRecreateInstancesRequest;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagersSetInstanceTemplateRequest
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManagersSetInstanceTemplateRequest = Class(TGoogleBaseObject)
   Private
     FinstanceTemplate : String;
@@ -213,11 +213,11 @@ type
     Property instanceTemplate : String Index 0 Read FinstanceTemplate Write SetinstanceTemplate;
   end;
   TInstanceGroupManagersSetInstanceTemplateRequestClass = Class of TInstanceGroupManagersSetInstanceTemplateRequest;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagersSetTargetPoolsRequest
     --------------------------------------------------------------------}
-  
+
   TInstanceGroupManagersSetTargetPoolsRequest = Class(TGoogleBaseObject)
   Private
     Ffingerprint : String;
@@ -236,11 +236,11 @@ type
     Property targetPools : TStringArray Index 8 Read FtargetPools Write SettargetPools;
   end;
   TInstanceGroupManagersSetTargetPoolsRequestClass = Class of TInstanceGroupManagersSetTargetPoolsRequest;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerrorTypeerrorsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerrorTypeerrorsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -258,11 +258,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypeerrorTypeerrorsItemClass = Class of TOperationTypeerrorTypeerrorsItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypeerror
     --------------------------------------------------------------------}
-  
+
   TOperationTypeerror = Class(TGoogleBaseObject)
   Private
     Ferrors : TOperationTypeerrorTypeerrorsArray;
@@ -278,11 +278,11 @@ type
     Property errors : TOperationTypeerrorTypeerrorsArray Index 0 Read Ferrors Write Seterrors;
   end;
   TOperationTypeerrorClass = Class of TOperationTypeerror;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItemTypedataItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItemTypedataItem = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -297,11 +297,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TOperationTypewarningsItemTypedataItemClass = Class of TOperationTypewarningsItemTypedataItem;
-  
+
   { --------------------------------------------------------------------
     TOperationTypewarningsItem
     --------------------------------------------------------------------}
-  
+
   TOperationTypewarningsItem = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -323,11 +323,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TOperationTypewarningsItemClass = Class of TOperationTypewarningsItem;
-  
+
   { --------------------------------------------------------------------
     TOperation
     --------------------------------------------------------------------}
-  
+
   TOperation = Class(TGoogleBaseObject)
   Private
     FclientOperationId : String;
@@ -406,11 +406,11 @@ type
     Property zone : String Index 168 Read Fzone Write Setzone;
   end;
   TOperationClass = Class of TOperation;
-  
+
   { --------------------------------------------------------------------
     TOperationList
     --------------------------------------------------------------------}
-  
+
   TOperationList = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -438,11 +438,11 @@ type
     Property selfLink : String Index 32 Read FselfLink Write SetselfLink;
   end;
   TOperationListClass = Class of TOperationList;
-  
+
   { --------------------------------------------------------------------
     TReplicaPoolAutoHealingPolicy
     --------------------------------------------------------------------}
-  
+
   TReplicaPoolAutoHealingPolicy = Class(TGoogleBaseObject)
   Private
     FactionType : String;
@@ -457,34 +457,34 @@ type
     Property healthCheck : String Index 8 Read FhealthCheck Write SethealthCheck;
   end;
   TReplicaPoolAutoHealingPolicyClass = Class of TReplicaPoolAutoHealingPolicy;
-  
+
   { --------------------------------------------------------------------
     TInstanceGroupManagersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TInstanceGroupManagersResource, method Insert
-  
+
   TInstanceGroupManagersInsertOptions = Record
     size : integer;
   end;
-  
-  
+
+
   //Optional query Options for TInstanceGroupManagersResource, method List
-  
+
   TInstanceGroupManagersListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TInstanceGroupManagersResource, method Resize
-  
+
   TInstanceGroupManagersResizeOptions = Record
     size : integer;
   end;
-  
+
   TInstanceGroupManagersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -503,21 +503,21 @@ type
     Function SetInstanceTemplate(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersSetInstanceTemplateRequest : TInstanceGroupManagersSetInstanceTemplateRequest) : TOperation;
     Function SetTargetPools(instanceGroupManager: string; project: string; zone: string; aInstanceGroupManagersSetTargetPoolsRequest : TInstanceGroupManagersSetTargetPoolsRequest) : TOperation;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TZoneOperationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TZoneOperationsResource, method List
-  
+
   TZoneOperationsListOptions = Record
     filter : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TZoneOperationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -526,12 +526,12 @@ type
     Function List(project: string; zone: string; AQuery : string  = '') : TOperationList;
     Function List(project: string; zone: string; AQuery : TZoneOperationslistOptions) : TOperationList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReplicapoolAPI
     --------------------------------------------------------------------}
-  
+
   TReplicapoolAPI = Class(TGoogleAPI)
   Private
     FInstanceGroupManagersInstance : TInstanceGroupManagersResource;
@@ -578,7 +578,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManager.SetautoHealingPolicies(AIndex : Integer; const AValue : TInstanceGroupManagerTypeautoHealingPoliciesArray); 
+Procedure TInstanceGroupManager.SetautoHealingPolicies(AIndex : Integer; const AValue : TInstanceGroupManagerTypeautoHealingPoliciesArray);
 
 begin
   If (FautoHealingPolicies=AValue) then exit;
@@ -588,7 +588,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SetbaseInstanceName(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.SetbaseInstanceName(AIndex : Integer; const AValue : String);
 
 begin
   If (FbaseInstanceName=AValue) then exit;
@@ -598,7 +598,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -608,7 +608,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SetcurrentSize(AIndex : Integer; const AValue : integer); 
+Procedure TInstanceGroupManager.SetcurrentSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentSize=AValue) then exit;
@@ -618,7 +618,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -628,7 +628,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -638,7 +638,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.Setgroup(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.Setgroup(AIndex : Integer; const AValue : String);
 
 begin
   If (Fgroup=AValue) then exit;
@@ -648,7 +648,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.Setid(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -658,7 +658,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SetinstanceTemplate(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.SetinstanceTemplate(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceTemplate=AValue) then exit;
@@ -668,7 +668,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -678,7 +678,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.Setname(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -688,7 +688,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManager.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -698,7 +698,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SettargetPools(AIndex : Integer; const AValue : TStringArray); 
+Procedure TInstanceGroupManager.SettargetPools(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FtargetPools=AValue) then exit;
@@ -708,7 +708,7 @@ end;
 
 
 
-Procedure TInstanceGroupManager.SettargetSize(AIndex : Integer; const AValue : integer); 
+Procedure TInstanceGroupManager.SettargetSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtargetSize=AValue) then exit;
@@ -719,7 +719,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupManager.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupManager.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -739,7 +739,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagerList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManagerList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -749,7 +749,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagerList.Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerListTypeitemsArray); 
+Procedure TInstanceGroupManagerList.Setitems(AIndex : Integer; const AValue : TInstanceGroupManagerListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -759,7 +759,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagerList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManagerList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -769,7 +769,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagerList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManagerList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -779,7 +779,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagerList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManagerList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -790,7 +790,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupManagerList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupManagerList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -809,7 +809,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersAbandonInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
+Procedure TInstanceGroupManagersAbandonInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Finstances=AValue) then exit;
@@ -820,7 +820,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupManagersAbandonInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupManagersAbandonInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -839,7 +839,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersDeleteInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
+Procedure TInstanceGroupManagersDeleteInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Finstances=AValue) then exit;
@@ -850,7 +850,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupManagersDeleteInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupManagersDeleteInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -869,7 +869,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersRecreateInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray); 
+Procedure TInstanceGroupManagersRecreateInstancesRequest.Setinstances(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Finstances=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupManagersRecreateInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupManagersRecreateInstancesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -899,7 +899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersSetInstanceTemplateRequest.SetinstanceTemplate(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManagersSetInstanceTemplateRequest.SetinstanceTemplate(AIndex : Integer; const AValue : String);
 
 begin
   If (FinstanceTemplate=AValue) then exit;
@@ -916,7 +916,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceGroupManagersSetTargetPoolsRequest.Setfingerprint(AIndex : Integer; const AValue : String); 
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.Setfingerprint(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -926,7 +926,7 @@ end;
 
 
 
-Procedure TInstanceGroupManagersSetTargetPoolsRequest.SettargetPools(AIndex : Integer; const AValue : TStringArray); 
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.SettargetPools(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FtargetPools=AValue) then exit;
@@ -937,7 +937,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TInstanceGroupManagersSetTargetPoolsRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TInstanceGroupManagersSetTargetPoolsRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -956,7 +956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -966,7 +966,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocation=AValue) then exit;
@@ -976,7 +976,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -993,7 +993,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray);
 
 begin
   If (Ferrors=AValue) then exit;
@@ -1004,7 +1004,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypeerror.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1023,7 +1023,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1033,7 +1033,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1050,7 +1050,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1060,7 +1060,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray);
 
 begin
   If (Fdata=AValue) then exit;
@@ -1070,7 +1070,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1081,7 +1081,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationTypewarningsItem.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1100,7 +1100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientOperationId=AValue) then exit;
@@ -1110,7 +1110,7 @@ end;
 
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1120,7 +1120,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTime=AValue) then exit;
@@ -1130,7 +1130,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror);
 
 begin
   If (Ferror=AValue) then exit;
@@ -1140,7 +1140,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer);
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1170,7 +1170,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1180,7 +1180,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1190,7 +1190,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1200,7 +1200,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String);
 
 begin
   If (FoperationType=AValue) then exit;
@@ -1210,7 +1210,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1220,7 +1220,7 @@ end;
 
 
 
-Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -1230,7 +1230,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1240,7 +1240,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1250,7 +1250,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1260,7 +1260,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1270,7 +1270,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetId=AValue) then exit;
@@ -1280,7 +1280,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1290,7 +1290,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String);
 
 begin
   If (Fuser=AValue) then exit;
@@ -1300,7 +1300,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1310,7 +1310,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String);
 
 begin
   If (Fzone=AValue) then exit;
@@ -1321,7 +1321,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1340,7 +1340,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationList.Setid(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1350,7 +1350,7 @@ end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1360,7 +1360,7 @@ end;
 
 
 
-Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1370,7 +1370,7 @@ end;
 
 
 
-Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1380,7 +1380,7 @@ end;
 
 
 
-Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1391,7 +1391,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TOperationList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1410,7 +1410,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReplicaPoolAutoHealingPolicy.SetactionType(AIndex : Integer; const AValue : String); 
+Procedure TReplicaPoolAutoHealingPolicy.SetactionType(AIndex : Integer; const AValue : String);
 
 begin
   If (FactionType=AValue) then exit;
@@ -1420,7 +1420,7 @@ end;
 
 
 
-Procedure TReplicaPoolAutoHealingPolicy.SethealthCheck(AIndex : Integer; const AValue : String); 
+Procedure TReplicaPoolAutoHealingPolicy.SethealthCheck(AIndex : Integer; const AValue : String);
 
 begin
   If (FhealthCheck=AValue) then exit;
@@ -1820,7 +1820,7 @@ begin
   Result[2].Description:='View and manage your Google Compute Engine resources';
   Result[3].Name:='https://www.googleapis.com/auth/compute.readonly';
   Result[3].Description:='View your Google Compute Engine resources';
-  
+
 end;
 
 Class Function TReplicapoolAPI.APINeedsAuth : Boolean;

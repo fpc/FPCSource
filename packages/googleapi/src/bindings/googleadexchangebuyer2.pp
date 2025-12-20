@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TClientUser = Class;
   TClientUserInvitation = Class;
@@ -31,11 +31,11 @@ type
   TListClientUserInvitationsResponseTypeinvitationsArray = Array of TClientUserInvitation;
   TListClientUsersResponseTypeusersArray = Array of TClientUser;
   TListClientsResponseTypeclientsArray = Array of TClient;
-  
+
   { --------------------------------------------------------------------
     TClientUser
     --------------------------------------------------------------------}
-  
+
   TClientUser = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -56,11 +56,11 @@ type
     Property userId : String Index 24 Read FuserId Write SetuserId;
   end;
   TClientUserClass = Class of TClientUser;
-  
+
   { --------------------------------------------------------------------
     TClientUserInvitation
     --------------------------------------------------------------------}
-  
+
   TClientUserInvitation = Class(TGoogleBaseObject)
   Private
     Femail : String;
@@ -78,11 +78,11 @@ type
     Property invitationId : String Index 16 Read FinvitationId Write SetinvitationId;
   end;
   TClientUserInvitationClass = Class of TClientUserInvitation;
-  
+
   { --------------------------------------------------------------------
     TListClientUserInvitationsResponse
     --------------------------------------------------------------------}
-  
+
   TListClientUserInvitationsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -101,11 +101,11 @@ type
     Property invitations : TListClientUserInvitationsResponseTypeinvitationsArray Index 8 Read Finvitations Write Setinvitations;
   end;
   TListClientUserInvitationsResponseClass = Class of TListClientUserInvitationsResponse;
-  
+
   { --------------------------------------------------------------------
     TListClientUsersResponse
     --------------------------------------------------------------------}
-  
+
   TListClientUsersResponse = Class(TGoogleBaseObject)
   Private
     Fusers : TListClientUsersResponseTypeusersArray;
@@ -124,11 +124,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListClientUsersResponseClass = Class of TListClientUsersResponse;
-  
+
   { --------------------------------------------------------------------
     TClient
     --------------------------------------------------------------------}
-  
+
   TClient = Class(TGoogleBaseObject)
   Private
     FvisibleToSeller : boolean;
@@ -161,11 +161,11 @@ type
     Property entityName : String Index 56 Read FentityName Write SetentityName;
   end;
   TClientClass = Class of TClient;
-  
+
   { --------------------------------------------------------------------
     TListClientsResponse
     --------------------------------------------------------------------}
-  
+
   TListClientsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -184,19 +184,19 @@ type
     Property clients : TListClientsResponseTypeclientsArray Index 8 Read Fclients Write Setclients;
   end;
   TListClientsResponseClass = Class of TListClientsResponse;
-  
+
   { --------------------------------------------------------------------
     TAccountsClientsUsersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsClientsUsersResource, method List
-  
+
   TAccountsClientsUsersListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TAccountsClientsUsersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -206,20 +206,20 @@ type
     Function List(clientAccountId: string; accountId: string; AQuery : string  = '') : TListClientUsersResponse;
     Function List(clientAccountId: string; accountId: string; AQuery : TAccountsClientsUserslistOptions) : TListClientUsersResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsClientsInvitationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsClientsInvitationsResource, method List
-  
+
   TAccountsClientsInvitationsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TAccountsClientsInvitationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -229,20 +229,20 @@ type
     Function List(clientAccountId: string; accountId: string; AQuery : string  = '') : TListClientUserInvitationsResponse;
     Function List(clientAccountId: string; accountId: string; AQuery : TAccountsClientsInvitationslistOptions) : TListClientUserInvitationsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsClientsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsClientsResource, method List
-  
+
   TAccountsClientsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TAccountsClientsResource = Class(TGoogleResource)
   Private
     FUsersInstance : TAccountsClientsUsersResource;
@@ -264,12 +264,12 @@ type
     Property UsersResource : TAccountsClientsUsersResource Read GetUsersInstance;
     Property InvitationsResource : TAccountsClientsInvitationsResource Read GetInvitationsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
+
   TAccountsResource = Class(TGoogleResource)
   Private
     FClientsUsersInstance : TAccountsClientsUsersResource;
@@ -291,12 +291,12 @@ type
     Property ClientsInvitationsResource : TAccountsClientsInvitationsResource Read GetClientsInvitationsInstance;
     Property ClientsResource : TAccountsClientsResource Read GetClientsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAdexchangebuyer2API
     --------------------------------------------------------------------}
-  
+
   TAdexchangebuyer2API = Class(TGoogleAPI)
   Private
     FAccountsClientsUsersInstance : TAccountsClientsUsersResource;
@@ -353,7 +353,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TClientUser.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TClientUser.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -363,7 +363,7 @@ end;
 
 
 
-Procedure TClientUser.SetclientAccountId(AIndex : Integer; const AValue : String); 
+Procedure TClientUser.SetclientAccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientAccountId=AValue) then exit;
@@ -373,7 +373,7 @@ end;
 
 
 
-Procedure TClientUser.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TClientUser.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -383,7 +383,7 @@ end;
 
 
 
-Procedure TClientUser.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TClientUser.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -400,7 +400,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClientUserInvitation.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TClientUserInvitation.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -410,7 +410,7 @@ end;
 
 
 
-Procedure TClientUserInvitation.SetclientAccountId(AIndex : Integer; const AValue : String); 
+Procedure TClientUserInvitation.SetclientAccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientAccountId=AValue) then exit;
@@ -420,7 +420,7 @@ end;
 
 
 
-Procedure TClientUserInvitation.SetinvitationId(AIndex : Integer; const AValue : String); 
+Procedure TClientUserInvitation.SetinvitationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinvitationId=AValue) then exit;
@@ -437,7 +437,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListClientUserInvitationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListClientUserInvitationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -447,7 +447,7 @@ end;
 
 
 
-Procedure TListClientUserInvitationsResponse.Setinvitations(AIndex : Integer; const AValue : TListClientUserInvitationsResponseTypeinvitationsArray); 
+Procedure TListClientUserInvitationsResponse.Setinvitations(AIndex : Integer; const AValue : TListClientUserInvitationsResponseTypeinvitationsArray);
 
 begin
   If (Finvitations=AValue) then exit;
@@ -458,7 +458,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListClientUserInvitationsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListClientUserInvitationsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -477,7 +477,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListClientUsersResponse.Setusers(AIndex : Integer; const AValue : TListClientUsersResponseTypeusersArray); 
+Procedure TListClientUsersResponse.Setusers(AIndex : Integer; const AValue : TListClientUsersResponseTypeusersArray);
 
 begin
   If (Fusers=AValue) then exit;
@@ -487,7 +487,7 @@ end;
 
 
 
-Procedure TListClientUsersResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListClientUsersResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -498,7 +498,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListClientUsersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListClientUsersResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -517,7 +517,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClient.SetvisibleToSeller(AIndex : Integer; const AValue : boolean); 
+Procedure TClient.SetvisibleToSeller(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FvisibleToSeller=AValue) then exit;
@@ -527,7 +527,7 @@ end;
 
 
 
-Procedure TClient.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TClient.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -537,7 +537,7 @@ end;
 
 
 
-Procedure TClient.SetentityType(AIndex : Integer; const AValue : String); 
+Procedure TClient.SetentityType(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityType=AValue) then exit;
@@ -547,7 +547,7 @@ end;
 
 
 
-Procedure TClient.Setrole(AIndex : Integer; const AValue : String); 
+Procedure TClient.Setrole(AIndex : Integer; const AValue : String);
 
 begin
   If (Frole=AValue) then exit;
@@ -557,7 +557,7 @@ end;
 
 
 
-Procedure TClient.SetclientName(AIndex : Integer; const AValue : String); 
+Procedure TClient.SetclientName(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientName=AValue) then exit;
@@ -567,7 +567,7 @@ end;
 
 
 
-Procedure TClient.SetclientAccountId(AIndex : Integer; const AValue : String); 
+Procedure TClient.SetclientAccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientAccountId=AValue) then exit;
@@ -577,7 +577,7 @@ end;
 
 
 
-Procedure TClient.SetentityId(AIndex : Integer; const AValue : String); 
+Procedure TClient.SetentityId(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityId=AValue) then exit;
@@ -587,7 +587,7 @@ end;
 
 
 
-Procedure TClient.SetentityName(AIndex : Integer; const AValue : String); 
+Procedure TClient.SetentityName(AIndex : Integer; const AValue : String);
 
 begin
   If (FentityName=AValue) then exit;
@@ -604,7 +604,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListClientsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListClientsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -614,7 +614,7 @@ end;
 
 
 
-Procedure TListClientsResponse.Setclients(AIndex : Integer; const AValue : TListClientsResponseTypeclientsArray); 
+Procedure TListClientsResponse.Setclients(AIndex : Integer; const AValue : TListClientsResponseTypeclientsArray);
 
 begin
   If (Fclients=AValue) then exit;
@@ -625,7 +625,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListClientsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListClientsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1136,7 +1136,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/adexchange.buyer';
   Result[0].Description:='Manage your Ad Exchange buyer account configuration';
-  
+
 end;
 
 Class Function TAdexchangebuyer2API.APINeedsAuth : Boolean;

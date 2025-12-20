@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TBucket = Class;
   TColumn = Class;
@@ -73,11 +73,11 @@ type
   TTableListTypeitemsArray = Array of TTable;
   TTaskListTypeitemsArray = Array of TTask;
   TTemplateListTypeitemsArray = Array of TTemplate;
-  
+
   { --------------------------------------------------------------------
     TBucket
     --------------------------------------------------------------------}
-  
+
   TBucket = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -104,11 +104,11 @@ type
     Property weight : integer Index 40 Read Fweight Write Setweight;
   end;
   TBucketClass = Class of TBucket;
-  
+
   { --------------------------------------------------------------------
     TColumnTypebaseColumn
     --------------------------------------------------------------------}
-  
+
   TColumnTypebaseColumn = Class(TGoogleBaseObject)
   Private
     FcolumnId : integer;
@@ -123,11 +123,11 @@ type
     Property tableIndex : integer Index 8 Read FtableIndex Write SettableIndex;
   end;
   TColumnTypebaseColumnClass = Class of TColumnTypebaseColumn;
-  
+
   { --------------------------------------------------------------------
     TColumn
     --------------------------------------------------------------------}
-  
+
   TColumn = Class(TGoogleBaseObject)
   Private
     FbaseColumn : TColumnTypebaseColumn;
@@ -177,11 +177,11 @@ type
     Property validateData : boolean Index 88 Read FvalidateData Write SetvalidateData;
   end;
   TColumnClass = Class of TColumn;
-  
+
   { --------------------------------------------------------------------
     TColumnList
     --------------------------------------------------------------------}
-  
+
   TColumnList = Class(TGoogleBaseObject)
   Private
     Fitems : TColumnListTypeitemsArray;
@@ -206,11 +206,11 @@ type
     Property totalItems : integer Index 24 Read FtotalItems Write SettotalItems;
   end;
   TColumnListClass = Class of TColumnList;
-  
+
   { --------------------------------------------------------------------
     TGeometry
     --------------------------------------------------------------------}
-  
+
   TGeometry = Class(TGoogleBaseObject)
   Private
     Fgeometries : TTJSONSchemaArray;
@@ -233,11 +233,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TGeometryClass = Class of TGeometry;
-  
+
   { --------------------------------------------------------------------
     TImport
     --------------------------------------------------------------------}
-  
+
   TImport = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -252,11 +252,11 @@ type
     Property numRowsReceived : String Index 8 Read FnumRowsReceived Write SetnumRowsReceived;
   end;
   TImportClass = Class of TImport;
-  
+
   { --------------------------------------------------------------------
     TLine
     --------------------------------------------------------------------}
-  
+
   TLine = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TLineTypecoordinatesArray;
@@ -276,11 +276,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TLineClass = Class of TLine;
-  
+
   { --------------------------------------------------------------------
     TLineStyle
     --------------------------------------------------------------------}
-  
+
   TLineStyle = Class(TGoogleBaseObject)
   Private
     FstrokeColor : String;
@@ -304,11 +304,11 @@ type
     Property strokeWeightStyler : TStyleFunction Index 32 Read FstrokeWeightStyler Write SetstrokeWeightStyler;
   end;
   TLineStyleClass = Class of TLineStyle;
-  
+
   { --------------------------------------------------------------------
     TPoint
     --------------------------------------------------------------------}
-  
+
   TPoint = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TdoubleArray;
@@ -328,11 +328,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TPointClass = Class of TPoint;
-  
+
   { --------------------------------------------------------------------
     TPointStyle
     --------------------------------------------------------------------}
-  
+
   TPointStyle = Class(TGoogleBaseObject)
   Private
     FiconName : String;
@@ -347,11 +347,11 @@ type
     Property iconStyler : TStyleFunction Index 8 Read FiconStyler Write SeticonStyler;
   end;
   TPointStyleClass = Class of TPointStyle;
-  
+
   { --------------------------------------------------------------------
     TPolygon
     --------------------------------------------------------------------}
-  
+
   TPolygon = Class(TGoogleBaseObject)
   Private
     Fcoordinates : TPolygonTypecoordinatesArray;
@@ -371,11 +371,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TPolygonClass = Class of TPolygon;
-  
+
   { --------------------------------------------------------------------
     TPolygonStyle
     --------------------------------------------------------------------}
-  
+
   TPolygonStyle = Class(TGoogleBaseObject)
   Private
     FfillColor : String;
@@ -408,11 +408,11 @@ type
     Property strokeWeightStyler : TStyleFunction Index 56 Read FstrokeWeightStyler Write SetstrokeWeightStyler;
   end;
   TPolygonStyleClass = Class of TPolygonStyle;
-  
+
   { --------------------------------------------------------------------
     TSqlresponse
     --------------------------------------------------------------------}
-  
+
   TSqlresponse = Class(TGoogleBaseObject)
   Private
     Fcolumns : TStringArray;
@@ -434,11 +434,11 @@ type
     Property rows : TSqlresponseTyperowsArray Index 16 Read Frows Write Setrows;
   end;
   TSqlresponseClass = Class of TSqlresponse;
-  
+
   { --------------------------------------------------------------------
     TStyleFunctionTypegradientTypecolorsItem
     --------------------------------------------------------------------}
-  
+
   TStyleFunctionTypegradientTypecolorsItem = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -453,11 +453,11 @@ type
     Property opacity : double Index 8 Read Fopacity Write Setopacity;
   end;
   TStyleFunctionTypegradientTypecolorsItemClass = Class of TStyleFunctionTypegradientTypecolorsItem;
-  
+
   { --------------------------------------------------------------------
     TStyleFunctionTypegradient
     --------------------------------------------------------------------}
-  
+
   TStyleFunctionTypegradient = Class(TGoogleBaseObject)
   Private
     Fcolors : TStyleFunctionTypegradientTypecolorsArray;
@@ -479,11 +479,11 @@ type
     Property min : double Index 16 Read Fmin Write Setmin;
   end;
   TStyleFunctionTypegradientClass = Class of TStyleFunctionTypegradient;
-  
+
   { --------------------------------------------------------------------
     TStyleFunction
     --------------------------------------------------------------------}
-  
+
   TStyleFunction = Class(TGoogleBaseObject)
   Private
     Fbuckets : TStyleFunctionTypebucketsArray;
@@ -508,11 +508,11 @@ type
     Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TStyleFunctionClass = Class of TStyleFunction;
-  
+
   { --------------------------------------------------------------------
     TStyleSetting
     --------------------------------------------------------------------}
-  
+
   TStyleSetting = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -542,11 +542,11 @@ type
     Property tableId : String Index 48 Read FtableId Write SettableId;
   end;
   TStyleSettingClass = Class of TStyleSetting;
-  
+
   { --------------------------------------------------------------------
     TStyleSettingList
     --------------------------------------------------------------------}
-  
+
   TStyleSettingList = Class(TGoogleBaseObject)
   Private
     Fitems : TStyleSettingListTypeitemsArray;
@@ -571,11 +571,11 @@ type
     Property totalItems : integer Index 24 Read FtotalItems Write SettotalItems;
   end;
   TStyleSettingListClass = Class of TStyleSettingList;
-  
+
   { --------------------------------------------------------------------
     TTable
     --------------------------------------------------------------------}
-  
+
   TTable = Class(TGoogleBaseObject)
   Private
     Fattribution : String;
@@ -627,11 +627,11 @@ type
     Property tablePropertiesJsonSchema : String Index 96 Read FtablePropertiesJsonSchema Write SettablePropertiesJsonSchema;
   end;
   TTableClass = Class of TTable;
-  
+
   { --------------------------------------------------------------------
     TTableList
     --------------------------------------------------------------------}
-  
+
   TTableList = Class(TGoogleBaseObject)
   Private
     Fitems : TTableListTypeitemsArray;
@@ -653,11 +653,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TTableListClass = Class of TTableList;
-  
+
   { --------------------------------------------------------------------
     TTask
     --------------------------------------------------------------------}
-  
+
   TTask = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -682,11 +682,11 @@ type
     Property _type : String Index 32 Read F_type Write Set_type;
   end;
   TTaskClass = Class of TTask;
-  
+
   { --------------------------------------------------------------------
     TTaskList
     --------------------------------------------------------------------}
-  
+
   TTaskList = Class(TGoogleBaseObject)
   Private
     Fitems : TTaskListTypeitemsArray;
@@ -711,11 +711,11 @@ type
     Property totalItems : integer Index 24 Read FtotalItems Write SettotalItems;
   end;
   TTaskListClass = Class of TTaskList;
-  
+
   { --------------------------------------------------------------------
     TTemplate
     --------------------------------------------------------------------}
-  
+
   TTemplate = Class(TGoogleBaseObject)
   Private
     FautomaticColumnNames : TStringArray;
@@ -746,11 +746,11 @@ type
     Property templateId : integer Index 40 Read FtemplateId Write SettemplateId;
   end;
   TTemplateClass = Class of TTemplate;
-  
+
   { --------------------------------------------------------------------
     TTemplateList
     --------------------------------------------------------------------}
-  
+
   TTemplateList = Class(TGoogleBaseObject)
   Private
     Fitems : TTemplateListTypeitemsArray;
@@ -775,19 +775,19 @@ type
     Property totalItems : integer Index 24 Read FtotalItems Write SettotalItems;
   end;
   TTemplateListClass = Class of TTemplateList;
-  
+
   { --------------------------------------------------------------------
     TColumnResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TColumnResource, method List
-  
+
   TColumnListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TColumnResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -800,30 +800,30 @@ type
     Function Patch(columnId: string; tableId: string; aColumn : TColumn) : TColumn;
     Function Update(columnId: string; tableId: string; aColumn : TColumn) : TColumn;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TQueryResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TQueryResource, method Sql
-  
+
   TQuerySqlOptions = Record
     hdrs : boolean;
     sql : String;
     typed : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TQueryResource, method SqlGet
-  
+
   TQuerySqlGetOptions = Record
     hdrs : boolean;
     sql : String;
     typed : boolean;
   end;
-  
+
   TQueryResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -833,20 +833,20 @@ type
     Function SqlGet(AQuery : string  = '') : TSqlresponse;
     Function SqlGet(AQuery : TQuerysqlGetOptions) : TSqlresponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TStyleResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TStyleResource, method List
-  
+
   TStyleListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TStyleResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -859,22 +859,22 @@ type
     Function Patch(styleId: integer; tableId: string; aStyleSetting : TStyleSetting) : TStyleSetting;
     Function Update(styleId: integer; tableId: string; aStyleSetting : TStyleSetting) : TStyleSetting;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTableResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTableResource, method Copy
-  
+
   TTableCopyOptions = Record
     copyPresentation : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TTableResource, method ImportRows
-  
+
   TTableImportRowsOptions = Record
     delimiter : String;
     encoding : String;
@@ -882,34 +882,34 @@ type
     isStrict : boolean;
     startLine : integer;
   end;
-  
-  
+
+
   //Optional query Options for TTableResource, method ImportTable
-  
+
   TTableImportTableOptions = Record
     delimiter : String;
     encoding : String;
     _name : String;
   end;
-  
-  
+
+
   //Optional query Options for TTableResource, method List
-  
+
   TTableListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TTableResource, method Patch
-  
+
   TTablePatchOptions = Record
     replaceViewDefinition : boolean;
   end;
-  
-  
+
+
   //Optional query Options for TTableResource, method ReplaceRows
-  
+
   TTableReplaceRowsOptions = Record
     delimiter : String;
     encoding : String;
@@ -917,14 +917,14 @@ type
     isStrict : boolean;
     startLine : integer;
   end;
-  
-  
+
+
   //Optional query Options for TTableResource, method Update
-  
+
   TTableUpdateOptions = Record
     replaceViewDefinition : boolean;
   end;
-  
+
   TTableResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -947,21 +947,21 @@ type
     Function Update(tableId: string; aTable : TTable; AQuery : string  = '') : TTable;
     Function Update(tableId: string; aTable : TTable; AQuery : TTableupdateOptions) : TTable;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTaskResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTaskResource, method List
-  
+
   TTaskListOptions = Record
     maxResults : integer;
     pageToken : String;
     startIndex : integer;
   end;
-  
+
   TTaskResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -971,20 +971,20 @@ type
     Function List(tableId: string; AQuery : string  = '') : TTaskList;
     Function List(tableId: string; AQuery : TTasklistOptions) : TTaskList;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTemplateResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTemplateResource, method List
-  
+
   TTemplateListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TTemplateResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -997,12 +997,12 @@ type
     Function Patch(tableId: string; templateId: integer; aTemplate : TTemplate) : TTemplate;
     Function Update(tableId: string; templateId: integer; aTemplate : TTemplate) : TTemplate;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TFusiontablesAPI
     --------------------------------------------------------------------}
-  
+
   TFusiontablesAPI = Class(TGoogleAPI)
   Private
     FColumnInstance : TColumnResource;
@@ -1069,7 +1069,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBucket.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -1079,7 +1079,7 @@ end;
 
 
 
-Procedure TBucket.Seticon(AIndex : Integer; const AValue : String); 
+Procedure TBucket.Seticon(AIndex : Integer; const AValue : String);
 
 begin
   If (Ficon=AValue) then exit;
@@ -1089,7 +1089,7 @@ end;
 
 
 
-Procedure TBucket.Setmax(AIndex : Integer; const AValue : double); 
+Procedure TBucket.Setmax(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmax=AValue) then exit;
@@ -1099,7 +1099,7 @@ end;
 
 
 
-Procedure TBucket.Setmin(AIndex : Integer; const AValue : double); 
+Procedure TBucket.Setmin(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmin=AValue) then exit;
@@ -1109,7 +1109,7 @@ end;
 
 
 
-Procedure TBucket.Setopacity(AIndex : Integer; const AValue : double); 
+Procedure TBucket.Setopacity(AIndex : Integer; const AValue : double);
 
 begin
   If (Fopacity=AValue) then exit;
@@ -1119,7 +1119,7 @@ end;
 
 
 
-Procedure TBucket.Setweight(AIndex : Integer; const AValue : integer); 
+Procedure TBucket.Setweight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fweight=AValue) then exit;
@@ -1136,7 +1136,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColumnTypebaseColumn.SetcolumnId(AIndex : Integer; const AValue : integer); 
+Procedure TColumnTypebaseColumn.SetcolumnId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcolumnId=AValue) then exit;
@@ -1146,7 +1146,7 @@ end;
 
 
 
-Procedure TColumnTypebaseColumn.SettableIndex(AIndex : Integer; const AValue : integer); 
+Procedure TColumnTypebaseColumn.SettableIndex(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtableIndex=AValue) then exit;
@@ -1163,7 +1163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColumn.SetbaseColumn(AIndex : Integer; const AValue : TColumnTypebaseColumn); 
+Procedure TColumn.SetbaseColumn(AIndex : Integer; const AValue : TColumnTypebaseColumn);
 
 begin
   If (FbaseColumn=AValue) then exit;
@@ -1173,7 +1173,7 @@ end;
 
 
 
-Procedure TColumn.SetcolumnId(AIndex : Integer; const AValue : integer); 
+Procedure TColumn.SetcolumnId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcolumnId=AValue) then exit;
@@ -1183,7 +1183,7 @@ end;
 
 
 
-Procedure TColumn.SetcolumnJsonSchema(AIndex : Integer; const AValue : String); 
+Procedure TColumn.SetcolumnJsonSchema(AIndex : Integer; const AValue : String);
 
 begin
   If (FcolumnJsonSchema=AValue) then exit;
@@ -1193,7 +1193,7 @@ end;
 
 
 
-Procedure TColumn.SetcolumnPropertiesJson(AIndex : Integer; const AValue : String); 
+Procedure TColumn.SetcolumnPropertiesJson(AIndex : Integer; const AValue : String);
 
 begin
   If (FcolumnPropertiesJson=AValue) then exit;
@@ -1203,7 +1203,7 @@ end;
 
 
 
-Procedure TColumn.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TColumn.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1213,7 +1213,7 @@ end;
 
 
 
-Procedure TColumn.SetformatPattern(AIndex : Integer; const AValue : String); 
+Procedure TColumn.SetformatPattern(AIndex : Integer; const AValue : String);
 
 begin
   If (FformatPattern=AValue) then exit;
@@ -1223,7 +1223,7 @@ end;
 
 
 
-Procedure TColumn.SetgraphPredicate(AIndex : Integer; const AValue : String); 
+Procedure TColumn.SetgraphPredicate(AIndex : Integer; const AValue : String);
 
 begin
   If (FgraphPredicate=AValue) then exit;
@@ -1233,7 +1233,7 @@ end;
 
 
 
-Procedure TColumn.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TColumn.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1243,7 +1243,7 @@ end;
 
 
 
-Procedure TColumn.Setname(AIndex : Integer; const AValue : String); 
+Procedure TColumn.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1253,7 +1253,7 @@ end;
 
 
 
-Procedure TColumn.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TColumn.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1263,7 +1263,7 @@ end;
 
 
 
-Procedure TColumn.SetvalidValues(AIndex : Integer; const AValue : TStringArray); 
+Procedure TColumn.SetvalidValues(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FvalidValues=AValue) then exit;
@@ -1273,7 +1273,7 @@ end;
 
 
 
-Procedure TColumn.SetvalidateData(AIndex : Integer; const AValue : boolean); 
+Procedure TColumn.SetvalidateData(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FvalidateData=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TColumn.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TColumn.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1314,7 +1314,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColumnList.Setitems(AIndex : Integer; const AValue : TColumnListTypeitemsArray); 
+Procedure TColumnList.Setitems(AIndex : Integer; const AValue : TColumnListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1324,7 +1324,7 @@ end;
 
 
 
-Procedure TColumnList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TColumnList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1334,7 +1334,7 @@ end;
 
 
 
-Procedure TColumnList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TColumnList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1344,7 +1344,7 @@ end;
 
 
 
-Procedure TColumnList.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TColumnList.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -1355,7 +1355,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TColumnList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TColumnList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1374,7 +1374,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeometry.Setgeometries(AIndex : Integer; const AValue : TTJSONSchemaArray); 
+Procedure TGeometry.Setgeometries(AIndex : Integer; const AValue : TTJSONSchemaArray);
 
 begin
   If (Fgeometries=AValue) then exit;
@@ -1384,7 +1384,7 @@ end;
 
 
 
-Procedure TGeometry.Setgeometry(AIndex : Integer; const AValue : TJSONSchema); 
+Procedure TGeometry.Setgeometry(AIndex : Integer; const AValue : TJSONSchema);
 
 begin
   If (Fgeometry=AValue) then exit;
@@ -1394,7 +1394,7 @@ end;
 
 
 
-Procedure TGeometry.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TGeometry.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1416,7 +1416,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TGeometry.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TGeometry.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1435,7 +1435,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImport.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TImport.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1445,7 +1445,7 @@ end;
 
 
 
-Procedure TImport.SetnumRowsReceived(AIndex : Integer; const AValue : String); 
+Procedure TImport.SetnumRowsReceived(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumRowsReceived=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLine.Setcoordinates(AIndex : Integer; const AValue : TLineTypecoordinatesArray); 
+Procedure TLine.Setcoordinates(AIndex : Integer; const AValue : TLineTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -1472,7 +1472,7 @@ end;
 
 
 
-Procedure TLine.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TLine.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1494,7 +1494,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLine.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLine.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1513,7 +1513,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLineStyle.SetstrokeColor(AIndex : Integer; const AValue : String); 
+Procedure TLineStyle.SetstrokeColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FstrokeColor=AValue) then exit;
@@ -1523,7 +1523,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction); 
+Procedure TLineStyle.SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction);
 
 begin
   If (FstrokeColorStyler=AValue) then exit;
@@ -1533,7 +1533,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeOpacity(AIndex : Integer; const AValue : double); 
+Procedure TLineStyle.SetstrokeOpacity(AIndex : Integer; const AValue : double);
 
 begin
   If (FstrokeOpacity=AValue) then exit;
@@ -1543,7 +1543,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeWeight(AIndex : Integer; const AValue : integer); 
+Procedure TLineStyle.SetstrokeWeight(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstrokeWeight=AValue) then exit;
@@ -1553,7 +1553,7 @@ end;
 
 
 
-Procedure TLineStyle.SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction); 
+Procedure TLineStyle.SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction);
 
 begin
   If (FstrokeWeightStyler=AValue) then exit;
@@ -1570,7 +1570,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPoint.Setcoordinates(AIndex : Integer; const AValue : TdoubleArray); 
+Procedure TPoint.Setcoordinates(AIndex : Integer; const AValue : TdoubleArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -1580,7 +1580,7 @@ end;
 
 
 
-Procedure TPoint.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPoint.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1602,7 +1602,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPoint.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPoint.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1621,7 +1621,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointStyle.SeticonName(AIndex : Integer; const AValue : String); 
+Procedure TPointStyle.SeticonName(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconName=AValue) then exit;
@@ -1631,7 +1631,7 @@ end;
 
 
 
-Procedure TPointStyle.SeticonStyler(AIndex : Integer; const AValue : TStyleFunction); 
+Procedure TPointStyle.SeticonStyler(AIndex : Integer; const AValue : TStyleFunction);
 
 begin
   If (FiconStyler=AValue) then exit;
@@ -1648,7 +1648,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolygon.Setcoordinates(AIndex : Integer; const AValue : TPolygonTypecoordinatesArray); 
+Procedure TPolygon.Setcoordinates(AIndex : Integer; const AValue : TPolygonTypecoordinatesArray);
 
 begin
   If (Fcoordinates=AValue) then exit;
@@ -1658,7 +1658,7 @@ end;
 
 
 
-Procedure TPolygon.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TPolygon.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1680,7 +1680,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPolygon.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPolygon.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1699,7 +1699,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolygonStyle.SetfillColor(AIndex : Integer; const AValue : String); 
+Procedure TPolygonStyle.SetfillColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FfillColor=AValue) then exit;
@@ -1709,7 +1709,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetfillColorStyler(AIndex : Integer; const AValue : TStyleFunction); 
+Procedure TPolygonStyle.SetfillColorStyler(AIndex : Integer; const AValue : TStyleFunction);
 
 begin
   If (FfillColorStyler=AValue) then exit;
@@ -1719,7 +1719,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetfillOpacity(AIndex : Integer; const AValue : double); 
+Procedure TPolygonStyle.SetfillOpacity(AIndex : Integer; const AValue : double);
 
 begin
   If (FfillOpacity=AValue) then exit;
@@ -1729,7 +1729,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeColor(AIndex : Integer; const AValue : String); 
+Procedure TPolygonStyle.SetstrokeColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FstrokeColor=AValue) then exit;
@@ -1739,7 +1739,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction); 
+Procedure TPolygonStyle.SetstrokeColorStyler(AIndex : Integer; const AValue : TStyleFunction);
 
 begin
   If (FstrokeColorStyler=AValue) then exit;
@@ -1749,7 +1749,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeOpacity(AIndex : Integer; const AValue : double); 
+Procedure TPolygonStyle.SetstrokeOpacity(AIndex : Integer; const AValue : double);
 
 begin
   If (FstrokeOpacity=AValue) then exit;
@@ -1759,7 +1759,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeWeight(AIndex : Integer; const AValue : integer); 
+Procedure TPolygonStyle.SetstrokeWeight(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstrokeWeight=AValue) then exit;
@@ -1769,7 +1769,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction); 
+Procedure TPolygonStyle.SetstrokeWeightStyler(AIndex : Integer; const AValue : TStyleFunction);
 
 begin
   If (FstrokeWeightStyler=AValue) then exit;
@@ -1786,7 +1786,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSqlresponse.Setcolumns(AIndex : Integer; const AValue : TStringArray); 
+Procedure TSqlresponse.Setcolumns(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -1796,7 +1796,7 @@ end;
 
 
 
-Procedure TSqlresponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSqlresponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1806,7 +1806,7 @@ end;
 
 
 
-Procedure TSqlresponse.Setrows(AIndex : Integer; const AValue : TSqlresponseTyperowsArray); 
+Procedure TSqlresponse.Setrows(AIndex : Integer; const AValue : TSqlresponseTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -1817,7 +1817,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSqlresponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSqlresponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1837,7 +1837,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleFunctionTypegradientTypecolorsItem.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TStyleFunctionTypegradientTypecolorsItem.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -1847,7 +1847,7 @@ end;
 
 
 
-Procedure TStyleFunctionTypegradientTypecolorsItem.Setopacity(AIndex : Integer; const AValue : double); 
+Procedure TStyleFunctionTypegradientTypecolorsItem.Setopacity(AIndex : Integer; const AValue : double);
 
 begin
   If (Fopacity=AValue) then exit;
@@ -1864,7 +1864,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleFunctionTypegradient.Setcolors(AIndex : Integer; const AValue : TStyleFunctionTypegradientTypecolorsArray); 
+Procedure TStyleFunctionTypegradient.Setcolors(AIndex : Integer; const AValue : TStyleFunctionTypegradientTypecolorsArray);
 
 begin
   If (Fcolors=AValue) then exit;
@@ -1874,7 +1874,7 @@ end;
 
 
 
-Procedure TStyleFunctionTypegradient.Setmax(AIndex : Integer; const AValue : double); 
+Procedure TStyleFunctionTypegradient.Setmax(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmax=AValue) then exit;
@@ -1884,7 +1884,7 @@ end;
 
 
 
-Procedure TStyleFunctionTypegradient.Setmin(AIndex : Integer; const AValue : double); 
+Procedure TStyleFunctionTypegradient.Setmin(AIndex : Integer; const AValue : double);
 
 begin
   If (Fmin=AValue) then exit;
@@ -1895,7 +1895,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStyleFunctionTypegradient.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStyleFunctionTypegradient.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1914,7 +1914,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleFunction.Setbuckets(AIndex : Integer; const AValue : TStyleFunctionTypebucketsArray); 
+Procedure TStyleFunction.Setbuckets(AIndex : Integer; const AValue : TStyleFunctionTypebucketsArray);
 
 begin
   If (Fbuckets=AValue) then exit;
@@ -1924,7 +1924,7 @@ end;
 
 
 
-Procedure TStyleFunction.SetcolumnName(AIndex : Integer; const AValue : String); 
+Procedure TStyleFunction.SetcolumnName(AIndex : Integer; const AValue : String);
 
 begin
   If (FcolumnName=AValue) then exit;
@@ -1934,7 +1934,7 @@ end;
 
 
 
-Procedure TStyleFunction.Setgradient(AIndex : Integer; const AValue : TStyleFunctionTypegradient); 
+Procedure TStyleFunction.Setgradient(AIndex : Integer; const AValue : TStyleFunctionTypegradient);
 
 begin
   If (Fgradient=AValue) then exit;
@@ -1944,7 +1944,7 @@ end;
 
 
 
-Procedure TStyleFunction.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TStyleFunction.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1955,7 +1955,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStyleFunction.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStyleFunction.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1974,7 +1974,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleSetting.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TStyleSetting.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1984,7 +1984,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetmarkerOptions(AIndex : Integer; const AValue : TPointStyle); 
+Procedure TStyleSetting.SetmarkerOptions(AIndex : Integer; const AValue : TPointStyle);
 
 begin
   If (FmarkerOptions=AValue) then exit;
@@ -1994,7 +1994,7 @@ end;
 
 
 
-Procedure TStyleSetting.Setname(AIndex : Integer; const AValue : String); 
+Procedure TStyleSetting.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2004,7 +2004,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetpolygonOptions(AIndex : Integer; const AValue : TPolygonStyle); 
+Procedure TStyleSetting.SetpolygonOptions(AIndex : Integer; const AValue : TPolygonStyle);
 
 begin
   If (FpolygonOptions=AValue) then exit;
@@ -2014,7 +2014,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetpolylineOptions(AIndex : Integer; const AValue : TLineStyle); 
+Procedure TStyleSetting.SetpolylineOptions(AIndex : Integer; const AValue : TLineStyle);
 
 begin
   If (FpolylineOptions=AValue) then exit;
@@ -2024,7 +2024,7 @@ end;
 
 
 
-Procedure TStyleSetting.SetstyleId(AIndex : Integer; const AValue : integer); 
+Procedure TStyleSetting.SetstyleId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstyleId=AValue) then exit;
@@ -2034,7 +2034,7 @@ end;
 
 
 
-Procedure TStyleSetting.SettableId(AIndex : Integer; const AValue : String); 
+Procedure TStyleSetting.SettableId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtableId=AValue) then exit;
@@ -2051,7 +2051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleSettingList.Setitems(AIndex : Integer; const AValue : TStyleSettingListTypeitemsArray); 
+Procedure TStyleSettingList.Setitems(AIndex : Integer; const AValue : TStyleSettingListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2061,7 +2061,7 @@ end;
 
 
 
-Procedure TStyleSettingList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TStyleSettingList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2071,7 +2071,7 @@ end;
 
 
 
-Procedure TStyleSettingList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TStyleSettingList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2081,7 +2081,7 @@ end;
 
 
 
-Procedure TStyleSettingList.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TStyleSettingList.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2092,7 +2092,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStyleSettingList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStyleSettingList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2111,7 +2111,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTable.Setattribution(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setattribution(AIndex : Integer; const AValue : String);
 
 begin
   If (Fattribution=AValue) then exit;
@@ -2121,7 +2121,7 @@ end;
 
 
 
-Procedure TTable.SetattributionLink(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetattributionLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FattributionLink=AValue) then exit;
@@ -2131,7 +2131,7 @@ end;
 
 
 
-Procedure TTable.SetbaseTableIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTable.SetbaseTableIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FbaseTableIds=AValue) then exit;
@@ -2141,7 +2141,7 @@ end;
 
 
 
-Procedure TTable.SetcolumnPropertiesJsonSchema(AIndex : Integer; const AValue : String); 
+Procedure TTable.SetcolumnPropertiesJsonSchema(AIndex : Integer; const AValue : String);
 
 begin
   If (FcolumnPropertiesJsonSchema=AValue) then exit;
@@ -2151,7 +2151,7 @@ end;
 
 
 
-Procedure TTable.Setcolumns(AIndex : Integer; const AValue : TTableTypecolumnsArray); 
+Procedure TTable.Setcolumns(AIndex : Integer; const AValue : TTableTypecolumnsArray);
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -2161,7 +2161,7 @@ end;
 
 
 
-Procedure TTable.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2171,7 +2171,7 @@ end;
 
 
 
-Procedure TTable.SetisExportable(AIndex : Integer; const AValue : boolean); 
+Procedure TTable.SetisExportable(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisExportable=AValue) then exit;
@@ -2181,7 +2181,7 @@ end;
 
 
 
-Procedure TTable.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2191,7 +2191,7 @@ end;
 
 
 
-Procedure TTable.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2201,7 +2201,7 @@ end;
 
 
 
-Procedure TTable.Setsql(AIndex : Integer; const AValue : String); 
+Procedure TTable.Setsql(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsql=AValue) then exit;
@@ -2211,7 +2211,7 @@ end;
 
 
 
-Procedure TTable.SettableId(AIndex : Integer; const AValue : String); 
+Procedure TTable.SettableId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtableId=AValue) then exit;
@@ -2221,7 +2221,7 @@ end;
 
 
 
-Procedure TTable.SettablePropertiesJson(AIndex : Integer; const AValue : String); 
+Procedure TTable.SettablePropertiesJson(AIndex : Integer; const AValue : String);
 
 begin
   If (FtablePropertiesJson=AValue) then exit;
@@ -2231,7 +2231,7 @@ end;
 
 
 
-Procedure TTable.SettablePropertiesJsonSchema(AIndex : Integer; const AValue : String); 
+Procedure TTable.SettablePropertiesJsonSchema(AIndex : Integer; const AValue : String);
 
 begin
   If (FtablePropertiesJsonSchema=AValue) then exit;
@@ -2242,7 +2242,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTable.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTable.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2262,7 +2262,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTableList.Setitems(AIndex : Integer; const AValue : TTableListTypeitemsArray); 
+Procedure TTableList.Setitems(AIndex : Integer; const AValue : TTableListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2272,7 +2272,7 @@ end;
 
 
 
-Procedure TTableList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTableList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2282,7 +2282,7 @@ end;
 
 
 
-Procedure TTableList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTableList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2293,7 +2293,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTableList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTableList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2312,7 +2312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTask.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2322,7 +2322,7 @@ end;
 
 
 
-Procedure TTask.Setprogress(AIndex : Integer; const AValue : String); 
+Procedure TTask.Setprogress(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprogress=AValue) then exit;
@@ -2332,7 +2332,7 @@ end;
 
 
 
-Procedure TTask.Setstarted(AIndex : Integer; const AValue : boolean); 
+Procedure TTask.Setstarted(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fstarted=AValue) then exit;
@@ -2342,7 +2342,7 @@ end;
 
 
 
-Procedure TTask.SettaskId(AIndex : Integer; const AValue : String); 
+Procedure TTask.SettaskId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtaskId=AValue) then exit;
@@ -2352,7 +2352,7 @@ end;
 
 
 
-Procedure TTask.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TTask.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -2380,7 +2380,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskList.Setitems(AIndex : Integer; const AValue : TTaskListTypeitemsArray); 
+Procedure TTaskList.Setitems(AIndex : Integer; const AValue : TTaskListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2390,7 +2390,7 @@ end;
 
 
 
-Procedure TTaskList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2400,7 +2400,7 @@ end;
 
 
 
-Procedure TTaskList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTaskList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2410,7 +2410,7 @@ end;
 
 
 
-Procedure TTaskList.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TTaskList.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2421,7 +2421,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTaskList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTaskList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2440,7 +2440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTemplate.SetautomaticColumnNames(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTemplate.SetautomaticColumnNames(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FautomaticColumnNames=AValue) then exit;
@@ -2450,7 +2450,7 @@ end;
 
 
 
-Procedure TTemplate.Setbody(AIndex : Integer; const AValue : String); 
+Procedure TTemplate.Setbody(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbody=AValue) then exit;
@@ -2460,7 +2460,7 @@ end;
 
 
 
-Procedure TTemplate.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTemplate.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2470,7 +2470,7 @@ end;
 
 
 
-Procedure TTemplate.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTemplate.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2480,7 +2480,7 @@ end;
 
 
 
-Procedure TTemplate.SettableId(AIndex : Integer; const AValue : String); 
+Procedure TTemplate.SettableId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtableId=AValue) then exit;
@@ -2490,7 +2490,7 @@ end;
 
 
 
-Procedure TTemplate.SettemplateId(AIndex : Integer; const AValue : integer); 
+Procedure TTemplate.SettemplateId(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtemplateId=AValue) then exit;
@@ -2501,7 +2501,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTemplate.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTemplate.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2520,7 +2520,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTemplateList.Setitems(AIndex : Integer; const AValue : TTemplateListTypeitemsArray); 
+Procedure TTemplateList.Setitems(AIndex : Integer; const AValue : TTemplateListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2530,7 +2530,7 @@ end;
 
 
 
-Procedure TTemplateList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTemplateList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2540,7 +2540,7 @@ end;
 
 
 
-Procedure TTemplateList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTemplateList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2550,7 +2550,7 @@ end;
 
 
 
-Procedure TTemplateList.SettotalItems(AIndex : Integer; const AValue : integer); 
+Procedure TTemplateList.SettotalItems(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2561,7 +2561,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTemplateList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTemplateList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -3454,7 +3454,7 @@ begin
   Result[0].Description:='Manage your Fusion Tables';
   Result[1].Name:='https://www.googleapis.com/auth/fusiontables.readonly';
   Result[1].Description:='View your Fusion Tables';
-  
+
 end;
 
 Class Function TFusiontablesAPI.APINeedsAuth : Boolean;

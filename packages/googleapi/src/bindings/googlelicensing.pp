@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TLicenseAssignment = Class;
   TLicenseAssignmentInsert = Class;
@@ -23,11 +23,11 @@ type
   TLicenseAssignmentListArray = Array of TLicenseAssignmentList;
   //Anonymous types, using auto-generated names
   TLicenseAssignmentListTypeitemsArray = Array of TLicenseAssignment;
-  
+
   { --------------------------------------------------------------------
     TLicenseAssignment
     --------------------------------------------------------------------}
-  
+
   TLicenseAssignment = Class(TGoogleBaseObject)
   Private
     Fetags : String;
@@ -54,11 +54,11 @@ type
     Property userId : String Index 40 Read FuserId Write SetuserId;
   end;
   TLicenseAssignmentClass = Class of TLicenseAssignment;
-  
+
   { --------------------------------------------------------------------
     TLicenseAssignmentInsert
     --------------------------------------------------------------------}
-  
+
   TLicenseAssignmentInsert = Class(TGoogleBaseObject)
   Private
     FuserId : String;
@@ -70,11 +70,11 @@ type
     Property userId : String Index 0 Read FuserId Write SetuserId;
   end;
   TLicenseAssignmentInsertClass = Class of TLicenseAssignmentInsert;
-  
+
   { --------------------------------------------------------------------
     TLicenseAssignmentList
     --------------------------------------------------------------------}
-  
+
   TLicenseAssignmentList = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -99,29 +99,29 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TLicenseAssignmentListClass = Class of TLicenseAssignmentList;
-  
+
   { --------------------------------------------------------------------
     TLicenseAssignmentsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLicenseAssignmentsResource, method ListForProduct
-  
+
   TLicenseAssignmentsListForProductOptions = Record
     customerId : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TLicenseAssignmentsResource, method ListForProductAndSku
-  
+
   TLicenseAssignmentsListForProductAndSkuOptions = Record
     customerId : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TLicenseAssignmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -136,12 +136,12 @@ type
     Function Patch(productId: string; skuId: string; userId: string; aLicenseAssignment : TLicenseAssignment) : TLicenseAssignment;
     Function Update(productId: string; skuId: string; userId: string; aLicenseAssignment : TLicenseAssignment) : TLicenseAssignment;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLicensingAPI
     --------------------------------------------------------------------}
-  
+
   TLicensingAPI = Class(TGoogleAPI)
   Private
     FLicenseAssignmentsInstance : TLicenseAssignmentsResource;
@@ -183,7 +183,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignment.Setetags(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignment.Setetags(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetags=AValue) then exit;
@@ -193,7 +193,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignment.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -203,7 +203,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetproductId(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignment.SetproductId(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductId=AValue) then exit;
@@ -213,7 +213,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetselfLink(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignment.SetselfLink(AIndex : Integer; const AValue : String);
 
 begin
   If (FselfLink=AValue) then exit;
@@ -223,7 +223,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetskuId(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignment.SetskuId(AIndex : Integer; const AValue : String);
 
 begin
   If (FskuId=AValue) then exit;
@@ -233,7 +233,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignment.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -250,7 +250,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignmentInsert.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignmentInsert.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -267,7 +267,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignmentList.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignmentList.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -277,7 +277,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.Setitems(AIndex : Integer; const AValue : TLicenseAssignmentListTypeitemsArray); 
+Procedure TLicenseAssignmentList.Setitems(AIndex : Integer; const AValue : TLicenseAssignmentListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -287,7 +287,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignmentList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -297,7 +297,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLicenseAssignmentList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -308,7 +308,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLicenseAssignmentList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLicenseAssignmentList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -586,7 +586,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/apps.licensing';
   Result[0].Description:='View and manage Google Apps licenses for your domain';
-  
+
 end;
 
 Class Function TLicensingAPI.APINeedsAuth : Boolean;

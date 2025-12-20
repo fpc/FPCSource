@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TLogUserEventRequest = Class;
   TRequestMetadata = Class;
@@ -76,11 +76,11 @@ type
   TCompanyTyperanksArray = Array of TRank;
   TCertificationStatusTypeexamStatusesArray = Array of TCertificationExamStatus;
   TListCompaniesResponseTypecompaniesArray = Array of TCompany;
-  
+
   { --------------------------------------------------------------------
     TLogUserEventRequest
     --------------------------------------------------------------------}
-  
+
   TLogUserEventRequest = Class(TGoogleBaseObject)
   Private
     FrequestMetadata : TRequestMetadata;
@@ -114,11 +114,11 @@ type
     Property lead : TLead Index 48 Read Flead Write Setlead;
   end;
   TLogUserEventRequestClass = Class of TLogUserEventRequest;
-  
+
   { --------------------------------------------------------------------
     TRequestMetadata
     --------------------------------------------------------------------}
-  
+
   TRequestMetadata = Class(TGoogleBaseObject)
   Private
     FuserOverrides : TUserOverrides;
@@ -146,11 +146,11 @@ type
     Property trafficSource : TTrafficSource Index 32 Read FtrafficSource Write SettrafficSource;
   end;
   TRequestMetadataClass = Class of TRequestMetadata;
-  
+
   { --------------------------------------------------------------------
     TUserOverrides
     --------------------------------------------------------------------}
-  
+
   TUserOverrides = Class(TGoogleBaseObject)
   Private
     FipAddress : String;
@@ -165,11 +165,11 @@ type
     Property userId : String Index 8 Read FuserId Write SetuserId;
   end;
   TUserOverridesClass = Class of TUserOverrides;
-  
+
   { --------------------------------------------------------------------
     TTrafficSource
     --------------------------------------------------------------------}
-  
+
   TTrafficSource = Class(TGoogleBaseObject)
   Private
     FtrafficSourceId : String;
@@ -184,11 +184,11 @@ type
     Property trafficSubId : String Index 8 Read FtrafficSubId Write SettrafficSubId;
   end;
   TTrafficSourceClass = Class of TTrafficSource;
-  
+
   { --------------------------------------------------------------------
     TEventData
     --------------------------------------------------------------------}
-  
+
   TEventData = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -207,11 +207,11 @@ type
     Property values : TStringArray Index 8 Read Fvalues Write Setvalues;
   end;
   TEventDataClass = Class of TEventData;
-  
+
   { --------------------------------------------------------------------
     TLead
     --------------------------------------------------------------------}
-  
+
   TLead = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -255,11 +255,11 @@ type
     Property minMonthlyBudget : TMoney Index 72 Read FminMonthlyBudget Write SetminMonthlyBudget;
   end;
   TLeadClass = Class of TLead;
-  
+
   { --------------------------------------------------------------------
     TMoney
     --------------------------------------------------------------------}
-  
+
   TMoney = Class(TGoogleBaseObject)
   Private
     FcurrencyCode : String;
@@ -277,11 +277,11 @@ type
     Property nanos : integer Index 16 Read Fnanos Write Setnanos;
   end;
   TMoneyClass = Class of TMoney;
-  
+
   { --------------------------------------------------------------------
     TLogUserEventResponse
     --------------------------------------------------------------------}
-  
+
   TLogUserEventResponse = Class(TGoogleBaseObject)
   Private
     FresponseMetadata : TResponseMetadata;
@@ -293,11 +293,11 @@ type
     Property responseMetadata : TResponseMetadata Index 0 Read FresponseMetadata Write SetresponseMetadata;
   end;
   TLogUserEventResponseClass = Class of TLogUserEventResponse;
-  
+
   { --------------------------------------------------------------------
     TResponseMetadata
     --------------------------------------------------------------------}
-  
+
   TResponseMetadata = Class(TGoogleBaseObject)
   Private
     FdebugInfo : TDebugInfo;
@@ -309,11 +309,11 @@ type
     Property debugInfo : TDebugInfo Index 0 Read FdebugInfo Write SetdebugInfo;
   end;
   TResponseMetadataClass = Class of TResponseMetadata;
-  
+
   { --------------------------------------------------------------------
     TDebugInfo
     --------------------------------------------------------------------}
-  
+
   TDebugInfo = Class(TGoogleBaseObject)
   Private
     FserverInfo : String;
@@ -331,11 +331,11 @@ type
     Property serverTraceInfo : String Index 16 Read FserverTraceInfo Write SetserverTraceInfo;
   end;
   TDebugInfoClass = Class of TDebugInfo;
-  
+
   { --------------------------------------------------------------------
     TLogMessageRequestTypeclientInfo
     --------------------------------------------------------------------}
-  
+
   TLogMessageRequestTypeclientInfo = Class(TGoogleBaseObject)
   Private
   Protected
@@ -345,11 +345,11 @@ type
   Published
   end;
   TLogMessageRequestTypeclientInfoClass = Class of TLogMessageRequestTypeclientInfo;
-  
+
   { --------------------------------------------------------------------
     TLogMessageRequest
     --------------------------------------------------------------------}
-  
+
   TLogMessageRequest = Class(TGoogleBaseObject)
   Private
     FrequestMetadata : TRequestMetadata;
@@ -370,11 +370,11 @@ type
     Property clientInfo : TLogMessageRequestTypeclientInfo Index 24 Read FclientInfo Write SetclientInfo;
   end;
   TLogMessageRequestClass = Class of TLogMessageRequest;
-  
+
   { --------------------------------------------------------------------
     TLogMessageResponse
     --------------------------------------------------------------------}
-  
+
   TLogMessageResponse = Class(TGoogleBaseObject)
   Private
     FresponseMetadata : TResponseMetadata;
@@ -386,11 +386,11 @@ type
     Property responseMetadata : TResponseMetadata Index 0 Read FresponseMetadata Write SetresponseMetadata;
   end;
   TLogMessageResponseClass = Class of TLogMessageResponse;
-  
+
   { --------------------------------------------------------------------
     TListUserStatesResponse
     --------------------------------------------------------------------}
-  
+
   TListUserStatesResponse = Class(TGoogleBaseObject)
   Private
     FresponseMetadata : TResponseMetadata;
@@ -409,11 +409,11 @@ type
     Property userStates : TStringArray Index 8 Read FuserStates Write SetuserStates;
   end;
   TListUserStatesResponseClass = Class of TListUserStatesResponse;
-  
+
   { --------------------------------------------------------------------
     TGetCompanyResponse
     --------------------------------------------------------------------}
-  
+
   TGetCompanyResponse = Class(TGoogleBaseObject)
   Private
     FresponseMetadata : TResponseMetadata;
@@ -428,11 +428,11 @@ type
     Property company : TCompany Index 8 Read Fcompany Write Setcompany;
   end;
   TGetCompanyResponseClass = Class of TGetCompanyResponse;
-  
+
   { --------------------------------------------------------------------
     TCompany
     --------------------------------------------------------------------}
-  
+
   TCompany = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -481,11 +481,11 @@ type
     Property services : TStringArray Index 88 Read Fservices Write Setservices;
   end;
   TCompanyClass = Class of TCompany;
-  
+
   { --------------------------------------------------------------------
     TLocalizedCompanyInfo
     --------------------------------------------------------------------}
-  
+
   TLocalizedCompanyInfo = Class(TGoogleBaseObject)
   Private
     FlanguageCode : String;
@@ -510,11 +510,11 @@ type
     Property countryCodes : TStringArray Index 24 Read FcountryCodes Write SetcountryCodes;
   end;
   TLocalizedCompanyInfoClass = Class of TLocalizedCompanyInfo;
-  
+
   { --------------------------------------------------------------------
     TLocation
     --------------------------------------------------------------------}
-  
+
   TLocation = Class(TGoogleBaseObject)
   Private
     Faddress : String;
@@ -529,11 +529,11 @@ type
     Property latLng : TLatLng Index 8 Read FlatLng Write SetlatLng;
   end;
   TLocationClass = Class of TLocation;
-  
+
   { --------------------------------------------------------------------
     TLatLng
     --------------------------------------------------------------------}
-  
+
   TLatLng = Class(TGoogleBaseObject)
   Private
     Flatitude : double;
@@ -548,11 +548,11 @@ type
     Property longitude : double Index 8 Read Flongitude Write Setlongitude;
   end;
   TLatLngClass = Class of TLatLng;
-  
+
   { --------------------------------------------------------------------
     TPublicProfile
     --------------------------------------------------------------------}
-  
+
   TPublicProfile = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -573,11 +573,11 @@ type
     Property displayImageUrl : String Index 24 Read FdisplayImageUrl Write SetdisplayImageUrl;
   end;
   TPublicProfileClass = Class of TPublicProfile;
-  
+
   { --------------------------------------------------------------------
     TCertificationStatus
     --------------------------------------------------------------------}
-  
+
   TCertificationStatus = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -600,11 +600,11 @@ type
     Property isCertified : boolean Index 16 Read FisCertified Write SetisCertified;
   end;
   TCertificationStatusClass = Class of TCertificationStatus;
-  
+
   { --------------------------------------------------------------------
     TCertificationExamStatus
     --------------------------------------------------------------------}
-  
+
   TCertificationExamStatus = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -620,11 +620,11 @@ type
     Property numberUsersPass : integer Index 8 Read FnumberUsersPass Write SetnumberUsersPass;
   end;
   TCertificationExamStatusClass = Class of TCertificationExamStatus;
-  
+
   { --------------------------------------------------------------------
     TRank
     --------------------------------------------------------------------}
-  
+
   TRank = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -640,11 +640,11 @@ type
     Property value : double Index 8 Read Fvalue Write Setvalue;
   end;
   TRankClass = Class of TRank;
-  
+
   { --------------------------------------------------------------------
     TListCompaniesResponse
     --------------------------------------------------------------------}
-  
+
   TListCompaniesResponse = Class(TGoogleBaseObject)
   Private
     FresponseMetadata : TResponseMetadata;
@@ -666,11 +666,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TListCompaniesResponseClass = Class of TListCompaniesResponse;
-  
+
   { --------------------------------------------------------------------
     TCreateLeadRequest
     --------------------------------------------------------------------}
-  
+
   TCreateLeadRequest = Class(TGoogleBaseObject)
   Private
     FrequestMetadata : TRequestMetadata;
@@ -688,11 +688,11 @@ type
     Property recaptchaChallenge : TRecaptchaChallenge Index 16 Read FrecaptchaChallenge Write SetrecaptchaChallenge;
   end;
   TCreateLeadRequestClass = Class of TCreateLeadRequest;
-  
+
   { --------------------------------------------------------------------
     TRecaptchaChallenge
     --------------------------------------------------------------------}
-  
+
   TRecaptchaChallenge = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -707,11 +707,11 @@ type
     Property response : String Index 8 Read Fresponse Write Setresponse;
   end;
   TRecaptchaChallengeClass = Class of TRecaptchaChallenge;
-  
+
   { --------------------------------------------------------------------
     TCreateLeadResponse
     --------------------------------------------------------------------}
-  
+
   TCreateLeadResponse = Class(TGoogleBaseObject)
   Private
     FresponseMetadata : TResponseMetadata;
@@ -729,38 +729,38 @@ type
     Property recaptchaStatus : String Index 16 Read FrecaptchaStatus Write SetrecaptchaStatus;
   end;
   TCreateLeadResponseClass = Class of TCreateLeadResponse;
-  
+
   { --------------------------------------------------------------------
     TUserEventsResource
     --------------------------------------------------------------------}
-  
+
   TUserEventsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Log(aLogUserEventRequest : TLogUserEventRequest) : TLogUserEventResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TClientMessagesResource
     --------------------------------------------------------------------}
-  
+
   TClientMessagesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Log(aLogMessageRequest : TLogMessageRequest) : TLogMessageResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUserStatesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUserStatesResource, method List
-  
+
   TUserStatesListOptions = Record
     requestMetadatauserOverridesipAddress : String;
     requestMetadatauserOverridesuserId : String;
@@ -770,7 +770,7 @@ type
     requestMetadatatrafficSourcetrafficSourceId : String;
     requestMetadatatrafficSourcetrafficSubId : String;
   end;
-  
+
   TUserStatesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -778,27 +778,27 @@ type
     Function List(AQuery : string  = '') : TListUserStatesResponse;
     Function List(AQuery : TUserStateslistOptions) : TListUserStatesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCompaniesLeadsResource
     --------------------------------------------------------------------}
-  
+
   TCompaniesLeadsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Create(companyId: string; aCreateLeadRequest : TCreateLeadRequest) : TCreateLeadResponse;overload;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCompaniesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCompaniesResource, method Get
-  
+
   TCompaniesGetOptions = Record
     requestMetadatauserOverridesipAddress : String;
     requestMetadatauserOverridesuserId : String;
@@ -812,10 +812,10 @@ type
     currencyCode : String;
     address : String;
   end;
-  
-  
+
+
   //Optional query Options for TCompaniesResource, method List
-  
+
   TCompaniesListOptions = Record
     requestMetadatauserOverridesipAddress : String;
     requestMetadatauserOverridesuserId : String;
@@ -842,7 +842,7 @@ type
     gpsMotivations : String;
     websiteUrl : String;
   end;
-  
+
   TCompaniesResource = Class(TGoogleResource)
   Private
     FLeadsInstance : TCompaniesLeadsResource;
@@ -858,12 +858,12 @@ type
     Function CreateLeadsResource : TCompaniesLeadsResource;virtual;overload;
     Property LeadsResource : TCompaniesLeadsResource Read GetLeadsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPartnersAPI
     --------------------------------------------------------------------}
-  
+
   TPartnersAPI = Class(TGoogleAPI)
   Private
     FUserEventsInstance : TUserEventsResource;
@@ -925,7 +925,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TLogUserEventRequest.SetrequestMetadata(AIndex : Integer; const AValue : TRequestMetadata); 
+Procedure TLogUserEventRequest.SetrequestMetadata(AIndex : Integer; const AValue : TRequestMetadata);
 
 begin
   If (FrequestMetadata=AValue) then exit;
@@ -935,7 +935,7 @@ end;
 
 
 
-Procedure TLogUserEventRequest.SeteventAction(AIndex : Integer; const AValue : String); 
+Procedure TLogUserEventRequest.SeteventAction(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventAction=AValue) then exit;
@@ -945,7 +945,7 @@ end;
 
 
 
-Procedure TLogUserEventRequest.SeteventCategory(AIndex : Integer; const AValue : String); 
+Procedure TLogUserEventRequest.SeteventCategory(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventCategory=AValue) then exit;
@@ -955,7 +955,7 @@ end;
 
 
 
-Procedure TLogUserEventRequest.SeteventScope(AIndex : Integer; const AValue : String); 
+Procedure TLogUserEventRequest.SeteventScope(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventScope=AValue) then exit;
@@ -965,7 +965,7 @@ end;
 
 
 
-Procedure TLogUserEventRequest.SeteventDatas(AIndex : Integer; const AValue : TLogUserEventRequestTypeeventDatasArray); 
+Procedure TLogUserEventRequest.SeteventDatas(AIndex : Integer; const AValue : TLogUserEventRequestTypeeventDatasArray);
 
 begin
   If (FeventDatas=AValue) then exit;
@@ -975,7 +975,7 @@ end;
 
 
 
-Procedure TLogUserEventRequest.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TLogUserEventRequest.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -985,7 +985,7 @@ end;
 
 
 
-Procedure TLogUserEventRequest.Setlead(AIndex : Integer; const AValue : TLead); 
+Procedure TLogUserEventRequest.Setlead(AIndex : Integer; const AValue : TLead);
 
 begin
   If (Flead=AValue) then exit;
@@ -996,7 +996,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLogUserEventRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLogUserEventRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1015,7 +1015,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRequestMetadata.SetuserOverrides(AIndex : Integer; const AValue : TUserOverrides); 
+Procedure TRequestMetadata.SetuserOverrides(AIndex : Integer; const AValue : TUserOverrides);
 
 begin
   If (FuserOverrides=AValue) then exit;
@@ -1025,7 +1025,7 @@ end;
 
 
 
-Procedure TRequestMetadata.Setlocale(AIndex : Integer; const AValue : String); 
+Procedure TRequestMetadata.Setlocale(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocale=AValue) then exit;
@@ -1035,7 +1035,7 @@ end;
 
 
 
-Procedure TRequestMetadata.SetpartnersSessionId(AIndex : Integer; const AValue : String); 
+Procedure TRequestMetadata.SetpartnersSessionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpartnersSessionId=AValue) then exit;
@@ -1045,7 +1045,7 @@ end;
 
 
 
-Procedure TRequestMetadata.SetexperimentIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRequestMetadata.SetexperimentIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FexperimentIds=AValue) then exit;
@@ -1055,7 +1055,7 @@ end;
 
 
 
-Procedure TRequestMetadata.SettrafficSource(AIndex : Integer; const AValue : TTrafficSource); 
+Procedure TRequestMetadata.SettrafficSource(AIndex : Integer; const AValue : TTrafficSource);
 
 begin
   If (FtrafficSource=AValue) then exit;
@@ -1066,7 +1066,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRequestMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRequestMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1085,7 +1085,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserOverrides.SetipAddress(AIndex : Integer; const AValue : String); 
+Procedure TUserOverrides.SetipAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FipAddress=AValue) then exit;
@@ -1095,7 +1095,7 @@ end;
 
 
 
-Procedure TUserOverrides.SetuserId(AIndex : Integer; const AValue : String); 
+Procedure TUserOverrides.SetuserId(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserId=AValue) then exit;
@@ -1112,7 +1112,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTrafficSource.SettrafficSourceId(AIndex : Integer; const AValue : String); 
+Procedure TTrafficSource.SettrafficSourceId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtrafficSourceId=AValue) then exit;
@@ -1122,7 +1122,7 @@ end;
 
 
 
-Procedure TTrafficSource.SettrafficSubId(AIndex : Integer; const AValue : String); 
+Procedure TTrafficSource.SettrafficSubId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtrafficSubId=AValue) then exit;
@@ -1139,7 +1139,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventData.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TEventData.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1149,7 +1149,7 @@ end;
 
 
 
-Procedure TEventData.Setvalues(AIndex : Integer; const AValue : TStringArray); 
+Procedure TEventData.Setvalues(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fvalues=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventData.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventData.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1179,7 +1179,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLead.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLead.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1189,7 +1189,7 @@ end;
 
 
 
-Procedure TLead.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TLead.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1199,7 +1199,7 @@ end;
 
 
 
-Procedure TLead.Setemail(AIndex : Integer; const AValue : String); 
+Procedure TLead.Setemail(AIndex : Integer; const AValue : String);
 
 begin
   If (Femail=AValue) then exit;
@@ -1209,7 +1209,7 @@ end;
 
 
 
-Procedure TLead.SetgivenName(AIndex : Integer; const AValue : String); 
+Procedure TLead.SetgivenName(AIndex : Integer; const AValue : String);
 
 begin
   If (FgivenName=AValue) then exit;
@@ -1219,7 +1219,7 @@ end;
 
 
 
-Procedure TLead.SetfamilyName(AIndex : Integer; const AValue : String); 
+Procedure TLead.SetfamilyName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -1229,7 +1229,7 @@ end;
 
 
 
-Procedure TLead.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
+Procedure TLead.SetwebsiteUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -1239,7 +1239,7 @@ end;
 
 
 
-Procedure TLead.SetphoneNumber(AIndex : Integer; const AValue : String); 
+Procedure TLead.SetphoneNumber(AIndex : Integer; const AValue : String);
 
 begin
   If (FphoneNumber=AValue) then exit;
@@ -1249,7 +1249,7 @@ end;
 
 
 
-Procedure TLead.Setcomments(AIndex : Integer; const AValue : String); 
+Procedure TLead.Setcomments(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcomments=AValue) then exit;
@@ -1259,7 +1259,7 @@ end;
 
 
 
-Procedure TLead.SetgpsMotivations(AIndex : Integer; const AValue : TStringArray); 
+Procedure TLead.SetgpsMotivations(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FgpsMotivations=AValue) then exit;
@@ -1269,7 +1269,7 @@ end;
 
 
 
-Procedure TLead.SetminMonthlyBudget(AIndex : Integer; const AValue : TMoney); 
+Procedure TLead.SetminMonthlyBudget(AIndex : Integer; const AValue : TMoney);
 
 begin
   If (FminMonthlyBudget=AValue) then exit;
@@ -1291,7 +1291,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLead.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLead.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1310,7 +1310,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMoney.SetcurrencyCode(AIndex : Integer; const AValue : String); 
+Procedure TMoney.SetcurrencyCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -1320,7 +1320,7 @@ end;
 
 
 
-Procedure TMoney.Setunits(AIndex : Integer; const AValue : String); 
+Procedure TMoney.Setunits(AIndex : Integer; const AValue : String);
 
 begin
   If (Funits=AValue) then exit;
@@ -1330,7 +1330,7 @@ end;
 
 
 
-Procedure TMoney.Setnanos(AIndex : Integer; const AValue : integer); 
+Procedure TMoney.Setnanos(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fnanos=AValue) then exit;
@@ -1347,7 +1347,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogUserEventResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata); 
+Procedure TLogUserEventResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata);
 
 begin
   If (FresponseMetadata=AValue) then exit;
@@ -1364,7 +1364,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResponseMetadata.SetdebugInfo(AIndex : Integer; const AValue : TDebugInfo); 
+Procedure TResponseMetadata.SetdebugInfo(AIndex : Integer; const AValue : TDebugInfo);
 
 begin
   If (FdebugInfo=AValue) then exit;
@@ -1381,7 +1381,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDebugInfo.SetserverInfo(AIndex : Integer; const AValue : String); 
+Procedure TDebugInfo.SetserverInfo(AIndex : Integer; const AValue : String);
 
 begin
   If (FserverInfo=AValue) then exit;
@@ -1391,7 +1391,7 @@ end;
 
 
 
-Procedure TDebugInfo.SetserviceUrl(AIndex : Integer; const AValue : String); 
+Procedure TDebugInfo.SetserviceUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FserviceUrl=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
 
 
 
-Procedure TDebugInfo.SetserverTraceInfo(AIndex : Integer; const AValue : String); 
+Procedure TDebugInfo.SetserverTraceInfo(AIndex : Integer; const AValue : String);
 
 begin
   If (FserverTraceInfo=AValue) then exit;
@@ -1431,7 +1431,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogMessageRequest.SetrequestMetadata(AIndex : Integer; const AValue : TRequestMetadata); 
+Procedure TLogMessageRequest.SetrequestMetadata(AIndex : Integer; const AValue : TRequestMetadata);
 
 begin
   If (FrequestMetadata=AValue) then exit;
@@ -1441,7 +1441,7 @@ end;
 
 
 
-Procedure TLogMessageRequest.Setlevel(AIndex : Integer; const AValue : String); 
+Procedure TLogMessageRequest.Setlevel(AIndex : Integer; const AValue : String);
 
 begin
   If (Flevel=AValue) then exit;
@@ -1451,7 +1451,7 @@ end;
 
 
 
-Procedure TLogMessageRequest.Setdetails(AIndex : Integer; const AValue : String); 
+Procedure TLogMessageRequest.Setdetails(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1461,7 +1461,7 @@ end;
 
 
 
-Procedure TLogMessageRequest.SetclientInfo(AIndex : Integer; const AValue : TLogMessageRequestTypeclientInfo); 
+Procedure TLogMessageRequest.SetclientInfo(AIndex : Integer; const AValue : TLogMessageRequestTypeclientInfo);
 
 begin
   If (FclientInfo=AValue) then exit;
@@ -1478,7 +1478,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogMessageResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata); 
+Procedure TLogMessageResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata);
 
 begin
   If (FresponseMetadata=AValue) then exit;
@@ -1495,7 +1495,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListUserStatesResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata); 
+Procedure TListUserStatesResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata);
 
 begin
   If (FresponseMetadata=AValue) then exit;
@@ -1505,7 +1505,7 @@ end;
 
 
 
-Procedure TListUserStatesResponse.SetuserStates(AIndex : Integer; const AValue : TStringArray); 
+Procedure TListUserStatesResponse.SetuserStates(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FuserStates=AValue) then exit;
@@ -1516,7 +1516,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListUserStatesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListUserStatesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1535,7 +1535,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGetCompanyResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata); 
+Procedure TGetCompanyResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata);
 
 begin
   If (FresponseMetadata=AValue) then exit;
@@ -1545,7 +1545,7 @@ end;
 
 
 
-Procedure TGetCompanyResponse.Setcompany(AIndex : Integer; const AValue : TCompany); 
+Procedure TGetCompanyResponse.Setcompany(AIndex : Integer; const AValue : TCompany);
 
 begin
   If (Fcompany=AValue) then exit;
@@ -1562,7 +1562,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCompany.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCompany.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1572,7 +1572,7 @@ end;
 
 
 
-Procedure TCompany.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCompany.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1582,7 +1582,7 @@ end;
 
 
 
-Procedure TCompany.SetlocalizedInfos(AIndex : Integer; const AValue : TCompanyTypelocalizedInfosArray); 
+Procedure TCompany.SetlocalizedInfos(AIndex : Integer; const AValue : TCompanyTypelocalizedInfosArray);
 
 begin
   If (FlocalizedInfos=AValue) then exit;
@@ -1592,7 +1592,7 @@ end;
 
 
 
-Procedure TCompany.Setlocations(AIndex : Integer; const AValue : TCompanyTypelocationsArray); 
+Procedure TCompany.Setlocations(AIndex : Integer; const AValue : TCompanyTypelocationsArray);
 
 begin
   If (Flocations=AValue) then exit;
@@ -1602,7 +1602,7 @@ end;
 
 
 
-Procedure TCompany.SetconvertedMinMonthlyBudget(AIndex : Integer; const AValue : TMoney); 
+Procedure TCompany.SetconvertedMinMonthlyBudget(AIndex : Integer; const AValue : TMoney);
 
 begin
   If (FconvertedMinMonthlyBudget=AValue) then exit;
@@ -1612,7 +1612,7 @@ end;
 
 
 
-Procedure TCompany.SetoriginalMinMonthlyBudget(AIndex : Integer; const AValue : TMoney); 
+Procedure TCompany.SetoriginalMinMonthlyBudget(AIndex : Integer; const AValue : TMoney);
 
 begin
   If (ForiginalMinMonthlyBudget=AValue) then exit;
@@ -1622,7 +1622,7 @@ end;
 
 
 
-Procedure TCompany.SetpublicProfile(AIndex : Integer; const AValue : TPublicProfile); 
+Procedure TCompany.SetpublicProfile(AIndex : Integer; const AValue : TPublicProfile);
 
 begin
   If (FpublicProfile=AValue) then exit;
@@ -1632,7 +1632,7 @@ end;
 
 
 
-Procedure TCompany.SetcertificationStatuses(AIndex : Integer; const AValue : TCompanyTypecertificationStatusesArray); 
+Procedure TCompany.SetcertificationStatuses(AIndex : Integer; const AValue : TCompanyTypecertificationStatusesArray);
 
 begin
   If (FcertificationStatuses=AValue) then exit;
@@ -1642,7 +1642,7 @@ end;
 
 
 
-Procedure TCompany.Setranks(AIndex : Integer; const AValue : TCompanyTyperanksArray); 
+Procedure TCompany.Setranks(AIndex : Integer; const AValue : TCompanyTyperanksArray);
 
 begin
   If (Franks=AValue) then exit;
@@ -1652,7 +1652,7 @@ end;
 
 
 
-Procedure TCompany.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
+Procedure TCompany.SetwebsiteUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -1662,7 +1662,7 @@ end;
 
 
 
-Procedure TCompany.Setindustries(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCompany.Setindustries(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Findustries=AValue) then exit;
@@ -1672,7 +1672,7 @@ end;
 
 
 
-Procedure TCompany.Setservices(AIndex : Integer; const AValue : TStringArray); 
+Procedure TCompany.Setservices(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fservices=AValue) then exit;
@@ -1683,7 +1683,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCompany.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCompany.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1707,7 +1707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedCompanyInfo.SetlanguageCode(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedCompanyInfo.SetlanguageCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FlanguageCode=AValue) then exit;
@@ -1717,7 +1717,7 @@ end;
 
 
 
-Procedure TLocalizedCompanyInfo.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedCompanyInfo.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1727,7 +1727,7 @@ end;
 
 
 
-Procedure TLocalizedCompanyInfo.Setoverview(AIndex : Integer; const AValue : String); 
+Procedure TLocalizedCompanyInfo.Setoverview(AIndex : Integer; const AValue : String);
 
 begin
   If (Foverview=AValue) then exit;
@@ -1737,7 +1737,7 @@ end;
 
 
 
-Procedure TLocalizedCompanyInfo.SetcountryCodes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TLocalizedCompanyInfo.SetcountryCodes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcountryCodes=AValue) then exit;
@@ -1748,7 +1748,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLocalizedCompanyInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLocalizedCompanyInfo.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1767,7 +1767,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocation.Setaddress(AIndex : Integer; const AValue : String); 
+Procedure TLocation.Setaddress(AIndex : Integer; const AValue : String);
 
 begin
   If (Faddress=AValue) then exit;
@@ -1777,7 +1777,7 @@ end;
 
 
 
-Procedure TLocation.SetlatLng(AIndex : Integer; const AValue : TLatLng); 
+Procedure TLocation.SetlatLng(AIndex : Integer; const AValue : TLatLng);
 
 begin
   If (FlatLng=AValue) then exit;
@@ -1794,7 +1794,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1804,7 +1804,7 @@ end;
 
 
 
-Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1821,7 +1821,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublicProfile.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPublicProfile.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1831,7 +1831,7 @@ end;
 
 
 
-Procedure TPublicProfile.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TPublicProfile.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1841,7 +1841,7 @@ end;
 
 
 
-Procedure TPublicProfile.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TPublicProfile.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1851,7 +1851,7 @@ end;
 
 
 
-Procedure TPublicProfile.SetdisplayImageUrl(AIndex : Integer; const AValue : String); 
+Procedure TPublicProfile.SetdisplayImageUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayImageUrl=AValue) then exit;
@@ -1868,7 +1868,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCertificationStatus.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCertificationStatus.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1878,7 +1878,7 @@ end;
 
 
 
-Procedure TCertificationStatus.SetexamStatuses(AIndex : Integer; const AValue : TCertificationStatusTypeexamStatusesArray); 
+Procedure TCertificationStatus.SetexamStatuses(AIndex : Integer; const AValue : TCertificationStatusTypeexamStatusesArray);
 
 begin
   If (FexamStatuses=AValue) then exit;
@@ -1888,7 +1888,7 @@ end;
 
 
 
-Procedure TCertificationStatus.SetisCertified(AIndex : Integer; const AValue : boolean); 
+Procedure TCertificationStatus.SetisCertified(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisCertified=AValue) then exit;
@@ -1910,7 +1910,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCertificationStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCertificationStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1929,7 +1929,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCertificationExamStatus.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TCertificationExamStatus.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1939,7 +1939,7 @@ end;
 
 
 
-Procedure TCertificationExamStatus.SetnumberUsersPass(AIndex : Integer; const AValue : integer); 
+Procedure TCertificationExamStatus.SetnumberUsersPass(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumberUsersPass=AValue) then exit;
@@ -1967,7 +1967,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRank.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TRank.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1977,7 +1977,7 @@ end;
 
 
 
-Procedure TRank.Setvalue(AIndex : Integer; const AValue : double); 
+Procedure TRank.Setvalue(AIndex : Integer; const AValue : double);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCompaniesResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata); 
+Procedure TListCompaniesResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata);
 
 begin
   If (FresponseMetadata=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure TListCompaniesResponse.Setcompanies(AIndex : Integer; const AValue : TListCompaniesResponseTypecompaniesArray); 
+Procedure TListCompaniesResponse.Setcompanies(AIndex : Integer; const AValue : TListCompaniesResponseTypecompaniesArray);
 
 begin
   If (Fcompanies=AValue) then exit;
@@ -2025,7 +2025,7 @@ end;
 
 
 
-Procedure TListCompaniesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListCompaniesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2036,7 +2036,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListCompaniesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListCompaniesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2055,7 +2055,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateLeadRequest.SetrequestMetadata(AIndex : Integer; const AValue : TRequestMetadata); 
+Procedure TCreateLeadRequest.SetrequestMetadata(AIndex : Integer; const AValue : TRequestMetadata);
 
 begin
   If (FrequestMetadata=AValue) then exit;
@@ -2065,7 +2065,7 @@ end;
 
 
 
-Procedure TCreateLeadRequest.Setlead(AIndex : Integer; const AValue : TLead); 
+Procedure TCreateLeadRequest.Setlead(AIndex : Integer; const AValue : TLead);
 
 begin
   If (Flead=AValue) then exit;
@@ -2075,7 +2075,7 @@ end;
 
 
 
-Procedure TCreateLeadRequest.SetrecaptchaChallenge(AIndex : Integer; const AValue : TRecaptchaChallenge); 
+Procedure TCreateLeadRequest.SetrecaptchaChallenge(AIndex : Integer; const AValue : TRecaptchaChallenge);
 
 begin
   If (FrecaptchaChallenge=AValue) then exit;
@@ -2092,7 +2092,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRecaptchaChallenge.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRecaptchaChallenge.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2102,7 +2102,7 @@ end;
 
 
 
-Procedure TRecaptchaChallenge.Setresponse(AIndex : Integer; const AValue : String); 
+Procedure TRecaptchaChallenge.Setresponse(AIndex : Integer; const AValue : String);
 
 begin
   If (Fresponse=AValue) then exit;
@@ -2119,7 +2119,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateLeadResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata); 
+Procedure TCreateLeadResponse.SetresponseMetadata(AIndex : Integer; const AValue : TResponseMetadata);
 
 begin
   If (FresponseMetadata=AValue) then exit;
@@ -2129,7 +2129,7 @@ end;
 
 
 
-Procedure TCreateLeadResponse.Setlead(AIndex : Integer; const AValue : TLead); 
+Procedure TCreateLeadResponse.Setlead(AIndex : Integer; const AValue : TLead);
 
 begin
   If (Flead=AValue) then exit;
@@ -2139,7 +2139,7 @@ end;
 
 
 
-Procedure TCreateLeadResponse.SetrecaptchaStatus(AIndex : Integer; const AValue : String); 
+Procedure TCreateLeadResponse.SetrecaptchaStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FrecaptchaStatus=AValue) then exit;
@@ -2529,7 +2529,7 @@ Class Function TPartnersAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TPartnersAPI.APINeedsAuth : Boolean;

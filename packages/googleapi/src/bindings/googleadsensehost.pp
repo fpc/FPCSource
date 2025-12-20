@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAccount = Class;
   TAccounts = Class;
@@ -57,11 +57,11 @@ type
   TReportTypeheadersArray = Array of TReportTypeheadersItem;
   TReportTyperowsArray = Array of TStringArray;
   TUrlChannelsTypeitemsArray = Array of TUrlChannel;
-  
+
   { --------------------------------------------------------------------
     TAccount
     --------------------------------------------------------------------}
-  
+
   TAccount = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -82,11 +82,11 @@ type
     Property status : String Index 24 Read Fstatus Write Setstatus;
   end;
   TAccountClass = Class of TAccount;
-  
+
   { --------------------------------------------------------------------
     TAccounts
     --------------------------------------------------------------------}
-  
+
   TAccounts = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -108,11 +108,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TAccountsClass = Class of TAccounts;
-  
+
   { --------------------------------------------------------------------
     TAdClient
     --------------------------------------------------------------------}
-  
+
   TAdClient = Class(TGoogleBaseObject)
   Private
     FarcOptIn : boolean;
@@ -136,11 +136,11 @@ type
     Property supportsReporting : boolean Index 32 Read FsupportsReporting Write SetsupportsReporting;
   end;
   TAdClientClass = Class of TAdClient;
-  
+
   { --------------------------------------------------------------------
     TAdClients
     --------------------------------------------------------------------}
-  
+
   TAdClients = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -165,11 +165,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAdClientsClass = Class of TAdClients;
-  
+
   { --------------------------------------------------------------------
     TAdCode
     --------------------------------------------------------------------}
-  
+
   TAdCode = Class(TGoogleBaseObject)
   Private
     FadCode : String;
@@ -184,11 +184,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAdCodeClass = Class of TAdCode;
-  
+
   { --------------------------------------------------------------------
     TAdStyleTypecolors
     --------------------------------------------------------------------}
-  
+
   TAdStyleTypecolors = Class(TGoogleBaseObject)
   Private
     Fbackground : String;
@@ -212,11 +212,11 @@ type
     Property url : String Index 32 Read Furl Write Seturl;
   end;
   TAdStyleTypecolorsClass = Class of TAdStyleTypecolors;
-  
+
   { --------------------------------------------------------------------
     TAdStyleTypefont
     --------------------------------------------------------------------}
-  
+
   TAdStyleTypefont = Class(TGoogleBaseObject)
   Private
     Ffamily : String;
@@ -231,11 +231,11 @@ type
     Property size : String Index 8 Read Fsize Write Setsize;
   end;
   TAdStyleTypefontClass = Class of TAdStyleTypefont;
-  
+
   { --------------------------------------------------------------------
     TAdStyle
     --------------------------------------------------------------------}
-  
+
   TAdStyle = Class(TGoogleBaseObject)
   Private
     Fcolors : TAdStyleTypecolors;
@@ -256,11 +256,11 @@ type
     Property kind : String Index 24 Read Fkind Write Setkind;
   end;
   TAdStyleClass = Class of TAdStyle;
-  
+
   { --------------------------------------------------------------------
     TAdUnitTypecontentAdsSettingsTypebackupOption
     --------------------------------------------------------------------}
-  
+
   TAdUnitTypecontentAdsSettingsTypebackupOption = Class(TGoogleBaseObject)
   Private
     Fcolor : String;
@@ -279,11 +279,11 @@ type
     Property url : String Index 16 Read Furl Write Seturl;
   end;
   TAdUnitTypecontentAdsSettingsTypebackupOptionClass = Class of TAdUnitTypecontentAdsSettingsTypebackupOption;
-  
+
   { --------------------------------------------------------------------
     TAdUnitTypecontentAdsSettings
     --------------------------------------------------------------------}
-  
+
   TAdUnitTypecontentAdsSettings = Class(TGoogleBaseObject)
   Private
     FbackupOption : TAdUnitTypecontentAdsSettingsTypebackupOption;
@@ -302,11 +302,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TAdUnitTypecontentAdsSettingsClass = Class of TAdUnitTypecontentAdsSettings;
-  
+
   { --------------------------------------------------------------------
     TAdUnitTypemobileContentAdsSettings
     --------------------------------------------------------------------}
-  
+
   TAdUnitTypemobileContentAdsSettings = Class(TGoogleBaseObject)
   Private
     FmarkupLanguage : String;
@@ -328,11 +328,11 @@ type
     Property _type : String Index 24 Read F_type Write Set_type;
   end;
   TAdUnitTypemobileContentAdsSettingsClass = Class of TAdUnitTypemobileContentAdsSettings;
-  
+
   { --------------------------------------------------------------------
     TAdUnit
     --------------------------------------------------------------------}
-  
+
   TAdUnit = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -365,11 +365,11 @@ type
     Property status : String Index 56 Read Fstatus Write Setstatus;
   end;
   TAdUnitClass = Class of TAdUnit;
-  
+
   { --------------------------------------------------------------------
     TAdUnits
     --------------------------------------------------------------------}
-  
+
   TAdUnits = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -394,11 +394,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TAdUnitsClass = Class of TAdUnits;
-  
+
   { --------------------------------------------------------------------
     TAssociationSession
     --------------------------------------------------------------------}
-  
+
   TAssociationSession = Class(TGoogleBaseObject)
   Private
     FaccountId : String;
@@ -438,11 +438,11 @@ type
     Property websiteUrl : String Index 64 Read FwebsiteUrl Write SetwebsiteUrl;
   end;
   TAssociationSessionClass = Class of TAssociationSession;
-  
+
   { --------------------------------------------------------------------
     TCustomChannel
     --------------------------------------------------------------------}
-  
+
   TCustomChannel = Class(TGoogleBaseObject)
   Private
     Fcode : String;
@@ -463,11 +463,11 @@ type
     Property name : String Index 24 Read Fname Write Setname;
   end;
   TCustomChannelClass = Class of TCustomChannel;
-  
+
   { --------------------------------------------------------------------
     TCustomChannels
     --------------------------------------------------------------------}
-  
+
   TCustomChannels = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -492,11 +492,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TCustomChannelsClass = Class of TCustomChannels;
-  
+
   { --------------------------------------------------------------------
     TReportTypeheadersItem
     --------------------------------------------------------------------}
-  
+
   TReportTypeheadersItem = Class(TGoogleBaseObject)
   Private
     Fcurrency : String;
@@ -515,11 +515,11 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TReportTypeheadersItemClass = Class of TReportTypeheadersItem;
-  
+
   { --------------------------------------------------------------------
     TReport
     --------------------------------------------------------------------}
-  
+
   TReport = Class(TGoogleBaseObject)
   Private
     Faverages : TStringArray;
@@ -553,11 +553,11 @@ type
     Property warnings : TStringArray Index 48 Read Fwarnings Write Setwarnings;
   end;
   TReportClass = Class of TReport;
-  
+
   { --------------------------------------------------------------------
     TUrlChannel
     --------------------------------------------------------------------}
-  
+
   TUrlChannel = Class(TGoogleBaseObject)
   Private
     Fid : String;
@@ -575,11 +575,11 @@ type
     Property urlPattern : String Index 16 Read FurlPattern Write SeturlPattern;
   end;
   TUrlChannelClass = Class of TUrlChannel;
-  
+
   { --------------------------------------------------------------------
     TUrlChannels
     --------------------------------------------------------------------}
-  
+
   TUrlChannels = Class(TGoogleBaseObject)
   Private
     Fetag : String;
@@ -604,19 +604,19 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TUrlChannelsClass = Class of TUrlChannels;
-  
+
   { --------------------------------------------------------------------
     TAccountsAdclientsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsAdclientsResource, method List
-  
+
   TAccountsAdclientsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAccountsAdclientsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -625,35 +625,35 @@ type
     Function List(accountId: string; AQuery : string  = '') : TAdClients;
     Function List(accountId: string; AQuery : TAccountsAdclientslistOptions) : TAdClients;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsAdunitsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsAdunitsResource, method GetAdCode
-  
+
   TAccountsAdunitsGetAdCodeOptions = Record
     hostCustomChannelId : String;
   end;
-  
-  
+
+
   //Optional query Options for TAccountsAdunitsResource, method List
-  
+
   TAccountsAdunitsListOptions = Record
     includeInactive : boolean;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TAccountsAdunitsResource, method Patch
-  
+
   TAccountsAdunitsPatchOptions = Record
     adUnitId : String;
   end;
-  
+
   TAccountsAdunitsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -669,15 +669,15 @@ type
     Function Patch(accountId: string; adClientId: string; aAdUnit : TAdUnit; AQuery : TAccountsAdunitspatchOptions) : TAdUnit;
     Function Update(accountId: string; adClientId: string; aAdUnit : TAdUnit) : TAdUnit;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsReportsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsReportsResource, method Generate
-  
+
   TAccountsReportsGenerateOptions = Record
     dimension : String;
     endDate : String;
@@ -689,7 +689,7 @@ type
     startDate : String;
     startIndex : integer;
   end;
-  
+
   TAccountsReportsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -697,19 +697,19 @@ type
     Function Generate(accountId: string; AQuery : string  = '') : TReport;
     Function Generate(accountId: string; AQuery : TAccountsReportsgenerateOptions) : TReport;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAccountsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAccountsResource, method List
-  
+
   TAccountsListOptions = Record
     filterAdClientId : String;
   end;
-  
+
   TAccountsResource = Class(TGoogleResource)
   Private
     FAdclientsInstance : TAccountsAdclientsResource;
@@ -734,20 +734,20 @@ type
     Property AdunitsResource : TAccountsAdunitsResource Read GetAdunitsInstance;
     Property ReportsResource : TAccountsReportsResource Read GetReportsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAdclientsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAdclientsResource, method List
-  
+
   TAdclientsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAdclientsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -756,29 +756,29 @@ type
     Function List(AQuery : string  = '') : TAdClients;
     Function List(AQuery : TAdclientslistOptions) : TAdClients;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAssociationsessionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAssociationsessionsResource, method Start
-  
+
   TAssociationsessionsStartOptions = Record
     productCode : String;
     userLocale : String;
     websiteLocale : String;
     websiteUrl : String;
   end;
-  
-  
+
+
   //Optional query Options for TAssociationsessionsResource, method Verify
-  
+
   TAssociationsessionsVerifyOptions = Record
     token : String;
   end;
-  
+
   TAssociationsessionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -788,27 +788,27 @@ type
     Function Verify(AQuery : string  = '') : TAssociationSession;
     Function Verify(AQuery : TAssociationsessionsverifyOptions) : TAssociationSession;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TCustomchannelsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TCustomchannelsResource, method List
-  
+
   TCustomchannelsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TCustomchannelsResource, method Patch
-  
+
   TCustomchannelsPatchOptions = Record
     customChannelId : String;
   end;
-  
+
   TCustomchannelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -822,15 +822,15 @@ type
     Function Patch(adClientId: string; aCustomChannel : TCustomChannel; AQuery : TCustomchannelspatchOptions) : TCustomChannel;
     Function Update(adClientId: string; aCustomChannel : TCustomChannel) : TCustomChannel;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TReportsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TReportsResource, method Generate
-  
+
   TReportsGenerateOptions = Record
     dimension : String;
     endDate : String;
@@ -842,7 +842,7 @@ type
     startDate : String;
     startIndex : integer;
   end;
-  
+
   TReportsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -850,20 +850,20 @@ type
     Function Generate(AQuery : string  = '') : TReport;
     Function Generate(AQuery : TReportsgenerateOptions) : TReport;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TUrlchannelsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TUrlchannelsResource, method List
-  
+
   TUrlchannelsListOptions = Record
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TUrlchannelsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -873,12 +873,12 @@ type
     Function List(adClientId: string; AQuery : string  = '') : TUrlChannels;
     Function List(adClientId: string; AQuery : TUrlchannelslistOptions) : TUrlChannels;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAdsensehostAPI
     --------------------------------------------------------------------}
-  
+
   TAdsensehostAPI = Class(TGoogleAPI)
   Private
     FAccountsAdclientsInstance : TAccountsAdclientsResource;
@@ -960,7 +960,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -970,7 +970,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -980,7 +980,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -990,7 +990,7 @@ end;
 
 
 
-Procedure TAccount.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TAccount.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1007,7 +1007,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounts.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAccounts.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1017,7 +1017,7 @@ end;
 
 
 
-Procedure TAccounts.Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray); 
+Procedure TAccounts.Setitems(AIndex : Integer; const AValue : TAccountsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1027,7 +1027,7 @@ end;
 
 
 
-Procedure TAccounts.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAccounts.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1038,7 +1038,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAccounts.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAccounts.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1057,7 +1057,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClient.SetarcOptIn(AIndex : Integer; const AValue : boolean); 
+Procedure TAdClient.SetarcOptIn(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FarcOptIn=AValue) then exit;
@@ -1067,7 +1067,7 @@ end;
 
 
 
-Procedure TAdClient.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAdClient.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1077,7 +1077,7 @@ end;
 
 
 
-Procedure TAdClient.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdClient.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1087,7 +1087,7 @@ end;
 
 
 
-Procedure TAdClient.SetproductCode(AIndex : Integer; const AValue : String); 
+Procedure TAdClient.SetproductCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FproductCode=AValue) then exit;
@@ -1097,7 +1097,7 @@ end;
 
 
 
-Procedure TAdClient.SetsupportsReporting(AIndex : Integer; const AValue : boolean); 
+Procedure TAdClient.SetsupportsReporting(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportsReporting=AValue) then exit;
@@ -1114,7 +1114,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClients.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAdClients.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1124,7 +1124,7 @@ end;
 
 
 
-Procedure TAdClients.Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray); 
+Procedure TAdClients.Setitems(AIndex : Integer; const AValue : TAdClientsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1134,7 +1134,7 @@ end;
 
 
 
-Procedure TAdClients.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdClients.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1144,7 +1144,7 @@ end;
 
 
 
-Procedure TAdClients.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAdClients.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1155,7 +1155,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAdClients.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAdClients.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1174,7 +1174,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdCode.SetadCode(AIndex : Integer; const AValue : String); 
+Procedure TAdCode.SetadCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FadCode=AValue) then exit;
@@ -1184,7 +1184,7 @@ end;
 
 
 
-Procedure TAdCode.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdCode.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1201,7 +1201,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdStyleTypecolors.Setbackground(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypecolors.Setbackground(AIndex : Integer; const AValue : String);
 
 begin
   If (Fbackground=AValue) then exit;
@@ -1211,7 +1211,7 @@ end;
 
 
 
-Procedure TAdStyleTypecolors.Setborder(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypecolors.Setborder(AIndex : Integer; const AValue : String);
 
 begin
   If (Fborder=AValue) then exit;
@@ -1221,7 +1221,7 @@ end;
 
 
 
-Procedure TAdStyleTypecolors.Settext(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypecolors.Settext(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftext=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
 
 
 
-Procedure TAdStyleTypecolors.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypecolors.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TAdStyleTypecolors.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypecolors.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1258,7 +1258,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdStyleTypefont.Setfamily(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypefont.Setfamily(AIndex : Integer; const AValue : String);
 
 begin
   If (Ffamily=AValue) then exit;
@@ -1268,7 +1268,7 @@ end;
 
 
 
-Procedure TAdStyleTypefont.Setsize(AIndex : Integer; const AValue : String); 
+Procedure TAdStyleTypefont.Setsize(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsize=AValue) then exit;
@@ -1285,7 +1285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdStyle.Setcolors(AIndex : Integer; const AValue : TAdStyleTypecolors); 
+Procedure TAdStyle.Setcolors(AIndex : Integer; const AValue : TAdStyleTypecolors);
 
 begin
   If (Fcolors=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 
 
-Procedure TAdStyle.Setcorners(AIndex : Integer; const AValue : String); 
+Procedure TAdStyle.Setcorners(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcorners=AValue) then exit;
@@ -1305,7 +1305,7 @@ end;
 
 
 
-Procedure TAdStyle.Setfont(AIndex : Integer; const AValue : TAdStyleTypefont); 
+Procedure TAdStyle.Setfont(AIndex : Integer; const AValue : TAdStyleTypefont);
 
 begin
   If (Ffont=AValue) then exit;
@@ -1315,7 +1315,7 @@ end;
 
 
 
-Procedure TAdStyle.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdStyle.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1332,7 +1332,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Setcolor(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Setcolor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -1342,7 +1342,7 @@ end;
 
 
 
-Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1352,7 +1352,7 @@ end;
 
 
 
-Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypecontentAdsSettingsTypebackupOption.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -1380,7 +1380,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnitTypecontentAdsSettings.SetbackupOption(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettingsTypebackupOption); 
+Procedure TAdUnitTypecontentAdsSettings.SetbackupOption(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettingsTypebackupOption);
 
 begin
   If (FbackupOption=AValue) then exit;
@@ -1390,7 +1390,7 @@ end;
 
 
 
-Procedure TAdUnitTypecontentAdsSettings.Setsize(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypecontentAdsSettings.Setsize(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsize=AValue) then exit;
@@ -1400,7 +1400,7 @@ end;
 
 
 
-Procedure TAdUnitTypecontentAdsSettings.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypecontentAdsSettings.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1428,7 +1428,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnitTypemobileContentAdsSettings.SetmarkupLanguage(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypemobileContentAdsSettings.SetmarkupLanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (FmarkupLanguage=AValue) then exit;
@@ -1438,7 +1438,7 @@ end;
 
 
 
-Procedure TAdUnitTypemobileContentAdsSettings.SetscriptingLanguage(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypemobileContentAdsSettings.SetscriptingLanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (FscriptingLanguage=AValue) then exit;
@@ -1448,7 +1448,7 @@ end;
 
 
 
-Procedure TAdUnitTypemobileContentAdsSettings.Setsize(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypemobileContentAdsSettings.Setsize(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsize=AValue) then exit;
@@ -1458,7 +1458,7 @@ end;
 
 
 
-Procedure TAdUnitTypemobileContentAdsSettings.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TAdUnitTypemobileContentAdsSettings.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1486,7 +1486,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnit.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TAdUnit.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1496,7 +1496,7 @@ end;
 
 
 
-Procedure TAdUnit.SetcontentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettings); 
+Procedure TAdUnit.SetcontentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypecontentAdsSettings);
 
 begin
   If (FcontentAdsSettings=AValue) then exit;
@@ -1506,7 +1506,7 @@ end;
 
 
 
-Procedure TAdUnit.SetcustomStyle(AIndex : Integer; const AValue : TAdStyle); 
+Procedure TAdUnit.SetcustomStyle(AIndex : Integer; const AValue : TAdStyle);
 
 begin
   If (FcustomStyle=AValue) then exit;
@@ -1516,7 +1516,7 @@ end;
 
 
 
-Procedure TAdUnit.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAdUnit.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1526,7 +1526,7 @@ end;
 
 
 
-Procedure TAdUnit.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdUnit.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1536,7 +1536,7 @@ end;
 
 
 
-Procedure TAdUnit.SetmobileContentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypemobileContentAdsSettings); 
+Procedure TAdUnit.SetmobileContentAdsSettings(AIndex : Integer; const AValue : TAdUnitTypemobileContentAdsSettings);
 
 begin
   If (FmobileContentAdsSettings=AValue) then exit;
@@ -1546,7 +1546,7 @@ end;
 
 
 
-Procedure TAdUnit.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAdUnit.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1556,7 +1556,7 @@ end;
 
 
 
-Procedure TAdUnit.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TAdUnit.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1573,7 +1573,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdUnits.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TAdUnits.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1583,7 +1583,7 @@ end;
 
 
 
-Procedure TAdUnits.Setitems(AIndex : Integer; const AValue : TAdUnitsTypeitemsArray); 
+Procedure TAdUnits.Setitems(AIndex : Integer; const AValue : TAdUnitsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1593,7 +1593,7 @@ end;
 
 
 
-Procedure TAdUnits.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAdUnits.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1603,7 +1603,7 @@ end;
 
 
 
-Procedure TAdUnits.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAdUnits.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1614,7 +1614,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAdUnits.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAdUnits.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1633,7 +1633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAssociationSession.SetaccountId(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.SetaccountId(AIndex : Integer; const AValue : String);
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1643,7 +1643,7 @@ end;
 
 
 
-Procedure TAssociationSession.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1653,7 +1653,7 @@ end;
 
 
 
-Procedure TAssociationSession.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1663,7 +1663,7 @@ end;
 
 
 
-Procedure TAssociationSession.SetproductCodes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TAssociationSession.SetproductCodes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FproductCodes=AValue) then exit;
@@ -1673,7 +1673,7 @@ end;
 
 
 
-Procedure TAssociationSession.SetredirectUrl(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.SetredirectUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FredirectUrl=AValue) then exit;
@@ -1683,7 +1683,7 @@ end;
 
 
 
-Procedure TAssociationSession.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
 
 
 
-Procedure TAssociationSession.SetuserLocale(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.SetuserLocale(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserLocale=AValue) then exit;
@@ -1703,7 +1703,7 @@ end;
 
 
 
-Procedure TAssociationSession.SetwebsiteLocale(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.SetwebsiteLocale(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebsiteLocale=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 
 
-Procedure TAssociationSession.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
+Procedure TAssociationSession.SetwebsiteUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -1724,7 +1724,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAssociationSession.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAssociationSession.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1743,7 +1743,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannel.Setcode(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setcode(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1753,7 +1753,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -1763,7 +1763,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1773,7 +1773,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setname(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannel.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1790,7 +1790,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannels.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannels.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -1800,7 +1800,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray); 
+Procedure TCustomChannels.Setitems(AIndex : Integer; const AValue : TCustomChannelsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -1810,7 +1810,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannels.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1820,7 +1820,7 @@ end;
 
 
 
-Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1831,7 +1831,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCustomChannels.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCustomChannels.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1850,7 +1850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportTypeheadersItem.Setcurrency(AIndex : Integer; const AValue : String); 
+Procedure TReportTypeheadersItem.Setcurrency(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -1860,7 +1860,7 @@ end;
 
 
 
-Procedure TReportTypeheadersItem.Setname(AIndex : Integer; const AValue : String); 
+Procedure TReportTypeheadersItem.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1870,7 +1870,7 @@ end;
 
 
 
-Procedure TReportTypeheadersItem.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TReportTypeheadersItem.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1898,7 +1898,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReport.Setaverages(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReport.Setaverages(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Faverages=AValue) then exit;
@@ -1908,7 +1908,7 @@ end;
 
 
 
-Procedure TReport.Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray); 
+Procedure TReport.Setheaders(AIndex : Integer; const AValue : TReportTypeheadersArray);
 
 begin
   If (Fheaders=AValue) then exit;
@@ -1918,7 +1918,7 @@ end;
 
 
 
-Procedure TReport.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TReport.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -1928,7 +1928,7 @@ end;
 
 
 
-Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray); 
+Procedure TReport.Setrows(AIndex : Integer; const AValue : TReportTyperowsArray);
 
 begin
   If (Frows=AValue) then exit;
@@ -1938,7 +1938,7 @@ end;
 
 
 
-Procedure TReport.SettotalMatchedRows(AIndex : Integer; const AValue : String); 
+Procedure TReport.SettotalMatchedRows(AIndex : Integer; const AValue : String);
 
 begin
   If (FtotalMatchedRows=AValue) then exit;
@@ -1948,7 +1948,7 @@ end;
 
 
 
-Procedure TReport.Settotals(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReport.Settotals(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Ftotals=AValue) then exit;
@@ -1958,7 +1958,7 @@ end;
 
 
 
-Procedure TReport.Setwarnings(AIndex : Integer; const AValue : TStringArray); 
+Procedure TReport.Setwarnings(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1969,7 +1969,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TReport.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1992,7 +1992,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannel.Setid(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannel.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -2002,7 +2002,7 @@ end;
 
 
 
-Procedure TUrlChannel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2012,7 +2012,7 @@ end;
 
 
 
-Procedure TUrlChannel.SeturlPattern(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannel.SeturlPattern(AIndex : Integer; const AValue : String);
 
 begin
   If (FurlPattern=AValue) then exit;
@@ -2029,7 +2029,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannels.Setetag(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannels.Setetag(AIndex : Integer; const AValue : String);
 
 begin
   If (Fetag=AValue) then exit;
@@ -2039,7 +2039,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray); 
+Procedure TUrlChannels.Setitems(AIndex : Integer; const AValue : TUrlChannelsTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -2049,7 +2049,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannels.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -2059,7 +2059,7 @@ end;
 
 
 
-Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2070,7 +2070,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TUrlChannels.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TUrlChannels.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2990,7 +2990,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/adsensehost';
   Result[0].Description:='View and manage your AdSense host data and associated accounts';
-  
+
 end;
 
 Class Function TAdsensehostAPI.APINeedsAuth : Boolean;

@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TFindThreatMatchesRequest = Class;
   TClientInfo = Class;
@@ -69,11 +69,11 @@ type
   TListUpdateResponseTyperemovalsArray = Array of TThreatEntrySet;
   TFindFullHashesResponseTypematchesArray = Array of TThreatMatch;
   TListThreatListsResponseTypethreatListsArray = Array of TThreatListDescriptor;
-  
+
   { --------------------------------------------------------------------
     TFindThreatMatchesRequest
     --------------------------------------------------------------------}
-  
+
   TFindThreatMatchesRequest = Class(TGoogleBaseObject)
   Private
     Fclient : TClientInfo;
@@ -88,11 +88,11 @@ type
     Property threatInfo : TThreatInfo Index 8 Read FthreatInfo Write SetthreatInfo;
   end;
   TFindThreatMatchesRequestClass = Class of TFindThreatMatchesRequest;
-  
+
   { --------------------------------------------------------------------
     TClientInfo
     --------------------------------------------------------------------}
-  
+
   TClientInfo = Class(TGoogleBaseObject)
   Private
     FclientId : String;
@@ -107,11 +107,11 @@ type
     Property clientVersion : String Index 8 Read FclientVersion Write SetclientVersion;
   end;
   TClientInfoClass = Class of TClientInfo;
-  
+
   { --------------------------------------------------------------------
     TThreatInfo
     --------------------------------------------------------------------}
-  
+
   TThreatInfo = Class(TGoogleBaseObject)
   Private
     FthreatTypes : TStringArray;
@@ -136,11 +136,11 @@ type
     Property threatEntries : TThreatInfoTypethreatEntriesArray Index 24 Read FthreatEntries Write SetthreatEntries;
   end;
   TThreatInfoClass = Class of TThreatInfo;
-  
+
   { --------------------------------------------------------------------
     TThreatEntry
     --------------------------------------------------------------------}
-  
+
   TThreatEntry = Class(TGoogleBaseObject)
   Private
     Fhash : String;
@@ -158,11 +158,11 @@ type
     Property digest : String Index 16 Read Fdigest Write Setdigest;
   end;
   TThreatEntryClass = Class of TThreatEntry;
-  
+
   { --------------------------------------------------------------------
     TFindThreatMatchesResponse
     --------------------------------------------------------------------}
-  
+
   TFindThreatMatchesResponse = Class(TGoogleBaseObject)
   Private
     Fmatches : TFindThreatMatchesResponseTypematchesArray;
@@ -178,11 +178,11 @@ type
     Property matches : TFindThreatMatchesResponseTypematchesArray Index 0 Read Fmatches Write Setmatches;
   end;
   TFindThreatMatchesResponseClass = Class of TFindThreatMatchesResponse;
-  
+
   { --------------------------------------------------------------------
     TThreatMatch
     --------------------------------------------------------------------}
-  
+
   TThreatMatch = Class(TGoogleBaseObject)
   Private
     FthreatType : String;
@@ -209,11 +209,11 @@ type
     Property cacheDuration : String Index 40 Read FcacheDuration Write SetcacheDuration;
   end;
   TThreatMatchClass = Class of TThreatMatch;
-  
+
   { --------------------------------------------------------------------
     TThreatEntryMetadata
     --------------------------------------------------------------------}
-  
+
   TThreatEntryMetadata = Class(TGoogleBaseObject)
   Private
     Fentries : TThreatEntryMetadataTypeentriesArray;
@@ -229,11 +229,11 @@ type
     Property entries : TThreatEntryMetadataTypeentriesArray Index 0 Read Fentries Write Setentries;
   end;
   TThreatEntryMetadataClass = Class of TThreatEntryMetadata;
-  
+
   { --------------------------------------------------------------------
     TMetadataEntry
     --------------------------------------------------------------------}
-  
+
   TMetadataEntry = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -248,11 +248,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TMetadataEntryClass = Class of TMetadataEntry;
-  
+
   { --------------------------------------------------------------------
     TFetchThreatListUpdatesRequest
     --------------------------------------------------------------------}
-  
+
   TFetchThreatListUpdatesRequest = Class(TGoogleBaseObject)
   Private
     Fclient : TClientInfo;
@@ -271,11 +271,11 @@ type
     Property listUpdateRequests : TFetchThreatListUpdatesRequestTypelistUpdateRequestsArray Index 8 Read FlistUpdateRequests Write SetlistUpdateRequests;
   end;
   TFetchThreatListUpdatesRequestClass = Class of TFetchThreatListUpdatesRequest;
-  
+
   { --------------------------------------------------------------------
     TListUpdateRequest
     --------------------------------------------------------------------}
-  
+
   TListUpdateRequest = Class(TGoogleBaseObject)
   Private
     FthreatType : String;
@@ -299,11 +299,11 @@ type
     Property constraints : TConstraints Index 32 Read Fconstraints Write Setconstraints;
   end;
   TListUpdateRequestClass = Class of TListUpdateRequest;
-  
+
   { --------------------------------------------------------------------
     TConstraints
     --------------------------------------------------------------------}
-  
+
   TConstraints = Class(TGoogleBaseObject)
   Private
     FmaxUpdateEntries : integer;
@@ -328,11 +328,11 @@ type
     Property supportedCompressions : TStringArray Index 24 Read FsupportedCompressions Write SetsupportedCompressions;
   end;
   TConstraintsClass = Class of TConstraints;
-  
+
   { --------------------------------------------------------------------
     TFetchThreatListUpdatesResponse
     --------------------------------------------------------------------}
-  
+
   TFetchThreatListUpdatesResponse = Class(TGoogleBaseObject)
   Private
     FlistUpdateResponses : TFetchThreatListUpdatesResponseTypelistUpdateResponsesArray;
@@ -351,11 +351,11 @@ type
     Property minimumWaitDuration : String Index 8 Read FminimumWaitDuration Write SetminimumWaitDuration;
   end;
   TFetchThreatListUpdatesResponseClass = Class of TFetchThreatListUpdatesResponse;
-  
+
   { --------------------------------------------------------------------
     TListUpdateResponse
     --------------------------------------------------------------------}
-  
+
   TListUpdateResponse = Class(TGoogleBaseObject)
   Private
     FthreatType : String;
@@ -392,11 +392,11 @@ type
     Property checksum : TChecksum Index 56 Read Fchecksum Write Setchecksum;
   end;
   TListUpdateResponseClass = Class of TListUpdateResponse;
-  
+
   { --------------------------------------------------------------------
     TThreatEntrySet
     --------------------------------------------------------------------}
-  
+
   TThreatEntrySet = Class(TGoogleBaseObject)
   Private
     FcompressionType : String;
@@ -420,11 +420,11 @@ type
     Property riceIndices : TRiceDeltaEncoding Index 32 Read FriceIndices Write SetriceIndices;
   end;
   TThreatEntrySetClass = Class of TThreatEntrySet;
-  
+
   { --------------------------------------------------------------------
     TRawHashes
     --------------------------------------------------------------------}
-  
+
   TRawHashes = Class(TGoogleBaseObject)
   Private
     FprefixSize : integer;
@@ -439,11 +439,11 @@ type
     Property rawHashes : String Index 8 Read FrawHashes Write SetrawHashes;
   end;
   TRawHashesClass = Class of TRawHashes;
-  
+
   { --------------------------------------------------------------------
     TRawIndices
     --------------------------------------------------------------------}
-  
+
   TRawIndices = Class(TGoogleBaseObject)
   Private
     Findices : TintegerArray;
@@ -459,11 +459,11 @@ type
     Property indices : TintegerArray Index 0 Read Findices Write Setindices;
   end;
   TRawIndicesClass = Class of TRawIndices;
-  
+
   { --------------------------------------------------------------------
     TRiceDeltaEncoding
     --------------------------------------------------------------------}
-  
+
   TRiceDeltaEncoding = Class(TGoogleBaseObject)
   Private
     FfirstValue : String;
@@ -484,11 +484,11 @@ type
     Property encodedData : String Index 24 Read FencodedData Write SetencodedData;
   end;
   TRiceDeltaEncodingClass = Class of TRiceDeltaEncoding;
-  
+
   { --------------------------------------------------------------------
     TChecksum
     --------------------------------------------------------------------}
-  
+
   TChecksum = Class(TGoogleBaseObject)
   Private
     Fsha256 : String;
@@ -500,11 +500,11 @@ type
     Property sha256 : String Index 0 Read Fsha256 Write Setsha256;
   end;
   TChecksumClass = Class of TChecksum;
-  
+
   { --------------------------------------------------------------------
     TFindFullHashesRequest
     --------------------------------------------------------------------}
-  
+
   TFindFullHashesRequest = Class(TGoogleBaseObject)
   Private
     Fclient : TClientInfo;
@@ -526,11 +526,11 @@ type
     Property threatInfo : TThreatInfo Index 16 Read FthreatInfo Write SetthreatInfo;
   end;
   TFindFullHashesRequestClass = Class of TFindFullHashesRequest;
-  
+
   { --------------------------------------------------------------------
     TFindFullHashesResponse
     --------------------------------------------------------------------}
-  
+
   TFindFullHashesResponse = Class(TGoogleBaseObject)
   Private
     Fmatches : TFindFullHashesResponseTypematchesArray;
@@ -552,11 +552,11 @@ type
     Property negativeCacheDuration : String Index 16 Read FnegativeCacheDuration Write SetnegativeCacheDuration;
   end;
   TFindFullHashesResponseClass = Class of TFindFullHashesResponse;
-  
+
   { --------------------------------------------------------------------
     TListThreatListsResponse
     --------------------------------------------------------------------}
-  
+
   TListThreatListsResponse = Class(TGoogleBaseObject)
   Private
     FthreatLists : TListThreatListsResponseTypethreatListsArray;
@@ -572,11 +572,11 @@ type
     Property threatLists : TListThreatListsResponseTypethreatListsArray Index 0 Read FthreatLists Write SetthreatLists;
   end;
   TListThreatListsResponseClass = Class of TListThreatListsResponse;
-  
+
   { --------------------------------------------------------------------
     TThreatListDescriptor
     --------------------------------------------------------------------}
-  
+
   TThreatListDescriptor = Class(TGoogleBaseObject)
   Private
     FthreatType : String;
@@ -594,59 +594,59 @@ type
     Property threatEntryType : String Index 16 Read FthreatEntryType Write SetthreatEntryType;
   end;
   TThreatListDescriptorClass = Class of TThreatListDescriptor;
-  
+
   { --------------------------------------------------------------------
     TThreatMatchesResource
     --------------------------------------------------------------------}
-  
+
   TThreatMatchesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Find(aFindThreatMatchesRequest : TFindThreatMatchesRequest) : TFindThreatMatchesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TThreatListUpdatesResource
     --------------------------------------------------------------------}
-  
+
   TThreatListUpdatesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Fetch(aFetchThreatListUpdatesRequest : TFetchThreatListUpdatesRequest) : TFetchThreatListUpdatesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TFullHashesResource
     --------------------------------------------------------------------}
-  
+
   TFullHashesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Find(aFindFullHashesRequest : TFindFullHashesRequest) : TFindFullHashesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TThreatListsResource
     --------------------------------------------------------------------}
-  
+
   TThreatListsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function List : TListThreatListsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSafebrowsingAPI
     --------------------------------------------------------------------}
-  
+
   TSafebrowsingAPI = Class(TGoogleAPI)
   Private
     FThreatMatchesInstance : TThreatMatchesResource;
@@ -703,7 +703,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TFindThreatMatchesRequest.Setclient(AIndex : Integer; const AValue : TClientInfo); 
+Procedure TFindThreatMatchesRequest.Setclient(AIndex : Integer; const AValue : TClientInfo);
 
 begin
   If (Fclient=AValue) then exit;
@@ -713,7 +713,7 @@ end;
 
 
 
-Procedure TFindThreatMatchesRequest.SetthreatInfo(AIndex : Integer; const AValue : TThreatInfo); 
+Procedure TFindThreatMatchesRequest.SetthreatInfo(AIndex : Integer; const AValue : TThreatInfo);
 
 begin
   If (FthreatInfo=AValue) then exit;
@@ -730,7 +730,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TClientInfo.SetclientId(AIndex : Integer; const AValue : String); 
+Procedure TClientInfo.SetclientId(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientId=AValue) then exit;
@@ -740,7 +740,7 @@ end;
 
 
 
-Procedure TClientInfo.SetclientVersion(AIndex : Integer; const AValue : String); 
+Procedure TClientInfo.SetclientVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientVersion=AValue) then exit;
@@ -757,7 +757,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThreatInfo.SetthreatTypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TThreatInfo.SetthreatTypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FthreatTypes=AValue) then exit;
@@ -767,7 +767,7 @@ end;
 
 
 
-Procedure TThreatInfo.SetplatformTypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TThreatInfo.SetplatformTypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FplatformTypes=AValue) then exit;
@@ -777,7 +777,7 @@ end;
 
 
 
-Procedure TThreatInfo.SetthreatEntryTypes(AIndex : Integer; const AValue : TStringArray); 
+Procedure TThreatInfo.SetthreatEntryTypes(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FthreatEntryTypes=AValue) then exit;
@@ -787,7 +787,7 @@ end;
 
 
 
-Procedure TThreatInfo.SetthreatEntries(AIndex : Integer; const AValue : TThreatInfoTypethreatEntriesArray); 
+Procedure TThreatInfo.SetthreatEntries(AIndex : Integer; const AValue : TThreatInfoTypethreatEntriesArray);
 
 begin
   If (FthreatEntries=AValue) then exit;
@@ -798,7 +798,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TThreatInfo.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TThreatInfo.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -820,7 +820,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThreatEntry.Sethash(AIndex : Integer; const AValue : String); 
+Procedure TThreatEntry.Sethash(AIndex : Integer; const AValue : String);
 
 begin
   If (Fhash=AValue) then exit;
@@ -830,7 +830,7 @@ end;
 
 
 
-Procedure TThreatEntry.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TThreatEntry.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -840,7 +840,7 @@ end;
 
 
 
-Procedure TThreatEntry.Setdigest(AIndex : Integer; const AValue : String); 
+Procedure TThreatEntry.Setdigest(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdigest=AValue) then exit;
@@ -857,7 +857,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFindThreatMatchesResponse.Setmatches(AIndex : Integer; const AValue : TFindThreatMatchesResponseTypematchesArray); 
+Procedure TFindThreatMatchesResponse.Setmatches(AIndex : Integer; const AValue : TFindThreatMatchesResponseTypematchesArray);
 
 begin
   If (Fmatches=AValue) then exit;
@@ -868,7 +868,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFindThreatMatchesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFindThreatMatchesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -887,7 +887,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThreatMatch.SetthreatType(AIndex : Integer; const AValue : String); 
+Procedure TThreatMatch.SetthreatType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatType=AValue) then exit;
@@ -897,7 +897,7 @@ end;
 
 
 
-Procedure TThreatMatch.SetplatformType(AIndex : Integer; const AValue : String); 
+Procedure TThreatMatch.SetplatformType(AIndex : Integer; const AValue : String);
 
 begin
   If (FplatformType=AValue) then exit;
@@ -907,7 +907,7 @@ end;
 
 
 
-Procedure TThreatMatch.SetthreatEntryType(AIndex : Integer; const AValue : String); 
+Procedure TThreatMatch.SetthreatEntryType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatEntryType=AValue) then exit;
@@ -917,7 +917,7 @@ end;
 
 
 
-Procedure TThreatMatch.Setthreat(AIndex : Integer; const AValue : TThreatEntry); 
+Procedure TThreatMatch.Setthreat(AIndex : Integer; const AValue : TThreatEntry);
 
 begin
   If (Fthreat=AValue) then exit;
@@ -927,7 +927,7 @@ end;
 
 
 
-Procedure TThreatMatch.SetthreatEntryMetadata(AIndex : Integer; const AValue : TThreatEntryMetadata); 
+Procedure TThreatMatch.SetthreatEntryMetadata(AIndex : Integer; const AValue : TThreatEntryMetadata);
 
 begin
   If (FthreatEntryMetadata=AValue) then exit;
@@ -937,7 +937,7 @@ end;
 
 
 
-Procedure TThreatMatch.SetcacheDuration(AIndex : Integer; const AValue : String); 
+Procedure TThreatMatch.SetcacheDuration(AIndex : Integer; const AValue : String);
 
 begin
   If (FcacheDuration=AValue) then exit;
@@ -954,7 +954,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThreatEntryMetadata.Setentries(AIndex : Integer; const AValue : TThreatEntryMetadataTypeentriesArray); 
+Procedure TThreatEntryMetadata.Setentries(AIndex : Integer; const AValue : TThreatEntryMetadataTypeentriesArray);
 
 begin
   If (Fentries=AValue) then exit;
@@ -965,7 +965,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TThreatEntryMetadata.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TThreatEntryMetadata.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -984,7 +984,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadataEntry.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TMetadataEntry.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -994,7 +994,7 @@ end;
 
 
 
-Procedure TMetadataEntry.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TMetadataEntry.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1011,7 +1011,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFetchThreatListUpdatesRequest.Setclient(AIndex : Integer; const AValue : TClientInfo); 
+Procedure TFetchThreatListUpdatesRequest.Setclient(AIndex : Integer; const AValue : TClientInfo);
 
 begin
   If (Fclient=AValue) then exit;
@@ -1021,7 +1021,7 @@ end;
 
 
 
-Procedure TFetchThreatListUpdatesRequest.SetlistUpdateRequests(AIndex : Integer; const AValue : TFetchThreatListUpdatesRequestTypelistUpdateRequestsArray); 
+Procedure TFetchThreatListUpdatesRequest.SetlistUpdateRequests(AIndex : Integer; const AValue : TFetchThreatListUpdatesRequestTypelistUpdateRequestsArray);
 
 begin
   If (FlistUpdateRequests=AValue) then exit;
@@ -1032,7 +1032,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFetchThreatListUpdatesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFetchThreatListUpdatesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1051,7 +1051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListUpdateRequest.SetthreatType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateRequest.SetthreatType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatType=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
 
 
 
-Procedure TListUpdateRequest.SetplatformType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateRequest.SetplatformType(AIndex : Integer; const AValue : String);
 
 begin
   If (FplatformType=AValue) then exit;
@@ -1071,7 +1071,7 @@ end;
 
 
 
-Procedure TListUpdateRequest.SetthreatEntryType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateRequest.SetthreatEntryType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatEntryType=AValue) then exit;
@@ -1081,7 +1081,7 @@ end;
 
 
 
-Procedure TListUpdateRequest.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateRequest.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1091,7 +1091,7 @@ end;
 
 
 
-Procedure TListUpdateRequest.Setconstraints(AIndex : Integer; const AValue : TConstraints); 
+Procedure TListUpdateRequest.Setconstraints(AIndex : Integer; const AValue : TConstraints);
 
 begin
   If (Fconstraints=AValue) then exit;
@@ -1108,7 +1108,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TConstraints.SetmaxUpdateEntries(AIndex : Integer; const AValue : integer); 
+Procedure TConstraints.SetmaxUpdateEntries(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxUpdateEntries=AValue) then exit;
@@ -1118,7 +1118,7 @@ end;
 
 
 
-Procedure TConstraints.SetmaxDatabaseEntries(AIndex : Integer; const AValue : integer); 
+Procedure TConstraints.SetmaxDatabaseEntries(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxDatabaseEntries=AValue) then exit;
@@ -1128,7 +1128,7 @@ end;
 
 
 
-Procedure TConstraints.Setregion(AIndex : Integer; const AValue : String); 
+Procedure TConstraints.Setregion(AIndex : Integer; const AValue : String);
 
 begin
   If (Fregion=AValue) then exit;
@@ -1138,7 +1138,7 @@ end;
 
 
 
-Procedure TConstraints.SetsupportedCompressions(AIndex : Integer; const AValue : TStringArray); 
+Procedure TConstraints.SetsupportedCompressions(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FsupportedCompressions=AValue) then exit;
@@ -1149,7 +1149,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TConstraints.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TConstraints.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1168,7 +1168,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFetchThreatListUpdatesResponse.SetlistUpdateResponses(AIndex : Integer; const AValue : TFetchThreatListUpdatesResponseTypelistUpdateResponsesArray); 
+Procedure TFetchThreatListUpdatesResponse.SetlistUpdateResponses(AIndex : Integer; const AValue : TFetchThreatListUpdatesResponseTypelistUpdateResponsesArray);
 
 begin
   If (FlistUpdateResponses=AValue) then exit;
@@ -1178,7 +1178,7 @@ end;
 
 
 
-Procedure TFetchThreatListUpdatesResponse.SetminimumWaitDuration(AIndex : Integer; const AValue : String); 
+Procedure TFetchThreatListUpdatesResponse.SetminimumWaitDuration(AIndex : Integer; const AValue : String);
 
 begin
   If (FminimumWaitDuration=AValue) then exit;
@@ -1189,7 +1189,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFetchThreatListUpdatesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFetchThreatListUpdatesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1208,7 +1208,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListUpdateResponse.SetthreatType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateResponse.SetthreatType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatType=AValue) then exit;
@@ -1218,7 +1218,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.SetthreatEntryType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateResponse.SetthreatEntryType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatEntryType=AValue) then exit;
@@ -1228,7 +1228,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.SetplatformType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateResponse.SetplatformType(AIndex : Integer; const AValue : String);
 
 begin
   If (FplatformType=AValue) then exit;
@@ -1238,7 +1238,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.SetresponseType(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateResponse.SetresponseType(AIndex : Integer; const AValue : String);
 
 begin
   If (FresponseType=AValue) then exit;
@@ -1248,7 +1248,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.Setadditions(AIndex : Integer; const AValue : TListUpdateResponseTypeadditionsArray); 
+Procedure TListUpdateResponse.Setadditions(AIndex : Integer; const AValue : TListUpdateResponseTypeadditionsArray);
 
 begin
   If (Fadditions=AValue) then exit;
@@ -1258,7 +1258,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.Setremovals(AIndex : Integer; const AValue : TListUpdateResponseTyperemovalsArray); 
+Procedure TListUpdateResponse.Setremovals(AIndex : Integer; const AValue : TListUpdateResponseTyperemovalsArray);
 
 begin
   If (Fremovals=AValue) then exit;
@@ -1268,7 +1268,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.SetnewClientState(AIndex : Integer; const AValue : String); 
+Procedure TListUpdateResponse.SetnewClientState(AIndex : Integer; const AValue : String);
 
 begin
   If (FnewClientState=AValue) then exit;
@@ -1278,7 +1278,7 @@ end;
 
 
 
-Procedure TListUpdateResponse.Setchecksum(AIndex : Integer; const AValue : TChecksum); 
+Procedure TListUpdateResponse.Setchecksum(AIndex : Integer; const AValue : TChecksum);
 
 begin
   If (Fchecksum=AValue) then exit;
@@ -1289,7 +1289,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListUpdateResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListUpdateResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1309,7 +1309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThreatEntrySet.SetcompressionType(AIndex : Integer; const AValue : String); 
+Procedure TThreatEntrySet.SetcompressionType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcompressionType=AValue) then exit;
@@ -1319,7 +1319,7 @@ end;
 
 
 
-Procedure TThreatEntrySet.SetrawHashes(AIndex : Integer; const AValue : TRawHashes); 
+Procedure TThreatEntrySet.SetrawHashes(AIndex : Integer; const AValue : TRawHashes);
 
 begin
   If (FrawHashes=AValue) then exit;
@@ -1329,7 +1329,7 @@ end;
 
 
 
-Procedure TThreatEntrySet.SetrawIndices(AIndex : Integer; const AValue : TRawIndices); 
+Procedure TThreatEntrySet.SetrawIndices(AIndex : Integer; const AValue : TRawIndices);
 
 begin
   If (FrawIndices=AValue) then exit;
@@ -1339,7 +1339,7 @@ end;
 
 
 
-Procedure TThreatEntrySet.SetriceHashes(AIndex : Integer; const AValue : TRiceDeltaEncoding); 
+Procedure TThreatEntrySet.SetriceHashes(AIndex : Integer; const AValue : TRiceDeltaEncoding);
 
 begin
   If (FriceHashes=AValue) then exit;
@@ -1349,7 +1349,7 @@ end;
 
 
 
-Procedure TThreatEntrySet.SetriceIndices(AIndex : Integer; const AValue : TRiceDeltaEncoding); 
+Procedure TThreatEntrySet.SetriceIndices(AIndex : Integer; const AValue : TRiceDeltaEncoding);
 
 begin
   If (FriceIndices=AValue) then exit;
@@ -1366,7 +1366,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRawHashes.SetprefixSize(AIndex : Integer; const AValue : integer); 
+Procedure TRawHashes.SetprefixSize(AIndex : Integer; const AValue : integer);
 
 begin
   If (FprefixSize=AValue) then exit;
@@ -1376,7 +1376,7 @@ end;
 
 
 
-Procedure TRawHashes.SetrawHashes(AIndex : Integer; const AValue : String); 
+Procedure TRawHashes.SetrawHashes(AIndex : Integer; const AValue : String);
 
 begin
   If (FrawHashes=AValue) then exit;
@@ -1393,7 +1393,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRawIndices.Setindices(AIndex : Integer; const AValue : TintegerArray); 
+Procedure TRawIndices.Setindices(AIndex : Integer; const AValue : TintegerArray);
 
 begin
   If (Findices=AValue) then exit;
@@ -1404,7 +1404,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRawIndices.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRawIndices.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1423,7 +1423,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRiceDeltaEncoding.SetfirstValue(AIndex : Integer; const AValue : String); 
+Procedure TRiceDeltaEncoding.SetfirstValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FfirstValue=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 
 
-Procedure TRiceDeltaEncoding.SetriceParameter(AIndex : Integer; const AValue : integer); 
+Procedure TRiceDeltaEncoding.SetriceParameter(AIndex : Integer; const AValue : integer);
 
 begin
   If (FriceParameter=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TRiceDeltaEncoding.SetnumEntries(AIndex : Integer; const AValue : integer); 
+Procedure TRiceDeltaEncoding.SetnumEntries(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumEntries=AValue) then exit;
@@ -1453,7 +1453,7 @@ end;
 
 
 
-Procedure TRiceDeltaEncoding.SetencodedData(AIndex : Integer; const AValue : String); 
+Procedure TRiceDeltaEncoding.SetencodedData(AIndex : Integer; const AValue : String);
 
 begin
   If (FencodedData=AValue) then exit;
@@ -1470,7 +1470,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChecksum.Setsha256(AIndex : Integer; const AValue : String); 
+Procedure TChecksum.Setsha256(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsha256=AValue) then exit;
@@ -1487,7 +1487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFindFullHashesRequest.Setclient(AIndex : Integer; const AValue : TClientInfo); 
+Procedure TFindFullHashesRequest.Setclient(AIndex : Integer; const AValue : TClientInfo);
 
 begin
   If (Fclient=AValue) then exit;
@@ -1497,7 +1497,7 @@ end;
 
 
 
-Procedure TFindFullHashesRequest.SetclientStates(AIndex : Integer; const AValue : TStringArray); 
+Procedure TFindFullHashesRequest.SetclientStates(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FclientStates=AValue) then exit;
@@ -1507,7 +1507,7 @@ end;
 
 
 
-Procedure TFindFullHashesRequest.SetthreatInfo(AIndex : Integer; const AValue : TThreatInfo); 
+Procedure TFindFullHashesRequest.SetthreatInfo(AIndex : Integer; const AValue : TThreatInfo);
 
 begin
   If (FthreatInfo=AValue) then exit;
@@ -1518,7 +1518,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFindFullHashesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFindFullHashesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1537,7 +1537,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFindFullHashesResponse.Setmatches(AIndex : Integer; const AValue : TFindFullHashesResponseTypematchesArray); 
+Procedure TFindFullHashesResponse.Setmatches(AIndex : Integer; const AValue : TFindFullHashesResponseTypematchesArray);
 
 begin
   If (Fmatches=AValue) then exit;
@@ -1547,7 +1547,7 @@ end;
 
 
 
-Procedure TFindFullHashesResponse.SetminimumWaitDuration(AIndex : Integer; const AValue : String); 
+Procedure TFindFullHashesResponse.SetminimumWaitDuration(AIndex : Integer; const AValue : String);
 
 begin
   If (FminimumWaitDuration=AValue) then exit;
@@ -1557,7 +1557,7 @@ end;
 
 
 
-Procedure TFindFullHashesResponse.SetnegativeCacheDuration(AIndex : Integer; const AValue : String); 
+Procedure TFindFullHashesResponse.SetnegativeCacheDuration(AIndex : Integer; const AValue : String);
 
 begin
   If (FnegativeCacheDuration=AValue) then exit;
@@ -1568,7 +1568,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFindFullHashesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFindFullHashesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1587,7 +1587,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListThreatListsResponse.SetthreatLists(AIndex : Integer; const AValue : TListThreatListsResponseTypethreatListsArray); 
+Procedure TListThreatListsResponse.SetthreatLists(AIndex : Integer; const AValue : TListThreatListsResponseTypethreatListsArray);
 
 begin
   If (FthreatLists=AValue) then exit;
@@ -1598,7 +1598,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListThreatListsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListThreatListsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1617,7 +1617,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThreatListDescriptor.SetthreatType(AIndex : Integer; const AValue : String); 
+Procedure TThreatListDescriptor.SetthreatType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatType=AValue) then exit;
@@ -1627,7 +1627,7 @@ end;
 
 
 
-Procedure TThreatListDescriptor.SetplatformType(AIndex : Integer; const AValue : String); 
+Procedure TThreatListDescriptor.SetplatformType(AIndex : Integer; const AValue : String);
 
 begin
   If (FplatformType=AValue) then exit;
@@ -1637,7 +1637,7 @@ end;
 
 
 
-Procedure TThreatListDescriptor.SetthreatEntryType(AIndex : Integer; const AValue : String); 
+Procedure TThreatListDescriptor.SetthreatEntryType(AIndex : Integer; const AValue : String);
 
 begin
   If (FthreatEntryType=AValue) then exit;
@@ -1879,7 +1879,7 @@ Class Function TSafebrowsingAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
   SetLength(Result,0);
-  
+
 end;
 
 Class Function TSafebrowsingAPI.APINeedsAuth : Boolean;

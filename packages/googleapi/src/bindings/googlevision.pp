@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TImageSource = Class;
   TAnnotateImageRequest = Class;
@@ -79,11 +79,11 @@ type
   TEntityAnnotationTypelocationsArray = Array of TLocationInfo;
   TDominantColorsAnnotationTypecolorsArray = Array of TColorInfo;
   TBatchAnnotateImagesResponseTyperesponsesArray = Array of TAnnotateImageResponse;
-  
+
   { --------------------------------------------------------------------
     TImageSource
     --------------------------------------------------------------------}
-  
+
   TImageSource = Class(TGoogleBaseObject)
   Private
     FgcsImageUri : String;
@@ -95,11 +95,11 @@ type
     Property gcsImageUri : String Index 0 Read FgcsImageUri Write SetgcsImageUri;
   end;
   TImageSourceClass = Class of TImageSource;
-  
+
   { --------------------------------------------------------------------
     TAnnotateImageRequest
     --------------------------------------------------------------------}
-  
+
   TAnnotateImageRequest = Class(TGoogleBaseObject)
   Private
     Fimage : TImage;
@@ -121,11 +121,11 @@ type
     Property features : TAnnotateImageRequestTypefeaturesArray Index 16 Read Ffeatures Write Setfeatures;
   end;
   TAnnotateImageRequestClass = Class of TAnnotateImageRequest;
-  
+
   { --------------------------------------------------------------------
     TAnnotateImageResponse
     --------------------------------------------------------------------}
-  
+
   TAnnotateImageResponse = Class(TGoogleBaseObject)
   Private
     FlabelAnnotations : TAnnotateImageResponseTypelabelAnnotationsArray;
@@ -162,11 +162,11 @@ type
     Property error : TStatus Index 56 Read Ferror Write Seterror;
   end;
   TAnnotateImageResponseClass = Class of TAnnotateImageResponse;
-  
+
   { --------------------------------------------------------------------
     TLatLongRect
     --------------------------------------------------------------------}
-  
+
   TLatLongRect = Class(TGoogleBaseObject)
   Private
     FmaxLatLng : TLatLng;
@@ -181,11 +181,11 @@ type
     Property minLatLng : TLatLng Index 8 Read FminLatLng Write SetminLatLng;
   end;
   TLatLongRectClass = Class of TLatLongRect;
-  
+
   { --------------------------------------------------------------------
     TStatusTypedetailsItem
     --------------------------------------------------------------------}
-  
+
   TStatusTypedetailsItem = Class(TGoogleBaseObject)
   Private
   Protected
@@ -195,11 +195,11 @@ type
   Published
   end;
   TStatusTypedetailsItemClass = Class of TStatusTypedetailsItem;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -221,11 +221,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TFaceAnnotation
     --------------------------------------------------------------------}
-  
+
   TFaceAnnotation = Class(TGoogleBaseObject)
   Private
     FtiltAngle : integer;
@@ -283,11 +283,11 @@ type
     Property sorrowLikelihood : String Index 112 Read FsorrowLikelihood Write SetsorrowLikelihood;
   end;
   TFaceAnnotationClass = Class of TFaceAnnotation;
-  
+
   { --------------------------------------------------------------------
     TVertex
     --------------------------------------------------------------------}
-  
+
   TVertex = Class(TGoogleBaseObject)
   Private
     Fy : integer;
@@ -302,11 +302,11 @@ type
     Property x : integer Index 8 Read Fx Write Setx;
   end;
   TVertexClass = Class of TVertex;
-  
+
   { --------------------------------------------------------------------
     TColorInfo
     --------------------------------------------------------------------}
-  
+
   TColorInfo = Class(TGoogleBaseObject)
   Private
     FpixelFraction : integer;
@@ -324,11 +324,11 @@ type
     Property score : integer Index 16 Read Fscore Write Setscore;
   end;
   TColorInfoClass = Class of TColorInfo;
-  
+
   { --------------------------------------------------------------------
     TBoundingPoly
     --------------------------------------------------------------------}
-  
+
   TBoundingPoly = Class(TGoogleBaseObject)
   Private
     Fvertices : TBoundingPolyTypeverticesArray;
@@ -344,11 +344,11 @@ type
     Property vertices : TBoundingPolyTypeverticesArray Index 0 Read Fvertices Write Setvertices;
   end;
   TBoundingPolyClass = Class of TBoundingPoly;
-  
+
   { --------------------------------------------------------------------
     TLandmark
     --------------------------------------------------------------------}
-  
+
   TLandmark = Class(TGoogleBaseObject)
   Private
     Fposition : TPosition;
@@ -364,11 +364,11 @@ type
     Property _type : String Index 8 Read F_type Write Set_type;
   end;
   TLandmarkClass = Class of TLandmark;
-  
+
   { --------------------------------------------------------------------
     TImageContext
     --------------------------------------------------------------------}
-  
+
   TImageContext = Class(TGoogleBaseObject)
   Private
     FlatLongRect : TLatLongRect;
@@ -387,11 +387,11 @@ type
     Property languageHints : TStringArray Index 8 Read FlanguageHints Write SetlanguageHints;
   end;
   TImageContextClass = Class of TImageContext;
-  
+
   { --------------------------------------------------------------------
     TBatchAnnotateImagesRequest
     --------------------------------------------------------------------}
-  
+
   TBatchAnnotateImagesRequest = Class(TGoogleBaseObject)
   Private
     Frequests : TBatchAnnotateImagesRequestTyperequestsArray;
@@ -407,11 +407,11 @@ type
     Property requests : TBatchAnnotateImagesRequestTyperequestsArray Index 0 Read Frequests Write Setrequests;
   end;
   TBatchAnnotateImagesRequestClass = Class of TBatchAnnotateImagesRequest;
-  
+
   { --------------------------------------------------------------------
     TEntityAnnotation
     --------------------------------------------------------------------}
-  
+
   TEntityAnnotation = Class(TGoogleBaseObject)
   Private
     Fmid : String;
@@ -451,11 +451,11 @@ type
     Property confidence : integer Index 64 Read Fconfidence Write Setconfidence;
   end;
   TEntityAnnotationClass = Class of TEntityAnnotation;
-  
+
   { --------------------------------------------------------------------
     TProperty
     --------------------------------------------------------------------}
-  
+
   TProperty = Class(TGoogleBaseObject)
   Private
     Fvalue : String;
@@ -470,11 +470,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TPropertyClass = Class of TProperty;
-  
+
   { --------------------------------------------------------------------
     TColor
     --------------------------------------------------------------------}
-  
+
   TColor = Class(TGoogleBaseObject)
   Private
     Fgreen : integer;
@@ -495,11 +495,11 @@ type
     Property alpha : integer Index 24 Read Falpha Write Setalpha;
   end;
   TColorClass = Class of TColor;
-  
+
   { --------------------------------------------------------------------
     TLocationInfo
     --------------------------------------------------------------------}
-  
+
   TLocationInfo = Class(TGoogleBaseObject)
   Private
     FlatLng : TLatLng;
@@ -511,11 +511,11 @@ type
     Property latLng : TLatLng Index 0 Read FlatLng Write SetlatLng;
   end;
   TLocationInfoClass = Class of TLocationInfo;
-  
+
   { --------------------------------------------------------------------
     TSafeSearchAnnotation
     --------------------------------------------------------------------}
-  
+
   TSafeSearchAnnotation = Class(TGoogleBaseObject)
   Private
     Fmedical : String;
@@ -536,11 +536,11 @@ type
     Property adult : String Index 24 Read Fadult Write Setadult;
   end;
   TSafeSearchAnnotationClass = Class of TSafeSearchAnnotation;
-  
+
   { --------------------------------------------------------------------
     TImage
     --------------------------------------------------------------------}
-  
+
   TImage = Class(TGoogleBaseObject)
   Private
     Fsource : TImageSource;
@@ -555,11 +555,11 @@ type
     Property content : String Index 8 Read Fcontent Write Setcontent;
   end;
   TImageClass = Class of TImage;
-  
+
   { --------------------------------------------------------------------
     TDominantColorsAnnotation
     --------------------------------------------------------------------}
-  
+
   TDominantColorsAnnotation = Class(TGoogleBaseObject)
   Private
     Fcolors : TDominantColorsAnnotationTypecolorsArray;
@@ -575,11 +575,11 @@ type
     Property colors : TDominantColorsAnnotationTypecolorsArray Index 0 Read Fcolors Write Setcolors;
   end;
   TDominantColorsAnnotationClass = Class of TDominantColorsAnnotation;
-  
+
   { --------------------------------------------------------------------
     TFeature
     --------------------------------------------------------------------}
-  
+
   TFeature = Class(TGoogleBaseObject)
   Private
     F_type : String;
@@ -595,11 +595,11 @@ type
     Property maxResults : integer Index 8 Read FmaxResults Write SetmaxResults;
   end;
   TFeatureClass = Class of TFeature;
-  
+
   { --------------------------------------------------------------------
     TBatchAnnotateImagesResponse
     --------------------------------------------------------------------}
-  
+
   TBatchAnnotateImagesResponse = Class(TGoogleBaseObject)
   Private
     Fresponses : TBatchAnnotateImagesResponseTyperesponsesArray;
@@ -615,11 +615,11 @@ type
     Property responses : TBatchAnnotateImagesResponseTyperesponsesArray Index 0 Read Fresponses Write Setresponses;
   end;
   TBatchAnnotateImagesResponseClass = Class of TBatchAnnotateImagesResponse;
-  
+
   { --------------------------------------------------------------------
     TImageProperties
     --------------------------------------------------------------------}
-  
+
   TImageProperties = Class(TGoogleBaseObject)
   Private
     FdominantColors : TDominantColorsAnnotation;
@@ -631,11 +631,11 @@ type
     Property dominantColors : TDominantColorsAnnotation Index 0 Read FdominantColors Write SetdominantColors;
   end;
   TImagePropertiesClass = Class of TImageProperties;
-  
+
   { --------------------------------------------------------------------
     TLatLng
     --------------------------------------------------------------------}
-  
+
   TLatLng = Class(TGoogleBaseObject)
   Private
     Flatitude : double;
@@ -650,11 +650,11 @@ type
     Property longitude : double Index 8 Read Flongitude Write Setlongitude;
   end;
   TLatLngClass = Class of TLatLng;
-  
+
   { --------------------------------------------------------------------
     TPosition
     --------------------------------------------------------------------}
-  
+
   TPosition = Class(TGoogleBaseObject)
   Private
     Fy : integer;
@@ -672,23 +672,23 @@ type
     Property z : integer Index 16 Read Fz Write Setz;
   end;
   TPositionClass = Class of TPosition;
-  
+
   { --------------------------------------------------------------------
     TImagesResource
     --------------------------------------------------------------------}
-  
+
   TImagesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Annotate(aBatchAnnotateImagesRequest : TBatchAnnotateImagesRequest) : TBatchAnnotateImagesResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TVisionAPI
     --------------------------------------------------------------------}
-  
+
   TVisionAPI = Class(TGoogleAPI)
   Private
     FImagesInstance : TImagesResource;
@@ -730,7 +730,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TImageSource.SetgcsImageUri(AIndex : Integer; const AValue : String); 
+Procedure TImageSource.SetgcsImageUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FgcsImageUri=AValue) then exit;
@@ -747,7 +747,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotateImageRequest.Setimage(AIndex : Integer; const AValue : TImage); 
+Procedure TAnnotateImageRequest.Setimage(AIndex : Integer; const AValue : TImage);
 
 begin
   If (Fimage=AValue) then exit;
@@ -757,7 +757,7 @@ end;
 
 
 
-Procedure TAnnotateImageRequest.SetimageContext(AIndex : Integer; const AValue : TImageContext); 
+Procedure TAnnotateImageRequest.SetimageContext(AIndex : Integer; const AValue : TImageContext);
 
 begin
   If (FimageContext=AValue) then exit;
@@ -767,7 +767,7 @@ end;
 
 
 
-Procedure TAnnotateImageRequest.Setfeatures(AIndex : Integer; const AValue : TAnnotateImageRequestTypefeaturesArray); 
+Procedure TAnnotateImageRequest.Setfeatures(AIndex : Integer; const AValue : TAnnotateImageRequestTypefeaturesArray);
 
 begin
   If (Ffeatures=AValue) then exit;
@@ -778,7 +778,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAnnotateImageRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAnnotateImageRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -797,7 +797,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotateImageResponse.SetlabelAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypelabelAnnotationsArray); 
+Procedure TAnnotateImageResponse.SetlabelAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypelabelAnnotationsArray);
 
 begin
   If (FlabelAnnotations=AValue) then exit;
@@ -807,7 +807,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.SetlandmarkAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypelandmarkAnnotationsArray); 
+Procedure TAnnotateImageResponse.SetlandmarkAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypelandmarkAnnotationsArray);
 
 begin
   If (FlandmarkAnnotations=AValue) then exit;
@@ -817,7 +817,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.SetsafeSearchAnnotation(AIndex : Integer; const AValue : TSafeSearchAnnotation); 
+Procedure TAnnotateImageResponse.SetsafeSearchAnnotation(AIndex : Integer; const AValue : TSafeSearchAnnotation);
 
 begin
   If (FsafeSearchAnnotation=AValue) then exit;
@@ -827,7 +827,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.SetimagePropertiesAnnotation(AIndex : Integer; const AValue : TImageProperties); 
+Procedure TAnnotateImageResponse.SetimagePropertiesAnnotation(AIndex : Integer; const AValue : TImageProperties);
 
 begin
   If (FimagePropertiesAnnotation=AValue) then exit;
@@ -837,7 +837,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.SettextAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypetextAnnotationsArray); 
+Procedure TAnnotateImageResponse.SettextAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypetextAnnotationsArray);
 
 begin
   If (FtextAnnotations=AValue) then exit;
@@ -847,7 +847,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.SetlogoAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypelogoAnnotationsArray); 
+Procedure TAnnotateImageResponse.SetlogoAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypelogoAnnotationsArray);
 
 begin
   If (FlogoAnnotations=AValue) then exit;
@@ -857,7 +857,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.SetfaceAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypefaceAnnotationsArray); 
+Procedure TAnnotateImageResponse.SetfaceAnnotations(AIndex : Integer; const AValue : TAnnotateImageResponseTypefaceAnnotationsArray);
 
 begin
   If (FfaceAnnotations=AValue) then exit;
@@ -867,7 +867,7 @@ end;
 
 
 
-Procedure TAnnotateImageResponse.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TAnnotateImageResponse.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -878,7 +878,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAnnotateImageResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAnnotateImageResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -901,7 +901,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLatLongRect.SetmaxLatLng(AIndex : Integer; const AValue : TLatLng); 
+Procedure TLatLongRect.SetmaxLatLng(AIndex : Integer; const AValue : TLatLng);
 
 begin
   If (FmaxLatLng=AValue) then exit;
@@ -911,7 +911,7 @@ end;
 
 
 
-Procedure TLatLongRect.SetminLatLng(AIndex : Integer; const AValue : TLatLng); 
+Procedure TLatLongRect.SetminLatLng(AIndex : Integer; const AValue : TLatLng);
 
 begin
   If (FminLatLng=AValue) then exit;
@@ -941,7 +941,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -951,7 +951,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -961,7 +961,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -972,7 +972,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -991,7 +991,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFaceAnnotation.SettiltAngle(AIndex : Integer; const AValue : integer); 
+Procedure TFaceAnnotation.SettiltAngle(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtiltAngle=AValue) then exit;
@@ -1001,7 +1001,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetunderExposedLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetunderExposedLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FunderExposedLikelihood=AValue) then exit;
@@ -1011,7 +1011,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetfdBoundingPoly(AIndex : Integer; const AValue : TBoundingPoly); 
+Procedure TFaceAnnotation.SetfdBoundingPoly(AIndex : Integer; const AValue : TBoundingPoly);
 
 begin
   If (FfdBoundingPoly=AValue) then exit;
@@ -1021,7 +1021,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetlandmarkingConfidence(AIndex : Integer; const AValue : integer); 
+Procedure TFaceAnnotation.SetlandmarkingConfidence(AIndex : Integer; const AValue : integer);
 
 begin
   If (FlandmarkingConfidence=AValue) then exit;
@@ -1031,7 +1031,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetjoyLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetjoyLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FjoyLikelihood=AValue) then exit;
@@ -1041,7 +1041,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetdetectionConfidence(AIndex : Integer; const AValue : integer); 
+Procedure TFaceAnnotation.SetdetectionConfidence(AIndex : Integer; const AValue : integer);
 
 begin
   If (FdetectionConfidence=AValue) then exit;
@@ -1051,7 +1051,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetsurpriseLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetsurpriseLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FsurpriseLikelihood=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetangerLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetangerLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FangerLikelihood=AValue) then exit;
@@ -1071,7 +1071,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetheadwearLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetheadwearLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FheadwearLikelihood=AValue) then exit;
@@ -1081,7 +1081,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetpanAngle(AIndex : Integer; const AValue : integer); 
+Procedure TFaceAnnotation.SetpanAngle(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpanAngle=AValue) then exit;
@@ -1091,7 +1091,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetboundingPoly(AIndex : Integer; const AValue : TBoundingPoly); 
+Procedure TFaceAnnotation.SetboundingPoly(AIndex : Integer; const AValue : TBoundingPoly);
 
 begin
   If (FboundingPoly=AValue) then exit;
@@ -1101,7 +1101,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.Setlandmarks(AIndex : Integer; const AValue : TFaceAnnotationTypelandmarksArray); 
+Procedure TFaceAnnotation.Setlandmarks(AIndex : Integer; const AValue : TFaceAnnotationTypelandmarksArray);
 
 begin
   If (Flandmarks=AValue) then exit;
@@ -1111,7 +1111,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetblurredLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetblurredLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FblurredLikelihood=AValue) then exit;
@@ -1121,7 +1121,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetrollAngle(AIndex : Integer; const AValue : integer); 
+Procedure TFaceAnnotation.SetrollAngle(AIndex : Integer; const AValue : integer);
 
 begin
   If (FrollAngle=AValue) then exit;
@@ -1131,7 +1131,7 @@ end;
 
 
 
-Procedure TFaceAnnotation.SetsorrowLikelihood(AIndex : Integer; const AValue : String); 
+Procedure TFaceAnnotation.SetsorrowLikelihood(AIndex : Integer; const AValue : String);
 
 begin
   If (FsorrowLikelihood=AValue) then exit;
@@ -1142,7 +1142,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TFaceAnnotation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TFaceAnnotation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1161,7 +1161,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVertex.Sety(AIndex : Integer; const AValue : integer); 
+Procedure TVertex.Sety(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fy=AValue) then exit;
@@ -1171,7 +1171,7 @@ end;
 
 
 
-Procedure TVertex.Setx(AIndex : Integer; const AValue : integer); 
+Procedure TVertex.Setx(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fx=AValue) then exit;
@@ -1188,7 +1188,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColorInfo.SetpixelFraction(AIndex : Integer; const AValue : integer); 
+Procedure TColorInfo.SetpixelFraction(AIndex : Integer; const AValue : integer);
 
 begin
   If (FpixelFraction=AValue) then exit;
@@ -1198,7 +1198,7 @@ end;
 
 
 
-Procedure TColorInfo.Setcolor(AIndex : Integer; const AValue : TColor); 
+Procedure TColorInfo.Setcolor(AIndex : Integer; const AValue : TColor);
 
 begin
   If (Fcolor=AValue) then exit;
@@ -1208,7 +1208,7 @@ end;
 
 
 
-Procedure TColorInfo.Setscore(AIndex : Integer; const AValue : integer); 
+Procedure TColorInfo.Setscore(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fscore=AValue) then exit;
@@ -1225,7 +1225,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBoundingPoly.Setvertices(AIndex : Integer; const AValue : TBoundingPolyTypeverticesArray); 
+Procedure TBoundingPoly.Setvertices(AIndex : Integer; const AValue : TBoundingPolyTypeverticesArray);
 
 begin
   If (Fvertices=AValue) then exit;
@@ -1236,7 +1236,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBoundingPoly.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBoundingPoly.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1255,7 +1255,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLandmark.Setposition(AIndex : Integer; const AValue : TPosition); 
+Procedure TLandmark.Setposition(AIndex : Integer; const AValue : TPosition);
 
 begin
   If (Fposition=AValue) then exit;
@@ -1265,7 +1265,7 @@ end;
 
 
 
-Procedure TLandmark.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TLandmark.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1293,7 +1293,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImageContext.SetlatLongRect(AIndex : Integer; const AValue : TLatLongRect); 
+Procedure TImageContext.SetlatLongRect(AIndex : Integer; const AValue : TLatLongRect);
 
 begin
   If (FlatLongRect=AValue) then exit;
@@ -1303,7 +1303,7 @@ end;
 
 
 
-Procedure TImageContext.SetlanguageHints(AIndex : Integer; const AValue : TStringArray); 
+Procedure TImageContext.SetlanguageHints(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FlanguageHints=AValue) then exit;
@@ -1314,7 +1314,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TImageContext.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TImageContext.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1333,7 +1333,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchAnnotateImagesRequest.Setrequests(AIndex : Integer; const AValue : TBatchAnnotateImagesRequestTyperequestsArray); 
+Procedure TBatchAnnotateImagesRequest.Setrequests(AIndex : Integer; const AValue : TBatchAnnotateImagesRequestTyperequestsArray);
 
 begin
   If (Frequests=AValue) then exit;
@@ -1344,7 +1344,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchAnnotateImagesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchAnnotateImagesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1363,7 +1363,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntityAnnotation.Setmid(AIndex : Integer; const AValue : String); 
+Procedure TEntityAnnotation.Setmid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmid=AValue) then exit;
@@ -1373,7 +1373,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TEntityAnnotation.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1383,7 +1383,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Settopicality(AIndex : Integer; const AValue : integer); 
+Procedure TEntityAnnotation.Settopicality(AIndex : Integer; const AValue : integer);
 
 begin
   If (Ftopicality=AValue) then exit;
@@ -1393,7 +1393,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Setlocale(AIndex : Integer; const AValue : String); 
+Procedure TEntityAnnotation.Setlocale(AIndex : Integer; const AValue : String);
 
 begin
   If (Flocale=AValue) then exit;
@@ -1403,7 +1403,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Setproperties(AIndex : Integer; const AValue : TEntityAnnotationTypepropertiesArray); 
+Procedure TEntityAnnotation.Setproperties(AIndex : Integer; const AValue : TEntityAnnotationTypepropertiesArray);
 
 begin
   If (Fproperties=AValue) then exit;
@@ -1413,7 +1413,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Setscore(AIndex : Integer; const AValue : integer); 
+Procedure TEntityAnnotation.Setscore(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fscore=AValue) then exit;
@@ -1423,7 +1423,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.SetboundingPoly(AIndex : Integer; const AValue : TBoundingPoly); 
+Procedure TEntityAnnotation.SetboundingPoly(AIndex : Integer; const AValue : TBoundingPoly);
 
 begin
   If (FboundingPoly=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Setlocations(AIndex : Integer; const AValue : TEntityAnnotationTypelocationsArray); 
+Procedure TEntityAnnotation.Setlocations(AIndex : Integer; const AValue : TEntityAnnotationTypelocationsArray);
 
 begin
   If (Flocations=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TEntityAnnotation.Setconfidence(AIndex : Integer; const AValue : integer); 
+Procedure TEntityAnnotation.Setconfidence(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fconfidence=AValue) then exit;
@@ -1454,7 +1454,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEntityAnnotation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEntityAnnotation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1474,7 +1474,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProperty.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TProperty.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1484,7 +1484,7 @@ end;
 
 
 
-Procedure TProperty.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProperty.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1501,7 +1501,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColor.Setgreen(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setgreen(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fgreen=AValue) then exit;
@@ -1511,7 +1511,7 @@ end;
 
 
 
-Procedure TColor.Setblue(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setblue(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fblue=AValue) then exit;
@@ -1521,7 +1521,7 @@ end;
 
 
 
-Procedure TColor.Setred(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setred(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fred=AValue) then exit;
@@ -1531,7 +1531,7 @@ end;
 
 
 
-Procedure TColor.Setalpha(AIndex : Integer; const AValue : integer); 
+Procedure TColor.Setalpha(AIndex : Integer; const AValue : integer);
 
 begin
   If (Falpha=AValue) then exit;
@@ -1548,7 +1548,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationInfo.SetlatLng(AIndex : Integer; const AValue : TLatLng); 
+Procedure TLocationInfo.SetlatLng(AIndex : Integer; const AValue : TLatLng);
 
 begin
   If (FlatLng=AValue) then exit;
@@ -1565,7 +1565,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSafeSearchAnnotation.Setmedical(AIndex : Integer; const AValue : String); 
+Procedure TSafeSearchAnnotation.Setmedical(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmedical=AValue) then exit;
@@ -1575,7 +1575,7 @@ end;
 
 
 
-Procedure TSafeSearchAnnotation.Setspoof(AIndex : Integer; const AValue : String); 
+Procedure TSafeSearchAnnotation.Setspoof(AIndex : Integer; const AValue : String);
 
 begin
   If (Fspoof=AValue) then exit;
@@ -1585,7 +1585,7 @@ end;
 
 
 
-Procedure TSafeSearchAnnotation.Setviolence(AIndex : Integer; const AValue : String); 
+Procedure TSafeSearchAnnotation.Setviolence(AIndex : Integer; const AValue : String);
 
 begin
   If (Fviolence=AValue) then exit;
@@ -1595,7 +1595,7 @@ end;
 
 
 
-Procedure TSafeSearchAnnotation.Setadult(AIndex : Integer; const AValue : String); 
+Procedure TSafeSearchAnnotation.Setadult(AIndex : Integer; const AValue : String);
 
 begin
   If (Fadult=AValue) then exit;
@@ -1612,7 +1612,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImage.Setsource(AIndex : Integer; const AValue : TImageSource); 
+Procedure TImage.Setsource(AIndex : Integer; const AValue : TImageSource);
 
 begin
   If (Fsource=AValue) then exit;
@@ -1622,7 +1622,7 @@ end;
 
 
 
-Procedure TImage.Setcontent(AIndex : Integer; const AValue : String); 
+Procedure TImage.Setcontent(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcontent=AValue) then exit;
@@ -1639,7 +1639,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDominantColorsAnnotation.Setcolors(AIndex : Integer; const AValue : TDominantColorsAnnotationTypecolorsArray); 
+Procedure TDominantColorsAnnotation.Setcolors(AIndex : Integer; const AValue : TDominantColorsAnnotationTypecolorsArray);
 
 begin
   If (Fcolors=AValue) then exit;
@@ -1650,7 +1650,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TDominantColorsAnnotation.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TDominantColorsAnnotation.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1669,7 +1669,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeature.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TFeature.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -1679,7 +1679,7 @@ end;
 
 
 
-Procedure TFeature.SetmaxResults(AIndex : Integer; const AValue : integer); 
+Procedure TFeature.SetmaxResults(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxResults=AValue) then exit;
@@ -1707,7 +1707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchAnnotateImagesResponse.Setresponses(AIndex : Integer; const AValue : TBatchAnnotateImagesResponseTyperesponsesArray); 
+Procedure TBatchAnnotateImagesResponse.Setresponses(AIndex : Integer; const AValue : TBatchAnnotateImagesResponseTyperesponsesArray);
 
 begin
   If (Fresponses=AValue) then exit;
@@ -1718,7 +1718,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TBatchAnnotateImagesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TBatchAnnotateImagesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1737,7 +1737,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImageProperties.SetdominantColors(AIndex : Integer; const AValue : TDominantColorsAnnotation); 
+Procedure TImageProperties.SetdominantColors(AIndex : Integer; const AValue : TDominantColorsAnnotation);
 
 begin
   If (FdominantColors=AValue) then exit;
@@ -1754,7 +1754,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlatitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1764,7 +1764,7 @@ end;
 
 
 
-Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double); 
+Procedure TLatLng.Setlongitude(AIndex : Integer; const AValue : double);
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1781,7 +1781,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPosition.Sety(AIndex : Integer; const AValue : integer); 
+Procedure TPosition.Sety(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fy=AValue) then exit;
@@ -1791,7 +1791,7 @@ end;
 
 
 
-Procedure TPosition.Setx(AIndex : Integer; const AValue : integer); 
+Procedure TPosition.Setx(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fx=AValue) then exit;
@@ -1801,7 +1801,7 @@ end;
 
 
 
-Procedure TPosition.Setz(AIndex : Integer; const AValue : integer); 
+Procedure TPosition.Setz(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fz=AValue) then exit;
@@ -1955,7 +1955,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TVisionAPI.APINeedsAuth : Boolean;

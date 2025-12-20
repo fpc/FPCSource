@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAchievementDefinition = Class;
   TAchievementDefinitionsListResponse = Class;
@@ -252,11 +252,11 @@ type
   TTurnBasedMatchResultsTyperesultsArray = Array of TParticipantResult;
   TTurnBasedMatchSyncTypeitemsArray = Array of TTurnBasedMatch;
   TTurnBasedMatchTurnTyperesultsArray = Array of TParticipantResult;
-  
+
   { --------------------------------------------------------------------
     TAchievementDefinition
     --------------------------------------------------------------------}
-  
+
   TAchievementDefinition = Class(TGoogleBaseObject)
   Private
     FachievementType : String;
@@ -304,11 +304,11 @@ type
     Property unlockedIconUrl : String Index 96 Read FunlockedIconUrl Write SetunlockedIconUrl;
   end;
   TAchievementDefinitionClass = Class of TAchievementDefinition;
-  
+
   { --------------------------------------------------------------------
     TAchievementDefinitionsListResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementDefinitionsListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TAchievementDefinitionsListResponseTypeitemsArray;
@@ -330,11 +330,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TAchievementDefinitionsListResponseClass = Class of TAchievementDefinitionsListResponse;
-  
+
   { --------------------------------------------------------------------
     TAchievementIncrementResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementIncrementResponse = Class(TGoogleBaseObject)
   Private
     FcurrentSteps : integer;
@@ -352,11 +352,11 @@ type
     Property newlyUnlocked : boolean Index 16 Read FnewlyUnlocked Write SetnewlyUnlocked;
   end;
   TAchievementIncrementResponseClass = Class of TAchievementIncrementResponse;
-  
+
   { --------------------------------------------------------------------
     TAchievementRevealResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementRevealResponse = Class(TGoogleBaseObject)
   Private
     FcurrentState : String;
@@ -371,11 +371,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TAchievementRevealResponseClass = Class of TAchievementRevealResponse;
-  
+
   { --------------------------------------------------------------------
     TAchievementSetStepsAtLeastResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementSetStepsAtLeastResponse = Class(TGoogleBaseObject)
   Private
     FcurrentSteps : integer;
@@ -393,11 +393,11 @@ type
     Property newlyUnlocked : boolean Index 16 Read FnewlyUnlocked Write SetnewlyUnlocked;
   end;
   TAchievementSetStepsAtLeastResponseClass = Class of TAchievementSetStepsAtLeastResponse;
-  
+
   { --------------------------------------------------------------------
     TAchievementUnlockResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementUnlockResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -412,11 +412,11 @@ type
     Property newlyUnlocked : boolean Index 8 Read FnewlyUnlocked Write SetnewlyUnlocked;
   end;
   TAchievementUnlockResponseClass = Class of TAchievementUnlockResponse;
-  
+
   { --------------------------------------------------------------------
     TAchievementUpdateMultipleRequest
     --------------------------------------------------------------------}
-  
+
   TAchievementUpdateMultipleRequest = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -435,11 +435,11 @@ type
     Property updates : TAchievementUpdateMultipleRequestTypeupdatesArray Index 8 Read Fupdates Write Setupdates;
   end;
   TAchievementUpdateMultipleRequestClass = Class of TAchievementUpdateMultipleRequest;
-  
+
   { --------------------------------------------------------------------
     TAchievementUpdateMultipleResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementUpdateMultipleResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -458,11 +458,11 @@ type
     Property updatedAchievements : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray Index 8 Read FupdatedAchievements Write SetupdatedAchievements;
   end;
   TAchievementUpdateMultipleResponseClass = Class of TAchievementUpdateMultipleResponse;
-  
+
   { --------------------------------------------------------------------
     TAchievementUpdateRequest
     --------------------------------------------------------------------}
-  
+
   TAchievementUpdateRequest = Class(TGoogleBaseObject)
   Private
     FachievementId : String;
@@ -486,11 +486,11 @@ type
     Property updateType : String Index 32 Read FupdateType Write SetupdateType;
   end;
   TAchievementUpdateRequestClass = Class of TAchievementUpdateRequest;
-  
+
   { --------------------------------------------------------------------
     TAchievementUpdateResponse
     --------------------------------------------------------------------}
-  
+
   TAchievementUpdateResponse = Class(TGoogleBaseObject)
   Private
     FachievementId : String;
@@ -517,11 +517,11 @@ type
     Property updateOccurred : boolean Index 40 Read FupdateOccurred Write SetupdateOccurred;
   end;
   TAchievementUpdateResponseClass = Class of TAchievementUpdateResponse;
-  
+
   { --------------------------------------------------------------------
     TAggregateStats
     --------------------------------------------------------------------}
-  
+
   TAggregateStats = Class(TGoogleBaseObject)
   Private
     Fcount : String;
@@ -545,11 +545,11 @@ type
     Property sum : String Index 32 Read Fsum Write Setsum;
   end;
   TAggregateStatsClass = Class of TAggregateStats;
-  
+
   { --------------------------------------------------------------------
     TAnonymousPlayer
     --------------------------------------------------------------------}
-  
+
   TAnonymousPlayer = Class(TGoogleBaseObject)
   Private
     FavatarImageUrl : String;
@@ -567,11 +567,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TAnonymousPlayerClass = Class of TAnonymousPlayer;
-  
+
   { --------------------------------------------------------------------
     TApplication
     --------------------------------------------------------------------}
-  
+
   TApplication = Class(TGoogleBaseObject)
   Private
     Fachievement_count : integer;
@@ -623,11 +623,11 @@ type
     Property themeColor : String Index 96 Read FthemeColor Write SetthemeColor;
   end;
   TApplicationClass = Class of TApplication;
-  
+
   { --------------------------------------------------------------------
     TApplicationCategory
     --------------------------------------------------------------------}
-  
+
   TApplicationCategory = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -645,11 +645,11 @@ type
     Property secondary : String Index 16 Read Fsecondary Write Setsecondary;
   end;
   TApplicationCategoryClass = Class of TApplicationCategory;
-  
+
   { --------------------------------------------------------------------
     TApplicationVerifyResponse
     --------------------------------------------------------------------}
-  
+
   TApplicationVerifyResponse = Class(TGoogleBaseObject)
   Private
     Falternate_player_id : String;
@@ -667,11 +667,11 @@ type
     Property player_id : String Index 16 Read Fplayer_id Write Setplayer_id;
   end;
   TApplicationVerifyResponseClass = Class of TApplicationVerifyResponse;
-  
+
   { --------------------------------------------------------------------
     TCategory
     --------------------------------------------------------------------}
-  
+
   TCategory = Class(TGoogleBaseObject)
   Private
     Fcategory : String;
@@ -689,11 +689,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TCategoryClass = Class of TCategory;
-  
+
   { --------------------------------------------------------------------
     TCategoryListResponse
     --------------------------------------------------------------------}
-  
+
   TCategoryListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TCategoryListResponseTypeitemsArray;
@@ -715,11 +715,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TCategoryListResponseClass = Class of TCategoryListResponse;
-  
+
   { --------------------------------------------------------------------
     TEventBatchRecordFailure
     --------------------------------------------------------------------}
-  
+
   TEventBatchRecordFailure = Class(TGoogleBaseObject)
   Private
     FfailureCause : String;
@@ -737,11 +737,11 @@ type
     Property range : TEventPeriodRange Index 16 Read Frange Write Setrange;
   end;
   TEventBatchRecordFailureClass = Class of TEventBatchRecordFailure;
-  
+
   { --------------------------------------------------------------------
     TEventChild
     --------------------------------------------------------------------}
-  
+
   TEventChild = Class(TGoogleBaseObject)
   Private
     FchildId : String;
@@ -756,11 +756,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TEventChildClass = Class of TEventChild;
-  
+
   { --------------------------------------------------------------------
     TEventDefinition
     --------------------------------------------------------------------}
-  
+
   TEventDefinition = Class(TGoogleBaseObject)
   Private
     FchildEvents : TEventDefinitionTypechildEventsArray;
@@ -797,11 +797,11 @@ type
     Property visibility : String Index 56 Read Fvisibility Write Setvisibility;
   end;
   TEventDefinitionClass = Class of TEventDefinition;
-  
+
   { --------------------------------------------------------------------
     TEventDefinitionListResponse
     --------------------------------------------------------------------}
-  
+
   TEventDefinitionListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TEventDefinitionListResponseTypeitemsArray;
@@ -823,11 +823,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TEventDefinitionListResponseClass = Class of TEventDefinitionListResponse;
-  
+
   { --------------------------------------------------------------------
     TEventPeriodRange
     --------------------------------------------------------------------}
-  
+
   TEventPeriodRange = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -845,11 +845,11 @@ type
     Property periodStartMillis : String Index 16 Read FperiodStartMillis Write SetperiodStartMillis;
   end;
   TEventPeriodRangeClass = Class of TEventPeriodRange;
-  
+
   { --------------------------------------------------------------------
     TEventPeriodUpdate
     --------------------------------------------------------------------}
-  
+
   TEventPeriodUpdate = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -871,11 +871,11 @@ type
     Property updates : TEventPeriodUpdateTypeupdatesArray Index 16 Read Fupdates Write Setupdates;
   end;
   TEventPeriodUpdateClass = Class of TEventPeriodUpdate;
-  
+
   { --------------------------------------------------------------------
     TEventRecordFailure
     --------------------------------------------------------------------}
-  
+
   TEventRecordFailure = Class(TGoogleBaseObject)
   Private
     FeventId : String;
@@ -893,11 +893,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TEventRecordFailureClass = Class of TEventRecordFailure;
-  
+
   { --------------------------------------------------------------------
     TEventRecordRequest
     --------------------------------------------------------------------}
-  
+
   TEventRecordRequest = Class(TGoogleBaseObject)
   Private
     FcurrentTimeMillis : String;
@@ -922,11 +922,11 @@ type
     Property timePeriods : TEventRecordRequestTypetimePeriodsArray Index 24 Read FtimePeriods Write SettimePeriods;
   end;
   TEventRecordRequestClass = Class of TEventRecordRequest;
-  
+
   { --------------------------------------------------------------------
     TEventUpdateRequest
     --------------------------------------------------------------------}
-  
+
   TEventUpdateRequest = Class(TGoogleBaseObject)
   Private
     FdefinitionId : String;
@@ -944,11 +944,11 @@ type
     Property updateCount : String Index 16 Read FupdateCount Write SetupdateCount;
   end;
   TEventUpdateRequestClass = Class of TEventUpdateRequest;
-  
+
   { --------------------------------------------------------------------
     TEventUpdateResponse
     --------------------------------------------------------------------}
-  
+
   TEventUpdateResponse = Class(TGoogleBaseObject)
   Private
     FbatchFailures : TEventUpdateResponseTypebatchFailuresArray;
@@ -973,11 +973,11 @@ type
     Property playerEvents : TEventUpdateResponseTypeplayerEventsArray Index 24 Read FplayerEvents Write SetplayerEvents;
   end;
   TEventUpdateResponseClass = Class of TEventUpdateResponse;
-  
+
   { --------------------------------------------------------------------
     TGamesAchievementIncrement
     --------------------------------------------------------------------}
-  
+
   TGamesAchievementIncrement = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -995,11 +995,11 @@ type
     Property steps : integer Index 16 Read Fsteps Write Setsteps;
   end;
   TGamesAchievementIncrementClass = Class of TGamesAchievementIncrement;
-  
+
   { --------------------------------------------------------------------
     TGamesAchievementSetStepsAtLeast
     --------------------------------------------------------------------}
-  
+
   TGamesAchievementSetStepsAtLeast = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1014,11 +1014,11 @@ type
     Property steps : integer Index 8 Read Fsteps Write Setsteps;
   end;
   TGamesAchievementSetStepsAtLeastClass = Class of TGamesAchievementSetStepsAtLeast;
-  
+
   { --------------------------------------------------------------------
     TImageAsset
     --------------------------------------------------------------------}
-  
+
   TImageAsset = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -1042,11 +1042,11 @@ type
     Property width : integer Index 32 Read Fwidth Write Setwidth;
   end;
   TImageAssetClass = Class of TImageAsset;
-  
+
   { --------------------------------------------------------------------
     TInstance
     --------------------------------------------------------------------}
-  
+
   TInstance = Class(TGoogleBaseObject)
   Private
     FacquisitionUri : String;
@@ -1082,11 +1082,11 @@ type
     Property webInstance : TInstanceWebDetails Index 64 Read FwebInstance Write SetwebInstance;
   end;
   TInstanceClass = Class of TInstance;
-  
+
   { --------------------------------------------------------------------
     TInstanceAndroidDetails
     --------------------------------------------------------------------}
-  
+
   TInstanceAndroidDetails = Class(TGoogleBaseObject)
   Private
     FenablePiracyCheck : boolean;
@@ -1107,11 +1107,11 @@ type
     Property preferred : boolean Index 24 Read Fpreferred Write Setpreferred;
   end;
   TInstanceAndroidDetailsClass = Class of TInstanceAndroidDetails;
-  
+
   { --------------------------------------------------------------------
     TInstanceIosDetails
     --------------------------------------------------------------------}
-  
+
   TInstanceIosDetails = Class(TGoogleBaseObject)
   Private
     FbundleIdentifier : String;
@@ -1141,11 +1141,11 @@ type
     Property supportIphone : boolean Index 48 Read FsupportIphone Write SetsupportIphone;
   end;
   TInstanceIosDetailsClass = Class of TInstanceIosDetails;
-  
+
   { --------------------------------------------------------------------
     TInstanceWebDetails
     --------------------------------------------------------------------}
-  
+
   TInstanceWebDetails = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1163,11 +1163,11 @@ type
     Property preferred : boolean Index 16 Read Fpreferred Write Setpreferred;
   end;
   TInstanceWebDetailsClass = Class of TInstanceWebDetails;
-  
+
   { --------------------------------------------------------------------
     TLeaderboard
     --------------------------------------------------------------------}
-  
+
   TLeaderboard = Class(TGoogleBaseObject)
   Private
     FiconUrl : String;
@@ -1194,11 +1194,11 @@ type
     Property order : String Index 40 Read Forder Write Setorder;
   end;
   TLeaderboardClass = Class of TLeaderboard;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardEntry
     --------------------------------------------------------------------}
-  
+
   TLeaderboardEntry = Class(TGoogleBaseObject)
   Private
     FformattedScore : String;
@@ -1234,11 +1234,11 @@ type
     Property writeTimestampMillis : String Index 64 Read FwriteTimestampMillis Write SetwriteTimestampMillis;
   end;
   TLeaderboardEntryClass = Class of TLeaderboardEntry;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardListResponse
     --------------------------------------------------------------------}
-  
+
   TLeaderboardListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TLeaderboardListResponseTypeitemsArray;
@@ -1260,11 +1260,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TLeaderboardListResponseClass = Class of TLeaderboardListResponse;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardScoreRank
     --------------------------------------------------------------------}
-  
+
   TLeaderboardScoreRank = Class(TGoogleBaseObject)
   Private
     FformattedNumScores : String;
@@ -1288,11 +1288,11 @@ type
     Property rank : String Index 32 Read Frank Write Setrank;
   end;
   TLeaderboardScoreRankClass = Class of TLeaderboardScoreRank;
-  
+
   { --------------------------------------------------------------------
     TLeaderboardScores
     --------------------------------------------------------------------}
-  
+
   TLeaderboardScores = Class(TGoogleBaseObject)
   Private
     Fitems : TLeaderboardScoresTypeitemsArray;
@@ -1323,11 +1323,11 @@ type
     Property prevPageToken : String Index 40 Read FprevPageToken Write SetprevPageToken;
   end;
   TLeaderboardScoresClass = Class of TLeaderboardScores;
-  
+
   { --------------------------------------------------------------------
     TMetagameConfig
     --------------------------------------------------------------------}
-  
+
   TMetagameConfig = Class(TGoogleBaseObject)
   Private
     FcurrentVersion : integer;
@@ -1349,11 +1349,11 @@ type
     Property playerLevels : TMetagameConfigTypeplayerLevelsArray Index 16 Read FplayerLevels Write SetplayerLevels;
   end;
   TMetagameConfigClass = Class of TMetagameConfig;
-  
+
   { --------------------------------------------------------------------
     TNetworkDiagnostics
     --------------------------------------------------------------------}
-  
+
   TNetworkDiagnostics = Class(TGoogleBaseObject)
   Private
     FandroidNetworkSubtype : integer;
@@ -1383,11 +1383,11 @@ type
     Property registrationLatencyMillis : integer Index 48 Read FregistrationLatencyMillis Write SetregistrationLatencyMillis;
   end;
   TNetworkDiagnosticsClass = Class of TNetworkDiagnostics;
-  
+
   { --------------------------------------------------------------------
     TParticipantResult
     --------------------------------------------------------------------}
-  
+
   TParticipantResult = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1408,11 +1408,11 @@ type
     Property result : String Index 24 Read Fresult Write Setresult;
   end;
   TParticipantResultClass = Class of TParticipantResult;
-  
+
   { --------------------------------------------------------------------
     TPeerChannelDiagnostics
     --------------------------------------------------------------------}
-  
+
   TPeerChannelDiagnostics = Class(TGoogleBaseObject)
   Private
     FbytesReceived : TAggregateStats;
@@ -1445,11 +1445,11 @@ type
     Property roundtripLatencyMillis : TAggregateStats Index 56 Read FroundtripLatencyMillis Write SetroundtripLatencyMillis;
   end;
   TPeerChannelDiagnosticsClass = Class of TPeerChannelDiagnostics;
-  
+
   { --------------------------------------------------------------------
     TPeerSessionDiagnostics
     --------------------------------------------------------------------}
-  
+
   TPeerSessionDiagnostics = Class(TGoogleBaseObject)
   Private
     FconnectedTimestampMillis : String;
@@ -1473,11 +1473,11 @@ type
     Property unreliableChannel : TPeerChannelDiagnostics Index 32 Read FunreliableChannel Write SetunreliableChannel;
   end;
   TPeerSessionDiagnosticsClass = Class of TPeerSessionDiagnostics;
-  
+
   { --------------------------------------------------------------------
     TPlayed
     --------------------------------------------------------------------}
-  
+
   TPlayed = Class(TGoogleBaseObject)
   Private
     FautoMatched : boolean;
@@ -1495,11 +1495,11 @@ type
     Property timeMillis : String Index 16 Read FtimeMillis Write SettimeMillis;
   end;
   TPlayedClass = Class of TPlayed;
-  
+
   { --------------------------------------------------------------------
     TPlayerTypename
     --------------------------------------------------------------------}
-  
+
   TPlayerTypename = Class(TGoogleBaseObject)
   Private
     FfamilyName : String;
@@ -1514,11 +1514,11 @@ type
     Property givenName : String Index 8 Read FgivenName Write SetgivenName;
   end;
   TPlayerTypenameClass = Class of TPlayerTypename;
-  
+
   { --------------------------------------------------------------------
     TPlayer
     --------------------------------------------------------------------}
-  
+
   TPlayer = Class(TGoogleBaseObject)
   Private
     FavatarImageUrl : String;
@@ -1563,11 +1563,11 @@ type
     Property title : String Index 88 Read Ftitle Write Settitle;
   end;
   TPlayerClass = Class of TPlayer;
-  
+
   { --------------------------------------------------------------------
     TPlayerAchievement
     --------------------------------------------------------------------}
-  
+
   TPlayerAchievement = Class(TGoogleBaseObject)
   Private
     FachievementState : String;
@@ -1597,11 +1597,11 @@ type
     Property lastUpdatedTimestamp : String Index 48 Read FlastUpdatedTimestamp Write SetlastUpdatedTimestamp;
   end;
   TPlayerAchievementClass = Class of TPlayerAchievement;
-  
+
   { --------------------------------------------------------------------
     TPlayerAchievementListResponse
     --------------------------------------------------------------------}
-  
+
   TPlayerAchievementListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TPlayerAchievementListResponseTypeitemsArray;
@@ -1623,11 +1623,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TPlayerAchievementListResponseClass = Class of TPlayerAchievementListResponse;
-  
+
   { --------------------------------------------------------------------
     TPlayerEvent
     --------------------------------------------------------------------}
-  
+
   TPlayerEvent = Class(TGoogleBaseObject)
   Private
     FdefinitionId : String;
@@ -1651,11 +1651,11 @@ type
     Property playerId : String Index 32 Read FplayerId Write SetplayerId;
   end;
   TPlayerEventClass = Class of TPlayerEvent;
-  
+
   { --------------------------------------------------------------------
     TPlayerEventListResponse
     --------------------------------------------------------------------}
-  
+
   TPlayerEventListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TPlayerEventListResponseTypeitemsArray;
@@ -1677,11 +1677,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TPlayerEventListResponseClass = Class of TPlayerEventListResponse;
-  
+
   { --------------------------------------------------------------------
     TPlayerExperienceInfo
     --------------------------------------------------------------------}
-  
+
   TPlayerExperienceInfo = Class(TGoogleBaseObject)
   Private
     FcurrentExperiencePoints : String;
@@ -1705,11 +1705,11 @@ type
     Property nextLevel : TPlayerLevel Index 32 Read FnextLevel Write SetnextLevel;
   end;
   TPlayerExperienceInfoClass = Class of TPlayerExperienceInfo;
-  
+
   { --------------------------------------------------------------------
     TPlayerLeaderboardScore
     --------------------------------------------------------------------}
-  
+
   TPlayerLeaderboardScore = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1745,11 +1745,11 @@ type
     Property writeTimestamp : String Index 64 Read FwriteTimestamp Write SetwriteTimestamp;
   end;
   TPlayerLeaderboardScoreClass = Class of TPlayerLeaderboardScore;
-  
+
   { --------------------------------------------------------------------
     TPlayerLeaderboardScoreListResponse
     --------------------------------------------------------------------}
-  
+
   TPlayerLeaderboardScoreListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TPlayerLeaderboardScoreListResponseTypeitemsArray;
@@ -1774,11 +1774,11 @@ type
     Property player : TPlayer Index 24 Read Fplayer Write Setplayer;
   end;
   TPlayerLeaderboardScoreListResponseClass = Class of TPlayerLeaderboardScoreListResponse;
-  
+
   { --------------------------------------------------------------------
     TPlayerLevel
     --------------------------------------------------------------------}
-  
+
   TPlayerLevel = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1799,11 +1799,11 @@ type
     Property minExperiencePoints : String Index 24 Read FminExperiencePoints Write SetminExperiencePoints;
   end;
   TPlayerLevelClass = Class of TPlayerLevel;
-  
+
   { --------------------------------------------------------------------
     TPlayerListResponse
     --------------------------------------------------------------------}
-  
+
   TPlayerListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TPlayerListResponseTypeitemsArray;
@@ -1825,11 +1825,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TPlayerListResponseClass = Class of TPlayerListResponse;
-  
+
   { --------------------------------------------------------------------
     TPlayerScore
     --------------------------------------------------------------------}
-  
+
   TPlayerScore = Class(TGoogleBaseObject)
   Private
     FformattedScore : String;
@@ -1853,11 +1853,11 @@ type
     Property timeSpan : String Index 32 Read FtimeSpan Write SettimeSpan;
   end;
   TPlayerScoreClass = Class of TPlayerScore;
-  
+
   { --------------------------------------------------------------------
     TPlayerScoreListResponse
     --------------------------------------------------------------------}
-  
+
   TPlayerScoreListResponse = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1876,11 +1876,11 @@ type
     Property submittedScores : TPlayerScoreListResponseTypesubmittedScoresArray Index 8 Read FsubmittedScores Write SetsubmittedScores;
   end;
   TPlayerScoreListResponseClass = Class of TPlayerScoreListResponse;
-  
+
   { --------------------------------------------------------------------
     TPlayerScoreResponse
     --------------------------------------------------------------------}
-  
+
   TPlayerScoreResponse = Class(TGoogleBaseObject)
   Private
     FbeatenScoreTimeSpans : TStringArray;
@@ -1911,11 +1911,11 @@ type
     Property unbeatenScores : TPlayerScoreResponseTypeunbeatenScoresArray Index 40 Read FunbeatenScores Write SetunbeatenScores;
   end;
   TPlayerScoreResponseClass = Class of TPlayerScoreResponse;
-  
+
   { --------------------------------------------------------------------
     TPlayerScoreSubmissionList
     --------------------------------------------------------------------}
-  
+
   TPlayerScoreSubmissionList = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1934,11 +1934,11 @@ type
     Property scores : TPlayerScoreSubmissionListTypescoresArray Index 8 Read Fscores Write Setscores;
   end;
   TPlayerScoreSubmissionListClass = Class of TPlayerScoreSubmissionList;
-  
+
   { --------------------------------------------------------------------
     TProfileSettings
     --------------------------------------------------------------------}
-  
+
   TProfileSettings = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -1953,11 +1953,11 @@ type
     Property profileVisible : boolean Index 8 Read FprofileVisible Write SetprofileVisible;
   end;
   TProfileSettingsClass = Class of TProfileSettings;
-  
+
   { --------------------------------------------------------------------
     TPushToken
     --------------------------------------------------------------------}
-  
+
   TPushToken = Class(TGoogleBaseObject)
   Private
     FclientRevision : String;
@@ -1978,11 +1978,11 @@ type
     Property language : String Index 24 Read Flanguage Write Setlanguage;
   end;
   TPushTokenClass = Class of TPushToken;
-  
+
   { --------------------------------------------------------------------
     TPushTokenIdTypeios
     --------------------------------------------------------------------}
-  
+
   TPushTokenIdTypeios = Class(TGoogleBaseObject)
   Private
     Fapns_device_token : String;
@@ -1997,11 +1997,11 @@ type
     Property apns_environment : String Index 8 Read Fapns_environment Write Setapns_environment;
   end;
   TPushTokenIdTypeiosClass = Class of TPushTokenIdTypeios;
-  
+
   { --------------------------------------------------------------------
     TPushTokenId
     --------------------------------------------------------------------}
-  
+
   TPushTokenId = Class(TGoogleBaseObject)
   Private
     Fios : TPushTokenIdTypeios;
@@ -2016,11 +2016,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TPushTokenIdClass = Class of TPushTokenId;
-  
+
   { --------------------------------------------------------------------
     TQuest
     --------------------------------------------------------------------}
-  
+
   TQuest = Class(TGoogleBaseObject)
   Private
     FacceptedTimestampMillis : String;
@@ -2081,11 +2081,11 @@ type
     Property state : String Index 120 Read Fstate Write Setstate;
   end;
   TQuestClass = Class of TQuest;
-  
+
   { --------------------------------------------------------------------
     TQuestContribution
     --------------------------------------------------------------------}
-  
+
   TQuestContribution = Class(TGoogleBaseObject)
   Private
     FformattedValue : String;
@@ -2103,11 +2103,11 @@ type
     Property value : String Index 16 Read Fvalue Write Setvalue;
   end;
   TQuestContributionClass = Class of TQuestContribution;
-  
+
   { --------------------------------------------------------------------
     TQuestCriterion
     --------------------------------------------------------------------}
-  
+
   TQuestCriterion = Class(TGoogleBaseObject)
   Private
     FcompletionContribution : TQuestContribution;
@@ -2131,11 +2131,11 @@ type
     Property kind : String Index 32 Read Fkind Write Setkind;
   end;
   TQuestCriterionClass = Class of TQuestCriterion;
-  
+
   { --------------------------------------------------------------------
     TQuestListResponse
     --------------------------------------------------------------------}
-  
+
   TQuestListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TQuestListResponseTypeitemsArray;
@@ -2157,11 +2157,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TQuestListResponseClass = Class of TQuestListResponse;
-  
+
   { --------------------------------------------------------------------
     TQuestMilestone
     --------------------------------------------------------------------}
-  
+
   TQuestMilestone = Class(TGoogleBaseObject)
   Private
     FcompletionRewardData : String;
@@ -2189,11 +2189,11 @@ type
     Property state : String Index 32 Read Fstate Write Setstate;
   end;
   TQuestMilestoneClass = Class of TQuestMilestone;
-  
+
   { --------------------------------------------------------------------
     TRevisionCheckResponse
     --------------------------------------------------------------------}
-  
+
   TRevisionCheckResponse = Class(TGoogleBaseObject)
   Private
     FapiVersion : String;
@@ -2211,11 +2211,11 @@ type
     Property revisionStatus : String Index 16 Read FrevisionStatus Write SetrevisionStatus;
   end;
   TRevisionCheckResponseClass = Class of TRevisionCheckResponse;
-  
+
   { --------------------------------------------------------------------
     TRoom
     --------------------------------------------------------------------}
-  
+
   TRoom = Class(TGoogleBaseObject)
   Private
     FapplicationId : String;
@@ -2267,11 +2267,11 @@ type
     Property variant : integer Index 96 Read Fvariant Write Setvariant;
   end;
   TRoomClass = Class of TRoom;
-  
+
   { --------------------------------------------------------------------
     TRoomAutoMatchStatus
     --------------------------------------------------------------------}
-  
+
   TRoomAutoMatchStatus = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -2286,11 +2286,11 @@ type
     Property waitEstimateSeconds : integer Index 8 Read FwaitEstimateSeconds Write SetwaitEstimateSeconds;
   end;
   TRoomAutoMatchStatusClass = Class of TRoomAutoMatchStatus;
-  
+
   { --------------------------------------------------------------------
     TRoomAutoMatchingCriteria
     --------------------------------------------------------------------}
-  
+
   TRoomAutoMatchingCriteria = Class(TGoogleBaseObject)
   Private
     FexclusiveBitmask : String;
@@ -2311,11 +2311,11 @@ type
     Property minAutoMatchingPlayers : integer Index 24 Read FminAutoMatchingPlayers Write SetminAutoMatchingPlayers;
   end;
   TRoomAutoMatchingCriteriaClass = Class of TRoomAutoMatchingCriteria;
-  
+
   { --------------------------------------------------------------------
     TRoomClientAddress
     --------------------------------------------------------------------}
-  
+
   TRoomClientAddress = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -2330,11 +2330,11 @@ type
     Property xmppAddress : String Index 8 Read FxmppAddress Write SetxmppAddress;
   end;
   TRoomClientAddressClass = Class of TRoomClientAddress;
-  
+
   { --------------------------------------------------------------------
     TRoomCreateRequest
     --------------------------------------------------------------------}
-  
+
   TRoomCreateRequest = Class(TGoogleBaseObject)
   Private
     FautoMatchingCriteria : TRoomAutoMatchingCriteria;
@@ -2371,11 +2371,11 @@ type
     Property variant : integer Index 56 Read Fvariant Write Setvariant;
   end;
   TRoomCreateRequestClass = Class of TRoomCreateRequest;
-  
+
   { --------------------------------------------------------------------
     TRoomJoinRequest
     --------------------------------------------------------------------}
-  
+
   TRoomJoinRequest = Class(TGoogleBaseObject)
   Private
     Fcapabilities : TStringArray;
@@ -2400,11 +2400,11 @@ type
     Property networkDiagnostics : TNetworkDiagnostics Index 24 Read FnetworkDiagnostics Write SetnetworkDiagnostics;
   end;
   TRoomJoinRequestClass = Class of TRoomJoinRequest;
-  
+
   { --------------------------------------------------------------------
     TRoomLeaveDiagnostics
     --------------------------------------------------------------------}
-  
+
   TRoomLeaveDiagnostics = Class(TGoogleBaseObject)
   Private
     FandroidNetworkSubtype : integer;
@@ -2441,11 +2441,11 @@ type
     Property socketsUsed : boolean Index 56 Read FsocketsUsed Write SetsocketsUsed;
   end;
   TRoomLeaveDiagnosticsClass = Class of TRoomLeaveDiagnostics;
-  
+
   { --------------------------------------------------------------------
     TRoomLeaveRequest
     --------------------------------------------------------------------}
-  
+
   TRoomLeaveRequest = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -2463,11 +2463,11 @@ type
     Property reason : String Index 16 Read Freason Write Setreason;
   end;
   TRoomLeaveRequestClass = Class of TRoomLeaveRequest;
-  
+
   { --------------------------------------------------------------------
     TRoomList
     --------------------------------------------------------------------}
-  
+
   TRoomList = Class(TGoogleBaseObject)
   Private
     Fitems : TRoomListTypeitemsArray;
@@ -2489,11 +2489,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TRoomListClass = Class of TRoomList;
-  
+
   { --------------------------------------------------------------------
     TRoomModification
     --------------------------------------------------------------------}
-  
+
   TRoomModification = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -2511,11 +2511,11 @@ type
     Property participantId : String Index 16 Read FparticipantId Write SetparticipantId;
   end;
   TRoomModificationClass = Class of TRoomModification;
-  
+
   { --------------------------------------------------------------------
     TRoomP2PStatus
     --------------------------------------------------------------------}
-  
+
   TRoomP2PStatus = Class(TGoogleBaseObject)
   Private
     FconnectionSetupLatencyMillis : integer;
@@ -2545,11 +2545,11 @@ type
     Property unreliableRoundtripLatencyMillis : integer Index 48 Read FunreliableRoundtripLatencyMillis Write SetunreliableRoundtripLatencyMillis;
   end;
   TRoomP2PStatusClass = Class of TRoomP2PStatus;
-  
+
   { --------------------------------------------------------------------
     TRoomP2PStatuses
     --------------------------------------------------------------------}
-  
+
   TRoomP2PStatuses = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -2568,11 +2568,11 @@ type
     Property updates : TRoomP2PStatusesTypeupdatesArray Index 8 Read Fupdates Write Setupdates;
   end;
   TRoomP2PStatusesClass = Class of TRoomP2PStatuses;
-  
+
   { --------------------------------------------------------------------
     TRoomParticipant
     --------------------------------------------------------------------}
-  
+
   TRoomParticipant = Class(TGoogleBaseObject)
   Private
     FautoMatched : boolean;
@@ -2615,11 +2615,11 @@ type
     Property status : String Index 72 Read Fstatus Write Setstatus;
   end;
   TRoomParticipantClass = Class of TRoomParticipant;
-  
+
   { --------------------------------------------------------------------
     TRoomStatus
     --------------------------------------------------------------------}
-  
+
   TRoomStatus = Class(TGoogleBaseObject)
   Private
     FautoMatchingStatus : TRoomAutoMatchStatus;
@@ -2650,11 +2650,11 @@ type
     Property statusVersion : integer Index 40 Read FstatusVersion Write SetstatusVersion;
   end;
   TRoomStatusClass = Class of TRoomStatus;
-  
+
   { --------------------------------------------------------------------
     TScoreSubmission
     --------------------------------------------------------------------}
-  
+
   TScoreSubmission = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -2678,11 +2678,11 @@ type
     Property signature : String Index 32 Read Fsignature Write Setsignature;
   end;
   TScoreSubmissionClass = Class of TScoreSubmission;
-  
+
   { --------------------------------------------------------------------
     TSnapshot
     --------------------------------------------------------------------}
-  
+
   TSnapshot = Class(TGoogleBaseObject)
   Private
     FcoverImage : TSnapshotImage;
@@ -2725,11 +2725,11 @@ type
     Property uniqueName : String Index 80 Read FuniqueName Write SetuniqueName;
   end;
   TSnapshotClass = Class of TSnapshot;
-  
+
   { --------------------------------------------------------------------
     TSnapshotImage
     --------------------------------------------------------------------}
-  
+
   TSnapshotImage = Class(TGoogleBaseObject)
   Private
     Fheight : integer;
@@ -2753,11 +2753,11 @@ type
     Property width : integer Index 32 Read Fwidth Write Setwidth;
   end;
   TSnapshotImageClass = Class of TSnapshotImage;
-  
+
   { --------------------------------------------------------------------
     TSnapshotListResponse
     --------------------------------------------------------------------}
-  
+
   TSnapshotListResponse = Class(TGoogleBaseObject)
   Private
     Fitems : TSnapshotListResponseTypeitemsArray;
@@ -2779,11 +2779,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TSnapshotListResponseClass = Class of TSnapshotListResponse;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedAutoMatchingCriteria
     --------------------------------------------------------------------}
-  
+
   TTurnBasedAutoMatchingCriteria = Class(TGoogleBaseObject)
   Private
     FexclusiveBitmask : String;
@@ -2804,11 +2804,11 @@ type
     Property minAutoMatchingPlayers : integer Index 24 Read FminAutoMatchingPlayers Write SetminAutoMatchingPlayers;
   end;
   TTurnBasedAutoMatchingCriteriaClass = Class of TTurnBasedAutoMatchingCriteria;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatch
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatch = Class(TGoogleBaseObject)
   Private
     FapplicationId : String;
@@ -2881,11 +2881,11 @@ type
     Property withParticipantId : String Index 152 Read FwithParticipantId Write SetwithParticipantId;
   end;
   TTurnBasedMatchClass = Class of TTurnBasedMatch;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchCreateRequest
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchCreateRequest = Class(TGoogleBaseObject)
   Private
     FautoMatchingCriteria : TTurnBasedAutoMatchingCriteria;
@@ -2913,11 +2913,11 @@ type
     Property variant : integer Index 32 Read Fvariant Write Setvariant;
   end;
   TTurnBasedMatchCreateRequestClass = Class of TTurnBasedMatchCreateRequest;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchData
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchData = Class(TGoogleBaseObject)
   Private
     Fdata : String;
@@ -2935,11 +2935,11 @@ type
     Property kind : String Index 16 Read Fkind Write Setkind;
   end;
   TTurnBasedMatchDataClass = Class of TTurnBasedMatchData;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchDataRequest
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchDataRequest = Class(TGoogleBaseObject)
   Private
     Fdata : String;
@@ -2954,11 +2954,11 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TTurnBasedMatchDataRequestClass = Class of TTurnBasedMatchDataRequest;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchList
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchList = Class(TGoogleBaseObject)
   Private
     Fitems : TTurnBasedMatchListTypeitemsArray;
@@ -2980,11 +2980,11 @@ type
     Property nextPageToken : String Index 16 Read FnextPageToken Write SetnextPageToken;
   end;
   TTurnBasedMatchListClass = Class of TTurnBasedMatchList;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchModification
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchModification = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -3002,11 +3002,11 @@ type
     Property participantId : String Index 16 Read FparticipantId Write SetparticipantId;
   end;
   TTurnBasedMatchModificationClass = Class of TTurnBasedMatchModification;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchParticipant
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchParticipant = Class(TGoogleBaseObject)
   Private
     FautoMatched : boolean;
@@ -3033,11 +3033,11 @@ type
     Property status : String Index 40 Read Fstatus Write Setstatus;
   end;
   TTurnBasedMatchParticipantClass = Class of TTurnBasedMatchParticipant;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchRematch
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchRematch = Class(TGoogleBaseObject)
   Private
     Fkind : String;
@@ -3055,11 +3055,11 @@ type
     Property rematch : TTurnBasedMatch Index 16 Read Frematch Write Setrematch;
   end;
   TTurnBasedMatchRematchClass = Class of TTurnBasedMatchRematch;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchResults
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchResults = Class(TGoogleBaseObject)
   Private
     Fdata : TTurnBasedMatchDataRequest;
@@ -3084,11 +3084,11 @@ type
     Property results : TTurnBasedMatchResultsTyperesultsArray Index 24 Read Fresults Write Setresults;
   end;
   TTurnBasedMatchResultsClass = Class of TTurnBasedMatchResults;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchSync
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchSync = Class(TGoogleBaseObject)
   Private
     Fitems : TTurnBasedMatchSyncTypeitemsArray;
@@ -3113,11 +3113,11 @@ type
     Property nextPageToken : String Index 24 Read FnextPageToken Write SetnextPageToken;
   end;
   TTurnBasedMatchSyncClass = Class of TTurnBasedMatchSync;
-  
+
   { --------------------------------------------------------------------
     TTurnBasedMatchTurn
     --------------------------------------------------------------------}
-  
+
   TTurnBasedMatchTurn = Class(TGoogleBaseObject)
   Private
     Fdata : TTurnBasedMatchDataRequest;
@@ -3145,21 +3145,21 @@ type
     Property results : TTurnBasedMatchTurnTyperesultsArray Index 32 Read Fresults Write Setresults;
   end;
   TTurnBasedMatchTurnClass = Class of TTurnBasedMatchTurn;
-  
+
   { --------------------------------------------------------------------
     TAchievementDefinitionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAchievementDefinitionsResource, method List
-  
+
   TAchievementDefinitionsListOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TAchievementDefinitionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3167,24 +3167,24 @@ type
     Function List(AQuery : string  = '') : TAchievementDefinitionsListResponse;
     Function List(AQuery : TAchievementDefinitionslistOptions) : TAchievementDefinitionsListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TAchievementsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TAchievementsResource, method Increment
-  
+
   TAchievementsIncrementOptions = Record
     consistencyToken : int64;
     requestId : int64;
     stepsToIncrement : integer;
   end;
-  
-  
+
+
   //Optional query Options for TAchievementsResource, method List
-  
+
   TAchievementsListOptions = Record
     consistencyToken : int64;
     language : String;
@@ -3192,36 +3192,36 @@ type
     pageToken : String;
     state : String;
   end;
-  
-  
+
+
   //Optional query Options for TAchievementsResource, method Reveal
-  
+
   TAchievementsRevealOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TAchievementsResource, method SetStepsAtLeast
-  
+
   TAchievementsSetStepsAtLeastOptions = Record
     consistencyToken : int64;
     steps : integer;
   end;
-  
-  
+
+
   //Optional query Options for TAchievementsResource, method Unlock
-  
+
   TAchievementsUnlockOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TAchievementsResource, method UpdateMultiple
-  
+
   TAchievementsUpdateMultipleOptions = Record
     consistencyToken : int64;
   end;
-  
+
   TAchievementsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3239,35 +3239,35 @@ type
     Function UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest; AQuery : string  = '') : TAchievementUpdateMultipleResponse;
     Function UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest; AQuery : TAchievementsupdateMultipleOptions) : TAchievementUpdateMultipleResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TApplicationsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TApplicationsResource, method Get
-  
+
   TApplicationsGetOptions = Record
     consistencyToken : int64;
     language : String;
     platformType : String;
   end;
-  
-  
+
+
   //Optional query Options for TApplicationsResource, method Played
-  
+
   TApplicationsPlayedOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TApplicationsResource, method Verify
-  
+
   TApplicationsVerifyOptions = Record
     consistencyToken : int64;
   end;
-  
+
   TApplicationsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3279,40 +3279,40 @@ type
     Function Verify(applicationId: string; AQuery : string  = '') : TApplicationVerifyResponse;
     Function Verify(applicationId: string; AQuery : TApplicationsverifyOptions) : TApplicationVerifyResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TEventsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TEventsResource, method ListByPlayer
-  
+
   TEventsListByPlayerOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method ListDefinitions
-  
+
   TEventsListDefinitionsOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TEventsResource, method Record
-  
+
   TEventsRecordOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
+
   TEventsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3324,30 +3324,30 @@ type
     Function _record(aEventRecordRequest : TEventRecordRequest; AQuery : string  = '') : TEventUpdateResponse;
     Function _record(aEventRecordRequest : TEventRecordRequest; AQuery : TEventsrecordOptions) : TEventUpdateResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TLeaderboardsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TLeaderboardsResource, method Get
-  
+
   TLeaderboardsGetOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TLeaderboardsResource, method List
-  
+
   TLeaderboardsListOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TLeaderboardsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3357,29 +3357,29 @@ type
     Function List(AQuery : string  = '') : TLeaderboardListResponse;
     Function List(AQuery : TLeaderboardslistOptions) : TLeaderboardListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TMetagameResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TMetagameResource, method GetMetagameConfig
-  
+
   TMetagameGetMetagameConfigOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TMetagameResource, method ListCategoriesByPlayer
-  
+
   TMetagameListCategoriesByPlayerOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TMetagameResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3389,30 +3389,30 @@ type
     Function ListCategoriesByPlayer(collection: string; playerId: string; AQuery : string  = '') : TCategoryListResponse;
     Function ListCategoriesByPlayer(collection: string; playerId: string; AQuery : TMetagamelistCategoriesByPlayerOptions) : TCategoryListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPlayersResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPlayersResource, method Get
-  
+
   TPlayersGetOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TPlayersResource, method List
-  
+
   TPlayersListOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TPlayersResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3422,26 +3422,26 @@ type
     Function List(collection: string; AQuery : string  = '') : TPlayerListResponse;
     Function List(collection: string; AQuery : TPlayerslistOptions) : TPlayerListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TPushtokensResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TPushtokensResource, method Remove
-  
+
   TPushtokensRemoveOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TPushtokensResource, method Update
-  
+
   TPushtokensUpdateOptions = Record
     consistencyToken : int64;
   end;
-  
+
   TPushtokensResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3451,20 +3451,20 @@ type
     Procedure Update(aPushToken : TPushToken; AQuery : string  = '');
     Procedure Update(aPushToken : TPushToken; AQuery : TPushtokensupdateOptions);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TQuestMilestonesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TQuestMilestonesResource, method Claim
-  
+
   TQuestMilestonesClaimOptions = Record
     consistencyToken : int64;
     requestId : int64;
   end;
-  
+
   TQuestMilestonesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3472,30 +3472,30 @@ type
     Procedure Claim(milestoneId: string; questId: string; AQuery : string  = '');
     Procedure Claim(milestoneId: string; questId: string; AQuery : TQuestMilestonesclaimOptions);
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TQuestsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TQuestsResource, method Accept
-  
+
   TQuestsAcceptOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TQuestsResource, method List
-  
+
   TQuestsListOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TQuestsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3505,20 +3505,20 @@ type
     Function List(playerId: string; AQuery : string  = '') : TQuestListResponse;
     Function List(playerId: string; AQuery : TQuestslistOptions) : TQuestListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRevisionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRevisionsResource, method Check
-  
+
   TRevisionsCheckOptions = Record
     clientRevision : String;
     consistencyToken : int64;
   end;
-  
+
   TRevisionsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3526,77 +3526,77 @@ type
     Function Check(AQuery : string  = '') : TRevisionCheckResponse;
     Function Check(AQuery : TRevisionscheckOptions) : TRevisionCheckResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TRoomsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TRoomsResource, method Create
-  
+
   TRoomsCreateOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method Decline
-  
+
   TRoomsDeclineOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method Dismiss
-  
+
   TRoomsDismissOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method Get
-  
+
   TRoomsGetOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method Join
-  
+
   TRoomsJoinOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method Leave
-  
+
   TRoomsLeaveOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method List
-  
+
   TRoomsListOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TRoomsResource, method ReportStatus
-  
+
   TRoomsReportStatusOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
+
   TRoomsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3618,15 +3618,15 @@ type
     Function ReportStatus(roomId: string; aRoomP2PStatuses : TRoomP2PStatuses; AQuery : string  = '') : TRoomStatus;
     Function ReportStatus(roomId: string; aRoomP2PStatuses : TRoomP2PStatuses; AQuery : TRoomsreportStatusOptions) : TRoomStatus;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TScoresResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TScoresResource, method Get
-  
+
   TScoresGetOptions = Record
     consistencyToken : int64;
     includeRankType : String;
@@ -3634,10 +3634,10 @@ type
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TScoresResource, method List
-  
+
   TScoresListOptions = Record
     consistencyToken : int64;
     language : String;
@@ -3645,10 +3645,10 @@ type
     pageToken : String;
     timeSpan : String;
   end;
-  
-  
+
+
   //Optional query Options for TScoresResource, method ListWindow
-  
+
   TScoresListWindowOptions = Record
     consistencyToken : int64;
     language : String;
@@ -3658,25 +3658,25 @@ type
     returnTopIfAbsent : boolean;
     timeSpan : String;
   end;
-  
-  
+
+
   //Optional query Options for TScoresResource, method Submit
-  
+
   TScoresSubmitOptions = Record
     consistencyToken : int64;
     language : String;
     score : int64;
     scoreTag : String;
   end;
-  
-  
+
+
   //Optional query Options for TScoresResource, method SubmitMultiple
-  
+
   TScoresSubmitMultipleOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
+
   TScoresResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3692,30 +3692,30 @@ type
     Function SubmitMultiple(aPlayerScoreSubmissionList : TPlayerScoreSubmissionList; AQuery : string  = '') : TPlayerScoreListResponse;
     Function SubmitMultiple(aPlayerScoreSubmissionList : TPlayerScoreSubmissionList; AQuery : TScoressubmitMultipleOptions) : TPlayerScoreListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TSnapshotsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TSnapshotsResource, method Get
-  
+
   TSnapshotsGetOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TSnapshotsResource, method List
-  
+
   TSnapshotsListOptions = Record
     consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
   end;
-  
+
   TSnapshotsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3725,88 +3725,88 @@ type
     Function List(playerId: string; AQuery : string  = '') : TSnapshotListResponse;
     Function List(playerId: string; AQuery : TSnapshotslistOptions) : TSnapshotListResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TTurnBasedMatchesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Cancel
-  
+
   TTurnBasedMatchesCancelOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Create
-  
+
   TTurnBasedMatchesCreateOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Decline
-  
+
   TTurnBasedMatchesDeclineOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Dismiss
-  
+
   TTurnBasedMatchesDismissOptions = Record
     consistencyToken : int64;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Finish
-  
+
   TTurnBasedMatchesFinishOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Get
-  
+
   TTurnBasedMatchesGetOptions = Record
     consistencyToken : int64;
     includeMatchData : boolean;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Join
-  
+
   TTurnBasedMatchesJoinOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Leave
-  
+
   TTurnBasedMatchesLeaveOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method LeaveTurn
-  
+
   TTurnBasedMatchesLeaveTurnOptions = Record
     consistencyToken : int64;
     language : String;
     matchVersion : integer;
     pendingParticipantId : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method List
-  
+
   TTurnBasedMatchesListOptions = Record
     consistencyToken : int64;
     includeMatchData : boolean;
@@ -3815,19 +3815,19 @@ type
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Rematch
-  
+
   TTurnBasedMatchesRematchOptions = Record
     consistencyToken : int64;
     language : String;
     requestId : int64;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method Sync
-  
+
   TTurnBasedMatchesSyncOptions = Record
     consistencyToken : int64;
     includeMatchData : boolean;
@@ -3836,15 +3836,15 @@ type
     maxResults : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TTurnBasedMatchesResource, method TakeTurn
-  
+
   TTurnBasedMatchesTakeTurnOptions = Record
     consistencyToken : int64;
     language : String;
   end;
-  
+
   TTurnBasedMatchesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -3876,12 +3876,12 @@ type
     Function TakeTurn(matchId: string; aTurnBasedMatchTurn : TTurnBasedMatchTurn; AQuery : string  = '') : TTurnBasedMatch;
     Function TakeTurn(matchId: string; aTurnBasedMatchTurn : TTurnBasedMatchTurn; AQuery : TTurnBasedMatchestakeTurnOptions) : TTurnBasedMatch;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TGamesAPI
     --------------------------------------------------------------------}
-  
+
   TGamesAPI = Class(TGoogleAPI)
   Private
     FAchievementDefinitionsInstance : TAchievementDefinitionsResource;
@@ -3993,7 +3993,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementDefinition.SetachievementType(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.SetachievementType(AIndex : Integer; const AValue : String);
 
 begin
   If (FachievementType=AValue) then exit;
@@ -4003,7 +4003,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4013,7 +4013,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetexperiencePoints(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.SetexperiencePoints(AIndex : Integer; const AValue : String);
 
 begin
   If (FexperiencePoints=AValue) then exit;
@@ -4023,7 +4023,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetformattedTotalSteps(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.SetformattedTotalSteps(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedTotalSteps=AValue) then exit;
@@ -4033,7 +4033,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setid(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4043,7 +4043,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetinitialState(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.SetinitialState(AIndex : Integer; const AValue : String);
 
 begin
   If (FinitialState=AValue) then exit;
@@ -4053,7 +4053,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetisRevealedIconUrlDefault(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementDefinition.SetisRevealedIconUrlDefault(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisRevealedIconUrlDefault=AValue) then exit;
@@ -4063,7 +4063,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetisUnlockedIconUrlDefault(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementDefinition.SetisUnlockedIconUrlDefault(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisUnlockedIconUrlDefault=AValue) then exit;
@@ -4073,7 +4073,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4083,7 +4083,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setname(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4093,7 +4093,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetrevealedIconUrl(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.SetrevealedIconUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevealedIconUrl=AValue) then exit;
@@ -4103,7 +4103,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SettotalSteps(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementDefinition.SettotalSteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalSteps=AValue) then exit;
@@ -4113,7 +4113,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetunlockedIconUrl(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinition.SetunlockedIconUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FunlockedIconUrl=AValue) then exit;
@@ -4130,7 +4130,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementDefinitionsListResponse.Setitems(AIndex : Integer; const AValue : TAchievementDefinitionsListResponseTypeitemsArray); 
+Procedure TAchievementDefinitionsListResponse.Setitems(AIndex : Integer; const AValue : TAchievementDefinitionsListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -4140,7 +4140,7 @@ end;
 
 
 
-Procedure TAchievementDefinitionsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinitionsListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4150,7 +4150,7 @@ end;
 
 
 
-Procedure TAchievementDefinitionsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TAchievementDefinitionsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4161,7 +4161,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAchievementDefinitionsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAchievementDefinitionsListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4180,7 +4180,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementIncrementResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementIncrementResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -4190,7 +4190,7 @@ end;
 
 
 
-Procedure TAchievementIncrementResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementIncrementResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4200,7 +4200,7 @@ end;
 
 
 
-Procedure TAchievementIncrementResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementIncrementResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4217,7 +4217,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementRevealResponse.SetcurrentState(AIndex : Integer; const AValue : String); 
+Procedure TAchievementRevealResponse.SetcurrentState(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -4227,7 +4227,7 @@ end;
 
 
 
-Procedure TAchievementRevealResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementRevealResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4244,7 +4244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementSetStepsAtLeastResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementSetStepsAtLeastResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -4254,7 +4254,7 @@ end;
 
 
 
-Procedure TAchievementSetStepsAtLeastResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementSetStepsAtLeastResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4264,7 +4264,7 @@ end;
 
 
 
-Procedure TAchievementSetStepsAtLeastResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementSetStepsAtLeastResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4281,7 +4281,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUnlockResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUnlockResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4291,7 +4291,7 @@ end;
 
 
 
-Procedure TAchievementUnlockResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementUnlockResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4308,7 +4308,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateMultipleRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateMultipleRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4318,7 +4318,7 @@ end;
 
 
 
-Procedure TAchievementUpdateMultipleRequest.Setupdates(AIndex : Integer; const AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); 
+Procedure TAchievementUpdateMultipleRequest.Setupdates(AIndex : Integer; const AValue : TAchievementUpdateMultipleRequestTypeupdatesArray);
 
 begin
   If (Fupdates=AValue) then exit;
@@ -4329,7 +4329,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAchievementUpdateMultipleRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAchievementUpdateMultipleRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4348,7 +4348,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateMultipleResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateMultipleResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4358,7 +4358,7 @@ end;
 
 
 
-Procedure TAchievementUpdateMultipleResponse.SetupdatedAchievements(AIndex : Integer; const AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); 
+Procedure TAchievementUpdateMultipleResponse.SetupdatedAchievements(AIndex : Integer; const AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray);
 
 begin
   If (FupdatedAchievements=AValue) then exit;
@@ -4369,7 +4369,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TAchievementUpdateMultipleResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TAchievementUpdateMultipleResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4388,7 +4388,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateRequest.SetachievementId(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateRequest.SetachievementId(AIndex : Integer; const AValue : String);
 
 begin
   If (FachievementId=AValue) then exit;
@@ -4398,7 +4398,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.SetincrementPayload(AIndex : Integer; const AValue : TGamesAchievementIncrement); 
+Procedure TAchievementUpdateRequest.SetincrementPayload(AIndex : Integer; const AValue : TGamesAchievementIncrement);
 
 begin
   If (FincrementPayload=AValue) then exit;
@@ -4408,7 +4408,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4418,7 +4418,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.SetsetStepsAtLeastPayload(AIndex : Integer; const AValue : TGamesAchievementSetStepsAtLeast); 
+Procedure TAchievementUpdateRequest.SetsetStepsAtLeastPayload(AIndex : Integer; const AValue : TGamesAchievementSetStepsAtLeast);
 
 begin
   If (FsetStepsAtLeastPayload=AValue) then exit;
@@ -4428,7 +4428,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.SetupdateType(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateRequest.SetupdateType(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateType=AValue) then exit;
@@ -4445,7 +4445,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateResponse.SetachievementId(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateResponse.SetachievementId(AIndex : Integer; const AValue : String);
 
 begin
   If (FachievementId=AValue) then exit;
@@ -4455,7 +4455,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetcurrentState(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateResponse.SetcurrentState(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -4465,7 +4465,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
+Procedure TAchievementUpdateResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -4475,7 +4475,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAchievementUpdateResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4485,7 +4485,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementUpdateResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4495,7 +4495,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetupdateOccurred(AIndex : Integer; const AValue : boolean); 
+Procedure TAchievementUpdateResponse.SetupdateOccurred(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FupdateOccurred=AValue) then exit;
@@ -4512,7 +4512,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregateStats.Setcount(AIndex : Integer; const AValue : String); 
+Procedure TAggregateStats.Setcount(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcount=AValue) then exit;
@@ -4522,7 +4522,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAggregateStats.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4532,7 +4532,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setmax(AIndex : Integer; const AValue : String); 
+Procedure TAggregateStats.Setmax(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmax=AValue) then exit;
@@ -4542,7 +4542,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setmin(AIndex : Integer; const AValue : String); 
+Procedure TAggregateStats.Setmin(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmin=AValue) then exit;
@@ -4552,7 +4552,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setsum(AIndex : Integer; const AValue : String); 
+Procedure TAggregateStats.Setsum(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsum=AValue) then exit;
@@ -4569,7 +4569,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnonymousPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String); 
+Procedure TAnonymousPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FavatarImageUrl=AValue) then exit;
@@ -4579,7 +4579,7 @@ end;
 
 
 
-Procedure TAnonymousPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TAnonymousPlayer.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -4589,7 +4589,7 @@ end;
 
 
 
-Procedure TAnonymousPlayer.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TAnonymousPlayer.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4606,7 +4606,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplication.Setachievement_count(AIndex : Integer; const AValue : integer); 
+Procedure TApplication.Setachievement_count(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fachievement_count=AValue) then exit;
@@ -4616,7 +4616,7 @@ end;
 
 
 
-Procedure TApplication.Setassets(AIndex : Integer; const AValue : TApplicationTypeassetsArray); 
+Procedure TApplication.Setassets(AIndex : Integer; const AValue : TApplicationTypeassetsArray);
 
 begin
   If (Fassets=AValue) then exit;
@@ -4626,7 +4626,7 @@ end;
 
 
 
-Procedure TApplication.Setauthor(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setauthor(AIndex : Integer; const AValue : String);
 
 begin
   If (Fauthor=AValue) then exit;
@@ -4636,7 +4636,7 @@ end;
 
 
 
-Procedure TApplication.Setcategory(AIndex : Integer; const AValue : TApplicationCategory); 
+Procedure TApplication.Setcategory(AIndex : Integer; const AValue : TApplicationCategory);
 
 begin
   If (Fcategory=AValue) then exit;
@@ -4646,7 +4646,7 @@ end;
 
 
 
-Procedure TApplication.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4656,7 +4656,7 @@ end;
 
 
 
-Procedure TApplication.SetenabledFeatures(AIndex : Integer; const AValue : TStringArray); 
+Procedure TApplication.SetenabledFeatures(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FenabledFeatures=AValue) then exit;
@@ -4666,7 +4666,7 @@ end;
 
 
 
-Procedure TApplication.Setid(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -4676,7 +4676,7 @@ end;
 
 
 
-Procedure TApplication.Setinstances(AIndex : Integer; const AValue : TApplicationTypeinstancesArray); 
+Procedure TApplication.Setinstances(AIndex : Integer; const AValue : TApplicationTypeinstancesArray);
 
 begin
   If (Finstances=AValue) then exit;
@@ -4686,7 +4686,7 @@ end;
 
 
 
-Procedure TApplication.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4696,7 +4696,7 @@ end;
 
 
 
-Procedure TApplication.SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastUpdatedTimestamp=AValue) then exit;
@@ -4706,7 +4706,7 @@ end;
 
 
 
-Procedure TApplication.Setleaderboard_count(AIndex : Integer; const AValue : integer); 
+Procedure TApplication.Setleaderboard_count(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fleaderboard_count=AValue) then exit;
@@ -4716,7 +4716,7 @@ end;
 
 
 
-Procedure TApplication.Setname(AIndex : Integer; const AValue : String); 
+Procedure TApplication.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -4726,7 +4726,7 @@ end;
 
 
 
-Procedure TApplication.SetthemeColor(AIndex : Integer; const AValue : String); 
+Procedure TApplication.SetthemeColor(AIndex : Integer; const AValue : String);
 
 begin
   If (FthemeColor=AValue) then exit;
@@ -4737,7 +4737,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TApplication.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TApplication.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4758,7 +4758,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplicationCategory.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TApplicationCategory.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4768,7 +4768,7 @@ end;
 
 
 
-Procedure TApplicationCategory.Setprimary(AIndex : Integer; const AValue : String); 
+Procedure TApplicationCategory.Setprimary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fprimary=AValue) then exit;
@@ -4778,7 +4778,7 @@ end;
 
 
 
-Procedure TApplicationCategory.Setsecondary(AIndex : Integer; const AValue : String); 
+Procedure TApplicationCategory.Setsecondary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsecondary=AValue) then exit;
@@ -4795,7 +4795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplicationVerifyResponse.Setalternate_player_id(AIndex : Integer; const AValue : String); 
+Procedure TApplicationVerifyResponse.Setalternate_player_id(AIndex : Integer; const AValue : String);
 
 begin
   If (Falternate_player_id=AValue) then exit;
@@ -4805,7 +4805,7 @@ end;
 
 
 
-Procedure TApplicationVerifyResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TApplicationVerifyResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4815,7 +4815,7 @@ end;
 
 
 
-Procedure TApplicationVerifyResponse.Setplayer_id(AIndex : Integer; const AValue : String); 
+Procedure TApplicationVerifyResponse.Setplayer_id(AIndex : Integer; const AValue : String);
 
 begin
   If (Fplayer_id=AValue) then exit;
@@ -4832,7 +4832,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCategory.Setcategory(AIndex : Integer; const AValue : String); 
+Procedure TCategory.Setcategory(AIndex : Integer; const AValue : String);
 
 begin
   If (Fcategory=AValue) then exit;
@@ -4842,7 +4842,7 @@ end;
 
 
 
-Procedure TCategory.SetexperiencePoints(AIndex : Integer; const AValue : String); 
+Procedure TCategory.SetexperiencePoints(AIndex : Integer; const AValue : String);
 
 begin
   If (FexperiencePoints=AValue) then exit;
@@ -4852,7 +4852,7 @@ end;
 
 
 
-Procedure TCategory.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCategory.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4869,7 +4869,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCategoryListResponse.Setitems(AIndex : Integer; const AValue : TCategoryListResponseTypeitemsArray); 
+Procedure TCategoryListResponse.Setitems(AIndex : Integer; const AValue : TCategoryListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -4879,7 +4879,7 @@ end;
 
 
 
-Procedure TCategoryListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TCategoryListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4889,7 +4889,7 @@ end;
 
 
 
-Procedure TCategoryListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TCategoryListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4900,7 +4900,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TCategoryListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TCategoryListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -4919,7 +4919,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventBatchRecordFailure.SetfailureCause(AIndex : Integer; const AValue : String); 
+Procedure TEventBatchRecordFailure.SetfailureCause(AIndex : Integer; const AValue : String);
 
 begin
   If (FfailureCause=AValue) then exit;
@@ -4929,7 +4929,7 @@ end;
 
 
 
-Procedure TEventBatchRecordFailure.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventBatchRecordFailure.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4939,7 +4939,7 @@ end;
 
 
 
-Procedure TEventBatchRecordFailure.Setrange(AIndex : Integer; const AValue : TEventPeriodRange); 
+Procedure TEventBatchRecordFailure.Setrange(AIndex : Integer; const AValue : TEventPeriodRange);
 
 begin
   If (Frange=AValue) then exit;
@@ -4956,7 +4956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventChild.SetchildId(AIndex : Integer; const AValue : String); 
+Procedure TEventChild.SetchildId(AIndex : Integer; const AValue : String);
 
 begin
   If (FchildId=AValue) then exit;
@@ -4966,7 +4966,7 @@ end;
 
 
 
-Procedure TEventChild.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventChild.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -4983,7 +4983,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventDefinition.SetchildEvents(AIndex : Integer; const AValue : TEventDefinitionTypechildEventsArray); 
+Procedure TEventDefinition.SetchildEvents(AIndex : Integer; const AValue : TEventDefinitionTypechildEventsArray);
 
 begin
   If (FchildEvents=AValue) then exit;
@@ -4993,7 +4993,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinition.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5003,7 +5003,7 @@ end;
 
 
 
-Procedure TEventDefinition.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinition.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -5013,7 +5013,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setid(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinition.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5023,7 +5023,7 @@ end;
 
 
 
-Procedure TEventDefinition.SetimageUrl(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinition.SetimageUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -5033,7 +5033,7 @@ end;
 
 
 
-Procedure TEventDefinition.SetisDefaultImageUrl(AIndex : Integer; const AValue : boolean); 
+Procedure TEventDefinition.SetisDefaultImageUrl(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisDefaultImageUrl=AValue) then exit;
@@ -5043,7 +5043,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinition.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5053,7 +5053,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setvisibility(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinition.Setvisibility(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5064,7 +5064,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventDefinition.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventDefinition.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5083,7 +5083,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventDefinitionListResponse.Setitems(AIndex : Integer; const AValue : TEventDefinitionListResponseTypeitemsArray); 
+Procedure TEventDefinitionListResponse.Setitems(AIndex : Integer; const AValue : TEventDefinitionListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -5093,7 +5093,7 @@ end;
 
 
 
-Procedure TEventDefinitionListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinitionListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5103,7 +5103,7 @@ end;
 
 
 
-Procedure TEventDefinitionListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TEventDefinitionListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5114,7 +5114,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventDefinitionListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventDefinitionListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5133,7 +5133,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventPeriodRange.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventPeriodRange.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5143,7 +5143,7 @@ end;
 
 
 
-Procedure TEventPeriodRange.SetperiodEndMillis(AIndex : Integer; const AValue : String); 
+Procedure TEventPeriodRange.SetperiodEndMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FperiodEndMillis=AValue) then exit;
@@ -5153,7 +5153,7 @@ end;
 
 
 
-Procedure TEventPeriodRange.SetperiodStartMillis(AIndex : Integer; const AValue : String); 
+Procedure TEventPeriodRange.SetperiodStartMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FperiodStartMillis=AValue) then exit;
@@ -5170,7 +5170,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventPeriodUpdate.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventPeriodUpdate.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5180,7 +5180,7 @@ end;
 
 
 
-Procedure TEventPeriodUpdate.SettimePeriod(AIndex : Integer; const AValue : TEventPeriodRange); 
+Procedure TEventPeriodUpdate.SettimePeriod(AIndex : Integer; const AValue : TEventPeriodRange);
 
 begin
   If (FtimePeriod=AValue) then exit;
@@ -5190,7 +5190,7 @@ end;
 
 
 
-Procedure TEventPeriodUpdate.Setupdates(AIndex : Integer; const AValue : TEventPeriodUpdateTypeupdatesArray); 
+Procedure TEventPeriodUpdate.Setupdates(AIndex : Integer; const AValue : TEventPeriodUpdateTypeupdatesArray);
 
 begin
   If (Fupdates=AValue) then exit;
@@ -5201,7 +5201,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventPeriodUpdate.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventPeriodUpdate.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5220,7 +5220,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventRecordFailure.SeteventId(AIndex : Integer; const AValue : String); 
+Procedure TEventRecordFailure.SeteventId(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventId=AValue) then exit;
@@ -5230,7 +5230,7 @@ end;
 
 
 
-Procedure TEventRecordFailure.SetfailureCause(AIndex : Integer; const AValue : String); 
+Procedure TEventRecordFailure.SetfailureCause(AIndex : Integer; const AValue : String);
 
 begin
   If (FfailureCause=AValue) then exit;
@@ -5240,7 +5240,7 @@ end;
 
 
 
-Procedure TEventRecordFailure.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventRecordFailure.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5257,7 +5257,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventRecordRequest.SetcurrentTimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TEventRecordRequest.SetcurrentTimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentTimeMillis=AValue) then exit;
@@ -5267,7 +5267,7 @@ end;
 
 
 
-Procedure TEventRecordRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventRecordRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5277,7 +5277,7 @@ end;
 
 
 
-Procedure TEventRecordRequest.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TEventRecordRequest.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -5287,7 +5287,7 @@ end;
 
 
 
-Procedure TEventRecordRequest.SettimePeriods(AIndex : Integer; const AValue : TEventRecordRequestTypetimePeriodsArray); 
+Procedure TEventRecordRequest.SettimePeriods(AIndex : Integer; const AValue : TEventRecordRequestTypetimePeriodsArray);
 
 begin
   If (FtimePeriods=AValue) then exit;
@@ -5298,7 +5298,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventRecordRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventRecordRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5317,7 +5317,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventUpdateRequest.SetdefinitionId(AIndex : Integer; const AValue : String); 
+Procedure TEventUpdateRequest.SetdefinitionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -5327,7 +5327,7 @@ end;
 
 
 
-Procedure TEventUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventUpdateRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5337,7 +5337,7 @@ end;
 
 
 
-Procedure TEventUpdateRequest.SetupdateCount(AIndex : Integer; const AValue : String); 
+Procedure TEventUpdateRequest.SetupdateCount(AIndex : Integer; const AValue : String);
 
 begin
   If (FupdateCount=AValue) then exit;
@@ -5354,7 +5354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventUpdateResponse.SetbatchFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypebatchFailuresArray); 
+Procedure TEventUpdateResponse.SetbatchFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypebatchFailuresArray);
 
 begin
   If (FbatchFailures=AValue) then exit;
@@ -5364,7 +5364,7 @@ end;
 
 
 
-Procedure TEventUpdateResponse.SeteventFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypeeventFailuresArray); 
+Procedure TEventUpdateResponse.SeteventFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypeeventFailuresArray);
 
 begin
   If (FeventFailures=AValue) then exit;
@@ -5374,7 +5374,7 @@ end;
 
 
 
-Procedure TEventUpdateResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TEventUpdateResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5384,7 +5384,7 @@ end;
 
 
 
-Procedure TEventUpdateResponse.SetplayerEvents(AIndex : Integer; const AValue : TEventUpdateResponseTypeplayerEventsArray); 
+Procedure TEventUpdateResponse.SetplayerEvents(AIndex : Integer; const AValue : TEventUpdateResponseTypeplayerEventsArray);
 
 begin
   If (FplayerEvents=AValue) then exit;
@@ -5395,7 +5395,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TEventUpdateResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TEventUpdateResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -5416,7 +5416,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesAchievementIncrement.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGamesAchievementIncrement.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5426,7 +5426,7 @@ end;
 
 
 
-Procedure TGamesAchievementIncrement.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TGamesAchievementIncrement.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -5436,7 +5436,7 @@ end;
 
 
 
-Procedure TGamesAchievementIncrement.Setsteps(AIndex : Integer; const AValue : integer); 
+Procedure TGamesAchievementIncrement.Setsteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fsteps=AValue) then exit;
@@ -5453,7 +5453,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesAchievementSetStepsAtLeast.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TGamesAchievementSetStepsAtLeast.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5463,7 +5463,7 @@ end;
 
 
 
-Procedure TGamesAchievementSetStepsAtLeast.Setsteps(AIndex : Integer; const AValue : integer); 
+Procedure TGamesAchievementSetStepsAtLeast.Setsteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fsteps=AValue) then exit;
@@ -5480,7 +5480,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImageAsset.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TImageAsset.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -5490,7 +5490,7 @@ end;
 
 
 
-Procedure TImageAsset.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TImageAsset.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5500,7 +5500,7 @@ end;
 
 
 
-Procedure TImageAsset.Setname(AIndex : Integer; const AValue : String); 
+Procedure TImageAsset.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5510,7 +5510,7 @@ end;
 
 
 
-Procedure TImageAsset.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TImageAsset.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -5520,7 +5520,7 @@ end;
 
 
 
-Procedure TImageAsset.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TImageAsset.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -5537,7 +5537,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstance.SetacquisitionUri(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetacquisitionUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FacquisitionUri=AValue) then exit;
@@ -5547,7 +5547,7 @@ end;
 
 
 
-Procedure TInstance.SetandroidInstance(AIndex : Integer; const AValue : TInstanceAndroidDetails); 
+Procedure TInstance.SetandroidInstance(AIndex : Integer; const AValue : TInstanceAndroidDetails);
 
 begin
   If (FandroidInstance=AValue) then exit;
@@ -5557,7 +5557,7 @@ end;
 
 
 
-Procedure TInstance.SetiosInstance(AIndex : Integer; const AValue : TInstanceIosDetails); 
+Procedure TInstance.SetiosInstance(AIndex : Integer; const AValue : TInstanceIosDetails);
 
 begin
   If (FiosInstance=AValue) then exit;
@@ -5567,7 +5567,7 @@ end;
 
 
 
-Procedure TInstance.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TInstance.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5577,7 +5577,7 @@ end;
 
 
 
-Procedure TInstance.Setname(AIndex : Integer; const AValue : String); 
+Procedure TInstance.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5587,7 +5587,7 @@ end;
 
 
 
-Procedure TInstance.SetplatformType(AIndex : Integer; const AValue : String); 
+Procedure TInstance.SetplatformType(AIndex : Integer; const AValue : String);
 
 begin
   If (FplatformType=AValue) then exit;
@@ -5597,7 +5597,7 @@ end;
 
 
 
-Procedure TInstance.SetrealtimePlay(AIndex : Integer; const AValue : boolean); 
+Procedure TInstance.SetrealtimePlay(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FrealtimePlay=AValue) then exit;
@@ -5607,7 +5607,7 @@ end;
 
 
 
-Procedure TInstance.SetturnBasedPlay(AIndex : Integer; const AValue : boolean); 
+Procedure TInstance.SetturnBasedPlay(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FturnBasedPlay=AValue) then exit;
@@ -5617,7 +5617,7 @@ end;
 
 
 
-Procedure TInstance.SetwebInstance(AIndex : Integer; const AValue : TInstanceWebDetails); 
+Procedure TInstance.SetwebInstance(AIndex : Integer; const AValue : TInstanceWebDetails);
 
 begin
   If (FwebInstance=AValue) then exit;
@@ -5634,7 +5634,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceAndroidDetails.SetenablePiracyCheck(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceAndroidDetails.SetenablePiracyCheck(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FenablePiracyCheck=AValue) then exit;
@@ -5644,7 +5644,7 @@ end;
 
 
 
-Procedure TInstanceAndroidDetails.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TInstanceAndroidDetails.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5654,7 +5654,7 @@ end;
 
 
 
-Procedure TInstanceAndroidDetails.SetpackageName(AIndex : Integer; const AValue : String); 
+Procedure TInstanceAndroidDetails.SetpackageName(AIndex : Integer; const AValue : String);
 
 begin
   If (FpackageName=AValue) then exit;
@@ -5664,7 +5664,7 @@ end;
 
 
 
-Procedure TInstanceAndroidDetails.Setpreferred(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceAndroidDetails.Setpreferred(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fpreferred=AValue) then exit;
@@ -5681,7 +5681,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceIosDetails.SetbundleIdentifier(AIndex : Integer; const AValue : String); 
+Procedure TInstanceIosDetails.SetbundleIdentifier(AIndex : Integer; const AValue : String);
 
 begin
   If (FbundleIdentifier=AValue) then exit;
@@ -5691,7 +5691,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetitunesAppId(AIndex : Integer; const AValue : String); 
+Procedure TInstanceIosDetails.SetitunesAppId(AIndex : Integer; const AValue : String);
 
 begin
   If (FitunesAppId=AValue) then exit;
@@ -5701,7 +5701,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TInstanceIosDetails.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5711,7 +5711,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetpreferredForIpad(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceIosDetails.SetpreferredForIpad(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FpreferredForIpad=AValue) then exit;
@@ -5721,7 +5721,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetpreferredForIphone(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceIosDetails.SetpreferredForIphone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FpreferredForIphone=AValue) then exit;
@@ -5731,7 +5731,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetsupportIpad(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceIosDetails.SetsupportIpad(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportIpad=AValue) then exit;
@@ -5741,7 +5741,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetsupportIphone(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceIosDetails.SetsupportIphone(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsupportIphone=AValue) then exit;
@@ -5758,7 +5758,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceWebDetails.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TInstanceWebDetails.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5768,7 +5768,7 @@ end;
 
 
 
-Procedure TInstanceWebDetails.SetlaunchUrl(AIndex : Integer; const AValue : String); 
+Procedure TInstanceWebDetails.SetlaunchUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FlaunchUrl=AValue) then exit;
@@ -5778,7 +5778,7 @@ end;
 
 
 
-Procedure TInstanceWebDetails.Setpreferred(AIndex : Integer; const AValue : boolean); 
+Procedure TInstanceWebDetails.Setpreferred(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fpreferred=AValue) then exit;
@@ -5795,7 +5795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboard.SeticonUrl(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboard.SeticonUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -5805,7 +5805,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setid(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboard.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -5815,7 +5815,7 @@ end;
 
 
 
-Procedure TLeaderboard.SetisIconUrlDefault(AIndex : Integer; const AValue : boolean); 
+Procedure TLeaderboard.SetisIconUrlDefault(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisIconUrlDefault=AValue) then exit;
@@ -5825,7 +5825,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboard.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5835,7 +5835,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setname(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboard.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -5845,7 +5845,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setorder(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboard.Setorder(AIndex : Integer; const AValue : String);
 
 begin
   If (Forder=AValue) then exit;
@@ -5862,7 +5862,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardEntry.SetformattedScore(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SetformattedScore(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedScore=AValue) then exit;
@@ -5872,7 +5872,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetformattedScoreRank(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SetformattedScoreRank(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedScoreRank=AValue) then exit;
@@ -5882,7 +5882,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5892,7 +5892,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.Setplayer(AIndex : Integer; const AValue : TPlayer); 
+Procedure TLeaderboardEntry.Setplayer(AIndex : Integer; const AValue : TPlayer);
 
 begin
   If (Fplayer=AValue) then exit;
@@ -5902,7 +5902,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetscoreRank(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SetscoreRank(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreRank=AValue) then exit;
@@ -5912,7 +5912,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetscoreTag(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SetscoreTag(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -5922,7 +5922,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetscoreValue(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SetscoreValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreValue=AValue) then exit;
@@ -5932,7 +5932,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SettimeSpan(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SettimeSpan(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -5942,7 +5942,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetwriteTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardEntry.SetwriteTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FwriteTimestampMillis=AValue) then exit;
@@ -5959,7 +5959,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardListResponse.Setitems(AIndex : Integer; const AValue : TLeaderboardListResponseTypeitemsArray); 
+Procedure TLeaderboardListResponse.Setitems(AIndex : Integer; const AValue : TLeaderboardListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -5969,7 +5969,7 @@ end;
 
 
 
-Procedure TLeaderboardListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -5979,7 +5979,7 @@ end;
 
 
 
-Procedure TLeaderboardListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5990,7 +5990,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLeaderboardListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLeaderboardListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6009,7 +6009,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardScoreRank.SetformattedNumScores(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScoreRank.SetformattedNumScores(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedNumScores=AValue) then exit;
@@ -6019,7 +6019,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.SetformattedRank(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScoreRank.SetformattedRank(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedRank=AValue) then exit;
@@ -6029,7 +6029,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScoreRank.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6039,7 +6039,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.SetnumScores(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScoreRank.SetnumScores(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumScores=AValue) then exit;
@@ -6049,7 +6049,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.Setrank(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScoreRank.Setrank(AIndex : Integer; const AValue : String);
 
 begin
   If (Frank=AValue) then exit;
@@ -6066,7 +6066,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardScores.Setitems(AIndex : Integer; const AValue : TLeaderboardScoresTypeitemsArray); 
+Procedure TLeaderboardScores.Setitems(AIndex : Integer; const AValue : TLeaderboardScoresTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -6076,7 +6076,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScores.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6086,7 +6086,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScores.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6096,7 +6096,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetnumScores(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScores.SetnumScores(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumScores=AValue) then exit;
@@ -6106,7 +6106,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetplayerScore(AIndex : Integer; const AValue : TLeaderboardEntry); 
+Procedure TLeaderboardScores.SetplayerScore(AIndex : Integer; const AValue : TLeaderboardEntry);
 
 begin
   If (FplayerScore=AValue) then exit;
@@ -6116,7 +6116,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetprevPageToken(AIndex : Integer; const AValue : String); 
+Procedure TLeaderboardScores.SetprevPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -6127,7 +6127,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TLeaderboardScores.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TLeaderboardScores.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6146,7 +6146,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetagameConfig.SetcurrentVersion(AIndex : Integer; const AValue : integer); 
+Procedure TMetagameConfig.SetcurrentVersion(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentVersion=AValue) then exit;
@@ -6156,7 +6156,7 @@ end;
 
 
 
-Procedure TMetagameConfig.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TMetagameConfig.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6166,7 +6166,7 @@ end;
 
 
 
-Procedure TMetagameConfig.SetplayerLevels(AIndex : Integer; const AValue : TMetagameConfigTypeplayerLevelsArray); 
+Procedure TMetagameConfig.SetplayerLevels(AIndex : Integer; const AValue : TMetagameConfigTypeplayerLevelsArray);
 
 begin
   If (FplayerLevels=AValue) then exit;
@@ -6177,7 +6177,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TMetagameConfig.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TMetagameConfig.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6196,7 +6196,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer);
 
 begin
   If (FandroidNetworkSubtype=AValue) then exit;
@@ -6206,7 +6206,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetandroidNetworkType(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkDiagnostics.SetandroidNetworkType(AIndex : Integer; const AValue : integer);
 
 begin
   If (FandroidNetworkType=AValue) then exit;
@@ -6216,7 +6216,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetiosNetworkType(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkDiagnostics.SetiosNetworkType(AIndex : Integer; const AValue : integer);
 
 begin
   If (FiosNetworkType=AValue) then exit;
@@ -6226,7 +6226,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TNetworkDiagnostics.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6236,7 +6236,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetnetworkOperatorCode(AIndex : Integer; const AValue : String); 
+Procedure TNetworkDiagnostics.SetnetworkOperatorCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FnetworkOperatorCode=AValue) then exit;
@@ -6246,7 +6246,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetnetworkOperatorName(AIndex : Integer; const AValue : String); 
+Procedure TNetworkDiagnostics.SetnetworkOperatorName(AIndex : Integer; const AValue : String);
 
 begin
   If (FnetworkOperatorName=AValue) then exit;
@@ -6256,7 +6256,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetregistrationLatencyMillis(AIndex : Integer; const AValue : integer); 
+Procedure TNetworkDiagnostics.SetregistrationLatencyMillis(AIndex : Integer; const AValue : integer);
 
 begin
   If (FregistrationLatencyMillis=AValue) then exit;
@@ -6273,7 +6273,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParticipantResult.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TParticipantResult.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6283,7 +6283,7 @@ end;
 
 
 
-Procedure TParticipantResult.SetparticipantId(AIndex : Integer; const AValue : String); 
+Procedure TParticipantResult.SetparticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -6293,7 +6293,7 @@ end;
 
 
 
-Procedure TParticipantResult.Setplacing(AIndex : Integer; const AValue : integer); 
+Procedure TParticipantResult.Setplacing(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fplacing=AValue) then exit;
@@ -6303,7 +6303,7 @@ end;
 
 
 
-Procedure TParticipantResult.Setresult(AIndex : Integer; const AValue : String); 
+Procedure TParticipantResult.Setresult(AIndex : Integer; const AValue : String);
 
 begin
   If (Fresult=AValue) then exit;
@@ -6320,7 +6320,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPeerChannelDiagnostics.SetbytesReceived(AIndex : Integer; const AValue : TAggregateStats); 
+Procedure TPeerChannelDiagnostics.SetbytesReceived(AIndex : Integer; const AValue : TAggregateStats);
 
 begin
   If (FbytesReceived=AValue) then exit;
@@ -6330,7 +6330,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetbytesSent(AIndex : Integer; const AValue : TAggregateStats); 
+Procedure TPeerChannelDiagnostics.SetbytesSent(AIndex : Integer; const AValue : TAggregateStats);
 
 begin
   If (FbytesSent=AValue) then exit;
@@ -6340,7 +6340,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPeerChannelDiagnostics.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6350,7 +6350,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumMessagesLost(AIndex : Integer; const AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumMessagesLost(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumMessagesLost=AValue) then exit;
@@ -6360,7 +6360,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumMessagesReceived(AIndex : Integer; const AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumMessagesReceived(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumMessagesReceived=AValue) then exit;
@@ -6370,7 +6370,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumMessagesSent(AIndex : Integer; const AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumMessagesSent(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumMessagesSent=AValue) then exit;
@@ -6380,7 +6380,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumSendFailures(AIndex : Integer; const AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumSendFailures(AIndex : Integer; const AValue : integer);
 
 begin
   If (FnumSendFailures=AValue) then exit;
@@ -6390,7 +6390,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetroundtripLatencyMillis(AIndex : Integer; const AValue : TAggregateStats); 
+Procedure TPeerChannelDiagnostics.SetroundtripLatencyMillis(AIndex : Integer; const AValue : TAggregateStats);
 
 begin
   If (FroundtripLatencyMillis=AValue) then exit;
@@ -6407,7 +6407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPeerSessionDiagnostics.SetconnectedTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TPeerSessionDiagnostics.SetconnectedTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FconnectedTimestampMillis=AValue) then exit;
@@ -6417,7 +6417,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPeerSessionDiagnostics.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6427,7 +6427,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.SetparticipantId(AIndex : Integer; const AValue : String); 
+Procedure TPeerSessionDiagnostics.SetparticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -6437,7 +6437,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.SetreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics); 
+Procedure TPeerSessionDiagnostics.SetreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics);
 
 begin
   If (FreliableChannel=AValue) then exit;
@@ -6447,7 +6447,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.SetunreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics); 
+Procedure TPeerSessionDiagnostics.SetunreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics);
 
 begin
   If (FunreliableChannel=AValue) then exit;
@@ -6464,7 +6464,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayed.SetautoMatched(AIndex : Integer; const AValue : boolean); 
+Procedure TPlayed.SetautoMatched(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -6474,7 +6474,7 @@ end;
 
 
 
-Procedure TPlayed.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayed.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6484,7 +6484,7 @@ end;
 
 
 
-Procedure TPlayed.SettimeMillis(AIndex : Integer; const AValue : String); 
+Procedure TPlayed.SettimeMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeMillis=AValue) then exit;
@@ -6501,7 +6501,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; const AValue : String); 
+Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; const AValue : String);
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -6511,7 +6511,7 @@ end;
 
 
 
-Procedure TPlayerTypename.SetgivenName(AIndex : Integer; const AValue : String); 
+Procedure TPlayerTypename.SetgivenName(AIndex : Integer; const AValue : String);
 
 begin
   If (FgivenName=AValue) then exit;
@@ -6528,7 +6528,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FavatarImageUrl=AValue) then exit;
@@ -6538,7 +6538,7 @@ end;
 
 
 
-Procedure TPlayer.SetbannerUrlLandscape(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.SetbannerUrlLandscape(AIndex : Integer; const AValue : String);
 
 begin
   If (FbannerUrlLandscape=AValue) then exit;
@@ -6548,7 +6548,7 @@ end;
 
 
 
-Procedure TPlayer.SetbannerUrlPortrait(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.SetbannerUrlPortrait(AIndex : Integer; const AValue : String);
 
 begin
   If (FbannerUrlPortrait=AValue) then exit;
@@ -6558,7 +6558,7 @@ end;
 
 
 
-Procedure TPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -6568,7 +6568,7 @@ end;
 
 
 
-Procedure TPlayer.SetexperienceInfo(AIndex : Integer; const AValue : TPlayerExperienceInfo); 
+Procedure TPlayer.SetexperienceInfo(AIndex : Integer; const AValue : TPlayerExperienceInfo);
 
 begin
   If (FexperienceInfo=AValue) then exit;
@@ -6578,7 +6578,7 @@ end;
 
 
 
-Procedure TPlayer.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6588,7 +6588,7 @@ end;
 
 
 
-Procedure TPlayer.SetlastPlayedWith(AIndex : Integer; const AValue : TPlayed); 
+Procedure TPlayer.SetlastPlayedWith(AIndex : Integer; const AValue : TPlayed);
 
 begin
   If (FlastPlayedWith=AValue) then exit;
@@ -6598,7 +6598,7 @@ end;
 
 
 
-Procedure TPlayer.Setname(AIndex : Integer; const AValue : TPlayerTypename); 
+Procedure TPlayer.Setname(AIndex : Integer; const AValue : TPlayerTypename);
 
 begin
   If (Fname=AValue) then exit;
@@ -6608,7 +6608,7 @@ end;
 
 
 
-Procedure TPlayer.SetoriginalPlayerId(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.SetoriginalPlayerId(AIndex : Integer; const AValue : String);
 
 begin
   If (ForiginalPlayerId=AValue) then exit;
@@ -6618,7 +6618,7 @@ end;
 
 
 
-Procedure TPlayer.SetplayerId(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.SetplayerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FplayerId=AValue) then exit;
@@ -6628,7 +6628,7 @@ end;
 
 
 
-Procedure TPlayer.SetprofileSettings(AIndex : Integer; const AValue : TProfileSettings); 
+Procedure TPlayer.SetprofileSettings(AIndex : Integer; const AValue : TProfileSettings);
 
 begin
   If (FprofileSettings=AValue) then exit;
@@ -6638,7 +6638,7 @@ end;
 
 
 
-Procedure TPlayer.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TPlayer.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -6655,7 +6655,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerAchievement.SetachievementState(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievement.SetachievementState(AIndex : Integer; const AValue : String);
 
 begin
   If (FachievementState=AValue) then exit;
@@ -6665,7 +6665,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
+Procedure TPlayerAchievement.SetcurrentSteps(AIndex : Integer; const AValue : integer);
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -6675,7 +6675,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetexperiencePoints(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievement.SetexperiencePoints(AIndex : Integer; const AValue : String);
 
 begin
   If (FexperiencePoints=AValue) then exit;
@@ -6685,7 +6685,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetformattedCurrentStepsString(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievement.SetformattedCurrentStepsString(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedCurrentStepsString=AValue) then exit;
@@ -6695,7 +6695,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.Setid(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievement.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -6705,7 +6705,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievement.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6715,7 +6715,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievement.SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastUpdatedTimestamp=AValue) then exit;
@@ -6732,7 +6732,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerAchievementListResponse.Setitems(AIndex : Integer; const AValue : TPlayerAchievementListResponseTypeitemsArray); 
+Procedure TPlayerAchievementListResponse.Setitems(AIndex : Integer; const AValue : TPlayerAchievementListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -6742,7 +6742,7 @@ end;
 
 
 
-Procedure TPlayerAchievementListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievementListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6752,7 +6752,7 @@ end;
 
 
 
-Procedure TPlayerAchievementListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPlayerAchievementListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6763,7 +6763,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerAchievementListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerAchievementListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6782,7 +6782,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerEvent.SetdefinitionId(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEvent.SetdefinitionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -6792,7 +6792,7 @@ end;
 
 
 
-Procedure TPlayerEvent.SetformattedNumEvents(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEvent.SetformattedNumEvents(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedNumEvents=AValue) then exit;
@@ -6802,7 +6802,7 @@ end;
 
 
 
-Procedure TPlayerEvent.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEvent.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6812,7 +6812,7 @@ end;
 
 
 
-Procedure TPlayerEvent.SetnumEvents(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEvent.SetnumEvents(AIndex : Integer; const AValue : String);
 
 begin
   If (FnumEvents=AValue) then exit;
@@ -6822,7 +6822,7 @@ end;
 
 
 
-Procedure TPlayerEvent.SetplayerId(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEvent.SetplayerId(AIndex : Integer; const AValue : String);
 
 begin
   If (FplayerId=AValue) then exit;
@@ -6839,7 +6839,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerEventListResponse.Setitems(AIndex : Integer; const AValue : TPlayerEventListResponseTypeitemsArray); 
+Procedure TPlayerEventListResponse.Setitems(AIndex : Integer; const AValue : TPlayerEventListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -6849,7 +6849,7 @@ end;
 
 
 
-Procedure TPlayerEventListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEventListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6859,7 +6859,7 @@ end;
 
 
 
-Procedure TPlayerEventListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPlayerEventListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6870,7 +6870,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerEventListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerEventListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -6889,7 +6889,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerExperienceInfo.SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); 
+Procedure TPlayerExperienceInfo.SetcurrentExperiencePoints(AIndex : Integer; const AValue : String);
 
 begin
   If (FcurrentExperiencePoints=AValue) then exit;
@@ -6899,7 +6899,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.SetcurrentLevel(AIndex : Integer; const AValue : TPlayerLevel); 
+Procedure TPlayerExperienceInfo.SetcurrentLevel(AIndex : Integer; const AValue : TPlayerLevel);
 
 begin
   If (FcurrentLevel=AValue) then exit;
@@ -6909,7 +6909,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerExperienceInfo.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6919,7 +6919,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TPlayerExperienceInfo.SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastLevelUpTimestampMillis=AValue) then exit;
@@ -6929,7 +6929,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.SetnextLevel(AIndex : Integer; const AValue : TPlayerLevel); 
+Procedure TPlayerExperienceInfo.SetnextLevel(AIndex : Integer; const AValue : TPlayerLevel);
 
 begin
   If (FnextLevel=AValue) then exit;
@@ -6946,7 +6946,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerLeaderboardScore.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -6956,7 +6956,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.Setleaderboard_id(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.Setleaderboard_id(AIndex : Integer; const AValue : String);
 
 begin
   If (Fleaderboard_id=AValue) then exit;
@@ -6966,7 +6966,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetpublicRank(AIndex : Integer; const AValue : TLeaderboardScoreRank); 
+Procedure TPlayerLeaderboardScore.SetpublicRank(AIndex : Integer; const AValue : TLeaderboardScoreRank);
 
 begin
   If (FpublicRank=AValue) then exit;
@@ -6976,7 +6976,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetscoreString(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.SetscoreString(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreString=AValue) then exit;
@@ -6986,7 +6986,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetscoreTag(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.SetscoreTag(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -6996,7 +6996,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetscoreValue(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.SetscoreValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreValue=AValue) then exit;
@@ -7006,7 +7006,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetsocialRank(AIndex : Integer; const AValue : TLeaderboardScoreRank); 
+Procedure TPlayerLeaderboardScore.SetsocialRank(AIndex : Integer; const AValue : TLeaderboardScoreRank);
 
 begin
   If (FsocialRank=AValue) then exit;
@@ -7016,7 +7016,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SettimeSpan(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.SettimeSpan(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -7026,7 +7026,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetwriteTimestamp(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScore.SetwriteTimestamp(AIndex : Integer; const AValue : String);
 
 begin
   If (FwriteTimestamp=AValue) then exit;
@@ -7043,7 +7043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerLeaderboardScoreListResponse.Setitems(AIndex : Integer; const AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray); 
+Procedure TPlayerLeaderboardScoreListResponse.Setitems(AIndex : Integer; const AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -7053,7 +7053,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScoreListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScoreListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7063,7 +7063,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScoreListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLeaderboardScoreListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7073,7 +7073,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScoreListResponse.Setplayer(AIndex : Integer; const AValue : TPlayer); 
+Procedure TPlayerLeaderboardScoreListResponse.Setplayer(AIndex : Integer; const AValue : TPlayer);
 
 begin
   If (Fplayer=AValue) then exit;
@@ -7084,7 +7084,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerLeaderboardScoreListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerLeaderboardScoreListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7103,7 +7103,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerLevel.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLevel.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7113,7 +7113,7 @@ end;
 
 
 
-Procedure TPlayerLevel.Setlevel(AIndex : Integer; const AValue : integer); 
+Procedure TPlayerLevel.Setlevel(AIndex : Integer; const AValue : integer);
 
 begin
   If (Flevel=AValue) then exit;
@@ -7123,7 +7123,7 @@ end;
 
 
 
-Procedure TPlayerLevel.SetmaxExperiencePoints(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLevel.SetmaxExperiencePoints(AIndex : Integer; const AValue : String);
 
 begin
   If (FmaxExperiencePoints=AValue) then exit;
@@ -7133,7 +7133,7 @@ end;
 
 
 
-Procedure TPlayerLevel.SetminExperiencePoints(AIndex : Integer; const AValue : String); 
+Procedure TPlayerLevel.SetminExperiencePoints(AIndex : Integer; const AValue : String);
 
 begin
   If (FminExperiencePoints=AValue) then exit;
@@ -7150,7 +7150,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerListResponse.Setitems(AIndex : Integer; const AValue : TPlayerListResponseTypeitemsArray); 
+Procedure TPlayerListResponse.Setitems(AIndex : Integer; const AValue : TPlayerListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -7160,7 +7160,7 @@ end;
 
 
 
-Procedure TPlayerListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7170,7 +7170,7 @@ end;
 
 
 
-Procedure TPlayerListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TPlayerListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7181,7 +7181,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7200,7 +7200,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScore.SetformattedScore(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScore.SetformattedScore(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedScore=AValue) then exit;
@@ -7210,7 +7210,7 @@ end;
 
 
 
-Procedure TPlayerScore.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScore.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7220,7 +7220,7 @@ end;
 
 
 
-Procedure TPlayerScore.Setscore(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScore.Setscore(AIndex : Integer; const AValue : String);
 
 begin
   If (Fscore=AValue) then exit;
@@ -7230,7 +7230,7 @@ end;
 
 
 
-Procedure TPlayerScore.SetscoreTag(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScore.SetscoreTag(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -7240,7 +7240,7 @@ end;
 
 
 
-Procedure TPlayerScore.SettimeSpan(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScore.SettimeSpan(AIndex : Integer; const AValue : String);
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -7257,7 +7257,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScoreListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7267,7 +7267,7 @@ end;
 
 
 
-Procedure TPlayerScoreListResponse.SetsubmittedScores(AIndex : Integer; const AValue : TPlayerScoreListResponseTypesubmittedScoresArray); 
+Procedure TPlayerScoreListResponse.SetsubmittedScores(AIndex : Integer; const AValue : TPlayerScoreListResponseTypesubmittedScoresArray);
 
 begin
   If (FsubmittedScores=AValue) then exit;
@@ -7278,7 +7278,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerScoreListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerScoreListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7297,7 +7297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreResponse.SetbeatenScoreTimeSpans(AIndex : Integer; const AValue : TStringArray); 
+Procedure TPlayerScoreResponse.SetbeatenScoreTimeSpans(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FbeatenScoreTimeSpans=AValue) then exit;
@@ -7307,7 +7307,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetformattedScore(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScoreResponse.SetformattedScore(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedScore=AValue) then exit;
@@ -7317,7 +7317,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScoreResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7327,7 +7327,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetleaderboardId(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScoreResponse.SetleaderboardId(AIndex : Integer; const AValue : String);
 
 begin
   If (FleaderboardId=AValue) then exit;
@@ -7337,7 +7337,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetscoreTag(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScoreResponse.SetscoreTag(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -7347,7 +7347,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetunbeatenScores(AIndex : Integer; const AValue : TPlayerScoreResponseTypeunbeatenScoresArray); 
+Procedure TPlayerScoreResponse.SetunbeatenScores(AIndex : Integer; const AValue : TPlayerScoreResponseTypeunbeatenScoresArray);
 
 begin
   If (FunbeatenScores=AValue) then exit;
@@ -7358,7 +7358,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerScoreResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerScoreResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7378,7 +7378,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreSubmissionList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPlayerScoreSubmissionList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7388,7 +7388,7 @@ end;
 
 
 
-Procedure TPlayerScoreSubmissionList.Setscores(AIndex : Integer; const AValue : TPlayerScoreSubmissionListTypescoresArray); 
+Procedure TPlayerScoreSubmissionList.Setscores(AIndex : Integer; const AValue : TPlayerScoreSubmissionListTypescoresArray);
 
 begin
   If (Fscores=AValue) then exit;
@@ -7399,7 +7399,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPlayerScoreSubmissionList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPlayerScoreSubmissionList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7418,7 +7418,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfileSettings.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TProfileSettings.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7428,7 +7428,7 @@ end;
 
 
 
-Procedure TProfileSettings.SetprofileVisible(AIndex : Integer; const AValue : boolean); 
+Procedure TProfileSettings.SetprofileVisible(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FprofileVisible=AValue) then exit;
@@ -7445,7 +7445,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushToken.SetclientRevision(AIndex : Integer; const AValue : String); 
+Procedure TPushToken.SetclientRevision(AIndex : Integer; const AValue : String);
 
 begin
   If (FclientRevision=AValue) then exit;
@@ -7455,7 +7455,7 @@ end;
 
 
 
-Procedure TPushToken.Setid(AIndex : Integer; const AValue : TPushTokenId); 
+Procedure TPushToken.Setid(AIndex : Integer; const AValue : TPushTokenId);
 
 begin
   If (Fid=AValue) then exit;
@@ -7465,7 +7465,7 @@ end;
 
 
 
-Procedure TPushToken.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPushToken.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7475,7 +7475,7 @@ end;
 
 
 
-Procedure TPushToken.Setlanguage(AIndex : Integer; const AValue : String); 
+Procedure TPushToken.Setlanguage(AIndex : Integer; const AValue : String);
 
 begin
   If (Flanguage=AValue) then exit;
@@ -7492,7 +7492,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushTokenIdTypeios.Setapns_device_token(AIndex : Integer; const AValue : String); 
+Procedure TPushTokenIdTypeios.Setapns_device_token(AIndex : Integer; const AValue : String);
 
 begin
   If (Fapns_device_token=AValue) then exit;
@@ -7502,7 +7502,7 @@ end;
 
 
 
-Procedure TPushTokenIdTypeios.Setapns_environment(AIndex : Integer; const AValue : String); 
+Procedure TPushTokenIdTypeios.Setapns_environment(AIndex : Integer; const AValue : String);
 
 begin
   If (Fapns_environment=AValue) then exit;
@@ -7519,7 +7519,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushTokenId.Setios(AIndex : Integer; const AValue : TPushTokenIdTypeios); 
+Procedure TPushTokenId.Setios(AIndex : Integer; const AValue : TPushTokenIdTypeios);
 
 begin
   If (Fios=AValue) then exit;
@@ -7529,7 +7529,7 @@ end;
 
 
 
-Procedure TPushTokenId.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TPushTokenId.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7546,7 +7546,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuest.SetacceptedTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetacceptedTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FacceptedTimestampMillis=AValue) then exit;
@@ -7556,7 +7556,7 @@ end;
 
 
 
-Procedure TQuest.SetapplicationId(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetapplicationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -7566,7 +7566,7 @@ end;
 
 
 
-Procedure TQuest.SetbannerUrl(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetbannerUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FbannerUrl=AValue) then exit;
@@ -7576,7 +7576,7 @@ end;
 
 
 
-Procedure TQuest.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TQuest.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7586,7 +7586,7 @@ end;
 
 
 
-Procedure TQuest.SetendTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetendTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FendTimestampMillis=AValue) then exit;
@@ -7596,7 +7596,7 @@ end;
 
 
 
-Procedure TQuest.SeticonUrl(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SeticonUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -7606,7 +7606,7 @@ end;
 
 
 
-Procedure TQuest.Setid(AIndex : Integer; const AValue : String); 
+Procedure TQuest.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -7616,7 +7616,7 @@ end;
 
 
 
-Procedure TQuest.SetisDefaultBannerUrl(AIndex : Integer; const AValue : boolean); 
+Procedure TQuest.SetisDefaultBannerUrl(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisDefaultBannerUrl=AValue) then exit;
@@ -7626,7 +7626,7 @@ end;
 
 
 
-Procedure TQuest.SetisDefaultIconUrl(AIndex : Integer; const AValue : boolean); 
+Procedure TQuest.SetisDefaultIconUrl(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FisDefaultIconUrl=AValue) then exit;
@@ -7636,7 +7636,7 @@ end;
 
 
 
-Procedure TQuest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TQuest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7646,7 +7646,7 @@ end;
 
 
 
-Procedure TQuest.SetlastUpdatedTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetlastUpdatedTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastUpdatedTimestampMillis=AValue) then exit;
@@ -7656,7 +7656,7 @@ end;
 
 
 
-Procedure TQuest.Setmilestones(AIndex : Integer; const AValue : TQuestTypemilestonesArray); 
+Procedure TQuest.Setmilestones(AIndex : Integer; const AValue : TQuestTypemilestonesArray);
 
 begin
   If (Fmilestones=AValue) then exit;
@@ -7666,7 +7666,7 @@ end;
 
 
 
-Procedure TQuest.Setname(AIndex : Integer; const AValue : String); 
+Procedure TQuest.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -7676,7 +7676,7 @@ end;
 
 
 
-Procedure TQuest.SetnotifyTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetnotifyTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FnotifyTimestampMillis=AValue) then exit;
@@ -7686,7 +7686,7 @@ end;
 
 
 
-Procedure TQuest.SetstartTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TQuest.SetstartTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FstartTimestampMillis=AValue) then exit;
@@ -7696,7 +7696,7 @@ end;
 
 
 
-Procedure TQuest.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TQuest.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -7707,7 +7707,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TQuest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TQuest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7726,7 +7726,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestContribution.SetformattedValue(AIndex : Integer; const AValue : String); 
+Procedure TQuestContribution.SetformattedValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -7736,7 +7736,7 @@ end;
 
 
 
-Procedure TQuestContribution.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TQuestContribution.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7746,7 +7746,7 @@ end;
 
 
 
-Procedure TQuestContribution.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TQuestContribution.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7763,7 +7763,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestCriterion.SetcompletionContribution(AIndex : Integer; const AValue : TQuestContribution); 
+Procedure TQuestCriterion.SetcompletionContribution(AIndex : Integer; const AValue : TQuestContribution);
 
 begin
   If (FcompletionContribution=AValue) then exit;
@@ -7773,7 +7773,7 @@ end;
 
 
 
-Procedure TQuestCriterion.SetcurrentContribution(AIndex : Integer; const AValue : TQuestContribution); 
+Procedure TQuestCriterion.SetcurrentContribution(AIndex : Integer; const AValue : TQuestContribution);
 
 begin
   If (FcurrentContribution=AValue) then exit;
@@ -7783,7 +7783,7 @@ end;
 
 
 
-Procedure TQuestCriterion.SeteventId(AIndex : Integer; const AValue : String); 
+Procedure TQuestCriterion.SeteventId(AIndex : Integer; const AValue : String);
 
 begin
   If (FeventId=AValue) then exit;
@@ -7793,7 +7793,7 @@ end;
 
 
 
-Procedure TQuestCriterion.SetinitialPlayerProgress(AIndex : Integer; const AValue : TQuestContribution); 
+Procedure TQuestCriterion.SetinitialPlayerProgress(AIndex : Integer; const AValue : TQuestContribution);
 
 begin
   If (FinitialPlayerProgress=AValue) then exit;
@@ -7803,7 +7803,7 @@ end;
 
 
 
-Procedure TQuestCriterion.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TQuestCriterion.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7820,7 +7820,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestListResponse.Setitems(AIndex : Integer; const AValue : TQuestListResponseTypeitemsArray); 
+Procedure TQuestListResponse.Setitems(AIndex : Integer; const AValue : TQuestListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -7830,7 +7830,7 @@ end;
 
 
 
-Procedure TQuestListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TQuestListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7840,7 +7840,7 @@ end;
 
 
 
-Procedure TQuestListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TQuestListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7851,7 +7851,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TQuestListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TQuestListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7870,7 +7870,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestMilestone.SetcompletionRewardData(AIndex : Integer; const AValue : String); 
+Procedure TQuestMilestone.SetcompletionRewardData(AIndex : Integer; const AValue : String);
 
 begin
   If (FcompletionRewardData=AValue) then exit;
@@ -7880,7 +7880,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setcriteria(AIndex : Integer; const AValue : TQuestMilestoneTypecriteriaArray); 
+Procedure TQuestMilestone.Setcriteria(AIndex : Integer; const AValue : TQuestMilestoneTypecriteriaArray);
 
 begin
   If (Fcriteria=AValue) then exit;
@@ -7890,7 +7890,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setid(AIndex : Integer; const AValue : String); 
+Procedure TQuestMilestone.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -7900,7 +7900,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TQuestMilestone.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7910,7 +7910,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TQuestMilestone.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -7921,7 +7921,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TQuestMilestone.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TQuestMilestone.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -7940,7 +7940,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRevisionCheckResponse.SetapiVersion(AIndex : Integer; const AValue : String); 
+Procedure TRevisionCheckResponse.SetapiVersion(AIndex : Integer; const AValue : String);
 
 begin
   If (FapiVersion=AValue) then exit;
@@ -7950,7 +7950,7 @@ end;
 
 
 
-Procedure TRevisionCheckResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRevisionCheckResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -7960,7 +7960,7 @@ end;
 
 
 
-Procedure TRevisionCheckResponse.SetrevisionStatus(AIndex : Integer; const AValue : String); 
+Procedure TRevisionCheckResponse.SetrevisionStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FrevisionStatus=AValue) then exit;
@@ -7977,7 +7977,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoom.SetapplicationId(AIndex : Integer; const AValue : String); 
+Procedure TRoom.SetapplicationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -7987,7 +7987,7 @@ end;
 
 
 
-Procedure TRoom.SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria); 
+Procedure TRoom.SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria);
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -7997,7 +7997,7 @@ end;
 
 
 
-Procedure TRoom.SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus); 
+Procedure TRoom.SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus);
 
 begin
   If (FautoMatchingStatus=AValue) then exit;
@@ -8007,7 +8007,7 @@ end;
 
 
 
-Procedure TRoom.SetcreationDetails(AIndex : Integer; const AValue : TRoomModification); 
+Procedure TRoom.SetcreationDetails(AIndex : Integer; const AValue : TRoomModification);
 
 begin
   If (FcreationDetails=AValue) then exit;
@@ -8017,7 +8017,7 @@ end;
 
 
 
-Procedure TRoom.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TRoom.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8027,7 +8027,7 @@ end;
 
 
 
-Procedure TRoom.SetinviterId(AIndex : Integer; const AValue : String); 
+Procedure TRoom.SetinviterId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinviterId=AValue) then exit;
@@ -8037,7 +8037,7 @@ end;
 
 
 
-Procedure TRoom.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoom.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8047,7 +8047,7 @@ end;
 
 
 
-Procedure TRoom.SetlastUpdateDetails(AIndex : Integer; const AValue : TRoomModification); 
+Procedure TRoom.SetlastUpdateDetails(AIndex : Integer; const AValue : TRoomModification);
 
 begin
   If (FlastUpdateDetails=AValue) then exit;
@@ -8057,7 +8057,7 @@ end;
 
 
 
-Procedure TRoom.Setparticipants(AIndex : Integer; const AValue : TRoomTypeparticipantsArray); 
+Procedure TRoom.Setparticipants(AIndex : Integer; const AValue : TRoomTypeparticipantsArray);
 
 begin
   If (Fparticipants=AValue) then exit;
@@ -8067,7 +8067,7 @@ end;
 
 
 
-Procedure TRoom.SetroomId(AIndex : Integer; const AValue : String); 
+Procedure TRoom.SetroomId(AIndex : Integer; const AValue : String);
 
 begin
   If (FroomId=AValue) then exit;
@@ -8077,7 +8077,7 @@ end;
 
 
 
-Procedure TRoom.SetroomStatusVersion(AIndex : Integer; const AValue : integer); 
+Procedure TRoom.SetroomStatusVersion(AIndex : Integer; const AValue : integer);
 
 begin
   If (FroomStatusVersion=AValue) then exit;
@@ -8087,7 +8087,7 @@ end;
 
 
 
-Procedure TRoom.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TRoom.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8097,7 +8097,7 @@ end;
 
 
 
-Procedure TRoom.Setvariant(AIndex : Integer; const AValue : integer); 
+Procedure TRoom.Setvariant(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -8108,7 +8108,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoom.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoom.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8127,7 +8127,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomAutoMatchStatus.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomAutoMatchStatus.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8137,7 +8137,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchStatus.SetwaitEstimateSeconds(AIndex : Integer; const AValue : integer); 
+Procedure TRoomAutoMatchStatus.SetwaitEstimateSeconds(AIndex : Integer; const AValue : integer);
 
 begin
   If (FwaitEstimateSeconds=AValue) then exit;
@@ -8154,7 +8154,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; const AValue : String); 
+Procedure TRoomAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; const AValue : String);
 
 begin
   If (FexclusiveBitmask=AValue) then exit;
@@ -8164,7 +8164,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchingCriteria.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomAutoMatchingCriteria.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8174,7 +8174,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
+Procedure TRoomAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxAutoMatchingPlayers=AValue) then exit;
@@ -8184,7 +8184,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
+Procedure TRoomAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminAutoMatchingPlayers=AValue) then exit;
@@ -8201,7 +8201,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomClientAddress.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomClientAddress.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8211,7 +8211,7 @@ end;
 
 
 
-Procedure TRoomClientAddress.SetxmppAddress(AIndex : Integer; const AValue : String); 
+Procedure TRoomClientAddress.SetxmppAddress(AIndex : Integer; const AValue : String);
 
 begin
   If (FxmppAddress=AValue) then exit;
@@ -8228,7 +8228,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomCreateRequest.SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria); 
+Procedure TRoomCreateRequest.SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria);
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -8238,7 +8238,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.Setcapabilities(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRoomCreateRequest.Setcapabilities(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -8248,7 +8248,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); 
+Procedure TRoomCreateRequest.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress);
 
 begin
   If (FclientAddress=AValue) then exit;
@@ -8258,7 +8258,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRoomCreateRequest.SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FinvitedPlayerIds=AValue) then exit;
@@ -8268,7 +8268,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomCreateRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8278,7 +8278,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics); 
+Procedure TRoomCreateRequest.SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics);
 
 begin
   If (FnetworkDiagnostics=AValue) then exit;
@@ -8288,7 +8288,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TRoomCreateRequest.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -8298,7 +8298,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.Setvariant(AIndex : Integer; const AValue : integer); 
+Procedure TRoomCreateRequest.Setvariant(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -8309,7 +8309,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomCreateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomCreateRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8329,7 +8329,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomJoinRequest.Setcapabilities(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRoomJoinRequest.Setcapabilities(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -8339,7 +8339,7 @@ end;
 
 
 
-Procedure TRoomJoinRequest.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); 
+Procedure TRoomJoinRequest.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress);
 
 begin
   If (FclientAddress=AValue) then exit;
@@ -8349,7 +8349,7 @@ end;
 
 
 
-Procedure TRoomJoinRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomJoinRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8359,7 +8359,7 @@ end;
 
 
 
-Procedure TRoomJoinRequest.SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics); 
+Procedure TRoomJoinRequest.SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics);
 
 begin
   If (FnetworkDiagnostics=AValue) then exit;
@@ -8370,7 +8370,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomJoinRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomJoinRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8389,7 +8389,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomLeaveDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer); 
+Procedure TRoomLeaveDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer);
 
 begin
   If (FandroidNetworkSubtype=AValue) then exit;
@@ -8399,7 +8399,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetandroidNetworkType(AIndex : Integer; const AValue : integer); 
+Procedure TRoomLeaveDiagnostics.SetandroidNetworkType(AIndex : Integer; const AValue : integer);
 
 begin
   If (FandroidNetworkType=AValue) then exit;
@@ -8409,7 +8409,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetiosNetworkType(AIndex : Integer; const AValue : integer); 
+Procedure TRoomLeaveDiagnostics.SetiosNetworkType(AIndex : Integer; const AValue : integer);
 
 begin
   If (FiosNetworkType=AValue) then exit;
@@ -8419,7 +8419,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomLeaveDiagnostics.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8429,7 +8429,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetnetworkOperatorCode(AIndex : Integer; const AValue : String); 
+Procedure TRoomLeaveDiagnostics.SetnetworkOperatorCode(AIndex : Integer; const AValue : String);
 
 begin
   If (FnetworkOperatorCode=AValue) then exit;
@@ -8439,7 +8439,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetnetworkOperatorName(AIndex : Integer; const AValue : String); 
+Procedure TRoomLeaveDiagnostics.SetnetworkOperatorName(AIndex : Integer; const AValue : String);
 
 begin
   If (FnetworkOperatorName=AValue) then exit;
@@ -8449,7 +8449,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetpeerSession(AIndex : Integer; const AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); 
+Procedure TRoomLeaveDiagnostics.SetpeerSession(AIndex : Integer; const AValue : TRoomLeaveDiagnosticsTypepeerSessionArray);
 
 begin
   If (FpeerSession=AValue) then exit;
@@ -8459,7 +8459,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetsocketsUsed(AIndex : Integer; const AValue : boolean); 
+Procedure TRoomLeaveDiagnostics.SetsocketsUsed(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FsocketsUsed=AValue) then exit;
@@ -8470,7 +8470,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomLeaveDiagnostics.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomLeaveDiagnostics.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8489,7 +8489,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomLeaveRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomLeaveRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8499,7 +8499,7 @@ end;
 
 
 
-Procedure TRoomLeaveRequest.SetleaveDiagnostics(AIndex : Integer; const AValue : TRoomLeaveDiagnostics); 
+Procedure TRoomLeaveRequest.SetleaveDiagnostics(AIndex : Integer; const AValue : TRoomLeaveDiagnostics);
 
 begin
   If (FleaveDiagnostics=AValue) then exit;
@@ -8509,7 +8509,7 @@ end;
 
 
 
-Procedure TRoomLeaveRequest.Setreason(AIndex : Integer; const AValue : String); 
+Procedure TRoomLeaveRequest.Setreason(AIndex : Integer; const AValue : String);
 
 begin
   If (Freason=AValue) then exit;
@@ -8526,7 +8526,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomList.Setitems(AIndex : Integer; const AValue : TRoomListTypeitemsArray); 
+Procedure TRoomList.Setitems(AIndex : Integer; const AValue : TRoomListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -8536,7 +8536,7 @@ end;
 
 
 
-Procedure TRoomList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8546,7 +8546,7 @@ end;
 
 
 
-Procedure TRoomList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TRoomList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8557,7 +8557,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8576,7 +8576,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomModification.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomModification.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8586,7 +8586,7 @@ end;
 
 
 
-Procedure TRoomModification.SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TRoomModification.SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FmodifiedTimestampMillis=AValue) then exit;
@@ -8596,7 +8596,7 @@ end;
 
 
 
-Procedure TRoomModification.SetparticipantId(AIndex : Integer; const AValue : String); 
+Procedure TRoomModification.SetparticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -8613,7 +8613,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomP2PStatus.SetconnectionSetupLatencyMillis(AIndex : Integer; const AValue : integer); 
+Procedure TRoomP2PStatus.SetconnectionSetupLatencyMillis(AIndex : Integer; const AValue : integer);
 
 begin
   If (FconnectionSetupLatencyMillis=AValue) then exit;
@@ -8623,7 +8623,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Seterror(AIndex : Integer; const AValue : String); 
+Procedure TRoomP2PStatus.Seterror(AIndex : Integer; const AValue : String);
 
 begin
   If (Ferror=AValue) then exit;
@@ -8633,7 +8633,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Seterror_reason(AIndex : Integer; const AValue : String); 
+Procedure TRoomP2PStatus.Seterror_reason(AIndex : Integer; const AValue : String);
 
 begin
   If (Ferror_reason=AValue) then exit;
@@ -8643,7 +8643,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomP2PStatus.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8653,7 +8653,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.SetparticipantId(AIndex : Integer; const AValue : String); 
+Procedure TRoomP2PStatus.SetparticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -8663,7 +8663,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TRoomP2PStatus.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8673,7 +8673,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.SetunreliableRoundtripLatencyMillis(AIndex : Integer; const AValue : integer); 
+Procedure TRoomP2PStatus.SetunreliableRoundtripLatencyMillis(AIndex : Integer; const AValue : integer);
 
 begin
   If (FunreliableRoundtripLatencyMillis=AValue) then exit;
@@ -8690,7 +8690,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomP2PStatuses.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomP2PStatuses.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8700,7 +8700,7 @@ end;
 
 
 
-Procedure TRoomP2PStatuses.Setupdates(AIndex : Integer; const AValue : TRoomP2PStatusesTypeupdatesArray); 
+Procedure TRoomP2PStatuses.Setupdates(AIndex : Integer; const AValue : TRoomP2PStatusesTypeupdatesArray);
 
 begin
   If (Fupdates=AValue) then exit;
@@ -8711,7 +8711,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomP2PStatuses.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomP2PStatuses.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8730,7 +8730,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomParticipant.SetautoMatched(AIndex : Integer; const AValue : boolean); 
+Procedure TRoomParticipant.SetautoMatched(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -8740,7 +8740,7 @@ end;
 
 
 
-Procedure TRoomParticipant.SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer); 
+Procedure TRoomParticipant.SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer);
 
 begin
   If (FautoMatchedPlayer=AValue) then exit;
@@ -8750,7 +8750,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setcapabilities(AIndex : Integer; const AValue : TStringArray); 
+Procedure TRoomParticipant.Setcapabilities(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -8760,7 +8760,7 @@ end;
 
 
 
-Procedure TRoomParticipant.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); 
+Procedure TRoomParticipant.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress);
 
 begin
   If (FclientAddress=AValue) then exit;
@@ -8770,7 +8770,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setconnected(AIndex : Integer; const AValue : boolean); 
+Procedure TRoomParticipant.Setconnected(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fconnected=AValue) then exit;
@@ -8780,7 +8780,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setid(AIndex : Integer; const AValue : String); 
+Procedure TRoomParticipant.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -8790,7 +8790,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomParticipant.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8800,7 +8800,7 @@ end;
 
 
 
-Procedure TRoomParticipant.SetleaveReason(AIndex : Integer; const AValue : String); 
+Procedure TRoomParticipant.SetleaveReason(AIndex : Integer; const AValue : String);
 
 begin
   If (FleaveReason=AValue) then exit;
@@ -8810,7 +8810,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setplayer(AIndex : Integer; const AValue : TPlayer); 
+Procedure TRoomParticipant.Setplayer(AIndex : Integer; const AValue : TPlayer);
 
 begin
   If (Fplayer=AValue) then exit;
@@ -8820,7 +8820,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TRoomParticipant.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8831,7 +8831,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomParticipant.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomParticipant.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8850,7 +8850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomStatus.SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus); 
+Procedure TRoomStatus.SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus);
 
 begin
   If (FautoMatchingStatus=AValue) then exit;
@@ -8860,7 +8860,7 @@ end;
 
 
 
-Procedure TRoomStatus.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TRoomStatus.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8870,7 +8870,7 @@ end;
 
 
 
-Procedure TRoomStatus.Setparticipants(AIndex : Integer; const AValue : TRoomStatusTypeparticipantsArray); 
+Procedure TRoomStatus.Setparticipants(AIndex : Integer; const AValue : TRoomStatusTypeparticipantsArray);
 
 begin
   If (Fparticipants=AValue) then exit;
@@ -8880,7 +8880,7 @@ end;
 
 
 
-Procedure TRoomStatus.SetroomId(AIndex : Integer; const AValue : String); 
+Procedure TRoomStatus.SetroomId(AIndex : Integer; const AValue : String);
 
 begin
   If (FroomId=AValue) then exit;
@@ -8890,7 +8890,7 @@ end;
 
 
 
-Procedure TRoomStatus.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TRoomStatus.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8900,7 +8900,7 @@ end;
 
 
 
-Procedure TRoomStatus.SetstatusVersion(AIndex : Integer; const AValue : integer); 
+Procedure TRoomStatus.SetstatusVersion(AIndex : Integer; const AValue : integer);
 
 begin
   If (FstatusVersion=AValue) then exit;
@@ -8911,7 +8911,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TRoomStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TRoomStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -8930,7 +8930,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScoreSubmission.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TScoreSubmission.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -8940,7 +8940,7 @@ end;
 
 
 
-Procedure TScoreSubmission.SetleaderboardId(AIndex : Integer; const AValue : String); 
+Procedure TScoreSubmission.SetleaderboardId(AIndex : Integer; const AValue : String);
 
 begin
   If (FleaderboardId=AValue) then exit;
@@ -8950,7 +8950,7 @@ end;
 
 
 
-Procedure TScoreSubmission.Setscore(AIndex : Integer; const AValue : String); 
+Procedure TScoreSubmission.Setscore(AIndex : Integer; const AValue : String);
 
 begin
   If (Fscore=AValue) then exit;
@@ -8960,7 +8960,7 @@ end;
 
 
 
-Procedure TScoreSubmission.SetscoreTag(AIndex : Integer; const AValue : String); 
+Procedure TScoreSubmission.SetscoreTag(AIndex : Integer; const AValue : String);
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -8970,7 +8970,7 @@ end;
 
 
 
-Procedure TScoreSubmission.Setsignature(AIndex : Integer; const AValue : String); 
+Procedure TScoreSubmission.Setsignature(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsignature=AValue) then exit;
@@ -8987,7 +8987,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshot.SetcoverImage(AIndex : Integer; const AValue : TSnapshotImage); 
+Procedure TSnapshot.SetcoverImage(AIndex : Integer; const AValue : TSnapshotImage);
 
 begin
   If (FcoverImage=AValue) then exit;
@@ -8997,7 +8997,7 @@ end;
 
 
 
-Procedure TSnapshot.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9007,7 +9007,7 @@ end;
 
 
 
-Procedure TSnapshot.SetdriveId(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.SetdriveId(AIndex : Integer; const AValue : String);
 
 begin
   If (FdriveId=AValue) then exit;
@@ -9017,7 +9017,7 @@ end;
 
 
 
-Procedure TSnapshot.SetdurationMillis(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.SetdurationMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FdurationMillis=AValue) then exit;
@@ -9027,7 +9027,7 @@ end;
 
 
 
-Procedure TSnapshot.Setid(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -9037,7 +9037,7 @@ end;
 
 
 
-Procedure TSnapshot.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9047,7 +9047,7 @@ end;
 
 
 
-Procedure TSnapshot.SetlastModifiedMillis(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.SetlastModifiedMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FlastModifiedMillis=AValue) then exit;
@@ -9057,7 +9057,7 @@ end;
 
 
 
-Procedure TSnapshot.SetprogressValue(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.SetprogressValue(AIndex : Integer; const AValue : String);
 
 begin
   If (FprogressValue=AValue) then exit;
@@ -9067,7 +9067,7 @@ end;
 
 
 
-Procedure TSnapshot.Settitle(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.Settitle(AIndex : Integer; const AValue : String);
 
 begin
   If (Ftitle=AValue) then exit;
@@ -9077,7 +9077,7 @@ end;
 
 
 
-Procedure TSnapshot.Set_type(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.Set_type(AIndex : Integer; const AValue : String);
 
 begin
   If (F_type=AValue) then exit;
@@ -9087,7 +9087,7 @@ end;
 
 
 
-Procedure TSnapshot.SetuniqueName(AIndex : Integer; const AValue : String); 
+Procedure TSnapshot.SetuniqueName(AIndex : Integer; const AValue : String);
 
 begin
   If (FuniqueName=AValue) then exit;
@@ -9115,7 +9115,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshotImage.Setheight(AIndex : Integer; const AValue : integer); 
+Procedure TSnapshotImage.Setheight(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fheight=AValue) then exit;
@@ -9125,7 +9125,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSnapshotImage.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9135,7 +9135,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Setmime_type(AIndex : Integer; const AValue : String); 
+Procedure TSnapshotImage.Setmime_type(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmime_type=AValue) then exit;
@@ -9145,7 +9145,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Seturl(AIndex : Integer; const AValue : String); 
+Procedure TSnapshotImage.Seturl(AIndex : Integer; const AValue : String);
 
 begin
   If (Furl=AValue) then exit;
@@ -9155,7 +9155,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Setwidth(AIndex : Integer; const AValue : integer); 
+Procedure TSnapshotImage.Setwidth(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fwidth=AValue) then exit;
@@ -9172,7 +9172,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshotListResponse.Setitems(AIndex : Integer; const AValue : TSnapshotListResponseTypeitemsArray); 
+Procedure TSnapshotListResponse.Setitems(AIndex : Integer; const AValue : TSnapshotListResponseTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -9182,7 +9182,7 @@ end;
 
 
 
-Procedure TSnapshotListResponse.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TSnapshotListResponse.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9192,7 +9192,7 @@ end;
 
 
 
-Procedure TSnapshotListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TSnapshotListResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9203,7 +9203,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TSnapshotListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TSnapshotListResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -9222,7 +9222,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; const AValue : String);
 
 begin
   If (FexclusiveBitmask=AValue) then exit;
@@ -9232,7 +9232,7 @@ end;
 
 
 
-Procedure TTurnBasedAutoMatchingCriteria.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedAutoMatchingCriteria.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9242,7 +9242,7 @@ end;
 
 
 
-Procedure TTurnBasedAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmaxAutoMatchingPlayers=AValue) then exit;
@@ -9252,7 +9252,7 @@ end;
 
 
 
-Procedure TTurnBasedAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer);
 
 begin
   If (FminAutoMatchingPlayers=AValue) then exit;
@@ -9269,7 +9269,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatch.SetapplicationId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetapplicationId(AIndex : Integer; const AValue : String);
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -9279,7 +9279,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria); 
+Procedure TTurnBasedMatch.SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria);
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -9289,7 +9289,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetcreationDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification); 
+Procedure TTurnBasedMatch.SetcreationDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification);
 
 begin
   If (FcreationDetails=AValue) then exit;
@@ -9299,7 +9299,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchData); 
+Procedure TTurnBasedMatch.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchData);
 
 begin
   If (Fdata=AValue) then exit;
@@ -9309,7 +9309,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9319,7 +9319,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetinviterId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetinviterId(AIndex : Integer; const AValue : String);
 
 begin
   If (FinviterId=AValue) then exit;
@@ -9329,7 +9329,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9339,7 +9339,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetlastUpdateDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification); 
+Procedure TTurnBasedMatch.SetlastUpdateDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification);
 
 begin
   If (FlastUpdateDetails=AValue) then exit;
@@ -9349,7 +9349,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetmatchId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetmatchId(AIndex : Integer; const AValue : String);
 
 begin
   If (FmatchId=AValue) then exit;
@@ -9359,7 +9359,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetmatchNumber(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedMatch.SetmatchNumber(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmatchNumber=AValue) then exit;
@@ -9369,7 +9369,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetmatchVersion(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedMatch.SetmatchVersion(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmatchVersion=AValue) then exit;
@@ -9379,7 +9379,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setparticipants(AIndex : Integer; const AValue : TTurnBasedMatchTypeparticipantsArray); 
+Procedure TTurnBasedMatch.Setparticipants(AIndex : Integer; const AValue : TTurnBasedMatchTypeparticipantsArray);
 
 begin
   If (Fparticipants=AValue) then exit;
@@ -9389,7 +9389,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetpendingParticipantId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetpendingParticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpendingParticipantId=AValue) then exit;
@@ -9399,7 +9399,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetpreviousMatchData(AIndex : Integer; const AValue : TTurnBasedMatchData); 
+Procedure TTurnBasedMatch.SetpreviousMatchData(AIndex : Integer; const AValue : TTurnBasedMatchData);
 
 begin
   If (FpreviousMatchData=AValue) then exit;
@@ -9409,7 +9409,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetrematchId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetrematchId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrematchId=AValue) then exit;
@@ -9419,7 +9419,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTyperesultsArray); 
+Procedure TTurnBasedMatch.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTyperesultsArray);
 
 begin
   If (Fresults=AValue) then exit;
@@ -9429,7 +9429,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -9439,7 +9439,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetuserMatchStatus(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetuserMatchStatus(AIndex : Integer; const AValue : String);
 
 begin
   If (FuserMatchStatus=AValue) then exit;
@@ -9449,7 +9449,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setvariant(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedMatch.Setvariant(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -9459,7 +9459,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetwithParticipantId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatch.SetwithParticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FwithParticipantId=AValue) then exit;
@@ -9470,7 +9470,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTurnBasedMatch.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTurnBasedMatch.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -9490,7 +9490,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchCreateRequest.SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria); 
+Procedure TTurnBasedMatchCreateRequest.SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria);
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -9500,7 +9500,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray); 
+Procedure TTurnBasedMatchCreateRequest.SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FinvitedPlayerIds=AValue) then exit;
@@ -9510,7 +9510,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchCreateRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9520,7 +9520,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.SetrequestId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchCreateRequest.SetrequestId(AIndex : Integer; const AValue : String);
 
 begin
   If (FrequestId=AValue) then exit;
@@ -9530,7 +9530,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.Setvariant(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedMatchCreateRequest.Setvariant(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fvariant=AValue) then exit;
@@ -9541,7 +9541,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTurnBasedMatchCreateRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTurnBasedMatchCreateRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -9560,7 +9560,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchData.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchData.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -9570,7 +9570,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchData.SetdataAvailable(AIndex : Integer; const AValue : boolean); 
+Procedure TTurnBasedMatchData.SetdataAvailable(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FdataAvailable=AValue) then exit;
@@ -9580,7 +9580,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchData.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchData.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9597,7 +9597,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchDataRequest.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchDataRequest.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -9607,7 +9607,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchDataRequest.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchDataRequest.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9624,7 +9624,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchList.Setitems(AIndex : Integer; const AValue : TTurnBasedMatchListTypeitemsArray); 
+Procedure TTurnBasedMatchList.Setitems(AIndex : Integer; const AValue : TTurnBasedMatchListTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -9634,7 +9634,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchList.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchList.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9644,7 +9644,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchList.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchList.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9655,7 +9655,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTurnBasedMatchList.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTurnBasedMatchList.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -9674,7 +9674,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchModification.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchModification.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9684,7 +9684,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchModification.SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchModification.SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String);
 
 begin
   If (FmodifiedTimestampMillis=AValue) then exit;
@@ -9694,7 +9694,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchModification.SetparticipantId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchModification.SetparticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -9711,7 +9711,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchParticipant.SetautoMatched(AIndex : Integer; const AValue : boolean); 
+Procedure TTurnBasedMatchParticipant.SetautoMatched(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -9721,7 +9721,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer); 
+Procedure TTurnBasedMatchParticipant.SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer);
 
 begin
   If (FautoMatchedPlayer=AValue) then exit;
@@ -9731,7 +9731,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setid(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchParticipant.Setid(AIndex : Integer; const AValue : String);
 
 begin
   If (Fid=AValue) then exit;
@@ -9741,7 +9741,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchParticipant.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9751,7 +9751,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setplayer(AIndex : Integer; const AValue : TPlayer); 
+Procedure TTurnBasedMatchParticipant.Setplayer(AIndex : Integer; const AValue : TPlayer);
 
 begin
   If (Fplayer=AValue) then exit;
@@ -9761,7 +9761,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setstatus(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchParticipant.Setstatus(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstatus=AValue) then exit;
@@ -9778,7 +9778,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchRematch.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchRematch.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9788,7 +9788,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchRematch.SetpreviousMatch(AIndex : Integer; const AValue : TTurnBasedMatch); 
+Procedure TTurnBasedMatchRematch.SetpreviousMatch(AIndex : Integer; const AValue : TTurnBasedMatch);
 
 begin
   If (FpreviousMatch=AValue) then exit;
@@ -9798,7 +9798,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchRematch.Setrematch(AIndex : Integer; const AValue : TTurnBasedMatch); 
+Procedure TTurnBasedMatchRematch.Setrematch(AIndex : Integer; const AValue : TTurnBasedMatch);
 
 begin
   If (Frematch=AValue) then exit;
@@ -9815,7 +9815,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchResults.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest); 
+Procedure TTurnBasedMatchResults.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest);
 
 begin
   If (Fdata=AValue) then exit;
@@ -9825,7 +9825,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchResults.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchResults.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9835,7 +9835,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchResults.SetmatchVersion(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedMatchResults.SetmatchVersion(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmatchVersion=AValue) then exit;
@@ -9845,7 +9845,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchResults.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchResultsTyperesultsArray); 
+Procedure TTurnBasedMatchResults.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchResultsTyperesultsArray);
 
 begin
   If (Fresults=AValue) then exit;
@@ -9856,7 +9856,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTurnBasedMatchResults.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTurnBasedMatchResults.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -9875,7 +9875,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchSync.Setitems(AIndex : Integer; const AValue : TTurnBasedMatchSyncTypeitemsArray); 
+Procedure TTurnBasedMatchSync.Setitems(AIndex : Integer; const AValue : TTurnBasedMatchSyncTypeitemsArray);
 
 begin
   If (Fitems=AValue) then exit;
@@ -9885,7 +9885,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchSync.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchSync.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9895,7 +9895,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchSync.SetmoreAvailable(AIndex : Integer; const AValue : boolean); 
+Procedure TTurnBasedMatchSync.SetmoreAvailable(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FmoreAvailable=AValue) then exit;
@@ -9905,7 +9905,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchSync.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchSync.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9916,7 +9916,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTurnBasedMatchSync.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTurnBasedMatchSync.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -9935,7 +9935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchTurn.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest); 
+Procedure TTurnBasedMatchTurn.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest);
 
 begin
   If (Fdata=AValue) then exit;
@@ -9945,7 +9945,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.Setkind(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchTurn.Setkind(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkind=AValue) then exit;
@@ -9955,7 +9955,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.SetmatchVersion(AIndex : Integer; const AValue : integer); 
+Procedure TTurnBasedMatchTurn.SetmatchVersion(AIndex : Integer; const AValue : integer);
 
 begin
   If (FmatchVersion=AValue) then exit;
@@ -9965,7 +9965,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.SetpendingParticipantId(AIndex : Integer; const AValue : String); 
+Procedure TTurnBasedMatchTurn.SetpendingParticipantId(AIndex : Integer; const AValue : String);
 
 begin
   If (FpendingParticipantId=AValue) then exit;
@@ -9975,7 +9975,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTurnTyperesultsArray); 
+Procedure TTurnBasedMatchTurn.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTurnTyperesultsArray);
 
 begin
   If (Fresults=AValue) then exit;
@@ -9986,7 +9986,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTurnBasedMatchTurn.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTurnBasedMatchTurn.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -11854,7 +11854,7 @@ begin
   Result[1].Description:='Share your Google+ profile information and view and manage your game activity';
   Result[2].Name:='https://www.googleapis.com/auth/plus.login';
   Result[2].Description:='Know the list of people in your circles, your age range, and language';
-  
+
 end;
 
 Class Function TGamesAPI.APINeedsAuth : Boolean;

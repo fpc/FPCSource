@@ -13,7 +13,7 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-  
+
   //Top-level schema types
   TAny = Class;
   TDuration = Class;
@@ -94,11 +94,11 @@ type
   TTestExecutionStepTypetestSuiteOverviewsArray = Array of TTestSuiteOverview;
   TToolExecutionTypetoolLogsArray = Array of TFileReference;
   TToolExecutionTypetoolOutputsArray = Array of TToolOutputReference;
-  
+
   { --------------------------------------------------------------------
     TAny
     --------------------------------------------------------------------}
-  
+
   TAny = Class(TGoogleBaseObject)
   Private
     FtypeUrl : String;
@@ -113,11 +113,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TAnyClass = Class of TAny;
-  
+
   { --------------------------------------------------------------------
     TDuration
     --------------------------------------------------------------------}
-  
+
   TDuration = Class(TGoogleBaseObject)
   Private
     Fnanos : integer;
@@ -132,11 +132,11 @@ type
     Property seconds : String Index 8 Read Fseconds Write Setseconds;
   end;
   TDurationClass = Class of TDuration;
-  
+
   { --------------------------------------------------------------------
     TExecution
     --------------------------------------------------------------------}
-  
+
   TExecution = Class(TGoogleBaseObject)
   Private
     FcompletionTime : TTimestamp;
@@ -163,11 +163,11 @@ type
     Property testExecutionMatrixId : String Index 40 Read FtestExecutionMatrixId Write SettestExecutionMatrixId;
   end;
   TExecutionClass = Class of TExecution;
-  
+
   { --------------------------------------------------------------------
     TFailureDetail
     --------------------------------------------------------------------}
-  
+
   TFailureDetail = Class(TGoogleBaseObject)
   Private
     Fcrashed : boolean;
@@ -191,11 +191,11 @@ type
     Property unableToCrawl : boolean Index 32 Read FunableToCrawl Write SetunableToCrawl;
   end;
   TFailureDetailClass = Class of TFailureDetail;
-  
+
   { --------------------------------------------------------------------
     TFileReference
     --------------------------------------------------------------------}
-  
+
   TFileReference = Class(TGoogleBaseObject)
   Private
     FfileUri : String;
@@ -207,11 +207,11 @@ type
     Property fileUri : String Index 0 Read FfileUri Write SetfileUri;
   end;
   TFileReferenceClass = Class of TFileReference;
-  
+
   { --------------------------------------------------------------------
     THistory
     --------------------------------------------------------------------}
-  
+
   THistory = Class(TGoogleBaseObject)
   Private
     FdisplayName : String;
@@ -229,11 +229,11 @@ type
     Property name : String Index 16 Read Fname Write Setname;
   end;
   THistoryClass = Class of THistory;
-  
+
   { --------------------------------------------------------------------
     TImage
     --------------------------------------------------------------------}
-  
+
   TImage = Class(TGoogleBaseObject)
   Private
     Ferror : TStatus;
@@ -254,11 +254,11 @@ type
     Property thumbnail : TThumbnail Index 24 Read Fthumbnail Write Setthumbnail;
   end;
   TImageClass = Class of TImage;
-  
+
   { --------------------------------------------------------------------
     TInconclusiveDetail
     --------------------------------------------------------------------}
-  
+
   TInconclusiveDetail = Class(TGoogleBaseObject)
   Private
     FabortedByUser : boolean;
@@ -276,11 +276,11 @@ type
     Property nativeCrash : boolean Index 16 Read FnativeCrash Write SetnativeCrash;
   end;
   TInconclusiveDetailClass = Class of TInconclusiveDetail;
-  
+
   { --------------------------------------------------------------------
     TListExecutionsResponse
     --------------------------------------------------------------------}
-  
+
   TListExecutionsResponse = Class(TGoogleBaseObject)
   Private
     Fexecutions : TListExecutionsResponseTypeexecutionsArray;
@@ -299,11 +299,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListExecutionsResponseClass = Class of TListExecutionsResponse;
-  
+
   { --------------------------------------------------------------------
     TListHistoriesResponse
     --------------------------------------------------------------------}
-  
+
   TListHistoriesResponse = Class(TGoogleBaseObject)
   Private
     Fhistories : TListHistoriesResponseTypehistoriesArray;
@@ -322,11 +322,11 @@ type
     Property nextPageToken : String Index 8 Read FnextPageToken Write SetnextPageToken;
   end;
   TListHistoriesResponseClass = Class of TListHistoriesResponse;
-  
+
   { --------------------------------------------------------------------
     TListStepThumbnailsResponse
     --------------------------------------------------------------------}
-  
+
   TListStepThumbnailsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -345,11 +345,11 @@ type
     Property thumbnails : TListStepThumbnailsResponseTypethumbnailsArray Index 8 Read Fthumbnails Write Setthumbnails;
   end;
   TListStepThumbnailsResponseClass = Class of TListStepThumbnailsResponse;
-  
+
   { --------------------------------------------------------------------
     TListStepsResponse
     --------------------------------------------------------------------}
-  
+
   TListStepsResponse = Class(TGoogleBaseObject)
   Private
     FnextPageToken : String;
@@ -368,11 +368,11 @@ type
     Property steps : TListStepsResponseTypestepsArray Index 8 Read Fsteps Write Setsteps;
   end;
   TListStepsResponseClass = Class of TListStepsResponse;
-  
+
   { --------------------------------------------------------------------
     TOutcome
     --------------------------------------------------------------------}
-  
+
   TOutcome = Class(TGoogleBaseObject)
   Private
     FfailureDetail : TFailureDetail;
@@ -396,11 +396,11 @@ type
     Property summary : String Index 32 Read Fsummary Write Setsummary;
   end;
   TOutcomeClass = Class of TOutcome;
-  
+
   { --------------------------------------------------------------------
     TProjectSettings
     --------------------------------------------------------------------}
-  
+
   TProjectSettings = Class(TGoogleBaseObject)
   Private
     FdefaultBucket : String;
@@ -415,11 +415,11 @@ type
     Property name : String Index 8 Read Fname Write Setname;
   end;
   TProjectSettingsClass = Class of TProjectSettings;
-  
+
   { --------------------------------------------------------------------
     TPublishXunitXmlFilesRequest
     --------------------------------------------------------------------}
-  
+
   TPublishXunitXmlFilesRequest = Class(TGoogleBaseObject)
   Private
     FxunitXmlFiles : TPublishXunitXmlFilesRequestTypexunitXmlFilesArray;
@@ -435,11 +435,11 @@ type
     Property xunitXmlFiles : TPublishXunitXmlFilesRequestTypexunitXmlFilesArray Index 0 Read FxunitXmlFiles Write SetxunitXmlFiles;
   end;
   TPublishXunitXmlFilesRequestClass = Class of TPublishXunitXmlFilesRequest;
-  
+
   { --------------------------------------------------------------------
     TSkippedDetail
     --------------------------------------------------------------------}
-  
+
   TSkippedDetail = Class(TGoogleBaseObject)
   Private
     FincompatibleAppVersion : boolean;
@@ -457,11 +457,11 @@ type
     Property incompatibleDevice : boolean Index 16 Read FincompatibleDevice Write SetincompatibleDevice;
   end;
   TSkippedDetailClass = Class of TSkippedDetail;
-  
+
   { --------------------------------------------------------------------
     TStackTrace
     --------------------------------------------------------------------}
-  
+
   TStackTrace = Class(TGoogleBaseObject)
   Private
     Fexception : String;
@@ -473,11 +473,11 @@ type
     Property exception : String Index 0 Read Fexception Write Setexception;
   end;
   TStackTraceClass = Class of TStackTrace;
-  
+
   { --------------------------------------------------------------------
     TStatus
     --------------------------------------------------------------------}
-  
+
   TStatus = Class(TGoogleBaseObject)
   Private
     Fcode : integer;
@@ -499,11 +499,11 @@ type
     Property message : String Index 16 Read Fmessage Write Setmessage;
   end;
   TStatusClass = Class of TStatus;
-  
+
   { --------------------------------------------------------------------
     TStep
     --------------------------------------------------------------------}
-  
+
   TStep = Class(TGoogleBaseObject)
   Private
     FcompletionTime : TTimestamp;
@@ -558,11 +558,11 @@ type
     Property toolExecutionStep : TToolExecutionStep Index 104 Read FtoolExecutionStep Write SettoolExecutionStep;
   end;
   TStepClass = Class of TStep;
-  
+
   { --------------------------------------------------------------------
     TStepDimensionValueEntry
     --------------------------------------------------------------------}
-  
+
   TStepDimensionValueEntry = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -577,11 +577,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TStepDimensionValueEntryClass = Class of TStepDimensionValueEntry;
-  
+
   { --------------------------------------------------------------------
     TStepLabelsEntry
     --------------------------------------------------------------------}
-  
+
   TStepLabelsEntry = Class(TGoogleBaseObject)
   Private
     Fkey : String;
@@ -596,11 +596,11 @@ type
     Property value : String Index 8 Read Fvalue Write Setvalue;
   end;
   TStepLabelsEntryClass = Class of TStepLabelsEntry;
-  
+
   { --------------------------------------------------------------------
     TSuccessDetail
     --------------------------------------------------------------------}
-  
+
   TSuccessDetail = Class(TGoogleBaseObject)
   Private
     FotherNativeCrash : boolean;
@@ -612,11 +612,11 @@ type
     Property otherNativeCrash : boolean Index 0 Read FotherNativeCrash Write SetotherNativeCrash;
   end;
   TSuccessDetailClass = Class of TSuccessDetail;
-  
+
   { --------------------------------------------------------------------
     TTestCaseReference
     --------------------------------------------------------------------}
-  
+
   TTestCaseReference = Class(TGoogleBaseObject)
   Private
     FclassName : String;
@@ -634,11 +634,11 @@ type
     Property testSuiteName : String Index 16 Read FtestSuiteName Write SettestSuiteName;
   end;
   TTestCaseReferenceClass = Class of TTestCaseReference;
-  
+
   { --------------------------------------------------------------------
     TTestExecutionStep
     --------------------------------------------------------------------}
-  
+
   TTestExecutionStep = Class(TGoogleBaseObject)
   Private
     FtestIssues : TTestExecutionStepTypetestIssuesArray;
@@ -663,11 +663,11 @@ type
     Property toolExecution : TToolExecution Index 24 Read FtoolExecution Write SettoolExecution;
   end;
   TTestExecutionStepClass = Class of TTestExecutionStep;
-  
+
   { --------------------------------------------------------------------
     TTestIssue
     --------------------------------------------------------------------}
-  
+
   TTestIssue = Class(TGoogleBaseObject)
   Private
     FerrorMessage : String;
@@ -682,11 +682,11 @@ type
     Property stackTrace : TStackTrace Index 8 Read FstackTrace Write SetstackTrace;
   end;
   TTestIssueClass = Class of TTestIssue;
-  
+
   { --------------------------------------------------------------------
     TTestSuiteOverview
     --------------------------------------------------------------------}
-  
+
   TTestSuiteOverview = Class(TGoogleBaseObject)
   Private
     FerrorCount : integer;
@@ -713,11 +713,11 @@ type
     Property xmlSource : TFileReference Index 40 Read FxmlSource Write SetxmlSource;
   end;
   TTestSuiteOverviewClass = Class of TTestSuiteOverview;
-  
+
   { --------------------------------------------------------------------
     TTestTiming
     --------------------------------------------------------------------}
-  
+
   TTestTiming = Class(TGoogleBaseObject)
   Private
     FtestProcessDuration : TDuration;
@@ -729,11 +729,11 @@ type
     Property testProcessDuration : TDuration Index 0 Read FtestProcessDuration Write SettestProcessDuration;
   end;
   TTestTimingClass = Class of TTestTiming;
-  
+
   { --------------------------------------------------------------------
     TThumbnail
     --------------------------------------------------------------------}
-  
+
   TThumbnail = Class(TGoogleBaseObject)
   Private
     FcontentType : String;
@@ -754,11 +754,11 @@ type
     Property widthPx : integer Index 24 Read FwidthPx Write SetwidthPx;
   end;
   TThumbnailClass = Class of TThumbnail;
-  
+
   { --------------------------------------------------------------------
     TTimestamp
     --------------------------------------------------------------------}
-  
+
   TTimestamp = Class(TGoogleBaseObject)
   Private
     Fnanos : integer;
@@ -773,11 +773,11 @@ type
     Property seconds : String Index 8 Read Fseconds Write Setseconds;
   end;
   TTimestampClass = Class of TTimestamp;
-  
+
   { --------------------------------------------------------------------
     TToolExecution
     --------------------------------------------------------------------}
-  
+
   TToolExecution = Class(TGoogleBaseObject)
   Private
     FcommandLineArguments : TStringArray;
@@ -802,11 +802,11 @@ type
     Property toolOutputs : TToolExecutionTypetoolOutputsArray Index 24 Read FtoolOutputs Write SettoolOutputs;
   end;
   TToolExecutionClass = Class of TToolExecution;
-  
+
   { --------------------------------------------------------------------
     TToolExecutionStep
     --------------------------------------------------------------------}
-  
+
   TToolExecutionStep = Class(TGoogleBaseObject)
   Private
     FtoolExecution : TToolExecution;
@@ -818,11 +818,11 @@ type
     Property toolExecution : TToolExecution Index 0 Read FtoolExecution Write SettoolExecution;
   end;
   TToolExecutionStepClass = Class of TToolExecutionStep;
-  
+
   { --------------------------------------------------------------------
     TToolExitCode
     --------------------------------------------------------------------}
-  
+
   TToolExitCode = Class(TGoogleBaseObject)
   Private
     Fnumber : integer;
@@ -834,11 +834,11 @@ type
     Property number : integer Index 0 Read Fnumber Write Setnumber;
   end;
   TToolExitCodeClass = Class of TToolExitCode;
-  
+
   { --------------------------------------------------------------------
     TToolOutputReference
     --------------------------------------------------------------------}
-  
+
   TToolOutputReference = Class(TGoogleBaseObject)
   Private
     FcreationTime : TTimestamp;
@@ -856,19 +856,19 @@ type
     Property testCase : TTestCaseReference Index 16 Read FtestCase Write SettestCase;
   end;
   TToolOutputReferenceClass = Class of TToolOutputReference;
-  
+
   { --------------------------------------------------------------------
     TProjectsHistoriesExecutionsStepsThumbnailsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsStepsThumbnailsResource, method List
-  
+
   TProjectsHistoriesExecutionsStepsThumbnailsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsHistoriesExecutionsStepsThumbnailsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
@@ -876,34 +876,34 @@ type
     Function List(executionId: string; historyId: string; projectId: string; stepId: string; AQuery : string  = '') : TListStepThumbnailsResponse;
     Function List(executionId: string; historyId: string; projectId: string; stepId: string; AQuery : TProjectsHistoriesExecutionsStepsThumbnailslistOptions) : TListStepThumbnailsResponse;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsHistoriesExecutionsStepsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsStepsResource, method Create
-  
+
   TProjectsHistoriesExecutionsStepsCreateOptions = Record
     requestId : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsStepsResource, method List
-  
+
   TProjectsHistoriesExecutionsStepsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsStepsResource, method Patch
-  
+
   TProjectsHistoriesExecutionsStepsPatchOptions = Record
     requestId : String;
   end;
-  
+
   TProjectsHistoriesExecutionsStepsResource = Class(TGoogleResource)
   Private
     FThumbnailsInstance : TProjectsHistoriesExecutionsStepsThumbnailsResource;
@@ -923,34 +923,34 @@ type
     Function CreateThumbnailsResource : TProjectsHistoriesExecutionsStepsThumbnailsResource;virtual;overload;
     Property ThumbnailsResource : TProjectsHistoriesExecutionsStepsThumbnailsResource Read GetThumbnailsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsHistoriesExecutionsResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsResource, method Create
-  
+
   TProjectsHistoriesExecutionsCreateOptions = Record
     requestId : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsResource, method List
-  
+
   TProjectsHistoriesExecutionsListOptions = Record
     pageSize : integer;
     pageToken : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesExecutionsResource, method Patch
-  
+
   TProjectsHistoriesExecutionsPatchOptions = Record
     requestId : String;
   end;
-  
+
   TProjectsHistoriesExecutionsResource = Class(TGoogleResource)
   Private
     FStepsThumbnailsInstance : TProjectsHistoriesExecutionsStepsThumbnailsResource;
@@ -974,28 +974,28 @@ type
     Property StepsThumbnailsResource : TProjectsHistoriesExecutionsStepsThumbnailsResource Read GetStepsThumbnailsInstance;
     Property StepsResource : TProjectsHistoriesExecutionsStepsResource Read GetStepsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsHistoriesResource
     --------------------------------------------------------------------}
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesResource, method Create
-  
+
   TProjectsHistoriesCreateOptions = Record
     requestId : String;
   end;
-  
-  
+
+
   //Optional query Options for TProjectsHistoriesResource, method List
-  
+
   TProjectsHistoriesListOptions = Record
     filterByName : String;
     pageSize : integer;
     pageToken : String;
   end;
-  
+
   TProjectsHistoriesResource = Class(TGoogleResource)
   Private
     FExecutionsStepsThumbnailsInstance : TProjectsHistoriesExecutionsStepsThumbnailsResource;
@@ -1022,12 +1022,12 @@ type
     Property ExecutionsStepsResource : TProjectsHistoriesExecutionsStepsResource Read GetExecutionsStepsInstance;
     Property ExecutionsResource : TProjectsHistoriesExecutionsResource Read GetExecutionsInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TProjectsResource
     --------------------------------------------------------------------}
-  
+
   TProjectsResource = Class(TGoogleResource)
   Private
     FHistoriesExecutionsStepsThumbnailsInstance : TProjectsHistoriesExecutionsStepsThumbnailsResource;
@@ -1056,12 +1056,12 @@ type
     Property HistoriesExecutionsResource : TProjectsHistoriesExecutionsResource Read GetHistoriesExecutionsInstance;
     Property HistoriesResource : TProjectsHistoriesResource Read GetHistoriesInstance;
   end;
-  
-  
+
+
   { --------------------------------------------------------------------
     TToolresultsAPI
     --------------------------------------------------------------------}
-  
+
   TToolresultsAPI = Class(TGoogleAPI)
   Private
     FProjectsHistoriesExecutionsStepsThumbnailsInstance : TProjectsHistoriesExecutionsStepsThumbnailsResource;
@@ -1123,7 +1123,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAny.SettypeUrl(AIndex : Integer; const AValue : String); 
+Procedure TAny.SettypeUrl(AIndex : Integer; const AValue : String);
 
 begin
   If (FtypeUrl=AValue) then exit;
@@ -1133,7 +1133,7 @@ end;
 
 
 
-Procedure TAny.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TAny.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDuration.Setnanos(AIndex : Integer; const AValue : integer); 
+Procedure TDuration.Setnanos(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fnanos=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 
 
-Procedure TDuration.Setseconds(AIndex : Integer; const AValue : String); 
+Procedure TDuration.Setseconds(AIndex : Integer; const AValue : String);
 
 begin
   If (Fseconds=AValue) then exit;
@@ -1177,7 +1177,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExecution.SetcompletionTime(AIndex : Integer; const AValue : TTimestamp); 
+Procedure TExecution.SetcompletionTime(AIndex : Integer; const AValue : TTimestamp);
 
 begin
   If (FcompletionTime=AValue) then exit;
@@ -1187,7 +1187,7 @@ end;
 
 
 
-Procedure TExecution.SetcreationTime(AIndex : Integer; const AValue : TTimestamp); 
+Procedure TExecution.SetcreationTime(AIndex : Integer; const AValue : TTimestamp);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -1197,7 +1197,7 @@ end;
 
 
 
-Procedure TExecution.SetexecutionId(AIndex : Integer; const AValue : String); 
+Procedure TExecution.SetexecutionId(AIndex : Integer; const AValue : String);
 
 begin
   If (FexecutionId=AValue) then exit;
@@ -1207,7 +1207,7 @@ end;
 
 
 
-Procedure TExecution.Setoutcome(AIndex : Integer; const AValue : TOutcome); 
+Procedure TExecution.Setoutcome(AIndex : Integer; const AValue : TOutcome);
 
 begin
   If (Foutcome=AValue) then exit;
@@ -1217,7 +1217,7 @@ end;
 
 
 
-Procedure TExecution.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TExecution.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1227,7 +1227,7 @@ end;
 
 
 
-Procedure TExecution.SettestExecutionMatrixId(AIndex : Integer; const AValue : String); 
+Procedure TExecution.SettestExecutionMatrixId(AIndex : Integer; const AValue : String);
 
 begin
   If (FtestExecutionMatrixId=AValue) then exit;
@@ -1244,7 +1244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFailureDetail.Setcrashed(AIndex : Integer; const AValue : boolean); 
+Procedure TFailureDetail.Setcrashed(AIndex : Integer; const AValue : boolean);
 
 begin
   If (Fcrashed=AValue) then exit;
@@ -1254,7 +1254,7 @@ end;
 
 
 
-Procedure TFailureDetail.SetnotInstalled(AIndex : Integer; const AValue : boolean); 
+Procedure TFailureDetail.SetnotInstalled(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnotInstalled=AValue) then exit;
@@ -1264,7 +1264,7 @@ end;
 
 
 
-Procedure TFailureDetail.SetotherNativeCrash(AIndex : Integer; const AValue : boolean); 
+Procedure TFailureDetail.SetotherNativeCrash(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FotherNativeCrash=AValue) then exit;
@@ -1274,7 +1274,7 @@ end;
 
 
 
-Procedure TFailureDetail.SettimedOut(AIndex : Integer; const AValue : boolean); 
+Procedure TFailureDetail.SettimedOut(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FtimedOut=AValue) then exit;
@@ -1284,7 +1284,7 @@ end;
 
 
 
-Procedure TFailureDetail.SetunableToCrawl(AIndex : Integer; const AValue : boolean); 
+Procedure TFailureDetail.SetunableToCrawl(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FunableToCrawl=AValue) then exit;
@@ -1301,7 +1301,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFileReference.SetfileUri(AIndex : Integer; const AValue : String); 
+Procedure TFileReference.SetfileUri(AIndex : Integer; const AValue : String);
 
 begin
   If (FfileUri=AValue) then exit;
@@ -1318,7 +1318,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistory.SetdisplayName(AIndex : Integer; const AValue : String); 
+Procedure THistory.SetdisplayName(AIndex : Integer; const AValue : String);
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1328,7 +1328,7 @@ end;
 
 
 
-Procedure THistory.SethistoryId(AIndex : Integer; const AValue : String); 
+Procedure THistory.SethistoryId(AIndex : Integer; const AValue : String);
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1338,7 +1338,7 @@ end;
 
 
 
-Procedure THistory.Setname(AIndex : Integer; const AValue : String); 
+Procedure THistory.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1355,7 +1355,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImage.Seterror(AIndex : Integer; const AValue : TStatus); 
+Procedure TImage.Seterror(AIndex : Integer; const AValue : TStatus);
 
 begin
   If (Ferror=AValue) then exit;
@@ -1365,7 +1365,7 @@ end;
 
 
 
-Procedure TImage.SetsourceImage(AIndex : Integer; const AValue : TToolOutputReference); 
+Procedure TImage.SetsourceImage(AIndex : Integer; const AValue : TToolOutputReference);
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -1375,7 +1375,7 @@ end;
 
 
 
-Procedure TImage.SetstepId(AIndex : Integer; const AValue : String); 
+Procedure TImage.SetstepId(AIndex : Integer; const AValue : String);
 
 begin
   If (FstepId=AValue) then exit;
@@ -1385,7 +1385,7 @@ end;
 
 
 
-Procedure TImage.Setthumbnail(AIndex : Integer; const AValue : TThumbnail); 
+Procedure TImage.Setthumbnail(AIndex : Integer; const AValue : TThumbnail);
 
 begin
   If (Fthumbnail=AValue) then exit;
@@ -1402,7 +1402,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInconclusiveDetail.SetabortedByUser(AIndex : Integer; const AValue : boolean); 
+Procedure TInconclusiveDetail.SetabortedByUser(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FabortedByUser=AValue) then exit;
@@ -1412,7 +1412,7 @@ end;
 
 
 
-Procedure TInconclusiveDetail.SetinfrastructureFailure(AIndex : Integer; const AValue : boolean); 
+Procedure TInconclusiveDetail.SetinfrastructureFailure(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FinfrastructureFailure=AValue) then exit;
@@ -1422,7 +1422,7 @@ end;
 
 
 
-Procedure TInconclusiveDetail.SetnativeCrash(AIndex : Integer; const AValue : boolean); 
+Procedure TInconclusiveDetail.SetnativeCrash(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FnativeCrash=AValue) then exit;
@@ -1439,7 +1439,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListExecutionsResponse.Setexecutions(AIndex : Integer; const AValue : TListExecutionsResponseTypeexecutionsArray); 
+Procedure TListExecutionsResponse.Setexecutions(AIndex : Integer; const AValue : TListExecutionsResponseTypeexecutionsArray);
 
 begin
   If (Fexecutions=AValue) then exit;
@@ -1449,7 +1449,7 @@ end;
 
 
 
-Procedure TListExecutionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListExecutionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1460,7 +1460,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListExecutionsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListExecutionsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1479,7 +1479,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListHistoriesResponse.Sethistories(AIndex : Integer; const AValue : TListHistoriesResponseTypehistoriesArray); 
+Procedure TListHistoriesResponse.Sethistories(AIndex : Integer; const AValue : TListHistoriesResponseTypehistoriesArray);
 
 begin
   If (Fhistories=AValue) then exit;
@@ -1489,7 +1489,7 @@ end;
 
 
 
-Procedure TListHistoriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListHistoriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1500,7 +1500,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListHistoriesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListHistoriesResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1519,7 +1519,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListStepThumbnailsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListStepThumbnailsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1529,7 +1529,7 @@ end;
 
 
 
-Procedure TListStepThumbnailsResponse.Setthumbnails(AIndex : Integer; const AValue : TListStepThumbnailsResponseTypethumbnailsArray); 
+Procedure TListStepThumbnailsResponse.Setthumbnails(AIndex : Integer; const AValue : TListStepThumbnailsResponseTypethumbnailsArray);
 
 begin
   If (Fthumbnails=AValue) then exit;
@@ -1540,7 +1540,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListStepThumbnailsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListStepThumbnailsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1559,7 +1559,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListStepsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
+Procedure TListStepsResponse.SetnextPageToken(AIndex : Integer; const AValue : String);
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1569,7 +1569,7 @@ end;
 
 
 
-Procedure TListStepsResponse.Setsteps(AIndex : Integer; const AValue : TListStepsResponseTypestepsArray); 
+Procedure TListStepsResponse.Setsteps(AIndex : Integer; const AValue : TListStepsResponseTypestepsArray);
 
 begin
   If (Fsteps=AValue) then exit;
@@ -1580,7 +1580,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListStepsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListStepsResponse.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1599,7 +1599,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOutcome.SetfailureDetail(AIndex : Integer; const AValue : TFailureDetail); 
+Procedure TOutcome.SetfailureDetail(AIndex : Integer; const AValue : TFailureDetail);
 
 begin
   If (FfailureDetail=AValue) then exit;
@@ -1609,7 +1609,7 @@ end;
 
 
 
-Procedure TOutcome.SetinconclusiveDetail(AIndex : Integer; const AValue : TInconclusiveDetail); 
+Procedure TOutcome.SetinconclusiveDetail(AIndex : Integer; const AValue : TInconclusiveDetail);
 
 begin
   If (FinconclusiveDetail=AValue) then exit;
@@ -1619,7 +1619,7 @@ end;
 
 
 
-Procedure TOutcome.SetskippedDetail(AIndex : Integer; const AValue : TSkippedDetail); 
+Procedure TOutcome.SetskippedDetail(AIndex : Integer; const AValue : TSkippedDetail);
 
 begin
   If (FskippedDetail=AValue) then exit;
@@ -1629,7 +1629,7 @@ end;
 
 
 
-Procedure TOutcome.SetsuccessDetail(AIndex : Integer; const AValue : TSuccessDetail); 
+Procedure TOutcome.SetsuccessDetail(AIndex : Integer; const AValue : TSuccessDetail);
 
 begin
   If (FsuccessDetail=AValue) then exit;
@@ -1639,7 +1639,7 @@ end;
 
 
 
-Procedure TOutcome.Setsummary(AIndex : Integer; const AValue : String); 
+Procedure TOutcome.Setsummary(AIndex : Integer; const AValue : String);
 
 begin
   If (Fsummary=AValue) then exit;
@@ -1656,7 +1656,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProjectSettings.SetdefaultBucket(AIndex : Integer; const AValue : String); 
+Procedure TProjectSettings.SetdefaultBucket(AIndex : Integer; const AValue : String);
 
 begin
   If (FdefaultBucket=AValue) then exit;
@@ -1666,7 +1666,7 @@ end;
 
 
 
-Procedure TProjectSettings.Setname(AIndex : Integer; const AValue : String); 
+Procedure TProjectSettings.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1683,7 +1683,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishXunitXmlFilesRequest.SetxunitXmlFiles(AIndex : Integer; const AValue : TPublishXunitXmlFilesRequestTypexunitXmlFilesArray); 
+Procedure TPublishXunitXmlFilesRequest.SetxunitXmlFiles(AIndex : Integer; const AValue : TPublishXunitXmlFilesRequestTypexunitXmlFilesArray);
 
 begin
   If (FxunitXmlFiles=AValue) then exit;
@@ -1694,7 +1694,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TPublishXunitXmlFilesRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TPublishXunitXmlFilesRequest.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1713,7 +1713,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSkippedDetail.SetincompatibleAppVersion(AIndex : Integer; const AValue : boolean); 
+Procedure TSkippedDetail.SetincompatibleAppVersion(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FincompatibleAppVersion=AValue) then exit;
@@ -1723,7 +1723,7 @@ end;
 
 
 
-Procedure TSkippedDetail.SetincompatibleArchitecture(AIndex : Integer; const AValue : boolean); 
+Procedure TSkippedDetail.SetincompatibleArchitecture(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FincompatibleArchitecture=AValue) then exit;
@@ -1733,7 +1733,7 @@ end;
 
 
 
-Procedure TSkippedDetail.SetincompatibleDevice(AIndex : Integer; const AValue : boolean); 
+Procedure TSkippedDetail.SetincompatibleDevice(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FincompatibleDevice=AValue) then exit;
@@ -1750,7 +1750,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStackTrace.Setexception(AIndex : Integer; const AValue : String); 
+Procedure TStackTrace.Setexception(AIndex : Integer; const AValue : String);
 
 begin
   If (Fexception=AValue) then exit;
@@ -1767,7 +1767,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer); 
+Procedure TStatus.Setcode(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fcode=AValue) then exit;
@@ -1777,7 +1777,7 @@ end;
 
 
 
-Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray); 
+Procedure TStatus.Setdetails(AIndex : Integer; const AValue : TStatusTypedetailsArray);
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1787,7 +1787,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String);
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1798,7 +1798,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStatus.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1817,7 +1817,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStep.SetcompletionTime(AIndex : Integer; const AValue : TTimestamp); 
+Procedure TStep.SetcompletionTime(AIndex : Integer; const AValue : TTimestamp);
 
 begin
   If (FcompletionTime=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
 
 
 
-Procedure TStep.SetcreationTime(AIndex : Integer; const AValue : TTimestamp); 
+Procedure TStep.SetcreationTime(AIndex : Integer; const AValue : TTimestamp);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -1837,7 +1837,7 @@ end;
 
 
 
-Procedure TStep.Setdescription(AIndex : Integer; const AValue : String); 
+Procedure TStep.Setdescription(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1847,7 +1847,7 @@ end;
 
 
 
-Procedure TStep.SetdeviceUsageDuration(AIndex : Integer; const AValue : TDuration); 
+Procedure TStep.SetdeviceUsageDuration(AIndex : Integer; const AValue : TDuration);
 
 begin
   If (FdeviceUsageDuration=AValue) then exit;
@@ -1857,7 +1857,7 @@ end;
 
 
 
-Procedure TStep.SetdimensionValue(AIndex : Integer; const AValue : TStepTypedimensionValueArray); 
+Procedure TStep.SetdimensionValue(AIndex : Integer; const AValue : TStepTypedimensionValueArray);
 
 begin
   If (FdimensionValue=AValue) then exit;
@@ -1867,7 +1867,7 @@ end;
 
 
 
-Procedure TStep.SethasImages(AIndex : Integer; const AValue : boolean); 
+Procedure TStep.SethasImages(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FhasImages=AValue) then exit;
@@ -1877,7 +1877,7 @@ end;
 
 
 
-Procedure TStep.Setlabels(AIndex : Integer; const AValue : TStepTypelabelsArray); 
+Procedure TStep.Setlabels(AIndex : Integer; const AValue : TStepTypelabelsArray);
 
 begin
   If (Flabels=AValue) then exit;
@@ -1887,7 +1887,7 @@ end;
 
 
 
-Procedure TStep.Setname(AIndex : Integer; const AValue : String); 
+Procedure TStep.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -1897,7 +1897,7 @@ end;
 
 
 
-Procedure TStep.Setoutcome(AIndex : Integer; const AValue : TOutcome); 
+Procedure TStep.Setoutcome(AIndex : Integer; const AValue : TOutcome);
 
 begin
   If (Foutcome=AValue) then exit;
@@ -1907,7 +1907,7 @@ end;
 
 
 
-Procedure TStep.SetrunDuration(AIndex : Integer; const AValue : TDuration); 
+Procedure TStep.SetrunDuration(AIndex : Integer; const AValue : TDuration);
 
 begin
   If (FrunDuration=AValue) then exit;
@@ -1917,7 +1917,7 @@ end;
 
 
 
-Procedure TStep.Setstate(AIndex : Integer; const AValue : String); 
+Procedure TStep.Setstate(AIndex : Integer; const AValue : String);
 
 begin
   If (Fstate=AValue) then exit;
@@ -1927,7 +1927,7 @@ end;
 
 
 
-Procedure TStep.SetstepId(AIndex : Integer; const AValue : String); 
+Procedure TStep.SetstepId(AIndex : Integer; const AValue : String);
 
 begin
   If (FstepId=AValue) then exit;
@@ -1937,7 +1937,7 @@ end;
 
 
 
-Procedure TStep.SettestExecutionStep(AIndex : Integer; const AValue : TTestExecutionStep); 
+Procedure TStep.SettestExecutionStep(AIndex : Integer; const AValue : TTestExecutionStep);
 
 begin
   If (FtestExecutionStep=AValue) then exit;
@@ -1947,7 +1947,7 @@ end;
 
 
 
-Procedure TStep.SettoolExecutionStep(AIndex : Integer; const AValue : TToolExecutionStep); 
+Procedure TStep.SettoolExecutionStep(AIndex : Integer; const AValue : TToolExecutionStep);
 
 begin
   If (FtoolExecutionStep=AValue) then exit;
@@ -1958,7 +1958,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TStep.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TStep.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -1978,7 +1978,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStepDimensionValueEntry.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TStepDimensionValueEntry.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -1988,7 +1988,7 @@ end;
 
 
 
-Procedure TStepDimensionValueEntry.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TStepDimensionValueEntry.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStepLabelsEntry.Setkey(AIndex : Integer; const AValue : String); 
+Procedure TStepLabelsEntry.Setkey(AIndex : Integer; const AValue : String);
 
 begin
   If (Fkey=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure TStepLabelsEntry.Setvalue(AIndex : Integer; const AValue : String); 
+Procedure TStepLabelsEntry.Setvalue(AIndex : Integer; const AValue : String);
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2032,7 +2032,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSuccessDetail.SetotherNativeCrash(AIndex : Integer; const AValue : boolean); 
+Procedure TSuccessDetail.SetotherNativeCrash(AIndex : Integer; const AValue : boolean);
 
 begin
   If (FotherNativeCrash=AValue) then exit;
@@ -2049,7 +2049,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestCaseReference.SetclassName(AIndex : Integer; const AValue : String); 
+Procedure TTestCaseReference.SetclassName(AIndex : Integer; const AValue : String);
 
 begin
   If (FclassName=AValue) then exit;
@@ -2059,7 +2059,7 @@ end;
 
 
 
-Procedure TTestCaseReference.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTestCaseReference.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2069,7 +2069,7 @@ end;
 
 
 
-Procedure TTestCaseReference.SettestSuiteName(AIndex : Integer; const AValue : String); 
+Procedure TTestCaseReference.SettestSuiteName(AIndex : Integer; const AValue : String);
 
 begin
   If (FtestSuiteName=AValue) then exit;
@@ -2086,7 +2086,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestExecutionStep.SettestIssues(AIndex : Integer; const AValue : TTestExecutionStepTypetestIssuesArray); 
+Procedure TTestExecutionStep.SettestIssues(AIndex : Integer; const AValue : TTestExecutionStepTypetestIssuesArray);
 
 begin
   If (FtestIssues=AValue) then exit;
@@ -2096,7 +2096,7 @@ end;
 
 
 
-Procedure TTestExecutionStep.SettestSuiteOverviews(AIndex : Integer; const AValue : TTestExecutionStepTypetestSuiteOverviewsArray); 
+Procedure TTestExecutionStep.SettestSuiteOverviews(AIndex : Integer; const AValue : TTestExecutionStepTypetestSuiteOverviewsArray);
 
 begin
   If (FtestSuiteOverviews=AValue) then exit;
@@ -2106,7 +2106,7 @@ end;
 
 
 
-Procedure TTestExecutionStep.SettestTiming(AIndex : Integer; const AValue : TTestTiming); 
+Procedure TTestExecutionStep.SettestTiming(AIndex : Integer; const AValue : TTestTiming);
 
 begin
   If (FtestTiming=AValue) then exit;
@@ -2116,7 +2116,7 @@ end;
 
 
 
-Procedure TTestExecutionStep.SettoolExecution(AIndex : Integer; const AValue : TToolExecution); 
+Procedure TTestExecutionStep.SettoolExecution(AIndex : Integer; const AValue : TToolExecution);
 
 begin
   If (FtoolExecution=AValue) then exit;
@@ -2127,7 +2127,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TTestExecutionStep.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TTestExecutionStep.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2147,7 +2147,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestIssue.SeterrorMessage(AIndex : Integer; const AValue : String); 
+Procedure TTestIssue.SeterrorMessage(AIndex : Integer; const AValue : String);
 
 begin
   If (FerrorMessage=AValue) then exit;
@@ -2157,7 +2157,7 @@ end;
 
 
 
-Procedure TTestIssue.SetstackTrace(AIndex : Integer; const AValue : TStackTrace); 
+Procedure TTestIssue.SetstackTrace(AIndex : Integer; const AValue : TStackTrace);
 
 begin
   If (FstackTrace=AValue) then exit;
@@ -2174,7 +2174,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestSuiteOverview.SeterrorCount(AIndex : Integer; const AValue : integer); 
+Procedure TTestSuiteOverview.SeterrorCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FerrorCount=AValue) then exit;
@@ -2184,7 +2184,7 @@ end;
 
 
 
-Procedure TTestSuiteOverview.SetfailureCount(AIndex : Integer; const AValue : integer); 
+Procedure TTestSuiteOverview.SetfailureCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FfailureCount=AValue) then exit;
@@ -2194,7 +2194,7 @@ end;
 
 
 
-Procedure TTestSuiteOverview.Setname(AIndex : Integer; const AValue : String); 
+Procedure TTestSuiteOverview.Setname(AIndex : Integer; const AValue : String);
 
 begin
   If (Fname=AValue) then exit;
@@ -2204,7 +2204,7 @@ end;
 
 
 
-Procedure TTestSuiteOverview.SetskippedCount(AIndex : Integer; const AValue : integer); 
+Procedure TTestSuiteOverview.SetskippedCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FskippedCount=AValue) then exit;
@@ -2214,7 +2214,7 @@ end;
 
 
 
-Procedure TTestSuiteOverview.SettotalCount(AIndex : Integer; const AValue : integer); 
+Procedure TTestSuiteOverview.SettotalCount(AIndex : Integer; const AValue : integer);
 
 begin
   If (FtotalCount=AValue) then exit;
@@ -2224,7 +2224,7 @@ end;
 
 
 
-Procedure TTestSuiteOverview.SetxmlSource(AIndex : Integer; const AValue : TFileReference); 
+Procedure TTestSuiteOverview.SetxmlSource(AIndex : Integer; const AValue : TFileReference);
 
 begin
   If (FxmlSource=AValue) then exit;
@@ -2241,7 +2241,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTestTiming.SettestProcessDuration(AIndex : Integer; const AValue : TDuration); 
+Procedure TTestTiming.SettestProcessDuration(AIndex : Integer; const AValue : TDuration);
 
 begin
   If (FtestProcessDuration=AValue) then exit;
@@ -2258,7 +2258,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThumbnail.SetcontentType(AIndex : Integer; const AValue : String); 
+Procedure TThumbnail.SetcontentType(AIndex : Integer; const AValue : String);
 
 begin
   If (FcontentType=AValue) then exit;
@@ -2268,7 +2268,7 @@ end;
 
 
 
-Procedure TThumbnail.Setdata(AIndex : Integer; const AValue : String); 
+Procedure TThumbnail.Setdata(AIndex : Integer; const AValue : String);
 
 begin
   If (Fdata=AValue) then exit;
@@ -2278,7 +2278,7 @@ end;
 
 
 
-Procedure TThumbnail.SetheightPx(AIndex : Integer; const AValue : integer); 
+Procedure TThumbnail.SetheightPx(AIndex : Integer; const AValue : integer);
 
 begin
   If (FheightPx=AValue) then exit;
@@ -2288,7 +2288,7 @@ end;
 
 
 
-Procedure TThumbnail.SetwidthPx(AIndex : Integer; const AValue : integer); 
+Procedure TThumbnail.SetwidthPx(AIndex : Integer; const AValue : integer);
 
 begin
   If (FwidthPx=AValue) then exit;
@@ -2305,7 +2305,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimestamp.Setnanos(AIndex : Integer; const AValue : integer); 
+Procedure TTimestamp.Setnanos(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fnanos=AValue) then exit;
@@ -2315,7 +2315,7 @@ end;
 
 
 
-Procedure TTimestamp.Setseconds(AIndex : Integer; const AValue : String); 
+Procedure TTimestamp.Setseconds(AIndex : Integer; const AValue : String);
 
 begin
   If (Fseconds=AValue) then exit;
@@ -2332,7 +2332,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TToolExecution.SetcommandLineArguments(AIndex : Integer; const AValue : TStringArray); 
+Procedure TToolExecution.SetcommandLineArguments(AIndex : Integer; const AValue : TStringArray);
 
 begin
   If (FcommandLineArguments=AValue) then exit;
@@ -2342,7 +2342,7 @@ end;
 
 
 
-Procedure TToolExecution.SetexitCode(AIndex : Integer; const AValue : TToolExitCode); 
+Procedure TToolExecution.SetexitCode(AIndex : Integer; const AValue : TToolExitCode);
 
 begin
   If (FexitCode=AValue) then exit;
@@ -2352,7 +2352,7 @@ end;
 
 
 
-Procedure TToolExecution.SettoolLogs(AIndex : Integer; const AValue : TToolExecutionTypetoolLogsArray); 
+Procedure TToolExecution.SettoolLogs(AIndex : Integer; const AValue : TToolExecutionTypetoolLogsArray);
 
 begin
   If (FtoolLogs=AValue) then exit;
@@ -2362,7 +2362,7 @@ end;
 
 
 
-Procedure TToolExecution.SettoolOutputs(AIndex : Integer; const AValue : TToolExecutionTypetoolOutputsArray); 
+Procedure TToolExecution.SettoolOutputs(AIndex : Integer; const AValue : TToolExecutionTypetoolOutputsArray);
 
 begin
   If (FtoolOutputs=AValue) then exit;
@@ -2373,7 +2373,7 @@ end;
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TToolExecution.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TToolExecution.SetArrayLength(Const AName : String; ALength : Longint);
 
 begin
   Case AName of
@@ -2394,7 +2394,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TToolExecutionStep.SettoolExecution(AIndex : Integer; const AValue : TToolExecution); 
+Procedure TToolExecutionStep.SettoolExecution(AIndex : Integer; const AValue : TToolExecution);
 
 begin
   If (FtoolExecution=AValue) then exit;
@@ -2411,7 +2411,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TToolExitCode.Setnumber(AIndex : Integer; const AValue : integer); 
+Procedure TToolExitCode.Setnumber(AIndex : Integer; const AValue : integer);
 
 begin
   If (Fnumber=AValue) then exit;
@@ -2428,7 +2428,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TToolOutputReference.SetcreationTime(AIndex : Integer; const AValue : TTimestamp); 
+Procedure TToolOutputReference.SetcreationTime(AIndex : Integer; const AValue : TTimestamp);
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -2438,7 +2438,7 @@ end;
 
 
 
-Procedure TToolOutputReference.Setoutput(AIndex : Integer; const AValue : TFileReference); 
+Procedure TToolOutputReference.Setoutput(AIndex : Integer; const AValue : TFileReference);
 
 begin
   If (Foutput=AValue) then exit;
@@ -2448,7 +2448,7 @@ end;
 
 
 
-Procedure TToolOutputReference.SettestCase(AIndex : Integer; const AValue : TTestCaseReference); 
+Procedure TToolOutputReference.SettestCase(AIndex : Integer; const AValue : TTestCaseReference);
 
 begin
   If (FtestCase=AValue) then exit;
@@ -3245,7 +3245,7 @@ begin
   SetLength(Result,1);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  
+
 end;
 
 Class Function TToolresultsAPI.APINeedsAuth : Boolean;
