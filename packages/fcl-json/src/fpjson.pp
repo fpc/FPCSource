@@ -822,6 +822,7 @@ Function CreateJSON(const Data : TJSONStringType) : TJSONString;
 Function CreateJSON(const Data : TJSONUnicodeStringType) : TJSONString;
 {$ENDIF}
 Function CreateJSONArray(const Data : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}) : TJSONArray;
+Function CreateJSONObject : TJSONObject;
 Function CreateJSONObject(const Data : Array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}) : TJSONObject;
 
 // These functions rely on a callback. If the callback is not set, they will raise an error.
@@ -1236,6 +1237,11 @@ end;
 function CreateJSONArray(const Data: array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}): TJSONArray;
 begin
   Result:=TJSONArrayCLass(DefaultJSONInstanceTypes[jitArray]).Create(Data);
+end;
+
+function CreateJSONObject: TJSONObject;
+begin
+  Result:=TJSONObjectClass(DefaultJSONInstanceTypes[jitObject]).Create;
 end;
 
 function CreateJSONObject(const Data: array of {$IFDEF PAS2JS}jsvalue{$else}Const{$ENDIF}): TJSONObject;

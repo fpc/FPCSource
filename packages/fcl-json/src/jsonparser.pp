@@ -210,13 +210,13 @@ end;
 
 procedure TJSONParser.StartArray;
 begin
-  Push(NewValue(CreateJSONArray([])))
+  Push(NewValue(CreateJSONArray([])));
 end;
 
 
 procedure TJSONParser.StartObject;
 begin
-  Push(NewValue(CreateJSONObject([])));
+  Push(NewValue(CreateJSONObject));
 end;
 
 procedure TJSONParser.EndArray;
