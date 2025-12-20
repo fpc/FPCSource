@@ -243,6 +243,7 @@ type
 
           class function Create(const ax, ay: Single): TSizeF; overload; static; inline;
           class function Create(const asz: TSize): TSizeF; overload; static; inline;
+          class function Zero: TSizeF; static;
           class operator = (const asz1, asz2 : TSizeF) : Boolean;
           class operator <> (const asz1, asz2 : TSizeF): Boolean;
           class operator + (const asz1, asz2 : TSizeF): TSizeF;
@@ -1568,6 +1569,12 @@ class operator TSizeF. := (const asz: TSizeF): TPointF;
 begin
   Result.x := asz.cx;
   Result.y := asz.cy;
+end;
+
+class function TSizeF.Zero: TSizeF;
+begin
+  Result.cx := 0.0;
+  Result.cy := 0.0;
 end;
 
 class function TSizeF.Create(const ax, ay: Single): TSizeF;
