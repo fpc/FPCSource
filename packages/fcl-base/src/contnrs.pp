@@ -677,21 +677,21 @@ begin
 {$pop}
 end;
 
-function FPHash(P: PAnsiChar; Len: Integer): LongWord;
+function FPHash(P: PAnsiChar; Len: Integer): LongWord; inline;
 begin
-  result:=fphash(P,Len, 0);
+  Result:=fphash(P, Len, 0);
 end;
 
 
-function FPHash(const s: shortstring): LongWord;
+function FPHash(const s: shortstring): LongWord; inline;
 begin
-  result:=fphash(pAnsichar(@s[1]),length(s));
+  Result:=fphash(PAnsiChar(@s[1]), length(s), 0);
 end;
 
 
-function FPHash(const a: ansistring): LongWord;
+function FPHash(const a: ansistring): LongWord; inline;
 begin
-  result:=fphash(pansichar(a),length(a));
+  Result:=fphash(PAnsiChar(a), length(a), 0);
 end;
 
 function ViGet(data: PSizeUint; index, bitsPerIndex: SizeUint): SizeUint;
