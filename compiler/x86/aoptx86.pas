@@ -16926,6 +16926,10 @@ unit aoptx86;
             if (getsubreg(taicpu(p).oper[0]^.ref^.index)=R_SUBD) then
               setsubreg(taicpu(p).oper[0]^.ref^.index,R_SUBQ);
 
+            { sign extend offset }
+            if taicpu(p).oper[0]^.ref^.offset>$7fffffff then
+              taicpu(p).oper[0]^.ref^.offset:=taicpu(p).oper[0]^.ref^.offset or $ffffffff00000000;
+
             { No reason to set Result to true }
           end;
 {$endif x86_64}

@@ -502,7 +502,7 @@ implementation
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadsymbol(0,_op3,_op3ofs);
+         loadsymbol(2,_op3,_op3ofs);
       end;
 
 
