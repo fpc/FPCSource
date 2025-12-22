@@ -940,6 +940,9 @@ LOADERS=prt0 dllprt0
 ifeq ($(findstring $(ARCH),i386 x86_64 arm),$(ARCH))
 CPU_UNITS=$(CPUUNIT)
 endif
+ifeq ($(ARCH),x86_64)
+CPU_UNITS+=$(INTRINSICSUNIT)
+endif
 ifeq ($(ARCH),i386)
 CPU_UNITS+=$(MMXUNIT)
 endif

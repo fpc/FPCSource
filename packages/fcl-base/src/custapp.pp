@@ -44,14 +44,17 @@ Type
     FHelpFile,
     FTitle : String;
     FOptionChar : Char;
-    FCaseSensitiveOptions : Boolean;
+    FCaseSensitiveShortOptions : Boolean;
+    FCaseSensitiveLongOptions : Boolean;
     FStopOnException : Boolean;
     FExceptionExitCode : Integer;
     FRunAborted:Boolean;
+    function GetCaseSensitiveOptions: Boolean;
     function GetEnvironmentVar(const VarName : String): String;
     function GetExeName: string;
     Function GetLocation : String;
     function GetSingleInstance: TBaseSingleInstance;
+    procedure SetCaseSensitiveOptions(AValue: Boolean);
     procedure SetSingleInstanceClass(
       const ASingleInstanceClass: TBaseSingleInstanceClass);
     function GetTitle: string;
@@ -106,7 +109,11 @@ Type
     Property ParamCount : Integer Read GetParamCount;
     Property EnvironmentVariable[envName : String] : String Read GetEnvironmentVar;
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
-    Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
+    Property CaseSensitiveOptions : Boolean Read GetCaseSensitiveOptions Write SetCaseSensitiveOptions;
+    Property CaseSensitiveShortOptions : Boolean Read FCaseSensitiveShortOptions
+                                                Write FCaseSensitiveShortOptions;
+    Property CaseSensitiveLongOptions : Boolean Read FCaseSensitiveLongOptions
+                                               Write FCaseSensitiveLongOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
     Property ExceptionExitCode : Longint Read FExceptionExitCode Write FExceptionExitCode;
     Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
@@ -212,6 +219,11 @@ begin
   Result:=GetEnvironmentVariable(VarName);
 end;
 
+function TCustomApplication.GetCaseSensitiveOptions: Boolean;
+begin
+  Result:=FCaseSensitiveLongOptions; // Ignore FCaseSensitiveShortOptions here.
+end;
+
 procedure TCustomApplication.GetEnvironmentList(List: TStrings;
   NamesOnly: Boolean);
 
@@ -255,6 +267,12 @@ begin
     FSingleInstance := FSingleInstanceClass.Create(Self);
     end;
   Result := FSingleInstance;
+end;
+
+procedure TCustomApplication.SetCaseSensitiveOptions(AValue: Boolean);
+begin
+  FCaseSensitiveShortOptions:=AValue;
+  FCaseSensitiveLongOptions:=AValue;
 end;
 
 procedure TCustomApplication.SetTitle(const AValue: string);
@@ -309,7 +327,7 @@ constructor TCustomApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FOptionChar:='-';
-  FCaseSensitiveOptions:=True;
+  CaseSensitiveOptions:=True;
   FStopOnException:=False;
   FSingleInstanceClass := DefaultSingleInstanceClass;
 end;
@@ -488,27 +506,15 @@ begin
   Until (I=-1);
 end;
 
-function TCustomApplication.HasOption(const S: String): Boolean;
-
-Var
-  B : Boolean;
-
-begin
-  Result:=FindOptionIndex(S,B)<>-1;
-end;
-
 function TCustomApplication.FindOptionIndex(const S: String;
   var Longopt: Boolean; StartAt : Integer = -1): Integer;
 
 Var
   SO,O : String;
   I,P : Integer;
+  CaseSens : Boolean;
 
 begin
-  If Not CaseSensitiveOptions then
-    SO:=UpperCase(S)
-  else
-    SO:=S;
   Result:=-1;
   I:=StartAt;
   if (I=-1) then
@@ -523,33 +529,45 @@ begin
       LongOpt:=(O[1]=FOptionChar);
       If LongOpt then
         begin
+        CaseSens:=CaseSensitiveLongOptions;
         Delete(O,1,1);
         P:=Pos('=',O);
         If (P<>0) then
           SetLength(O,P-1);
-        end;
-      If Not CaseSensitiveOptions then
+        end
+      else
+        CaseSens:=CaseSensitiveShortOptions;
+      If Not CaseSens then
         O:=UpperCase(O);
-      If (O=SO) then
+      if SO='' then begin  // Update SO when we know the opt is Long / Short
+        If Not CaseSens then
+          SO:=UpperCase(S)
+        else
+          SO:=S;
+      end;
+      If O=SO then
         Result:=i;
       end;
     Dec(i);
     end;
 end;
 
-function TCustomApplication.HasOption(const C: Char; const S: String): Boolean;
-
+function TCustomApplication.HasOption(const S: String): Boolean;
 Var
   B : Boolean;
+begin
+  Result:=FindOptionIndex(S,B)<>-1;
+end;
 
+function TCustomApplication.HasOption(const C: Char; const S: String): Boolean;
+Var
+  B : Boolean;
 begin
   Result:=(FindOptionIndex(C,B)<>-1) or (FindOptionIndex(S,B)<>-1);
 end;
 
-
 function TCustomApplication.CheckOptions(const ShortOptions: String;
   const Longopts: TStrings; AllErrors: Boolean): String;
-
 begin
   Result:=CheckOptions(ShortOptions,LongOpts,Nil,Nil,AllErrors);
 end;
@@ -577,7 +595,7 @@ Var
     Result:=Assigned(LongOpts);
     if Not Result then
       exit;
-    If CaseSensitiveOptions then
+    If CaseSensitiveLongOptions then
       begin
       I:=LongOpts.Count-1;
       While (I>=0) and (LongOpts[i]<>S) do
@@ -602,7 +620,7 @@ Var
   end;
 
 begin
-  If CaseSensitiveOptions then
+  If CaseSensitiveShortOptions then
     SO:=Shortoptions
   else
     SO:=LowerCase(Shortoptions);
@@ -660,7 +678,7 @@ begin
           begin
           HaveArg:=(I<ParamCount) and (Length(ParamStr(I+1))>0) and (ParamStr(I+1)[1]<>FOptionChar);
           UsedArg:=False;
-          If Not CaseSensitiveOptions then
+          If Not CaseSensitiveShortOptions then
             O:=LowerCase(O);
           L:=Length(O);
           J:=2;

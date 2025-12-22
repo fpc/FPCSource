@@ -14,36 +14,22 @@
 
  **********************************************************************}
 
-const
-  {$I cpuinnr.inc}
-
-  has_avx_support : boolean = false;
-  has_avx2_support : boolean = false;
-
-function fpc_x86_inportb(port : word) : byte;[internproc:fpc_in_x86_inportb];
-function fpc_x86_inportw(port : word) : word;[internproc:fpc_in_x86_inportw];
-function fpc_x86_inportl(port : word) : longint;[internproc:fpc_in_x86_inportl];
-procedure fpc_x86_outportb(port : word;data : byte);[internproc:fpc_in_x86_outportb];
-procedure fpc_x86_outportw(port : word;data : word);[internproc:fpc_in_x86_outportw];
-procedure fpc_x86_outportl(port : word;data : longint);[internproc:fpc_in_x86_outportl];
-procedure fpc_x86_cli;[internproc:fpc_in_x86_cli];
-procedure fpc_x86_sti;[internproc:fpc_in_x86_sti];
-function fpc_x86_get_cs:longint;[internproc:fpc_in_x86_get_cs];
-function fpc_x86_get_ss:longint;[internproc:fpc_in_x86_get_ss];
-function fpc_x86_get_ds:longint;[internproc:fpc_in_x86_get_ds];
-function fpc_x86_get_es:longint;[internproc:fpc_in_x86_get_es];
-function fpc_x86_get_fs:longint;[internproc:fpc_in_x86_get_fs];
-function fpc_x86_get_gs:longint;[internproc:fpc_in_x86_get_gs];
-procedure fpc_x86_pause;[internproc:fpc_in_x86_pause];
-
-{ include automatically generated procs }
-{$if not defined(VER3_2)}
-{ do not active yet, they are not usable yet neither is the naming fixed }
-{ $i cpummprocs.inc}
-{$endif not VER3_2}
-
 type
   TNativeFPUControlWord = record
     cw8087: word;
     MXCSR: dword;
   end;
+
+const
+  has_avx_support : boolean = false;
+  has_avx2_support : boolean = false;
+
+{$i cpuinnr.inc}
+
+{$i cpuprocs.inc}
+
+{$if not defined(VER3_2)}
+{ include automatically generated procs }
+{ do not active yet, they are not usable yet neither is the naming fixed }
+{ $i cpummprocs.inc}
+{$endif not VER3_2}
