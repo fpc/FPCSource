@@ -953,7 +953,7 @@ CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT) $(MMXUNIT)
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT)
+CPU_UNITS=$(X86UNIT) $(PORTSUNIT) $(CPUUNIT) $(INTRINSICSUNIT)
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 override LOADERS=abitag
 endif
