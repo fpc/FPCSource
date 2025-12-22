@@ -305,7 +305,7 @@ begin
         begin
           destLen:=destLen + 3*(1+len-i);
           SetLength(dest,destLen);
-          destBuffer:=@dest[1];
+          destBuffer:=@dest[1+actualLen];
           blockLen:=getascii(tunicodechar(locSource^),locMap,destBuffer,(destLen-actualLen));
         end;
       Inc(destBuffer,blockLen);
