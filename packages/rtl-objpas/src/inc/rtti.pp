@@ -238,7 +238,7 @@ type
     function AsDouble : Double;
     function AsInteger: Integer;
     function AsError: HRESULT;
-    function AsChar: AnsiChar; inline;
+    function AsChar: Char; inline;
     function AsAnsiChar: AnsiChar;
     function AsWideChar: WideChar;
     function AsInt64: Int64;
@@ -4643,9 +4643,9 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
-function TValue.AsChar: AnsiChar;
+function TValue.AsChar: Char;
 begin
-{$if SizeOf(AnsiChar) = 1}
+{$if SizeOf(Char) = 1}
   Result := AsAnsiChar;
 {$else}
   Result := AsWideChar;
