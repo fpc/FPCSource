@@ -607,6 +607,9 @@ Type
     property Data[AItem: TObject]: TObject read GetData write SetData; default;
   end;
 
+function HashString(P: PAnsiChar; Len: Integer): LongWord; inline;
+function HashString(const s: shortstring): LongWord; inline;
+function HashString(const a: ansistring): LongWord; inline;
 
 implementation
 
@@ -636,7 +639,7 @@ const
     1610612741, 3221225473, 4294967291 );
 
 // MurmurHash3_32
-function FPHash(P: PAnsiChar; Len: Integer; Tag: LongWord): LongWord;
+function HashString(P: PAnsiChar; Len: Integer; Tag: LongWord): LongWord;
 const
   C1 = uint32($cc9e2d51);
   C2 = uint32($1b873593);
@@ -677,21 +680,21 @@ begin
 {$pop}
 end;
 
-function FPHash(P: PAnsiChar; Len: Integer): LongWord; inline;
+function HashString(P: PAnsiChar; Len: Integer): LongWord;
 begin
-  Result:=fphash(P, Len, 0);
+  Result:=HashString(P, Len, 0);
 end;
 
 
-function FPHash(const s: shortstring): LongWord; inline;
+function HashString(const s: shortstring): LongWord;
 begin
-  Result:=fphash(PAnsiChar(@s[1]), length(s), 0);
+  Result:=HashString(PAnsiChar(@s[1]), length(s), 0);
 end;
 
 
-function FPHash(const a: ansistring): LongWord; inline;
+function HashString(const a: ansistring): LongWord;
 begin
-  Result:=fphash(PAnsiChar(a), length(a), 0);
+  Result:=HashString(PAnsiChar(a), length(a), 0);
 end;
 
 function ViGet(data: PSizeUint; index, bitsPerIndex: SizeUint): SizeUint;
@@ -1468,7 +1471,7 @@ begin
 
   it:=FItems+result;
   Initialize(it^);
-  it^.HashValue:=FPHash(AName);
+  it^.HashValue:=HashString(AName);
   it^.Data:=Item;
   it^.Str:=AName;
 
@@ -1571,7 +1574,7 @@ end;
 
 function TFPHashList.Find(const AName:RawByteString): Pointer;
 begin
-  Result:=FindWithHash(AName, FPHash(ANAme));
+  Result:=FindWithHash(AName, HashString(ANAme));
 end;
 
 
@@ -1579,7 +1582,7 @@ function TFPHashList.FindIndexOf(const AName:RawByteString): SizeInt;
 var
   PrevIndex : SizeInt;
 begin
-  Result:=InternalFind(FPHash(AName),AName,PrevIndex);
+  Result:=InternalFind(HashString(AName),AName,PrevIndex);
 end;
 
 
@@ -1601,13 +1604,13 @@ var
   OldHash : LongWord;
   it: PViHashListItem;
 begin
-  OldHash:=FPHash(AOldName);
+  OldHash:=HashString(AOldName);
   result:=InternalFind(OldHash,AOldName,PrevIndex);
   if result<0 then
     exit;
   RemoveFromHashTable(OldHash, result, PrevIndex);
   it:=FItems+result;
-  it^.HashValue:=FPHash(ANewName);
+  it^.HashValue:=HashString(ANewName);
   it^.Str:=ANewName;
   AddToHashTable(it, result);
 end;
