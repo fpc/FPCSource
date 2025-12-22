@@ -251,7 +251,7 @@
 'saddw',
 'saddw2',
 'scvtf',
-'shac1c',
+'sha1c',
 'sha1h',
 'sha1m',
 'sha1p',
