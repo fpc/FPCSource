@@ -6,13 +6,13 @@ uses Sysutils, u_testfftunit;
 
 begin
     Randomize();
-    try 
+    try
         if not testfftunit_test_silent() then
         begin
             //WriteLn('*');
             Halt(1);
         end;
-    except on E: Exception do 
+    except on E: Exception do
         begin
             Halt(2);
         end;

@@ -3,7 +3,7 @@
 type
   float64=record
     high,low: longint;
-  end; 
+  end;
 
 procedure foo(x: double);
 var

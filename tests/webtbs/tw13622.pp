@@ -30,7 +30,7 @@ var
     IsUnit : Boolean;
     V : Double;
     S : Double;
-begin    
+begin
     WriteLn('Trying to call SetLength()'); // this line is executed
     SetLength(AEffective, 2, 2);           // crash occurs at this line
     WriteLn('OK');                         // this line is never executed
@@ -80,7 +80,7 @@ begin
                                 end;
                                 Inc(I);
                             end;
-                            
+
                             //
                             // Prepare matrices
                             //
@@ -169,7 +169,7 @@ begin
         end;
         Inc(N);
     end;
-    
+
     Result :=  False;
 end;
 

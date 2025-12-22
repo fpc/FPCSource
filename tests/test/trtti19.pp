@@ -39,7 +39,7 @@ begin
     Halt(6);
   if procparam^.ParamFlags * [pfConstRef] <> [pfConstRef] then
     Halt(7);
-  
+
   ti := PTypeInfo(TypeInfo(TTestMethod));
   td := GetTypeData(ti);
   if td^.ParamCount <> 4 then

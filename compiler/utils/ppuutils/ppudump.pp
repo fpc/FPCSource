@@ -1709,7 +1709,7 @@ const
          (mask:pi_uses_ymm;
          str:' uses ymm register (x86 only)'),
          (mask:pi_no_framepointer_needed;
-         str:' set if no frame pointer is needed, the rules when this applies is target specific'), 
+         str:' set if no frame pointer is needed, the rules when this applies is target specific'),
          (mask:pi_normalized;
          str:'  has been normalized so no expressions contain block nodes ')
   );

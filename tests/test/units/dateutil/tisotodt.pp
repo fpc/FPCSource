@@ -221,6 +221,6 @@ begin
   WriteLn;
   If ErrorCount<>ExpectedErrorCount then
     Halt(2);
-  
+
 
 end.

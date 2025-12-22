@@ -2,8 +2,8 @@
 uses
   math,sysutils;
 var
-  d : double;  
-  s : string;    
+  d : double;
+  s : string;
 begin
   SetExceptionMask([exInvalidOp]);
   d:=Infinity;

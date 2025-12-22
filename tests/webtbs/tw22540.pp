@@ -1,7 +1,7 @@
 unit tw22540;
 
 interface
- 
+
 {$ifdef FPC}
  {$Mode Delphi}
 {$endif}
@@ -39,7 +39,7 @@ Uses Sysutils;
 constructor TLightMap<tkey, tvalue>.Create;
 begin
 end;
-  
+
 { TLightStringMap<tvalue> }
 
 constructor TLightStringMap<tvalue>.create;
@@ -54,5 +54,5 @@ begin
   finalize (s);
 end;
 
- 
+
 end.

@@ -1,7 +1,7 @@
 unit uw18121;
 {$inline on}
 
-interface 
+interface
 
 {$mode objfpc}{$H+}
 uses

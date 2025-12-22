@@ -4,11 +4,11 @@ program tw18620;
 { in delphi mode ^T in the var block of class/record/object should not create
   a forward definition which must be resolved after the type section end      }
 
-type 
+type
   C = class
-    type 
+    type
       T = integer;
-    var 
+    var
       V: ^T;
   end;
 

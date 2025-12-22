@@ -17,10 +17,10 @@ type
     function doc(a : integer) : integer;
   end;
 
- 
+
 implementation
 
-end.  
-  
-  
+end.
+
+
   

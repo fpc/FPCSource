@@ -36,6 +36,6 @@ begin
   TestRawByte(w, DefaultSystemCodePage, 6);
   TestRawByte(test, DefaultSystemCodePage, 7);
   TestRawByte(PAnsiChar(@test[0]), DefaultSystemCodePage, 8);
-  
+
   writeln('ok');
 end.

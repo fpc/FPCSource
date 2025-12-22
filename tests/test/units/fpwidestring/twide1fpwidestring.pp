@@ -1,11 +1,11 @@
 uses
   unicodeducet, fpwidestring;
-  
+
 var
   w : widestring;
   u : unicodestring;
   a : ansistring;
-  
+
 begin
   a:='A';
   w:=a;

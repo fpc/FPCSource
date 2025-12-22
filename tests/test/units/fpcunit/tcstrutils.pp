@@ -56,7 +56,7 @@ Const
    //  1234567890123456789012345678901234567890123456789
   S = 'Some very long string with some words in it';
   SLen = Length(S);
-  
+
 {$define usenew}
 {$ifdef usenew}
 {$i searchbuf.inc}
@@ -73,7 +73,7 @@ procedure TTestSearchBuf.TestSearch(Sub: String; Start: Integer;
 Var
   P,PR : PChar;
   I : Integer;
-  
+
 begin
   P:=PChar(S);
   PR:=SearchBuf(P,Length(S),Start,0,Sub,O);

@@ -151,13 +151,13 @@ begin
   writeln;
   writeln;
 *)
-  
+
   setlength(s3,20);
   setlength(s4,20);
   // -1 because UnicodeToUTF8 returns a null-terminated string
   setlength(s3,UnicodeToUTF8(@s3[1],length(s3),punicodechar(@w1[1]),length(w1))-1);
   setlength(s4,UnicodeToUTF8(@s4[1],length(s4),punicodechar(@w2[1]),length(w2))-1);
-  
+
   if (s3<>s1) or
      { invalid: CESU-8 }
      (w2<>'??') or

@@ -6,7 +6,7 @@
 program a;
 uses variants;
 
-type 
+type
   IBla = interface
   end;
 
@@ -18,7 +18,7 @@ type
 constructor TBla.Create;
 begin
 end;
-   
+
 var
   v: Variant;
   bla: IBla;

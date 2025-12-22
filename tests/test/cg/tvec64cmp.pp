@@ -1,4 +1,4 @@
-{ Small test to check correct handling of 
+{ Small test to check correct handling of
   comparison of 64-bit values as boolean
   index of a vector, which lead
   to internal error for riscv32 cpu

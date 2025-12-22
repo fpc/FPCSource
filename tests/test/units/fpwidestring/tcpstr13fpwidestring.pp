@@ -4,7 +4,7 @@ program tcpstr13;
 
 {$mode delphi}
 
-uses 
+uses
   unicodeducet, fpwidestring, cp866;
 
 type

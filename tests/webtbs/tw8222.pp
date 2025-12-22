@@ -54,7 +54,7 @@ begin
   WriteLn(StringOfChar(' ', Depth * 2), '-> TMyObject1.AfterConstruction'); Inc(Depth); try
   inherited;
   s:=s+'2a';
-  finally 
+  finally
     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject1.AfterConstruction');
     s:=s+'3a';
   end;
@@ -137,7 +137,7 @@ begin
   inherited;
   s:=s+'2g';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.AfterConstruction'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.AfterConstruction');
     s:=s+'3g';
   end;
   s:=s+'4g';
@@ -150,7 +150,7 @@ begin
   inherited;
   s:=s+'2h';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.BeforeDestruction'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.BeforeDestruction');
     s:=s+'3h';
   end;
   s:=s+'4h';
@@ -163,7 +163,7 @@ begin
   inherited;
   s:=s+'2i';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.Create'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.Create');
     s:=s+'3i';
   end;
   s:=s+'4i';
@@ -176,7 +176,7 @@ begin
   inherited;
   s:=s+'2j';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.Destroy'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.Destroy');
     s:=s+'3j';
   end;
   s:=s+'4j';
@@ -189,7 +189,7 @@ begin
   inherited;
   s:=s+'2k';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.FreeInstance'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.FreeInstance');
     s:=s+'3k';
   end;
   s:=s+'4k';
@@ -202,7 +202,7 @@ begin
   Result := inherited NewInstance;
   s:=s+'2l';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.NewInstance'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject2.NewInstance');
     s:=s+'3l';
   end;
   s:=s+'4l';
@@ -217,7 +217,7 @@ begin
   inherited;
   s:=s+'2m';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.AfterConstruction'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.AfterConstruction');
     s:=s+'3m';
   end;
   s:=s+'4m';
@@ -230,7 +230,7 @@ begin
   inherited;
   s:=s+'2n';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.BeforeDestruction'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.BeforeDestruction');
     s:=s+'3n';
   end;
   s:=s+'4n';
@@ -243,7 +243,7 @@ begin
   inherited;
   s:=s+'2o';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.Create'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.Create');
     s:=s+'3o';
   end;
   s:=s+'4o';
@@ -256,7 +256,7 @@ begin
   inherited;
   s:=s+'2p';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.Destroy'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.Destroy');
     s:=s+'3p';
   end;
   s:=s+'4p';
@@ -269,7 +269,7 @@ begin
   inherited;
   s:=s+'2q';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.FreeInstance'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.FreeInstance');
     s:=s+'3q';
   end;
   s:=s+'4q';
@@ -282,7 +282,7 @@ begin
   Result := inherited NewInstance;
   s:=s+'2r';
   finally
-     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.NewInstance'); 
+     Dec(Depth); WriteLn(StringOfChar(' ', Depth * 2), '<- TMyObject3.NewInstance');
     s:=s+'3r';
   end;
   s:=s+'4r';

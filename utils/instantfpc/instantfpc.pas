@@ -100,32 +100,32 @@ var
   S,E : String;
   DeleteCache : Boolean = False;
   RunIt: boolean = true;
-  
+
 // Return true if filename found.
-  
+
 Function InterpretParam(p : String) : boolean;
 begin
   Result:=False;
   if (P='') then exit;
-  if p='-v' then 
+  if p='-v' then
     begin
     writeln('instantfpc '+Version);
     Halt(1);
     end
-  else if p='-h' then 
+  else if p='-h' then
     usage('')
-  else if p='--get-cache' then 
+  else if p='--get-cache' then
     DisplayCache
-  else if copy(p,1,11)='--compiler=' then 
+  else if copy(p,1,11)='--compiler=' then
     begin
     delete(P,1,11);
     SetCompiler(p);
-    end 
-  else if copy(p,1,12)='--set-cache=' then 
+    end
+  else if copy(p,1,12)='--set-cache=' then
     begin
     delete(P,1,12);
     SetCacheDir(p);
-    end 
+    end
   else if p='--skip-run' then
     begin
     RunIt:=false;
@@ -141,58 +141,58 @@ begin
     Result:=True;
     end;
 end;
-  
+
 begin
   Filename:='';
   { For example:
       /usr/bin/instantfpc -MObjFpc -Sh ./envvars.pas param1
   }
-  for i:=1 to Paramcount do 
+  for i:=1 to Paramcount do
     begin
     p:=ParamStr(i);
     if p='' then
       continue
-    else 
+    else
       begin
       if (I<>1) then
         begin
         if InterpretParam(p) then
           Break;
-        end  
+        end
       else
-        begin  
-        // The linux kernel passes the whole shebang line as 1 argument. 
+        begin
+        // The linux kernel passes the whole shebang line as 1 argument.
         // We must parse and split it ourselves.
         Repeat
           J:=Pos(' ',P);
           if (J=0) then
             J:=Length(P)+1;
-          if InterpretParam(Copy(P,1,J-1)) then 
+          if InterpretParam(Copy(P,1,J-1)) then
             Break;
           Delete(P,1,J);
         Until (P='');
-        if (FileName<>'') then 
+        if (FileName<>'') then
           Break;
         end;
-      end;  
+      end;
   end;
-  if (Filename='') then 
+  if (Filename='') then
     Usage('Missing source file');
   CheckSourceName(Filename);
   Src:=TStringList.Create;
   try
     if FileName<>'--' then
       Src.LoadFromFile(Filename)
-    else  
+    else
       begin
-      While not EOF do 
+      While not EOF do
         begin
         Readln(S);
         Src.Add(S);
         end;
-      FileName:=ChangeFileExt(GetTempFileName,'.pp');  
+      FileName:=ChangeFileExt(GetTempFileName,'.pp');
       DeleteCache:=true;
-      end;  
+      end;
     CommentShebang(Src);
     CacheDir:=GetCacheDir;
 
@@ -213,7 +213,7 @@ begin
     if RunIt then
       Run(OutputFilename);
     if DeleteCache then
-      DeleteFile(OutputFileName);  
+      DeleteFile(OutputFileName);
   finally
     // memory is freed by OS, but for debugging puposes you can do it manually
     {$IFDEF IFFreeMem}

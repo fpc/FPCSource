@@ -47,7 +47,7 @@ Const
   MAXKEYLENGTH = 15;     { The longest keywords are IMPLEMENTATION INITIALIZATION }
   DEFLINESIZE = 100;
   DEFINDENT = 2;
-  
+
 TYPE
   Token    = AnsiString;
   FileName = STRING;
@@ -132,7 +132,7 @@ Type
   dblcharset = SET OF endsym..othersym;
   DblCharTable = ARRAY [becomes..dclosecomment] OF SpecialChar;
   SglCharTable = ARRAY [opencomment..period] OF CHAR;
-  
+
   TVerboseEvent = Procedure (Sender : TObject; Const Msg : String) of Object;
 
   { TPrettyPrinter }
@@ -347,7 +347,7 @@ Procedure ClassID(Value: Token;
   VAR
     Keyvalue: String[MAXKEYLENGTH];
     Sym : keysymbol;
-    
+
   BEGIN
     IF lngth > MAXKEYLENGTH THEN BEGIN
       idtype := othersym;
@@ -395,7 +395,7 @@ Procedure SetTerminators(Var Option : OptionTable);
 
 Var
   T : TTokenScope;
-  
+
 begin
   For T:=Low(TTokenScope) to High(TTokenScope) do
     begin
@@ -547,7 +547,7 @@ Function ReadString (S: TStream): String;
 Var
   I : Byte;
   Count : Integer;
-    
+
 begin
   Result:='';
   I:=0;
@@ -672,7 +672,7 @@ Procedure TPrettyPrinter.GetComment(sym: symbolinfo);
   { Process comments using brace notation }
   BEGIN
     sym^.name := opencomment;
-    WHILE NOT ((currchar.Value = '}') 
+    WHILE NOT ((currchar.Value = '}')
     OR (nextchar.name = filemark)) DO
       StoreNextChar(sym^.length, sym^.Value);
     IF currchar.Value = '}' THEN sym^.name := closecomment;
@@ -885,17 +885,17 @@ Procedure TPrettyPrinter.InsertCR;
 
 Procedure TPrettyPrinter.InsertBlankLine;
 BEGIN
-  IF currsym^.crsbefore = 0 THEN 
+  IF currsym^.crsbefore = 0 THEN
     BEGIN
-    IF currlinepos = 0 THEN 
+    IF currlinepos = 0 THEN
       WriteCRs(1)
-    ELSE 
+    ELSE
       WriteCRs(2);
       currsym^.spacesbefore := 0;
     END
-  ELSE 
+  ELSE
     IF currsym^.crsbefore = 1 THEN
-      IF currlinepos > 0 THEN 
+      IF currlinepos > 0 THEN
         begin
         WriteCRs(1);
         currsym^.spacesbefore := 0;
@@ -1223,7 +1223,7 @@ Var
   Line, Name : String;
   L : TStringList;
   LT : TLineType;
-    
+
 begin
   ReadConfigFile:=false;
   L:=TStringList.Create;
@@ -1321,7 +1321,7 @@ Function trimMiddle ( a:ansistring; lnght: integer; size: integer):string;
 var
     half:Integer;
 begin
-    if lnght > size 
+    if lnght > size
     then
     begin
       half := (size - 3) div 2;

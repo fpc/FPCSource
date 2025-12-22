@@ -62,7 +62,7 @@ var
  buf:pchars;
  i:longint;
  AConstList: TStringList;
- 
+
 function Entry(buf:pchars;Size,fromPos:longint;const sample:str255;casesent:longbool):longbool;
  var
   i:longint;
@@ -438,7 +438,7 @@ begin
      if entry(buf,size,i,'#include',true)then
       do_include(GetWord(buf,size,i+length('#include'),nextpos));
     end;
-   //finally 
+   //finally
    AConstList.EndUpdate; //end;
 
    //replace const-value if needed and evaluate
@@ -453,7 +453,7 @@ begin
     if Length(sValue2)>0
     then AConstList.ValueFromIndex[i]:=Evaluate(sValue1);
    end;
- 
+
    if isSwitch('C')or isSwitch('-Cheader')then begin
     for i:=0 to AConstList.Count-1
     do writeln('#define ',AConstList.Names[i],' ',AConstList.ValueFromIndex[i]);
@@ -497,7 +497,7 @@ begin
     end;
    freemem(buf,size);
 
- //finally 
+ //finally
  AConstList.Free; //end;
- 
+
 end.

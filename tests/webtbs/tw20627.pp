@@ -18,7 +18,7 @@ type
           { The compiler will report that forward declaration
             TWrapper$LongInt.TWrapperState.GetValueSize is not resolved. }
       end;
-  public 
+  public
     property Value: TValue read FValue write FValue;
     function CaptureState: TWrapperState;
   end;

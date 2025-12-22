@@ -366,7 +366,7 @@ const
   { the size of the "red zone" which must not be changed by asynchronous calls
    in the stack frame and can be used for storing temps }
   RED_ZONE_SIZE = 288;
-  
+
   { minimum size of the stack frame if one exists }
   MINIMUM_STACKFRAME_SIZE = 112;
   MINIMUM_STACKFRAME_SIZE_ELFV2 = 112 - 16;

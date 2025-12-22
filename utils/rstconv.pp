@@ -186,7 +186,7 @@ var
 begin
   Assign(f, OutFilename);
   Rewrite(f);
-  
+
   if HeaderCharSet<>'' then begin
     // Write file header  with
     WriteLn(f, 'msgid ""');

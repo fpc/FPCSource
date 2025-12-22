@@ -153,7 +153,7 @@ end;
 
 procedure TFpDocChmWriter.FileAdded ( AStream: TStream;
   const AEntry: TFileEntryRec ) ;
-var FTsave : boolean;  
+var FTsave : boolean;
 begin
   // Exclude Full text index for files starting from the dot
   if Pos('.', AEntry.Name) <> 1 then
@@ -186,7 +186,7 @@ begin
   begin
     DoLog('Note: --index-page not assigned. Using default "index.html"');
   end;
-  
+
   if CSSFile <> '' then
   begin
     if not FileExists(CSSFile) Then
@@ -199,7 +199,7 @@ begin
   end;
 
   FChm.DefaultPage := FDefaultPage;
-  
+
   if FOtherFiles <> '' then
   begin
     FChm.FilesToCompress.LoadFromFile(FOtherFiles);
@@ -218,7 +218,7 @@ begin
   Stream := TMemoryStream.Create;
   TMemoryStream(Stream).LoadFromFile(DataName);
   FileName := ExtractFileName(DataName);
-  
+
   if ExtractFileDir(DataName) <> '' then
     PathInChm := ExtractRelativepath(GetCurrentDir, ExtractFileDir(DataName))
   else
@@ -242,7 +242,7 @@ begin
       FChm.AppendTOC(TmpStream);
       TmpStream.Size := 0;
     end;
-    
+
   if FAutoIndex then
     GenerateIndex
   else
@@ -393,13 +393,13 @@ begin
     if RoutinesByUnitItem.Children.Item[i].Children.Count = 0 then
       RoutinesByUnitItem.Children.Delete(i);
   end;
-  
+
   for i := TOC.Items.Count-1 downto 0 do
   begin
     if TOC.Items.Item[i].Children.Count = 0 then
       TOC.Items.Delete(i);
   end;
-  
+
   // Sort
   for i := 0 to TOC.Items.Count-1 do
   begin
@@ -423,7 +423,7 @@ end;
 type
   TClassMemberType = (cmtProcedure, cmtFunction, cmtConstructor, cmtDestructor,
       cmtInterface, cmtProperty, cmtVariable, cmtOperator, cmtConstant, cmtUnknown);
-  
+
 function ElementType(Element: TPasElement): TClassMemberType;
 var
   C: TClass;
@@ -648,8 +648,8 @@ begin
 
   FileName := Engine.Output;
   if FileName = '' then
-    Raise Exception.Create('Error: no --output option used.'); 
-  
+    Raise Exception.Create('Error: no --output option used.');
+
   if ExtractFileExt(FileName) <> FileNameExtension then
     FileName := ChangeFileExt(FileName, FileNameExtension);
 

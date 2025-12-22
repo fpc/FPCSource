@@ -16,7 +16,7 @@ program bunzip2test;
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 {$mode objfpc}{$h+}
 
 uses SysUtils, classes, bzip2stream, md5;
@@ -110,8 +110,8 @@ begin
       writeln('bunzip2 decompression failure');
       code:=1;
     end;
-  
-  
+
+
     if code = 0 then
       writeln('Basic bzip2 tests passed')
     else
@@ -122,7 +122,7 @@ begin
       if UncompressedFile<>EmptyStr then DeleteFile(UncompressedFile);
     finally
       // Ignore errors; operating system should clean out temp files
-    end; 
+    end;
   end;
   Halt(code);
 end.

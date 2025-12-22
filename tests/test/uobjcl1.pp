@@ -19,9 +19,9 @@ type
     fc: byte;
     function privatefun: byte; message 'privatefun';
   end;
-  
+
  implementation
- 
+
 function MyLibObjCClass.publicfun: byte;
   begin
     result:=fa;

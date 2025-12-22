@@ -43,7 +43,7 @@ type
   Private
     FEl : TPasElement;
     FNode : TDocNode;
-  Public  
+  Public
     Constructor Create(AnElement : TPasElement; ADocNode : TDocNode);
     Property Element : TPasElement Read FEl;
     Property DocNode : TDocNode Read FNode;
@@ -53,7 +53,7 @@ type
 
   TSkelEngine = class(TFPDocEngine)
   Private
-    FEmittedList, 
+    FEmittedList,
     FNodeList,
     FModules : TStringList;
     Procedure  DoWriteUnReferencedNodes(N : TDocNode; NodePath : String);
@@ -92,8 +92,8 @@ var
   DisablePrivate,
   DisableFunctionResults: Boolean;
   EmitClassSeparator: Boolean;
-  
-  
+
+
 Constructor TNodePair.Create(AnElement : TPasElement; ADocNode : TDocNode);
 
 begin
@@ -101,7 +101,7 @@ begin
   FNode:=ADocNode;
 end;
 
-function TSkelEngine.FindModule(const AName: String): TPasModule; 
+function TSkelEngine.FindModule(const AName: String): TPasModule;
 
 Var
   I : Integer;
@@ -122,21 +122,21 @@ begin
       FModules.AddObject(AName,Result);
       end
     else
-      Result:=FModules.Objects[i] as TPasModule;  
-    end;  
+      Result:=FModules.Objects[i] as TPasModule;
+    end;
 end;
 
-Destructor TSkelEngine.Destroy; 
+Destructor TSkelEngine.Destroy;
 
 Var
   I : Integer;
 
 begin
-  If Assigned(FModules) then 
+  If Assigned(FModules) then
     begin
    { For I:=0 to FModules.Count-1 do
       FModules.Objects[i].Release;}
-    FreeAndNil(FModules);    
+    FreeAndNil(FModules);
     end;
 end;
 
@@ -189,7 +189,7 @@ begin
     Result:=(Not Assigned(FEmittedList) or (FEmittedList.IndexOf(El.FullName)=-1));
     If DisableOverride and (El is TPasProcedure) then
       Result:=Not TPasProcedure(El).IsOverride;
-    end;  
+    end;
 end;
 
 
@@ -216,12 +216,12 @@ begin
   // Track this element
   If UpdateMode then
     begin
-    DN:=FindDocNode(Result);    
+    DN:=FindDocNode(Result);
     If Assigned(DN) then
       DN.IncRefCount;
     end
   else
-    DN:=Nil;  
+    DN:=Nil;
   // See if we need to write documentation for it
   If MustWriteElement(Result,False) then
     FNodeList.AddObject(Result.PathName,TNodePair.Create(Result,DN));
@@ -247,15 +247,15 @@ Function TSkelEngine.WriteElement(Var F : Text;El : TPasElement; ADocNode : TDoc
               (InheritsFrom(TPasResString)) or
               (InheritsFrom(TPasVariable));
   end;
-  
+
   Function NeedDeclaration(El : TPasElement) : boolean;
-  
+
   begin
-    Result:=IsTypeVarConst(El) 
-            or WriteOnlyShort(El) 
-            or EL.InheritsFrom(TPasProcedure) 
+    Result:=IsTypeVarConst(El)
+            or WriteOnlyShort(El)
+            or EL.InheritsFrom(TPasProcedure)
   end;
-    
+
 begin
   // Check again, this time with full declaration.
   Result:=MustWriteElement(El,True);
@@ -276,9 +276,9 @@ begin
     WriteLn(f, '-->');
     WriteLn(f);
     end;
-  If Not (WriteDeclaration and NeedDeclaration(El)) then  
+  If Not (WriteDeclaration and NeedDeclaration(El)) then
     Writeln(F,'<!-- ', El.ElementTypeName,' Visibility: ',VisibilityNames[El.Visibility], ' -->')
-  else  
+  else
     begin
     Writeln(F,'<!-- ',El.ElementTypeName,' Visibility: ',VisibilityNames[El.Visibility]);
     Writeln(F,'     Declaration: ',El.GetDeclaration(True),' -->');
@@ -331,7 +331,7 @@ Procedure TSkelEngine.WriteNodes(Var F : Text; AModule : TPasModule; List : TStr
 Var
   P : TNodePair;
   I : integer;
-  
+
 begin
   WriteLn(f);
   WriteLn(f, '<!--');
@@ -347,18 +347,18 @@ begin
     WriteLn(f, '<descr>');
     WriteLn(f, '</descr>');
     end;
-  Try 
+  Try
     For I:=0 to List.Count-1 do
       begin
       P:=List.Objects[i] as TNodePair;
       If (P.Element<>AModule) then
         WriteElement(F,P.Element,P.DocNode);
-      end;  
+      end;
   Finally
     WriteLn(f, '');
     WriteLn(f, '</module> <!-- ', AModule.Name, ' -->');
     WriteLn(f, '');
-  end;   
+  end;
 end;
 
 Procedure TSkelEngine.DocumentFile(Var F : Text; Const AFileName,ATarget,ACPU : String);
@@ -407,25 +407,25 @@ begin
            N.IncRefCount;
         ResolveOperators;
         end;
-      If SortNodes then  
-        FNodelist.Sorted:=True;   
-      WriteNodes(F,Module,FNodeList);  
+      If SortNodes then
+        FNodelist.Sorted:=True;
+      WriteNodes(F,Module,FNodeList);
       If UpdateMode then
         WriteUnReferencedNodes;
     Finally
       FEmittedList.Free;
-    end;  
-  Finally  
+    end;
+  Finally
     For I:=0 to FNodeList.Count-1 do
       FNodeList.Objects[i].Free;
-    FNodeList.Free;  
-  end;  
+    FNodeList.Free;
+  end;
 end;
 
 { ---------------------------------------------------------------------
-  Main program. Document all units.    
+  Main program. Document all units.
   ---------------------------------------------------------------------}
-  
+
 Function DocumentPackage(Const APackageName,AOutputName : String; InputFiles,DescrFiles : TStrings) : String;
 
 Var
@@ -451,7 +451,7 @@ begin
           if UpdateMode then
             For J:=0 to DescrFiles.Count-1 do
               Engine.AddDocFile(DescrFiles[J]);
-          Try    
+          Try
             Engine.DocumentFile(F,InputFiles[I],OSTarget,CPUTarget);
           except
             on E:Exception do
@@ -477,13 +477,13 @@ end;
 { ---------------------------------------------------------------------
     Option management
   ---------------------------------------------------------------------}
-  
 
-var  
-  InputFiles, 
+
+var
+  InputFiles,
   DescrFiles : TStringList;
   DocLang : String;
-  PackageName, 
+  PackageName,
   OutputName: String;
 
 procedure InitOptions;
@@ -593,7 +593,7 @@ Const
 var
   MOFilename: string;
   i: Integer;
-  
+
 begin
   Result:=0;
   DocLang:='';
@@ -623,9 +623,9 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-  Usage  
+  Usage
   ---------------------------------------------------------------------}
-  
+
 Procedure Usage;
 
 begin
@@ -654,11 +654,11 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-  Main Program  
+  Main Program
   ---------------------------------------------------------------------}
-  
+
 Procedure Run;
-  
+
 var
   E: Integer;
 
@@ -680,12 +680,12 @@ begin
       DocumentPackage(PackageName,OutputName,InputFiles,DescrFiles);
       WriteLn(SDone);
       end;
-  Finally  
+  Finally
     FreeOptions;
-  end;  
+  end;
 end;
 
 Begin
-  Run;  
+  Run;
 end.
 

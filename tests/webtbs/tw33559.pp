@@ -10,7 +10,7 @@ begin
   if FullStr.StartsWith(TestStr) then
     halt(1);
   Writeln('Pos=', Pos(TestStr, FullStr) > 0);
-  if Pos(TestStr, FullStr) > 0 then 
+  if Pos(TestStr, FullStr) > 0 then
     halt(1);
   Writeln('StartsText=', StartsText(TestStr, FullStr));
   if StartsText(TestStr, FullStr) then

@@ -6939,7 +6939,7 @@ unit aoptx86;
                             else
                               taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(hp1).oper[0]^.ref^.scalefactor * max(taicpu(p).oper[0]^.ref^.scalefactor, 1);
 
-                            if (taicpu(p).oper[0]^.ref^.base<>NR_NO) and 
+                            if (taicpu(p).oper[0]^.ref^.base<>NR_NO) and
                                (not RegInUsedRegs(taicpu(p).oper[0]^.ref^.base, TmpUsedRegs)) then
                               AllocRegBetween(taicpu(p).oper[0]^.ref^.base , p, hp1, TmpUsedRegs);
                             if (taicpu(p).oper[0]^.ref^.index<>NR_NO) and
@@ -7044,7 +7044,7 @@ unit aoptx86;
                                   taicpu(hp1).oper[0]^.ref^.scalefactor := taicpu(p).oper[0]^.ref^.scalefactor;
                               end;
 
-                            if (taicpu(p).oper[0]^.ref^.base<>NR_NO) and 
+                            if (taicpu(p).oper[0]^.ref^.base<>NR_NO) and
                                (not RegInUsedRegs(taicpu(p).oper[0]^.ref^.base, TmpUsedRegs)) then
                               AllocRegBetween(taicpu(p).oper[0]^.ref^.base , p, hp1, TmpUsedRegs);
                             if (taicpu(p).oper[0]^.ref^.index<>NR_NO) and
@@ -16778,7 +16778,7 @@ unit aoptx86;
                 { Reset the tracking to the current instruction }
                 RestoreUsedRegs(TempTracking);
                 ReleaseUsedRegs(TempTracking);
-	 
+
                 { if hp1 <> hp2 after the call, then hp1 got removed, so let
                   OptPass2SUB get called again }
 

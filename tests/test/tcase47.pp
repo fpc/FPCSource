@@ -6,7 +6,7 @@ unit tcase47;
 
 interface
   procedure test_proc(var res : integer); inline;
-    
+
 implementation
 
 var

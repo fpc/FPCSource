@@ -34,7 +34,7 @@ begin
         ps:=ps+' "'+paramstr(i)+'"';
       sticks:=GetMicroSTicks;
       command:=paramstr(1+paramoffset);
-      for i:=1 to runs do         
+      for i:=1 to runs do
 {$ifdef Unix}
         ProcessExitCode:=fpsystem(command+' '+ps);
 {$else Unix}

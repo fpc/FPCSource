@@ -9,7 +9,7 @@ Type
      PROPERTIES([vcPublic])
      FIELDS([vcPublic])
      METHODS([vcPublic])}
-     
+
   TBase = Class(TObject)
   end;
 

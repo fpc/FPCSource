@@ -1412,7 +1412,7 @@ Implementation
                     NewOp:=A_NONE;
                     if taicpu(hp1).oppostfix=PF_None then
                       NewOp:=A_MOV
-                    else 
+                    else
 {$ifdef ARM}
                       if (current_settings.cputype < cpu_armv6) then
                         begin
@@ -1676,7 +1676,7 @@ Implementation
             remove either the and or the lsl/xsr sequence if possible
           }
 
-          else if (taicpu(p).oper[2]^.val < high(int64)) and 
+          else if (taicpu(p).oper[2]^.val < high(int64)) and
 	    cutils.ispowerof2(taicpu(p).oper[2]^.val+1,i) and
             GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
             MatchInstruction(hp1, A_MOV, [taicpu(p).condition], [PF_None]) and

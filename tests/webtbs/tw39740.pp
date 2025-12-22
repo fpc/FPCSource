@@ -2,13 +2,13 @@
 
 program tw39740;
 
-{$mode delphi} 
+{$mode delphi}
 {$modeswitch FUNCTIONREFERENCES}
 uses classes;
 
 
 {$if not declared(TThreadProcedure)}
-type 
+type
    TThreadProcedure = reference to procedure;
 {$endif}
 
@@ -18,12 +18,12 @@ end;
 
 procedure bla(t : tthreadprocedure); overload;
 begin
-end; 
+end;
 
 type ta = class
             procedure bla;
             end;
- 
+
 procedure ta.bla;
 begin
 end;
@@ -31,4 +31,4 @@ var a : Ta;
 begin
   bla(a.bla);
   // bla(tthreadmethod(a.bla)); // works
-end. 
+end.

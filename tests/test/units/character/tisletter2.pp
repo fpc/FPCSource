@@ -1,25 +1,25 @@
 program tisletter;
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   character;
-    
-{$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
 
-procedure DoError(ACode : Integer); 
+{$ifndef FPC}
+  type UnicodeChar = WideChar;
+{$endif}
+
+procedure DoError(ACode : Integer);
 begin
   WriteLn('Error #',ACode);
   Halt(Acode);
-end;  
+end;
 
 var
   s : UnicodeString;
-begin 
+begin
   s := UnicodeChar($D835) + UnicodeChar($DD75); //1D575;MATHEMATICAL BOLD FRAKTUR CAPITAL J
   if not TCharacter.IsLetter(s,1) then
     DoError(1);

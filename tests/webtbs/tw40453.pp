@@ -17,4 +17,4 @@ type
 
 begin
   Test<TEnum>(B);
-end.      
+end.

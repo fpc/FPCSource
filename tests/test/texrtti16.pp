@@ -1,8 +1,8 @@
 {$MODE OBJFPC}
 {$M+}
 
-{ 
-  test that TMethodClassRTTI inherits RTTI settings of TBase 
+{
+  test that TMethodClassRTTI inherits RTTI settings of TBase
   Note that the system unit must be compiled without extended RTTI generation TObject
 }
 
@@ -39,7 +39,7 @@ begin
   aCount:=GetMethodList(TMethodClassRTTI,A,[]);
   AssertEquals('Public method has extended RTTI',1,aCount);
   CheckMethod('Full',0, A^[0],'PublicMethod',vcPublic);
-  aCount:=GetPropListEx(TMethodClassRTTI,P);  
+  aCount:=GetPropListEx(TMethodClassRTTI,P);
   AssertEquals('Public property has RTTI',1,aCount);
   CheckProperty(0, P^[0]^,'Y',tkBool,vcPublic,false);
 end;

@@ -1,7 +1,7 @@
 {$MODE Objfpc}
 
 type
-  Ta = class 
+  Ta = class
     T: array of Double;
   end;
 

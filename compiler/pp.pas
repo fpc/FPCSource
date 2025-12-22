@@ -75,7 +75,7 @@ program pp;
                       MMX which allows the compiler to generate
                       MMX instructions
   -----------------------------------------------------------------
-  Switches automatically inside fpcdefs.inc  
+  Switches automatically inside fpcdefs.inc
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software

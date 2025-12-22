@@ -81,7 +81,7 @@ type
       procedure DoTestIteration(Iteration: Integer); override;
       function DoFunc(Input1, Input2: Single): Single; virtual; abstract;
   end;
-  
+
   TSingleIntPair = record
     S: Single;
     N: Integer;
@@ -116,7 +116,7 @@ type
       procedure DoTestIteration(Iteration: Integer); override;
       function DoFunc(Input1, Input2: Double): Double; virtual; abstract;
   end;
-  
+
   TDoubleIntPair = record
     D: Double;
     N: Integer;
@@ -174,7 +174,7 @@ type
     public
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32MaxSpecialTest = class(TFloat32MaxTest)
     public
       constructor Create; override;
@@ -187,7 +187,7 @@ type
     public
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32SqrtTest = class(TFloat32OneInputTest)
     protected
       function DoFunc(Input: Single): Single; override;
@@ -195,13 +195,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32SqrtSpecialTest = class(TFloat32SqrtTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32LnTest = class(TFloat32OneInputTest)
     protected
       function DoFunc(Input: Single): Single; override;
@@ -209,13 +209,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32LnSpecialTest = class(TFloat32LnTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32ExpTest = class(TFloat32OneInputTest)
     protected
       function DoFunc(Input: Single): Single; override;
@@ -223,13 +223,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32ExpSpecialTest = class(TFloat32ExpTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32SinTest = class(TFloat32OneInputTest)
     protected
       function DoFunc(Input: Single): Single; override;
@@ -237,13 +237,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32SinSpecialTest = class(TFloat32SinTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32CosTest = class(TFloat32OneInputTest)
     protected
       function DoFunc(Input: Single): Single; override;
@@ -251,7 +251,7 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat32CosSpecialTest = class(TFloat32CosTest)
     public
       constructor Create; override;
@@ -271,7 +271,7 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   { 64-bit floating-point }
   TFloat64MinTest = class(TFloat64TwoInputTest)
     protected
@@ -315,7 +315,7 @@ type
     public
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64MaxSpecialTest = class(TFloat64MaxTest)
     public
       constructor Create; override;
@@ -328,7 +328,7 @@ type
     public
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64SqrtTest = class(TFloat64OneInputTest)
     protected
       function DoFunc(Input: Double): Double; override;
@@ -336,13 +336,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64SqrtSpecialTest = class(TFloat64SqrtTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64LnTest = class(TFloat64OneInputTest)
     protected
       function DoFunc(Input: Double): Double; override;
@@ -350,13 +350,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64LnSpecialTest = class(TFloat64LnTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64ExpTest = class(TFloat64OneInputTest)
     protected
       function DoFunc(Input: Double): Double; override;
@@ -364,13 +364,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64ExpSpecialTest = class(TFloat64ExpTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64SinTest = class(TFloat64OneInputTest)
     protected
       function DoFunc(Input: Double): Double; override;
@@ -378,13 +378,13 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64SinSpecialTest = class(TFloat64SinTest)
     public
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64CosTest = class(TFloat64OneInputTest)
     protected
       function DoFunc(Input: Double): Double; override;
@@ -392,7 +392,7 @@ type
       constructor Create; override;
       function TestTitle: shortstring; override;
   end;
-  
+
   TFloat64CosSpecialTest = class(TFloat64CosTest)
     public
       constructor Create; override;
@@ -466,7 +466,7 @@ class function TFloat32Test.IsEqual(Value, Reference: Single): Boolean;
     else
       Epsilon := Power(2, Floor(Ln(Reference) / Ln(2)) - 18);
 
-    Result := Abs(Value - Reference) <= Epsilon; { If Value is NaN, Result will be set to False } 
+    Result := Abs(Value - Reference) <= Epsilon; { If Value is NaN, Result will be set to False }
   end;
 
 function TFloat32Test.WriteResults: Boolean;
@@ -531,7 +531,7 @@ const
     0.0,
     -1E-4
   );
-  
+
   MAX_EXPECTED: array[0..7] of Single = (
     0.5,
     1048577.0,
@@ -542,7 +542,7 @@ const
     1E-4,
     0.0
   );
-  
+
 constructor TFloat32MinTest.Create;
 begin
   inherited Create;
@@ -554,7 +554,7 @@ function TFloat32MinTest.DoFunc(Input1, Input2: Single): Single;
   begin
     Result := Min(Input1, Input2);
   end;
-  
+
 function TFloat32MinTest.TestTitle: shortstring;
   begin
     Result := 'Min (single-precision)';
@@ -567,7 +567,7 @@ function TFloat32ImplicitMinTest.DoFunc(Input1, Input2: Single): Single;
     else
       Result := Input2;
   end;
-  
+
 function TFloat32ImplicitMinTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Min (single-precision)';
@@ -586,7 +586,7 @@ function TFloat32MaxTest.DoFunc(Input1, Input2: Single): Single;
   begin
     Result := Max(Input1, Input2);
   end;
-  
+
 function TFloat32MaxTest.TestTitle: shortstring;
   begin
     Result := 'Max (single-precision)';
@@ -599,7 +599,7 @@ function TFloat32ImplicitMaxTest.DoFunc(Input1, Input2: Single): Single;
     else
       Result := Input2;
   end;
-  
+
 function TFloat32ImplicitMaxTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Max (single-precision)';
@@ -617,7 +617,7 @@ const
     (Infinity, NegInfinity),
     (NegInfinity, Infinity)
   );
-  
+
   MIN_SPECIAL_EXPECTED: array[0..7] of Single = (
     0.0,
     NaN,
@@ -628,7 +628,7 @@ const
     NegInfinity,
     NegInfinity
   );
-  
+
   MAX_SPECIAL_EXPECTED: array[0..7] of Single = (
     0.0,
     NaN,
@@ -639,14 +639,14 @@ const
     Infinity,
     Infinity
   );
-  
+
 constructor TFloat32MinSpecialTest.Create;
 begin
   inherited Create;
   Move(MINMAX_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(MIN_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32MinSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Min (special single-precision)';
@@ -659,7 +659,7 @@ function TFloat32ImplicitMinSpecialTest.DoFunc(Input1, Input2: Single): Single;
     else
       Result := Input2;
   end;
-  
+
 function TFloat32ImplicitMinSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Min (special single-precision)';
@@ -673,7 +673,7 @@ begin
   Move(MINMAX_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(MAX_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32MaxSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Max (special single-precision)';
@@ -686,7 +686,7 @@ function TFloat32ImplicitMaxSpecialTest.DoFunc(Input1, Input2: Single): Single;
     else
       Result := Input2;
   end;
-  
+
 function TFloat32ImplicitMaxSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Max (special single-precision)';
@@ -704,7 +704,7 @@ const
     3.1415926535897932384626433832795, { Pi }
     1.5707963267948966192313216916398 { Pi / 2 }
   );
-  
+
   SQRT_EXPECTED: array[0..7] of Single = (
     2.0,
     1.0,
@@ -727,7 +727,7 @@ function TFloat32SqrtTest.DoFunc(Input: Single): Single;
   begin
     Result := Sqrt(Input);
   end;
-  
+
 function TFloat32SqrtTest.TestTitle: shortstring;
   begin
     Result := 'sqrt(x) (single-precision)';
@@ -745,7 +745,7 @@ const
     1E6,
     NaN
   );
-  
+
   SQRT_SPECIAL_EXPECTED: array[0..7] of Single = (
     0.0,
     Infinity,
@@ -763,7 +763,7 @@ begin
   Move(SQRT_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(SQRT_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32SqrtSpecialTest.TestTitle: shortstring;
   begin
     Result := 'sqrt(x) (special single-precision)';
@@ -771,9 +771,9 @@ function TFloat32SqrtSpecialTest.TestTitle: shortstring;
 
 { TFloat32LnTest }
 
-const  
+const
   LN_EXPECTED: array[0..7] of Single = (
-    1.386294361119891,  
+    1.386294361119891,
     0.0,
     5.545177444479562,
     0.693147180559945,
@@ -794,7 +794,7 @@ function TFloat32LnTest.DoFunc(Input: Single): Single;
   begin
     Result := Ln(Input);
   end;
-  
+
 function TFloat32LnTest.TestTitle: shortstring;
   begin
     Result := 'ln x (single-precision)';
@@ -820,7 +820,7 @@ begin
   Move(SQRT_SPECIAL_INPUTS, FInputs, SizeOf(FInputs)); { Reuse the sqrt inputs }
   Move(LN_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32LnSpecialTest.TestTitle: shortstring;
   begin
     Result := 'ln x (special single-precision)';
@@ -829,12 +829,12 @@ function TFloat32LnSpecialTest.TestTitle: shortstring;
 { TFloat32ExpTest }
 const
   EXP_EXPECTED: array[0..7] of Single = (
-    54.598150033144239, 
+    54.598150033144239,
     2.718281828459045,
     1.5114276650041035e+111,
     7.3890560989306502,
     2.6881171418161354e+43,
-    1.6487212707001281, 
+    1.6487212707001281,
     23.1406926327792690,
     4.8104773809653517
   );
@@ -850,7 +850,7 @@ function TFloat32ExpTest.DoFunc(Input: Single): Single;
   begin
     Result := Exp(Input);
   end;
-  
+
 function TFloat32ExpTest.TestTitle: shortstring;
   begin
     Result := 'e^x (single-precision)';
@@ -875,7 +875,7 @@ begin
   Move(SQRT_SPECIAL_INPUTS, FInputs, SizeOf(FInputs)); { Reuse the sqrt inputs }
   Move(EXP_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32ExpSpecialTest.TestTitle: shortstring;
   begin
     Result := 'e^x (special single-precision)';
@@ -905,7 +905,7 @@ function TFloat32SinTest.DoFunc(Input: Single): Single;
   begin
     Result := Sin(Input);
   end;
-  
+
 function TFloat32SinTest.TestTitle: shortstring;
   begin
     Result := 'sin x (single-precision)';
@@ -931,7 +931,7 @@ const
     NaN,
     -0.0,
     -0.8414709848078965,
-    -0.3499935021712930,    
+    -0.3499935021712930,
     NaN
   );
 
@@ -941,7 +941,7 @@ begin
   Move(SIN_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(SIN_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32SinSpecialTest.TestTitle: shortstring;
   begin
     Result := 'sin x (special single-precision)';
@@ -971,7 +971,7 @@ function TFloat32CosTest.DoFunc(Input: Single): Single;
   begin
     Result := Cos(Input);
   end;
-  
+
 function TFloat32CosTest.TestTitle: shortstring;
   begin
     Result := 'cos x (single-precision)';
@@ -996,7 +996,7 @@ begin
   Move(SIN_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(COS_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat32CosSpecialTest.TestTitle: shortstring;
   begin
     Result := 'cos x (special single-precision)';
@@ -1094,7 +1094,7 @@ class function TFloat64Test.IsEqual(Value, Reference: Double): Boolean;
     else
       Epsilon := Power(2, Floor(Ln(Reference) / Ln(2)) - 18);
 
-    Result := Abs(Value - Reference) <= Epsilon;     
+    Result := Abs(Value - Reference) <= Epsilon;
   end;
 
 function TFloat64Test.WriteResults: Boolean;
@@ -1159,7 +1159,7 @@ const
     0.0,
     -1E-4
   );
-  
+
   MAX_64_EXPECTED: array[0..7] of Double = (
     0.5,
     1048577.0,
@@ -1170,7 +1170,7 @@ const
     1E-4,
     0.0
   );
-  
+
 constructor TFloat64MinTest.Create;
 begin
   inherited Create;
@@ -1182,7 +1182,7 @@ function TFloat64MinTest.DoFunc(Input1, Input2: Double): Double;
   begin
     Result := Min(Input1, Input2);
   end;
-  
+
 function TFloat64MinTest.TestTitle: shortstring;
   begin
     Result := 'Min (double-precision)';
@@ -1195,7 +1195,7 @@ function TFloat64ImplicitMinTest.DoFunc(Input1, Input2: Double): Double;
     else
       Result := Input2;
   end;
-  
+
 function TFloat64ImplicitMinTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Min (double-precision)';
@@ -1214,7 +1214,7 @@ function TFloat64MaxTest.DoFunc(Input1, Input2: Double): Double;
   begin
     Result := Max(Input1, Input2);
   end;
-  
+
 function TFloat64MaxTest.TestTitle: shortstring;
   begin
     Result := 'Max (double-precision)';
@@ -1227,7 +1227,7 @@ function TFloat64ImplicitMaxTest.DoFunc(Input1, Input2: Double): Double;
     else
       Result := Input2;
   end;
-  
+
 function TFloat64ImplicitMaxTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Max (double-precision)';
@@ -1245,7 +1245,7 @@ const
     (Infinity, NegInfinity),
     (NegInfinity, Infinity)
   );
-  
+
   MIN_64_SPECIAL_EXPECTED: array[0..7] of Double = (
     0.0,
     NaN,
@@ -1256,7 +1256,7 @@ const
     NegInfinity,
     NegInfinity
   );
-  
+
   MAX_64_SPECIAL_EXPECTED: array[0..7] of Double = (
     0.0,
     NaN,
@@ -1267,14 +1267,14 @@ const
     Infinity,
     Infinity
   );
-  
+
 constructor TFloat64MinSpecialTest.Create;
 begin
   inherited Create;
   Move(MINMAX_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(MIN_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64MinSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Min (special double-precision)';
@@ -1287,7 +1287,7 @@ function TFloat64ImplicitMinSpecialTest.DoFunc(Input1, Input2: Double): Double;
     else
       Result := Input2;
   end;
-  
+
 function TFloat64ImplicitMinSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Min (special double-precision)';
@@ -1301,7 +1301,7 @@ begin
   Move(MINMAX_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(MAX_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64MaxSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Max (special double-precision)';
@@ -1314,7 +1314,7 @@ function TFloat64ImplicitMaxSpecialTest.DoFunc(Input1, Input2: Double): Double;
     else
       Result := Input2;
   end;
-  
+
 function TFloat64ImplicitMaxSpecialTest.TestTitle: shortstring;
   begin
     Result := 'Implicit Max (special double-precision)';
@@ -1332,7 +1332,7 @@ const
     3.1415926535897932384626433832795, { Pi }
     1.5707963267948966192313216916398 { Pi / 2 }
   );
-  
+
   SQRT_64_EXPECTED: array[0..7] of Double = (
     2.0,
     1.0,
@@ -1355,7 +1355,7 @@ function TFloat64SqrtTest.DoFunc(Input: Double): Double;
   begin
     Result := Sqrt(Input);
   end;
-  
+
 function TFloat64SqrtTest.TestTitle: shortstring;
   begin
     Result := 'sqrt(x) (double-precision)';
@@ -1373,7 +1373,7 @@ const
     1E6,
     NaN
   );
-  
+
   SQRT_64_SPECIAL_EXPECTED: array[0..7] of Double = (
     0.0,
     Infinity,
@@ -1391,7 +1391,7 @@ begin
   Move(SQRT_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(SQRT_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64SqrtSpecialTest.TestTitle: shortstring;
   begin
     Result := 'sqrt(x) (special double-precision)';
@@ -1399,7 +1399,7 @@ function TFloat64SqrtSpecialTest.TestTitle: shortstring;
 
 { TFloat64LnTest }
 
-const  
+const
   LN_64_EXPECTED: array[0..7] of Double = (
     1.3862943611198906188344642429164,
     0.0,
@@ -1407,7 +1407,7 @@ const
     0.69314718055994530941723212145818,
     4.6051701859880913680359829093687,
     -0.69314718055994530941723212145818,
-    1.1447298858494001741434273513531,  
+    1.1447298858494001741434273513531,
     0.45158270528945486472619522989488
   );
 
@@ -1422,7 +1422,7 @@ function TFloat64LnTest.DoFunc(Input: Double): Double;
   begin
     Result := Ln(Input);
   end;
-  
+
 function TFloat64LnTest.TestTitle: shortstring;
   begin
     Result := 'ln x (double-precision)';
@@ -1448,7 +1448,7 @@ begin
   Move(SQRT_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs)); { Reuse the sqrt inputs }
   Move(LN_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64LnSpecialTest.TestTitle: shortstring;
   begin
     Result := 'ln x (special double-precision)';
@@ -1457,12 +1457,12 @@ function TFloat64LnSpecialTest.TestTitle: shortstring;
 { TFloat64ExpTest }
 const
   EXP_64_EXPECTED: array[0..7] of Double = (
-    54.598150033144239078110261202861,  
+    54.598150033144239078110261202861,
     2.7182818284590455, // remove the last 5 and append 2353602874713527 (too precise),
     1.5114276650041035425200896657073e+111,
     7.389056098930650227230427460575,
     2.68811714181613544841262555158e+43,
-    1.6487212707001281468486507878142,  
+    1.6487212707001281468486507878142,
     23.140692632779269005729086367949,
     4.8104773809653516554730356667038
   );
@@ -1478,7 +1478,7 @@ function TFloat64ExpTest.DoFunc(Input: Double): Double;
   begin
     Result := Exp(Input);
   end;
-  
+
 function TFloat64ExpTest.TestTitle: shortstring;
   begin
     Result := 'e^x (double-precision)';
@@ -1503,7 +1503,7 @@ begin
   Move(SQRT_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs)); { Reuse the sqrt inputs }
   Move(EXP_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64ExpSpecialTest.TestTitle: shortstring;
   begin
     Result := 'e^x (special double-precision)';
@@ -1533,7 +1533,7 @@ function TFloat64SinTest.DoFunc(Input: Double): Double;
   begin
     Result := Sin(Input);
   end;
-  
+
 function TFloat64SinTest.TestTitle: shortstring;
   begin
     Result := 'sin x (single-precision)';
@@ -1559,7 +1559,7 @@ const
     NaN,
     -0.0,
     -0.8414709848078965066525023216303,
-    -0.34999350217129295211765248678077,    
+    -0.34999350217129295211765248678077,
     NaN
   );
 
@@ -1569,7 +1569,7 @@ begin
   Move(SIN_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(SIN_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64SinSpecialTest.TestTitle: shortstring;
   begin
     Result := 'sin x (double single-precision)';
@@ -1599,7 +1599,7 @@ function TFloat64CosTest.DoFunc(Input: Double): Double;
   begin
     Result := Cos(Input);
   end;
-  
+
 function TFloat64CosTest.TestTitle: shortstring;
   begin
     Result := 'cos x (double-precision)';
@@ -1624,7 +1624,7 @@ begin
   Move(SIN_64_SPECIAL_INPUTS, FInputs, SizeOf(FInputs));
   Move(COS_64_SPECIAL_EXPECTED, FExpected, SizeOf(FExpected));
 end;
-  
+
 function TFloat64CosSpecialTest.TestTitle: shortstring;
   begin
     Result := 'cos x (special double-precision)';

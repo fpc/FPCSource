@@ -1,5 +1,5 @@
 { %norun }
-{ Test that invoking methods on Variant that are function results, etc. 
+{ Test that invoking methods on Variant that are function results, etc.
   compiles without errors. }
 {$mode delphi}{$H+}
 
@@ -19,7 +19,7 @@ var tst: TTest;
 function TTest.GetObj: OleVariant;
 begin
   Result := FObj;
-end;   
+end;
 
 begin
   variant(0).foo;

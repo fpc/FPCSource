@@ -12,9 +12,9 @@ var
 Procedure Testit;
 
 begin
-  P:=procedure 
+  P:=procedure
     begin
-  
+
     end;
   P;
 end;

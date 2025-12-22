@@ -53,5 +53,5 @@ begin
  if StringRefCount(str1) <> 1 then
    Halt(1);
  if str1<>'abcde' then
-   Halt(2);  
+   Halt(2);
 end.

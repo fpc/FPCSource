@@ -14,7 +14,7 @@ type
   ITest = interface[STestInterface]
     procedure DoSomething;
   end;
-  
+
   TImpl=class(TInterfacedObject,ITest)
     procedure DoSomething;
   end;
@@ -66,12 +66,12 @@ begin
   C1 := TC1.Create;
   C2 := TC2.Create;
   writeln('Testing typecasting...');
-  
+
   I := ITest(C1);
   ref := I._Addref;
   I._Release;
   writeln('When delegating by field, refcount=', ref);
-  
+
   I := ITest(C2);
   ref := I._Addref;
   I._Release;
@@ -80,16 +80,16 @@ begin
   I := nil;
   C1.Free;
   C2.Free;
-  
+
   writeln('Testing ''as'' operator...');
   C1 := TC1.Create;
   C2 := TC2.Create;
-  
+
   I := C1 as ITest;
   ref := I._Addref;
   I._Release;
   writeln('When delegating by field, refcount=', ref);
-  
+
   I := C2 as ITest;
   ref := I._Addref;
   I._Release;
@@ -102,12 +102,12 @@ begin
   writeln('Testing GetInteface()...');
   C1 := TC1.Create;
   C2 := TC2.Create;
-  
+
   C1.GetInterface(ITest, I);
   ref := I._Addref;
   I._Release;
   writeln('When delegating by field, refcount=', ref);
-  
+
   C2.GetInterface(ITest, I);
   ref := I._Addref;
   I._Release;
@@ -117,5 +117,5 @@ begin
   I := nil;
   C1.Free;
   C2.Free;
-  
+
 end.

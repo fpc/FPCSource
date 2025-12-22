@@ -8,7 +8,7 @@ type
     constructor init;
     destructor done;
   end;
-   
+
  constructor tobj.init;
    begin
    end;

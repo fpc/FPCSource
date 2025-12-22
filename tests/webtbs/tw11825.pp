@@ -9,7 +9,7 @@ type
   TMyObj = class(TObject)
      function ClassType: TMyObjClass; reintroduce;
      class function test: string;
-  end;	
+  end;
 
   TMyObj2 = class(TMyObj)
   end;
@@ -37,7 +37,7 @@ end;
 function GetMyObj: TMyObj;
 begin
    Result:= TMyObj(GetObj)
-end; 
+end;
 
 
 

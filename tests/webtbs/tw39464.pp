@@ -12,6 +12,6 @@ function GetEmptyPtr(R: TTestRec): Pointer;
 begin
   Result := @R.Empty;
 end;
-    
+
 begin
 end.

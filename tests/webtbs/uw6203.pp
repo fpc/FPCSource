@@ -31,7 +31,7 @@ type
 
 var
   Err : boolean;
-  
+
 implementation
 
 procedure TTest.CMTest(var Msg: TMessage);

@@ -1,6 +1,6 @@
 
 
-{ Converting 64-bit integers with more than 53 significant bits to double-precision 
+{ Converting 64-bit integers with more than 53 significant bits to double-precision
   floating point format is subject to rounding. Hence result depends on rounding mode.
   The same goes for 32-bit integers with more than 23 significant bits converted to
   single. }
@@ -45,7 +45,7 @@ const
     $43E0000000000000,
     $43DFFFFFFFFFFFFF
   );
-  
+
   res3: TExpected = (
     qword($C3E0000000000000),
     qword($C3E0000000000000),
@@ -103,7 +103,7 @@ begin
   if yq<>res[rmNearest] then fail;
 
   setroundmode(rmUp);
-  y:=x; 
+  y:=x;
   writeln('rmUp       ',y, ' ',hexstr(yq,16));
   if yq<>res[rmUp] then fail;
 

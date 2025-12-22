@@ -1,7 +1,7 @@
 { %norun }
 { %OPT=-Sen -vn }
 
-unit tw5100; 
+unit tw5100;
 
 {$mode objfpc}{$H+}
 
@@ -25,7 +25,7 @@ type
   protected
     procedure test;
   end;
-  
+
 implementation
 
 procedure tb.test;
@@ -34,4 +34,4 @@ begin
 end;
 
 end.
-      
+

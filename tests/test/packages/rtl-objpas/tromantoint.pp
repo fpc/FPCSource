@@ -28,7 +28,7 @@ procedure RomanToIntTest(const testRoman: string;
       writeln('Expected number: ', expectation);
       exitCode := 1;
     end;
-  end; 
+  end;
 
 var
   i: integer;
@@ -53,6 +53,6 @@ begin
     testRoman := intToRoman(testInteger);
     RomanToIntTest(testRoman, testInteger);
   end;
- 
+
   halt(exitCode);
 end.

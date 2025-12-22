@@ -10,7 +10,7 @@ type
     fScript:TStringlist.Create; <--- erroneous decl.
   public
     { public declarations }
-  end; 
+  end;
 
 begin
 end.

@@ -7,11 +7,11 @@ var
   aa: longint;
 
 {$ifdef windows}
-function exetest: longint; external 'tw7838b.exe'; 
+function exetest: longint; external 'tw7838b.exe';
 {$endif}
 
 {$ifdef unix}
-function exetest: longint; external name 'exetest'; 
+function exetest: longint; external name 'exetest';
 {$endif}
 
 
@@ -22,7 +22,7 @@ initialization
   aa:=5;
 
 finalization
-  
+
   writeln('libunit1 finalization');
   aa:=-5;
 end.

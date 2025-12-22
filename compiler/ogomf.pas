@@ -3372,7 +3372,7 @@ implementation
       begin
         debugsections:=nil;
         elfsechdrs:=nil;
-        
+
         { mark the offset of the start of the ELF image }
         elf_start_pos:=Writer.Size;
 

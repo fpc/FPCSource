@@ -127,7 +127,7 @@ implementation
     symtable,symsym,
     tgobj,
     procinfo,cpupi;
-                  
+
   const
     TOpCmp2AsmCond: array[TOpCmp] of TAsmCond = (
       C_None,
@@ -976,7 +976,7 @@ implementation
               OC_GTE: op:=C_GEZ;
             else
               Internalerror(2020030806);
-            end;     
+            end;
             instr:=taicpu.op_reg_sym(A_B,reg,l);
             instr.condition:=op;
             instr.is_jmp:=true;

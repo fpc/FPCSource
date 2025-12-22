@@ -12,7 +12,7 @@ begin
    randomize;
    count:=0;
    repeat
-      //As k is set to be a single-precision number, there should not be 
+      //As k is set to be a single-precision number, there should not be
       //any rounding off or truncation problem...
       k:=2*random-1;
       j:=k;

@@ -61,7 +61,7 @@ end;
   adrp x0,stacksize@PAGE
   ldr  x0,[x0,stacksize@PAGEOFF]
 end;
-{$define implemented}   
+{$define implemented}
 {$endif cpuaarch64}
 {$ifdef cpuriscv64}
 .L1:

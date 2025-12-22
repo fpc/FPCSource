@@ -15,12 +15,12 @@ type
     Function RootMatches(ARoot : TComponent) : Boolean; Inline; // True if Froot matches or ARoot is nil.
     Function NextRef : TUnresolvedReference; inline;
   end;
-  
+
   TLocalUnResolvedReference = class(TUnresolvedReference)
     Finstance : TPersistent;
   end;
 
-  // Linked list of TPersistent items that have unresolved properties.  
+  // Linked list of TPersistent items that have unresolved properties.
 
   { TUnResolvedInstance }
 
@@ -39,12 +39,12 @@ type
     Procedure Add(Item : TlinkedListItem); // Add TUnResolvedInstance item to list. Create list if needed
     Destructor Destroy; override; // All elements in list (if any) are removed from the global list.
   end;
-  
+
   // Visitor used to try and resolve instances in the global list
   TResolveReferenceVisitor = Class(TBuildListVisitor)
     Function Visit(Item : TLinkedListItem) : Boolean; override;
   end;
-  
+
   // Visitor used to remove all references to a certain component.
   TRemoveReferenceVisitor = Class(TBuildListVisitor)
     FRef : String;
@@ -61,7 +61,7 @@ type
     Constructor Create(ARoot : TComponent;AList : TStrings);
   end;
 
-  // Visitor used to collect instance names.  
+  // Visitor used to collect instance names.
   TReferenceInstancesVisitor = Class(TLinkedListVisitor)
     FList : TStrings;
     FRef  : String;
@@ -69,7 +69,7 @@ type
     Function Visit(Item : TLinkedListItem) : Boolean; override;
     Constructor Create(ARoot : TComponent;Const ARef : String; AList : TStrings);
   end;
-  
+
   // Visitor used to redirect links to another root component.
   TRedirectReferenceVisitor = Class(TLinkedListVisitor)
     FOld,
@@ -78,7 +78,7 @@ type
     Function Visit(Item : TLinkedListItem) : Boolean; override;
     Constructor Create(ARoot : TComponent;Const AOld,ANew : String);
   end;
-  
+
 var
   NeedResolving : TLinkedList;
   ResolveSection : TRTLCriticalSection;
@@ -120,7 +120,7 @@ begin
     end;
 end;
 
-// Walk through the global list of instances to be resolved.  
+// Walk through the global list of instances to be resolved.
 
 Procedure VisitResolveList(V : TLinkedListVisitor);
 
@@ -131,10 +131,10 @@ begin
       NeedResolving.Foreach(V);
     Finally
       FreeAndNil(V);
-    end;  
+    end;
   Finally
     LeaveCriticalSection(ResolveSection);
-  end;  
+  end;
 end;
 
 procedure GlobalFixupReferences;
@@ -142,9 +142,9 @@ procedure GlobalFixupReferences;
 var
   V : TResolveReferenceVisitor;
   I : Integer;
-    
+
 begin
-  If (NeedResolving=Nil) then 
+  If (NeedResolving=Nil) then
     Exit;
   GlobalNameSpace.BeginWrite;
   try
@@ -158,7 +158,7 @@ end;
 procedure GetFixupReferenceNames(Root: TComponent; Names: TStrings);
 
 begin
-  If (NeedResolving=Nil) then 
+  If (NeedResolving=Nil) then
     Exit;
   VisitResolveList(TReferenceNamesVisitor.Create(Root,Names));
 end;
@@ -229,7 +229,7 @@ begin
     If Result then
       SetObjectProp(Instance, FPropInfo,C);
     end;
-end; 
+end;
 
 Function TUnresolvedReference.RootMatches(ARoot : TComponent) : Boolean; Inline;
 
@@ -263,7 +263,7 @@ begin
   Result.FRoot:=ARoot;
 end;
 
-Function TUnResolvedInstance.RootUnresolved : TUnresolvedReference; 
+Function TUnResolvedInstance.RootUnresolved : TUnresolvedReference;
 
 begin
   Result:=Nil;
@@ -307,7 +307,7 @@ begin
   While (R<>Nil) do
     begin
     If R.RootMatches(FRoot) then
-      If (FList.IndexOf(R.FGlobal)=-1) then 
+      If (FList.IndexOf(R.FGlobal)=-1) then
         FList.Add(R.FGlobal);
     R:=R.NextRef;
     end;
@@ -383,7 +383,7 @@ Var
   UI : TUnResolvedInstance;
   R : TUnresolvedReference;
   L : TFPList;
-  
+
 begin
   UI:=TUnResolvedInstance(Item);
   R:=UI.RootUnresolved;
@@ -427,7 +427,7 @@ begin
   If (List=Nil) then
     List:=TFPList.Create;
   List.Add(Item);
-end;  
+end;
 
 Destructor TBuildListVisitor.Destroy;
 
@@ -444,10 +444,10 @@ end;
 
 { TResolveReferenceVisitor }
 
-Function TResolveReferenceVisitor.Visit(Item : TLinkedListItem) : Boolean; 
+Function TResolveReferenceVisitor.Visit(Item : TLinkedListItem) : Boolean;
 
 begin
   If TUnResolvedInstance(Item).ResolveReferences then
     Add(Item);
-  Result:=True;  
+  Result:=True;
 end;

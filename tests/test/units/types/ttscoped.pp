@@ -5,7 +5,7 @@ program ttscoped;
 uses types;
 
 type
-      
+
 //type
   TChildHandledObject = class
   private
@@ -25,7 +25,7 @@ type
     ScopedChild: specialize TScoped<TChildHandledObject>;
   public
     class var InstanceCount : Integer;
-  public  
+  public
     constructor Create(const AStr:String);
     destructor Destroy(); override;
     procedure Display();
@@ -83,7 +83,7 @@ begin
   AssertEquals('Created THandledObject',1,THandledObject.InstanceCount);
   AssertEquals('Created TChildHandledObject',1,TChildHandledObject.InstanceCount);
   sc.Get().Display();
-end;  
+end;
 
 procedure dotestspassign;
 var
@@ -95,7 +95,7 @@ begin
   AssertEquals('Created THandledObject',1,THandledObject.InstanceCount);
   AssertEquals('Created TChildHandledObject',1,TChildHandledObject.InstanceCount);
   sc.Get().Display();
-end;  
+end;
 
 procedure dotestspassignto;
 var
@@ -113,7 +113,7 @@ begin
   v.display;
   AssertEquals('Displayed THandledObject',1,THandledObject.InstanceCount);
   AssertEquals('Displayed TChildHandledObject',1,TChildHandledObject.InstanceCount);
-end;  
+end;
 
 begin
   Writeln('Simple');

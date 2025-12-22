@@ -25,7 +25,7 @@ ResourceString
   ATitle     = 'PToP';
   Copyright = 'Copyright (c) 1999-2005 by the Free Pascal Development Team';
   SErrNoInputOutput = 'No input and output file given';
-  
+
 Type
   TPToP = Class(TCustomApplication)
   Private

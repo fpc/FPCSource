@@ -4,7 +4,7 @@
 type
   generic G<_T> = class
   end;
-  
+
   generic TGen<_T> = class
   public
     function Check(ASource: TObject): Boolean;

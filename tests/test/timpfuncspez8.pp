@@ -7,7 +7,7 @@
 }
 
 program timpfuncspez8;
-	
+
 type
 	TMyRecord = record
 		generic class procedure Call<T>(msg: T); static;

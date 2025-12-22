@@ -7,6 +7,6 @@ Function Fast_ReciprocalSquareRoot(number: Single): Single;
             MOVLPS %xmm0, __Result
         End ['xmm0'];
     End;
-    
+
 begin
 end.

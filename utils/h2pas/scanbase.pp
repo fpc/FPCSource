@@ -212,7 +212,7 @@ begin
     begin
     Skip_until_eol;
     exit;
-    end;  
+    end;
   if not stripcomment then
     write(outfile,aktspace,'{');
   repeat
@@ -324,7 +324,7 @@ begin
   until false;
   flush(outfile);
 end;
-  
+
 Procedure CheckLongString;
 
 begin
@@ -398,7 +398,7 @@ begin
   else
     skip_until_eol;
 end;
- 
+
 Procedure HandlePreProcIfDef;
 
 begin

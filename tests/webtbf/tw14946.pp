@@ -6,7 +6,7 @@
 
 type
   ta = class
-     procedure MyProc(var Msg); message 1; message 'abc'; 
+     procedure MyProc(var Msg); message 1; message 'abc';
   end;
 
 procedure ta.myproc;

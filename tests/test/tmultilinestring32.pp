@@ -1,16 +1,16 @@
 { %fail }
 // Multiline string but not properly indented
 {$mode objfpc}
-const 
+const
   s = '''
   this
  is
   a multiline
   string
   ''';
-  
+
   stest = 'this'+sLineBreak+'is'+slinebreak+'a multiline'+sLineBreak+'string';
-  
+
 begin
   if not (s=stest) then
     begin

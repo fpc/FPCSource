@@ -671,7 +671,7 @@ interface
          pocall_vectorcall
        );
        tproccalloptions = set of tproccalloption;
-       
+
        tlineendingtype = ({Carriage return, aka #13}
                           le_cr,
                           {Carriage return + line feed, aka #13#10}
@@ -682,7 +682,7 @@ interface
                           le_platform,
                           {Use whatever is in the file}
                           le_source);
-                          
+
      const
        proccalloptionStr : array[tproccalloption] of string[16]=('',
            'CDecl',

@@ -47,6 +47,6 @@ begin
   l_unit('main ');
   l_unit_nostackframe;
   writeln(n_checks,' tests. ',n_failed,' failed');
-  if n_failed > 0 then 
-    halt(1); 
+  if n_failed > 0 then
+    halt(1);
 end.

@@ -14,8 +14,8 @@ type
     fStream : TMemoryStream;
     fPar : TParser;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure Test1;
     procedure Test2;
@@ -43,8 +43,8 @@ type
     fStream : TMemoryStream;
     fPar : TParser;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure Test1;
     procedure Test2;
@@ -58,8 +58,8 @@ type
     fStream : TMemoryStream;
     fPar : TParser;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure Test1;
     procedure Test2;
@@ -76,13 +76,13 @@ type
     fStream : TMemoryStream;
     fPar : TParser;
   protected
-    procedure SetUp; override; 
+    procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure Test1;
     procedure Test2;
     procedure Test3;
-  end; 
+  end;
 
   { TTestPositions }
 
@@ -91,12 +91,12 @@ type
     fStream : TMemoryStream;
     fPar : TParser;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure Test1;
     procedure Test2;
-  end; 
+  end;
 
   { TTestBinary }
 
@@ -106,19 +106,19 @@ type
     fOutStr : TMemoryStream;
     fPar : TParser;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure Test1;
     procedure Test2;
-  end; 
+  end;
 
 Implementation
 
 { ---------------------------------------------------------------------
     TTestToString
   ---------------------------------------------------------------------}
-  
+
 
 procedure TTestToString.Test1;
 const
@@ -501,7 +501,7 @@ end;
 procedure TTestToString.SetUp;
 begin
   fStream:=TMemoryStream.Create;
-end; 
+end;
 
 procedure TTestToString.TearDown;
 begin
@@ -511,7 +511,7 @@ end;
 { ---------------------------------------------------------------------
     TTestTokenInt
   ---------------------------------------------------------------------}
-  
+
 
 procedure TTestTokenInt.Test1;
 const
@@ -571,7 +571,7 @@ end;
 { ---------------------------------------------------------------------
     TTestTokenFloat
   ---------------------------------------------------------------------}
-  
+
 procedure TTestTokenFloat.Test1;
 const
   aStr = '1.';
@@ -668,12 +668,12 @@ begin
   end;
 end;
 
-procedure TTestTokenFloat.SetUp; 
+procedure TTestTokenFloat.SetUp;
 begin
   fStream:=TMemoryStream.Create;
 end;
 
-procedure TTestTokenFloat.TearDown; 
+procedure TTestTokenFloat.TearDown;
 begin
   fStream.Free;
 end;
@@ -681,7 +681,7 @@ end;
 { ---------------------------------------------------------------------
     TTestSymbol
   ---------------------------------------------------------------------}
-  
+
 
 procedure TTestSymbol.Test1;
 const
@@ -761,7 +761,7 @@ begin
   end;
 end;
 
-procedure TTestSymbol.SetUp; 
+procedure TTestSymbol.SetUp;
 begin
   fStream:=TMemoryStream.Create;
 end;
@@ -774,7 +774,7 @@ end;
 { ---------------------------------------------------------------------
     TTestPositions
   ---------------------------------------------------------------------}
-  
+
 
 procedure TTestPositions.Test1;
 const
@@ -838,12 +838,12 @@ begin
   AssertEquals(7,fStream.Position);
 end;
 
-procedure TTestPositions.SetUp; 
+procedure TTestPositions.SetUp;
 begin
   fStream:=TMemoryStream.Create;
 end;
 
-procedure TTestPositions.TearDown; 
+procedure TTestPositions.TearDown;
 begin
   fStream.Free;
 end;
@@ -851,7 +851,7 @@ end;
 { ---------------------------------------------------------------------
     TTestBinary
   ---------------------------------------------------------------------}
-  
+
 procedure TTestBinary.Test1;
 const
   aStr = '{ 1234 56'+#13#10'789A somethingelse';
@@ -892,17 +892,17 @@ begin
   end;
 end;
 
-procedure TTestBinary.SetUp; 
+procedure TTestBinary.SetUp;
 begin
   fStream:=TMemoryStream.Create;
   fOutStr:=TMemoryStream.Create;
 end;
 
-procedure TTestBinary.TearDown; 
+procedure TTestBinary.TearDown;
 begin
   fStream.Free;
   fOutStr.Free;
-end; 
+end;
 
 initialization
 

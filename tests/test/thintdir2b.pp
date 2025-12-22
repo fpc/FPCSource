@@ -11,4 +11,4 @@ type
     procedure Test(); virtual; deprecated 'Do not use this method'; abstract; deprecated 'Use that method';
   end;
 begin
-end.                      
+end.

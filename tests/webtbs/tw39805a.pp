@@ -10,4 +10,4 @@ type
   end;
 
 begin
-end. 
+end.

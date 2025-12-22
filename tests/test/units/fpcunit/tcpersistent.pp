@@ -14,13 +14,13 @@ type
   TTestTPersistent= class(TTestCase)
   protected
     Instance : TPersistent;
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestPropCount;
     procedure TestNamePath;
-  end; 
-  
+  end;
+
   { TMyPersistent }
 
   TMyPersistent = Class(TPersistent)
@@ -62,7 +62,7 @@ procedure TTestTPersistent.TestPropCount;
 Var
   ACOunt : Integer;
   P : Pointer;
-  
+
 begin
   P:=Nil;
   ACOunt:=GetPropList(Instance,P);
@@ -74,15 +74,15 @@ begin
   AssertEquals('Namepath is class name if there is no owner','TPersistent',Instance.GetNamePath);
 end;
 
-procedure TTestTPersistent.SetUp; 
+procedure TTestTPersistent.SetUp;
 begin
   Instance:=TPersistent.Create;
 end;
 
-procedure TTestTPersistent.TearDown; 
+procedure TTestTPersistent.TearDown;
 begin
   FreeAndNil(Instance);
-end; 
+end;
 
 { TTestPersistentDescendent }
 
@@ -118,7 +118,7 @@ procedure TTestPersistentDescendent.TestNamePathWithOwner;
 
 Var
   AOwner : TMyPersistent;
-  
+
 begin
   AOwner:=TMyPersistent.Create;
   try
@@ -133,7 +133,7 @@ procedure TTestPersistentDescendent.TestAssign;
 
 Var
   I2 : TMyPersistent;
-  
+
 begin
   I2:=TMyPersistent.Create;
   try

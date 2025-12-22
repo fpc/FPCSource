@@ -11,5 +11,5 @@ begin
   v := dt;
   s := v;
   // It should return the date, depending on the localisation settings
-  if s = '40000' then halt(1); 
+  if s = '40000' then halt(1);
 end.

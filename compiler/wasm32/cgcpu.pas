@@ -153,5 +153,5 @@ implementation
       begin
         cg:=tcgwasm.Create;
       end;
-      
+
 end.

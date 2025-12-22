@@ -1347,7 +1347,7 @@ begin
           { IEEE Double values are stored in floating point
             register pairs f2X/f2X+1,
             as the f2X+1 register is not correctly marked as used for now,
-            we simply assume it is also used if f2X is used 
+            we simply assume it is also used if f2X is used
             Should be fixed by a proper inclusion of f2X+1 into used_in_proc }
           if (ord(reg)-ord(RS_F0)) mod 2 = 0 then
             include(rg[R_FPUREGISTER].used_in_proc,succ(reg));

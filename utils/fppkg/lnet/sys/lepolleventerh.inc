@@ -6,9 +6,9 @@
   TEpollEvent = epoll_event;
   PEpollData = ^epoll_data;
   TEpollData = epoll_data;
-  
+
   { TLEpollEventer }
-  
+
   TLEpollEventer = class(TLEventer)
    protected
     FTimeout: cInt;

@@ -9,4 +9,4 @@ begin
   s:=s+s;
   writeln(i);
  end;
-end.  
+end.

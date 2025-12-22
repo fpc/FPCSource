@@ -3,7 +3,7 @@ program tcpstr20;
 {$APPTYPE CONSOLE}
 {$MODE Delphi}
 
-// Test checks that preferred string type arguments 
+// Test checks that preferred string type arguments
 // for AnsiChar are: ShortString, AnsiString, UnicodeString, WideString
 // for WideChar are: UnicodeString, WideString, AnsiString, ShortString
 

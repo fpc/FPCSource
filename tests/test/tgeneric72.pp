@@ -1,6 +1,6 @@
 { %NORUN }
 
-{ This tests that the two specializations of TUsedGeneric (once with 
+{ This tests that the two specializations of TUsedGeneric (once with
   TGeneric<LongInt>.TSubType and once with TGeneric<Pointer>.TSubType)  inside
   TGeneric are unique }
 

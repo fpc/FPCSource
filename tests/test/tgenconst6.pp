@@ -13,8 +13,8 @@ type
 
 function TList<T; U>.capacity: integer;
 begin
-	result := U;	
-end;	
+	result := U;
+end;
 
 var
 	nums:TList<integer,16>;

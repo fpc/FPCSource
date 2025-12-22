@@ -10,7 +10,7 @@ var
 
 // To compile in Delphi
 {$IFNDEF FPC}
-type 
+type
   pinteger = ^integer;
   pbyte = ^byte;
 {$ENDIF}

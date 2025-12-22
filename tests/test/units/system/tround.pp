@@ -84,9 +84,9 @@ Begin
     _success:=false;
   i64:=round(VALUE_LARGE);
   if i64<>RESULT_LARGE then
-    _success:=false; 
- 
- 
+    _success:=false;
+
+
   r:=VALUE_HUGE;
   if round(r)<>RESULT_HUGE then
     _success:=false;
@@ -102,7 +102,7 @@ Begin
   i64:=round(VALUE_HUGE);
   if i64<>RESULT_HUGE then
     _success:=false;
- 
+
   if not _success then
    fail;
  WriteLn('Success!');
@@ -213,9 +213,9 @@ Begin
     _success:=false;
   i64:=round(VALUE_LARGE);
   if i64<>RESULT_LARGE then
-    _success:=false; 
- 
-  
+    _success:=false;
+
+
   r:=VALUE_HUGE;
   if round(r)<>RESULT_HUGE then
     _success:=false;

@@ -77,7 +77,7 @@ Var
   linklibc,
   linklibgcc  : boolean;
   found1,
-  found2   : boolean;    
+  found2   : boolean;
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
@@ -123,8 +123,8 @@ begin
      if librarysearchpath.FindFile('crtmain.o',false,s) then
       LinkRes.AddFileName(s);
    end;
-   
-   
+
+
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
@@ -187,7 +187,7 @@ begin
      begin
       LinkRes.Add('-lc');
      end;
-     
+
    end
   else
    begin
@@ -210,7 +210,7 @@ begin
          LinkRes.AddFileName(s1);
         LinkRes.Add(')');
       end;
-   end;   
+   end;
   if linklibc then
    begin
      found2:=librarysearchpath.FindFile('ecrtn.o',false,s2);
@@ -221,7 +221,7 @@ begin
          LinkRes.AddFileName(s2);
         LinkRes.Add(')');
       end;
-   end;   
+   end;
   with linkres do
    begin
     add('/*');
@@ -529,8 +529,8 @@ begin
     add('PROVIDE(__ipcbufferHi = __ipcbufferHi);');
     add('PROVIDE(__gxregs = __gxregs);');
    end;
-   
-   
+
+
 { Write and Close response }
   linkres.writetodisk;
   linkres.free;
@@ -584,12 +584,12 @@ begin
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
-   
+
 { Post process }
 
-  if success then 
+  if success then
    begin
-    success:=DoExec(FindUtil('elf2dol'),ChangeFileExt(current_module.exefilename,'.elf')+' '+ 
+    success:=DoExec(FindUtil('elf2dol'),ChangeFileExt(current_module.exefilename,'.elf')+' '+
      current_module.exefilename,true,false);
    end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }

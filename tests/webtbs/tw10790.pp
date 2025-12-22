@@ -10,7 +10,7 @@ type
    TMyClass = class
       constructor Create;
    end;
-    
+
 constructor TMyClass.Create;
 begin
    Fail;

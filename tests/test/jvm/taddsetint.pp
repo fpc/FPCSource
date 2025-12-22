@@ -88,7 +88,7 @@ type
          A_FRESTORE,A_FSAVE,A_PFLUSH,A_PFLUSHA,A_PLOAD,A_PMOVE,A_PTEST,
          { Useful for assembly langage output }
          A_LABEL,A_NONE);
-         
+
          tsmallenumint = ord(low(tsmallenum))..ord(high(tsmallenum));
          tasmopint = ord(low(tasmop))..ord(high(tasmop));
 

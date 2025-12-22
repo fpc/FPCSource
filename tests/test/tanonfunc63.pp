@@ -4,7 +4,7 @@ program tanonfunc63;
 {$modeswitch anonymousfunctions}
 {$modeswitch functionreferences}
 
-{ test anonymous methods with extremely long symbol names 
+{ test anonymous methods with extremely long symbol names
 
   similar to tanonfunc24 but mode delphi
 }

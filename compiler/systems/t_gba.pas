@@ -74,12 +74,12 @@ Var
   i        : longint;
   HPath    : TCmdStrListItem;
   s,s1,s2  : TCmdStr;
-  prtobj, 
+  prtobj,
   cprtobj  : string[80];
   linklibc,
   linklibgcc : boolean;
   found1,
-  found2   : boolean;  
+  found2   : boolean;
 begin
   s:='';
   WriteResponseFile:=False;
@@ -129,8 +129,8 @@ begin
      if librarysearchpath.FindFile('crtbegin.o',false,s) then
       LinkRes.AddFileName(s);
    end;
-   
-  
+
+
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
@@ -193,7 +193,7 @@ begin
      begin
       LinkRes.Add('-lc');
      end;
-    
+
    end
   else
    begin
@@ -216,7 +216,7 @@ begin
          LinkRes.AddFileName(s1);
         LinkRes.Add(')');
       end;
-   end;   
+   end;
   if linklibc then
    begin
      found2:=librarysearchpath.FindFile('crtn.o',false,s2);
@@ -227,8 +227,8 @@ begin
          LinkRes.AddFileName(s2);
         LinkRes.Add(')');
       end;
-   end;   
-   
+   end;
+
   with linkres do
     begin
       add('/* Linker Script Original v1.3 by Jeff Frohwein     */');
@@ -603,7 +603,7 @@ begin
         current_module.exefilename,true,false);
     end;
 
-  if success then 
+  if success then
     begin
       success:=DoExec(FindUtil('gbafix'), current_module.exefilename,true,false);
     end;

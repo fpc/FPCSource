@@ -1,15 +1,15 @@
 // Multiline string, 5 quotes, less quotes are preserved in the string
 {$mode objfpc}
-const 
+const
   s = '''''
   this
   is
   a '''multiline'''
   string
   ''''';
-  
+
   stest = 'this'+sLineBreak+'is'+slinebreak+'a ''''''multiline'''''''+sLineBreak+'string';
-  
+
 begin
   if not (s=stest) then
     begin

@@ -37,7 +37,7 @@ type
 
 var
  tr1,tr2: testrecty;
- 
+
 begin
  tr1.str:= 'abc';
  tr1.int:= 0;

@@ -164,12 +164,12 @@ Function TLaTeXWriter.SplitLine (ALine : String): String;
 
   Const
     NonSplit = ['a'..'z','A'..'Z','0'..'9','_'];
-   
+
    Var
      L,I : integer;
      C : PChar;
      InString : Boolean;
-    
+
   begin
      Result:=0;
      L:=Length(S);
@@ -195,11 +195,11 @@ Function TLaTeXWriter.SplitLine (ALine : String): String;
      If (Result=0) or (Result=1) then
        Result:=L+1;
    end;
-   
+
 Var
-  SP : Integer;   
+  SP : Integer;
   L : String;
-   
+
 begin
   Result:='';
   While (Aline<>'') do
@@ -224,7 +224,7 @@ begin
     begin
     if (MaxVerbatimLength=0) or (length(S)<=MaxVerbatimLength) then
       Result:=S
-    else 
+    else
       Result:=SplitLine(S);
     end
   else
@@ -255,7 +255,7 @@ begin
     If not (S[i] in ['&','{','}','#','_','$','%','''','~','^', '\']) then
       Result := Result + S[i]
     else
-      Result:=result+'!'  
+      Result:=result+'!'
 end;
 
 
@@ -299,13 +299,13 @@ begin
   Write('}');
 end;
 
-procedure TLaTeXWriter.DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString); 
+procedure TLaTeXWriter.DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString);
 
 Var
   FN : String;
   L : Integer;
   S : String;
-  
+
 begin
   Writeln('\begin{figure}[ht]%');
   Writeln('\begin{center}');
@@ -819,7 +819,7 @@ Resourcestring
   SLatexVerbatimLengthDocs = 'Specify maximum line length for verbatim environments (default 64).';
   SLatexImageDirDocs = 'Specify the directory where the images are stored.';
 
-class procedure TLaTeXWriter.Usage(List: TStrings); 
+class procedure TLaTeXWriter.Usage(List: TStrings);
 
 begin
   Inherited;

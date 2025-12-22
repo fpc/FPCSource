@@ -58,7 +58,7 @@ var
     // put: arg #0 is value, arg #1 is index (in Delphi: vice-versa)
     // get: arg #0 is index
     if desc^.calldesc.argtypes[ord(cur_calltype=4)] <> cur_argtype then
-      halt(6);  
+      halt(6);
     if cur_calltype=4 then
     begin
       if desc^.calldesc.argcount <> 2 then

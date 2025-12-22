@@ -43,7 +43,7 @@ unit cgrv;
         procedure a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference); override;
         procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize; reg: tregister; const ref: treference); override;
         procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
-        procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; register: tregister); override;            
+        procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; register: tregister); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -204,7 +204,7 @@ unit cgrv;
     procedure tcgrv.a_bit_scan_reg_reg(list: TAsmList; reverse,not_zero: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       begin
         internalerror(2016060401);
-      end;       
+      end;
 
 
     procedure tcgrv.a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister);
@@ -546,12 +546,12 @@ unit cgrv;
             list.concat(taicpu.op_reg_reg_const(A_ADDI,r,href.base,href.offset));
           end
         else if (href.refaddr=addr_pcrel) then
-          begin                     
+          begin
             tmpreg:=getintregister(list,OS_ADDR);
 
             b:=href.base;
             href.base:=NR_NO;
-                                        
+
             current_asmdata.getjumplabel(l);
             a_label(list,l);
 
@@ -567,7 +567,7 @@ unit cgrv;
           end
         else
           internalerror(2016060504);
-      end;                
+      end;
 
 
     procedure tcgrv.a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
@@ -634,7 +634,7 @@ unit cgrv;
       begin
         {reference_reset_symbol(href,l,0,0);
 
-        tmpreg:=getintregister(list,OS_ADDR);    
+        tmpreg:=getintregister(list,OS_ADDR);
 
         current_asmdata.getjumplabel(l);
         a_label(list,l);
@@ -701,7 +701,7 @@ unit cgrv;
                     inc(localsize,sizeof(pint));
                   end;
               end;
-               
+
             reference_reset_base(href,NR_STACK_POINTER_REG,stackcount,ctempposinvalid,0,[]);
 
             stackAdjust:=0;
@@ -802,11 +802,11 @@ unit cgrv;
                 postcompensation:=localsize-precompensation;
               end
             else
-              begin            
+              begin
                 precompensation:=0;
                 postcompensation:=localsize;
               end;
-            
+
             reference_reset_base(href,NR_STACK_POINTER_REG,postcompensation-stacksize,ctempposinvalid,0,[]);
 
             if precompensation>0 then
@@ -1071,7 +1071,7 @@ unit cgrv;
         tmpreg: TRegister;
       begin
         href:=ref;
-        fixref(list,href);    
+        fixref(list,href);
 
         if href.refaddr=addr_pcrel then
           begin
@@ -1177,7 +1177,7 @@ unit cgrv;
           end
         else if (ref.index=NR_NO) and
                 (ref.base=NR_NO) then
-          begin              
+          begin
             tmpreg:=getintregister(list,OS_INT);
 
             a_load_const_reg(list, OS_ADDR,ref.offset,tmpreg);

@@ -22,7 +22,7 @@ type
    mov Self.Data1,1234
    mov Self.Data2,5678
  end;
- 
+
  function TTest.Getter1: TTest; assembler;
  asm
    mov eax,Self.Data1
@@ -30,8 +30,8 @@ type
    mov eax,Self.Data2
    mov result.Data2, eax
  end;
- 
- 
+
+
  function TTest.Getter2: TTest; assembler;
  asm
    mov  eax,Self.Data1
@@ -39,10 +39,10 @@ type
    mov  eax,Self.Data2
    mov  @result.Data2, eax
  end;
- 
+
  var
    testobj, testobj2: TTest;
- 
+
  begin
    testobj.Setter;
    testobj2:=testobj.Getter1;
@@ -53,4 +53,4 @@ type
      Halt(2);
    writeln('ok');
  end.
- 
+

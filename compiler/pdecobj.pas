@@ -1715,7 +1715,7 @@ implementation
               end
             else
               olddef:=nil;
-              
+
             { if set explicitly, apply $RTTI directive to current object }
             if current_module.rtti_directive.clause<>rtc_none then
               current_structdef.apply_rtti_directive(current_module.rtti_directive)

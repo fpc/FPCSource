@@ -9,4 +9,4 @@ uses
 begin
   if f<>'asdfasdf' then
     halt(1);
-end.         
+end.

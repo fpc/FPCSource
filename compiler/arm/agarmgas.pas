@@ -58,7 +58,7 @@ unit agarmgas;
       gas_shiftmode2str : array[tshiftmode] of string[3] = (
         '','lsl','lsr','asr','ror','rrx');
 
-    const 
+    const
       cputype_to_gas_march : array[tcputype] of string = (
         '', // cpu_none
         'armv2',

@@ -70,7 +70,7 @@ end;
 
 procedure TLTimer.CallAction;
 begin
-  if FEnabled and Assigned(FOnTimer) and (Now - FStarted >= FInterval) then 
+  if FEnabled and Assigned(FOnTimer) and (Now - FStarted >= FInterval) then
   begin
     FOnTimer(Self);
     if not FOneShot then

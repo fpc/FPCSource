@@ -57,7 +57,7 @@ begin
   if s <> 'test file.' then
     Fail('Invalid resource loaded.');
   writeln(s);
-  
+
   //italian, exact match
   p:=GetResource('FILE','TestFile', MakeLangID(LANG_ITALIAN,SUBLANG_ITALIAN), @sz);
   SetString(s, p, sz);

@@ -51,7 +51,7 @@ Type
     property nextitem : integer read fnextitem;
     property previous : TEnvironment read fprevious;
   end;
-  
+
 
 type
 

@@ -21,7 +21,7 @@ end;
 
 procedure c2.SetFont(l: longint);
 begin
-  inherited font := l;  
+  inherited font := l;
 end;
 
 var

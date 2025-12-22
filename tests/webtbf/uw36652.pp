@@ -13,7 +13,7 @@ implementation
 
 procedure TClassA.DoThis;
 begin
-  
+
 end;
 
 end.

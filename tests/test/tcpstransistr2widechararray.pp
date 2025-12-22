@@ -21,8 +21,8 @@ uses
   cpall,
  {$endif}
   sysutils;
-  
-type  
+
+type
   ts850 = type AnsiString(850);
 
   procedure doerror(ANumber : Integer);

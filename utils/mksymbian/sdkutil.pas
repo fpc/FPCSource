@@ -78,7 +78,7 @@ var
   BufferStr: string;
 begin
   Reg := TRegistry.Create;
- 
+
   try
     Reg.RootKey := HKEY_LOCAL_MACHINE;
     if Reg.OpenKey('\SOFTWARE\Symbian\UIQ\SDK\UIQ3SDK', False) then

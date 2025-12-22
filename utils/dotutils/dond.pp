@@ -3,7 +3,7 @@
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
     Tool to lowercase values in a Name=Value lisst.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

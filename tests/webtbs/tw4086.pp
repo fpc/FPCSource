@@ -16,7 +16,7 @@ type
  itest = interface
   procedure testproc;
  end;
- 
+
  ttestclass1 = class(tobject,itest)
   public
    function queryinterface(constref guid: tguid; out obj): hresult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
@@ -29,7 +29,7 @@ type
   public
    intf: pointer;
  end;
- 
+
 { ttestclass1 }
 
 function ttestclass1.queryinterface(constref guid: tguid; out obj): hresult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};

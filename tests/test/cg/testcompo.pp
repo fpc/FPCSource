@@ -25,7 +25,7 @@
 
 {$mode objfpc}
 
-const 
+const
   NR_NO=0;
   NR_EVAL_STACK_BASE=$55443322;
   NR_STACK_POINTER_REG=$55010101;
@@ -128,7 +128,7 @@ const
       first:=nil;
       last:=nil;
     end;
- 
+
   procedure tasmlist.concat(next : tai);
     begin
       if not assigned(first) then
@@ -180,7 +180,7 @@ const
 
    procedure thlcgjvm.a_cmp_ref_reg_label(list: TAsmList; size: tdef; cmp_op: topcmp; const ref: treference; reg: tregister; l: tasmlabel);
     var
-      extraslots : longint; 
+      extraslots : longint;
     begin
       writeln('a_cmp_ref_reg_label');
       a_load_reg_stack(list,size,reg);
@@ -302,10 +302,10 @@ begin
   l:=tasmlabel.create;
   size:=torddef.create;
   size.size:=1;
-  size.high:=255; 
+  size.high:=255;
   voidpointertype:=torddef.create;
   voidpointertype.size:=sizeof(ptrint);
-  voidpointertype.high:=TCGInt(high(ptrint)); 
+  voidpointertype.high:=TCGInt(high(ptrint));
   hlcg:=thlcgjvm.create;
   hlcg.a_cmp_ref_reg_label(list,size, cmp_op, ref, reg, l);
   writeln('End of test, number of test: ',test_count);

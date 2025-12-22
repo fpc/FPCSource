@@ -602,7 +602,7 @@ const
                tmpreg := getintregister(list, OS_INT);
                list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
                list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
-             end;       
+             end;
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
          end;

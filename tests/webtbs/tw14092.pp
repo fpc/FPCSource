@@ -5,7 +5,7 @@ type
   iintf = interface(IUnknown)
     function GetIntf :iintf;
     procedure DoSomething;
-  end; 
+  end;
 
   tobj = class(TObject)
     fintf: iintf;
@@ -33,10 +33,10 @@ function tintf.GetIntf : iintf;
   begin
     result:=self;
   end;
-  
+
 var
   refs : Integer;
-  
+
 procedure tintf.DoSomething;
   begin
     if RefCount<>refs then
@@ -55,4 +55,4 @@ begin
   obj.test2;
   obj.free;
   writeln('ok');
-end.                      
+end.

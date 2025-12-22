@@ -3,7 +3,7 @@ var R: bitpacked record
     end;
 begin
     R.A := true;
-    R.B := false;    
+    R.B := false;
     if not R.B then
       writeln('ok')
     else

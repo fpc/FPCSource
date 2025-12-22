@@ -6,9 +6,9 @@ type
   TRgb = record
     R,G,B : Byte;
   end;
-  
+
   TRgbArray = array of TRgb;
-  
+
   TSomeClass = class
     a: TRgbArray;
     function GetP(Index : integer) : Pointer;
@@ -16,7 +16,7 @@ type
   public
     property P[Index: Integer]: Pointer read GetP;
   end;
-  
+
 var a : TRgbArray;
     c : TSomeClass;
 
@@ -35,7 +35,7 @@ function TSomeClass.GetP(Index : integer) : Pointer;
 begin
   result := pointer(a);
 end;
-    
+
 begin
   c := TSomeClass.Create;
   a := TRgbArray(c.P[1]); // Fatal: Internal error 2006111510

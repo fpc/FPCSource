@@ -18,4 +18,4 @@ begin
   if count<>2 then
     halt(1);
   Map.Free;
-end. 
+end.

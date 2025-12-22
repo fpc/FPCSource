@@ -43,7 +43,7 @@ begin
 
   try
     vCmdLine.ParseCmdLineOptions(opts);
-    
+
     vCompiler.opts := opts;
     vProject.opts := opts;
 
@@ -52,9 +52,9 @@ begin
       stBuildApp:
       begin
         vProject.ParseFile;
-        
+
         { compilation }
-        
+
         if CompareText(vProject.Language, STR_OPT_Cpp) = 0 then
          vCompiler.MakeBuildCpp
         else
@@ -63,13 +63,13 @@ begin
         if vSDKUtil.SDKVersion = sdkUIQ3 then
         begin
           { Main resource file }
-        
+
           vCompiler.BuildResource(vProject.MainResource);
 
           vCompiler.InstallResource(vProject.MainResource);
 
           { Registration resource file }
-        
+
           vCompiler.BuildResource(vProject.RegResource);
 
           vCompiler.RegisterInEmulator;
@@ -83,7 +83,7 @@ begin
         vCompiler.MakeBuildBindings;
       end;
     end;
-    
+
   finally
     vCmdLine.Free;
     vSDKUtil.Free;

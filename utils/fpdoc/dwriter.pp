@@ -74,7 +74,7 @@ type
 
   TWriterLogEvent = Procedure(Sender : TObject; Const Msg : String) of object;
   TWriterNoteEvent = Procedure(Sender : TObject; Note : TDomElement; Var EmitNote : Boolean) of object;
-  
+
   { TFPDocWriter }
 
   TFPDocWriter = class
@@ -131,7 +131,7 @@ type
     procedure DescrEndUnderline; virtual; abstract;
     procedure DescrBeginEmph; virtual; abstract;
     procedure DescrEndEmph; virtual; abstract;
-    procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; 
+    procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual;
     procedure DescrWriteFileEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteKeywordEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteVarEl(const AText: DOMString); virtual; abstract;
@@ -809,7 +809,7 @@ begin
     end;
 end;
 
-  
+
 procedure TMultiFileDocWriter.AllocatePackagePages;
 
 Var
@@ -1060,7 +1060,7 @@ var
   I,L: Integer;
   S: DOMString;
   P : PWideChar;
-  
+
 begin
   S := Node.Data;
   Result := True;
@@ -1347,7 +1347,7 @@ end;
 
 function IsContentNodeType(Node: TDOMNode): Boolean;
 begin
-  Result := (Node.NodeType = ELEMENT_NODE) or 
+  Result := (Node.NodeType = ELEMENT_NODE) or
     ((Node.NodeType = TEXT_NODE) and not IsWhitespaceNode(TDOMText(Node))) or
     (Node.NodeType = ENTITY_REFERENCE_NODE);
 end;
@@ -1608,7 +1608,7 @@ begin
     begin
       El := TDOMElement(Node);
       hlp:=AContext;
-      while assigned(hlp) and not (hlp is TPasModule) do 
+      while assigned(hlp) and not (hlp is TPasModule) do
         hlp:=hlp.parent;
       if not (hlp is TPasModule) then
         hlp:=nil;
@@ -2128,7 +2128,7 @@ begin
     ConvertImage(Node as TDomElement);
     Result:=True;
     end;
-  end else  
+  end else
     Result := False;
 end;
 

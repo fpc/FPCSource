@@ -351,10 +351,10 @@ unit cpubase;
         );
       begin
         result := inverse[c];
-      end;      
+      end;
       function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        { the register table for MIPS cpu only contains 
+        { the register table for MIPS cpu only contains
           R_SUBFS and R_SUBD register types.
           This function is called by dbgstabs unit,
           here were are only interested in register,

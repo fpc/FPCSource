@@ -16,7 +16,7 @@ initialization
 finalization
 {$ifndef wince}
   writeln('Unit 1'); // problem
-  writeln('finalization'); 
+  writeln('finalization');
 {$endif wince}
   assign(t,'uw6822a.txt');
   rewrite(t);

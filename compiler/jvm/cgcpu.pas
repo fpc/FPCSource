@@ -125,5 +125,5 @@ implementation
       begin
         cg:=tcgjvm.Create;
       end;
-      
+
 end.

@@ -9,7 +9,7 @@ type
 	TEnums = (Blaise, Pascal);
 	kNames = set of TEnums;
 	kChars = set of char;
- 
+
 type
 	generic TBoolean<const U: boolean> = record end;
 	generic TString<const U: string> = record end;

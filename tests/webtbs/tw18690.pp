@@ -4,13 +4,13 @@ Procedure AllocFreeGiB;
     RequestedSize: ptruint;
   Begin
     Writeln('-----------------------------');
-    RequestedSize:=high(ptruint); // n GiB - 1  
-    Writeln('RequestedSize = ',RequestedSize,' bytes');  
-    getmem(p,RequestedSize);    
+    RequestedSize:=high(ptruint); // n GiB - 1
+    Writeln('RequestedSize = ',RequestedSize,' bytes');
+    getmem(p,RequestedSize);
     if (p<>nil) then
       halt(1);
-  End; 
-    
+  End;
+
 Begin
   ReturnNilIfGrowHeapFails:=true;
   AllocFreeGiB;

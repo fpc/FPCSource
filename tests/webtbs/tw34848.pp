@@ -3,7 +3,7 @@ program mytest;
 
 procedure my_test1;
 type byte_file = file of byte;
-   
+
 var test_file : byte_file;
    test_text  : text;
    loc	      : integer;

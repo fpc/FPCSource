@@ -24,7 +24,7 @@ begin
       { Any invalid fp operation. Tested on Sqrt(-10.0), Ln(-10.0).
         I use variable X to trick FPC into calculating this at run-time,
         otherwise "Error: Illegal constant passed to internal math function". }
-      Y := Sqrt(X);      
+      Y := Sqrt(X);
       ClearExceptions(false);
     except
       Writeln('silenced exception');

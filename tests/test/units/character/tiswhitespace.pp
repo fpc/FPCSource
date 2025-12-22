@@ -4,32 +4,32 @@ program tiswhitespace;
   {$mode objfpc}
   {$H+}
   {$PACKENUM 1}
-{$endif fpc} 
+{$endif fpc}
 
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   unicodedata,character;
-    
+
 {$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
+  type UnicodeChar = WideChar;
+{$endif}
 
 procedure DoError(ACode : Integer); overload;
 begin
   WriteLn('Error #',ACode);
   Halt(Acode);
-end;         
-    
+end;
+
 procedure DoError(ACode : Integer; ACodePoint : Integer); overload;
 begin
   WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(ACodePoint,4));
   Halt(Acode);
-end;          
-    
+end;
+
 procedure DoError(ACode : Integer; ACodePoint : UnicodeChar); overload;
 begin
   WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(Ord(ACodePoint),4));
@@ -75,7 +75,7 @@ end;
 var
   e, i , k: Integer;
   uc : UnicodeChar;
-begin  
+begin
   e := 1;
   { According to:
     https://en.wikipedia.org/wiki/Unicode_character_property

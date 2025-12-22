@@ -1576,7 +1576,7 @@ begin
     WriteLn('    -- test 1 - ok',sLineBreak);
 
   // --- test 2
-  sequence := sequenceClean.Clone();  
+  sequence := sequenceClean.Clone();
   statement.Clear();
   SetLength(statement.Reset,0);
   SetLength(statement.Elements,1);
@@ -5899,7 +5899,7 @@ begin
     Check(Length(typ.Rules)>0, 'one.Rules <> nil');
     Clear(locStatement);
     Check(ParseSingleStatement('&h<z<b',locStatement));
-    Check((locStatement.Kind = TStatementKind.Sequence));  
+    Check((locStatement.Kind = TStatementKind.Sequence));
     Check(typ.Rules[0].Kind=TCldrCollationRuleKind.ReorderSequence);
     CheckEqual(locStatement.ReorderSequence,typ.Rules[0].Reorder);
     WriteLn('  - Step 6 ok');
@@ -5915,7 +5915,7 @@ begin
         Length(locStatementList)
       ) = c
     );
-    for i := 0 to c-1 do begin                 
+    for i := 0 to c-1 do begin
       Check(typ.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence);
       CheckEqual(locStatementList[i],typ.Rules[i].Reorder);
     end;
@@ -5929,7 +5929,7 @@ begin
     Check(Length(typ.Rules)>0, 'standard.Rules <> nil');
     Clear(locStatement);
     Check(ParseSingleStatement('&d<c<b<a',locStatement));
-    Check((locStatement.Kind = TStatementKind.Sequence));  
+    Check((locStatement.Kind = TStatementKind.Sequence));
     Check(typ.Rules[0].Kind=TCldrCollationRuleKind.ReorderSequence);
     CheckEqual(locStatement.ReorderSequence,typ.Rules[0].Reorder);
     WriteLn('  - Step 8 ok');
@@ -5988,7 +5988,7 @@ begin
         @locStatementList[0],
         Length(locStatementList)
       ) = c
-    ); 
+    );
     Check((typ.Rules[0].Kind=TCldrCollationRuleKind.Import),'typ.Rules[0].Kind=Import');
     for i := 0 to c-1 do begin
       Check((typ.Rules[i+1{Import}].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[i+1{Import}].Kind=ReorderSequence');
@@ -6019,7 +6019,7 @@ begin
     typ := col.Find('one');
     locData.ActualLengh := 0;
     Check(ForEachRule(typ,@CopyVisitorFunc,@locData), 'ForEachRule(one) - 1');
-    Check(locData.ActualLengh = 1, 'ForEachRule(one) - 2');  
+    Check(locData.ActualLengh = 1, 'ForEachRule(one) - 2');
     Check((typ.Rules[0].Kind=TCldrCollationRuleKind.ReorderSequence),'typ.Rules[0].Kind=ReorderSequence');
     CheckEqual(locData.Data[0],typ.Rules[0].Reorder);
     WriteLn('  - Step 1 ok');
@@ -6050,7 +6050,7 @@ begin
     end;
     c := c+Length(xtyp.Rules);
     xtyp := col.Find('one');
-    for i := 0 to Length(xtyp.Rules)-1 do begin 
+    for i := 0 to Length(xtyp.Rules)-1 do begin
       Check((xtyp.Rules[i].Kind=TCldrCollationRuleKind.ReorderSequence),'xtyp.Rules[i].Kind=ReorderSequence');
       CheckEqual(locData.Data[c+i],xtyp.Rules[i].Reorder);
     end;

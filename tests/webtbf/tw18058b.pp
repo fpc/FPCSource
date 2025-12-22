@@ -31,7 +31,7 @@ type
     constructor Create;
     procedure M1;
 
-     
+
     property I2:IIntf2 read FObjIntf2 implements IIntf2;
 
     // method resolution after delegation, forbidden

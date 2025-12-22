@@ -67,5 +67,5 @@ begin
     begin
       WriteLn('Test Failure!');
       halt(1);
-    end;  
+    end;
 end.

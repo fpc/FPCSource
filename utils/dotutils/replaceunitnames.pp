@@ -4,7 +4,7 @@
 
     Replace hardcoded unit names xyz in a makefile by a variable XYZUNIT.
     (see genunitnames for how to create the variables)
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

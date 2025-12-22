@@ -154,7 +154,7 @@ implementation
 
     procedure tcpuprocinfo.postprocess_code;
       begin
-        
+
         fixup_jmps(aktproccode);
 
         if init_settings.cputype = cpu_mips1 then resolveReadAfterWrite(aktproccode);

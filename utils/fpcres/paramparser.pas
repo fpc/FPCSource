@@ -3,7 +3,7 @@
     FPCRes - Free Pascal Resource Converter
     Part of the Free Pascal distribution
     Copyright (C) 2008 by Giulio Bernardi
-    
+
     Handles the parsing of parameters
 
     See the file COPYING, included in this distribution,
@@ -266,7 +266,7 @@ begin
       exit;
     end;
   end;
-  
+
   raise EUnknownObjFormatException.Create(tmp);
 
 end;

@@ -7,7 +7,7 @@ interface
 Uses
   SysUtils,Classes,tcstreaming,fpcunit, testregistry;
 
-Type 
+Type
 
 { TTestComponentStream }
 

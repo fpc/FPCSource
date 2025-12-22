@@ -8,54 +8,54 @@
 {$define underscoreprefix}
 {$endif}
 
-var  
-  curterm1 : integer =1 ;  
- 
-  curterm2 : integer =2 ; cvar;  
- 
+var
+  curterm1 : integer =1 ;
+
+  curterm2 : integer =2 ; cvar;
+
  // these three are truly external -> no init is possible.
 
-  curterm3 : integer  ; cvar; external;  
+  curterm3 : integer  ; cvar; external;
 {$ifdef underscoreprefix}
-  curterm4 : integer  ; external name '_curterm4b';    
+  curterm4 : integer  ; external name '_curterm4b';
 {$ifdef unix}
  {$ifdef darwin}
   {Êon darwin, dll-vars always get the c-prefix, because otherwise
     you run into trouble because e.g. global symbols cannot start
     with 'L' (such symbols are always interpreted as local symbols
   }
-  curterm5 : integer  ; external 'libc' name 'curterm5b';  
+  curterm5 : integer  ; external 'libc' name 'curterm5b';
  {$else darwin}
-  curterm5 : integer  ; external 'libc' name '_curterm5b';  
+  curterm5 : integer  ; external 'libc' name '_curterm5b';
  {$endif}
- 
+
 {$endif}
 {$else underscoreprefix}
-  curterm4 : integer  ; external name 'curterm4b';    
+  curterm4 : integer  ; external name 'curterm4b';
 {$ifdef unix}
   { on windows, this would actually search in libc.dll }
-  curterm5 : integer  ; external 'libc' name 'curterm5b';  
+  curterm5 : integer  ; external 'libc' name 'curterm5b';
 {$endif}
 {$endif underscoreprefix}
- 
- 
-  curterm7 : integer =7 ; cvar;  export;  
-  curterm8 : integer =8 ; cvar;  public;  
+
+
+  curterm7 : integer =7 ; cvar;  export;
+  curterm8 : integer =8 ; cvar;  public;
 {$ifdef underscoreprefix}
-  curterm9 : integer =9 ; export name '_me';  
-  curterm10 : integer =10 ; public name '_ma';  
+  curterm9 : integer =9 ; export name '_me';
+  curterm10 : integer =10 ; public name '_ma';
 {$else underscoreprefix}
-  curterm9 : integer =9 ; export name 'me';  
-  curterm10 : integer =10 ; public name 'ma';  
+  curterm9 : integer =9 ; export name 'me';
+  curterm10 : integer =10 ; public name 'ma';
 {$endif underscoreprefix}
- 
+
   curterm11 : integer =11 ;
 
 // some declarations to make it compile in theory
 
 
  { the cvar modifier makes sure the c-prefix gets added if necessary }
- curterm3b : integer = 3; cvar ; export name 'curterm3';  
+ curterm3b : integer = 3; cvar ; export name 'curterm3';
  curterm4b :integer = 4; cvar; export;
 {$ifdef unix}
  curterm5b :integer = 5; cvar; export;

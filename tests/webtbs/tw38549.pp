@@ -89,7 +89,7 @@ procedure add_error;
 begin
   writeln('New error');
   inc(error_count);
-end; 
+end;
 
 procedure test(tableoptions : tsymtableoptions; expected : boolean);
 begin

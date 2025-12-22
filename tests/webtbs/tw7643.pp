@@ -11,7 +11,7 @@ type
     i1,i2 : longint;
   end;
   pr=^tr;
-  
+
 procedure TDummy.Method;
 begin
 end;
@@ -29,5 +29,5 @@ begin
 {  Dummy := nil;
   DoSomething(@Dummy.Method);}
   DoSomething(@TDummy(nil).Method);
-  
+
 end.

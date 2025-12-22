@@ -67,7 +67,7 @@ implementation
 constructor TProject.Create;
 begin
   inherited Create;
-  
+
   ObjectFiles := TStringList.Create;
 end;
 
@@ -114,7 +114,7 @@ begin
     MainSourceObj := ChangeFileExt(MainSource, STR_OBJECT_EXT);
     MainResource := IniFile.ReadString(STR_PRJ_Files, STR_PRJ_MainResource, 'default.rss');
     RegResource :=  IniFile.ReadString(STR_PRJ_Files, STR_PRJ_RegResource, 'default_reg.rss');
-    
+
     IniFile.ReadSection(STR_PRJ_Objects, ObjectFiles);
   finally
     IniFile.Free;

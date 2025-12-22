@@ -11,8 +11,8 @@ type
   public
     Value: Integer;
   end;
-  
-var 
+
+var
   C: TCollection;
 begin
  C := TCollection.Create(TBoxedInt);
@@ -30,7 +30,7 @@ begin
     TBoxedInt(C.Items[3]).Value, ' ',
     TBoxedInt(C.Items[4]).Value, ' ',
     TBoxedInt(C.Items[5]).Value);}
-  Assert( 
+  Assert(
     (TBoxedInt(C.Items[0]).Value = 4) and
     (TBoxedInt(C.Items[1]).Value = 1) and
     (TBoxedInt(C.Items[2]).Value = 2) and

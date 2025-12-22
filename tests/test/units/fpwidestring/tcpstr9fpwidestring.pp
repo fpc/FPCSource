@@ -2,9 +2,9 @@
 program tcpstr9;
 {$mode delphiunicode}
 {$apptype console}
-uses 
+uses
   unicodeducet, fpwidestring;
-  
+
 begin
   // this test can be only run with the compiler built right now on the
   // same system

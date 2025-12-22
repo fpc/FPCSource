@@ -38,7 +38,7 @@ unit cgcpu;
         procedure done_register_allocators; override;
 
         { move instructions }
-        procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;     
+        procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; register: tregister); override;
 
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: aint); override;

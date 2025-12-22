@@ -356,7 +356,7 @@ begin
       end;
 
       //ip2Leb,  // memory arguments, ask for offset + align
-      ipJumpVec: 
+      ipJumpVec:
       begin
         while (sc.token in [weNumber, weIdent]) do begin
           if (ci.vecTableCount = length(ci.vecTable)) then begin

@@ -1,7 +1,7 @@
 { %fail }
 
 type
-MyObjType = object	
+MyObjType = object
  Field1 : String;
  Field2 : String;
  Field3 : String;

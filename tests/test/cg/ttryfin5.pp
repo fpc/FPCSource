@@ -68,7 +68,7 @@ begin
       except
         continue;
       end;
-    end;  
+    end;
   finally
     inc(counter);
   end;
@@ -89,7 +89,7 @@ begin
         if i=2 then
           break;
       end;
-    end; 
+    end;
     inc(counter);
   finally
     inc(counter);
@@ -113,12 +113,12 @@ begin
   test3;
   if counter<>2 then
     Halt(3);
-    
+
   counter:=0;
   test4;
   if counter<>4 then
     Halt(4);
-    
+
   counter:=0;
   test5;
   if counter<>5 then

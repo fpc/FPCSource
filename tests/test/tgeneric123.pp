@@ -12,8 +12,8 @@ type
   published
     property Data : T read FData;
   end;
-  
+
   TB = specialize myclass<text>;
-      
+
 begin
 end.  

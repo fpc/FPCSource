@@ -53,7 +53,7 @@ uses windows;
 { INSTRUCTIONS:
  *
  *	1) Stream requires a good bit of memory to run.  Adjust the
- *          value of 'N' (below) to give a 'timing calibration' of 
+ *          value of 'N' (below) to give a 'timing calibration' of
  *          at least 20 clock-ticks.  This will provide rate estimates
  *          that should be good to about 5% precision.
  }
@@ -310,7 +310,7 @@ var quantum:longint;
     j,k:longint;
     scalar,t:double;
     times:array[0..3,0..NTIMES-1] of double;
-    
+
 begin
     { --- SETUP --- determine precision and check timing --- }
     writeln(HLINE);
@@ -337,9 +337,9 @@ begin
       end;
 
     writeln(HLINE);
-    
+
     quantum:=checktick;
-    if quantum>=1 then 
+    if quantum>=1 then
       writeln('Your clock granularity/precision appears to be ',quantum,
 	          ' microseconds.')
     else
@@ -347,7 +347,7 @@ begin
               'less than one microsecond.');
 
     t:=mysecond;
-    for j:=0 to N-1 do 
+    for j:=0 to N-1 do
 	  a[j]:=2*a[j];
     t:=1E6*(mysecond-t);
 
@@ -363,7 +363,7 @@ begin
     writeln('For best results, please be sure you know the');
     writeln('precision of your system timer.');
     writeln(HLINE);
-    
+
     {	--- MAIN LOOP --- repeat test cases NTIMES times --- }
 
     scalar:=3;
@@ -377,7 +377,7 @@ begin
           c[j]:=a[j];
 {$endif}
         times[0,k]:=mysecond-times[0,k];
-	
+
         times[1,k]:=mysecond;
 {$ifdef TUNED}
         tuned_STREAM_Scale(scalar);
@@ -412,7 +412,7 @@ begin
           mintime[j]:=MIN(mintime[j], times[j,k]);
           maxtime[j]:=MAX(maxtime[j], times[j,k]);
         end;
-    
+
     writeln('Function      Rate (MB/s)   Avg time     Min time     Max time');
     for j:=0 to 3 do
       begin

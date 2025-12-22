@@ -18,10 +18,10 @@ begin
         begin
           X := ( J / 10 + K / 100 );
           Y := X + L / 1000;
-          
+
           if L >= 5 then
             X := X + 1 / 100;
-          
+
           if abs( SimpleRoundTo( Y, -2 ) - X ) > 0.005 then
             begin
               writeln( '0.', J, K, L, ' ', Y, SimpleRoundTo( Y, -2 ), Y:5:2 );

@@ -7,7 +7,7 @@ begin
   if defaultsystemcodepage=866 then
     setcodepage(rawbytestring(s1),1251,false)
   else
-    setcodepage(rawbytestring(s1),866,false); 
+    setcodepage(rawbytestring(s1),866,false);
   { if the destination is empty, insert must create a new string
     with the same code page as the source }
   Insert(s1, s2, 1);

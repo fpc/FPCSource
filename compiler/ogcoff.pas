@@ -585,7 +585,7 @@ implementation
          AddrNames,
          AddrOrds   : cardinal;
        end;
-       { MaybeSwap procedures 
+       { MaybeSwap procedures
        tcoffpedatadir = packed record
          vaddr : longword;
          size  : longword;
@@ -928,7 +928,7 @@ implementation
             v.AddrOrds:=SwapEndian(v.AddrOrds);
           end;
      end;
-  
+
      const
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;

@@ -788,7 +788,7 @@ implementation
              begin
                if tai_symbol(hp).has_value then
                  internalerror(2009090802);
-               { wasm is case insensitive, we need to use only uppercase version 
+               { wasm is case insensitive, we need to use only uppercase version
                  if both a lowercase and an uppercase version are provided }
                if (asminfo^.id = as_i386_wasm) then
                  begin

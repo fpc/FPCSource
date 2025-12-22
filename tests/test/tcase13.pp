@@ -14,7 +14,7 @@ begin
   my_str_ansi := 'cab';
   my_str_uni := 'cab';
   i := -1;
-  
+
   case my_str of
     'a'..'b': i := 1;
     'c'..'caa': i := 2;
@@ -26,7 +26,7 @@ begin
     writeln('Error');
     Halt(1);
   end;
-  
+
 
   case my_str_wide of
     'a'..'b': i := 1;
@@ -39,8 +39,8 @@ begin
     writeln('Error_wide ', i);
     Halt(1);
   end;
-  
-  
+
+
   case my_str_ansi of
     'a'..'b': i := 1;
     'c'..'caa': i := 2;
@@ -52,7 +52,7 @@ begin
     writeln('Error_ansi');
     Halt(1);
   end;
-  
+
 
   case my_str_uni of
     'aa': i := 1;

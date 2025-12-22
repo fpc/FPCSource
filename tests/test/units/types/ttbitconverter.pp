@@ -329,7 +329,7 @@ var
   str: AnsiString;
 begin
   arr := TArray<Byte>.Create(44, 44, 45, 67, 66);
-  
+
   str := TBitConverter.InTo<AnsiString>(arr, 0);
   writeln(str);
 

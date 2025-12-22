@@ -23,7 +23,7 @@ procedure IntToRomanTest(const testinteger: integer;
       exitCode := 1;
     end;
   end;
-  
+
 var
   i, value, digit, safedValue: integer;
   testinteger: integer;
@@ -76,7 +76,7 @@ begin
     value := value div 10;
     for i := 1 to value do
       teststring := 'M' + teststring;
-    
+
     IntToRomanTest(testinteger, teststring);
   end;
 
@@ -127,7 +127,7 @@ begin
     value := value div 10;
     for i := 1 to value do
       teststring := 'M' + teststring;
-    
+
     IntToRomanTest(safedValue, teststring);
   end;
 

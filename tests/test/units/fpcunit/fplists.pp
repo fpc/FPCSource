@@ -9,7 +9,7 @@ Type
     Next : TLinkedListItem;
   end;
   TLinkedListItemClass = Class of TLinkedListItem;
-  
+
   { TLinkedListVisitor }
 
   TLinkedListVisitor = Class
@@ -34,7 +34,7 @@ Type
     Property Count : Integer Read GetCount;
   end;
 
-Implementation  
+Implementation
 
 uses sysutils;
 

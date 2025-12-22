@@ -5,7 +5,7 @@ uses
 const
   result1 : array of SizeInt = (1, 4, 7, 10, 13, 16);
   result2 : array of SizeInt = (7, 9);
-var 
+var
   a : array of SizeInt;
   i : LongInt;
 begin

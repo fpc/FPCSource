@@ -1,7 +1,7 @@
 { %CPU=aarch64 }
 
-{$i tfma1.inc}  
-  
+{$i tfma1.inc}
+
 begin
   d1:=2;
   d2:=3;

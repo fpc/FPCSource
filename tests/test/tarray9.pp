@@ -1,6 +1,6 @@
 { %OPT=-gh }
 
-{ Test correct RTTI handling of open arrays with managed elements. 
+{ Test correct RTTI handling of open arrays with managed elements.
   When a part (slice or range) of array is passed as an out-parameter open array
   to a procedure, the entire array should NOT be finalized, only part that is actually passed should. }
 
@@ -16,7 +16,7 @@ begin
   for i := 0 to High(arr) do
   begin
     Pointer(arr[i]):=nil;            // if array initialization was correct, this will be a no-op
-                                     // otherwise, it will trigger a memory leak 
+                                     // otherwise, it will trigger a memory leak
     arr[i] := 'tested'+IntToStr(i);
   end;
 end;
@@ -49,7 +49,7 @@ begin
   begin
     sarr[i] := 'static'+IntToStr(i);
     darr[i] := 'dynamic'+IntToStr(i);
-  end;  
+  end;
 end;
 
 begin

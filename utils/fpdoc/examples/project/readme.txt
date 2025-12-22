@@ -6,5 +6,5 @@ That means that fpdoc must be executed from this directory:
 
 fpdoc --project=sample-project.xml
 
-The docs will be written to a subdirectory doc. 
+The docs will be written to a subdirectory doc.
 This directory can be deleted if it is no longer necessary.

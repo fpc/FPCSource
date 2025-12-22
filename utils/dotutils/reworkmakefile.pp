@@ -2,10 +2,10 @@
     This file is part of the Free Component Library
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
-    Rework makefile rules: 
+    Rework makefile rules:
     Replace hardcoded unit names xyz in a rule with variable XYZUNIT.
     (see genunitnames for how to create the variables)
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

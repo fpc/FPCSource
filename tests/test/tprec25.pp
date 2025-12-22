@@ -14,13 +14,13 @@
         f4: _64bits2;
         f5: _64bits3;
       end;
-     
+
     begin
-      writeln('bitsizeof(_62bits): ',bitsizeof(v2.f1)); 
-      writeln('bitsizeof(_63bits): ',bitsizeof(v2.f2)); 
-      writeln('bitsizeof(_64bits1): ',bitsizeof(v2.f3)); 
-      writeln('bitsizeof(_64bits2): ',bitsizeof(v2.f4)); 
-      writeln('bitsizeof(_64bits3): ',bitsizeof(v2.f5)); 
+      writeln('bitsizeof(_62bits): ',bitsizeof(v2.f1));
+      writeln('bitsizeof(_63bits): ',bitsizeof(v2.f2));
+      writeln('bitsizeof(_64bits1): ',bitsizeof(v2.f3));
+      writeln('bitsizeof(_64bits2): ',bitsizeof(v2.f4));
+      writeln('bitsizeof(_64bits3): ',bitsizeof(v2.f5));
 
 {$ifdef cpu64}
       if bitsizeof(v2.f1)<>62 then
@@ -35,4 +35,4 @@
       if bitsizeof(v2.f3)<>64 then
         halt(5);
     end.
-     
+

@@ -7,8 +7,8 @@ unit tw10736;
 interface
 
 uses
-  Classes, SysUtils; 
-  
+  Classes, SysUtils;
+
 type
 
   { TAbstractPage }

@@ -4,7 +4,7 @@ uses SysUtils;
 
 const
    val_format: string = '0.0000E+000';
-   
+
 var
    input: extended;
 

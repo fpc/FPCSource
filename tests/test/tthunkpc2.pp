@@ -11,10 +11,10 @@ Type
   generic IA<T> = Interface  ['{9457c0d1-4ae6-40e3-94c0-486439b30e4c}']
     Procedure methodA(a : T);
   end;
-  
-  IAS = Interface(specialize IA<String>) ['{9457c0d1-4ae6-40e3-94c0-486439b30e4d}'] 
+
+  IAS = Interface(specialize IA<String>) ['{9457c0d1-4ae6-40e3-94c0-486439b30e4d}']
   end;
- 
+
 implementation
 
 end. 

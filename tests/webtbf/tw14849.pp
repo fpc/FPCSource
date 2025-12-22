@@ -7,7 +7,7 @@ unit tw14849;
 
 interface
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 
 type
   TMarkerState=(leftActive,rightActive);
@@ -27,7 +27,7 @@ type
     { public declarations }
     { error: using function to index property }
     property xLPM:double read fMarkerPos[leftMarker].fX write fMarkerPos[leftmarker].fX;
-  end; 
+  end;
 
 implementation
 
@@ -42,7 +42,7 @@ begin
 end;
 
 
- 
+
 
 end.
 

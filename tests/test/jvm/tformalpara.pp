@@ -61,7 +61,7 @@ const
   carrbytein: tarrbyte = (4,2,5);
   carrsetin: tarrset = ([31,33,37],[]);
   cenumin: tformalkind = fsmallint;
-  
+
   cbooleanout: boolean = false;
   cbyteout: byte = 128;
   csmallintout: smallint = 4321;

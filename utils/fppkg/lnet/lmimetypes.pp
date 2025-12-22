@@ -15,7 +15,7 @@
   You should have received a Copy of the GNU Library General Public License
   along with This library; if not, Write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-  
+
   This license has been modified. See file LICENSE.ADDON for more information.
   Should you find these sources without a LICENSE File, please contact
   me at ales@chello.sk
@@ -34,7 +34,7 @@ type
   TStringObject = class(TObject)
     Str: string;
   end;
-  
+
   procedure InitMimeList(const aFileName: string);
 
 var

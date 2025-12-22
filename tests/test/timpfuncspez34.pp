@@ -10,7 +10,7 @@ program timpfuncspez34;
 generic procedure DoThis<A>(param1: A);
 begin
 end;
- 
+
 generic procedure DoThis<A, B>(param1: A; param2: B);
 begin
 end;

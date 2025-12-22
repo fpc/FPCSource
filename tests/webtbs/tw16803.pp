@@ -7,21 +7,21 @@
 uses
   sysutils;
 
-function test1: longint; 
+function test1: longint;
 begin
    try
      try
        result:=1;
        raise exception.create('1');
      except
-        exit(2); 
-     end; 
+        exit(2);
+     end;
    except
      exit(3);
    end;
 end;
 
-function test2: ansistring; 
+function test2: ansistring;
 begin
    result:='a';
    try
@@ -29,8 +29,8 @@ begin
        result:=result+'b';
        raise exception.create('2');
      except
-        result:=result+'c'; 
-     end; 
+        result:=result+'c';
+     end;
    except
      result:=result+'d';
    end;

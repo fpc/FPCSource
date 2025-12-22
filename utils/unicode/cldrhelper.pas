@@ -2679,17 +2679,17 @@ var
   locType : TCldrCollationItem;
   locRules : TCldrCollationRuleArray;
   locRule : PCldrCollationRule;
-begin 
+begin
   Result := False;
   if not Assigned(AVisitFunc) then
     exit;
   locRules := ACollationType.Rules;
   for i := Low(locRules) to High(locRules) do begin
     locRule := @locRules[i];
-    if (locRule^.Kind = TCldrCollationRuleKind.ReorderSequence) then begin  
+    if (locRule^.Kind = TCldrCollationRuleKind.ReorderSequence) then begin
       if not AVisitFunc(@locRule^.Reorder,ACollationType,ACustomData) then
         exit;
-    end else if (locRule^.Kind = TCldrCollationRuleKind.Import) then begin  
+    end else if (locRule^.Kind = TCldrCollationRuleKind.Import) then begin
       locImport := locRule^.Import;
       locRep := ACollationType.Parent.Repository;
       locCollation := locRep.Load(locImport.Source,TCldrParserMode.FullParsing);

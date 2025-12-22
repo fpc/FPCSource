@@ -2,9 +2,9 @@
     This file is part of the Free Component Library
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
-    Generate a skeleton unit with namespaced name which defines FPC_DOTTEDUNITS and 
+    Generate a skeleton unit with namespaced name which defines FPC_DOTTEDUNITS and
     includes the original non-dotted unit.
-        
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

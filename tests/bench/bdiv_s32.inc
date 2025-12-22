@@ -107,7 +107,7 @@ procedure TSInt32Bit1Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 1;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -149,7 +149,7 @@ procedure TSInt32Bit1ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 1;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -191,7 +191,7 @@ procedure TSInt32Bit100Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -233,7 +233,7 @@ procedure TSInt32Bit100ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 

@@ -460,7 +460,7 @@ Type
   Published
     Sub : TIntegerComponent;
   end;
-  
+
   // Stream 2 sub components
   TStreamedOwnedComponents = Class(TChildrenComponent)
   Public
@@ -632,7 +632,7 @@ begin
   F:=round(4.56);
 {$else FPC_COMP_IS_INT64}
   F:=4.56;
-{$endif FPC_COMP_IS_INT64}  
+{$endif FPC_COMP_IS_INT64}
 end;
 
 { TCurrencyComponent }

@@ -11,7 +11,7 @@ type
   TArgdata = record
     toto : string;
   end;
-  
+
   {$M+}
   TMyInterface = Interface ['{76DC0D03-376C-45AA-9E0C-B3546B0C7208}']
     Procedure DoA(a : Integer);
@@ -54,10 +54,10 @@ type
     function Test4(aArg1: array of LongInt; aArg2: array of const): AnsiString;
   end;
 
-  
+
 implementation
 
-end.  
-  
-  
+end.
+
+
   

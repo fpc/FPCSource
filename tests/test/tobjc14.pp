@@ -19,7 +19,7 @@ type
   end;
 
   ta = objcprotocol external name 'NSObject'
-  end; 
+  end;
 
 begin
 end.

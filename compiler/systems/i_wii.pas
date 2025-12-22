@@ -91,7 +91,7 @@ unit i_wii;
                 maxCrecordalign : 8
               );
             first_parm_offset : 8;
-            stacksize    : 131072;  // 128 kb 
+            stacksize    : 131072;  // 128 kb
             stackalign   : 16;
             abi : abi_powerpc_sysv;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v128:128:128-n32';

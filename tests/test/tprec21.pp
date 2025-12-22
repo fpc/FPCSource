@@ -36,7 +36,7 @@ RS_CR7 = $08;
                  end;
 
 const
-   zerocond: tasmcond = (dirhint: DH_Plus; 
+   zerocond: tasmcond = (dirhint: DH_Plus;
                          simple: true;
                          cond:C_NE;
                          cr: RS_CR1);

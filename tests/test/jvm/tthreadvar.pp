@@ -47,7 +47,7 @@ const
   cunicodestringin: unicodestring = 'a bit longer!';
   carrbytein: tarrbyte = (4,2,5);
   carrsetin: tarrset = ([31,33,37],[]);
-  
+
   cenumout: tthreadvarkind = farrbyte;
   cbooleanout: boolean = false;
   cbyteout: byte = 128;
@@ -92,7 +92,7 @@ procedure checkmainthreadvarsinit;
     i: longint;
   begin
     if venum<>fboolean then
-      raise jlexception.create('enum in');    
+      raise jlexception.create('enum in');
     venum:=cenumout;
     if venum<>cenumout then
       raise jlexception.create('enum out');
@@ -243,7 +243,7 @@ procedure tmythread.run;
     i: longint;
   begin
     if venum<>fboolean then
-      raise jlexception.create('enum in');    
+      raise jlexception.create('enum in');
     venum:=cenumin;
     if venum<>cenumin then
       raise jlexception.create('enum out');

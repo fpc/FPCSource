@@ -54,6 +54,6 @@ begin
      (d[2]<>38) or
      (d[3]<>115) then
     halt(4);
-  
+
   c.free;
 end.

@@ -15,7 +15,7 @@ begin
   MS:=TimeStampToMSecs(T);
   T1:=MSecsToTimeStamp(MS);
   WriteLn('T1.Date=',T1.Date,'  T1.Time=', T1.Time);
-  
+
   WriteLn('DATE1: ', DateTimeToStr(TimeStampToDateTime(T1)));
   if TimeStampToDateTime(T1)<>D then
     halt(1);

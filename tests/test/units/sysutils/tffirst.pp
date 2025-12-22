@@ -48,7 +48,7 @@ begin
   if f<=0 then
     halt(102);
   FileClose(f);
-  
+
   { determine how the file system reports the name of the file (with the é
     precomposed or decomposed) so we can pass the correct form to findfirst. We cannot
     deal with this automatically in findfirst itself, because some OSes/file systems
@@ -133,7 +133,7 @@ begin
     halt(10)
   else
     findclose(rsr);
-    
+
   DeleteFile(FNAME);
   SetCurrentDir(curdir);
   RemoveDir('tffdir');
@@ -159,7 +159,7 @@ begin
   if f<=0 then
     halt(202);
   FileClose(f);
-  
+
   { determine how the file system reports the name of the file (with the é
     precomposed or decomposed) so we can pass the correct form to findfirst. We cannot
     deal with this automatically in findfirst itself, because some OSes/file systems
@@ -244,7 +244,7 @@ begin
     halt(20)
   else
     findclose(usr);
-    
+
   DeleteFile(FNAME);
   SetCurrentDir(curdir);
   RemoveDir('tffdir');
@@ -254,4 +254,4 @@ begin
   DefaultRTLFileSystemCodePage:=CP_UTF8;
   tffirstutf8;
   tffirstutf16;
-end.  
+end.

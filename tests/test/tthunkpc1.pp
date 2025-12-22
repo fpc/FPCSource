@@ -14,7 +14,7 @@ Type
   IB = Interface(IAS)
     Procedure methodB;
   end;
-  
+
 implementation
 
 end.     

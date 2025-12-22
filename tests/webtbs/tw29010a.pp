@@ -87,7 +87,7 @@ begin
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
   end ['ebx'];
-  
+
   Writeln('testing push/pop word ptr global_proc');
   asm
     mov ebx, local_espstruct

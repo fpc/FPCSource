@@ -164,7 +164,8 @@ interface
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
           function  OwnerHierarchyPrettyName: string; override;
-          function  fullownerhierarchyname(skipprocparams:boolean):TSymStr;override;
+          function  fullownerhierarchyname(skipprocparams:boolean;use_pretty : boolean):TSymStr;override;
+
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -2253,7 +2254,7 @@ implementation
       end;
 
 
-    function tstoreddef.fullownerhierarchyname(skipprocparams:boolean): TSymStr;
+    function tstoreddef.fullownerhierarchyname(skipprocparams:boolean; use_pretty : boolean): TSymStr;
       var
         lastowner: tsymtable;
         tmp: tdef;
@@ -2280,7 +2281,12 @@ implementation
           if not assigned(tmp) then
             break;
           if tmp.typ in [recorddef,objectdef] then
-            result:=tabstractrecorddef(tmp).objrealname^+'.'+result
+            begin
+              if use_pretty then
+                result:=tabstractrecorddef(tmp).typesymbolprettyname+'.'+result
+              else
+                result:=tabstractrecorddef(tmp).objrealname^+'.'+result;
+            end
           else
             if tmp.typ=procdef then
               begin
@@ -2691,7 +2697,7 @@ implementation
            tmod:=find_module_from_symtable(owner);
             if assigned(tmod) and assigned(current_module) and (tmod<>current_module) then
               begin
-                comment(v_error,'Definition '+fullownerhierarchyname(false)+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
+                comment(v_error,'Definition '+fullownerhierarchyname(false,true)+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
               end;
            if not assigned(tmod) then
              tmod:=current_module;
@@ -2949,7 +2955,7 @@ implementation
         case stringtype of
           st_shortstring:
             result:=cshortstringtype;
-          { st_longstring is currently not supported but 
+          { st_longstring is currently not supported but
             when it is this case will need to be supplied }
           st_longstring:
             internalerror(2021040801);
@@ -5208,7 +5214,7 @@ implementation
     procedure tabstractrecorddef.apply_rtti_directive(dir: trtti_directive);
       begin
         { records don't support the inherit clause but shouldn't
-          give an error either if used (for Delphi compatibility), 
+          give an error either if used (for Delphi compatibility),
           so we silently enforce the clause as explicit. }
         rtti.clause:=rtc_explicit;
         rtti.options:=dir.options;
@@ -9708,7 +9714,7 @@ implementation
        bool8type:=nil;
        bool16type:=nil;
        bool32type:=nil;
-       bool64type:=nil;                
+       bool64type:=nil;
 {$ifdef llvm}
        llvmbool1type:=nil;             { LLVM i1 type }
 {$endif llvm}

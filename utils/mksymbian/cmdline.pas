@@ -42,7 +42,7 @@ type
     procedure ShowPath;
     procedure ParseCmdLineOptions(var opts: TMkSymbianOptions);
   end;
-  
+
 var
   vCmdLine: TCmdLine;
 

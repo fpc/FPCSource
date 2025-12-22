@@ -85,8 +85,8 @@ procedure test_pboolean;
         _a:=a^;
         b^:=true;
         _b:=b^;
-        c:=nil;  
-        { c should not matter in this case }      
+        c:=nil;
+        { c should not matter in this case }
         _c:=boolean(random(2));
         if (a^ and b^) or (c^ and not(b^))<>_c xor ((_c xor _a) and _b) then
           begin

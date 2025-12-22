@@ -282,7 +282,7 @@ var
 begin
   i:=length(St);
   p:=1;
-  while (i>255) do 
+  while (i>255) do
     begin
       ShortS:=copy(St,p,255);
       inc(p,255);
@@ -381,7 +381,7 @@ function TTestSuite.ShowRunData: Boolean;
             begin
               TagStart('TD',FieldColor);
             end
-          else 
+          else
             CellStart;
           LDumpLn(RowTitle);
           if FieldColor<>'' then
@@ -389,7 +389,7 @@ function TTestSuite.ShowRunData: Boolean;
               CellEnd;
               TagStart('TD',FieldColor);
             end
-          else 
+          else
             CellNext;
           LDumpLn(FieldLeft);
           if FieldColor<>'' then
@@ -397,7 +397,7 @@ function TTestSuite.ShowRunData: Boolean;
              CellEnd;
              TagStart('TD',FieldColor);
             end
-          else 
+          else
             CellNext;
           LDumpLn(FieldRight);
           CellEnd;

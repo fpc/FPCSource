@@ -54,11 +54,11 @@ fpdoc.pp
 
 fpdocstripper.lpr
 fpdocstripper.lpi
-  * Utility program that strips fpdoc xml files of all elements 
+  * Utility program that strips fpdoc xml files of all elements
     that have no documentation in them. Useful before submitting
 	a documentation patch as it keeps file sizes down and makes
 	it clearer what exactly is documented.
-  
+
 makeskel.pp
   * Skeleton XML description file generator
 

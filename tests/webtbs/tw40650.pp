@@ -1,10 +1,10 @@
 {$coperators+}
 {$modeswitch arrayoperators}
- 
+
 var
   bools: array of boolean;
   s: string;
- 
+
 begin
   bools := [];
   s := 'x';

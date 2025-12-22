@@ -21,5 +21,5 @@
     function AddHandle(aHandle: TLHandle): Boolean; override;
     function CallAction: Boolean; override;
   end;
-  
+
 {$endif} // bsd

@@ -26,7 +26,7 @@ begin
   s:=q;
   if s<>12345 then
     halt(4);
-  
+
   d:=l;
   if d<>-12345 then
     halt(5);

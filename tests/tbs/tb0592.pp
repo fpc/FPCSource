@@ -1,5 +1,5 @@
 {$mode objfpc}
-type 
+type
   TT_Stream   = record z : Pointer; end;
 
   TFreeTypeStream = class

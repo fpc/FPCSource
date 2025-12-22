@@ -14,7 +14,7 @@ begin
   s:=w1;
   w1:=s;
   w2:=w1;
-  
+
   if (w1<>w2) then
     halt(1);
   w1[2]:='f';

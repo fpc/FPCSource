@@ -1,5 +1,5 @@
 program bug_fmtcurrncy;
-//  If write/writeln parameter list includes any item FOLLOWING a 
+//  If write/writeln parameter list includes any item FOLLOWING a
 //     currency variable with format specs, the compiler throws
 //     an Access violation exception.
 

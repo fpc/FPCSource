@@ -20,6 +20,6 @@ begin
 		'working on may be beneficial to analysis.';
 
        if (length(s)<=255) then
-         halt(1);	
+         halt(1);
 end.
 

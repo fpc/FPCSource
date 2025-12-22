@@ -29,7 +29,7 @@ begin
     begin
       if r1<>123 then
         halt(2);
-      writeln(R1); //Error: Expression type must be class or record 
+      writeln(R1); //Error: Expression type must be class or record
     end;
   with X() do writeln(R1); // OK
 end.

@@ -1,7 +1,7 @@
 { utility to avoid the tedious typing of register numbers for AArch64 VFP registers }
 var
   i : longint;
-  
+
 begin
   for i:=0 to 31 do
     begin

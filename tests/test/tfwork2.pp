@@ -12,5 +12,5 @@ type
 function CFSTR( c: PChar ): CFStringRef; external name '___CFStringMakeConstantString'; mwpascal;
 
 begin
-  CFSTR('hello');  
+  CFSTR('hello');
 end.

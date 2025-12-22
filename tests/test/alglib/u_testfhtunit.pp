@@ -35,7 +35,7 @@ begin
     BiDiErrors := False;
     RefErrors := False;
     WasErrors := False;
-    
+
     //
     // Test bi-directional error: norm(x-invFHT(FHT(x)))
     //
@@ -43,7 +43,7 @@ begin
     N:=1;
     while N<=MaxN do
     begin
-        
+
         //
         // FHT/invFHT
         //
@@ -72,7 +72,7 @@ begin
         Inc(N);
     end;
     BiDiErrors := BiDiErrors or AP_FP_Greater(BiDiErr,ErrTol);
-    
+
     //
     // Test against reference O(N^2) implementation
     //
@@ -80,7 +80,7 @@ begin
     N:=1;
     while N<=MaxN do
     begin
-        
+
         //
         // FHT
         //
@@ -101,7 +101,7 @@ begin
             RefErr := Max(RefErr, AbsReal(R1[I]-R2[I]));
             Inc(I);
         end;
-        
+
         //
         // inverse FHT
         //
@@ -125,7 +125,7 @@ begin
         Inc(N);
     end;
     RefErrors := RefErrors or AP_FP_Greater(RefErr,ErrTol);
-    
+
     //
     // end
     //

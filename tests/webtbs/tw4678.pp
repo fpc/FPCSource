@@ -15,7 +15,7 @@ type
   public
     property Value[AnInt : Integer] : Variant read GetValue;
   end;
-  
+
 function TMyClass.GetValue(AnInt : Integer) : Variant;
 begin
   if AnInt < 0 then
@@ -25,7 +25,7 @@ begin
 end;
 
 var
-  AClass : TMyClass;  
+  AClass : TMyClass;
   VarVal : Variant;
 begin
   AClass := TMyClass.Create;

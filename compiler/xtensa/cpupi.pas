@@ -63,7 +63,7 @@ unit cpupi;
        cgutils,
        cgobj,
        defutil,
-       aasmcpu;     
+       aasmcpu;
 
     constructor txtensaprocinfo.create(aparent: tprocinfo);
       begin

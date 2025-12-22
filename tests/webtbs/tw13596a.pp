@@ -11,13 +11,13 @@ const
 procedure gluPerspective(fovy, aspect, zNear, zFar: single); inline;
 procedure gluPerspectivef32(fovy: longint; aspect, zNear, zFar: longint); inline;
 function mulf32(a, b: longint): longint; inline;
-function floattof32(n: single): longint; inline;        
+function floattof32(n: single): longint; inline;
 
 implementation
 
-function floattof32(n: single): longint; inline;        
+function floattof32(n: single): longint; inline;
 begin
-  floattof32 := trunc((n) * (1 shl 12)); 
+  floattof32 := trunc((n) * (1 shl 12));
 end;
 
 function mulf32(a, b: longint): longint; inline;
@@ -38,7 +38,7 @@ begin
         ymin := -ymax;
         xmin := mulf32(ymin, aspect);
         xmax := mulf32(ymax, aspect);
-        
+
 //        glFrustumf32(xmin, xmax, ymin, ymax, zNear, zFar);
 
 end;

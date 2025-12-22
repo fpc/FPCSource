@@ -4,7 +4,7 @@
 
     var
     S, D : array of Integer;
- 
+
     begin
       HaltOnNotReleased := true;
       SetLength(S,4000);

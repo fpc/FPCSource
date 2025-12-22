@@ -13,7 +13,7 @@ begin
   V1 := VarArrayCreate(@Bounds, 2, varVariant);
   V2 := V1; // <- Exception EVariantBadIndexError!!!!!
 end;
- 
+
 begin
   test;
 end.

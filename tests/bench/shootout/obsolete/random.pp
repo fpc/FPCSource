@@ -10,7 +10,7 @@ const IM = 139968;
 
 var  LAST, NUM, i: longint;
      value: double;
-     
+
 function gen_random(const n: integer): double; inline;
 begin
   LAST := (LAST * IA + IC) mod IM;

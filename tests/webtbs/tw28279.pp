@@ -55,4 +55,4 @@ begin
 
   s1 := copy(x,2,3)+'x';
   Foo2(s1,f);
-end. 
+end.

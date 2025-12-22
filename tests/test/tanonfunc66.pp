@@ -4,7 +4,7 @@ program tanonfunc66;
 {$modeswitch anonymousfunctions}
 {$modeswitch functionreferences}
 
-{ test generic local reference declaration 
+{ test generic local reference declaration
 
   same as tanonfunc39 but mode delphi
 }

@@ -14,7 +14,7 @@ type
 
 function RealObject.IsInSubrange: boolean;
 begin
-   IsInSubrange:=ProxyObject.IsInSubrange(mytyp);  
+   IsInSubrange:=ProxyObject.IsInSubrange(mytyp);
    // ^-- Error: Class isn't a parent class of the current class
    // and AV of compiler
 end;

@@ -39,10 +39,10 @@ program tcalcla1;
    RESULT_U16BIT = 2*RESULT_U8BIT;
    RESULT_S32BIT = $500F0000;
    RESULT_S64BIT = $500F0000;
-{$ifdef cpuhasfloats}   
+{$ifdef cpuhasfloats}
    RESULT_S32REAL = 1777.12;
    RESULT_S64REAL = 3444.24;
-{$endif cpuhasfloats}   
+{$endif cpuhasfloats}
    RESULT_BOOL8BIT = 1;
    RESULT_BOOL16BIT = 1;
    RESULT_BOOL32BIT = 1;
@@ -80,10 +80,10 @@ program tcalcla1;
   global_u8bit : byte;
   global_u16bit : word;
   global_s32bit : longint;
-{$ifdef cpuhasfloats}   
+{$ifdef cpuhasfloats}
   global_s32real : single;
   global_s64real : double;
-{$endif cpuhasfloats}   
+{$endif cpuhasfloats}
   global_ptr : pchar;
   global_proc : tprocedure;
   global_bigstring : shortstring;
@@ -95,10 +95,10 @@ program tcalcla1;
   value_u8bit : byte;
   value_u16bit : word;
   value_s32bit : longint;
-{$ifdef cpuhasfloats}   
+{$ifdef cpuhasfloats}
   value_s32real : single;
   value_s64real  : double;
-{$endif cpuhasfloats}   
+{$endif cpuhasfloats}
   value_proc : tprocedure;
   value_ptr : pchar;
   value_smallrec : tsmallrecord;
@@ -123,10 +123,10 @@ program tcalcla1;
        global_u8bit := 0;
        global_u16bit := 0;
        global_s32bit := 0;
-{$ifdef cpuhasfloats}   
+{$ifdef cpuhasfloats}
        global_s32real := 0.0;
        global_s64real := 0.0;
-{$endif cpuhasfloats}   
+{$endif cpuhasfloats}
        global_ptr := nil;
        global_proc := nil;
        global_bigstring := '';
@@ -141,10 +141,10 @@ program tcalcla1;
        value_u8bit := 0;
        value_u16bit := 0;
        value_s32bit := 0;
-{$ifdef cpuhasfloats}   
+{$ifdef cpuhasfloats}
        value_s32real := 0.0;
        value_s64real  := 0.0;
-{$endif cpuhasfloats}   
+{$endif cpuhasfloats}
        value_proc := nil;
        value_ptr := nil;
        fillchar(value_smallrec, sizeof(value_smallrec), #0);
@@ -156,9 +156,9 @@ program tcalcla1;
        fillchar(value_smallarray, sizeof(value_smallarray), #0);
        value_boolean := false;
        value_char:=#0;
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}   
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
        value_ansistring := '';
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}   
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
        value_s64bit := 0;
       end;
 

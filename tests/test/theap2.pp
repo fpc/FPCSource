@@ -4,7 +4,7 @@ var
   HeapStatus : THeapStatus;
   oldmemsize: ptruint;
 begin
-  randomize;  
+  randomize;
 {$if not(defined(CPU8)) and not(defined(CPU16))}
   for i:=1 to 12 do
     begin
@@ -30,6 +30,6 @@ begin
     begin
       writeln('TotalAllocated: ',TotalAllocated);
       writeln('TotalFree: ',TotalFree);
-    end;      
+    end;
 {$endif not(defined(CPU8)) and not(defined(CPU16))}
 end.

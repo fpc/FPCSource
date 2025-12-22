@@ -26,6 +26,6 @@ begin
 
   if (isAlpha(Byte('2')) = 1) then
     Halt(3);
-	
+
   WriteLn('ok');
 end.

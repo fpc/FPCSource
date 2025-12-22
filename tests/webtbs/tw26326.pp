@@ -5,14 +5,14 @@ type
   TForm = class
     procedure OnClick;
   end;
-  
+
   TNotifyEvent = procedure of object;
-  
+
 procedure TForm.OnClick;
   begin
   end;
-  
-  
+
+
 procedure Test (aObject: TObject);
 var
   aForm: TForm;
@@ -24,7 +24,7 @@ begin
     aEvent := @aForm.OnClick;
     aEvent();
   end;
-end; 
+end;
 
 begin
   Test(nil);

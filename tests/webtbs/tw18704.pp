@@ -6,7 +6,7 @@ program CurrencyFormatTest;
    Test FPC having problems: r21245, win32-i386
  *)
 
-type  
+type
   TTestCase = record
     value  : currency;
     expect : array [0..5] of string;
@@ -37,7 +37,7 @@ const
   );
 
 function test_it(const test_case:TTestCase) : boolean;
-var 
+var
   expect,
   s : string;
   i : integer;

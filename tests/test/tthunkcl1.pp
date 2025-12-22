@@ -94,7 +94,7 @@ begin
   FOffset:=TT.InterfaceVMTOffset;
   I:=TT as TMyInterface;
   FTest:='DoA1';
-  FExpectMethod:=0; 
+  FExpectMethod:=0;
   FExpectCount:=1;
   FExpectResult:=False;
   FExpectArgTypeInfo:=tkInteger;

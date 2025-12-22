@@ -148,9 +148,9 @@ For unix-like operating systems:
 3. Directory /usr/local/lib/fpc/lexyacc
 4. Directory /usr/lib/fpc/lexyacc
 
-For other operating systems (dos/windows-like) : 
+For other operating systems (dos/windows-like) :
 1. Current directory.
-2. Directory given by FPCDIR 
+2. Directory given by FPCDIR
 3. Directory where the executable is located.
 
 For the Free Pascal/Linux version, a Makefile is provided. To install, issue
@@ -166,9 +166,9 @@ batch files are provided:
 	               Turbo Pascal 6.0 to Borland Pascal 7.0.
 	MAKEDPMI.BAT - makes a dos protected mode executable. Needs
 	               Borland Pascal 7.0.
-	MAKEBPW.BAT  - makes a 16-bit Windows executable. Needs 
+	MAKEBPW.BAT  - makes a 16-bit Windows executable. Needs
 	               Borland Pascal 7.0 or Borland Pascal for Windows.
-	MAKED16.BAT  - makes a 16-bit Windows executable. 
+	MAKED16.BAT  - makes a 16-bit Windows executable.
 	               Needs Delphi 1.X.
 	MAKED32.BAT  - makes a 32-bit Windows NT or Windows 95 console
 	               application. Needs Delphi 2.X.

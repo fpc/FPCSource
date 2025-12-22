@@ -21,7 +21,7 @@ begin
 
   if not TryStrToInt('2', Output) then
     Halt(2);
-	
+
   if Output <> 2 then
     Halt(3);
 end;

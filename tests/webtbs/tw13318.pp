@@ -6,7 +6,7 @@ program fpctest4;
 uses
   Classes;
 
-var 
+var
   f:TStream;
   l: longint;
 begin

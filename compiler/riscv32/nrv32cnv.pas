@@ -73,9 +73,9 @@ implementation
     function trv32typeconvnode.first_int_to_real: tnode;
       var
         fname: string[19];
-      begin                                                        
+      begin
         if (cs_fp_emulation in current_settings.moduleswitches) then
-          result:=inherited first_int_to_real                      
+          result:=inherited first_int_to_real
         { converting a 64bit integer to a float requires a helper }
         else
           begin

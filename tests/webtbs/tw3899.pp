@@ -7,7 +7,7 @@ program project2;
 
 uses
   Classes;
-  
+
 type
   TZVariant = packed record
     VInteger: Int64;
@@ -27,7 +27,7 @@ type
   IZAnyValue = interface (IZClonnable)
     ['{E81988B3-FD0E-4524-B658-B309B02F0B6A}']
   end;
-  
+
   TZAbstractObject = class(TInterfacedObject, IZObject)
   public
     function Equals(const Value: IZInterface): Boolean; virtual;

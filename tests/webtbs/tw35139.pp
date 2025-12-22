@@ -1,6 +1,6 @@
-{ 
+{
   Check a fix for a bug that appeared in
-  utils/fppkg/lnet/lTelnet.pp 
+  utils/fppkg/lnet/lTelnet.pp
 }
 
 {$mode objfpc}{$H+}

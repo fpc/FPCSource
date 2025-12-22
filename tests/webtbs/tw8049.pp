@@ -8,7 +8,7 @@ const s:array[0..31] of char='Hell* world';
 var c:char;
     p,q:Pchar;
 
-begin 
+begin
   p:=s;
   q:=p-index;
   writeln('Hello ',q);

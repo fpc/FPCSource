@@ -23,7 +23,7 @@ procedure Test
 
 label
 	ErrExit;
-	
+
 var
 	i, n: integer;
 	p1, p2, unused1: Point;
@@ -51,7 +51,7 @@ begin
 	ErrExit:
 end;
 
-	
+
 begin
-	Test(0, 0, false, 1, 0, 0, 0, 0, 0, 0);	
+	Test(0, 0, false, 1, 0, 0, 0, 0, 0, 0);
 end.

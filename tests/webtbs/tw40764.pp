@@ -9,21 +9,21 @@ interface
 uses uw40764a,uw40764b;
 
 Type
-  
+
   TBrushFMXStyle = class(TFMXObject)
   end;
-  
+
   TPresentedControl = class(TStyledControl)
-    function FindStyleResource(const AStyleLookup: string; const AClone: Boolean = False): TFmxObject; overload; override;  
+    function FindStyleResource(const AStyleLookup: string; const AClone: Boolean = False): TFmxObject; overload; override;
   end;
 
   TMyControl = class(TPresentedControl)
     Procedure DoTest;
   end;
-  
+
 implementation
 
-  
+
 function TPresentedControl.FindStyleResource(const AStyleLookup: string; const AClone: Boolean = False): TFmxObject;
 
 begin

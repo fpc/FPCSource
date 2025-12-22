@@ -13,7 +13,7 @@ uses
   {$macro on}
   {$define writeln:=jlsystem.fout.println}
   {$define write:=jlsystem.fout.print}
-{$endif}  
+{$endif}
 
 {$ifndef MACOS}
 {$APPTYPE CONSOLE}

@@ -89,7 +89,7 @@ unit agppcvasm;
         result:=asminfo^.asmcmd;
 
         objtype:='-Felf';
-        if (target_info.system in [system_powerpc_amiga, system_powerpc_morphos]) then 
+        if (target_info.system in [system_powerpc_amiga, system_powerpc_morphos]) then
           begin
             Replace(result,'$ASM',maybequoted(ScriptFixFileName(Unix2AmigaPath(AsmFileName))));
             Replace(result,'$OBJ',maybequoted(ScriptFixFileName(Unix2AmigaPath(ObjFileName))));

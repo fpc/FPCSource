@@ -3,7 +3,7 @@
 
 var
   name: utf8string;
-  
+
 procedure check(index, lookahead: longint; combiningdiacritics: boolean; expectedresult: longint; checknr: longint);
 begin
   if Utf8CodePointLen(pchar(@name[index]),lookahead,combiningdiacritics)<>expectedresult then

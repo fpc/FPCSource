@@ -10,7 +10,7 @@ type
   //no referencecount, only for fpc, not available in delphi
  end;
 
- locateresultty = (loc_timeout,loc_notfound,loc_ok); 
+ locateresultty = (loc_timeout,loc_notfound,loc_ok);
 
  tfield = class
  end;
@@ -25,7 +25,7 @@ type
  end;
 
  imselocate2 = interface(imselocate)['{2680958F-F954-DA11-9015-00C0CA130801}']
-   function locate(const key: string; const field: tfield; 
+   function locate(const key: string; const field: tfield;
                  const options: locateoptionsty = []): locateresultty;
  end;
 

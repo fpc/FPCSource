@@ -30,7 +30,7 @@ type
   ESourceFilesException = class(Exception);
   ECantOpenFileException = class(ESourceFilesException);
   EUnknownInputFormatException = class(ESourceFilesException);
-  
+
 type
 
   { TSourceFiles }
@@ -41,7 +41,7 @@ type
   public
     procedure Load(aResources : TZipper);reintroduce;
   end;
-  
+
 implementation
 
 uses msghandler, closablefilestream;

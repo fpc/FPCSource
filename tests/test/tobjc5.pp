@@ -9,7 +9,7 @@
 type
   ta = objcclass external
     { needs message name specification }
-    procedure test; 
+    procedure test;
   end;
 
 begin

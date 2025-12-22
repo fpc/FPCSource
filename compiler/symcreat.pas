@@ -1440,7 +1440,7 @@ implementation
       exit('pointer');
     if (vardef is tprocvardef) then
       begin
-      result:=vardef.fullownerhierarchyname(false);
+      result:=vardef.fullownerhierarchyname(false,false);
       if Assigned(vardef.typesym) then
         Result:=Result+(vardef.typesym.Name);
       end

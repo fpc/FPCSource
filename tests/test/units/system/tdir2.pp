@@ -65,7 +65,7 @@ Begin
    getdir(0,orgdir);
    test(IOResult,0);
    WriteLn('Passed');
-   
+
    Write('creating new directory...');
    mkdir(dirname);
    test(IOResult,0);
@@ -114,7 +114,7 @@ Begin
    getdir(0,orgdir);
    test(IOResult,0);
    WriteLn('Passed');
-   
+
    Write('creating new directory...');
    mkdir(dirname);
    test(IOResult,0);

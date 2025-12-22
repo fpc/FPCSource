@@ -103,7 +103,7 @@ type
 const
   FS64_153Input: array[$0..$F] of Int64 =
     (0, 1, 152, 153, 154, -1, -152, -153, -154,
-    8000000000000000117, 8000000000000000118, 8000000000000000119, 
+    8000000000000000117, 8000000000000000118, 8000000000000000119,
     -8000000000000000117, -8000000000000000118, -8000000000000000119,
     Int64($8000000000000000));
 
@@ -130,7 +130,7 @@ type
 const
   FS64_1461Input: array[$0..$F] of Int64 =
     (0, 1, 1460, 1461, 1462, -1, -1460, -1461, -1462,
-    8000000000000000582, 8000000000000000583, 8000000000000000584, 
+    8000000000000000582, 8000000000000000583, 8000000000000000584,
     -8000000000000000582, -8000000000000000583, -8000000000000000584,
     Int64($8000000000000000));
 
@@ -157,7 +157,7 @@ type
 const
   FS64_10000Input: array[$0..$F] of Int64 =
     (0, 1, 9999, 10000, 10001, -1, -9999, -10000, -10001,
-    7999999999999999999, 8000000000000000000, 8000000000000000001, 
+    7999999999999999999, 8000000000000000000, 8000000000000000001,
     -7999999999999999999, -8000000000000000000, -8000000000000000001,
     Int64($8000000000000000));
 
@@ -179,12 +179,12 @@ type
     public
       function TestTitle: shortstring; override;
   end;
-  
+
   { TSInt64Bit86400000Test }
 const
   FS64_86400000Input: array[$0..$F] of Int64 =
     (0, 1, 86399999, 86400000, 86400001, -1, -86399999, -86400000, -86400001,
-    8639999999999999999, 8640000000000000000, 8640000000000000001, 
+    8639999999999999999, 8640000000000000000, 8640000000000000001,
     -8639999999999999999, -8640000000000000000, -8640000000000000001,
     Int64($8000000000000000));
 
@@ -275,7 +275,7 @@ procedure TSInt64Bit1Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 1;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -317,7 +317,7 @@ procedure TSInt64Bit1ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 1;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -359,7 +359,7 @@ procedure TSInt64Bit10Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 10;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -401,7 +401,7 @@ procedure TSInt64Bit10ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 10;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -427,7 +427,7 @@ procedure TSInt64Bit18Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 18;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -453,7 +453,7 @@ procedure TSInt64Bit18ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 18;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -479,7 +479,7 @@ procedure TSInt64Bit24Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 24;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -505,7 +505,7 @@ procedure TSInt64Bit24ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 24;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -547,7 +547,7 @@ procedure TSInt64Bit100Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -589,7 +589,7 @@ procedure TSInt64Bit100ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 100;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -615,7 +615,7 @@ procedure TSInt64Bit153Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 153;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -641,7 +641,7 @@ procedure TSInt64Bit153ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 153;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -667,7 +667,7 @@ procedure TSInt64Bit1461Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 1461;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -693,7 +693,7 @@ procedure TSInt64Bit1461ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 1461;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -719,7 +719,7 @@ procedure TSInt64Bit10000Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 10000;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -745,7 +745,7 @@ procedure TSInt64Bit10000ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 10000;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -771,7 +771,7 @@ procedure TSInt64Bit86400000Test.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator div 86400000;
-      
+
     FResultArray[Index] := Answer;
   end;
 
@@ -797,7 +797,7 @@ procedure TSInt64Bit86400000ModTest.DoTestIteration(Iteration: Integer);
     FInputArray[Index] := Numerator;
     for X := 0 to INTERNAL_LOOPS - 1 do
       Answer := Numerator mod 86400000;
-      
+
     FResultArray[Index] := Answer;
   end;
 

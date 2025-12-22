@@ -3,7 +3,7 @@
 
 { This test evaluates OptPass2Jcc's ability to create CMOV instructions with
   constants while ensuring correct code is still generated. }
-  
+
 program tcond1;
 
 uses
@@ -17,7 +17,7 @@ function TestInput(Input, TestAns: LongInt): Boolean;
   var
     O1, O2, O3: LongInt;
   begin
-    if Input < 2 then 
+    if Input < 2 then
       begin
         O1 := -10;
         O2 := TestAns;
@@ -38,19 +38,19 @@ function TestInput(Input, TestAns: LongInt): Boolean;
 
 var
   X: LongInt;
-  
+
 begin
   if not CMOVSupport then
     begin
       WriteLn('unsupported');
       Halt(0);
-    end;      
+    end;
 
   for X := 0 to 3 do
     begin
       if not TestInput(X, X + 3) then
         Halt(1);
     end;
-    
+
   WriteLn('ok');
 end.

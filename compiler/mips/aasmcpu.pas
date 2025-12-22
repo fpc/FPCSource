@@ -553,7 +553,7 @@ procedure fixup_jmps(list: TAsmList);
           ait_instruction:
             { probleim here: pseudo-instructions can translate into
               several CPU instructions, possibly depending on assembler options,
-              to obe on safe side, let's assume a mean of two. } 
+              to obe on safe side, let's assume a mean of two. }
             inc(instrpos,2);
           ait_const:
             begin
@@ -680,16 +680,16 @@ procedure fixup_jmps(list: TAsmList);
 
 procedure resolveReadAfterWrite(list: TAsmList);
 label skip;
-var 
+var
     p, pp : tai;
     l, x : TLinkedListItem;
-    firstReg : tregister;    
+    firstReg : tregister;
 
 begin
 
   l:= list.first;
   while assigned(l) do begin
-      
+
     p:= tai(l);
     if p.typ = ait_instruction then begin
 
@@ -699,11 +699,11 @@ begin
 
           x:= l.next;
           if not assigned(x) then goto skip;
-          
+
           pp:= tai(x);
-    
+
           while pp.typ <> ait_instruction do begin
-            
+
             x:= x.next;
             if not assigned(x) then goto skip;
 
@@ -721,22 +721,22 @@ begin
 
                 0 : {nothing to do};
 
-                1 : 
+                1 :
                     if (taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg) then
                           list.insertAfter(taicpu.op_none(A_NOP), l);
 
                 2 :
-                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
-                       ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or 
+                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or
+                       ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or
                        ((taicpu(pp).oper[1]^.typ = top_ref) and (firstReg = taicpu(pp).oper[1]^.ref^.base)) then
                           list.insertAfter(taicpu.op_none(A_NOP), l);
 
                 3 :
-                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or 
+                    if ((taicpu(pp).oper[0]^.typ = top_reg) and (firstReg = taicpu(pp).oper[0]^.reg)) or
                        ((taicpu(pp).oper[1]^.typ = top_reg) and (firstReg = taicpu(pp).oper[1]^.reg)) or
                        ((taicpu(pp).oper[2]^.typ = top_reg) and (firstReg = taicpu(pp).oper[2]^.reg)) then
                           list.insertAfter(taicpu.op_none(A_NOP), l);
-                
+
                 else
 
                     internalerror(2024092501);
@@ -750,7 +750,7 @@ begin
       end;
 
     end;
-    
+
 skip:
     l:= l.next;
 

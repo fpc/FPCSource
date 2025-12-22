@@ -13,7 +13,7 @@ type
 procedure TA<T>.Foo(const AValue: T);
 begin
   AValue.Free; // Error: identifier idents no member "Free"
-end; 
+end;
 
 begin
 

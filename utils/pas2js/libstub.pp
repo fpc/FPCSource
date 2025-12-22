@@ -17,7 +17,7 @@ uses
   SysUtils, Classes, stubcreator;
 
 Type
-  PStubCreator = Pointer;  
+  PStubCreator = Pointer;
 
 Function GetStubCreator : PStubCreator; stdcall;
 

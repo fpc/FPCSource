@@ -78,13 +78,13 @@ begin
     sem_init(@ReadSem, 0, 0);
     sem_init(@WriteSem, 0, Length(Queue));
   end;
-  
+
   sem_init(FinishedSem, 0, 0);
 
   pthread_attr_init(@ThreadAttr);
   pthread_attr_setdetachstate(@ThreadAttr, 1);
   pthread_attr_setstacksize(@ThreadAttr, 1024 * 16);
-  
+
   ThreadFuncAddr := TStartRoutine(@ThreadFunc);
   pthread_create(@Id, @ThreadAttr, ThreadFuncAddr, Pointer(High(PostOffice)));
 
@@ -92,7 +92,7 @@ begin
     PostMessage(High(PostOffice), 0);
 
   PostMessage(High(PostOffice), -1);
-  
+
   sem_wait(FinishedSem);
   WriteLn(Sum);
 end.

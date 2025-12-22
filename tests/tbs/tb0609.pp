@@ -32,7 +32,7 @@ var
   s: string;
 begin
   pointer(s):=nil;
-end;  
+end;
 
 
 begin

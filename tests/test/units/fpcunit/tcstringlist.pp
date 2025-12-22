@@ -26,8 +26,8 @@ type
   protected
     List : TStringList;
     Procedure FillList(ACount : Integer);
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestCreate;
     procedure TestAdd;
@@ -281,7 +281,7 @@ procedure TTestTStringList.TestSortedAddAll;
 
 Var
   I : Integer;
-  
+
 begin
   List.Sorted:=True;
   FillList(9);
@@ -417,7 +417,7 @@ procedure TTestTStringList.TestChangeClear;
 
 Var
   S : TEventSink;
-  
+
 begin
   FillList(9);
   S:=TEventSink.Create;
@@ -493,12 +493,12 @@ begin
     List.Add('Item '+IntToStr(I));
 end;
 
-procedure TTestTStringList.SetUp; 
+procedure TTestTStringList.SetUp;
 begin
   List:=TStringList.Create;
-end; 
+end;
 
-procedure TTestTStringList.TearDown; 
+procedure TTestTStringList.TearDown;
 begin
   FreeAndNil(List);
 end;

@@ -11,9 +11,9 @@ type
 
 function TestParam(Param: PProcedureParam; Flags: TParamFlags; ParamType: Pointer; Name: ShortString): Boolean;
 begin
-  Result := (Param^.Flags = PByte(@Flags)^) and 
+  Result := (Param^.Flags = PByte(@Flags)^) and
             (Param^.ParamFlags = Flags) and
-            (Param^.ParamType = ParamType) and 
+            (Param^.ParamType = ParamType) and
             (Param^.Name = Name);
 end;
 

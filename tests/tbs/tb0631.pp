@@ -14,8 +14,8 @@ type
   end;
 
 begin
-  if PInterfaceData(TypInfo.GetTypeData(TypeInfo(IFoo)))^.PropertyTable^.Prop[0]^.PropType 
-    <> TypeInfo(Pointer) 
+  if PInterfaceData(TypInfo.GetTypeData(TypeInfo(IFoo)))^.PropertyTable^.Prop[0]^.PropType
+    <> TypeInfo(Pointer)
   then
     halt(1);
   WriteLn('ok');

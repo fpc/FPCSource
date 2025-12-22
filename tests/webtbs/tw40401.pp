@@ -21,7 +21,7 @@ begin
   if m <> 10 then
     begin
       WriteLn('FAIL - returned' , m);
-      Halt(1);    
+      Halt(1);
     end;
 
   WriteLn('ok');

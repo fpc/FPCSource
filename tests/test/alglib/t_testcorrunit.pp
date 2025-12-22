@@ -6,13 +6,13 @@ uses Sysutils, u_testcorrunit;
 
 begin
     Randomize();
-    try 
+    try
         if not testcorrunit_test_silent() then
         begin
             //WriteLn('*');
             Halt(1);
         end;
-    except on E: Exception do 
+    except on E: Exception do
         begin
             Halt(2);
         end;

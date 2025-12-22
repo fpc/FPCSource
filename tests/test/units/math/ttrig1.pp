@@ -82,7 +82,7 @@ for i:=1 to dim do
     Delta := Value - Ref;
     { Test modifed to cope with different rounding for Win64 PM }
     if (Abs(Delta) > 1E-15) or
-       ((abs(Value)+abs(ref)>1) and 
+       ((abs(Value)+abs(ref)>1) and
         (Abs(Delta / (abs(Value)+abs(ref))) > 1E-15)) then
       begin
         writeln('  Error for Tan(',i*10,') was:',Value,' should be:',Ref) ;

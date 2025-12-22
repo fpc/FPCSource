@@ -15,11 +15,11 @@ type
   public
     { public declarations }
     procedure test;
-  end; 
+  end;
 
   FNType = function(A, B: integer): integer;
 var
-  Form1: TForm1; 
+  Form1: TForm1;
 
 function Add23(A, B: integer; C: cardinal): integer; overload; forward;
 function Add23(A, B: integer): integer; overload; forward;

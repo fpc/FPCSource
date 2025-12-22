@@ -357,7 +357,7 @@ interface
          some newer instructions (like CMOVcc or PREFECTXXX) lead to troubles,
          related to OS or emulator lack of support. }
        systems_i386_default_486 = [system_i386_go32v2, system_i386_watcom,
-                                   system_i386_emx, system_i386_wdosx, 
+                                   system_i386_emx, system_i386_wdosx,
                                    system_i386_beos, system_i386_netware,
                                    system_i386_netwlibc, system_i386_symbian];
 

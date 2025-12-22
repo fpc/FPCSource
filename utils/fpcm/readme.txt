@@ -3,8 +3,8 @@ Free Pascal makefiles, depending on the rules
 specified in the Makefile.fpc files.
 
 Some tips:
-- The rtl and packages contain a script that regenerates the makefiles. 
-  targets, simply do (in a unix-like environment) 
+- The rtl and packages contain a script that regenerates the makefiles.
+  targets, simply do (in a unix-like environment)
   cd rtl
   ./regenmakefiles.sh
   cd ../packages

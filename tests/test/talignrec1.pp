@@ -14,15 +14,15 @@ type
     B: Byte;    { Should start at byte 4 }
     S: Single;  { Should start at byte 5 }
   end align 32;
-  
+
 const
   TestConst: TAlignedRecord = (I: $1234; B: $56; S: 7.8);
-  
+
 var
   FirstEntry: TAlignedRecord;
   X: Byte;
-  SecondEntry: TAlignedRecord;  
-  ThirdEntry: TAlignedRecord;  
+  SecondEntry: TAlignedRecord;
+  ThirdEntry: TAlignedRecord;
 begin
 { not all targets do a 32 byte alignment of variables or constants properly, if they don't, just halt with 0 }
 {$if defined(CPUX86_64) or defined(CPUAARCH64) or defined(CPUI386) or defined(CPUARM)}
@@ -57,21 +57,21 @@ begin
       WriteLn('FAIL: ThirdEntry is not on a 32-byte boundary (address = $', HexStr(@ThirdEntry), ')');
       Halt(1);
     end;
-    
+
   X := Byte(UIntPtr(@(TestConst.I)) mod $20);
   if X <> 0 then
     begin
       WriteLn('FAIL: TAlignedRecord.I starts at byte ', X, ' instead of 0');
       Halt(1);
     end;
-    
+
   X := Byte(UIntPtr(@(TestConst.B)) mod $20);
   if X <> 4 then
     begin
       WriteLn('FAIL: TAlignedRecord.B starts at byte ', X, ' instead of 4');
       Halt(1);
     end;
-    
+
   X := Byte(UIntPtr(@(TestConst.S)) mod $20);
   if X <> 5 then
     begin
@@ -82,58 +82,58 @@ begin
   FirstEntry := TestConst;
   SecondEntry := TestConst;
   ThirdEntry := TestConst;
-  
+
   { Check to see if FirstEntry's values are correctly assigned }
   if FirstEntry.I <> TestConst.I then
     begin
       WriteLn('FAIL: FirstEntry.I contains $', HexStr(FirstEntry.I, 4), ' rather than ', HexStr(TestConst.I, 4));
       Halt(1);
     end;
-  
+
   if FirstEntry.B <> TestConst.B then
     begin
       WriteLn('FAIL: FirstEntry.b contains $', HexStr(FirstEntry.B, 2), ' rather than ', HexStr(TestConst.B, 2));
       Halt(1);
     end;
-  
+
   if FirstEntry.S <> TestConst.S then
     begin
       WriteLn('FAIL: FirstEntry.b contains $', FirstEntry.S, ' rather than ', TestConst.S);
       Halt(1);
     end;
-  
+
   { Check to see if SecondEntry's values are correctly assigned }
   if SecondEntry.I <> TestConst.I then
     begin
       WriteLn('FAIL: SecondEntry.I contains $', HexStr(SecondEntry.I, 4), ' rather than ', HexStr(TestConst.I, 4));
       Halt(1);
     end;
-  
+
   if SecondEntry.B <> TestConst.B then
     begin
       WriteLn('FAIL: SecondEntry.b contains $', HexStr(SecondEntry.B, 2), ' rather than ', HexStr(TestConst.B, 2));
       Halt(1);
     end;
-  
+
   if SecondEntry.S <> TestConst.S then
     begin
       WriteLn('FAIL: SecondEntry.b contains $', SecondEntry.S, ' rather than ', TestConst.S);
       Halt(1);
     end;
-  
+
   { Check to see if ThirdEntry's values are correctly assigned }
   if ThirdEntry.I <> TestConst.I then
     begin
       WriteLn('FAIL: ThirdEntry.I contains $', HexStr(ThirdEntry.I, 4), ' rather than ', HexStr(TestConst.I, 4));
       Halt(1);
     end;
-  
+
   if ThirdEntry.B <> TestConst.B then
     begin
       WriteLn('FAIL: ThirdEntry.b contains $', HexStr(ThirdEntry.B, 2), ' rather than ', HexStr(TestConst.B, 2));
       Halt(1);
     end;
-  
+
   if ThirdEntry.S <> TestConst.S then
     begin
       WriteLn('FAIL: ThirdEntry.b contains $', ThirdEntry.S, ' rather than ', TestConst.S);

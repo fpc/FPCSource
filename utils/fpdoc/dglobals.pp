@@ -145,7 +145,7 @@ type
     Property TopicNode : Boolean Read FTopicNode;
     Property RefCount : Integer Read FRefCount;
   end;
-  
+
 
 
   // The main FPDoc engine
@@ -695,15 +695,15 @@ var
       begin
         ClassEl := TPasElement(clslist[i]);
         if CompareText(ClassEl.Name,s) =0 then
-          exit(Classel); 
+          exit(Classel);
       end;
   end;
 
   function ResolveClassType(AName:String):TPasClassType;
-  var 
+  var
      pkg     : TPasPackage;
      module  : TPasModule;
-     s       : string; 
+     s       : string;
   begin
     Result:=nil;
     s:=ResolvePackageModule(AName,pkg,module,False);
@@ -713,10 +713,10 @@ var
   end;
 
   function ResolveAliasType(AName:String):TPasAliasType;
-  var 
+  var
      pkg     : TPasPackage;
      module  : TPasModule;
-     s       : string; 
+     s       : string;
   begin
     Result:=nil;
     s:=ResolvePackageModule(AName,pkg,module,False);
@@ -755,7 +755,7 @@ var
      instr:=trim(instr);
      i:=pos('(',instr);
      if i>0 then
-      begin 
+      begin
         j:=length(instr)-i;
         if instr[length(instr)]=')' then
           dec(j);
@@ -766,7 +766,7 @@ var
 
     Function ResolveAndLinkClass(clname:String;IsClass:boolean;cls:TPasClassType):TPasClassType;
     begin
-     result:=TPasClassType(ResolveClassType(clname)); 
+     result:=TPasClassType(ResolveClassType(clname));
      if assigned(result) and not (cls=result) then  // save from tobject=implicit tobject
        begin
          if IsClass then
@@ -775,7 +775,7 @@ var
 //             writeln(cls.name, ' has as ancestor ',result.pathname);
            end
          else
-           begin    
+           begin
              cls.interfaces.add(result);
 //             writeln(cls.name, ' implements ',result.pathname);
            end;
@@ -797,7 +797,7 @@ var
         if not assigned(module) then
           exit;
         cl2:=TPasClassType(ResolveClassType(alname));
-        if assigned( cl2) and not (parentclass=cl2) then  
+        if assigned( cl2) and not (parentclass=cl2) then
           begin
             result:=ResolveAliasType(clname);
             if assigned(result) then
@@ -829,7 +829,7 @@ var
        for i:=0 to InhInfo.Count-1 do
          begin
            cls:=TPasClassType(InhInfo.Objects[i]);
-           inhclass.clear; 
+           inhclass.clear;
            inhclass.delimitedtext:=InhInfo[i];
 
            for j:= 0 to inhclass.count-1 do
@@ -842,7 +842,7 @@ var
                    // writeln('Found alias pair ',clname,' = ',alname);
                    if (dleXCT in FDocLogLevels) and not assigned(CreateAliasType(alname,clname,cls,cls2)) then
                       DoLog('Warning: creating alias %s for %s failed!',[alname,clname]);
-                 end 
+                 end
                else
                  cls2:=ResolveAndLinkClass(clname,j=0,cls);
              end;
@@ -1322,7 +1322,7 @@ begin
       finally
         Src.Free; // cleanup
       end;
-    finally 
+    finally
      Parser.Free;
      end;
   finally
@@ -1631,7 +1631,7 @@ function TFPDocEngine.GetExampleFilename(const ExElement: TDOMElement): String;
 var
   i: Integer;
   fn : String;
-  
+
 begin
   Result:='';
   Fn:=UTF8Encode(ExElement['file']);
@@ -1648,7 +1648,7 @@ begin
         Result := ExtractFilePath(DescrDocNames[i]) + FN;
       Inc(I);
       end;
-    end;  
+    end;
   if (ExtractFileExt(Result)='') then
     Result:=Result+'.pp';
 end;
@@ -1661,7 +1661,7 @@ procedure TranslateDocStrings(const Lang: String);
 Const
 {$ifdef unix}
   DefDir = '/usr/local/share/locale';
-{$else}  
+{$else}
   DefDir = 'intl';
 {$endif}
 

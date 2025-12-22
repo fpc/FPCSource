@@ -8,7 +8,7 @@ program project1;
 {$ifdef mswindows}{$apptype console}{$endif}
 uses
  sysutils;
- 
+
 function later(ref,act: cardinal): boolean;
 begin
  result:= not(integer(act-ref) < 0);
@@ -40,7 +40,7 @@ end;
 
 var
  ca1,ca2: cardinal;
- 
+
 begin
  ca1:= $7fffffff;
  ca2:= $80000001;

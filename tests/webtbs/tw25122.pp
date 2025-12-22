@@ -4,7 +4,7 @@ var
     case byte of
       1: (e: extended);
       2: (a: array[0..9] of byte);
-  end; 
+  end;
   i: longint;
 
   { assume little endian }

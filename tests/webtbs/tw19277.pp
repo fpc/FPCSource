@@ -12,4 +12,4 @@ type
   TSpec=specialize GenericA<integer>;
 
 begin
-end. 
+end.

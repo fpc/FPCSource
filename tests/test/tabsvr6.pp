@@ -5,9 +5,9 @@
 uses
   sysutils;
 var
-  { absolute means volatile, so the expression below cannot be optimized 
+  { absolute means volatile, so the expression below cannot be optimized
     and must cause a sig fault }
-  a : longint absolute 0;  
+  a : longint absolute 0;
 begin
   try
     while true or (a=0) do

@@ -52,9 +52,9 @@ end;
 
 { TA }
 
-type 
+type
   TA = object
-  public 
+  public
     F1: TR1;
   end;
 
@@ -62,7 +62,7 @@ type
   public
     F2: TR2;
   end;
-  
+
 procedure Foo();
 var
   LO: TB;
@@ -80,16 +80,16 @@ var
   P: ^TB;
 begin
   WriteLn('=== Global object variable [begin] ===');
-  
+
   if O.F1.I <> 1 then
     Halt(3);
   if O.F2.S <> 'A' then
     Halt(4);
-    
+
   WriteLn;
   WriteLn('=== Local variable ===');
-  Foo();      
-    
+  Foo();
+
   WriteLn;
   WriteLn('=== New and Dispose ===');
   New(P);
@@ -99,8 +99,8 @@ begin
     Halt(11);
   P^.F1.I := 2;
   P^.F2.S := 'B';
-  Dispose(P); 
-  
+  Dispose(P);
+
   WriteLn;
   WriteLn('=== InitializeArray and FinalizeArray ===');
   GetMem(P, SizeOf(TB));
@@ -109,8 +109,8 @@ begin
     Halt(12);
   if P^.F2.S <> 'A' then
     Halt(13);
-  P^.F1.I := 2;  
-  P^.F2.S := 'B';  
+  P^.F1.I := 2;
+  P^.F2.S := 'B';
   FinalizeArray(P, TypeInfo(TB), 1);
   if P^.F1.I <> 3 then
     Halt(14);
@@ -124,8 +124,8 @@ begin
     Halt(15);
   if P^.F2.S <> 'A' then
     Halt(16);
-  P^.F1.I := 2;  
-  P^.F2.S := 'B';  
+  P^.F1.I := 2;
+  P^.F2.S := 'B';
   Finalize(P^);
   if P^.F1.I <> 3 then
     Halt(17);
@@ -134,5 +134,5 @@ begin
   WriteLn;
   WriteLn('=== Global variable [end] ===');
   O.F1.I := 2;
-  O.F2.S := 'B'; 
+  O.F2.S := 'B';
 end. 

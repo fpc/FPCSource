@@ -68,7 +68,7 @@ begin
     mov sp, sp_initial
     call check_word
   end;
-  
+
   Writeln('testing push/pop word ptr global_proc');
   asm
     mov sp_initial, sp

@@ -12,7 +12,7 @@ begin
   if ExitCode=219 then
     TObject.GetLastCastErrorInfo(aFrom,aTo);
   Writeln('Got typecast ',aFrom,' to ',aTo,' error');
-  if (aFrom<>'') or (aTo<>'') then 
+  if (aFrom<>'') or (aTo<>'') then
     ExitCode:=0;
 end;
 

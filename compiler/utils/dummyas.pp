@@ -83,7 +83,7 @@ begin
           // ignore format in nasm
           skipnext:=true;
         end
-      else if copy(param,1,4)='-fo=' then  
+      else if copy(param,1,4)='-fo=' then
         begin
         // Watcom
         object_name:=copy(param,5);
@@ -106,7 +106,7 @@ begin
               write(stderr,'full command-line was:');
               for j:=1 to ParamCount do
                 Write(' ',paramstr(j));
-              Writeln;  
+              Writeln;
               halt(1);
             end;
         end;

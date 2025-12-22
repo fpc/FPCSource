@@ -1427,7 +1427,7 @@ implementation
                          def:=csetdef.create(cansichartype,torddef(cansichartype).low.svalue,torddef(cansichartype).high.svalue,true);
                        end
                      else
-                       Message(sym_e_ill_type_decl_set);  
+                       Message(sym_e_ill_type_decl_set);
                      end
                    else if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).low>=0) then

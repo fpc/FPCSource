@@ -5,9 +5,9 @@ program tw22225;
 {$mode objfpc}
 type
   TT = class
-  public 
-    type 
-      TErr = class 
+  public
+    type
+      TErr = class
       end;
   end;
 begin

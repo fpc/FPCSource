@@ -18,7 +18,7 @@ type
     procedure isrequired;
     procedure isoptional;
     procedure alsorequired;
-  end; 
+  end;
 
 
 begin

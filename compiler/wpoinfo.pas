@@ -89,8 +89,8 @@ implementation
       clearderefinfo;
       inherited destroy;
     end;
-    
-    
+
+
   procedure tunitwpoinfo.ppuwrite(ppufile:tcompilerppufile);
     var
       i: longint;

@@ -56,21 +56,21 @@ begin
         else
           writeln(t,'procedure test',tostr(k),'(var a); overload;');
         writeln(t,'  begin');
-{ 
+{
        if (i=compidx) then
           begin
              writeln(t,'{$ifdef FPC_COMP_IS_INT64}');
              writeln(t,'    writeln(''COMPFAILQ'');');
              writeln(t,'{$endif FPC_COMP_IS_INT64}')
           end;
-} 
+}
        writeln(t,'    writeln(''',types[i],' called instead of ',types[j],''');');
         writeln(t,'    writeln(''XXX'')');
         writeln(t,'  end;');
         writeln(t);
         writeln(t,'procedure test',tostr(k),'(a: ',types[j],'); overload;');
         writeln(t,'  begin');
-{ 
+{
        if (i=compidx) then
           begin
              writeln(t,'{$ifdef FPC_COMP_IS_INT64}');

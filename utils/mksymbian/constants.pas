@@ -29,7 +29,7 @@ unit constants;
 interface
 
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 
 type
 
@@ -74,7 +74,7 @@ const
 const
   UID_SOURCE_FILENAME = 'QUID.cpp';
   UID_OBJECT_FILENAME = 'QUID.o';
-  
+
   STR_ASSEMBLER_EXT = '.S';
   STR_OBJECT_EXT = '.o';
 
@@ -114,7 +114,7 @@ const
   STR_PRJ_File = 'file';
 
   { Options }
-  
+
   STR_OPT_Cpp = 'C++';
   STR_OPT_Pascal = 'Pascal';
 

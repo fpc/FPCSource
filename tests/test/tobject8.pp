@@ -55,7 +55,7 @@ var
   instance: tobj1;
 begin
   instance.init(s3,s4);
-  
+
 end;
 
 begin

@@ -2,10 +2,10 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses 
+uses
 {$ifdef unix}
   cthreads,
-{$endif} 
+{$endif}
   fpmkunit;
 {$endif ALLPACKAGES}
 

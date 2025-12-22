@@ -11,5 +11,5 @@ type
 
 type
 	ATest = specialize TTest<100>;
-begin 
+begin
 end.

@@ -2485,7 +2485,7 @@ implementation
                 if assigned(srsym) and
                    (srsym.typ=procsym) and
                    (
-                     (tprocsym(srsym).procdeflist.count>0) or 
+                     (tprocsym(srsym).procdeflist.count>0) or
                      (sp_generic_dummy in srsym.symoptions)
                    ) then
                   begin

@@ -7,7 +7,7 @@ Type
     Next : TLinkedListItem;
   end;
   TLinkedListItemClass = Class of TLinkedListItem;
-  
+
   TLinkedList = Class
     Constructor Create(ItemClass : TLinkedListItemClass);
     Procedure Clear;
@@ -15,5 +15,5 @@ Type
     Property Root : TLinkedListItem Read FRoot;
   end;
 
-Implementation  
+Implementation
 

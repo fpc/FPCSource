@@ -219,7 +219,7 @@ begin
 end;
 
 procedure set_endianess_macros;
-  begin 
+  begin
     { endian define }
     case target_info.endian of
       endian_little :
@@ -5675,23 +5675,23 @@ begin
           init_settings.optimizerswitches:=[
                                           cs_opt_stackframe,
                                           cs_opt_size,              // makes smaller
-                                          cs_opt_uncertain, 
-                                          cs_opt_peephole, 
+                                          cs_opt_uncertain,
+                                          cs_opt_peephole,
                                           cs_opt_tailrecursion,
                                           cs_opt_nodecse,           // makes smaller - don't sets vars to 0
-                                          cs_opt_nodedfa, 
+                                          cs_opt_nodedfa,
                                           cs_opt_loopstrength,
-                                          cs_opt_reorder_fields, 
+                                          cs_opt_reorder_fields,
                                           cs_opt_dead_values,       // makes smaller
                                           cs_opt_remove_empty_proc, // makes smaller
-                                          cs_opt_dead_store_eliminate, 
-                                          cs_opt_forcenostackframe,                                          
+                                          cs_opt_dead_store_eliminate,
+                                          cs_opt_forcenostackframe,
                                           cs_opt_unused_para,       // makes smaller
                                           cs_opt_consts];
 
           // dont work: cs_opt_regvar, cs_opt_constant_propagate
           // dont compile: cs_opt_scheduler
-          // makes larger: cs_opt_autoinline 
+          // makes larger: cs_opt_autoinline
 }
         init_settings.optimizerswitches:=[];
         init_settings.debugswitches:= [];

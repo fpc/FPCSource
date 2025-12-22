@@ -18,7 +18,7 @@ type
 
 var
   err : boolean;
-	
+
 function tbase.add: tobject;
 begin
   writeln('tbase.add:tobject');

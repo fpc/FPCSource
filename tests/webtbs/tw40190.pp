@@ -5,7 +5,7 @@ begin
   if (Value and $FFFFFFFFFFFFFF80 <> 0) and (Value and $FFFFFFFFFFFFFF80 <> $FFFFFFFFFFFFFF80) then begin
   // remainder not relevant
   end;
-end;  
+end;
 
 begin
 end.

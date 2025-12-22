@@ -56,11 +56,11 @@ BEGIN
   Reset(f);
   if FileGetDate(filerec(f).handle)<>DateTimeToFileDate(dateTime) then
     begin
-      writeln('Got: ',DateTimeToStr(FileDateToDateTime(FileGetDate(filerec(f).handle))),' expected ',DateTimeToStr(dateTime)); 
+      writeln('Got: ',DateTimeToStr(FileDateToDateTime(FileGetDate(filerec(f).handle))),' expected ',DateTimeToStr(dateTime));
       do_error(1006);
     end;
-  Close(f);  
-  
+  Close(f);
+
   if FileExists('datetest.dat') then
     begin
       Assign(f,'datetest.dat');

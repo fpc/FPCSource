@@ -93,9 +93,9 @@ begin
     HPath:= TCmdStrListItem(LibrarySearchPath.First);
     while assigned(HPath) do begin
       s:= HPath.Str;
-      
+
       if s <> '' then LinkRes.Add('SEARCH_DIR("' + s + '")');
-      
+
       HPath:= TCmdStrListItem(HPath.Next);
     end;
 
@@ -103,7 +103,7 @@ begin
     while not ObjectFiles.Empty do begin
         LinkRes.Add('INPUT(' + ExtractFileName(ObjectFiles.GetFirst) + ')');
     end;
-    
+
 
     LinkRes.Add('INPUT(libcard.a libpress.a libgpu.a libgs.a libgte.a)');
     LinkRes.Add('INPUT(libcd.a libetc.a libsn.a libsnd.a libspu.a)');
@@ -235,11 +235,11 @@ end;
 
 
 procedure write0till(var f: file; k: dWord);
-var 
+var
     b : byte;
 
 begin
-  
+
   b:= 0;
   repeat
     BlockWrite(f, b, 1);
@@ -260,7 +260,7 @@ var
 begin
 
   result:= false;
-  
+
   AssignFile(f, name + '.bin');
   {$I-} reset(f, 1); {$I+}
   if ioResult <> 0 then exit;
@@ -269,7 +269,7 @@ begin
     Message3(link_f_executable_too_big_exceeds_X_by_Y_bytes,'PS1','2097152',tostr(filesize(f)-$200000));
     exit;
   end;
-  
+
   close(f);
 
   AssignFile(f, name + '.psx-exe');
@@ -354,7 +354,7 @@ begin
 
     DeleteFile(outputexedir + Info.ResName);
 
-    
+
     if not FileCopy(current_module.exefilename + '.elf', current_module.exefilename + '.bin', 0) then begin
       writeln('Cant Write ' + current_module.exefilename + '.bin File!');
       result:= false;
@@ -371,7 +371,7 @@ begin
       exit;
     end;
 
-   
+
     success:= CreatePSXEXE(current_module.exefilename);
     if not success then begin
       writeln('Create PSX-EXE failed!');

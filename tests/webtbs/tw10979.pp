@@ -13,7 +13,7 @@ type
   TMyStringList = class(TStringList)
   private
     function GetObjects(Index: Integer): TStringList;
-    procedure SetObjects(Index: Integer; const Value: TStringList);  
+    procedure SetObjects(Index: Integer; const Value: TStringList);
   public
     property Objects[Index: Integer]: TStringList read GetObjects write SetObjects;
   end;
@@ -29,7 +29,7 @@ begin
   inherited Objects[Index] := Value;
 end;
 
-              
+
 var
   SL: TMyStringList;
 begin

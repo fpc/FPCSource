@@ -128,7 +128,7 @@ function TPasToUnitTestApplication.CheckOptions : Boolean;
       V:=Trim(Copy(S,1,P-1));
       If (V<>'') then
         List.Add(V);
-      Delete(S,1,P);  
+      Delete(S,1,P);
     until (S='');
   end;
 

@@ -32,7 +32,7 @@ Resourcestring
   SWarnUnknownAction       = 'Warning: Unknown action: "%s" for filename : "%s"';
   SWarnErrorInLine         = 'Warning: Erroneous file line : %s';
   SExecuting               = 'Executing: %s';
-  
+
 Type
 
  { TSVN2CVSApp }
@@ -48,7 +48,7 @@ Type
    Property Date : string Read FDate;
    Property Author : String Read FAuthor;
  end;
- 
+
  { TVersions }
 
  TVersions = Class(TCollection)
@@ -109,7 +109,7 @@ end;
 procedure TVersions.ConvertLogEntry(E : TDomElement);
 
   Function GetNodeText(N : TDomNode) : String;
-  
+
   begin
     N:=N.FirstChild;
     If N<>Nil then
@@ -160,7 +160,7 @@ begin
     L:=L.NextSibling;
     end;
 end;
- 
+
 
 { TSVN2CVSApp }
 
@@ -366,7 +366,7 @@ Procedure TSVN2CVSApp.WriteLogMessage(Version : TVersion);
 
 Var
   F : Text;
-  
+
 begin
   AssignFile(F,'logmsg.txt');
   Rewrite(F);
@@ -422,7 +422,7 @@ Var
   L : TStringList;
   I : Integer;
   Found : Boolean;
-  
+
 begin
   If ((FileGetAttr(AFileName) and faDirectory)<>0) then
     begin
@@ -517,5 +517,5 @@ begin
       Run;
     Finally
       free;
-    end;  
+    end;
 end.

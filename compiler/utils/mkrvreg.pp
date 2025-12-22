@@ -279,7 +279,7 @@ begin
      begin
        fileprefix:='32';
        writeln('Processing for CPU Risc-V 32');
-     end;  
+     end;
    read_rvreg_file;
    regcount_bsstart:=1;
    while 2*regcount_bsstart<regcount do

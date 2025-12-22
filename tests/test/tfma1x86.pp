@@ -3,8 +3,8 @@
 uses
   cpu;
 
-{$i tfma1.inc}  
-  
+{$i tfma1.inc}
+
 begin
   if AVXSupport and FMASupport then
     begin

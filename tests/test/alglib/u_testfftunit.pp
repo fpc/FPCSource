@@ -55,7 +55,7 @@ begin
     RefRErrors := False;
     REIntErrors := False;
     WasErrors := False;
-    
+
     //
     // Test bi-directional error: norm(x-invFFT(FFT(x)))
     //
@@ -64,7 +64,7 @@ begin
     N:=1;
     while N<=MaxN do
     begin
-        
+
         //
         // Complex FFT/invFFT
         //
@@ -91,7 +91,7 @@ begin
             BiDiErr := Max(BiDiErr, AbsComplex(C_Sub(A1[I],A3[I])));
             Inc(I);
         end;
-        
+
         //
         // Real
         //
@@ -117,7 +117,7 @@ begin
     end;
     BiDiErrors := BiDiErrors or AP_FP_Greater(BiDiErr,ErrTol);
     BiDiRErrors := BiDiRErrors or AP_FP_Greater(BiDiRErr,ErrTol);
-    
+
     //
     // Test against reference O(N^2) implementation
     //
@@ -126,7 +126,7 @@ begin
     N:=1;
     while N<=MaxN do
     begin
-        
+
         //
         // Complex FFT
         //
@@ -148,7 +148,7 @@ begin
             RefErr := Max(RefErr, AbsComplex(C_Sub(A1[I],A2[I])));
             Inc(I);
         end;
-        
+
         //
         // Complex inverse FFT
         //
@@ -170,7 +170,7 @@ begin
             RefErr := Max(RefErr, AbsComplex(C_Sub(A1[I],A2[I])));
             Inc(I);
         end;
-        
+
         //
         // Real forward/inverse FFT:
         // * calculate and check forward FFT
@@ -224,7 +224,7 @@ begin
     end;
     RefErrors := RefErrors or AP_FP_Greater(RefErr,ErrTol);
     RefRErrors := RefRErrors or AP_FP_Greater(RefRErr,ErrTol);
-    
+
     //
     // test internal real even FFT
     //
@@ -233,7 +233,7 @@ begin
     while K<=MaxN div 2 do
     begin
         N := 2*K;
-        
+
         //
         // Real forward FFT
         //
@@ -259,7 +259,7 @@ begin
             REIntErr := Max(REIntErr, AbsReal(R1[2*I+1]-A2[I].Y));
             Inc(I);
         end;
-        
+
         //
         // Real backward FFT
         //
@@ -293,7 +293,7 @@ begin
         Inc(K);
     end;
     REIntErrors := REIntErrors or AP_FP_Greater(REIntErr,ErrTol);
-    
+
     //
     // end
     //

@@ -29,7 +29,7 @@ begin
     2: begin Val(S, I16, Err); I64:=I16; end;
     4: begin Val(S, I32, Err); I64:=I32; end;
     8: begin Val(S, I64, Err); end;
-    otherwise 
+    otherwise
       begin
         writeln('Invalid value for DestSize: ',DestSize);
         halt(1);

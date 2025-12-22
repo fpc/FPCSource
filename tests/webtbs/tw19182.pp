@@ -163,7 +163,7 @@ begin
   PIGetFileName.GetFileName;
   PIUnk.QueryInterface(IGMGetSetFileName, PIGetSetFileName);
   PIGetSetFileName.SetFileName('');
-  
+
   obj := TObjDelegator.Create;
   (obj as IGMGetFileName).GetFileName;
   (obj as IGMGetSetFileName).SetFileName('');

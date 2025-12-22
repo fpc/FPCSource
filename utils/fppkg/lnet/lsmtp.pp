@@ -15,7 +15,7 @@
   You should have received a Copy of the GNU Library General Public License
   along with This library; if not, Write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-  
+
   This license has been modified. See File LICENSE.ADDON for more inFormation.
   Should you find these sources without a LICENSE File, please contact
   me at ales@chello.sk
@@ -31,11 +31,11 @@ interface
 uses
   Classes, SysUtils, Contnrs, Base64,
   lNet, lEvents, lCommon, lMimeWrapper, lMimeStreams;
-  
+
 type
   TLSMTP = class;
   TLSMTPClient = class;
-  
+
   TLSMTPStatus = (ssNone, ssCon, ssHelo, ssEhlo, ssAuthLogin, ssAuthPlain,
                   ssStartTLS, ssMail, ssRcpt, ssData, ssRset, ssQuit, ssLast);
 
@@ -45,7 +45,7 @@ type
     Status: TLSMTPStatus;
     Args: array[1..2] of string;
   end;
-  
+
   { TLSMTPStatusFront }
   {$DEFINE __front_type__  :=  TLSMTPStatusRec}
   {$i lcontainersh.inc}
@@ -53,7 +53,7 @@ type
 
   TLSMTPClientStatusEvent = procedure (aSocket: TLSocket;
                                        const aStatus: TLSMTPStatus) of object;
-                                       
+
   { TMail }
 
   TMail = class
@@ -91,7 +91,7 @@ type
    protected
     function GetTimeout: Integer;
     procedure SetTimeout(const AValue: Integer);
-    
+
     function GetSession: TLSession;
     procedure SetSession(const AValue: TLSession);
     procedure SetCreator(AValue: TLComponent); override;
@@ -100,13 +100,13 @@ type
 
     function GetSocketClass: TLSocketClass;
     procedure SetSocketClass(const AValue: TLSocketClass);
-    
+
     function GetEventer: TLEventer;
     procedure SetEventer(Value: TLEventer);
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
-    
+
     function HasFeature(aFeature: string): Boolean;
    public
     property Connected: Boolean read GetConnected;
@@ -151,31 +151,31 @@ type
     procedure OnCs(aSocket: TLSocket);
    protected
     function CanContinue(const aStatus: TLSMTPStatus; const Arg1, Arg2: string): Boolean;
-    
+
     function CleanInput(var s: string): Integer;
-    
+
     procedure EvaluateServer;
     procedure EvaluateFeatures;
     procedure EvaluateAnswer(const Ans: string);
     procedure ExecuteFrontCommand;
-    
+
     procedure AddToBuffer(s: string);
     procedure SendData(const FromStream: Boolean = False);
     function EncodeBase64(const s: string): string;
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
-    
+
     function Connect(const aHost: string; const aPort: Word = 25): Boolean; virtual; overload;
     function Connect: Boolean; virtual; overload;
-    
+
     function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual;
 
     procedure SendMail(From, Recipients, Subject, Msg: string);
     procedure SendMail(From, Recipients, Subject: string; aStream: TStream);
     procedure SendMail(aMail: TMail);
-    
+
     procedure Helo(aHost: string = '');
     procedure Ehlo(aHost: string = '');
     procedure StartTLS;
@@ -186,9 +186,9 @@ type
     procedure Data(const Msg: string);
     procedure Rset;
     procedure Quit;
-    
+
     procedure Disconnect(const Forced: Boolean = True); override;
-    
+
     procedure CallAction; override;
    public
     property PipeLine: Boolean read FPipeLine write FPipeLine;
@@ -240,7 +240,7 @@ end;
 procedure TLSMTP.SetCreator(AValue: TLComponent);
 begin
   inherited SetCreator(AValue);
-  
+
   FConnection.Creator := AValue;
 end;
 
@@ -282,7 +282,7 @@ end;
 constructor TLSMTP.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  
+
   FFeatureList := TStringList.Create;
   FConnection := TLTcp.Create(nil);
   FConnection.Creator := Self;
@@ -342,7 +342,7 @@ begin
   FSL := TStringList.Create;
 //  {$warning TODO: fix pipelining support when server does it}
   FPipeLine := False;
-  
+
   FConnection.OnError := @OnEr;
   FConnection.OnCanSend := @OnCs;
   FConnection.OnReceive := @OnRe;
@@ -472,7 +472,7 @@ procedure TLSMTPClient.EvaluateAnswer(const Ans: string);
       Result := -1;
     end;
   end;
-  
+
   function ValidResponse(const Answer: string): Boolean; inline;
   begin
     Result := (Length(Ans) >= 3) and
@@ -483,7 +483,7 @@ procedure TLSMTPClient.EvaluateAnswer(const Ans: string);
     if Result then
       Result := (Length(Ans) = 3) or ((Length(Ans) > 3) and (Ans[4] = ' '));
   end;
-  
+
   procedure Eventize(const aStatus: TLSMTPStatus; const Res: Boolean);
   begin
     FStatus.Remove;
@@ -495,7 +495,7 @@ procedure TLSMTPClient.EvaluateAnswer(const Ans: string);
         FOnFailure(FConnection.Iterator, aStatus);
     end;
   end;
-  
+
 var
   x: Integer;
 begin
@@ -520,7 +520,7 @@ begin
                             FTempBuffer := '';
                           end;
               end;
-              
+
       ssStartTLS:
               case x of
                 200..299: begin
@@ -531,7 +531,7 @@ begin
                             Eventize(FStatus.First.Status, False);
                           end;
               end;
-              
+
       ssAuthLogin:
               case x of
                 200..299: begin
@@ -552,7 +552,7 @@ begin
                             Eventize(FStatus.First.Status, False);
                           end;
               end;
-              
+
       ssAuthPlain:
               case x of
                 200..299: begin
@@ -586,11 +586,11 @@ begin
                             Eventize(FStatus.First.Status, False);
                           end;
               end;
-              
+
       ssRset: begin
                 Eventize(FStatus.First.Status, (x >= 200) and (x < 299));
               end;
-              
+
       ssQuit: begin
                 Eventize(FStatus.First.Status, (x >= 200) and (x < 299));
 {                if Assigned(FOnDisconnect) then
@@ -598,7 +598,7 @@ begin
                 Disconnect(False);
               end;
     end;
-    
+
   if FStatus.Empty and not FCommandFront.Empty then
     ExecuteFrontCommand;
 end;
@@ -652,23 +652,23 @@ begin
     end else
       Inc(FCharCount);
   end;
-  
+
   FBuffer := FBuffer + s;
 end;
 
 procedure TLSMTPClient.SendData(const FromStream: Boolean = False);
 const
   SBUF_SIZE = 65535;
-  
+
   procedure FillBuffer;
   var
     s: string;
   begin
     SetLength(s, SBUF_SIZE - Length(FBuffer));
     SetLength(s, FStream.Read(s[1], Length(s)));
-    
+
     AddToBuffer(s);
-    
+
     if FStream.Position = FStream.Size then begin // we finished the stream
       AddToBuffer(CRLF + '.' + CRLF);
       FStream := nil;
@@ -693,7 +693,7 @@ begin
     if FromStream and Assigned(FStream) and (Length(FBuffer) < SBUF_SIZE) then
       FillBuffer;
   end;
-  
+
   if Assigned(FOnSent) and (FStatus.First.Status = ssData) then
     FOnSent(FConnection.Iterator, Sent);
 end;
@@ -706,7 +706,7 @@ begin
   Result := '';
   if Length(s) = 0 then
     Exit;
-  
+
   Dummy := TBogusStream.Create;
   Enc := TBase64EncodingStream.Create(Dummy);
 
@@ -763,7 +763,7 @@ begin
   From := EncodeMimeHeaderText(From);
   Recipients := EncodeMimeHeaderText(Recipients);
   Subject := EncodeMimeHeaderText(Subject);
-  
+
   if (Length(Recipients) > 0) and (Length(From) > 0) then begin
     Mail(From);
     FSL.CommaText := StringReplace(Recipients, ' ', ',', [rfReplaceAll]);
@@ -780,7 +780,7 @@ begin
   From := EncodeMimeHeaderText(From);
   Recipients := EncodeMimeHeaderText(Recipients);
   Subject := EncodeMimeHeaderText(Subject);
-  
+
   FStream := aStream;
 
   if (Length(Recipients) > 0) and (Length(From) > 0) then begin
@@ -838,7 +838,7 @@ begin
   aName := EncodeBase64(aName);
   aPass := EncodeBase64(aPass);
   FAuthStep := 0; // first, send username
-  
+
   if CanContinue(ssAuthLogin, aName, aPass) then begin
     AddToBuffer('AUTH LOGIN' + CRLF);
     FStatus.Insert(MakeStatusRec(ssAuthLogin, aName, aPass));

@@ -7,7 +7,7 @@ const
   ininame = 'fpcmake.ini';
   incname = 'fpcmake.inc';
   constname = 'fpcmakeini';
-  
+
 var
   Data2Inc : string;
   res : integer;
@@ -25,6 +25,6 @@ begin
     Halt(2);
     end;
   Res:=ExecuteProcess(data2inc,['-b','-s',ininame,incname,constname]);
-  if Res<>0 then 
+  if Res<>0 then
     Halt(Res);
 end.

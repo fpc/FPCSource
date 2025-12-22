@@ -85,7 +85,7 @@ begin
   CurrentDirectory := ExtractFilePath(ParamStr(0));
   MakePartialFolder := Copy(CurrentDirectory, 3, Length(CurrentDirectory) - 2);
   MakeFolder := IncludeTrailingBackslash(CurrentDirectory);
-  
+
   { When compiling the bindings we use a relative directory to get the output dir }
   BindingsUnitsFolder := MakeFolder + '../../units/i386-symbian/';
 
@@ -191,7 +191,7 @@ begin
   AProcess.Execute;
 
   { Linking and library creation }
-  
+
   WriteLn('');
   WriteLn('Linking and library creation');
   WriteLn('');
@@ -387,7 +387,7 @@ begin
   WriteLn('');
   WriteLn('Preparations for compiling');
   WriteLn('');
-  
+
   // First command
 
   AProcess.CommandLine := 'perl -S makmake.pl  -D ' + MakePartialFolder + 'QHELLOWORLD WINSCW';
@@ -472,7 +472,7 @@ begin
   { Makes sure that the output directory exists }
 
   SysUtils.ForceDirectories(BindingsUnitsFolder);
-  
+
   { Compilation }
 
   STR_CWUFLAGS := '-wchar_t off -align 4 -warnings on ' +
@@ -533,7 +533,7 @@ begin
   finally
     UIDFile.Free;
   end;
-  
+
   { Compilation }
 
   STR_CWUFLAGS := '-wchar_t off -align 4 -warnings on ' +

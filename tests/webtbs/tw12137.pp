@@ -4,7 +4,7 @@ type
     FElementDef: pointer;
     FCurCP: pointer;
     FFailed: Boolean;
-  end; 
+  end;
 
 var
   FValidator: array of TElementValidator;

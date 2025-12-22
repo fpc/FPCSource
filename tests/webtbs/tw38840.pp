@@ -8,7 +8,7 @@ function f : integer;
   end;
 
 var r, s, t, tablecols : integer;
-    
+
 begin
   s := 1;
   t := r + (s*tablecols);

@@ -460,7 +460,7 @@ end;
 
 
 { ---------------------------------------------------------------------
-  Main program. Document all units.    
+  Main program. Document all units.
   ---------------------------------------------------------------------}
 
 Function MergeNodes(Doc : TXMLDocument;Dest,Source : TDomElement) : Integer;
@@ -618,9 +618,9 @@ end;
   ---------------------------------------------------------------------}
 
 
-var  
+var
   cmdObjectKind : TPasObjKind;
-  InputFiles, 
+  InputFiles,
   MergeFiles : TStringList;
   DocLang : String;
   OutputName: String;
@@ -639,9 +639,9 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-  Usage  
+  Usage
   ---------------------------------------------------------------------}
-  
+
 Procedure Usage;
 
 begin
@@ -760,11 +760,11 @@ end;
 
 
 { ---------------------------------------------------------------------
-  Main Program  
+  Main Program
   ---------------------------------------------------------------------}
-  
+
 Procedure Run;
-  
+
 var
   E: Integer;
 
@@ -772,7 +772,7 @@ begin
   WriteLn(STitle);
   WriteLn(Format(SVersion, [FPCVersion, FPCDate]));
   WriteLn(SCopyright);
- 
+
   InitOptions;
   Try
     E:=ParseCommandLine;
@@ -781,12 +781,12 @@ begin
     WriteLn;
     AnalyseFiles(OutputName,InputFiles,MergeFiles,cmdObjectKind);
     WriteLn(StdErr,SDone);
-  Finally  
+  Finally
     FreeOptions;
-  end;  
+  end;
 end;
 
 Begin
-  Run;  
+  Run;
 end.
 

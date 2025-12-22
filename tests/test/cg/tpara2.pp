@@ -28,11 +28,11 @@ type
         end;
 
         RGBColor = record
-                red:                                    UInt16;                 
+                red:                                    UInt16;
                                                 { magnitude of red component }
-                green:                                  UInt16;                 
+                green:                                  UInt16;
                                                 { magnitude of green component }
-                blue:                                   UInt16;                 
+                blue:                                   UInt16;
                                                 { magnitude of blue component }
         end;
 
@@ -41,7 +41,7 @@ begin
   test:= r;
 end;
 
-var 
+var
   r: rect;
   c1,c2: rgbcolor;
 begin

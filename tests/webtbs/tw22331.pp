@@ -132,7 +132,7 @@ begin
   writeln(round(w / 2 - 125.167121), round(h - 639.985763));
   writeln(round(w / 2 - 125.093118), round(h - 639.843861));
   writeln(round(w / 2 - 125.019472), round(h - 639.702711));
-  writeln(round(w / 2 - 124.873260), round(h - 639.422287)); 
+  writeln(round(w / 2 - 124.873260), round(h - 639.422287));
 end;
 begin
   X

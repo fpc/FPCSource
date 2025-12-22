@@ -630,7 +630,7 @@ implementation
               { The size of the stack parameter must be not less than
                 the size of the register because the spilling code for
                 most CPU targets spills whole registers.
-                
+
                 Spilling of sub registers is supported for x86.
               }
               if (paraloc<>nil) and (regsize>tcgsize2size[paraloc^.Size]) then

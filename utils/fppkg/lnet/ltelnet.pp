@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, lNet, lControlStack;
-  
+
 const
   // Telnet printer signals
   TS_NUL         = #0;
@@ -61,7 +61,7 @@ const
   TS_DONT        = #254;
   // Mother of all power
   TS_IAC         = #255;
-  
+
 type
   TLTelnetClient = class;
 
@@ -101,11 +101,11 @@ type
     FSubcommandCallbacks: TLSubcommandArray;
     procedure InflateBuffer;
     function AddToBuffer(const aStr: string): Boolean; inline;
-    
+
     function Question(const Command: Char; const Value: Boolean): Char;
-    
+
     function GetConnected: Boolean;
-    
+
     function GetTimeout: Integer;
     procedure SetTimeout(const Value: Integer);
 
@@ -126,13 +126,13 @@ type
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
-    
+
     function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
-    
+
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
-    
+
     function OptionIsSet(const Option: Char): Boolean;
     function RegisterOption(const aOption: Char; const aCommand: Boolean): Boolean;
     procedure SetOption(const Option: Char);
@@ -142,7 +142,7 @@ type
                 const defaultResponse: string= ''; requiredParams: integer= 0): boolean;
 
     procedure Disconnect(const Forced: Boolean = True); override;
-    
+
     procedure SendCommand(const aCommand: Char; const How: TLHowEnum); virtual;
    public
     property Output: TMemoryStream read FOutput;
@@ -168,20 +168,20 @@ type
     procedure OnCo(aSocket: TLSocket);
 
     function React(const Operation, Command: Char): boolean; override;
-    
+
     procedure SendCommand(const Command: Char; const Value: Boolean); override;
    public
     constructor Create(aOwner: TComponent); override;
-    
+
     function Connect(const anAddress: string; const aPort: Word): Boolean;
     function Connect: Boolean;
-    
+
     function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; override;
-    
+
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; override;
-    
+
     procedure CallAction; override;
    public
     property LocalEcho: Boolean read FLocalEcho write FLocalEcho;
@@ -206,11 +206,11 @@ var
 constructor TLTelnet.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  
+
   FConnection := TLTCP.Create(nil);
   FConnection.Creator := Self;
   FConnection.OnCanSend := @OnCs;
-  
+
   FOutput := TMemoryStream.Create;
   FCommandCharIndex := 0;
   FStack := TLControlStack.Create;
@@ -258,10 +258,10 @@ end;
 function TLTelnet.AddToBuffer(const aStr: string): Boolean; inline;
 begin
   Result := False;
-  
+
   while Length(aStr) + FBufferEnd > Length(FBuffer) do
     InflateBuffer;
-    
+
   Move(aStr[1], FBuffer[FBufferEnd], Length(aStr));
   Inc(FBufferEnd, Length(aStr));
 end;
@@ -361,7 +361,7 @@ begin
     if n > 0 then
       Inc(FBufferIndex, n);
   end;
-  
+
   if FBufferEnd - FBufferIndex < FBufferIndex then begin // if we can move the "right" side of the buffer back to the left
     Move(FBuffer[FBufferIndex], FBuffer[0], FBufferEnd - FBufferIndex);
     FBufferEnd := FBufferEnd - FBufferIndex;
@@ -489,7 +489,7 @@ function TLTelnetClient.React(const Operation, Command: Char): boolean;
     AddToBuffer(TS_IAC + Operation + Command);
     OnCs(nil);
   end;
-  
+
   procedure Refuse(const Operation, Command: Char);
   begin
     FActiveOpts := FActiveOpts - [Command];
@@ -558,12 +558,12 @@ begin
   case Operation of
     TS_DO   : if Command in FPossible then Accept(TS_WILL, Command)
               else Refuse(TS_WONT, Command);
-              
+
     TS_DONT : if Command in FPossible then Refuse(TS_WONT, Command);
-    
+
     TS_WILL : if Command in FPossible then FActiveOpts := FActiveOpts + [Command]
               else Refuse(TS_DONT, Command);
-                 
+
     TS_WONT : if Command in FPossible then FActiveOpts := FActiveOpts - [Command];
     TS_SB   : if not Assigned(FSubcommandCallbacks[command].callback) then
                 refuse(TS_WONT, command)
@@ -635,10 +635,10 @@ begin
     DoubleIAC(Tmp);
     if LocalEcho and (not OptionIsSet(TS_ECHO)) and (not OptionIsSet(TS_HYI)) then
       FOutput.Write(PChar(Tmp)^, Length(Tmp));
-      
+
     AddToBuffer(Tmp);
     OnCs(nil);
-    
+
     Result := aSize;
   end;
   {$ifdef debug}

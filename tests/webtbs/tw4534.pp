@@ -12,7 +12,7 @@ begin
     begin
       if (p1^ xor p2^) = $80 then
         halt(0);
-      inc(p1); 
+      inc(p1);
       inc(p2);
     end;
   halt(1);

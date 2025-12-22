@@ -15,7 +15,7 @@
   You should have received a Copy of the GNU Library General Public License
   along with This library; if not, Write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-  
+
   This license has been modified. See file LICENSE.ADDON for more information.
   Should you find these sources without a LICENSE File, please contact
   me at ales@chello.sk
@@ -74,7 +74,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    
+
     procedure AbortRequest;
     function  Get(ABuffer: pchar; ASize: integer): integer;
     procedure ParseClientBuffer;
@@ -96,9 +96,9 @@ type
     property OnStderr: TLFastCGIRequestEvent read FOnStderr write FOnStderr;
   end;
 
-  TFastCGIClientState = (fsIdle, fsConnecting, fsConnectingAgain, 
+  TFastCGIClientState = (fsIdle, fsConnecting, fsConnectingAgain,
     fsStartingServer, fsHeader, fsData, fsFlush);
-  
+
   PLFastCGIClient = ^TLFastCGIClient;
   TLFastCGIClient = class(TLTcp)
   protected
@@ -160,7 +160,7 @@ type
     FHost: string;
     FPort: integer;
     FSpawnState: TSpawnState;
-    
+
     procedure AddToFreeClients(AClient: TLFastCGIClient);
     function  CreateClient: TLFastCGIClient;
     procedure ConnectClients(Sender: TObject);
@@ -307,7 +307,7 @@ begin
   end else
     Result := 1;
 end;
-  
+
 procedure FillFastCGIStringSize(const AStr: string; var AFastCGIStr: TLFastCGIStringSize);
 var
   lLen: dword;
@@ -348,7 +348,7 @@ begin
   FillFastCGIStringSize(AName, lNameLen);
   FillFastCGIStringSize(AValue, lValueLen);
   lTotalLen := lNameLen.Size+lValueLen.Size+Length(AName)+Length(AValue);
-  if (FHeader.ReqType = AReqType) and (FBufferSendPos = 0) 
+  if (FHeader.ReqType = AReqType) and (FBufferSendPos = 0)
     and (0 <= FHeaderPos) and (FHeaderPos < FBuffer.Pos - FBuffer.Memory) then
   begin
     { undo padding }
@@ -420,7 +420,7 @@ begin
   { already a queue and we are not first in line ? no use in trying to send then }
   if (FClient.FSendRequest = nil) or (FClient.FSendRequest = Self) then
   begin
-    lWritten := FClient.Send(FBuffer.Memory[FBufferSendPos], 
+    lWritten := FClient.Send(FBuffer.Memory[FBufferSendPos],
       FBuffer.Pos-FBuffer.Memory-FBufferSendPos);
     Inc(FBufferSendPos, lWritten);
     Result := FBufferSendPos = FBuffer.Pos-FBuffer.Memory;
@@ -438,7 +438,7 @@ var
   lWritten: integer;
 begin
   { already a queue and we are not first in line ? no use in trying to send then }
-  if (FClient.FSendRequest <> nil) and (FClient.FSendRequest <> Self) then 
+  if (FClient.FSendRequest <> nil) and (FClient.FSendRequest <> Self) then
     exit(0);
 
   { header to be sent? }
@@ -519,7 +519,7 @@ end;
 function TLFastCGIClient.GetBuffer(ABuffer: pchar; ASize: integer): integer;
 begin
   Result := FBufferEnd - FBufferPos;
-  if Result > FContentLength then 
+  if Result > FContentLength then
     Result := FContentLength;
   if Result > ASize then
     Result := ASize;
@@ -568,13 +568,13 @@ begin
       else
         FRequests[I].EndRequest;
     end;
-  if needReconnect then 
+  if needReconnect then
     Connect;
 end;
 
 procedure TLFastCGIClient.ErrorEvent(ASocket: TLHandle; const msg: string);
 begin
-  if (FState = fsConnectingAgain) 
+  if (FState = fsConnectingAgain)
     or ((FState = fsConnecting) and (FPool.FSpawnState = ssSpawned)) then
   begin
     FRequest.DoEndRequest;
@@ -705,10 +705,10 @@ begin
         end else
           Flush;
       end;
-      fsData: 
+      fsData:
       begin
         FRequest.HandleReceive;
-        if FContentLength = 0 then 
+        if FContentLength = 0 then
           Flush
         else begin
           FRequest.FOutputPending := true;
@@ -805,7 +805,7 @@ begin
   if FPool <> nil then
     FPool.EndRequest(Self);
 end;
-   
+
 { TLFastCGIPool }
 
 constructor TLFastCGIPool.Create;
@@ -876,7 +876,7 @@ end;
 procedure TLFastCGIPool.AddToFreeClients(AClient: TLFastCGIClient);
 begin
   if AClient.FNextFree <> nil then exit;
-  
+
   if FFreeClient = nil then
     FFreeClient := AClient
   else

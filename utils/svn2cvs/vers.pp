@@ -18,7 +18,7 @@ Type
    Property Date : string Read FDate;
    Property Author : String Read FAuthor;
  end;
- 
+
  { TVersions }
 
  TVersions = Class(TCollection)
@@ -32,7 +32,7 @@ Type
    property Versions[Index : INteger] : TVersion Read GetVersion Write SetVersion; Default;
  end;
 
- AppError = Class(Exception); 
+ AppError = Class(Exception);
 
 Resourcestring
   SErrInValidSVNLog = 'INvalid SVN log';
@@ -52,7 +52,7 @@ end;
 procedure TVersions.ConvertLogEntry(E : TDomElement);
 
   Function GetNodeText(N : TDomNode) : String;
-  
+
   begin
     N:=N.FirstChild;
     If N<>Nil then
@@ -110,7 +110,7 @@ Var
   I : Integer;
 
 begin
-  With TVersions.Create(TVersion) do 
+  With TVersions.Create(TVersion) do
     Try
       F:=TFileStream.Create('test.xml',fmOpenRead);
       Try
@@ -123,11 +123,11 @@ begin
           Writeln('Revision : ',Versions[i].Revision);
           Writeln('Author   : ',Versions[i].Author);
           Writeln('Date     : ',Versions[i].Date);
-          Writeln('Message  : ',Versions[i].LogMessage); 
+          Writeln('Message  : ',Versions[i].LogMessage);
           end;
       finally
         F.Free;
-      end;  
+      end;
     Finally
       Free;
     end;

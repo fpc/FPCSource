@@ -29,7 +29,7 @@ unit agrvgas;
 {$i fpcdefs.inc}
 
   interface
-  
+
     uses
        systems,aasmbase,
        aasmtai,aasmdata,

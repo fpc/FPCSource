@@ -1,4 +1,4 @@
-{ %norun } 
+{ %norun }
 program tw16222;
 
 {$ifdef fpc}
@@ -8,7 +8,7 @@ program tw16222;
 type
   TOuterClass = class
   public
-    type 
+    type
       TInnerClass = class
       end;
   end;

@@ -435,7 +435,7 @@ uses cutils, cclasses;
       begin
         result := operand_read;
         case opcode of
-          A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, 
+          A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX,
 {$ifdef cpu64bitalu}
           A_STDU, A_STDUX,
 {$endif cpu64bitalu}
@@ -523,7 +523,7 @@ uses cutils, cclasses;
               ait_const:
                 begin
                   if (tai_const(p).consttype<>aitconst_32bit) then
-                    internalerror(2008052101); 
+                    internalerror(2008052101);
                   inc(instrpos);
                 end;
               else

@@ -4,16 +4,16 @@ Unit uw6767;
 
 Interface
 
-Uses 
+Uses
 Classes,Sysutils;
 
 
-Type 
+Type
   TCheckConnThread = Class(TThread)
-    Private 
+    Private
     Protected
     Procedure Execute;override;
-    Public 
+    Public
     Constructor Create(CreateSuspended : boolean);
   End;
 
@@ -33,7 +33,7 @@ End;
 
 Procedure TCheckConnThread.Execute;
 
-Var 
+Var
   i : Integer;
 Begin
   While (Not Terminated) Do

@@ -6,9 +6,9 @@ unit tisogoto3;
 
     label
       1;
-      
+
   implementation
-  
+
 end.
 
    

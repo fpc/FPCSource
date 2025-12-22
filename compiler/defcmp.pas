@@ -639,12 +639,12 @@ implementation
                         is_shortstring(def_to) then
                         eq:=te_equal
                      else if (tstringdef(def_to).stringtype=st_ansistring) and
-                             (tstringdef(def_from).stringtype=st_ansistring) then 
+                             (tstringdef(def_from).stringtype=st_ansistring) then
                       begin
                         { don't convert ansistrings if any condition is true:
                           1) same encoding
                           2) from explicit codepage ansistring to ansistring and vice versa
-                          3) from any ansistring to rawbytestring 
+                          3) from any ansistring to rawbytestring
                           4) from rawbytestring to any ansistring }
                         if (tstringdef(def_from).encoding=tstringdef(def_to).encoding) or
                            ((tstringdef(def_to).encoding=0) and (tstringdef(def_from).encoding=getansistringcodepage)) or
@@ -655,7 +655,7 @@ implementation
                            eq:=te_equal;
                          end
                         else
-                         begin        
+                         begin
                            doconv := tc_string_2_string;
 
                            { prefere conversion to utf8 codepage }
@@ -668,7 +668,7 @@ implementation
                            else
                              eq:=te_convert_l3;
                          end
-                      end          
+                      end
                      else
                      { same string type ? }
                       if (tstringdef(def_from).stringtype=tstringdef(def_to).stringtype) and

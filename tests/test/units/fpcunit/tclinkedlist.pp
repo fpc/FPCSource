@@ -48,7 +48,7 @@ procedure TTestLinkedList.TestAdd;
 Var
   LL : TLinkedList;
   I  : TLinkedListItem;
-  
+
 begin
   LL:=TLinkedList.Create(TLinkedListItem);
   Try
@@ -85,7 +85,7 @@ procedure TTestLinkedList.TestAdd2;
 Var
   LL : TLinkedList;
   I1,I2  : TLinkedListItem;
-  
+
 begin
   LL:=TLinkedList.Create(TLinkedListItem);
   Try
@@ -232,6 +232,6 @@ end;
 
 initialization
 
-  RegisterTest(TTestLinkedList); 
+  RegisterTest(TTestLinkedList);
 end.
 

@@ -22,7 +22,7 @@ type
     private type
       TPtr=^_T;
     public
-    
+
     P:TPtr;
     Count:NativeInt;
 
@@ -35,8 +35,8 @@ type
 
   generic TRangePeriod<R, _T> = object
     public
-     
-    Range:R; 
+
+    Range:R;
     i1, i2:NativeInt;
 
     private
@@ -152,7 +152,7 @@ begin
   RO.P:=@s[1];
   RO.Count:=Length(s);
   RS.Range:=RO;
-  
+
   i:=specialize Find<TRangeString, Char>(RS, '2');
   WriteLn(i);
 
@@ -165,7 +165,7 @@ begin
   RP.i1:=2;
   RP.i2:=7;
   RS2.Range:=RP;
-  
+
   i:=specialize Find<TRangeString2>(RS2, '2');
   WriteLn(i);
 end.

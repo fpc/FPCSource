@@ -24,7 +24,7 @@ begin
     writeln('vars[',i,'].VType=',ord(vars[i].VType));
     if vars[i].VType <> expected[i] then
       Halt(1);
-  end;  
+  end;
 end;
 
 var

@@ -56,7 +56,7 @@ interface
         procedure second_trunc_real; override;
         {procedure second_prefetch; override;
         procedure second_abs_long; override;}
-      protected 
+      protected
         function second_incdec_tempregdef: tdef; override;
       private
         procedure second_do_operation(op: TAsmOp);

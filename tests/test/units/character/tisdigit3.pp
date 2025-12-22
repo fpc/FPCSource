@@ -4,19 +4,19 @@ program tgetnumericvalue3;
   {$mode objfpc}
   {$H+}
   {$PACKENUM 1}
-{$endif fpc} 
+{$endif fpc}
 
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   unicodedata,character;
-    
+
 {$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
+  type UnicodeChar = WideChar;
+{$endif}
 
 function DumpStr(a : UnicodeString) : UnicodeString;
 var
@@ -26,27 +26,27 @@ begin
   s := '';
   for i := 1 to Length(a) do
     s := s + Format('#%x',[Word(a[i])]);
-  Result := s; 
+  Result := s;
 end;
-    
+
 procedure DoError(ACode : Integer; ACodePoint : UnicodeString); overload;
 begin
   WriteLn('Error #',ACode,' ; String = ',DumpStr(ACodePoint));
   Halt(Acode);
-end;         
+end;
 
 var
   e : Integer;
   s, s2, s3 : UnicodeString;
   d : Double;
-begin  
-  e := 1; 
+begin
+  e := 1;
   s := UnicodeChar(Word($D801)) + UnicodeChar(Word($DCA1));
   d := 1;
   if (TCharacter.GetNumericValue(s,1) <> d) then begin
     WriteLn('s=',DumpStr(s),' ; TCharacter.GetNumericValue(s) = ',TCharacter.GetNumericValue(s,1));
     DoError(e,s);
-  end;  
+  end;
 
   Inc(e);
   s := UnicodeChar(Word($D801)) + UnicodeChar(Word($DCA3));
@@ -54,8 +54,8 @@ begin
   if (TCharacter.GetNumericValue(s,1) <> d) then begin
     WriteLn('s=',DumpStr(s),' ; TCharacter.GetNumericValue(s) = ',TCharacter.GetNumericValue(s,1));
     DoError(e,s);
-  end;  
-  
+  end;
+
   WriteLn('ok');
 end.
 

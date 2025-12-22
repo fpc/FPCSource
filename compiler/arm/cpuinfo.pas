@@ -288,7 +288,7 @@ Type
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
-      
+
       ct_stm32f401cb,
       ct_stm32f401rb,
       ct_stm32f401vb,
@@ -431,10 +431,10 @@ Type
 
       { TI Stellaris }
       ct_lm4f120h5,
-      
+
       { SAMSUNG }
       ct_sc32442b,
-      
+
       { Infineon }
       ct_xmc4500x1024,
       ct_xmc4500x768,
@@ -505,7 +505,7 @@ Type
       ct_arduino_due,
       ct_flip_n_click,
       ct_wio_terminal,
-      
+
       { Nordic Semiconductor }
       ct_nrf51422_xxaa,
       ct_nrf51422_xxab,
@@ -739,7 +739,7 @@ Const
       (controllertypestr:'LPC2114';	controllerunitstr:'LPC21x4';	cputype:cpu_armv4t; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00040000;	srambase:$40000000;	sramsize:$00004000),
       (controllertypestr:'LPC2124';	controllerunitstr:'LPC21x4';	cputype:cpu_armv4t; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00040000;	srambase:$40000000;	sramsize:$00004000),
       (controllertypestr:'LPC2194';	controllerunitstr:'LPC21x4';	cputype:cpu_armv4t; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00040000;	srambase:$40000000;	sramsize:$00004000),
-      
+
       (controllertypestr:'LPC1754';	controllerunitstr:'LPC1754';	cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00020000;	srambase:$10000000;	sramsize:$00004000),
       (controllertypestr:'LPC1756';	controllerunitstr:'LPC1756';	cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00040000;	srambase:$10000000;	sramsize:$00004000),
       (controllertypestr:'LPC1758';	controllerunitstr:'LPC1758';	cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00080000;	srambase:$10000000;	sramsize:$00008000),
@@ -827,7 +827,7 @@ Const
       (controllertypestr:'STM32F107RC';     controllerunitstr:'STM32F10X_CL';     cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F107VB';     controllerunitstr:'STM32F10X_CL';     cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F107VC';     controllerunitstr:'STM32F10X_CL';     cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
-    
+
       (controllertypestr:'STM32F401CB';     controllerunitstr:'STM32F401XX';      cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F401RB';     controllerunitstr:'STM32F401XX';      cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F401VB';     controllerunitstr:'STM32F401XX';      cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
@@ -882,7 +882,7 @@ Const
       (controllertypestr:'NUCLEOF446RE';    controllerunitstr:'STM32F446XX';      cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00020000),
       (controllertypestr:'STM32F446VE';     controllerunitstr:'STM32F446XX';      cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00020000),
       (controllertypestr:'STM32F446ZE';     controllerunitstr:'STM32F446XX';      cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00020000),
- 
+
       (controllertypestr:'STM32F745XE';     controllerunitstr:'STM32F745';        cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
       (controllertypestr:'STM32F745XG';     controllerunitstr:'STM32F745';        cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00100000; srambase:$20010000; sramsize:$00040000),
       (controllertypestr:'STM32F746XE';     controllerunitstr:'STM32F746';        cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000; flashsize:$00080000; srambase:$20010000; sramsize:$00040000),
@@ -971,7 +971,7 @@ Const
 
       { Samsung }
       (controllertypestr:'SC32442B';	controllerunitstr:'SC32442b';	cputype:cpu_armv4t; fputype:fpu_soft; flashbase:$00000000;	flashsize:$00000000;	srambase:$00000000;	sramsize:$08000000),
-      
+
       { Infinion }
       (controllertypestr:'XMC4500X1024';  controllerunitstr:'XMC4500'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000;	flashsize:$00100000;	srambase:$20000000;	sramsize:$00010000),
       (controllertypestr:'XMC4500X768';   controllerunitstr:'XMC4500'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$08000000;	flashsize:$000C0000;	srambase:$20000000;	sramsize:$00010000),
@@ -1040,11 +1040,11 @@ Const
       (controllertypestr:'ATSAM3X8E';     controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
 
       (controllertypestr:'SAMD51P19A';    controllerunitstr:'SAMD51P19A'; cputype:cpu_armv7em; fputype:fpu_fpv4_sp_d16; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00030000),
-      
+
       (controllertypestr:'ARDUINO_DUE';   controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'FLIP_N_CLICK';  controllerunitstr:'SAM3X8E'; cputype:cpu_armv7m; fputype:fpu_soft; flashbase:$00080000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'WIO_TERMINAL'; controllerunitstr:'SAMD51P19A'   ; cputype:cpu_armv7em; fputype:fpu_fpv4_sp_d16; flashbase:$00004000; flashsize:$0007C000; srambase:$20000000; sramsize:$00030000),
-      
+
       { Nordic Semiconductor }
       (controllertypestr:'NRF51422_XXAA'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00040000;      srambase:$20000000; sramsize:$00004000),
       (controllertypestr:'NRF51422_XXAB'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00020000;      srambase:$20000000; sramsize:$00004000),
@@ -1054,7 +1054,7 @@ Const
       (controllertypestr:'NRF51822_XXAC'; controllerunitstr:'NRF51'; cputype:cpu_armv6m; fputype:fpu_soft; flashbase:$00000000; flashsize:$00040000;      srambase:$20000000; sramsize:$00008000),
       (controllertypestr:'NRF52832_XXAA'; controllerunitstr:'NRF52'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'NRF52840_XXAA'; controllerunitstr:'NRF52'; cputype:cpu_armv7em; fputype:fpu_soft; flashbase:$00000000; flashsize:$00080000; srambase:$20000000; sramsize:$00010000),
-      
+
       { Raspberry Pi 2 }
       (controllertypestr:'RASPI2'; controllerunitstr:'RASPI2'; cputype:cpu_armv7a; fputype:fpu_vfpv4; flashbase:$00000000; flashsize:$00000000; srambase:$00008000; sramsize:$10000000),
 

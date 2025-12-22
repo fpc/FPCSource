@@ -205,9 +205,9 @@ Const
          lineendingtype : tlineendingtype;
 
          whitespacetrimcount : word;
-         
+
          whitespacetrimauto : boolean;
-         
+
 {$if defined(generic_cpu)}
          case byte of
 {$endif}

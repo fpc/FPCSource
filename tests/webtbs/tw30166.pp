@@ -19,7 +19,7 @@ Begin
  WriteLn(IntToHex(dd,16));
  WriteLn('FF11813BCCC3B114:00000000002B1100='#9, IntToHex(a,16));
  WriteLn('FF11813BCCC3B114:00000000002B1100='#9, IntToHex(b,16));
- 
+
  if a<>b then
   begin
     writeln('Failed!');

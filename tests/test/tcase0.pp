@@ -11,21 +11,21 @@ var
 begin
   i:=15;
 
-  s:='aa'#0'bb';  
-  case s of  
+  s:='aa'#0'bb';
+  case s of
     'aa'#0'aa' .. 'aa'#0'cc': i:=i and (not 1);
   end;
 
   ss:='aa'#0'bb';
   case ss of
-    'aa'#0'aa' .. 'aa'#0'cc': i:=i and (not 2);  
+    'aa'#0'aa' .. 'aa'#0'cc': i:=i and (not 2);
   end;
-  
+
   ws:='aa'#0'bb';
   case ws of
     'aa'#0'aa' .. 'aa'#0'cc': i:=i and (not 4);
   end;
-  
+
   us:='aa'#0'bb';
   case us of
     'aa'#0'aa' .. 'aa'#0'cc': i:=i and (not 8);
@@ -33,5 +33,5 @@ begin
 
   if i=0 then
     writeln('ok');
-  Halt(i);  
+  Halt(i);
 end.

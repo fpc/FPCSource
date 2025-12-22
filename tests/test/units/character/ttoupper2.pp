@@ -4,42 +4,42 @@ program ttoupper2;
   {$mode objfpc}
   {$H+}
   {$PACKENUM 1}
-{$endif fpc} 
+{$endif fpc}
 
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   unicodedata,character;
-    
+
 {$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
+  type UnicodeChar = WideChar;
+{$endif}
 
 procedure DoError(ACode : Integer); overload;
 begin
   WriteLn('Error #',ACode);
   Halt(Acode);
-end;         
-    
+end;
+
 procedure DoError(ACode : Integer; ACodePoint : Integer); overload;
 begin
   WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(ACodePoint,4));
   Halt(Acode);
-end;          
-    
+end;
+
 procedure DoError(ACode : Integer; ACodePoint : UnicodeString); overload;
 begin
   WriteLn('Error #',ACode,' ; String = ',ACodePoint);
   Halt(Acode);
-end;         
+end;
 
 var
   e, i, j : Integer;
   uc, s : UnicodeString;
-begin  
+begin
   e := 1;
   for i := Ord('A') to Ord('Z') do begin
     uc := UnicodeChar(i);
@@ -54,14 +54,14 @@ begin
       DoError(e,i);
   end;
 
-  Inc(e);  
+  Inc(e);
   if (TCharacter.ToUpper('azerty') <> 'AZERTY') then
     DoError(e,'azerty');
   if (TCharacter.ToUpper('AZERTY') <> 'AZERTY') then
     DoError(e,'AZERTY');
   if (TCharacter.ToUpper('AzERty') <> 'AZERTY') then
     DoError(e,'AzERty');
-  
+
   Inc(e);
   j := Ord('A');
   for i := Ord('a') to Ord('z') do begin
@@ -70,7 +70,7 @@ begin
     if (TCharacter.ToUpper(uc) <> s) then
       DoError(e,i);
     Inc(j);
-  end; 
+  end;
 
   WriteLn('ok');
 end.

@@ -52,7 +52,7 @@ implementation
         def: tdef;
       begin
         inherited InsertObjectInfo;
-        if (not current_module.is_unit) and (target_info.system in [system_m68k_sinclairql]) then 
+        if (not current_module.is_unit) and (target_info.system in [system_m68k_sinclairql]) then
           begin
             { insert the main program name into the object. this will be set as default job name by the system unit }
             tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);

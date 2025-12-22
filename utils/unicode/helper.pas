@@ -177,7 +177,7 @@ type
 
   { TPropRec }
 
-  TPropRec = packed record 
+  TPropRec = packed record
   private
     const FLAG_WHITE_SPACE       = 0;
     const FLAG_HANGUL_SYLLABLE   = 1;
@@ -186,7 +186,7 @@ type
     function GetCategory : TUnicodeCategory;inline;
     procedure SetCategory(AValue : TUnicodeCategory);
     function GetWhiteSpace : Boolean;inline;
-    procedure SetWhiteSpace(AValue : Boolean);  
+    procedure SetWhiteSpace(AValue : Boolean);
     function GetHangulSyllable : Boolean;inline;
     procedure SetHangulSyllable(AValue : Boolean);
     function GetUnifiedIdeograph : Boolean;inline;
@@ -1111,7 +1111,7 @@ function IsIncluded(
 var
   i : Integer;
   p : ^TCodePointRec;
-begin       
+begin
   Result := False;
   p := @AList[Low(AList)];
   for i := Low(AList) to High(AList) do begin
@@ -1585,7 +1585,7 @@ begin
          (AProp.NumericIndex = p^.NumericIndex) and
          (AProp.SimpleUpperCase = p^.SimpleUpperCase) and
          (AProp.SimpleLowerCase = p^.SimpleLowerCase) and
-         (AProp.WhiteSpace = p^.WhiteSpace) and            
+         (AProp.WhiteSpace = p^.WhiteSpace) and
          (AProp.UnifiedIdeograph = p^.UnifiedIdeograph) and
          //
          (AProp.DecompositionID =  p^.DecompositionID) and
@@ -2221,7 +2221,7 @@ begin
   AddLine('');
   AddLine('const');
   AddLine('  UC_PROP_REC_COUNT = ' + IntToStr(Length(APropList)) + ';');
-  AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');   
+  AddLine('  UC_PROP_ARRAY : array[0..(UC_PROP_REC_COUNT-1)] of TUC_Prop = (');
   locLine := '';
   p := @APropList[0];
   for i := Low(APropList) to High(APropList) do begin //locLine := '    (CD:' + IntToStr(p^.CategoryData) + ';' +
@@ -3410,7 +3410,7 @@ begin
         AddLine(ANativeEndianStream,locLine);
         locLine := '';
       end;
-    end;  
+    end;
     if (locLine <> '') then begin
       if (i = c) then
         Delete(locLine,Length(locLine),1);
@@ -3435,7 +3435,7 @@ begin
         AddLine(ANonNativeEndianStream,locLine);
         locLine := '';
       end;
-    end; 
+    end;
     if (locLine <> '') then begin
       if (i = c) then
         Delete(locLine,Length(locLine),1);

@@ -150,7 +150,7 @@ implementation
                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg1);
                   end;
                 hreg2 := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                
+
                 if not(is_cbool(resultdef)) then
                   begin
                     { hreg2:=hreg1-1; carry:=hreg1=0 }

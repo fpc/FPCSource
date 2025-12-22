@@ -15,7 +15,7 @@
   You should have received a Copy of the GNU Library General Public License
   along with This library; if not, Write to the Free Software Foundation,
   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-  
+
   This license has been modified. See file LICENSE.ADDON for more information.
   Should you find these sources without a LICENSE File, please contact
   me at ales@chello.sk
@@ -70,7 +70,7 @@ type
     FParsePos: pchar;
     FReadPos: integer;
     FParsingHeaders: boolean;
-   
+
     procedure AddEnvironment(const AName, AValue: string); virtual; abstract;
     procedure AddHTTPParam(const AName: string; AParam: TLHTTPParameter);
     function  ParseHeaders: boolean;
@@ -184,7 +184,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    
+
     procedure RegisterHandler(AHandler: TDocumentHandler);
 
     property DirIndexList: TStrings read FDirIndexList;
@@ -260,9 +260,9 @@ type
     destructor Destroy; override;
 
     function AddVariables(Variables: pchar; ASize: integer; SepChar: char): integer;
-    procedure DeleteCookie(const AName: string; const APath: string = '/'; 
+    procedure DeleteCookie(const AName: string; const APath: string = '/';
         const ADomain: string = '');
-    procedure SetCookie(const AName, AValue: string; const AExpires: TDateTime; 
+    procedure SetCookie(const AName, AValue: string; const AExpires: TDateTime;
         const APath: string = '/'; const ADomain: string = '');
 
     property OnExtraHeaders: TNotifyEvent read FOnExtraHeaders write FOnExtraHeaders;
@@ -294,7 +294,7 @@ uses
 const
   InputBufferEmptyToWriteStatus: array[boolean] of TWriteBlockStatus =
     (wsPendingData, wsWaitingData);
-  
+
 procedure InternalWrite(const s: string);
 begin
   if EnableWriteln then
@@ -324,7 +324,7 @@ begin
     begin
       lOutput.Process.CommandLine := lExecPath;
       lOutput.FScriptFileName := lExecPath;
-      lOutput.FScriptName := Copy(lExecPath, Length(FCGIRoot), 
+      lOutput.FScriptName := Copy(lExecPath, Length(FCGIRoot),
         Length(lExecPath)-Length(FCGIRoot)+1);
       lOutput.StartRequest;
     end else
@@ -416,7 +416,7 @@ begin
   DoDirSeparators(LDocRequest.Document);
   lDocRequest.Document := IncludeTrailingPathDelimiter(DocumentRoot)
     + lDocRequest.Document;
-  lDocRequest.InfoValid := SeparatePath(lDocRequest.Document,lDocRequest.ExtraPath, 
+  lDocRequest.InfoValid := SeparatePath(lDocRequest.Document,lDocRequest.ExtraPath,
     faAnyFile, @lDocRequest.Info);
   if not lDocRequest.InfoValid then
     exit;
@@ -431,7 +431,7 @@ begin
       for I := 0 to FDirIndexList.Count - 1 do
       begin
         lTempDoc := lDocRequest.Document + FDirIndexList.Strings[I];
-        lDocRequest.InfoValid := FindFirst(lTempDoc, 
+        lDocRequest.InfoValid := FindFirst(lTempDoc,
           faAnyFile and not faDirectory, lDocRequest.Info) = 0;
         FindClose(lDocRequest.Info);
         if lDocRequest.InfoValid and ((lDocRequest.Info.Attr and faDirectory) = 0) then
@@ -583,7 +583,7 @@ end;
 destructor TFileOutput.Destroy;
 begin
   inherited;
-  
+
   if not FEof then
     Close(FFile);
 end;
@@ -608,7 +608,7 @@ function TFileOutput.FillBuffer: TWriteBlockStatus;
 var
   lRead: integer;
 begin
-  if FEof then 
+  if FEof then
     exit(wsDone);
   BlockRead(FFile, FBuffer[FBufferPos], FBufferSize-FBufferPos, lRead);
   Inc(FBufferPos, lRead);
@@ -657,7 +657,7 @@ begin
   if Length(tempStr) > 0 then
     AddEnvironment('SERVER_SOFTWARE', tempStr);
 
-  AddEnvironment('GATEWAY_INTERFACE', 'CGI/1.1'); 
+  AddEnvironment('GATEWAY_INTERFACE', 'CGI/1.1');
   AddEnvironment('SERVER_PROTOCOL', lServerSocket.FRequestInfo.VersionStr);
   AddEnvironment('REQUEST_METHOD', lServerSocket.FRequestInfo.Method);
   AddEnvironment('REQUEST_URI', '/'+lServerSocket.FRequestInfo.Argument);
@@ -671,7 +671,7 @@ begin
 
   AddEnvironment('SCRIPT_NAME', FScriptName);
   AddEnvironment('SCRIPT_FILENAME', FScriptFileName);
-  
+
   AddEnvironment('QUERY_STRING', lServerSocket.FRequestInfo.QueryParams);
   AddHTTPParam('CONTENT_TYPE', hpContentType);
   AddHTTPParam('CONTENT_LENGTH', hpContentLength);
@@ -682,7 +682,7 @@ begin
   { used when user has authenticated in some way to server }
 //  AddEnvironment('AUTH_TYPE='+...);
 //  AddEnvironment('REMOTE_USER='+...);
-  
+
   AddEnvironment('DOCUMENT_ROOT', FDocumentRoot);
   AddEnvironment('REDIRECT_STATUS', '200');
   AddHTTPParam('HTTP_HOST', hpHost);
@@ -708,7 +708,7 @@ var
 
   procedure AddExtraHeader;
   begin
-    AppendString(lServerSocket.FHeaderOut.ExtraHeaders, 
+    AppendString(lServerSocket.FHeaderOut.ExtraHeaders,
       FParsePos + ': ' + pValue + #13#10);
   end;
 
@@ -740,7 +740,7 @@ begin
     if StrIComp(FParsePos, 'Content-type') = 0 then
     begin
       lServerSocket.FResponseInfo.ContentType := pValue;
-    end else 
+    end else
     if StrIComp(FParsePos, 'Location') = 0 then
     begin
       if StrLIComp(pValue, 'http://', 7) = 0 then
@@ -750,7 +750,7 @@ begin
         AddExtraHeader;
       end else
         InternalWrite('WARNING: unimplemented ''Location'' response received from CGI script');
-    end else 
+    end else
     if StrIComp(FParsePos, 'Status') = 0 then
     begin
       { sometimes we get '<status code> space <reason>' }
@@ -773,7 +773,7 @@ begin
     end else
     if StrIComp(FParsePos, 'Last-Modified') = 0 then
     begin
-      if not TryHTTPDateStrToDateTime(pValue, 
+      if not TryHTTPDateStrToDateTime(pValue,
           lServerSocket.FResponseInfo.LastModified) then
         InternalWrite('WARNING: unable to parse last-modified string from CGI script: ' + pValue);
     end else
@@ -870,7 +870,7 @@ end;
 procedure TSimpleCGIOutput.StartRequest;
 begin
   inherited;
-  
+
   FProcess.Eventer := FSocket.Eventer;
   FProcess.Execute;
 end;
@@ -1009,7 +1009,7 @@ begin
   FRequest.DoneParams;
 end;
 
-{ TFormOutput } 
+{ TFormOutput }
 
 constructor TFormOutput.Create(ASocket: TLHTTPSocket);
 begin
@@ -1065,7 +1065,7 @@ begin
       i := FRequestVars.Add(strName);
       tmpObj := nil;
       string(tmpObj) := strValue;
-      FRequestVars.Objects[i] := tmpObj; 
+      FRequestVars.Objects[i] := tmpObj;
     end;
     varname := next+1;
   until false;
@@ -1184,7 +1184,7 @@ begin
     FOnFillBuffer(Self, Result);
 end;
 
-procedure TFormOutput.DeleteCookie(const AName: string; const APath: string = '/'; 
+procedure TFormOutput.DeleteCookie(const AName: string; const APath: string = '/';
   const ADomain: string = '');
 begin
   { cookies expire when expires is in the past, duh }

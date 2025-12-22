@@ -12,7 +12,7 @@ end;
 
 begin
    test;
-   
+
    if x <> $12345678 then
       halt(1);
 end.

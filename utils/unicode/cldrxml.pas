@@ -769,9 +769,9 @@ const
   //SuppressContractions has a special handling see Process_SuppressContractions
     HandleSetting_EMPTY_PROC
   //Optimize
-  );  
+  );
 procedure HandleSetting(AItem : TCldrCollationItem; ASetting : PSettingRec);
-begin  
+begin
   if not ASetting^.Understood then
     SETTING_HANDLERS[ASetting^.OptionValue](AItem,ASetting);
 end;
@@ -821,13 +821,13 @@ var
   sal : Integer;//statement actual length
 
   procedure AddStatementToArray(AStatement : PReorderSequence);
-  begin     
+  begin
     statementList[sal].Kind := TCldrCollationRuleKind.ReorderSequence;
     statementList[sal].Reorder.Assign(AStatement);
     Inc(sal);
     if (sal >= Length(statementList)) then
       SetLength(statementList,(sal*2));
-  end;   
+  end;
 
   procedure AddImportToArray(AImport : TCldrImport);
   begin

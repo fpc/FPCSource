@@ -6,7 +6,7 @@ program tanonfunc70;
 {$modeswitch anonymousfunctions}
 {$modeswitch functionreferences}
 
-{ test calling into overloaded routines and creating anonymous methods in them. 
+{ test calling into overloaded routines and creating anonymous methods in them.
 
   Similar to tanonfunc61 but with additonal calls to func ref before and after
   anonfunc use of func ref.  With func ref inside an anon method, the func

@@ -16,7 +16,7 @@ begin
  SetLength(Arr,1);
  Temp:= 42;
  Arr[0] := Correct(Temp, Arr[0]);
-end; 
+end;
 
 begin
 end.

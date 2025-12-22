@@ -5,7 +5,7 @@ program tanonfunc62;
 {$modeswitch functionreferences}
 
 { test calling into overloaded routines and creating anonymous methods (with no
-  params) in them 
+  params) in them
 
   similar to tanonfunc23 and tanonfunc61 but mode Delphi and no params in tcharproc
 }

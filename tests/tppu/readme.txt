@@ -5,7 +5,7 @@ How to use:
 - Compile this testsuite testppu.lpi
 - Run this testsuite:
   Set environment variable PP to the compiler and run all tests:
-    PP=../../compiler/x86_64/pp ./testppu  
+    PP=../../compiler/x86_64/pp ./testppu
 
 Or run a single test:
 

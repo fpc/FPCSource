@@ -4,32 +4,32 @@ program tlowercase2;
   {$mode objfpc}
   {$H+}
   {$PACKENUM 1}
-{$endif fpc} 
+{$endif fpc}
 
 {$ifndef FPC}
-  {$APPTYPE CONSOLE}    
+  {$APPTYPE CONSOLE}
 {$endif}
-  
-uses     
+
+uses
   SysUtils,
   unicodedata,character;
-    
+
 {$ifndef FPC}
-  type UnicodeChar = WideChar;   
-{$endif} 
+  type UnicodeChar = WideChar;
+{$endif}
 
 procedure DoError(ACode : Integer); overload;
 begin
   WriteLn('Error #',ACode);
   Halt(Acode);
-end;         
-    
+end;
+
 procedure DoError(ACode : Integer; ACodePoint : Integer); overload;
 begin
   WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(ACodePoint,4));
   Halt(Acode);
-end;          
-    
+end;
+
 procedure DoError(ACode : Integer; ACodePoint : UnicodeChar); overload;
 begin
   WriteLn('Error #',ACode,' ; CodePoint = ',IntToHex(Ord(ACodePoint),4));
@@ -55,15 +55,15 @@ begin
     if not TCharacter.IsLower(uc,locCharPos) then
       DoError(e,i);
   end;
-  
+
   Inc(e);
   for i := Ord('A') to Ord('Z') do begin
     uc := strPrefix + UnicodeChar(i) + strPrefix;
     if TCharacter.IsLower(uc,locCharPos) then
       DoError(e,i);
-  end; 
-  
-  Inc(e);     
+  end;
+
+  Inc(e);
   for i := Low(Word) to High(Word) do begin
     { Skip all surrogate values }
     if (i>=HIGH_SURROGATE_BEGIN) and (i<=LOW_SURROGATE_END) then continue;
@@ -72,8 +72,8 @@ begin
       if not TCharacter.IsLower(uc,locCharPos) then
         DoError(e,uc,locCharPos);
     end;
-  end;   
-  
+  end;
+
   Inc(e);
   for i := Low(Word) to High(Word) do begin
     { Skip all surrogate values }
@@ -83,7 +83,7 @@ begin
       if TCharacter.IsLower(uc,locCharPos) then
         DoError(e,uc,locCharPos);
     end;
-  end;  
+  end;
 
   WriteLn('ok');
 end.

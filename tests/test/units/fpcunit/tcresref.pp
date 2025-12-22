@@ -19,13 +19,13 @@ type
     Property Ref1 : TComponent Read FRef1 Write FRef1;
     Property Ref2 : TComponent Read FRef2 Write FRef2;
   end;
-  
+
   TRootA = Class(TRefComponent)
   end;
-  
+
   TRootB = Class(TRefComponent)
   end;
-  
+
   TA = Class(TRefComponent)
   end;
   TB = Class(TRefComponent)
@@ -45,8 +45,8 @@ type
     UnrA : TObject;
     UnrB : TObject;
   protected
-    procedure SetUp; override; 
-    procedure TearDown; override; 
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure TestAddInst1;
     procedure TestAddInst2;
@@ -423,7 +423,7 @@ Var
   L : TStringList;
   R1 : TUnresolvedReference;
   R2 : TUnresolvedReference;
-  
+
 begin
   R1:=SetupARef1A(Self);
   R2:=SetupARef2B(Self);
@@ -533,7 +533,7 @@ end;
 initialization
   RegisterTest(TTestResolveReference);
   InitCriticalSection(ResolveSection);
-  
+
 finalization
   FreeAndNil(NeedResolving);
   DoneCriticalsection(ResolveSection);

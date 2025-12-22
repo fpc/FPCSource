@@ -2,9 +2,9 @@
     This file is part of the Free Component Library
     Copyright (c) 2022 by Michael Van Canneyt, michael@freepascal.org
 
-    Application to Prefix units in uses clause of a list of programs. 
+    Application to Prefix units in uses clause of a list of programs.
     Optionally adapts an fpmake file.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

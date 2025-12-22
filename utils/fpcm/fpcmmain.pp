@@ -157,7 +157,7 @@ interface
       var
         OSCpuPossible : TOsCpuPossible;
 {$else}
-      OSCpuPossible : array[TOS,TCpu] of boolean = 
+      OSCpuPossible : array[TOS,TCpu] of boolean =
       (
         { os          none   i386    m68k  ppc    sparc  x86_64 arm    ppc64  avr    armeb  armel  mips   mipsel mips64 misp64el jvm    i8086  aarch64 wasm32 sparc64 riscv32 riscv64 xtensa z80   loongarch64 }
         { none  }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false, false,  false, false, false,  false,  false, false, false),

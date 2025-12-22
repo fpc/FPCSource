@@ -14,4 +14,4 @@ begin
 end;
 
 begin
-end. // Error: Undefined symbol: P$PROJECT18$_$TFOO$1_$__$$_create 
+end. // Error: Undefined symbol: P$PROJECT18$_$TFOO$1_$__$$_create

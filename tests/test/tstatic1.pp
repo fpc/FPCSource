@@ -7,7 +7,7 @@ program tstatic1;
 type
   TSomeClass = class
   private
-    class var 
+    class var
       FSomethingStatic: Integer;
   public
     class procedure SomeClassMethod(A: Integer);

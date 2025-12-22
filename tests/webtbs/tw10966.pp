@@ -3,7 +3,7 @@
 const
   ctnsNeedJITParsing  = 1 shl 1;
 type
-  TCodeTreeNodeSubDesc = word;    
+  TCodeTreeNodeSubDesc = word;
 var
   SubDesc: TCodeTreeNodeSubDesc;
   l: longint;

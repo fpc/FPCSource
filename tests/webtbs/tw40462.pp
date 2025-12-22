@@ -12,7 +12,7 @@ type
   private
     Part: TPart;
   end;
-  
+
   TBar = class
   private type
     TPart = (Baz, Bad);

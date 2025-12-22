@@ -198,7 +198,7 @@ interface
                     MessagePos(filepos,asmr_e_invalid_reference_syntax);
                   { Subscribed access }
                   if forceref or
-{$ifdef avr}                     
+{$ifdef avr}
                      (sofs>=tcgsize2size[sym.localloc.size])
 {$else avr}
                      (sofs<>0)

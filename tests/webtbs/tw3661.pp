@@ -21,7 +21,7 @@ begin
    (FPC-specific threadvar model and multithreading not initialized).
    Using a 'normal' file is fine. }
  //writeln('abc');
- 
+
  assign(f,'tw3661.txt');
  rewrite(f);
  writeln(f,'abc');

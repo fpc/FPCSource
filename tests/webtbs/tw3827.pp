@@ -5,9 +5,9 @@
 
 uses
   sysutils;
-  
+
 var
-  guid : tguid;  
+  guid : tguid;
 
 begin
   CreateGUID(guid);

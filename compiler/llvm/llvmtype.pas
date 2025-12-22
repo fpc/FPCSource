@@ -618,7 +618,7 @@ implementation
     procedure TLLVMTypeInfo.appendprocdef(list:TAsmList;def:tprocdef);
       begin
         { the procdef itself is already written by appendprocdef_implicit }
-      
+
         { last write the types from this procdef }
         if assigned(def.parast) then
           write_symtable_defs(current_asmdata.asmlists[al_start],def.parast);

@@ -19,7 +19,7 @@ begin
     or eax, 80000001h
 
     db 66h, 50h  { push eax }
-    
+
     pop word ptr [lo_word]
     pop word ptr [hi_word]
   end;

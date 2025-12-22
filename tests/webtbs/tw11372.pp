@@ -32,7 +32,7 @@ procedure Test_GetEnumCount;
 begin
   writeln('Testing GetEnumCount');
   if TypInfo.GetEnumNameCount(TypeInfo(Boolean))<>Ord(High(Boolean))+1 then
-    halt(1);    
+    halt(1);
 end;
 
 

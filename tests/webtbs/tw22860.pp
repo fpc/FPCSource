@@ -36,8 +36,8 @@ type
     zSampler = $00050000,  // autosampler
     zDevice  = $40000000,  // the device itself
     zBlock   = $20000000  // the block of device
-  ); 
-  
+  );
+
 begin
 end.
 

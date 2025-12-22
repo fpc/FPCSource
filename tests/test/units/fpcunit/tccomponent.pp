@@ -19,7 +19,7 @@ type
   end;
 
   { TNotification }
-  
+
   TNotification = Class(TCollectionItem)
   Public
     ASender,
@@ -66,9 +66,9 @@ type
     Procedure CreateComponents(ACount : Integer; AClass : TComponentClass);
     Procedure CreateComponents(ACount : Integer; AClass : TComponentClass; Const BaseName : String);
     procedure SetUp; override;
-    procedure TearDown; override; 
+    procedure TearDown; override;
   end;
-  
+
   { TTestTComponent }
 
   TTestTComponent = Class(TTestTComponentBase)
@@ -91,7 +91,7 @@ type
     Procedure TestUniqueName;
     Procedure TestRemoveComponent;
   end;
-  
+
   { TTestTComponentNotifies }
 
   TTestTComponentNotifies = Class(TTestTComponentBase)
@@ -126,11 +126,11 @@ end;
 
 procedure TTestTComponentBase.CreateComponents(ACount: Integer;
   AClass: TComponentClass; const BaseName: String);
-  
+
 Var
   I : Integer;
   C : TComponent;
-  
+
 begin
   For I:=0 to ACount-1 do
     begin
@@ -140,16 +140,16 @@ begin
     end;
 end;
 
-procedure TTestTComponentBase.SetUp; 
+procedure TTestTComponentBase.SetUp;
 begin
   FRoot:=TMyComponent.Create(Nil);
   FRoot.Name:='Root';
-end; 
+end;
 
-procedure TTestTComponentBase.TearDown; 
+procedure TTestTComponentBase.TearDown;
 begin
   FreeAndNil(FRoot);
-end; 
+end;
 
 { TTestTComponent }
 
@@ -357,10 +357,10 @@ end;
 
 procedure TNotificationSink.Notification(Sender, AComponent: TComponent;
   Operation: TOperation);
-  
+
 Var
   N : TNotification;
-  
+
 begin
   If (Fevents=Nil) then
     FEvents:=TCollection.Create(TNotification);

@@ -1,5 +1,5 @@
 {$mode macpas}
-type    
+type
 myObject = object
     procedure procA (x: integer);
     procedure procC (procedure procD (var y: myObject));
@@ -12,7 +12,7 @@ myObject = object
       procD (x);
       {more code here ...}
     end;
-  
+
 var
   ok: boolean;
 

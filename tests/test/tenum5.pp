@@ -1,7 +1,7 @@
 { %fail}
 { %norun}
 
-// test checks that enumeration searches symbols only in the own symbol list 
+// test checks that enumeration searches symbols only in the own symbol list
 // if they are prefixed by the enumeration name
 
 program tenum5;

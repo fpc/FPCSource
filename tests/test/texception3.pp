@@ -603,10 +603,10 @@ var
   mem : sizeuint;
 begin
    writeln('Testing exception handling');
-   
+
    mem:=0;
    DoMem(mem);
-   
+
    i:=-1;
    try
      test1;

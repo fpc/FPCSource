@@ -52,15 +52,15 @@ begin
   B.Assign(B2);
   if B.FNext <> B2 then
     halt(1);
-  
+
   A2.SetValue(5);
   if A2.GetValue <> 5 then
     halt(1);
-  
+
   B2.SetValue(7);
   if B2.GetValue <> 7 then
     halt(1);
-  
+
   if A.Merge(B).GetValue <> 12 then
     halt(1);
 end.

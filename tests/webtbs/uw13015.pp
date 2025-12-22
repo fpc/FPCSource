@@ -1,4 +1,4 @@
-unit uw13015; 
+unit uw13015;
 
 {$ifdef FPC}
 {$mode delphi}
@@ -8,7 +8,7 @@ interface
 
 uses
   Classes;
-  
+
 type
   TTestClass=class(TComponent)
   private
@@ -26,8 +26,8 @@ const
    {$else}
    ws:WideString='привет, прывітаньне - prufung spa'#$df' gut';
    {$endif}
-   
-   
+
+
 procedure Register;
 
 implementation
@@ -55,9 +55,9 @@ begin
 end;
 
 
-procedure Register; 
+procedure Register;
 begin
      RegisterComponents('tc',[TTestClass]);
-end; 
+end;
 
 end.

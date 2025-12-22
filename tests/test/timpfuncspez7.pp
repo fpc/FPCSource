@@ -6,7 +6,7 @@
 }
 
 program timpfuncspez7;
-	
+
 type
 	TMyClass = class
 		generic class procedure Call<T>(msg: T);

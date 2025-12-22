@@ -7,7 +7,7 @@ program tcpstr17;
 {$apptype console}
 
 uses
-  fpwidestring, 
+  fpwidestring,
 {$ifdef android}
   cp1251,
 {$else}
@@ -79,6 +79,6 @@ begin
   TestCodeConvRaw('привет', CP_UTF8);
   // outputs in OEM codepage
   TestCodeConvRaw(TOEMStr('привет'), OemCP);
-  
+
   writeln('ok');
 end.

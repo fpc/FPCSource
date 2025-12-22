@@ -11,7 +11,7 @@ begin
   PointerLocal(p)(get_caller_frame(get_frame,get_pc_addr));
 {$else}
 PointerLocal(p)(get_frame);
-{$endif}  
+{$endif}
 
 end;
 

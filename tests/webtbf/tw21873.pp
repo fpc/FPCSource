@@ -2,7 +2,7 @@
 {$mode objfpc}{$H+}
 
 uses
-  Classes, sysutils;     
+  Classes, sysutils;
 var
     i: integer;
 begin
@@ -16,12 +16,12 @@ begin
 	    except
 	      on econv: EConvertError do
 		  writeln('EConvertError');
-  
+
 	      on e: Exception do
 		  writeln('Exception');
-  
+
 	      else
-		  writeln('The Else Block');  
+		  writeln('The Else Block');
 	    end;
       end;
       writeln('After "Try" blocks');

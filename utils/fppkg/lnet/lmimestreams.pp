@@ -29,7 +29,7 @@ interface
 
 uses
   Classes;
-  
+
 const
   CRLF = #13#10;
 
@@ -66,9 +66,9 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
     procedure Reset;
   end;
-  
+
   function EncodeMimeHeaderText(const s: string): string;
-  
+
 implementation
 
 uses
@@ -124,7 +124,7 @@ end;
 constructor TMimeOutputStream.Create(aNotificationEvent: TStreamNotificationEvent);
 begin
   inherited Create;
-  
+
   FNotificationEvent := aNotificationEvent;
 end;
 
@@ -134,10 +134,10 @@ begin
     FNotificationEvent(Count);
 
   Result := Min(Count, Length(FInputData));
-  
+
   if Result <= 0 then
     Exit(0);
-  
+
   Move(FInputData[1], Buffer, Result);
   Delete(FInputData, 1, Result);
 end;
@@ -178,7 +178,7 @@ end;
 function TBogusStream.Read(var Buffer; Count: Longint): Longint;
 begin
   Result := Min(Count, Length(FData));
-  
+
   Move(FData[1], Buffer, Result);
   Delete(FData, 1, Result);
 end;

@@ -7,7 +7,7 @@ type
 
 var
   l: longint;
-  
+
 begin
   l[1] := 'a';
   l[2] := 'b';

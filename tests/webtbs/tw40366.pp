@@ -29,7 +29,7 @@ const
   Inputs1:  array[0..4] of Cardinal = (1, 2, 2, 3, 4);
   Inputs2:  array[0..4] of Cardinal = (4, 3, 5, 6, 7);
   Expected: array[0..4] of Cardinal = (5, 5, $80000005, 9, $80000007);
-  
+
 var
   X: Integer; Output: Cardinal;
 begin
@@ -42,6 +42,6 @@ begin
           Halt(1);
         end;
     end;
-  
+
   WriteLn('ok');
 end.

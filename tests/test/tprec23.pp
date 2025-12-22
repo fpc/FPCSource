@@ -27,7 +27,7 @@ begin
 {$ifdef fpc_little_endian}
     w :=  b0 + b1_8 shl 1 + b9_15 shl 9;
 {$else}
-    w := b0 shl (16-1) + b1_8 shl (15-8) + b9_15 shl 1; 
+    w := b0 shl (16-1) + b1_8 shl (15-8) + b9_15 shl 1;
 {$endif}
     with Test, asBits do begin
         bit0 := b0;

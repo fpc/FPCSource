@@ -35,7 +35,7 @@ uses baseunix,termio;
 
  - It has been checked if the user can provide any input to the program.
    The only input in the program is stdinputhandle, which cannot be
-   controlled by the user. The user has therefore no control in any way 
+   controlled by the user. The user has therefore no control in any way
    about the code flow in the program; the code that is going to be
    executed is fixed no matter what a user does.
 
@@ -114,7 +114,7 @@ begin
             halt(result_not_owner_error);
           vcs:='/dev/vcs'+s;
           vcsa:='/dev/vcsa'+s;
-          
+
           {Change owner and group to that of /dev/tty??.}
           if fpchown(vcs,ttystat.st_uid,ttystat.st_gid)<>0 then
             halt(result_chown_error);

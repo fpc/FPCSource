@@ -89,7 +89,7 @@ implementation
          size       : Tcgsize;
          hl : tasmlabel;
          done: boolean;
-         
+
          procedure genOrdConstNodeDiv;
          const
              negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
@@ -128,7 +128,7 @@ implementation
                 cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, resultreg);
              end else if (ispowerof2(tordconstnode(right).value, power)) then begin
                  if (is_signed(right.resultdef)) then begin
-                     
+
                      tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
                      maskreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
                      modreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
@@ -152,7 +152,7 @@ implementation
              end;
          end;
 
-         
+
       begin
          secondpass(left);
          secondpass(right);
@@ -529,7 +529,7 @@ implementation
                     end;
                   LOC_REGISTER, LOC_CREGISTER,
                   LOC_REFERENCE, LOC_CREFERENCE,
-                  LOC_SUBSETREG, LOC_CSUBSETREG, 
+                  LOC_SUBSETREG, LOC_CSUBSETREG,
                   LOC_SUBSETREF, LOC_CSUBSETREF:
                     begin
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);

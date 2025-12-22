@@ -29,7 +29,7 @@ uses
   externalwriter,
 //misc
   elfconsts, cofftypes, machotypes, externaltypes;
-  
+
 const
   halt_no_err = 0;
   halt_param_err = 1;
@@ -98,10 +98,10 @@ const
   SNoInputFiles = 'No input files';
   SNoOutputFile = 'No output file name specified';
   SCannotReadConfFile ='Can''t read config file ''%s''';
-  
+
   SCantOpenFile = 'Can''t open file ''%s''';
   SUnknownInputFormat = 'No known file format detected for file ''%s''';
-  
+
   SCantCreateFile = 'Can''t create file ''%s''';
 
 function GetCurrentTimeMsec : longint;

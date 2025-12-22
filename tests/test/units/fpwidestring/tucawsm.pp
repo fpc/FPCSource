@@ -6,7 +6,7 @@ program tucawsm;
     * CollationTest_SHIFTED_SHORT.txt
   These files are in the zip archive at
     http://www.unicode.org/Public/cldr/30/core.zip
-    in the "\common\uca" folder and named 
+    in the "\common\uca" folder and named
       CollationTest_CLDR_NON_IGNORABLE_SHORT.txt and
       CollationTest_CLDR_SHIFTED_SHORT.txt
 }

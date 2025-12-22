@@ -6,7 +6,7 @@ uses sysutils;
 var
   frec: TFloatRec;
   code: Integer;
-  
+
 const
   posinf: Extended = 1.0/0.0;
   neginf: Extended = -1.0/0.0;
@@ -20,14 +20,14 @@ begin
     writeln('Positive infinity test failed');
     code := code or 1;
   end;
-  
+
   FloatToDecimal(frec, neginf, fvExtended, 15, 15);
   if (frec.Exponent <> 32767) or (not frec.Negative) or (frec.Digits[0] <> #0) then
   begin
     writeln('Negative infinity test failed');
     code := code or 2;
   end;
-  
+
   FloatToDecimal(frec, nan, fvExtended, 15, 15);
   if (frec.Exponent <> -32768) or (frec.Digits[0] <> #0) then
   begin

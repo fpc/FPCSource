@@ -29,7 +29,7 @@ begin
       if (l<>0) then
         halt(b+h);
     end;
-    
+
   s:='$fffffff0';
   for b := low(hexch) to high(hexch) do
     begin
@@ -74,7 +74,7 @@ begin
       if (l<>0) then
         halt(ord(ch)-ord('0')+b+49+h);
     end;
-    
+
   s:='4294967290';
   for ch := '0' to '5' do
     begin
@@ -153,7 +153,7 @@ begin
       if (l<>0) then
         halt(b+h);
     end;
-    
+
   s:='$fffffffffffffff0';
   for b := low(hexch) to high(hexch) do
     begin
@@ -186,7 +186,7 @@ begin
       if (l<>0) then
         halt(ord(ch)-ord('0')+b+49+h);
     end;
-    
+
   s:='18446744073709551615';
   for ch := '0' to '5' do
     begin

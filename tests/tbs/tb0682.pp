@@ -7,11 +7,11 @@ label
 
 begin
   asm
-    movl l@GOT(%eax),%eax 
+    movl l@GOT(%eax),%eax
     l:
   end;
   asm
-    movl .Ll@GOT(%eax),%eax 
+    movl .Ll@GOT(%eax),%eax
     .Ll:
   end;
 end.

@@ -260,10 +260,10 @@ begin
             (-> only use the 10.14 sdk when targeting x86_64 or unknown architectures )
           3) crt1.o is no longer installed under /usr -> add its directory explicitly via
              -Fl
-            
+
         We can't detect the macOS version inside fpc.cfg, unfortunately, so we can only
         insert this while generating the configuration file.
-        
+
         This will stop working when macOS 10.15 is released without i386 support, but then
         users will be responsible for supplying their own i386 SDK anyway.
        }
@@ -293,7 +293,7 @@ begin
 
   { ifdef everything above related to the target OS otherwise host linker/clib paths can leak
     into the target while cross-ing, and cause nonworking executables (Darwin-x86_64 to ARM-Linux
-    for example on my setup), and while it's advised to use -n when crosscompiling, it can 
+    for example on my setup), and while it's advised to use -n when crosscompiling, it can
     cause hard to identify issues if -n is forgotten... (KB) }
   if result <> '' then
     result := '#ifdef ' + BuildOSTarget + LineEnding +

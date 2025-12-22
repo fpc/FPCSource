@@ -4,7 +4,7 @@ program tfuncref45;
 {$modeswitch functionreferences}
 
 { test assigning global procedures, methods, and object methods to function
-  references 
+  references
 
   same as tfuncref8 but with mode delphi
 }

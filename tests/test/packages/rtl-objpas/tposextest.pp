@@ -25,9 +25,9 @@ begin
         writeln('test ',testnr,' doesn''t match search phrase');
       end;
    end;
-end; 
+end;
 
-const 
+const
   S = 'Start'+#0#1+'BaseLevel'+#0#2+'Sublevel1'+#0#2+'Sublevel2'+#0#1+'LastOne';
   Sub = 'LastOne';
 

@@ -8,7 +8,7 @@ begin
  i:=0;
  repeat
    inc(i);
-   if i>2 then 
+   if i>2 then
      halt(1);
    b:=not b; // first time b is set to false thats why the loop should be done again
               // second time b is set to true thats why the loop should be leave,

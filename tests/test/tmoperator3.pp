@@ -34,9 +34,9 @@ begin
 end;
 
 { TBar }
-type 
+type
   TBar = class
-  private 
+  private
     F: TFoo;
   end;
 
@@ -56,33 +56,33 @@ var
 begin
   WriteLn('=== Global variable [begin] ===');
   WriteLn;
-  
+
   if F.F <> 1 then
     Halt(4);
-    
+
   WriteLn('=== Local variable ===');
-  Foo();  
-    
+  Foo();
+
   WriteLn('=== Field in class ===');
   B := TBar.Create();
   if B.F.F <> 1 then
     Halt(5);
   B.F.F := 2;
-  B.Free; 
-    
+  B.Free;
+
   WriteLn('=== New and Dispose ===');
   New(PF);
   if PF.F <> 1 then
     Halt(6);
   PF^.F := 2;
-  Dispose(PF); 
-  
+  Dispose(PF);
+
   WriteLn('=== InitializeArray and FinalizeArray ===');
   GetMem(PF, SizeOf(TFoo));
   InitializeArray(PF, TypeInfo(TFoo), 1);
   if PF.F <> 1 then
     Halt(7);
-  PF^.F := 2;  
+  PF^.F := 2;
   FinalizeArray(PF, TypeInfo(TFoo), 1);
   if PF^.F <> 3 then
     Halt(8);
@@ -93,12 +93,12 @@ begin
   Initialize(PF^);
   if PF.F <> 1 then
     Halt(9);
-  PF^.F := 2;  
+  PF^.F := 2;
   Finalize(PF^);
   if PF^.F <> 3 then
     Halt(10);
   FreeMem(PF);
-    
+
   F.F := 2;
   WriteLn('=== Global variable [end] ===');
 end. 

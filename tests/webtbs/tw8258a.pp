@@ -12,5 +12,5 @@ begin
   FCommentChars := [';','#'];
   if not (s[1] in FCommentChars) then
     halt(1);
-end. 
+end.
 

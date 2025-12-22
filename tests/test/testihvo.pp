@@ -16,7 +16,7 @@ Type
     procedure T2(out a);
     procedure T3(constref a);
   end;
-  
+
   TT1 = Class(TInterfacedObject,I1)
   Protected
     procedure T1(var a);
@@ -44,12 +44,12 @@ Type
     Procedure DoTest2;
     Procedure DoTest3;
   end;
-  
+
 var
-  sa : Integer;  
+  sa : Integer;
   ss : ansistring;
   ssa : array of ansistring;
-  
+
 Procedure TT1.T1(var a);
 
 begin
@@ -65,13 +65,13 @@ begin
   PInteger(@a)^:=321;
 end;
 
-  
+
 Procedure TT1.T3(constref a);
 
 begin
   Writeln('in T3');
   sa:=PInteger(@a)^;
-end;  
+end;
 
 procedure TTestInvokeHelper.AssertEquals(Msg: string; aExpect, aActual: Integer);
 begin
@@ -126,14 +126,14 @@ begin
   Writeln(FTest,' '+S);
   Halt(1);
 end;
-  
+
 
 procedure TTestInvokeHelper.DoTest1;
 
 var
   a : Integer;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest1');
   A:=123;
@@ -150,7 +150,7 @@ procedure TTestInvokeHelper.DoTest2;
 var
   a : Integer;
   args : Array of pointer;
-  
+
 begin
   StartTest('DoTest2');
   A:=123;
@@ -159,7 +159,7 @@ begin
   Args[1]:=@A;
   CallInvokeHelper(TI,GetInterfaceAsPtr,'T2',PPointer(Args));
   AssertEquals('Returned value',321,A);
- 
+
 end;
 
 procedure TTestInvokeHelper.DoTest3;
@@ -187,5 +187,5 @@ begin
       Writeln('All OK');
     finally
       Free;
-    end;   
+    end;
 end.

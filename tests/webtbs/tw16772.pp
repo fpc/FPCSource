@@ -4,7 +4,7 @@ uses
   SysUtils;
 
 type
-  PByteArray=^TByteArray; 
+  PByteArray=^TByteArray;
 var
   g : array [byte] of byte;
 
@@ -19,7 +19,7 @@ begin
   g[0]:=111;
   g[1]:=221;
   g[2]:=252;
-  
+
   p:=PByteArray(@GetArray[0]);
   if p[0]<>111 then
     halt(1);
@@ -28,7 +28,7 @@ begin
   if p[0]<>221 then
     halt(2);
 
-  p:=PByteArray(@(GetArray[2])); 
+  p:=PByteArray(@(GetArray[2]));
   if p[0]<>252 then
     halt(3);
 end.

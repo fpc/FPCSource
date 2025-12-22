@@ -3,7 +3,7 @@
 { %opt=-Cg- }
 
 program movdtest;
-var 
+var
   a: int64 = 128133443 or (int64(123455) shl 32);
   b: int64;
   al: longint absolute a;

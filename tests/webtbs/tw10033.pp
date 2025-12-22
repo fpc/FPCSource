@@ -1,6 +1,6 @@
-// tests writing of high()/low() of enumeration values, i.e. 
-// writing and reading of rtti for enums, both "dense" and 
-// "sparse" enumerations (different rtti is generated and 
+// tests writing of high()/low() of enumeration values, i.e.
+// writing and reading of rtti for enums, both "dense" and
+// "sparse" enumerations (different rtti is generated and
 // different code used for generating and reading)
 type
   // "dense" unnamed enumeration
@@ -25,7 +25,7 @@ var
   x : txxx;
   y : tyyy;
   err : word;
-  
+
   _x : txx;
   _y : tyy;
 

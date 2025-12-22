@@ -18,11 +18,11 @@ procedure addCharRTest(c: char;
   begin
     if AddCharR(c, s, n) <> expectation then
     begin
-      writeln('Testing strUtils/AddCharR: Test ', testnr, 
+      writeln('Testing strUtils/AddCharR: Test ', testnr,
               ' with N = ', n, ' failed.');
       exitCode := 1;
     end;
-  end; 
+  end;
 
 var
   i, j: integer;
@@ -36,6 +36,6 @@ begin
       testString := testString + 'A';
     addCharRTest('A', 'abcd', i, testString, i);
   end;
-  
+
   halt(exitCode);
 end.
