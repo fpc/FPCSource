@@ -2081,6 +2081,8 @@ type
                                 end;
                               typesym:
                                 begin
+                                  if ttypesym(srsym).typedef.typ in [errordef,abstractdef,forwarddef] then
+                                    Message(parser_e_illegal_expression);
                                   l:=ttypesym(srsym).typedef.size;
                                   MarkSymbolAsUsed(srsym);
                                 end;
