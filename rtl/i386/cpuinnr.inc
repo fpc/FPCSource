@@ -29,4 +29,6 @@
   fpc_in_x86_pause    = fpc_in_cpu_first+14;
 
   { include automatically generated numbers }
-  {$i cpumminnr.inc}  
+  {$ifndef VER3_2}
+  {$i cpumminnr.inc}
+  {$endif}

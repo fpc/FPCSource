@@ -44,7 +44,7 @@ endif
 OBJPASDIR=$(RTL)/objpas
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=$(CPUUNIT) $(MMXUNIT)
+CPU_UNITS=$(CPUUNIT) $(MMXUNIT) $(INTRINSICS)
 endif
 
 ifeq ($(ARCH),arm)

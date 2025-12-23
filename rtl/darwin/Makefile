@@ -914,7 +914,7 @@ else
 CP_UNITS_SRC=$(addsuffix .pas,$(addprefix $(RTL)/charmaps/,$(CP_UNITS)))
 endif
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=$(MMXUNIT) $(CPUUNIT)
+CPU_UNITS=$(MMXUNIT) $(CPUUNIT) $(INTRINSICSUNIT)
 endif
 ifeq ($(ARCH),x86_64)
 CPU_UNITS=$(CPUUNIT) $(INTRINSICSUNIT)
