@@ -135,9 +135,9 @@ implementation
   function llvmtypeidentifier(def: tdef): TSymStr;
     begin
       if assigned(def.typesym) then
-        result:='%"typ.'+def.fullownerhierarchyname(false)+def.typesym.realname+'"'
+        result:='%"typ.'+def.fullownerhierarchyname(false,false)+def.typesym.realname+'"'
       else
-        result:='%"typ.'+def.fullownerhierarchyname(false)+def.unique_id_str+'"';
+        result:='%"typ.'+def.fullownerhierarchyname(false,false)+def.unique_id_str+'"';
     end;
 
 
