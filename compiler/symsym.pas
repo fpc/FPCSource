@@ -754,10 +754,10 @@ implementation
               begin
                 comment(v_error,'Symbol '+realname+' from module '+tmod.mainsource+' registered with current module '+current_module.mainsource);
               end;
-	    if not assigned(tmod) then
+            if not assigned(tmod) then
               tmod:=current_module;
           end
-	else
+        else
           tmod:=current_module;
         { Register in current_module }
         if assigned(tmod) then
