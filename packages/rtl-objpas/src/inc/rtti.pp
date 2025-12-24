@@ -1096,7 +1096,8 @@ begin
     tkChar,
     tkWideChar,
     tkString,
-    tkLString:
+    tkLString,
+    tkAString:
       aType:=varString;
     tkUString:
       aType:=varUString;
@@ -3077,7 +3078,7 @@ begin
       TValue.Make(@Tmp,System.TypeInfo(WideString),aDest);
     tkUString:
       TValue.Make(@Tmp,System.TypeInfo(UnicodeString),aDest);
-    tkLString:
+    tkAString:
       begin
       SetString(S, PAnsiChar(@Tmp), 1);
       SetCodePage(S,GetTypeData(aDestType)^.CodePage);
@@ -3117,7 +3118,7 @@ begin
       US:=Tmp;
       TValue.Make(@US,System.TypeInfo(UnicodeString),aDest);
       end;
-    tkLString:
+    tkAString:
       begin
       SetString(RS,PAnsiChar(@Tmp),1);
       SetCodePage(RS,GetTypeData(aDestType)^.CodePage);
