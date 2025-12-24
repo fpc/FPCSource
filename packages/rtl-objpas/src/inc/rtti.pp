@@ -28,6 +28,20 @@ unit Rtti;
 {$goto on}
 {$Assertions on}
 
+{ Note: the Lazarus IDE might have problems to correctly handle some syntax
+        elements or to navigate to the invoke.inc if the main source is
+        navigated inside the IDE; to allow ensure that the InLazIDE define
+        is defined for the CodeTools. To do this do this:
+
+  - go to Tools -> Codetools Defines Editor
+  - go to Edit -> Insert Node Below -> Define Recurse
+  - enter the following values:
+      Name: InLazIDE
+      Description: Define InLazIDE everywhere
+      Variable: InLazIDE
+      Value from text: 1
+}
+
 {$WARN 4055 off : Conversion between ordinals and pointers is not portable}
 interface
 
