@@ -34,7 +34,7 @@ fpcpackage=y
 target=embedded
 
 [compiler]
-includedir=$(INC) $(PROCINC)
+includedir=$(INC) $(PROCINC) $(ARCH)
 sourcedir=$(INC) $(PROCINC) $(COMMON) $(ARCH)
 
 [prerules]

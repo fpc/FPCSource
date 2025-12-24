@@ -1266,55 +1266,55 @@ override TARGET_LOADERS+=$(LOADERS)
 endif
 override INSTALL_FPCPACKAGE=y y
 ifeq ($(CPU_OS_TARGET),i386-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),m68k-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),sparc-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),x86_64-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),arm-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),powerpc64-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),avr-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),armeb-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),mipsel-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),i8086-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),aarch64-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),wasm32-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),riscv32-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),riscv64-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),xtensa-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),z80-embedded)
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(ARCH)
 endif
 ifeq ($(CPU_OS_TARGET),i386-embedded)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(COMMON) $(ARCH)
