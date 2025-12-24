@@ -2475,13 +2475,10 @@ begin
 
         varDispatch: DoVarCastDispatch(aDest, aSource);
         varUnknown:  DoVarCastInterface(aDest, aSource);
-      else
-        case aVarType of
-          varString: DoVarCastLStr(aDest, aSource);
-          varAny:    VarCastError(vType, varAny);
+        varString:   DoVarCastLStr(aDest, aSource);
+        varAny:      VarCastError(vType, varAny);
         else
           DoVarCastComplex(aDest, aSource, aVarType);
-        end;
       end;
     end;
 
