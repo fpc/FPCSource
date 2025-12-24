@@ -5809,7 +5809,11 @@ implementation
          begin
            hp:=tparavarsym(paras[i]);
            if not(vo_is_hidden_para in hp.varoptions) then
-             result:=result+'$'+hp.vardef.mangledparaname;
+             begin
+               if not assigned(hp.vardef) then
+                 internalerror(2025122401);
+               result:=result+'$'+hp.vardef.mangledparaname;
+             end;
          end;
         { add resultdef, add $$ as separator to make it unique from a
           parameter separator }
