@@ -1400,6 +1400,72 @@ begin
 end;
 
 
+Function VariantToUnicodeString(const VargSrc : TVarData) : UnicodeString;
+begin
+  {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
+  DumpVariant('VariantToUnicodeString', VargSrc);
+  end; {$ENDIF}
+
+  with VargSrc do
+    case vType and not varTypeMask of
+      0: case vType of
+        varEmpty    : Result := '';
+        varSmallInt : Result := IntToStr(vSmallInt);
+        varShortInt : Result := IntToStr(vShortInt);
+        varInteger  : Result := IntToStr(vInteger);
+{$ifndef FPUNONE}
+        varSingle   : Result := FloatToStr(vSingle);
+        varDouble   : Result := FloatToStr(vDouble);
+        varCurrency : Result := CurrToStr(vCurrency);
+        varDate     : Result := VarDateToString(vDate);
+{$endif}
+        varBoolean  : Result := BoolToStr(vBoolean, True);
+        varVariant  : Result := VariantToUnicodeString(PVarData(vPointer)^);
+        varByte     : Result := IntToStr(vByte);
+        varWord     : Result := IntToStr(vWord);
+        varLongWord : Result := IntToStr(vLongWord);
+        varInt64    : Result := IntToStr(vInt64);
+        varQword    : Result := IntToStr(vQWord);
+        varOleStr   : Result := WideString(Pointer(vOleStr));
+        varString   : Result := AnsiString(vString);
+        varUString  : Result := UnicodeString(vString);
+      else
+        VariantTypeMismatch(vType, varOleStr);
+      end;
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
+        varSmallInt : Result := IntToStr(PSmallInt(vPointer)^);
+        varShortInt : Result := IntToStr(PShortInt(vPointer)^);
+        varInteger  : Result := IntToStr(PInteger(vPointer)^);
+{$ifndef FPUNONE}
+        varSingle   : Result := FloatToStr(PSingle(vPointer)^);
+        varDouble   : Result := FloatToStr(PDouble(vPointer)^);
+        varCurrency : Result := CurrToStr(PCurrency(vPointer)^);
+        varDate     : Result := VarDateToString(PDate(vPointer)^);
+{$endif}
+        varBoolean  : Result := BoolToStr(PWordBool(vPointer)^, True);
+        varVariant  : Result := VariantToUnicodeString(PVarData(vPointer)^);
+        varByte     : Result := IntToStr(PByte(vPointer)^);
+        varWord     : Result := IntToStr(PWord(vPointer)^);
+        varLongWord : Result := IntToStr(PLongWord(vPointer)^);
+        varInt64    : Result := IntToStr(PInt64(vPointer)^);
+        varQword    : Result := IntToStr(PQWord(vPointer)^);
+        varOleStr   : Result := WideString(PPointer(vPointer)^);
+        varString   : Result := AnsiString(PPointer(vPointer)^);
+        varUString  : Result := UnicodeString(PPointer(vPointer)^);
+      else { other vtype }
+        VariantTypeMismatch(vType, varUString);
+      end else { pointer is nil }
+        VariantTypeMismatch(vType, varUString);
+    else { array or something like that }
+      VariantTypeMismatch(vType, varUString);
+    end;
+
+  {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
+  WriteLn('VariantToUnicodeString -> ', Result);
+  end; {$ENDIF}
+end;
+
+
 Function VariantToShortString(const VargSrc : TVarData) : ShortString;
 begin
   Result:=VariantToAnsiString(VargSrc);
