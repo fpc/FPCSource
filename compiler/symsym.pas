@@ -1049,7 +1049,9 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            if (pd.owner=owner) and (pd.forwarddef) then
+            { Don't check for is_specialization, but whether it's somehow part
+              of a specialization }
+            if (pd.owner=owner) and (pd.forwarddef) and not (df_specialization in pd.defoptions) then
               begin
                 { For mode macpas. Make implicit externals (procedures declared in the interface
                   section which do not have a counterpart in the implementation)
