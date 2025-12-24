@@ -1897,10 +1897,31 @@ uses
               end;
           end
         else
-          if current_module.is_unit and current_module.in_interface then
-            specializest:=current_module.globalsymtable
-          else
-            specializest:=current_module.localsymtable;
+          begin
+            { if one of the type parameters is owned by a local- or parasymtable
+              then use the localsymtable for specialization }
+            specializest:=nil;
+            for i:=0 to context.paramlist.count-1 do
+              begin
+                psym:=tsym(context.paramlist[i]);
+                if psym.owner.symtabletype in [localsymtable,parasymtable] then
+                  begin
+                    if (psym.owner.symtabletype=localsymtable) or (psym.owner.defowner.typ<>procdef) then
+                      specializest:=psym.owner
+                    else
+                      specializest:=tprocdef(psym.owner.defowner).getsymtable(gs_local);
+                    if not assigned(specializest) then
+                      internalerror(2025122402);
+                    break;
+                  end;
+              end;
+
+            if not assigned(specializest) then
+              if current_module.is_unit and current_module.in_interface then
+                specializest:=current_module.globalsymtable
+              else
+                specializest:=current_module.localsymtable;
+          end;
         if not assigned(specializest) then
           internalerror(2014050910);
 
