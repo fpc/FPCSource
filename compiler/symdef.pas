@@ -7631,7 +7631,6 @@ implementation
           -> set that one }
         import_name:=stringdup(s);
         include(procoptions,po_has_importname);
-        include(procoptions,po_has_mangledname);
 {$else}
   {$ifdef symansistr}
         _mangledname:=s;
