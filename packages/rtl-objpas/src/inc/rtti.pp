@@ -657,8 +657,8 @@ type
   TRttiParameterArray = specialize TArray<TRttiParameter>;
 
   TMethodImplementationCallback = reference to procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
-  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object; deprecated 'Use TMethodImplementationCallback';
-  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue); deprecated 'Use TMethodImplementationCallback';
+  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object; {$ifndef InLazIDE}deprecated 'Use TMethodImplementationCallback';{$endif}
+  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue); {$ifndef InLazIDE}deprecated 'Use TMethodImplementationCallback';{$endif}
   TFunctionCallParameterInfoArray = specialize TArray<TFunctionCallParameterInfo>;
   TPointerArray = specialize TArray<Pointer>;
 
@@ -691,8 +691,8 @@ type
     function GetFlags: TFunctionCallFlags; virtual; abstract;
   public type
     TCallback = reference to procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
-    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object; deprecated 'Use TRttiInvokableType.TCallback';
-    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue); deprecated 'Use TRttiInvokableType.TCallback';
+    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object; {$ifndef InLazIDE}deprecated 'Use TRttiInvokableType.TCallback';{$endif}
+    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue); {$ifndef InLazIDE}deprecated 'Use TRttiInvokableType.TCallback';{$endif}
   public
     function GetParameters: TRttiParameterArray; inline;
     property CallingConvention: TCallConv read GetCallingConvention;
