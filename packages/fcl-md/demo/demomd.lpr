@@ -8,7 +8,9 @@ uses
   markdown.parser,
   markdown.inlinetext,
   markdown.htmlrender,
-  markdown.render, markdown.line, markdown.delimiter;
+  markdown.processors,
+  markdown.render
+  ;
 
 var
   Source,Dest : TStringList;
