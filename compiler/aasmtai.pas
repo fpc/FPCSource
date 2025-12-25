@@ -1431,7 +1431,7 @@ implementation
             is_global:=true;
           end
         else
-          Create(_name,_size,def,_typ);
+          Create_global(_name,_size,def,_typ);
       end;
 
 
@@ -1546,7 +1546,7 @@ implementation
             is_global:=true;
           end
         else
-          Createname(_name, _symtyp, siz, def);
+          Createname_global(_name, _symtyp, siz, def);
       end;
 
 
