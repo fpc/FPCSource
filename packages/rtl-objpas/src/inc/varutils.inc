@@ -160,7 +160,7 @@ begin
       VarQWord    : VargDest.VQWord:=PQWord(VPointer)^;
       varVariant  : Variant(VargDest):=Variant(PVarData(VPointer)^);
       varOleStr   : CopyAsWideString(VargDest.VOleStr,PVarData(VPointer)^.VoleStr);
-      varUString  : VargDest.vustring:=PUnicodeString(VPointer)^;
+      varUString  : UnicodeString(VargDest.vustring):=PUnicodeString(VPointer)^;
       varDispatch,
       varUnknown  : IInterface(VargDest.vUnknown):=IInterface(PInterface(VargSrc.VPointer)^);
       else
