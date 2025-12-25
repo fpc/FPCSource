@@ -90,6 +90,14 @@ begin
       AddUnit('markdown.render');
       end;
 
+    T:=P.Targets.AddUnit('markdown.latexrender.pas');
+    with T.Dependencies do
+      begin
+      AddUnit('markdown.elements');
+      AddUnit('markdown.utils');
+      AddUnit('markdown.render');
+      end;
+
     T:=P.Targets.AddUnit('markdown.fpdocrender.pas');
     with T.Dependencies do
       begin
