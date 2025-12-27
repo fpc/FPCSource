@@ -794,7 +794,17 @@ type
         writeln(f);
         if pVarHeader(p - VarHeaderSize)^.ch.h and LastFlag <> 0 then
           break;
+        if pVarHeader(p - VarHeaderSize)^.ch.h and VarSizeMask = 0 then
+        begin
+          writeln(f,'ERROR: block size is zero, cannot find the next block!');
+          break;
+        end;
         p := p + pVarHeader(p - VarHeaderSize)^.ch.h and VarSizeMask;
+        if p > ((pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize)) + vOs^.size) then
+        begin
+          writeln(f,'ERROR: previous tail points to ',HexStr(p),' which is outside of this OS chunk!');
+          break;
+        end;
       until false;
       needLE := true;
       vOs := vOs^.next;
@@ -1693,6 +1703,13 @@ type
       p := pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize);
       repeat
         h := pVarHeader(p - VarHeaderSize)^.ch.h;
+        { bail out if the next pointer points outside of the allocated OS chunk,
+          or if the size is zero, so the next block would point to ourselves }
+        if (h and VarSizeMask = 0) or
+          ((p + (h and VarSizeMask)) > (pointer(vOs) + (VarOSChunkDataOffset + VarHeaderSize)) + vOs^.size) then
+        begin
+          RunError(203);
+        end;
         if (h and UsedFlag = 0) and (h >= MinSearchableVarHeaderAndPayload) then
           gs.varFree.Add(p, pFreeVarChunk(p)^.binIndex);
         inc(p, h and VarSizeMask);

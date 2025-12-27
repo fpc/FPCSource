@@ -34,7 +34,7 @@ fpcpackage=y
 target=embedded
 
 [compiler]
-includedir=$(INC) $(PROCINC)
+includedir=$(INC) $(PROCINC) $(ARCH)
 sourcedir=$(INC) $(PROCINC) $(COMMON) $(ARCH)
 
 [prerules]
@@ -218,7 +218,8 @@ endif
 endif
 
 ifeq ($(ARCH),i386)
-CPU_UNITS=$(MULTIBOOTUNIT) $(INTRINSICSUNIT)
+CPU_UNITS=$(MULTIBOOTUNIT)
+CPU_SPECIFIC_COMMON_UNITS+=$(INTRINSICSUNIT)
 CPU_UNITS_DEFINED=1
 ifeq ($(CPU_UNITS_DEFINED),)
 $(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)

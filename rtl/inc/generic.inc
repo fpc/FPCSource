@@ -14,7 +14,6 @@
 
  **********************************************************************}
 
-
 function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   var
     tmp,am1 : PtrUInt;

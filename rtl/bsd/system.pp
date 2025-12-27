@@ -208,8 +208,11 @@ begin
   e[j]:=1 shl i;
   { this routine is called from a signal handler, so must not change errno }
   olderrno:=geterrno;
-  fpsigprocmask(SIG_UNBLOCK,@e,@oe);
-  reenable_signal:=geterrno=0;
+  seterrno(0);
+  if fpsigprocmask(SIG_UNBLOCK,@e,@oe)<>0 then
+    reenable_signal:=geterrno=0
+  else
+    reenable_signal:=true;
   seterrno(olderrno);
 end;
 

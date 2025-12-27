@@ -146,6 +146,9 @@ unit aoptx86;
         { Returns true if the given logic instruction can be converted into a BTx instruction (BT not included) }
         class function IsBTXAcceptable(p : tai) : boolean; static;
 
+        { Returns the index of an input operand that can take a register or a
+          reference, or -1 if there isn't one }
+        class function GetRMReadIndex(var p : tai) : integer; static;
 
         { Converts the LEA instruction to ADD/INC/SUB/DEC. Returns True if the
           conversion was successful }
@@ -2885,6 +2888,115 @@ unit aoptx86;
       end;
 
 
+    class function TX86AsmOptimizer.GetRMReadIndex(var p : taI): integer;
+      var
+        hp: taicpu absolute p; { Implicit typecast }
+      begin
+        if p.typ<>ait_instruction then
+          begin
+            Result:=-1;
+            Exit;
+          end;
+
+        { Remember we're looking for input operands that can either be a
+          register or a reference.  If it can take only a register or only a
+          reference, or is read/write, it doesn't count }
+        case hp.opcode of
+          A_MOV,
+          A_ADC,
+          A_ADD,
+          A_AND,
+          A_CMP,
+          A_OR,
+          A_SBB,
+          A_SUB,
+          A_TEST,
+          A_XOR:
+            if (hp.oper[0]^.typ=top_reg) and
+              (hp.oper[1]^.typ=top_reg) and
+              { Don't count "xor %reg,%reg" etc. }
+              (hp.oper[0]^.reg<>hp.oper[1]^.reg) then
+              Result:=0
+            else
+              Result:=-1;
+
+          A_MOVZX,
+          A_MOVSX,
+{$ifdef x86_64}
+          A_MOVSXD,
+{$endif x86_64}
+          A_BSF,
+          A_BSR,
+          A_CMOVcc,
+          A_CVTSI2SS,
+          A_CVTSI2SD,
+          A_LZCNT,
+          A_POPCNT,
+          A_VCVTSI2SS,
+          A_VCVTSI2SD,
+          { BMI1 instructions }
+          A_ANDN, A_BLSI, A_BLSMSK, A_BLSR, A_TZCNT,
+          { BMI2 instructions }
+          A_MULX, A_PDEP, A_PEXT,
+          { ADX }
+          A_ADCX, A_ADOX:
+            Result:=0;
+
+          { BMI1 instructions }
+          A_BEXTR,
+          { BMI2 instructions }
+          A_BZHI, A_RORX, A_SARX, A_SHLX, A_SHRX:
+            Result:=1;
+
+          A_MOVD,
+          A_MOVQ,
+          A_VMOVD,
+          A_VMOVQ:
+            if (hp.oper[0]^.typ = top_reg) and
+              (getregtype(hp.oper[0]^.reg) = R_INTREGISTER) then
+              Result:=0
+            else
+              Result:=-1;
+
+          A_DIV,
+          A_IDIV:
+            if (taicpu(p).oper[0]^.typ=top_reg) and
+              (
+                (getsupreg(taicpu(p).oper[0]^.reg)=RS_EAX) or { EAX is also used implicitly; don't change }
+                (
+                  (hp.opsize<>S_B) and
+                  (getsupreg(taicpu(p).oper[0]^.reg)=RS_EDX) { EDX is also used implicitly; don't change }
+                )
+              ) then
+              Result:=-1
+            else
+              Result:=0;
+
+          A_MUL:
+            if (taicpu(p).oper[0]^.typ=top_reg) and (getsupreg(taicpu(p).oper[0]^.reg)=RS_EAX) then
+              Result:=-1 { EAX is also used implicitly; don't change }
+            else
+              Result:=0;
+
+          A_IMUL:
+            case hp.ops of
+              3:
+                Result:=1;
+              2:
+                Result:=0;
+              else
+                if (taicpu(p).oper[0]^.typ=top_reg) and (getsupreg(taicpu(p).oper[0]^.reg)=RS_EAX) then
+                  Result:=-1 { EAX is also used implicitly; don't change }
+                else
+                  Result:=0;
+            end;
+
+          else
+            Result:=-1;
+        end;
+      end;
+
+
     function TX86AsmOptimizer.ConvertLEA(const p: taicpu): Boolean;
       var
         l: asizeint;
@@ -3268,6 +3380,7 @@ unit aoptx86;
         SourceRef, TargetRef: TReference;
         MovAligned, MovUnaligned: TAsmOp;
         JumpTracking: TLinkedList;
+        op_idx: integer;
       begin
         Result:=false;
 
@@ -3989,17 +4102,43 @@ unit aoptx86;
 
                         <op> ref,reg1
                       }
-                      if MatchOpType(taicpu(hp1),top_reg,top_reg) and
-                        (taicpu(hp1).oper[0]^.reg = p_TargetReg) and
-                        MatchInstruction(hp1, [A_AND, A_OR, A_XOR, A_ADD, A_SUB, A_CMP, A_TEST, A_CMOVcc, A_BSR, A_BSF, A_POPCNT, A_LZCNT], [taicpu(p).opsize]) and
-                        not SuperRegistersEqual(taicpu(hp1).oper[1]^.reg, p_TargetReg) and
+                      op_idx := -1; { Needed to prevent compiler warnings }
+                      if (SetAndPassThrough(GetRMReadIndex(hp1),op_idx)<>-1) and
+                        (taicpu(hp1).oper[op_idx]^.reg = p_TargetReg) and
                         not RefModifiedBetween(taicpu(p).oper[0]^.ref^, topsize2memsize[taicpu(p).opsize] shr 3, p, hp1) then
                         begin
                           TransferUsedRegs(TmpUsedRegs);
                           UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
-                          if not RegUsedAfterInstruction(p_TargetReg, hp1, TmpUsedRegs) then
+
+                          DoOptimisation := True;
+                          if RegUsedAfterInstruction(p_TargetReg, hp1, TmpUsedRegs) then
                             begin
-                              taicpu(hp1).loadref(0,taicpu(p).oper[0]^.ref^);
+                              { We may still be able to perform the optimisation if we're careful }
+
+                              { A trick so RegLoadedWithNewValue will not return False
+                                if p_TargetReg is read from or appears in the reference }
+                              taicpu(hp1).loadreg(op_idx,NR_NO);
+
+                              TransferUsedRegs(TmpUsedRegs);
+                              UpdateUsedRegsBetween(TmpUsedRegs, tai(p.Next), hp1);
+
+                              { Note, RegReadByInstruction is indirectly called by
+                                RegUsedAfterInstruction and will return True if
+                                another operand reads from p_TargetReg or is read
+                                from implicitly, so RegLoadedWithNewValue will
+                                return False in this situation, and hence
+                                RegUsedAfterInstruction will return True }
+                              if RegUsedAfterInstruction(p_TargetReg, hp1, TmpUsedRegs) then
+                                begin
+                                  { Abort }
+                                  taicpu(hp1).loadreg(op_idx,p_TargetReg);
+                                  DoOptimisation := False;
+                                end;
+                            end;
+
+                          if DoOptimisation then
+                            begin
+                              taicpu(hp1).loadref(op_idx,taicpu(p).oper[0]^.ref^);
 
                               { loadref increases the reference count, so decrement it again }
                               if Assigned(taicpu(p).oper[0]^.ref^.symbol) then
@@ -4012,6 +4151,14 @@ unit aoptx86;
                               { See if we can remove the allocation of reg0 }
                               if not RegInRef(p_TargetReg, taicpu(p).oper[0]^.ref^) then
                                 TryRemoveRegAlloc(p_TargetReg, p, hp1);
+
+                              { Update the register tracking for the registers inside the reference }
+                              if (taicpu(p).oper[0]^.ref^.base<>NR_NO) then
+                                AllocRegBetween(taicpu(p).oper[0]^.ref^.base, p, hp1, UsedRegs);
+
+                              if (taicpu(p).oper[0]^.ref^.index<>NR_NO) and
+                                (taicpu(p).oper[0]^.ref^.index<>taicpu(p).oper[0]^.ref^.base) then
+                                AllocRegBetween(taicpu(p).oper[0]^.ref^.index, p, hp1, UsedRegs);
 
                               RemoveCurrentp(p);
                               Result:=true;

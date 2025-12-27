@@ -4,7 +4,14 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses {$ifdef unix}cwstring,cthreads,{$endif} sysutils, Classes, fpmkunit;
+uses
+{$ifdef unix}
+ cwstring,
+{$ifndef NO_THREADING}
+ cthreads,
+{$endif}
+{$endif}
+ sysutils, Classes, fpmkunit;
 
 Var
   TBuild,T : TTarget;

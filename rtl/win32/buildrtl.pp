@@ -11,7 +11,8 @@ unit buildrtl;
       TP.DOS, WinApi.Messages,
       System.RtlConsts, System.SysConst, System.SysUtils, System.Math, System.Types,
       System.TypInfo, System.FGL, System.Classes,    
-      System.CPU, System.CPU.MMX, System.CharSet, System.Character, System.GetOpts,
+      System.CPU, System.CPU.MMX, System.Intrinsics,
+      System.CharSet, System.Character, System.GetOpts,
       System.FPWideString,
       WinApi.WinSysUt, WinApi.ShareMem, fpintres, WinApi.WinDirs,
       System.SoftFPU, System.SoftFpuX80, System.SoftFpu128, System.UFloatX80, System.UFloat128;
@@ -24,7 +25,8 @@ unit buildrtl;
       dos, messages,
       rtlconsts, sysconst, sysutils, math, types,
       typinfo, fgl, classes,
-      cpu, mmx, charset, character, getopts,
+      cpu, mmx, intrinsics,
+      charset, character, getopts,
       fpwidestring,
       winsysut, sharemem, fpintres, windirs,
       softfpu, sfpux80, sfpu128, ufloatx80, ufloat128;

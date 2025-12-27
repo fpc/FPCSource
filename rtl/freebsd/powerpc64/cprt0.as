@@ -6,8 +6,7 @@
         /* FreeBSD/ppc64: avoid @toc@ha/@toc@l relocations (not supported by some assemblers).
            Use full 64-bit absolute address materialization for data symbols. */
         .macro  LOAD_64BIT_ADDR ra, sym
-		addis     \ra,2,\sym@toc@ha
-		ld        \ra,\sym@toc@l(\ra)
+		ld	\ra,(\sym)@got(2)
         .endm
 
         .section .rodata

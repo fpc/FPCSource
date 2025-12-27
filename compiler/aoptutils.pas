@@ -44,6 +44,10 @@ unit aoptutils;
     { Set Store and Result to Condition (useful as an inline assignment in a conditional block) }
     function SetAndTest(const Condition: Boolean; out Store: Boolean): Boolean; inline;
 
+    { Set result and store to value (useful as an inline assignment in a conditional block).
+      This is the equivalent of the C code "if ((store=value)==...)" }
+    function SetAndPassThrough(const value: integer; out store: integer): integer; inline;
+
   implementation
 
     uses
@@ -100,6 +104,15 @@ unit aoptutils;
       begin
         Store := Condition;
         Result := Store;
+      end;
+
+
+    { Set result and store to value (useful as an inline assignment in a conditional block).
+      This is the equivalent of the C code "if ((store=value)==...)" }
+    function SetAndPassThrough(const value: integer; out store: integer): integer;
+      begin
+        store := value;
+        result := value;
       end;
 
 end.
