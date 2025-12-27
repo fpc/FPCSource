@@ -77,6 +77,8 @@ begin
             ;
           varOleStr:
             WideString(Pointer(VOleStr)):='';
+          varUString:
+            UnicodeString(VUString):='';
           varDispatch,
           varUnknown:
             iinterface(vunknown):=nil;
@@ -115,6 +117,8 @@ begin
             Move(VBytes, VargDest.VBytes, SizeOf(VargDest.VBytes));
           varOleStr:
             CopyAsWideString(VargDest.VOleStr,VOleStr);
+          varUString:
+            UnicodeString(VargDest.vustring):=UnicodeString(vustring);
           varDispatch:
             IUnknown(VargDest.vdispatch):=IUnknown(VargSrc.vdispatch);
           varUnknown:
@@ -156,6 +160,7 @@ begin
       VarQWord    : VargDest.VQWord:=PQWord(VPointer)^;
       varVariant  : Variant(VargDest):=Variant(PVarData(VPointer)^);
       varOleStr   : CopyAsWideString(VargDest.VOleStr,PVarData(VPointer)^.VoleStr);
+      varUString  : UnicodeString(VargDest.vustring):=PUnicodeString(VPointer)^;
       varDispatch,
       varUnknown  : IInterface(VargDest.vUnknown):=IInterface(PInterface(VargSrc.VPointer)^);
       else
@@ -200,6 +205,7 @@ begin
           VarInt64    : VargDest.Vint64:=VariantToInt64(Tmp);
           VarLongWord : VargDest.VLongWord:=VariantToCardinal(Tmp);
           VarQWord    : VargDest.VQWord:=VariantToQword(tmp);
+          varUString  : UnicodeString(VargDest.vustring):=UnicodeString(tmp.vustring);
        else
           Result:=VAR_BADVARTYPE;
        end;

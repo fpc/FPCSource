@@ -6,8 +6,9 @@ This directory contains 3 markdown parser examples:
 They are:
 
 * demomd - simple markdown parser and html renderer.
-* md2html - slightly more complete markdown-to-html converter/
-* md2fpdoc - simple version of a markdown - to fpdoc converter.
+* md2html - slightly more complete markdown-to-html converter.
+* md2fpdoc - simple version of a markdown to fpdoc converter.
+* md2latex - simple version of a markdown to LaTeX converter.
 
 ## conversion to fpdoc 
 
@@ -24,5 +25,5 @@ The headers determine what is generated for a given section:
 
 links must be rendered as \[text\]\(text\) or \[\]\(text\)
 
-You can find a simple example in the [sample.md](sample.md) file.
+You can find a simple example in the [sampledoc.md](sampledoc.md) file.
 

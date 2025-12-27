@@ -121,6 +121,16 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="Markdown.FPDocRender"/>
       </Unit>
+      <Unit>
+        <Filename Value="../src/markdown.latexrender.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="MarkDown.LatexRender"/>
+      </Unit>
+      <Unit>
+        <Filename Value="utest.markdown.latexrender.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="UTest.Markdown.LaTeXRender"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

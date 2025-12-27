@@ -71,6 +71,7 @@ function VariantToInt64(const VargSrc : TVarData ) : Int64;
 function VariantToQWord(const VargSrc : TVarData ) : Qword;
 function VariantToWideString(const VargSrc : TVarData) : WideString;
 function VariantToAnsiString(const VargSrc : TVarData) : AnsiString;
+function VariantToUnicodeString(const VargSrc : TVarData) : UnicodeString;
 function VariantToShortString(const VargSrc : TVarData) : ShortString;
 
 {$ifdef USE_WINDOWS_OLE_FUNCTIONS}

@@ -28,6 +28,20 @@ unit Rtti;
 {$goto on}
 {$Assertions on}
 
+{ Note: the Lazarus IDE might have problems to correctly handle some syntax
+        elements or to navigate to the invoke.inc if the main source is
+        navigated inside the IDE; to allow ensure that the InLazIDE define
+        is defined for the CodeTools. To do this do this:
+
+  - go to Tools -> Codetools Defines Editor
+  - go to Edit -> Insert Node Below -> Define Recurse
+  - enter the following values:
+      Name: InLazIDE
+      Description: Define InLazIDE everywhere
+      Variable: InLazIDE
+      Value from text: 1
+}
+
 {$WARN 4055 off : Conversion between ordinals and pointers is not portable}
 interface
 
@@ -238,7 +252,7 @@ type
     function AsDouble : Double;
     function AsInteger: Integer;
     function AsError: HRESULT;
-    function AsChar: AnsiChar; inline;
+    function AsChar: Char; inline;
     function AsAnsiChar: AnsiChar;
     function AsWideChar: WideChar;
     function AsInt64: Int64;
@@ -643,8 +657,8 @@ type
   TRttiParameterArray = specialize TArray<TRttiParameter>;
 
   TMethodImplementationCallback = reference to procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue);
-  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object; deprecated 'Use TMethodImplementationCallback';
-  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue); deprecated 'Use TMethodImplementationCallback';
+  TMethodImplementationCallbackMethod = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue) of object; {$ifndef InLazIDE}deprecated 'Use TMethodImplementationCallback';{$endif}
+  TMethodImplementationCallbackProc = procedure(aUserData: Pointer; const aArgs: TValueArray; out aResult: TValue); {$ifndef InLazIDE}deprecated 'Use TMethodImplementationCallback';{$endif}
   TFunctionCallParameterInfoArray = specialize TArray<TFunctionCallParameterInfo>;
   TPointerArray = specialize TArray<Pointer>;
 
@@ -677,8 +691,8 @@ type
     function GetFlags: TFunctionCallFlags; virtual; abstract;
   public type
     TCallback = reference to procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue);
-    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object; deprecated 'Use TRttiInvokableType.TCallback';
-    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue); deprecated 'Use TRttiInvokableType.TCallback';
+    TCallbackMethod = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue) of object; {$ifndef InLazIDE}deprecated 'Use TRttiInvokableType.TCallback';{$endif}
+    TCallbackProc = procedure(aInvokable: TRttiInvokableType; const aArgs: TValueArray; out aResult: TValue); {$ifndef InLazIDE}deprecated 'Use TRttiInvokableType.TCallback';{$endif}
   public
     function GetParameters: TRttiParameterArray; inline;
     property CallingConvention: TCallConv read GetCallingConvention;
@@ -1082,7 +1096,8 @@ begin
     tkChar,
     tkWideChar,
     tkString,
-    tkLString:
+    tkLString,
+    tkAString:
       aType:=varString;
     tkUString:
       aType:=varUString;
@@ -3063,7 +3078,7 @@ begin
       TValue.Make(@Tmp,System.TypeInfo(WideString),aDest);
     tkUString:
       TValue.Make(@Tmp,System.TypeInfo(UnicodeString),aDest);
-    tkLString:
+    tkAString:
       begin
       SetString(S, PAnsiChar(@Tmp), 1);
       SetCodePage(S,GetTypeData(aDestType)^.CodePage);
@@ -3103,7 +3118,7 @@ begin
       US:=Tmp;
       TValue.Make(@US,System.TypeInfo(UnicodeString),aDest);
       end;
-    tkLString:
+    tkAString:
       begin
       SetString(RS,PAnsiChar(@Tmp),1);
       SetCodePage(RS,GetTypeData(aDestType)^.CodePage);
@@ -4643,9 +4658,9 @@ begin
     raise EInvalidCast.Create(SErrInvalidTypecast);
 end;
 
-function TValue.AsChar: AnsiChar;
+function TValue.AsChar: Char;
 begin
-{$if SizeOf(AnsiChar) = 1}
+{$if SizeOf(Char) = 1}
   Result := AsAnsiChar;
 {$else}
   Result := AsWideChar;

@@ -88,6 +88,7 @@ Const
   ApproxDaysPerMonth: Double = 30.4375;
   ApproxDaysPerYear: Double  = 365.25;
 
+  DateTimeEpsilon: Double = 1E-10;    // about 0.1 ms
 
 
 { ---------------------------------------------------------------------
@@ -654,7 +655,6 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  TDateTimeEpsilon = 2.2204460493e-16;
   HalfMilliSecond = OneMillisecond /2 ;
   SErrLocalTimeInvalid = 'Invalid local time: %s';
 
@@ -1525,33 +1525,48 @@ end;
     Period functions.
   ---------------------------------------------------------------------}
 
-{
-  These functions are declared as approximate by Borland.
-  A bit strange, since it can be calculated exactly ?
+{ Converts a TDateTime variable to a linear number which can be used in
+  arithmetics, in particular for negative values.
 
-  -- No, because you need rounding or truncating (JM)
-}
+  TDateTime is not defined in the interval [-1.0..0.0[. Additionally, when
+  negative the time part must be treated using its absolute value (0.25 always
+  means "6 a.m."). And take care of rounding errors
 
-
-function DateTimeToNumber(ADateTime: TDateTime): Double;
+  Example:
+    Dec 29, 1899-12-29 6:00 corresponds to value -1.25, the "linear number" is -0.75 }
+    // Converts TDateTime to linear date number
+function DateTimeToNumber(ADateTime: TDateTime):double;
 begin
   if ADateTime >= 0  then
     Result := ADateTime
   else
-    Result := int(ADateTime) - frac(ADateTime);
+    Result := Trunc(ADateTime) - Frac(ADateTime);
 end;
 
-function NumberToDateTime(AValue: Double): TDateTime;
+function NumberToDateTime(AValue: double): TDateTime;
+var
+  f: Double;
+  d: Integer;
 begin
   if AValue >= 0 then
     Result := AValue
   else
-    Result := int(AValue) + frac(AValue);
+  begin
+    d := Trunc(AValue) - 1;
+    f := -Frac(AValue);
+    if (f < DateTimeEpsilon) then
+      f := -1.0
+    else if (1.0 - f < DateTimeEpsilon) then
+      f := 0.0
+    else
+      f := 1.0 - f;
+    Result := d - f;
+  end;
 end;
 
-Function DateTimeDiff(const ANow, AThen: TDateTime): TDateTime;
+Function DateTimeDiff(const ANow, AThen: TDateTime): Double;
 begin
-  Result := NumberToDateTime(DateTimeToNumber(ANow) - DateTimeToNumber(AThen));
+  Result := DateTimeToNumber(ANow) - DateTimeToNumber(AThen);
 end;
 
 Function YearsBetween(const ANow, AThen: TDateTime; AExact : Boolean = False): Integer;
@@ -1713,44 +1728,6 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
-{ TDateTime is not defined in the interval [-1.0..0.0[. Additionally, when
-  negative the time part must be treated using its absolute value (0.25 always
-  means "6 a.m.") -> skip the gap and convert the time part when crossing the
-  gap -- and take care of rounding errors }
-Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
-begin
-  if (OldDate>=0) and (NewDate<-TDateTimeEpsilon) then
-    NewDate:=int(NewDate-1.0+TDateTimeEpsilon)-frac(1.0+frac(NewDate))
-  else if (OldDate<=-1.0) and (NewDate>-1.0+TDateTimeEpsilon) then
-    NewDate:=int(NewDate+1.0-TDateTimeEpsilon)+frac(1.0-abs(frac(1.0+NewDate)));
-end;
-
-
-function IncNegativeTime(AValue, Addend: TDateTime): TDateTime;
-var
-  newtime: tdatetime;
-begin
-  newtime:=-frac(Avalue)+frac(Addend);
-  { handle rounding errors }
-  if SameValue(newtime,int(newtime)+1,TDateTimeEpsilon) then
-    newtime:=int(newtime)+1
-  else if SameValue(newtime,int(newtime),TDateTimeEpsilon) then
-    newtime:=int(newtime);
-  { time underflow -> previous day }
-  if newtime<-TDateTimeEpsilon then
-    begin
-      newtime:=1.0+newtime;
-      avalue:=int(avalue)-1;
-    end
-  { time overflow -> next day }
-  else if newtime>=1.0-TDateTimeEpsilon then
-    begin
-      newtime:=newtime-1.0;
-      avalue:=int(avalue)+1;
-    end;
-  Result:=int(AValue)+int(Addend)-newtime;
-end;
-
 Function IncYear(const AValue: TDateTime; const ANumberOfYears: Integer ): TDateTime;
 
 Var
@@ -1772,8 +1749,7 @@ end;
 
 Function IncWeek(const AValue: TDateTime; const ANumberOfWeeks: Integer): TDateTime;
 begin
-  Result:=AValue+ANumberOfWeeks*7;
-  MaybeSkipTimeWarp(AValue,Result);
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfWeeks * 7);
 end;
 
 
@@ -1785,8 +1761,7 @@ end;
 
 Function IncDay(const AValue: TDateTime; const ANumberOfDays: Integer): TDateTime;
 begin
-  Result:=AValue+ANumberOfDays;
-  MaybeSkipTimeWarp(AValue,Result);
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfDays);
 end;
 
 
@@ -1798,11 +1773,7 @@ end;
 
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
-  if AValue>=0 then
-    Result:=AValue+ANumberOfHours/HoursPerDay
-  else
-    Result:=IncNegativeTime(Avalue,ANumberOfHours/HoursPerDay);
-  MaybeSkipTimeWarp(AValue,Result);
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfHours/24);
 end;
 
 
@@ -1814,11 +1785,7 @@ end;
 
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  if AValue>=0 then
-    Result:=AValue+ANumberOfMinutes/MinsPerDay
-  else
-    Result:=IncNegativeTime(Avalue,ANumberOfMinutes/MinsPerDay);
-  MaybeSkipTimeWarp(AValue,Result);
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfMinutes/MinsPerDay);
 end;
 
 
@@ -1830,11 +1797,7 @@ end;
 
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
-  if AValue>=0 then
-    Result:=AValue+ANumberOfSeconds/SecsPerDay
-  else
-    Result:=IncNegativeTime(Avalue,ANumberOfSeconds/SecsPerDay);
-  MaybeSkipTimeWarp(AValue,Result);
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfSeconds/SecsPerDay);
 end;
 
 
@@ -1846,11 +1809,7 @@ end;
 
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
-  if Avalue>=0 then
-    Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay
-  else
-    Result:=IncNegativeTime(Avalue,ANumberOfMilliSeconds/MSecsPerDay);
-  MaybeSkipTimeWarp(AValue,Result);
+  Result := NumberToDateTime(DateTimeToNumber(AValue) + ANumberOfMilliSeconds/MSecsPerDay);
 end;
 
 
