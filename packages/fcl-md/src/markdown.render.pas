@@ -29,8 +29,13 @@ uses
   MarkDown.Utils;
 
 Type
+  TMarkDownElementRenderer = Class;
+  TMarkDownElementRendererClass = class of TMarkDownElementRenderer;
+
   TMarkDownBlockRenderer = class;
   TMarkDownBlockRendererClass = class of TMarkDownBlockRenderer;
+  TMarkDownElementRendererArray = array of TMarkDownElementRenderer;
+
   TMarkDownTextRenderer = class;
   TMarkDownTextRendererClass = class of TMarkDownTextRenderer;
 
@@ -41,12 +46,16 @@ Type
   private
     FSkipUnknownElements: Boolean;
     FTextRenderer : TMarkDownTextRenderer;
+    FRenderStack : TFPList;
+    function GetParentElementRenderer: TMarkDownElementRenderer;
   protected
     function CreateRendererInstance(aClass : TMarkDownBlockRendererClass) : TMarkDownBlockRenderer; virtual;
     function CreateRendererForBlock(aBlock : TMarkdownBlock) : TMarkDownBlockRenderer; virtual;
     function CreateTextRendererInstance(aClass : TMarkDownTextRendererClass): TMarkDownTextRenderer; virtual;
     function GetTextRenderer : TMarkDownTextRenderer;
+    Property ParentElementRenderer: TMarkDownElementRenderer Read GetParentElementRenderer;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor destroy; override;
     Procedure RenderText(aText : TMarkDownTextNode); virtual;
     Procedure RenderTextNodes(aTextNodes : TMarkDownTextNodeList);
@@ -64,13 +73,17 @@ Type
   TMarkDownElementRenderer = Class (TObject)
   private
     FRenderer: TMarkDownRenderer;
+    function GetParentElementRenderer: TMarkDownElementRenderer;
   protected
+    function GetParentRenderers : TMarkDownElementRendererArray;
+    function GetFirstParentWithClass(aClass : TMarkDownElementRendererClass) : TMarkDownElementRenderer;
     Property Renderer : TMarkDownRenderer read FRenderer;
+    Property ParentElementRenderer : TMarkDownElementRenderer read GetParentElementRenderer;
   public
     constructor create(aRenderer : TMarkDownRenderer);
     procedure reset; virtual;
   end;
-  TMarkDownElementRendererClass = class of TMarkDownElementRenderer;
+
 
   { TMarkDownBlockRenderer }
 
@@ -236,7 +249,9 @@ begin
   lBlockClass:=TMarkDownBlockClass(aBlock.ClassType);
   LBlockRendererClass:=TMarkDownRendererFactory.Instance.FindBlockRendererClass(lRenderClass,lBlockClass);
   if assigned(LBlockRendererClass) then
-    Result:=CreateRendererInstance(LBlockRendererClass)
+    Result:=CreateRendererInstance(LBlockRendererClass);
+  if assigned(Result) then
+    Result.Reset;
 end;
 
 
@@ -264,8 +279,23 @@ begin
   Result:=FTextRenderer;
 end;
 
+function TMarkDownRenderer.GetParentElementRenderer: TMarkDownElementRenderer;
+begin
+  if FRenderStack.Count>1 then
+    Result:=TMarkDownElementRenderer(FRenderStack[FRenderStack.Count-2])
+  else
+    Result:=Nil;
+end;
+
+constructor TMarkDownRenderer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FRenderStack:=TFPList.Create;
+end;
+
 destructor TMarkDownRenderer.destroy;
 begin
+  FreeAndNil(FRenderStack);
   FreeAndNil(FTextRenderer);
   inherited destroy;
 end;
@@ -308,10 +338,15 @@ begin
   lRender:=CreateRendererForBlock(aBlock);
   try
     if Assigned(lRender) then
-      lRender.render(aBlock)
+      begin
+      FRenderStack.Add(lRender);
+      lRender.render(aBlock);
+      end
     else
       Raise EMarkDown.CreateFmt('No renderer for block class: %s',[aBlock.ClassName]);
   finally
+    if assigned(lRender) then
+      FRenderStack.Delete(FRenderStack.Count-1);
     lRender.Free;
   end;
 end;
@@ -333,6 +368,35 @@ begin
 end;
 
 { TMarkDownElementRenderer }
+
+function TMarkDownElementRenderer.GetParentElementRenderer: TMarkDownElementRenderer;
+begin
+  Result:=Renderer.ParentElementRenderer;
+end;
+
+function TMarkDownElementRenderer.GetParentRenderers: TMarkDownElementRendererArray;
+var
+  i : integer;
+begin
+  SetLength(Result,Renderer.FRenderStack.Count);
+  For I:=0 to Renderer.FRenderStack.Count-1 do
+    Result[i]:=TMarkDownElementRenderer(Renderer.FRenderStack.items[i]);
+end;
+
+function TMarkDownElementRenderer.GetFirstParentWithClass(aClass: TMarkDownElementRendererClass): TMarkDownElementRenderer;
+var
+  I : integer;
+begin
+  Result:=Nil;
+  I:=Renderer.FRenderStack.Count-1;
+  While (Result=Nil) and (I>=0) do
+    begin
+    Result:=TMarkDownElementRenderer(Renderer.FRenderStack.items[i]);
+    if Not Result.InheritsFrom(aClass) then
+      Result:=Nil;
+    Dec(i);
+    end;
+end;
 
 constructor TMarkDownElementRenderer.create(aRenderer: TMarkDownRenderer);
 
