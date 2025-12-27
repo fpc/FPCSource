@@ -948,6 +948,7 @@ ASTARGET=-a64
 endif
 ifdef RELEASE
 override FPCOPT+=-Ur
+endif
 ifeq ($(ARCH),aarch64)
 CPU_UNITS=$(INTRINSICSUNIT)
 endif

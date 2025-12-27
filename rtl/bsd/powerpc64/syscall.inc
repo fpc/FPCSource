@@ -244,5 +244,5 @@ asm
   ld r4, retaddress
   li r3, -1
   mtlr r4
-.LDone
+.LDone:
 end;
