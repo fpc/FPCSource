@@ -47,6 +47,7 @@ type
     Procedure Append(const aContent : String);
     Procedure AppendNL(const aContent : String = '');
     Property Builder : TStringBuilder Read FBuilder;
+    function EscapeLaTeX(const S: String): String;
   public
     constructor Create(aOwner : TComponent); override;
     destructor destroy; override;
@@ -54,7 +55,9 @@ type
     Procedure RenderDocument(aDocument : TMarkDownDocument; aDest : TStrings); overload;
     procedure RenderChildren(aBlock : TMarkDownContainerBlock; aAppendNewLine : Boolean); overload;
     function RenderLaTeX(aDocument : TMarkDownDocument) : string;
-    function EscapeLaTeX(const S: String): String;
+    Procedure RenderToFile(aDocument : TMarkDownDocument; aFileName : string);
+    class procedure FastRenderToFile(aDocument : TMarkDownDocument; const aFileName : string; aOptions : TLaTeXOptions = []; const aTitle : String = ''; const aAuthor : string = '');
+    class function FastRender(aDocument : TMarkDownDocument; aOptions : TLaTeXOptions = []; const aTitle : String = ''; const aAuthor : string = '') : string;
   published
     Property Options : TLaTeXOptions Read FOptions Write FOptions;
     property Title : String Read FTitle Write FTitle;
@@ -315,6 +318,53 @@ begin
   RenderDocument(aDocument);
   Result:=FLaTeX;
   FLaTeX:='';
+end;
+
+procedure TMarkDownLaTeXRenderer.RenderToFile(aDocument: TMarkDownDocument; aFileName: string);
+var
+  lTeX : String;
+  lFile : THandle;
+begin
+  lTeX:=RenderLaTex(aDocument);
+  lFile:=FileCreate(aFileName);
+  try
+    if lTex<>'' then
+      FileWrite(lFile,lTex[1],Length(lTex)*SizeOf(Char));
+  finally
+    FileClose(lFile);
+  end;
+end;
+
+class procedure TMarkDownLaTeXRenderer.FastRenderToFile(aDocument: TMarkDownDocument; const aFileName: string; aOptions: TLaTeXOptions;
+  const aTitle: String; const aAuthor: string);
+var
+  lRender : TMarkDownLaTexRenderer;
+begin
+  lRender:=TMarkDownLaTexRenderer.Create(Nil);
+  try
+    lRender.Options:=aOptions;
+    lRender.Title:=aTitle;
+    lRender.Author:=aAuthor;
+    lRender.RenderToFile(aDocument,aFileName);
+  finally
+    lRender.Free;
+  end;
+end;
+
+class function TMarkDownLaTeXRenderer.FastRender(aDocument: TMarkDownDocument; aOptions: TLaTeXOptions; const aTitle: String;
+  const aAuthor: string): string;
+var
+  lRender : TMarkDownLaTexRenderer;
+begin
+  lRender:=TMarkDownLaTexRenderer.Create(Nil);
+  try
+    lRender.Options:=aOptions;
+    lRender.Title:=aTitle;
+    lRender.Author:=aAuthor;
+    Result:=lRender.RenderLatex(aDocument);
+  finally
+    lRender.Free;
+  end;
 end;
 
 function TMarkDownLaTeXRenderer.EscapeLaTeX(const S: String): String;
