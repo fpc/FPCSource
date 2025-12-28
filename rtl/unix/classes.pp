@@ -41,6 +41,9 @@ unit Classes;
 
 interface
 
+{$ifdef NO_FPC_USE_INTRINSICS}
+  {$undef FPC_USE_INTRINSICS}
+{$endif}
 {$IFDEF FPC_DOTTEDUNITS}
 uses
   System.SysUtils,
