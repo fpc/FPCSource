@@ -811,9 +811,9 @@ implementation
           end
          else
           begin
+            Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
             p.free;
             p := nil;
-            Message1(parser_e_false_with_expr,p.resultdef.GetTypeName);
             { try to recover from error }
             if try_to_consume(_COMMA) then
              begin
