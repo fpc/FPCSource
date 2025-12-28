@@ -278,7 +278,7 @@ begin
   if Length(arr) = 3 then
   begin
     AssertEquals('First char should be a', 'a', arr[0]);
-    AssertEquals('Second char should be €','€', arr[1]);
+    AssertEquals('Second char should be €','€', UTF8Encode(arr[1]));
     AssertEquals('Third char should be b', 'b', arr[2]);
   end;
   AssertEquals('Array length for empty string', 0, Length(ToUnicodeChars('')));

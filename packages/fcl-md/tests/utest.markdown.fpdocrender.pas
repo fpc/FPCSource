@@ -95,8 +95,7 @@ begin
 end;
 
 procedure TTestFPDocRender.StartDoc;
-var
-  l : TMarkDownBlock;
+
 begin
   CreateHeadingBlock('unit1',1);
   CreateHeadingBlock('a',2);

@@ -41,6 +41,7 @@
       <Unit>
         <Filename Value="utest.markdown.utils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="UTest.Markdown.Utils"/>
       </Unit>
       <Unit>
         <Filename Value="../src/markdown.elements.pas"/>
@@ -105,6 +106,7 @@
       <Unit>
         <Filename Value="utest.markdown.parser.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="UTest.Markdown.Parser"/>
       </Unit>
       <Unit>
         <Filename Value="../src/markdown.processors.pas"/>
