@@ -200,40 +200,36 @@ begin
   if DestCp=CP_NONE then
     DestCP:=DefaultSystemCodePage;
   DestCP:=TranslatePlaceholderCP(DestCP);
-  { if codepages are different then concat using unicodestring,
-    but avoid conversions if either addend is empty (StringCodePage will return
-    DefaultSystemCodePage in that case, which may differ from other addend/dest) }
-  S1CP:=DestCP;
-  if Length(S1)<>0 then
-    S1CP:=TranslatePlaceholderCP(StringCodePage(S1));
-  S2CP:=S1CP; { So if S2 is empty, S2CP = S1CP. }
-  if Length(S2)<>0 then
-    S2CP:=TranslatePlaceholderCP(StringCodePage(S2));
-  { if the result is rawbytestring and both strings have the same code page,
-    keep that code page or keep the code page if the other string is empty }
-  if cp=CP_NONE then
-   if S1CP=S2CP then { Includes the case of empty S2. }
-     DestCP:=S1CP
-   else if Length(S1)=0 then
-     begin
-       DestCP:=S2CP;
-       S1CP:=S2CP;
-     end;
-  if (S1CP<>DestCP) or (S2CP<>DestCP) then
+  if (Pointer(S1)=nil) or (Pointer(S2)=nil) then
     begin
-      ansistr_concat_complex(DestS,S1,S2,DestCP);
+      Src:=Pointer(S1);
+      if Src=nil then
+        Src:=Pointer(S2); { Src = the only nonempty string, if any. }
+      DestS:=RawByteString(Src); { ...And maybe convert :) }
+      if (Src<>nil) and (cp<>CP_NONE) then
+        begin
+          S1CP:=PAnsiRec(Src-AnsiFirstOff)^.CodePage;
+          if (DestCP<>S1CP) and (cp<>S1CP) and { Attempt to skip TranslatePlaceholderCP. }
+            (DestCP<>TranslatePlaceholderCP(S1CP)) then
+            SetCodePage(DestS,DestCP,True);
+        end;
       exit;
     end;
-  { only assign if s1 or s2 is empty }
-  if (Length(S1)=0) then
+  S1CP:=PAnsiRec(Pointer(S1)-AnsiFirstOff)^.CodePage;
+  S2CP:=PAnsiRec(Pointer(S2)-AnsiFirstOff)^.CodePage;
+  { Attempt to skip TranslatePlaceholderCPs: codepages are usually already equal to cp or DestCP. }
+  if (DestCP<>S1CP) and (cp<>S1CP) or (cp<>S2CP) and (DestCP<>S2CP) then
     begin
-      DestS:=s2;
-      exit;
-    end;
-  if (Length(S2)=0) then
-    begin
-      DestS:=s1;
-      exit;
+      S1CP:=TranslatePlaceholderCP(S1CP);
+      { if codepages are different then concat using unicodestring;
+        but if the result is rawbytestring and both strings have the same code page, keep that code page }
+      if (S1CP<>TranslatePlaceholderCP(S2CP)) or (cp<>CP_NONE) and (DestCP<>S1CP) then
+        begin
+          ansistr_concat_complex(DestS,S1,S2,DestCP);
+          exit;
+        end;
+      if cp=CP_NONE then
+        DestCP:=S1CP;
     end;
   S1Len:=PAnsiRec(Pointer(S1)-AnsiFirstOff)^.Len;
   S2Len:=PAnsiRec(Pointer(S2)-AnsiFirstOff)^.Len;
@@ -287,7 +283,7 @@ procedure fpc_AnsiStr_Concat_multi (var DestS:RawByteString;const sarr:array of 
 Var
   lowstart,i,Size,NewLen : SizeInt;
   p,pc,olddestp,newdestp,realdestp : pointer;
-  DestCP,tmpCP : TSystemCodePage;
+  DestCP,tmpCP,tmpCPuntrans,ithCP : TSystemCodePage;
 begin
   DestCP:=cp;
   if DestCp=CP_NONE then
@@ -302,28 +298,38 @@ begin
       DestS:=''; { All source strings empty }
       exit;
     end;
+  tmpCPuntrans:=DestCP;
   DestCP:=TranslatePlaceholderCP(DestCP);
-  tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[lowstart]));
-  for i:=lowstart+1 to high(sarr) do
+  tmpCP:=DestCP;
+  NewLen:=0;
+  for i:=lowstart to high(sarr) do
     begin
-      { ignore the code page of empty strings, it will always be
-        DefaultSystemCodePage but it doesn't matter for the outcome }
-      if (length(sarr[i])<>0) and
-         (tmpCP<>TranslatePlaceholderCP(StringCodePage(sarr[i]))) then
+      p:=pointer(sarr[i]);
+      if not assigned(p) then
+        continue;
+      inc(NewLen,PAnsiRec(p-AnsiFirstOff)^.Len);
+      ithCP:=PAnsiRec(p-AnsiFirstOff)^.CodePage;
+      if (ithCP=tmpCP) or (ithCP=tmpCPuntrans) then { Attempt to skip TranslatePlaceholderCP. }
+        continue;
+      ithCP:=TranslatePlaceholderCP(ithCP);
+      if ithCP=tmpCP then
+        continue;
+      { On the first iteration, tmpCP = DestCP (to reuse the checks above), and mismatches just adjust tmpCP instead of falling back to concat_multi_complex.
+        Without further mismatches, the concatenated contents will be converted to DestCP by the final SetCodePage. }
+      if i<>lowstart then
         begin
+          if cp=CP_NONE then
+            DestCP:=DefaultSystemCodePage; { Revert “DestCP:=tmpCP” below (no-op if it was never performed). }
           AnsiStr_Concat_multi_complex(DestS,sarr,DestCP);
           exit;
         end;
+      tmpCPuntrans:=ithCP; { Isn’t really “untrans(lated)” from now on, just neutralizes the “ithCP=tmpCPuntrans” check. }
+      tmpCP:=ithCP;
+      { if the result is rawbytestring and all strings have the same code page, keep that code page.
+        Gets reverted back to DefaultSystemCodePage in the concat_multi_complex branch. (This way the check is kept out of the common path.) }
+      if cp=CP_NONE then
+        DestCP:=tmpCP;
     end;
-  { if the result is rawbytestring and all strings have the same code page,
-    keep that code page }
-  if cp=CP_NONE then
-    DestCP:=tmpCP;
-  { Calculate size of the result so we can do
-    a single call to SetLength() }
-  NewLen:=0;
-  for i:=lowstart to high(sarr) do
-    inc(NewLen,length(sarr[i]));
   { In the case of the only nonempty string, either return it directly (if SetCodePage has nothing to do) or skip 1 allocation. }
   if NewLen=PAnsiRec(Pointer(sarr[lowstart])-AnsiFirstOff)^.Len then
     DestS:=sarr[lowstart]

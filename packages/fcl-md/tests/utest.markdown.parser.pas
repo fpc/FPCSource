@@ -61,6 +61,7 @@ type
     procedure TestIndentedCodeBlock;
     procedure TestFencedCodeBlock;
     procedure TestFencedCodeBlockWithInfoString;
+    procedure TestNestedCodeBlock;
   end;
 
   { TTestBlockQuotes }
@@ -235,6 +236,25 @@ begin
   AssertNotNull('Block should be a code block', Block);
   AssertTrue('Should be a fenced code block', Block.Fenced);
   AssertEquals('Language info string incorrect', 'pascal', Block.Lang);
+end;
+
+procedure TTestCodeBlocks.TestNestedCodeBlock;
+var
+  lList : TMarkDownListBlock;
+  lItem : TMarkDownListItemBlock;
+  Block: TMarkDownCodeBlock;
+
+begin
+  SetupParser('* List'#10'   ```'#10'code here'#10'```');
+  AssertEquals('Document should have 1 block', 1, Doc.Blocks.Count);
+  lList := GetBlock(0) as TMarkDownListBlock;
+  AssertEquals('List should have 1 blocks', 1, lList.Blocks.Count);
+  lItem := lList.Blocks[0] as TMarkDownListItemBlock;
+  AssertEquals('List item should have 2 blocks', 2, lItem.Blocks.Count);
+  AssertEquals('First list item is paragraph block', TMarkDownParagraphBlock, lItem.Blocks[0].ClassType);
+  AssertEquals('Second list item is code block', TMarkDownCodeBlock, lItem.Blocks[1].ClassType);
+  Block := lItem.Blocks[1] as TMarkDownCodeBlock;
+  AssertTrue('Should be a fenced code block', Block.Fenced);
 end;
 
 { TTestBlockQuotes }

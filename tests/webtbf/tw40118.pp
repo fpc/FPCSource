@@ -1,3 +1,4 @@
+{ %opt=-Sg }
 { %fail }
 program helloWorld;
  label
