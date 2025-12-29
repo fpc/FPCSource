@@ -325,6 +325,7 @@ begin
   DoTestString('A string');
   DoTestString('');
   DoTestString('\"','"');
+  DoTestString('a\"','a"');
   DoTestString('a\\','a\');
   DoTestString('C:\\Windows','C:\Windows');
   DoTestString('\u00f8','ø'); // this is ø
