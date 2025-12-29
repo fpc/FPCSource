@@ -1291,12 +1291,15 @@ begin
         else
           SetStringproperty(P,JSON.AsString);
       jtNumber  :
-        case TJSONNumber(JSON).NumberType of
-          ntFloat   : SetFloatProperty(P,JSON.asFloat);
-          ntInteger : SetIntegerProperty(P,JSON.asInteger);
-          ntInt64   : SetInt64Property(P,JSON.asInt64);
-          ntqword   : SetQWordProperty(P,JSON.asQWord);
-        end;
+        if P^.PropType^.Kind = tkFloat then
+          SetFloatProperty(P,JSON.AsFLoat)
+        else  
+          case TJSONNumber(JSON).NumberType of
+            ntFloat   : SetFloatProperty(P,JSON.asFloat);
+            ntInteger : SetIntegerProperty(P,JSON.asInteger);
+            ntInt64   : SetInt64Property(P,JSON.asInt64);
+            ntqword   : SetQWordProperty(P,JSON.asQWord);
+          end;
       jtNull    : ClearProperty(P);
       jtBoolean : SetBooleanProperty(P,json.AsBoolean);
       jtArray   :
