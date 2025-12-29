@@ -393,7 +393,7 @@ implementation
            begin
               { Published indexed properties are allowed in Delphi in interfaces compiled with $M+. }
               if (p.visibility=vis_published) and
-                not(is_interfacecom_or_dispinterface(astruct)) then
+                not((m_delphi in current_settings.modeswitches) and is_interfacecom_or_dispinterface(astruct)) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               p.parast:=tparasymtable.create(nil,0);
