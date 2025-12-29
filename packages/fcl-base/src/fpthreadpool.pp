@@ -472,7 +472,29 @@ begin
 end;
 
 destructor TFPCustomSimpleThreadPool.TThreadPoolList.Destroy;
+var
+  Threads: array of TThread = ();
+  Thread: TThread;
+  TempList: TList;
+  I: Integer;
 begin
+  TempList := FList.LockList;
+
+  { Copy threads to a separate array to avoid holding the lock while terminating threads }
+  SetLength(Threads, TempList.Count);
+  for I := 0 to TempList.Count - 1 do
+    Threads[I] := TThread(TempList[I]);
+
+  FList.UnlockList;
+
+  { Now terminate and free threads outside the lock }
+  for Thread in Threads do
+  begin
+    Thread.Terminate;
+    Thread.WaitFor;
+    Thread.Free;
+  end;
+
   FreeAndNil(FList);
   Inherited;
 end;

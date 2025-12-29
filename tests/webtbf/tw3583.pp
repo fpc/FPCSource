@@ -1,4 +1,4 @@
-{ %FAIL }
+{ %fail }
 {$mode objfpc}
 type
   IGUserData = interface(IInvokable)
