@@ -1,4 +1,4 @@
-{$mode delphi}
+{$mode objfpc}
 type
   IGUserData = interface(IInvokable)
     ['{35377B66-6B1B-11D9-8827-00055DDDEA00}']
