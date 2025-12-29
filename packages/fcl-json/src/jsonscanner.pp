@@ -568,6 +568,7 @@ begin
 
     if Sp^ = '\' then
     begin
+      AddPiece(LiteralStart, Sp);
       onepiece := false;
       if Sp[1] = 'u' then
       begin
@@ -596,7 +597,7 @@ begin
         Inc(Sp);
         LiteralStart := Sp + 1;
         if iEsc < length(SimpleEscapes_Meant) then // Escaped character maps to something else?
-          AddCodepoint(ord(SimpleEscapes_Meant[iEsc]))
+          AddCodepoint(ord(SimpleEscapes_meant[iEsc]))
         else
           dec(LiteralStart); // Just start next literal from this very character instead of handling it explicitly somehow.
         continue;
