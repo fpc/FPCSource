@@ -2971,7 +2971,8 @@ implementation
                         ((copy(name,1,13)='$fpc_val_sint') or (copy(name,1,13)='$fpc_val_uint')) then
                         begin
                           ValOutput.signed := is_signed(ResultDef);
-
+{$PUSH}
+{$R-}
                           case Longint(tordconstnode(GetParaFromIndex(2).paravalue).value.svalue) of
                             1:
                               if ValOutput.signed then
@@ -3020,7 +3021,7 @@ implementation
                             else
                               Internalerror(2024011402);
                           end;
-
+{$POP}
                           { Due to the way the node tree works, we have to insert
                             the assignment to the Code output within the
                             assignment to the value output (function result),
