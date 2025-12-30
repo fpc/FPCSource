@@ -1,16 +1,28 @@
 PROGRAM KeyTest;
 
+{ Have FV_UNICODE defined to compile and run with Free Vision Unicode version,
+  otherwise single byte code page ShortString Free Vision version will be used }
+{$define fv_unicode}
+
 { Set source file encoding to UTF-8 for correct handling of Unicode strings }
 {$codepage UTF8}
 
 USES
   {$ifdef unix}BaseUnix,{$endif}
   Objects,    { Base objects, TObject }
+{$ifdef fv_unicode}
   UDrivers,   { System drivers (keyboard, mouse, video), Unicode version }
   UViews,     { Base classes for views (TView, TWindow), Unicode version }
   UMenus,     { Menu elements (TMenuBar, TMenu), Unicode version }
   UApp,       { Main application class TApplication, Unicode version }
-  cwstring,   { Unicode string handling }
+{$else}
+  Drivers,    { System drivers (keyboard, mouse, video) }
+  Views,      { Base classes for views (TView, TWindow) }
+  Menus,      { Menu elements (TMenuBar, TMenu) }
+  App,        { Main application class TApplication }
+{$endif}
+  {$ifdef HASAMIGA}Video,{$endif}  { Using to set window title }
+  {$ifdef unix}cwstring,{$endif}   { Unicode string handling }
   SysUtils;   { For the Format function }
 
 TYPE
@@ -21,7 +33,7 @@ TYPE
   }
   TKeyInfoView = OBJECT(TView)
     LastKeyEvent: TEvent; { Store the last event here }
-    TVInputValue: UnicodeString;
+    TVInputValue: {$ifdef fv_unicode}UnicodeString{$else}String{$endif};
     Cnt: Integer;
     CONSTRUCTOR Init(VAR Bounds: TRect);
     PROCEDURE Draw; VIRTUAL;
@@ -40,6 +52,14 @@ TYPE
     PROCEDURE InitStatusLine; VIRTUAL;
   END;
 
+{$ifndef fv_unicode}
+FUNCTION StrWidth(CONST Str : String):Longword;
+BEGIN
+  { With single byte code page string length is displayable length as well }
+  StrWidth:=length(Str);
+END;
+{$endif}
+
 {---------------------------------------------------------------------------}
 {                        TKeyInfoView OBJECT METHODS                        }
 {---------------------------------------------------------------------------}
@@ -56,8 +76,8 @@ BEGIN
 END;
 
 { Function to format the modifier key state byte into a readable string }
-FUNCTION FormatShiftState(State: Byte): UnicodeString;
-VAR S: UnicodeString;
+FUNCTION FormatShiftState(State: Byte): {$ifdef fv_unicode}UnicodeString{$else}String{$endif};
+VAR S: {$ifdef fv_unicode}UnicodeString{$else}String{$endif};
 BEGIN
   S := '';
   IF (State AND kbRightShift) <> 0 THEN S := S + 'RightShift ';
@@ -75,7 +95,7 @@ END;
 PROCEDURE TKeyInfoView.Draw;
 VAR
   B: TDrawBuffer;
-  Line: UnicodeString;
+  Line: {$ifdef fv_unicode}UnicodeString{$else}String{$endif};
   Y: Integer;
   Color: Byte;
   LastKeyCharCode: AnsiChar;
@@ -109,8 +129,10 @@ BEGIN
   WriteLine(1, 2, StrWidth(Line), 1, B);
 
   LastKeyCharCode:=LastKeyEvent.CharCode;
+{$if defined(fv_unicode) or defined(unix)}
   IF LastKeyCharCode < #32 THEN
     LastKeyCharCode:=#32;   { Non displayable chars are shown as space }
+{$endif}
   Line := Format('CharCode:    ''%s'' ($%2.2x)', [LastKeyCharCode, Ord(LastKeyEvent.CharCode)]);
   MoveStr(B, Line, Color);
   WriteLine(1, 3, StrWidth(Line), 1, B);
@@ -119,12 +141,14 @@ BEGIN
   MoveStr(B, Line, Color);
   WriteLine(1, 4, StrWidth(Line), 1, B);
 
+{$ifdef fv_unicode}
   LastKeyUnicodeChar:=LastKeyEvent.UnicodeChar;
   IF LastKeyUnicodeChar < #32 THEN
     LastKeyUnicodeChar:=#32;   { Non displayable chars are shown as space }
   Line := Format('UnicodeChar: ''%s'' (U+%4.4x)', [LastKeyUnicodeChar, Ord(LastKeyEvent.UnicodeChar)]);
   MoveStr(B, Line, Color);
   WriteLine(1, 5, StrWidth(Line), 1, B);
+{$endif}
 
   Line := 'KeyShift:    $' + IntToHex(LastKeyEvent.KeyShift, 2);
   MoveStr(B, Line, Color);
@@ -229,6 +253,9 @@ end;
 VAR
   MyApp: TKeyTestApp;
 BEGIN
+{$ifdef HASAMIGA}
+  SetWindowTitle('Free Vision: Keyboard Event Inspector','');{ Set window title }
+{$endif}
   MyApp.Init;
   MyApp.Run;
   MyApp.Done;
