@@ -99,7 +99,7 @@ begin
   C1.Free;
   C2.Free;
 
-  writeln('Testing GetInteface()...');
+  writeln('Testing GetInterface()...');
   C1 := TC1.Create;
   C2 := TC2.Create;
 

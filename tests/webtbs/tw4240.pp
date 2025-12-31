@@ -36,7 +36,7 @@ then writeln ('  * Wrong Address passed on stack');
 
 writeln(Format('--- Address using Parameter:$%p',[PA]));
 if integer(PA) <> integer (p)
-then writeln ('  * Parameter addresss different from given variable');
+then writeln ('  * Parameter address different from given variable');
 
 Result:=Length(TPointArray(PA));
 writeln('--- Array Length:',Result);
@@ -60,7 +60,7 @@ then writeln ('  * Wrong Address passed on stack');
 
 writeln(Format('--- Address using Parameter:$%p',[pointer(PA)]));
 if integer(PA) <> integer (p)
-then writeln ('  * Parameter addresss different from given variable');
+then writeln ('  * Parameter address different from given variable');
 
 Result:=Length(PA);
 writeln('--- Array Length:',Result);

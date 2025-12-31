@@ -343,7 +343,7 @@ begin
   Writeln('   --svncompilerrevision=REV      set revision of used compiler');
   Writeln('   --svntestsrevision=REV         set revision of testsuite files');
   Writeln('   --svnrtlrevision=REV           set revision of RTL');
-  Writeln('   --svnpackagesrevision=REV      set revison of packages');
+  Writeln('   --svnpackagesrevision=REV      set revision of packages');
   Writeln('');
   Writeln('If -T is specified, no test run options may be specified');
   Writeln('');

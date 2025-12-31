@@ -461,7 +461,7 @@ begin
   TestParams;
   Write ('End of Parameter passing test : ');DoMem(StartMem);
 
-  Writeln;Writeln ('Testing comparision operators');
+  Writeln;Writeln ('Testing comparison operators');
   TestCompare;
   Write ('End of compare test : ');DoMem(StartMem);
 

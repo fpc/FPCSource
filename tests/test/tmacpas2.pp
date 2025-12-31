@@ -71,7 +71,7 @@ begin
   TestFourCharCode(myFCCconst);
 
   if success then
-    Writeln('Whole test succeded')
+    Writeln('Whole test succeeded')
   else
     begin
       Writeln('Whole test failed');

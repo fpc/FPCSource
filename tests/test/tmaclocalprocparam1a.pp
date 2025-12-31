@@ -37,7 +37,7 @@ begin
 	if failed then
 		writeln('Failed')
 	else
-		writeln('Succeded');
+		writeln('Succeeded');
 
    {$IFC UNDEFINED THINK_Pascal}
 	if failed then
