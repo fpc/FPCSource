@@ -110,7 +110,7 @@ Type
     procedure AppendFunctionResultSection(Element: TPasFunctionType);
     // Write class property  documentation
     procedure WritePropertyPage(PropDecl: TPasProperty);
-    // To be Overriden from fpdocwriter;
+    // To be Overridden from fpdocwriter;
     procedure DescrWriteText(const AText: DOMString); override;
     procedure DescrBeginBold; override;
     procedure DescrEndBold; override;

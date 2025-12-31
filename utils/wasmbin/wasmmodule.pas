@@ -319,7 +319,7 @@ type
   end;
 
 // making binary friendly. finding proper "nums" for each symbol "index"
-// used or implicit type declartions
+// used or implicit type declarations
 function WasmBasTypeToChar(b: byte): Char;
 function WasmFuncTypeDescr(t: TWasmFuncType): string;
 
@@ -373,7 +373,7 @@ begin
   op.textVal := txt;
 end;
 
-// returing a basic wasm basic type to a character
+// returning a basic wasm basic type to a character
 // i32 = i
 // i64 = I
 // f32 = f

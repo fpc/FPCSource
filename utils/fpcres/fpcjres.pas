@@ -15,7 +15,7 @@
 
 {
   Java's internal resource file handling system is based on simply loading
-  files from withing the package name space. We reserve the namespace
+  files from within the package name space. We reserve the namespace
   org.freepascal.rawresources for this purpose.
 
   This program creates a jar file (= zip file) containing all specified files.

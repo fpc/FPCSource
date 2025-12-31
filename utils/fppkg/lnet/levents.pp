@@ -1,4 +1,4 @@
-{ lNet Events abstration
+{ lNet Events abstraction
 
   CopyRight (C) 2006-2008 Ales Katona
 

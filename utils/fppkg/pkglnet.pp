@@ -164,7 +164,7 @@ begin
 
   FFTP:=TLFTPClient.Create(Self);
   FFTP.Timeout:=1000;
-  FFTP.StatusSet:=[fsRetr]; // watch for success/failure of retreives only
+  FFTP.StatusSet:=[fsRetr]; // watch for success/failure of retrieves only
   FFTP.OnError:=@OnLNetError;
   FFTP.OnControl:=@OnFTPControl;
   FFTP.OnReceive:=@OnFTPReceive;

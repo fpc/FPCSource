@@ -1803,7 +1803,7 @@ var
     end;
     locProp.NumericIndex := k;
 
-    NextToken();//Bidi_Mirroed
+    NextToken();//Bidi_Mirrored
     NextToken();//Unicode_l_Name
     NextToken();//ISO_Comment
     locProp.SimpleUpperCase := StringToCodePoint(NextToken());

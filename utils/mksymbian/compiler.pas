@@ -112,7 +112,7 @@ end;
 {*******************************************************************
 *  TCompiler.FileCopy ()
 *
-*  DESCRIPTION:    Copyes a file from source to dest
+*  DESCRIPTION:    Copies a file from source to dest
 *
 *  PARAMETERS:     source  - Source file
 *                  dest    - Destination file

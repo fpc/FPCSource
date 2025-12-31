@@ -19,7 +19,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{ The procedure whoses names lasted by 'XML' (ParseInitialDocumentXML,
+{ The procedure whose names lasted by 'XML' (ParseInitialDocumentXML,
   ParseCollationDocumentXML, ...) are for older CLDR versions (CDLR <= 23); The
   old version was unsing a XML syntax for collation's rules specifications.
   The new versions (and going forward) will be using the text syntax.

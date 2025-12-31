@@ -2,7 +2,7 @@
 
   here are all the "default" type defines which you need to
   redefine yourself after including this file. You only redefine those
-  which are used ofcourse }
+  which are used of course }
 
 {$ifndef __front_type__}
   {$ERROR Undefined type for quasi-template!}

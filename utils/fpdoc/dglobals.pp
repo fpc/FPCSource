@@ -837,7 +837,7 @@ var
                // writeln('processing',inhclass[j]);
                clname:=inhclass[j];
                splitalias(clname,alname);
-               if alname<>'' then // the class//interface we refered to is an alias
+               if alname<>'' then // the class//interface we referred to is an alias
                  begin
                    // writeln('Found alias pair ',clname,' = ',alname);
                    if (dleXCT in FDocLogLevels) and not assigned(CreateAliasType(alname,clname,cls,cls2)) then

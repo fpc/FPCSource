@@ -705,9 +705,9 @@ begin
     if not assigned(p^.p1^.p1) and not assigned(p^.p1^.next) then
       begin
       write(outfile,'args:array of const');
-      (* if variable number of args we must allways pop *)
+      (* if variable number of args we must always pop *)
       no_pop:=false;
-      (* Needs 2 declarations, also one without args, becuase
+      (* Needs 2 declarations, also one without args, because
         in C you can omit the second parameter. Default parameter
         doesn't help as that isn't possible with array of const *)
       _NeedEllipsisOverload:=true;
@@ -715,7 +715,7 @@ begin
       if assigned(lastp) then
       lastp^.next:=nil;
       dispose(p,done);
-      (* leave the loop as p isnot valid anymore *)
+      (* leave the loop as p is not valid anymore *)
       break;
       end
     (* we need to correct this in the pp file after *)

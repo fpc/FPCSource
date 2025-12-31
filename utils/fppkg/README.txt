@@ -97,7 +97,7 @@ CPU
 Defaults can be found in pkgropts
 
 
-Helpfull commands for building packages:
+Helpful commands for building packages:
 ----------------------------------------
 
 * Generate AddInclude and AddUnit lines from an existing PPU file:

@@ -50,7 +50,7 @@ yytext            : String;      (* matched text (should be considered r/o) *)
    implement access to the input and output files. Since \n (newline) for
    Lex means line end, the I/O routines have to translate MS-DOS line ends
    (carriage-return/line-feed) into newline characters and vice versa. Input
-   is buffered to allow rescanning text (via unput_char).
+   is buffered to allow rescanning text (via input_char).
 
    The input buffer holds the text of the line to be scanned. When the input
    buffer empties, a new line is obtained from the input stream. Characters

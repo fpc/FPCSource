@@ -676,7 +676,7 @@ Procedure TPrettyPrinter.GetComment(sym: symbolinfo);
     OR (nextchar.name = filemark)) DO
       StoreNextChar(sym^.length, sym^.Value);
     IF currchar.Value = '}' THEN sym^.name := closecomment;
-  END; { of GetCommment }
+  END; { of GetComment }
 
 Procedure TPrettyPrinter.GetDoubleComment(sym: symbolinfo);
   { Process comments using parenthesis notation }
@@ -689,7 +689,7 @@ Procedure TPrettyPrinter.GetDoubleComment(sym: symbolinfo);
       StoreNextChar(sym^.length, sym^.Value);
       sym^.name := dclosecomment;
     END;
-  END; { of GetDoubleCommment }
+  END; { of GetDoubleComment }
 
 Procedure TPrettyPrinter.GetDelphiComment(sym: symbolinfo);
   { Process comments using either brace or parenthesis notation }
@@ -698,7 +698,7 @@ Procedure TPrettyPrinter.GetDelphiComment(sym: symbolinfo);
     WHILE NOT ((nextchar.name = endofline) OR (nextchar.name = filemark)) DO
       StoreNextChar(sym^.length, sym^.Value);
 
-  END; { of GetDelphiCommment }
+  END; { of GetDelphiComment }
 
 
 
