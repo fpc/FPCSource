@@ -152,7 +152,7 @@ function XRRRootToScreen(
 
 {
   returns the screen configuration for the specified screen; does a lazy
-  evalution to delay getting the information, and caches the result.
+  evaluation to delay getting the information, and caches the result.
   These routines should be used in preference to XRRGetScreenInfo
   to avoid unneeded round trips to the X server.  These are new
   in protocol version 0.1.

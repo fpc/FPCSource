@@ -848,7 +848,7 @@ begin
     writeln('(note: this will take a long time)');
     {Note: tested tools with this file:
     - info-zip unzip 6.0
-    - Ionic's DotNetZip library unzip.exe utility verison 1.9.1.8 works
+    - Ionic's DotNetZip library unzip.exe utility version 1.9.1.8 works
     - 7zip's 7za 9.22 beta works.
     }
     try

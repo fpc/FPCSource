@@ -15,7 +15,7 @@ unit Zip;
 
   For decompression of .zip files, look at unzip.pas
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 2000 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt }
 
@@ -124,7 +124,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-  VERSIONMADEBY = ($0); { platform depedent }
+  VERSIONMADEBY = ($0); { platform dependent }
 
 const
   zip_copyright: PAnsiChar = ' zip 0.15 Copyright 1998 Gilles Vollant ';
@@ -149,7 +149,7 @@ type
     next_datablock: linkedlist_datablock_internal_ptr;
     avail_in_this_block: longint;
     filled_in_this_block: longint;
-    unused: longint; { for future use and alignement }
+    unused: longint; { for future use and alignment }
     Data:   array[0..SIZEDATA_INDATABLOCK - 1] of byte;
   end;
 
@@ -167,12 +167,12 @@ type
     pos_in_buffered_data: integer;  { last written byte in buffered_data }
 
     pos_local_header: longint;     { offset of the local header of the file
-                                    currenty writing }
+                                    currently writing }
     central_header: PAnsiChar;       { central header data for the current file }
     size_centralheader: longint;   { size of the central header for cur file }
     flag: longint;                 { flag of the file currently writing }
 
-    method:  longint;                { compression method of file currenty wr.}
+    method:  longint;                { compression method of file currently wr.}
     buffered_data: array[0..Z_BUFSIZE - 1] of byte;{ buffer contain compressed data to be written}
     dosDate: longint;
     crc32:   longint;
@@ -183,7 +183,7 @@ type
     filezip: FILEptr;
     central_dir: linkedlist_data;  { datablock with central dir in construction}
     in_opened_file_inzip: boolean; { TRUE if a file in the zip is currently writ.}
-    ci: curfile_info;              { info on the file curretly writing }
+    ci: curfile_info;              { info on the file currently writing }
 
     begin_pos:    longint;            { position of the beginning of the zipfile }
     number_entry: longint;

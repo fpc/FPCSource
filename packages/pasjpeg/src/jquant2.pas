@@ -879,7 +879,7 @@ const
 { The next three routines implement inverse colormap filling.  They could
   all be folded into one big routine, but splitting them up this way saves
   some stack space (the mindist[] and bestdist[] arrays need not coexist)
-  and may allow some compilers to produce better code by registerizing more
+  and may allow some compilers to produce better code by registering more
   inner-loop variables. }
 
 {LOCAL}

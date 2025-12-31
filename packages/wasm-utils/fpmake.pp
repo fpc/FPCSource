@@ -49,7 +49,7 @@ begin
       T.Dependencies.AddUnit('wasm.http.api');
       T.Dependencies.AddUnit('wasm.http.shared');
 
-    // Messsage channel
+    // Message channel
     T:=P.Targets.AddUnit('wasm.messagechannel.shared.pas');
 
     T:=P.Targets.AddUnit('wasm.messagechannel.api.pas');

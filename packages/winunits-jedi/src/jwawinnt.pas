@@ -634,7 +634,7 @@ type
 
 //
 // Disable these two pramas that evaluate to "sti" "cli" on x86 so that driver
-// writers to not leave them inadvertantly in their code.
+// writers to not leave them inadvertently in their code.
 //
 
 function GetFiberData: PVOID;
@@ -715,7 +715,7 @@ type
 // Context Frame
 //
 //  This frame has a several purposes: 1) it is used as an argument to
-//  NtContinue, 2) is is used to constuct a call frame for APC delivery,
+//  NtContinue, 2) is is used to construct a call frame for APC delivery,
 //  and 3) it is used in the user level thread creation routines.
 //
 //  The layout of the record conforms to a standard call frame.
@@ -760,14 +760,14 @@ type
 
     //
     // This section is specified/returned if the
-    // ContextFlags word contians the flag CONTEXT_FLOATING_POINT.
+    // ContextFlags word contains the flag CONTEXT_FLOATING_POINT.
     //
 
     FloatSave: FLOATING_SAVE_AREA;
 
     //
     // This section is specified/returned if the
-    // ContextFlags word contians the flag CONTEXT_SEGMENTS.
+    // ContextFlags word contains the flag CONTEXT_SEGMENTS.
     //
 
     SegGs: DWORD;
@@ -777,7 +777,7 @@ type
 
     //
     // This section is specified/returned if the
-    // ContextFlags word contians the flag CONTEXT_INTEGER.
+    // ContextFlags word contains the flag CONTEXT_INTEGER.
     //
 
     Edi: DWORD;
@@ -789,7 +789,7 @@ type
 
     //
     // This section is specified/returned if the
-    // ContextFlags word contians the flag CONTEXT_CONTROL.
+    // ContextFlags word contains the flag CONTEXT_CONTROL.
     //
 
     Ebp: DWORD;
@@ -1921,7 +1921,7 @@ type
     Header: ACE_HEADER;
     Mask: ACCESS_MASK;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _ACCESS_ALLOWED_CALLBACK_ACE}
   ACCESS_ALLOWED_CALLBACK_ACE = _ACCESS_ALLOWED_CALLBACK_ACE;
@@ -1935,7 +1935,7 @@ type
     Header: ACE_HEADER;
     Mask: ACCESS_MASK;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _ACCESS_DENIED_CALLBACK_ACE}
   ACCESS_DENIED_CALLBACK_ACE = _ACCESS_DENIED_CALLBACK_ACE;
@@ -1949,7 +1949,7 @@ type
     Header: ACE_HEADER;
     Mask: ACCESS_MASK;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _SYSTEM_AUDIT_CALLBACK_ACE}
   SYSTEM_AUDIT_CALLBACK_ACE = _SYSTEM_AUDIT_CALLBACK_ACE;
@@ -1963,7 +1963,7 @@ type
     Header: ACE_HEADER;
     Mask: ACCESS_MASK;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _SYSTEM_ALARM_CALLBACK_ACE}
   SYSTEM_ALARM_CALLBACK_ACE = _SYSTEM_ALARM_CALLBACK_ACE;
@@ -1980,7 +1980,7 @@ type
     ObjectType: GUID;
     InheritedObjectType: GUID;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _ACCESS_ALLOWED_CALLBACK_OBJECT_ACE}
   ACCESS_ALLOWED_CALLBACK_OBJECT_ACE = _ACCESS_ALLOWED_CALLBACK_OBJECT_ACE;
@@ -1997,7 +1997,7 @@ type
     ObjectType: GUID;
     InheritedObjectType: GUID;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _ACCESS_DENIED_CALLBACK_OBJECT_ACE}
   ACCESS_DENIED_CALLBACK_OBJECT_ACE = _ACCESS_DENIED_CALLBACK_OBJECT_ACE;
@@ -2014,7 +2014,7 @@ type
     ObjectType: GUID;
     InheritedObjectType: GUID;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _SYSTEM_AUDIT_CALLBACK_OBJECT_ACE}
   SYSTEM_AUDIT_CALLBACK_OBJECT_ACE = _SYSTEM_AUDIT_CALLBACK_OBJECT_ACE;
@@ -2031,7 +2031,7 @@ type
     ObjectType: GUID;
     InheritedObjectType: GUID;
     SidStart: DWORD;
-    // Opaque resouce manager specific data
+    // Opaque resource manager specific data
   end;
   {$EXTERNALSYM _SYSTEM_ALARM_CALLBACK_OBJECT_ACE}
   SYSTEM_ALARM_CALLBACK_OBJECT_ACE = _SYSTEM_ALARM_CALLBACK_OBJECT_ACE;
@@ -2167,14 +2167,14 @@ const
 //          SID pointed to by the Owner field was provided by a
 //          defaulting mechanism rather than explicitly provided by the
 //          original provider of the security descriptor.  This may
-//          affect the treatment of the SID with respect to inheritence
+//          affect the treatment of the SID with respect to inheritance
 //          of an owner.
 //
 //      SE_GROUP_DEFAULTED - This boolean flag, when set, indicates that the
 //          SID in the Group field was provided by a defaulting mechanism
 //          rather than explicitly provided by the original provider of
 //          the security descriptor.  This may affect the treatment of
-//          the SID with respect to inheritence of a primary group.
+//          the SID with respect to inheritance of a primary group.
 //
 //      SE_DACL_PRESENT - This boolean flag, when set, indicates that the
 //          security descriptor contains a discretionary ACL.  If this
@@ -2185,7 +2185,7 @@ const
 //          ACL pointed to by the Dacl field was provided by a defaulting
 //          mechanism rather than explicitly provided by the original
 //          provider of the security descriptor.  This may affect the
-//          treatment of the ACL with respect to inheritence of an ACL.
+//          treatment of the ACL with respect to inheritance of an ACL.
 //          This flag is ignored if the DaclPresent flag is not set.
 //
 //      SE_SACL_PRESENT - This boolean flag, when set,  indicates that the
@@ -2198,7 +2198,7 @@ const
 //          ACL pointed to by the Sacl field was provided by a defaulting
 //          mechanism rather than explicitly provided by the original
 //          provider of the security descriptor.  This may affect the
-//          treatment of the ACL with respect to inheritence of an ACL.
+//          treatment of the ACL with respect to inheritance of an ACL.
 //          This flag is ignored if the SaclPresent flag is not set.
 //
 //      SE_SELF_RELATIVE - This boolean flag, when set, indicates that the
@@ -3974,7 +3974,7 @@ type
   PFileNotifyInformation = PFILE_NOTIFY_INFORMATION;
 
 //
-// Define segement buffer structure for scatter/gather read/write.
+// Define segment buffer structure for scatter/gather read/write.
 //
 
 type
@@ -4186,7 +4186,7 @@ type
 
 //-----------------------------------------------------------------------------
 // Device Power Information
-// Accessable via CM_Get_DevInst_Registry_Property_Ex(CM_DRP_DEVICE_POWER_DATA)
+// Accessible via CM_Get_DevInst_Registry_Property_Ex(CM_DRP_DEVICE_POWER_DATA)
 //-----------------------------------------------------------------------------
 
 const
@@ -4729,13 +4729,13 @@ const
 
   IMAGE_FILE_RELOCS_STRIPPED         = $0001; // Relocation info stripped from file.
   {$EXTERNALSYM IMAGE_FILE_RELOCS_STRIPPED}
-  IMAGE_FILE_EXECUTABLE_IMAGE        = $0002; // File is executable  (i.e. no unresolved externel references).
+  IMAGE_FILE_EXECUTABLE_IMAGE        = $0002; // File is executable  (i.e. no unresolved external references).
   {$EXTERNALSYM IMAGE_FILE_EXECUTABLE_IMAGE}
   IMAGE_FILE_LINE_NUMS_STRIPPED      = $0004; // Line nunbers stripped from file.
   {$EXTERNALSYM IMAGE_FILE_LINE_NUMS_STRIPPED}
   IMAGE_FILE_LOCAL_SYMS_STRIPPED     = $0008; // Local symbols stripped from file.
   {$EXTERNALSYM IMAGE_FILE_LOCAL_SYMS_STRIPPED}
-  IMAGE_FILE_AGGRESIVE_WS_TRIM       = $0010; // Agressively trim working set
+  IMAGE_FILE_AGGRESIVE_WS_TRIM       = $0010; // Aggressively trim working set
   {$EXTERNALSYM IMAGE_FILE_AGGRESIVE_WS_TRIM}
   IMAGE_FILE_LARGE_ADDRESS_AWARE     = $0020; // App can handle >2gb addresses
   {$EXTERNALSYM IMAGE_FILE_LARGE_ADDRESS_AWARE}
@@ -5284,7 +5284,7 @@ const
   {$EXTERNALSYM IMAGE_SCN_MEM_WRITE}
 
 //
-// TLS Chaacteristic Flags
+// TLS Characteristic Flags
 //
 
   IMAGE_SCN_SCALE_INDEX = $00000001; // Tls index is scaled
@@ -6518,7 +6518,7 @@ type
 //
 // This structure allows fast lookup by either name or number, but for any
 // given resource entry only one form of lookup is supported, not both.
-// This is consistant with the syntax of the .RC file and the .RES file.
+// This is consistent with the syntax of the .RC file and the .RES file.
 //
 
   PIMAGE_RESOURCE_DIRECTORY = ^IMAGE_RESOURCE_DIRECTORY;
@@ -6907,7 +6907,7 @@ type
 // flag in the Characteristics field of the file header.  The beginning of
 // the .DBG file contains the following structure which captures certain
 // information from the image file.  This allows a debug to proceed even if
-// the original image file is not accessable.  This header is followed by
+// the original image file is not accessible.  This header is followed by
 // zero of more IMAGE_SECTION_HEADER structures, followed by zero or more
 // IMAGE_DEBUG_DIRECTORY structures.  The latter structures and those in
 // the image file contain file offsets relative to the beginning of the
@@ -6975,7 +6975,7 @@ const
 //
 //  The .arch section is made up of headers, each describing an amask position/value
 //  pointing to an array of IMAGE_ARCHITECTURE_ENTRY's.  Each "array" (both the header
-//  and entry arrays) are terminiated by a quadword of 0xffffffffL.
+//  and entry arrays) are terminated by a quadword of 0xffffffffL.
 //
 //  NOTE: There may be quadwords of 0 sprinkled around and must be skipped.
 //

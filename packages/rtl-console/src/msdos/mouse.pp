@@ -51,7 +51,7 @@ const
     cursor. Normally, when the mouse cursor is drawn by the int 33h mouse
     driver (and not by this unit), the driver internally maintains a 'hide
     counter', so that if you call HideMouse multiple times, you need to call
-    ShowMouse the same number of times. When the mouse cursor is customly
+    ShowMouse the same number of times. When the mouse cursor is customarily
     drawn by this unit, we use this variable in order to maintain the same
     behaviour. }
   CustomMouse_HideCount: smallint = 1;

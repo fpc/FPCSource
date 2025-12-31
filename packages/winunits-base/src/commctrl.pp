@@ -26,7 +26,7 @@
        is because my conversion tool was flawed, and a lot of postediting
        was needed, which is bound to introduce bugs and inconsequencies
 
-       This is an huge unit, and its maintenance and compability is not
+       This is an huge unit, and its maintenance and compatibility is not
        a top-priority.
        I prefer patches as bugfix over bugreports, and
        preferably patches with lots of fixes at once.
@@ -60,7 +60,7 @@ Uses Windows,CTypes,ActiveX;
 // --------------------
 CONST CommCtrlDLL = 'comctl32.dll';
 
-// Some reasonal defaults.
+// Some reasonable defaults.
 // for XP only set NT to $%0501 and IE to $0600
 //
 // The NT conditional is only used for XP/no XP.
@@ -757,8 +757,8 @@ function ImageList_Write(himl:HIMAGELIST;pstm:ISTREAM):BOOL; stdcall; external c
 {$ifdef Win32XP}
 
 CONST
-         ILP_NORMAL                     = 0;                  // Writes or reads the stream using new sematics for this version of comctl32
-         ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
+         ILP_NORMAL                     = 0;                  // Writes or reads the stream using new semantics for this version of comctl32
+         ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel semantics.
 
 
 function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;constref riid:REFIID;ppv:PPointer):HRESULT; stdcall; external commctrldll name 'ImageList_ReadEx';
@@ -872,7 +872,7 @@ TYPE
 
 
          _HD_TEXTFILTERW      = Record
-                                 pszText      : LPWSTR;          // [in] pointer to the buffer contiaining the filter (UNICODE)
+                                 pszText      : LPWSTR;          // [in] pointer to the buffer containing the filter (UNICODE)
                                  cchTextMax   : cint;          // [in] max size of buffer/edit control buffer
                                  END;
          HD_TEXTFILTERW       = _HD_TEXTFILTERW;
@@ -4277,7 +4277,7 @@ TYPE
 {$ifdef win32vista}
 		 		 cxmin 	      : cint; // min snap point
 				 cxDefault    : cint;   // default snap point
-				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+				 cxIdeal      : cint;     // read only. ideal may not equal current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
 {$endif}
                                  END;
          LVCOLUMNA            = tagLVCOLUMNA;
@@ -4300,7 +4300,7 @@ TYPE
 {$ifdef win32vista}
 		 		 cxmin 	      : cint; // min snap point
 				 cxDefault    : cint;   // default snap point
-				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+				 cxIdeal      : cint;     // read only. ideal may not equal current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
 {$endif}
                                  END;
          LVCOLUMNW            = tagLVCOLUMNW;
@@ -5227,7 +5227,7 @@ Procedure ListView_CancelEditLabel( hwnd : hwnd);
 
 // These next to methods make it easy to identify an item that can be repositioned
 // within listview. For example: Many developers use the lParam to store an identifier that is
-// unique. Unfortunatly, in order to find this item, they have to iterate through all of the items
+// unique. Unfortunately, in order to find this item, they have to iterate through all of the items
 // in the listview. Listview will maintain a unique identifier.  The upper bound is the size of a DWORD.
 
 CONST
@@ -8071,7 +8071,7 @@ CONST
 //   to the value returned from MonthCal_GetMonthRange(hmc, GMR_DAYSTATE, NULL)
 //   This sets the DAYSTATE bits for each month (grayed and non-grayed
 //   days) displayed in the calendar. The first bit in a month's DAYSTATE
-//   corresponts to bolding day 1, the second bit affects day 2, etc.
+//   corresponds to bolding day 1, the second bit affects day 2, etc.
 
 function MonthCal_GetMonthRange(hwndMC:HWND; gmr: DWORD;lpSysTime :LPSYSTEMTIME):Bool;
 

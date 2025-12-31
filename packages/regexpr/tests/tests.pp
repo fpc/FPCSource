@@ -502,7 +502,7 @@ const
     matchStart: 0
     ),
     // 43
-    ( // valid regex set combinaton if escaping
+    ( // valid regex set combination if escaping
     expression: '\w+([.\-])\d+([\.-])\w+([\.\-])\w+';
     inputText: 'Pictures-2018.Spain-Madrid';
     substitutionText: '$1 $2 $3';

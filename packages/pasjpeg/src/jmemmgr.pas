@@ -269,7 +269,7 @@ end;
   For these, we use pooled storage.  When a new pool must be created,
   we try to get enough space for the current request plus a "slop" factor,
   where the slop will be the amount of leftover space in the new pool.
-  The speed vs. space tradeoff is largely determined by the slop values.
+  The speed vs. space trade-off is largely determined by the slop values.
   A different slop value is provided for each pool class (lifetime),
   and we also distinguish the first pool of a class from later ones.
   NOTE: the values given work fairly well on both 16- and 32-bit-int

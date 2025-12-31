@@ -8,7 +8,7 @@ unit gzio;
 
   Define NO_DEFLATE to compile this file without the compression code
 
-  Pascal tranlastion based on code contributed by Francisco Javier Crespo
+  Pascal translation based on code contributed by Francisco Javier Crespo
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }
@@ -333,7 +333,7 @@ end;
 
   Read a byte from a gz_stream. Updates next_in and avail_in.
   Returns EOF for end of file.
-  IN assertion: the stream s has been sucessfully opened for reading.
+  IN assertion: the stream s has been successfully opened for reading.
 
 ============================================================================}
 
@@ -421,7 +421,7 @@ end;
   Set s^.err  to Z_DATA_ERROR if the magic header is present but the rest of
   the header is incorrect.
 
-  IN assertion: the stream s has already been created sucessfully;
+  IN assertion: the stream s has already been created successfully;
   s^.stream.avail_in is zero for the first time, but may be non-zero
   for concatenated .gz files
 
@@ -647,7 +647,7 @@ begin
       next_out := s^.stream.next_out;
       while (next_out <> start ) do begin
         dec (next_out);
-        inc (crclen);   { Hack because Pascal cannot substract pointers }
+        inc (crclen);   { Hack because Pascal cannot subtract pointers }
       end;
     {$endif}
       { Check CRC and original size }
@@ -686,7 +686,7 @@ begin
   next_out := s^.stream.next_out;
   while (next_out <> start ) do begin
     dec (next_out);
-    inc (crclen);   { Hack because Pascal cannot substract pointers }
+    inc (crclen);   { Hack because Pascal cannot subtract pointers }
   end;
 {$endif}
   s^.crc := crc32 (s^.crc, start, crclen);

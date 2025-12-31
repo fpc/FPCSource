@@ -6,7 +6,7 @@
 { Portions created by Microsoft are Copyright (C) Microsoft Corporation.       }
 {  All Rights Reserved.                                                        }
 {                                                                              }
-{ The original Pascal code is: JwaVista.pas, released Octobre 2007.            }
+{ The original Pascal code is: JwaVista.pas, released October 2007.            }
 {                                                                              }
 { Portions created by Christian Wimmer are Copyright (C) 2007                  }
 { Christian Wimmer. All Rights Reserved.                                       }

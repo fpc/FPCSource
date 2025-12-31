@@ -44,7 +44,7 @@ type    Tkbdkeyinfo=record
             time:longint;
         end;
 
-        {if you have information on the folowing datastructure, please
+        {if you have information on the following datastructure, please
          send them to me at d.s.p.mantione@twi.tudelft.nl}
 
         {This datastructure is needed when we ask in what video mode we are,
@@ -168,7 +168,7 @@ begin
                 mov $0x30,%bl
                 int $0x10
             end;
-            {132 column mode in DOS is videocard dependend.}
+            {132 column mode in DOS is videocard dependent.}
             if mode and 15=2 then
                 begin
                     crt_error:=cemodeset;

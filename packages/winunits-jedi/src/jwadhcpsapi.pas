@@ -326,7 +326,7 @@ type
 //  releases.
 //
 // The idea behind this subnet state is, when the admin wants to stop
-//  serving a subnet, he moves the state from Enbaled to Disabled so
+//  serving a subnet, he moves the state from Enabled to Disabled so
 //  that the clients from the subnets smoothly move to another servers
 //  serving that subnet. When all or most of the clients move to
 //  another server, the admin can delete the subnet without any force

@@ -1549,7 +1549,7 @@ const
 
 //
 // HALF_PTR is half the size of a pointer it intended for use with
-// within strcuture which contain a pointer and two small fields.
+// within structure which contain a pointer and two small fields.
 // UHALF_PTR is the unsigned variation.
 //
 

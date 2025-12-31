@@ -14941,7 +14941,7 @@ const
 // MessageText:
 //
 //  The Active Directory detected an Active Directory child partition below the
-//  requested new partition name.  The Active Directory's partition heiarchy must
+//  requested new partition name.  The Active Directory's partition hierarchy must
 //  be created in a top down method.
 //
   ERROR_DS_EXISTING_AD_CHILD_NC = DWORD(8613);
@@ -18936,7 +18936,7 @@ const
 // with several fields encoded in the value.  The parts of an
 // HRESULT are shown below.
 //
-// Many of the macros and functions below were orginally defined to
+// Many of the macros and functions below were originally defined to
 // operate on SCODEs.  SCODEs are no longer used.  The macros are
 // still present for compatibility and easy porting of Win16 code.
 // Newly written code should use the HRESULT macros and functions.
@@ -19667,7 +19667,7 @@ const
 //
 
 //
-// Generic OLE errors that may be returned by many inerfaces
+// Generic OLE errors that may be returned by many interfaces
 //
 
   OLE_E_FIRST = HRESULT($80040000);

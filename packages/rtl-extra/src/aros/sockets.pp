@@ -28,7 +28,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 type
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = cuint32;         { as defined in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes}
 
     socklen_t= cuint32;
@@ -140,7 +140,7 @@ const
   EsockENOBUFS          = 55; //ESysENoBufs;
   EsockENOTCONN         = 57; //ESysENotConn;
   EsockEPROTONOSUPPORT  = 43; //ESysEProtoNoSupport;
-  EsockEWOULDBLOCK      = 35; //ESysEWouldBlock; // same as eagain on morphos
+  EsockEWOULDBLOCK      = 35; //ESysEWouldBlock; // same as again on morphos
   ESockEALREADY         = 37;
   EsockEINPROGRESS      = 36;
   EsockECONNREFUSED     = 61;

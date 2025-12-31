@@ -413,7 +413,7 @@ const
 
       CONNMGR_PRIORITY_EXTERNALINTERACTIVE = $00000020;
 // @constdefine Connection is requested on behalf of an external entity, but
-// is an interactive session (e.g. AT Command Iterpreter)
+// is an interactive session (e.g. AT Command Interpreter)
 
       CONNMGR_PRIORITY_LOWBKGND            = $00000008;
 // @constdefine Lowest priority. Only connects if another higher priority client is already using the same path.

@@ -127,8 +127,8 @@ const
   XF86XK_LogOff            = $1008FF61;   { Log off system              }
   XF86XK_Market            = $1008FF62;   { ??                          }
   XF86XK_Meeting           = $1008FF63;   { enter meeting in calendar   }
-  XF86XK_MenuKB            = $1008FF65;   { distingush keyboard from PB }
-  XF86XK_MenuPB            = $1008FF66;   { distinuish PB from keyboard }
+  XF86XK_MenuKB            = $1008FF65;   { distinguish keyboard from PB}
+  XF86XK_MenuPB            = $1008FF66;   { distinguish PB from keyboard}
   XF86XK_MySites           = $1008FF67;   { Favourites                  }
   XF86XK_New               = $1008FF68;   { New (folder, document...    }
   XF86XK_News              = $1008FF69;   { News                        }
@@ -145,7 +145,7 @@ const
   XF86XK_RotationKB        = $1008FF76;   { don't use                   }
   XF86XK_Save              = $1008FF77;   { Save (file, document, state }
   XF86XK_ScrollUp          = $1008FF78;   { Scroll window/contents up   }
-  XF86XK_ScrollDown        = $1008FF79;   { Scrool window/contentd down }
+  XF86XK_ScrollDown        = $1008FF79;   { Scroll window/content down  }
   XF86XK_ScrollClick       = $1008FF7A;   { Use XKB mousekeys instead   }
   XF86XK_Send              = $1008FF7B;   { Send mail, file, object     }
   XF86XK_Spell             = $1008FF7C;   { Spell checker               }

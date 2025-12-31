@@ -179,11 +179,11 @@ type
 //  When invoking an object referenced by a display specifier (context menu, property
 //  page, etc) we call the IShellExtInit interface passing a IDataObject.  This data
 //  object supports the CF_DSDISPLAYSPECOPTIONS format to give out configuration
-//  informaiton about admin/shell invocation.
+//  information about admin/shell invocation.
 //
 //  When interacting with dsuiext.dll the interfaces uses this clipboard format
 //  to determine which display specifier attributes to address (admin/shell)
-//  and pick up the values accordingly.  If no format is suppoted then
+//  and pick up the values accordingly.  If no format is supported then
 //  dsuiext.dll defaults to shell.
 //
 
@@ -377,7 +377,7 @@ const
 // Flags for IDsDisplaySpecifier::IsClassContainer
 //
 
-  DSICCF_IGNORETREATASLEAF = $00000001; // = 1 => igore the "treatAsLeaf" and use only schema information
+  DSICCF_IGNORETREATASLEAF = $00000001; // = 1 => ignore the "treatAsLeaf" and use only schema information
   {$EXTERNALSYM DSICCF_IGNORETREATASLEAF}
 
 //

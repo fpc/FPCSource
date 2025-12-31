@@ -450,7 +450,7 @@ const
 type
   POLICY_DATA = record
     PolicyObjHdr: RsvpObjHdr;
-    usPeOffset: USHORT;     // Offset to the start of Policy Elements from the begining of Policy Data
+    usPeOffset: USHORT;     // Offset to the start of Policy Elements from the beginning of Policy Data
     usReserved: USHORT;
   end;
   {$EXTERNALSYM POLICY_DATA}
@@ -1208,7 +1208,7 @@ const
 
 // Identity Policy elements related defines
 
-// Reseved Identity PE types
+// Reserved Identity PE types
 
   LPM_PE_USER_IDENTITY = 2;
   {$EXTERNALSYM LPM_PE_USER_IDENTITY}

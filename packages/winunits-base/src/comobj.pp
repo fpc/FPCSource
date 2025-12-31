@@ -441,7 +441,7 @@ implementation
 
        { actually a remote call? }
 {$ifndef wince}
-       //roozbeh although there is a way to retrive computer name...HKLM\Ident\Name..but are they same?
+       //roozbeh although there is a way to retrieve computer name...HKLM\Ident\Name..but are they same?
 	     size:=sizeof(localhost);
        if (MachineName<>'') and
           (not(GetComputerNameW(localhost,size)) or

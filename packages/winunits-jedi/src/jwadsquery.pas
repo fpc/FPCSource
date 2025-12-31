@@ -162,7 +162,7 @@ type
     dwFlags: DWORD; // flags for this column
     fmt: INT; // list view form information
     cx: INT; // default column width
-    idsName: INT; // resource ID for the column dispaly name
+    idsName: INT; // resource ID for the column display name
     offsetProperty: LONG; // offset to BSTR defining column ADs property name
     dwReserved: DWORD; // reserved field
   end;
@@ -200,7 +200,7 @@ const
 // DSQPM_GETCLASSLIST
 // ------------------
 //  This page message is sent to the form pages to retrieve the list of classes
-//  that the pages are going to query from.  This is used by the feild selector
+//  that the pages are going to query from.  This is used by the field selector
 //  and the property well to build its list of display classes.
 //
 

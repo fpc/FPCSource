@@ -1004,7 +1004,7 @@ function SHNotificationUpdate(grnumUpdateMask:DWORD; pndNew:LPSHNOTIFICATIONDATA
 //
 // SHNotificationRemove
 //
-//   Remove a notification.  This is usually in reponse to some
+//   Remove a notification.  This is usually in response to some
 //   action taken on the data outside of the notification system - for example
 //   if a message is read or deleted.
 

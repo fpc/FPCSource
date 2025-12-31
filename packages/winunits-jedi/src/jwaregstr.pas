@@ -642,7 +642,7 @@ const
   {$EXTERNALSYM DOSOPTF_PROVIDESUMB}
   DOSOPTF_NEEDSETUP   = $00000020; // Need to configure option
   {$EXTERNALSYM DOSOPTF_NEEDSETUP}
-  DOSOPTF_INDOSSTART  = $00000040; // Suppored by DOSSTART.BAT
+  DOSOPTF_INDOSSTART  = $00000040; // Supported by DOSSTART.BAT
   {$EXTERNALSYM DOSOPTF_INDOSSTART}
   DOSOPTF_MULTIPLE    = $00000080; // Load multiple configuration lines
   {$EXTERNALSYM DOSOPTF_MULTIPLE}
@@ -937,7 +937,7 @@ const
   REGSTR_VAL_NOIDE        = 'NoIDE';
   {$EXTERNALSYM REGSTR_VAL_NOIDE}
 
-// The foll. clase name definitions should be the same as in dirkdrv.inx and
+// The foll. class name definitions should be the same as in dirkdrv.inx and
 // cdrom.inx
 
   REGSTR_VAL_DISKCLASSNAME  = 'DiskDrive';

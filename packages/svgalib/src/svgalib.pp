@@ -152,7 +152,7 @@ const
   ACCEL_SETTRANSPARENCY    = 7; { Set transparency mode. }
   ACCEL_SETRASTEROP        = 8; { Set raster-operation. }
   ACCEL_PUTBITMAP          = 9; { Color-expand bitmap. }
-  ACCEL_SCREENCOPYBITMAP   = 10;        { Color-exand from screen. }
+  ACCEL_SCREENCOPYBITMAP   = 10;        { Color-expand from screen. }
   ACCEL_DRAWHLINELIST      = 11;        { Draw horizontal spans. }
   ACCEL_SETMODE            = 12;        { Set blit strategy. }
   ACCEL_SYNC               = 13;        { Wait for blits to finish. }
@@ -167,7 +167,7 @@ const
   ACCELFLAG_SETTRANSPARENCY   = $40;    { Set transparency mode. }
   ACCELFLAG_SETRASTEROP       = $80;    { Set raster-operation. }
   ACCELFLAG_PUTBITMAP         = $100;   { Color-expand bitmap. }
-  ACCELFLAG_SCREENCOPYBITMAP  = $200;   { Color-exand from screen. }
+  ACCELFLAG_SCREENCOPYBITMAP  = $200;   { Color-expand from screen. }
   ACCELFLAG_DRAWHLINELIST     = $400;   { Draw horizontal spans. }
   ACCELFLAG_SETMODE           = $800;   { Set blit strategy. }
   ACCELFLAG_SYNC              = $1000;  { Wait for blits to finish. }
@@ -349,7 +349,7 @@ int vga_accel(unsigned operation,...);
 
 {
  * wait for keypress, mousemove, I/O, timeout. cf. select (3) for details on
- * all parameters execept which.
+ * all parameters except which.
  * NULL is a valid argument for any of the ptrs.
  }
 

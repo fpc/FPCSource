@@ -192,7 +192,7 @@ type
    CE_NOTIFICATION_INFO_HEADER = UserNotificationInfoHeader;
    PCE_NOTIFICATION_INFO_HEADER = ^UserNotificationInfoHeader;
 { Declarations of User Notification APIs.  }
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 {__cplusplus }
 { @CESYSGEN IF GWES_NOTIFY }
 

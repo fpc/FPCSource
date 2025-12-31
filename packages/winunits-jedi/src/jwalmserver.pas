@@ -2387,7 +2387,7 @@ const
   {$EXTERNALSYM SVI3_NUM_ELEMENTS}
 
 //
-//      Maxmimum length for command string to NetServerAdminCommand.
+//      Maximum length for command string to NetServerAdminCommand.
 //
 
   SV_MAX_CMD_LEN = PATHLEN;

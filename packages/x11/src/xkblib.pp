@@ -33,7 +33,7 @@ Thanks:
          while translating this code. ;)
 
          I want to thanks #fpc channel in freenode irc, for helping me, and to put up with my
-         wierd questions ;)
+         weird questions ;)
 
          Thanks for mmc in #xlib on freenode irc And so for the channel itself for the helping me to
          understanding some of the problems I had converting this headers and pointing me to resources
@@ -43,7 +43,7 @@ Thanks:
 
 History:
         2004/10/15        - Fixed a bug of accessing second based records by removing "paced record" and
-                            chnaged it to "reocrd" only.
+                            chnaged it to "record" only.
         2004/10/10        - Added to TXkbGetAtomNameFunc and TXkbInternAtomFunc the cdecl call.
         2004/10/06 - 09   - Convertion from the c header of XKBlib.h
 

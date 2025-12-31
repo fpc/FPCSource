@@ -293,7 +293,7 @@ function BluetoothGetRadioInfo(hRadio: THandle; var pRadioInfo: BLUETOOTH_RADIO_
 
 // ***************************************************************************
 //
-//  Device Information Stuctures
+//  Device Information Structures
 //
 // ***************************************************************************
 
@@ -627,7 +627,7 @@ type
 
     hwndParent: HWND;                         //  IN  parent window - NULL == no parent
 
-    fForceAuthentication: BOOL;               //  IN  If TRUE, authenication will be forced before returning
+    fForceAuthentication: BOOL;               //  IN  If TRUE, authentication will be forced before returning
     fShowAuthenticated: BOOL;                 //  IN  If TRUE, authenticated devices will be shown in the picker
     fShowRemembered: BOOL;                    //  IN  If TRUE, remembered devices will be shown in the picker
     fShowUnknown: BOOL;                       //  IN  If TRUE, unknown devices that are not authenticated or "remember" will be shown.
@@ -660,10 +660,10 @@ type
 //      TRUE
 //          User selected a device. pbtsdp->pDevices points to valid data.
 //          Caller should check the fAuthenticated && fRemembered flags to
-//          determine which devices we successfuly authenticated or valid
+//          determine which devices we successfully authenticated or valid
 //          selections by the user.
 //
-//          Use BluetoothSelectDevicesFree() to free the nessecary data
+//          Use BluetoothSelectDevicesFree() to free the necessary data
 //          such as pDevices only if this function returns TRUE.
 //
 //      FALSE
@@ -750,7 +750,7 @@ function BluetoothDisplayDeviceProperties(hwndParent: HWND; pbtdi: PBLUETOOTH_DE
 //      prompted to enter a passkey during the wizard after which the
 //      authentication request will be sent. The user will see the success
 //      or failure of the authentication attempt. The user will also be
-//      given the oppurtunity to try to fix a failed authentication.
+//      given the opportunity to try to fix a failed authentication.
 //
 //      "Blind mode" is invoked when the pszPasskey is non-NULL. This will
 //      cause the computer to send a authentication request to the remote
@@ -989,7 +989,7 @@ function BluetoothEnumerateInstalledServices(
 //  Parameters:
 //      hRadio
 //          If not NULL, changes the state of a specific radio.
-//          If NULL, the API will interate through all the radios.
+//          If NULL, the API will iterate through all the radios.
 //
 //      fEnabled
 //          If FALSE, discovery will be disabled.
@@ -1044,7 +1044,7 @@ function BluetoothIsDiscoverable(hRadio: THandle): BOOL; stdcall;
 //  Parameters:
 //      hRadio
 //          If not NULL, changes the state of a specific radio.
-//          If NULL, the API will interate through all the radios.
+//          If NULL, the API will iterate through all the radios.
 //
 //      fEnabled
 //          If FALSE, incoming connection will be disabled.
@@ -1192,7 +1192,7 @@ function BluetoothUnregisterAuthentication(hRegHandle: HBLUETOOTH_AUTHENTICATION
 //          The device accepted the passkey response. The device is authenticated.
 //
 //      ERROR_CANCELED
-//          The device denied the passkey reponse. This also will returned if there
+//          The device denied the passkey response. This also will returned if there
 //          is a communications problem with the local radio.
 //
 //      E_FAIL
@@ -1219,7 +1219,7 @@ type
     // BluetoothSdpGetString to convert the value if it is described
     // by the base language attribute ID list
     value: PBYTE;
-    // raw length of the string, may not be NULL terminuated
+    // raw length of the string, may not be NULL terminated
     length: ULONG;
   end;
 
@@ -1414,7 +1414,7 @@ function BluetoothSdpGetContainerElementData(
 //
 // Parameters:
 //      IN pRecordStream
-//          pointer to a valid SDP stream which is formatted as a singl SDP
+//          pointer to a valid SDP stream which is formatted as a single SDP
 //          record
 //
 //      IN cbRecordlnegh
@@ -1535,7 +1535,7 @@ type
 //          Could not allocate memory internally to perform the conversion
 //
 //      ERROR_INVALID_PARAMETER
-//          One of the rquired pointers was NULL, pRecordStream was not a valid
+//          One of the required pointers was NULL, pRecordStream was not a valid
 //          SDP stream, pRecordStream was not a properly formatted record, or
 //          the desired attribute + offset was not a string.
 //

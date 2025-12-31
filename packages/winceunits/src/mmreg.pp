@@ -1501,7 +1501,7 @@ const
        MM_SSP_SNDFESSYNTH = 5;
     { Sound Festa Mixer Device  }
        MM_SSP_SNDFESMIX = 6;
-    { Sound Festa Auxilliary Device  }
+    { Sound Festa Auxiliary Device  }
        MM_SSP_SNDFESAUX = 7;
 
     {  Product IDs for     MM_TDK    -  TDK Corporation     }
@@ -2453,7 +2453,7 @@ const
     { MPEG Layer3 WAVEFORMATEX structure }
     { for WAVE_FORMAT_MPEGLAYER3 (0x0055) }
        MPEGLAYER3_WFX_EXTRA_BYTES = 12;
-    { WAVE_FORMAT_MPEGLAYER3 format sructure }
+    { WAVE_FORMAT_MPEGLAYER3 format structure }
 
 type
      mpeglayer3waveformat_tag = record

@@ -42,7 +42,7 @@ uses
 { Compression initialization.
   Before calling this, all parameters and a data destination must be set up.
 
-  We require a write_all_tables parameter as a failsafe check when writing
+  We require a write_all_tables parameter as a fail safe check when writing
   multiple datastreams from the same compression object.  Since prior runs
   will have left all the tables marked sent_table=TRUE, a subsequent run
   would emit an abbreviated stream (no tables) by default.  This may be what
@@ -88,7 +88,7 @@ implementation
 { Compression initialization.
   Before calling this, all parameters and a data destination must be set up.
 
-  We require a write_all_tables parameter as a failsafe check when writing
+  We require a write_all_tables parameter as a fail safe check when writing
   multiple datastreams from the same compression object.  Since prior runs
   will have left all the tables marked sent_table=TRUE, a subsequent run
   would emit an abbreviated stream (no tables) by default.  This may be what

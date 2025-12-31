@@ -1,6 +1,6 @@
 {******************************************************************************}
 {                                                                              }
-{ Web Publishing Wizzard Error Codes API interface Unit for Object Pascal      }
+{ Web Publishing Wizard Error Codes API interface Unit for Object Pascal       }
 {                                                                              }
 { Portions created by Microsoft are Copyright (C) 1995-2001 Microsoft          }
 { Corporation. All Rights Reserved.                                            }

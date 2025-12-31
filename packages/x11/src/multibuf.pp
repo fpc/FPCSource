@@ -123,7 +123,7 @@ type
   PPXmbufBufferInfo = ^PXmbufBufferInfo;
   PXmbufBufferInfo = ^TXmbufBufferInfo;
   TXmbufBufferInfo = record
-    visualid: TVisualID;  { visual usuable at this depth }
+    visualid: TVisualID;  { visual usable at this depth  }
     max_buffers: cint;    { most buffers for this visual }
     depth: cint;          { depth of buffers to be created }
   end;

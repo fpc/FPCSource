@@ -842,7 +842,7 @@ end;
 { Tries to find the start of a valid UTF8 codepoint that contains the character pointed to by CurPos
   - AString: pointer to the (start of the) AnsiString
   - CurPos: pointer to the character inside AString that we want to get the information off
-    * if the function succeeds, CurPos wil point to the start of the valid UTF8 codepoint
+    * if the function succeeds, CurPos will point to the start of the valid UTF8 codepoint
     * if the function fails, CurPos will not be changed
     Note: if CurPos points beyond the end of AString you will get a crash!
   - CharLen: the length of the UTF8 codepoint in bytes, if the function succeeds
@@ -906,7 +906,7 @@ var
 begin
   if (BytePos > Len-1) then BytePos := Len - 1;
   CurPos := Utf8Str + BytePos;
-  //No need to check the result value, since when it retuns False CurPos will be reset
+  //No need to check the result value, since when it returns False CurPos will be reset
   //to it's original value, and that's what we want to return in that case
   Utf8TryFindCodepointStart(Utf8Str, CurPos, CharLen);
   Result := CurPos - Utf8Str;
@@ -1244,7 +1244,7 @@ begin
   end;
 end;
 
-{It's simper to copy the code from the variant with AnsiString parameters than writing a wrapper}
+{It's simpler to copy the code from the variant with AnsiString parameters than writing a wrapper}
 procedure UTF8Insert(const source: UTF8String; var s: UTF8string;
   StartCharIndex: PtrInt);
 var
@@ -1369,7 +1369,7 @@ end;
 
 {
   UTF8SwapCase - a "naive" implementation that uses UTF8UpperCase and UTF8LowerCase.
-    It serves its purpose and performs OK for short and resonably long AnsiStrings
+    It serves its purpose and performs OK for short and reasonably long AnsiStrings
     but it should be rewritten in the future if better performance and lower
     memory consumption is needed.
 
@@ -2562,7 +2562,7 @@ begin
         inc(OutStr, 3);
       end;
     else
-      // Copy the character if the AnsiString was disaligned by previous changes
+      // Copy the character if the AnsiString was misaligned by previous changes
       if (CounterDiff <> 0) then OutStr^:= c1;
       inc(InStr);
       inc(OutStr);
@@ -2943,7 +2943,7 @@ begin
         end;
       end;
 
-      // Copy the character if the AnsiString was disaligned by previous changed
+      // Copy the character if the AnsiString was misaligned by previous changed
       // and no processing was done in this character
       if (InCounter <> OutCounter+1) and (not CharProcessed) then
       begin

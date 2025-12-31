@@ -339,7 +339,7 @@ Const
      AUTO_PROXY_FLAG_DETECTION_RUN                   = $00000004;   // detection has been run
      AUTO_PROXY_FLAG_MIGRATED                        = $00000008;   // migration has just been done
      AUTO_PROXY_FLAG_DONT_CACHE_PROXY_RESULT         = $00000010;   // don't cache result of host=proxy name
-     AUTO_PROXY_FLAG_CACHE_INIT_RUN                  = $00000020;   // don't initalize and run unless URL expired
+     AUTO_PROXY_FLAG_CACHE_INIT_RUN                  = $00000020;   // don't initialize and run unless URL expired
      AUTO_PROXY_FLAG_DETECTION_SUSPECT               = $00000040;   // if we're on a LAN & Modem, with only one IP, bad?!?
 
 
@@ -571,7 +571,7 @@ Const
      SECURITY_FLAG_PCT4                      = $00000010;
      SECURITY_FLAG_IETFSSL4                  = $00000020;
 
-// The following are for backwards compatability only.
+// The following are for backwards compatibility only.
      SECURITY_FLAG_40BIT                     = SECURITY_FLAG_STRENGTH_WEAK;
      SECURITY_FLAG_128BIT                    = SECURITY_FLAG_STRENGTH_STRONG;
      SECURITY_FLAG_56BIT                     = SECURITY_FLAG_STRENGTH_MEDIUM;
@@ -988,7 +988,7 @@ Const
      HTTP_STATUS_PARTIAL             = 203; // partial completion
      HTTP_STATUS_NO_CONTENT          = 204; // no info to return
      HTTP_STATUS_RESET_CONTENT       = 205; // request completed, but clear form
-     HTTP_STATUS_PARTIAL_CONTENT     = 206; // partial GET furfilled
+     HTTP_STATUS_PARTIAL_CONTENT     = 206; // partial GET fulfilled
      HTTP_STATUS_AMBIGUOUS           = 300; // server couldn't decide what to return
      HTTP_STATUS_MOVED               = 301; // object permanently moved
      HTTP_STATUS_REDIRECT            = 302; // object temporarily moved

@@ -815,7 +815,7 @@ const
 
 //
 // the following two structures provides information about
-// disocvered remote radios.
+// discovered remote radios.
 //
 
 const
@@ -919,7 +919,7 @@ type
 
     //
     // If != 0, then the local host iniated the l2cap connection.  If == 0, then
-    // the remote host initated the connection.  This field is only valid if
+    // the remote host initiated the connection.  This field is only valid if
     // connect is != 0.
     //
     initiated: UCHAR;
@@ -956,7 +956,7 @@ type
 
     //
     // If != 0, then the underlying connection to the remote radio has just
-    // been estrablished.  If == 0, then the underlying conneciton has just been
+    // been established.  If == 0, then the underlying connection has just been
     // destroyed.
     //
     connected: UCHAR;

@@ -809,7 +809,7 @@ function ADsPropCreateNotifyObj(pAppThdDataObj: Pointer; {LPDATAOBJECT}
 //
 //  Function:   ADsPropGetInitInfo
 //
-//  Synopsis:   Pages call this at their init time to retreive DS object info.
+//  Synopsis:   Pages call this at their init time to retrieve DS object info.
 //
 //  Arguments:  [hNotifyObj]  - the notificion window handle.
 //              [pInitParams] - struct filled in with DS object info. This

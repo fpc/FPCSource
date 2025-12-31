@@ -372,7 +372,7 @@ begin
                           else
                            begin
                             if P1=NIL THEN { one of both is constant}
-                             P1:=P2;       {The appopriate term is now in P1}
+                             P1:=P2;       {The appropriate term is now in P1}
                             deriv:=newcalc(mulo,CopyTree(t),p1);
                            end;
                         end;
@@ -450,7 +450,7 @@ begin
                           else
                            begin
                             if P1=NIL THEN { one of both is constant}
-                             P1:=P2;       {The appopriate term is now in P1}
+                             P1:=P2;       {The appropriate term is now in P1}
                             deriv:=newcalc(mulo,CopyTree(t),p1);
                            end;
                         end;

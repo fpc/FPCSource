@@ -1,4 +1,4 @@
-{ This unit contains the definitions for structures and externs for
+{ This unit contains the definitions for structures and externals for
   functions used by frontend postgres applications. It is based on
   Postgresql's libpq-fe.h.
 
@@ -60,7 +60,7 @@ const
   procedure PQconninfoFree(connOptions:PPQconninfoOption);cdecl;external External_library name 'PQconninfoFree';
 
   {
-   * close the current connection and restablish a new one with the same
+   * close the current connection and reestablish a new one with the same
    * parameters
     }
   { Asynchronous (non-blocking)  }

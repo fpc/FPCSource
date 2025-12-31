@@ -277,7 +277,7 @@ Type
       FTA_NoEditDesc              = $00000100, // no editing of file type description
       FTA_NoEditIcon              = $00000200, // no editing of doc icon
       FTA_NoEditDflt              = $00000400, // no changing of default verb
-      FTA_NoEditVerbCmd           = $00000800, // no modification of the commnds associated with the verbs
+      FTA_NoEditVerbCmd           = $00000800, // no modification of the commands associated with the verbs
       FTA_NoEditVerbExe           = $00001000, // no editing of the verb's exe
       FTA_NoDDE                   = $00002000, // no editing of the DDE fields
 
@@ -459,7 +459,7 @@ const
     CTF_INHERITWOW64           = $00000100;   // new thread should inherit the wow64 disable state for the file system redirector IE7+
 
 
-    CTF_WAIT_NO_REENTRANCY  = $00000200;   // don't allow re-entrancy when waiting for the sync proc, this won't work with marshalled objects or SendMessages() from the sync proc Vista+
+    CTF_WAIT_NO_REENTRANCY  = $00000200;   // don't allow re-entrance when waiting for the sync proc, this won't work with marshalled objects or SendMessages() from the sync proc Vista+
 
     //#if (NTDDI_VERSION >= NTDDI_WIN7)
     CTF_KEYBOARD_LOCALE        = $00000400;   // carry the keyboard locale from creating to created thread
@@ -489,7 +489,7 @@ const
      OS_WIN2000TERMINAL          = 12;          // Windows 2000 Terminal Server in "Application Server" mode (now simply called "Terminal Server")
 
      OS_EMBEDDED                 = 13;          // Embedded Windows Edition
-     OS_TERMINALCLIENT           = 14;          // Windows Terminal Client (eg user is comming in via tsclient)
+     OS_TERMINALCLIENT           = 14;          // Windows Terminal Client (eg user is coming in via tsclient)
      OS_TERMINALREMOTEADMIN      = 15;          // Terminal Server in "Remote Administration" mode
      OS_WIN95_GOLD               = 16;          // Windows 95 Gold (Version 4.0 Build 1995)
      OS_MEORGREATER              = 17;          // Windows Millennium (Version 5.0)

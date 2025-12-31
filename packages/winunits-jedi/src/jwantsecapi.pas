@@ -480,7 +480,7 @@ type
 //         SidInvalid, then the remainder of the record is not set and
 //         should be ignored.
 //
-//     Sid - Contains the complete Sid of the tranlated SID
+//     Sid - Contains the complete Sid of the translated SID
 //
 //     DomainIndex - Is the index of an entry in a related
 //         LSA_REFERENCED_DOMAIN_LIST data structure describing the
@@ -644,7 +644,7 @@ type
 //         FALSE indicates that a shutdown is not in progress.
 //
 //         Once a shutdown has been initiated, this flag will be set to
-//         TRUE.  If an administrator is able to currect the situation
+//         TRUE.  If an administrator is able to correct the situation
 //         before the shutdown becomes irreversible, then this flag will
 //         be reset to false.
 //
@@ -940,7 +940,7 @@ type
   PPolicyDomainInformationClass = PPOLICY_DOMAIN_INFORMATION_CLASS;
 
 type
-  // mvb has dissapeared in november 2002 release!
+  // mvb has disappeared in november 2002 release!
 
   PPOLICY_DOMAIN_QUALITY_OF_SERVICE_INFO = ^POLICY_DOMAIN_QUALITY_OF_SERVICE_INFO;
   {$EXTERNALSYM PPOLICY_DOMAIN_QUALITY_OF_SERVICE_INFO}
@@ -1018,7 +1018,7 @@ type
 //      MaxTicketAge -- Maximum lifetime for the initial ticket
 //
 //      MaxRenewAge -- Maximum cumulative age a renewable ticket can be with
-//                     requring authentication
+//                     requiring authentication
 //
 //      MaxClockSkew -- Maximum tolerance for synchronization of computer clocks
 //
@@ -1128,7 +1128,7 @@ type
 
 // where members have the following meaning:
 //
-// Entries - Indicate how mamy entries there are in the Names array.
+// Entries - Indicate how many entries there are in the Names array.
 //
 // Names - Pointer to an array of LSA_UNICODE_STRING structures containing the
 //     names of domain controllers of the domain.  This information may not
@@ -2910,7 +2910,7 @@ type
     ServiceTicketLength: ULONG;
     TicketGrantingTicketLength: ULONG;
     ServiceTicket: PUCHAR; // REQUIRED: Service ticket "host"
-    TicketGrantingTicket: PUCHAR; // OPTIONAL: User's encdoded in a KERB_CRED message, encrypted with session key from service ticket
+    TicketGrantingTicket: PUCHAR; // OPTIONAL: User's encoded in a KERB_CRED message, encrypted with session key from service ticket
   end;
   {$EXTERNALSYM _KERB_TICKET_LOGON}
   KERB_TICKET_LOGON = _KERB_TICKET_LOGON;

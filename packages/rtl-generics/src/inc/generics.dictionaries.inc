@@ -883,7 +883,7 @@ begin
     raise EListError.CreateRes(@SDuplicatesNotAllowed);
 
   Result := not Result;
-  // Can't ovverride because we lost info about old hash
+  // Can't override because we lost info about old hash
   if FItems[Result].Hash <> 0 then
     Dec(FTombstonesCount);
 

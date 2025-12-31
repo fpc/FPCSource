@@ -13,12 +13,12 @@ unit regexpr;
   Option 1>
 
   You may use this software in any kind of development,
-  including comercial, redistribute, and modify it freely,
+  including commercial, redistribute, and modify it freely,
   under the following restrictions :
   1. This software is provided as it is, without any kind of
   warranty given. Use it at Your own risk.The author is not
   responsible for any consequences of use of this software.
-  2. The origin of this software may not be mispresented, You
+  2. The origin of this software may not be misrepresented, You
   must not claim that You wrote the original software. If
   You use this software in any kind of product, it would be
   appreciated that there in a information box, or in the
@@ -30,8 +30,8 @@ unit regexpr;
 
   3. You may not have any income from distributing this source
   (or altered version of it) to other developers. When You
-  use this product in a comercial package, the source may
-  not be charged seperatly.
+  use this product in a commercial package, the source may
+  not be charged separately.
   4. Altered versions must be plainly marked as such, and must
   not be misrepresented as being the original software.
   5. RegExp Studio application and all the visual components as
@@ -92,7 +92,7 @@ interface
   {$UNDEF UnicodeEx}
   {$UNDEF FastUnicodeData}
 {$ENDIF}
-{.$DEFINE Compat} // Enable compatability methods/properties for forked version in Free Pascal 3.0
+{.$DEFINE Compat} // Enable compatibility methods/properties for forked version in Free Pascal 3.0
 // ======== Define Pascal-language options
 // Asserts used to catch 'strange bugs' in TRegExpr implementation (when something goes
 // completely wrong). You can swith asserts on/off with help of {$C+}/{$C-} compiler options.
@@ -672,7 +672,7 @@ type
     {$ENDIF}
 
     // Returns ATemplate with '$&' or '$0' replaced by whole r.e.
-    // occurence and '$1'...'$nn' replaced by subexpression with given index.
+    // occurrence and '$1'...'$nn' replaced by subexpression with given index.
     // Symbol '$' is used instead of '\' (for future extensions
     // and for more Perl-compatibility) and accepts more than one digit.
     // If you want to place into template raw '$' or '\', use prefix '\'.
@@ -683,7 +683,7 @@ type
     // 'a${1}2bc' -> 'a<Match[1]>2bc'.
     function Substitute(const ATemplate: RegExprString): RegExprString;
 
-    // Splits AInputStr to list by positions of all r.e. occurencies.
+    // Splits AInputStr to list by positions of all r.e. occurrences.
     // Internally calls Exec, ExecNext.
     procedure Split(const AInputStr: RegExprString; APieces: TStrings);
 
@@ -694,7 +694,7 @@ type
     function Replace(const AInputStr: RegExprString;
       AReplaceFunc: TRegExprReplaceFunction): RegExprString; overload;
     {$ENDIF}
-    // Returns AInputStr with r.e. occurencies replaced by AReplaceStr.
+    // Returns AInputStr with r.e. occurrences replaced by AReplaceStr.
     // If AUseSubstitution is true, then AReplaceStr will be used
     // as template for Substitution methods.
     // For example:
@@ -746,18 +746,18 @@ type
     // Regular expression.
     // For optimization, TRegExpr will automatically compiles it into 'P-code'
     // (You can see it with help of Dump method) and stores in internal
-    // structures. Real [re]compilation occures only when it really needed -
+    // structures. Real [re]compilation occurs only when it really needed -
     // while calling Exec, ExecNext, Substitute, Dump, etc
     // and only if Expression or other P-code affected properties was changed
     // after last [re]compilation.
-    // If any errors while [re]compilation occures, Error method is called
+    // If any errors while [re]compilation occurs, Error method is called
     // (by default Error raises exception - see below)
     property Expression: RegExprString read fExpression write SetExpression;
 
     // Set/get default values of r.e.syntax modifiers. Modifiers in
     // r.e. (?ismx-ismx) will replace this default values.
     // If you try to set unsupported modifier, Error will be called
-    // (by defaul Error raises exception ERegExpr).
+    // (by default Error raises exception ERegExpr).
     property ModifierStr: RegExprString read GetModifierStr write SetModifierStr;
 
     property ModifierI: Boolean read GetModifierI write SetModifierI;
@@ -863,14 +863,14 @@ type
   end;
 
   // true if string AInputString match regular expression ARegExpr
-  // ! will raise exeption if syntax errors in ARegExpr
+  // ! will raise exception if syntax errors in ARegExpr
 function ExecRegExpr(const ARegExpr, AInputStr: RegExprString): Boolean;
 
-// Split AInputStr into APieces by r.e. ARegExpr occurencies
+// Split AInputStr into APieces by r.e. ARegExpr occurrences
 procedure SplitRegExpr(const ARegExpr, AInputStr: RegExprString;
   APieces: TStrings);
 
-// Returns AInputStr with r.e. occurencies replaced by AReplaceStr
+// Returns AInputStr with r.e. occurrences replaced by AReplaceStr
 // If AUseSubstitution is true, then AReplaceStr will be used
 // as template for Substitution methods.
 // For example:
@@ -1454,7 +1454,7 @@ end;
 const
   MetaChars_Init = '^$.[()|?+*' + EscChar + '{';
   MetaChars = MetaChars_Init; // not needed to be a variable, const is faster
-  MetaAll = MetaChars_Init + ']}'; // Very similar to MetaChars, but slighly changed.
+  MetaAll = MetaChars_Init + ']}'; // Very similar to MetaChars, but slightly changed.
 *)
 
 function _IsMetaSymbol1(ch: REChar): Boolean; {$IFDEF InlineFuncs}inline;{$ENDIF}
@@ -1552,7 +1552,7 @@ begin
               while (i <= Len) and (ARegExpr[i] <> ')') do
                 Inc(i);
               if i > Len then
-                Result := -1 // unbalansed '('
+                Result := -1 // unbalanced '('
               else
               if ParseModifiers(@ARegExpr[i0], i - i0, Modif) then
                 // Alexey-T: original code had copy from i, not from i0
@@ -1629,7 +1629,7 @@ begin
 
     // check brackets balance
     if StackIdx <> 0 then
-      Result := -1; // unbalansed '('
+      Result := -1; // unbalanced '('
 
     // check if entire r.e. added
     if (ASubExprs.Count = 0) or ((PtrInt(ASubExprs.Objects[0]) and $FFFF) <> 1)
@@ -2443,7 +2443,7 @@ end;
 
 function IsHorzSeparator(AChar: REChar): Boolean; {$IFDEF InlineFuncs}inline;{$ENDIF}
 begin
-  // Tab and Unicode categoty "Space Separator": https://www.compart.com/en/unicode/category/Zs
+  // Tab and Unicode category "Space Separator": https://www.compart.com/en/unicode/category/Zs
   case AChar of
     #9, #$20, #$A0:
       Result := True;
@@ -6273,7 +6273,7 @@ begin
           save := regInput;
           Local.LoopInfoListPtr := CurrentLoopInfoListPtr;
           if Local.LoopInfoListPtr^.Count >= BracesMin then
-          begin // Min alredy matched - we can work
+          begin // Min already matched - we can work
             Result := (BracesMax = MaxBracesArg) and // * or +
                       (Local.LoopInfoListPtr^.CurrentRegInput = regInput);
             if Result then begin
@@ -6385,8 +6385,8 @@ begin
             // don't repeat more than BracesMax
             // Now we know real Max limit to move forward (for recursion 'back up')
             // In some cases it can be faster to check only Min positions first,
-            // but after that we have to check every position separtely instead
-            // of fast scannig in loop.
+            // but after that we have to check every position separately instead
+            // of fast scanning in loop.
             no := BracesMin;
             while no <= BracesMax do
             begin

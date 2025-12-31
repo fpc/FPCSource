@@ -118,7 +118,7 @@ type
        flSpeed:single;                // Speed in knots
        flHeading:single;              // Degrees heading (course made good).  True North=0
        dblMagneticVariation:double;   // Magnetic variation.  East is positive
-       flAltitudeWRTSeaLevel:single;  // Altitute with regards to sea level, in meters
+       flAltitudeWRTSeaLevel:single;  // Altitude with regards to sea level, in meters
        flAltitudeWRTEllipsoid:single; // Altitude with regards to ellipsoid, in meters
 
       //** Quality of this fix

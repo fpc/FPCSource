@@ -808,7 +808,7 @@ type
   _SYSTEM_INFO = record
     case Integer of
     0: (
-      dwOemId: DWORD); // absolete, do not use
+      dwOemId: DWORD); // obsolete, do not use
     1: (
       wProcessorArchitecture: WORD;
       wReserved: WORD;
@@ -1357,7 +1357,7 @@ const
   {$EXTERNALSYM EV_RXCHAR}
   EV_RXFLAG   = $0002; // Received certain character
   {$EXTERNALSYM EV_RXFLAG}
-  EV_TXEMPTY  = $0004; // Transmitt Queue Empty
+  EV_TXEMPTY  = $0004; // Transmit Queue Empty
   {$EXTERNALSYM EV_TXEMPTY}
   EV_CTS      = $0008; // CTS changed state
   {$EXTERNALSYM EV_CTS}
@@ -6269,10 +6269,10 @@ begin
 end;
 
 { MVB:
-  The implementation of CreateMutex only interpretes bInitialOwner as True if
+  The implementation of CreateMutex only interprets bInitialOwner as True if
   it's ordinal value is 1, all other values are interpreted as False. Delphi
   compiles Longbool(True) as $FFFFFFFF which is consequently interpreted as
-  False. Changing the bInitalOwner parameter type to Boolean fixes the problem
+  False. Changing the bInitialOwner parameter type to Boolean fixes the problem
   (Boolean(True) = 1) but that would be implementation specific and might break
   in the future, though unlikely. Hence the CreateMutex function here which
   explicitly passes LongBool(1) instead of LongBool(True). }

@@ -76,10 +76,10 @@ begin
   and can be used to track down errors early caused by passing
   nil pointers to surface and console functions.
 
-  Even though technicially it is the users responsibility
+  Even though technically it is the users responsibility
   to ensure that all pointers are non-nil, it is useful
   to provide a check here in debug build to prevent such
-  bugs from ever occuring.
+  bugs from ever occurring.
 
   The checking function also tests that the source and destination
   pointers are not the same, a bug that can be caused by copying

@@ -579,7 +579,7 @@ const
 //
 // Calling this function with an hToken ensures the list of Group Policy
 // Objects is correct for the user or machine since security access checking
-// can be perfomed.  If hToken is not supplied, the security of the caller
+// can be performed.  If hToken is not supplied, the security of the caller
 // is used instead which means that list may or may not be 100% correct
 // for the intended user / machine.  However, this is the fastest way
 // to call this function.

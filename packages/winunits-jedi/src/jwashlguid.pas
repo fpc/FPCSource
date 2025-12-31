@@ -205,7 +205,7 @@ const
   IID_ICopyHookW: TGUID = (D1:$000214FC; D2:$0000; D3:$0000; D4:($C0,0,0,0,0,0,0,$46));
   {$EXTERNALSYM IID_ICopyHookW}
 
-//#define SID_LinkSite    IID_IShellLinkW     // IServiceProvider::QueryService() access the link object that is defering to you
+//#define SID_LinkSite    IID_IShellLinkW     // IServiceProvider::QueryService() access the link object that is deferring to you
 
   SID_LinkSite: TGUID = (D1:$000214F9; D2:$0; D3:$0; D4:($C0,0,0,0,0,0,0,$46));
   {$EXTERNALSYM SID_LinkSite}
@@ -457,7 +457,7 @@ const
   {$EXTERNALSYM SID_SProgressUI}
 
 //
-// Top-most browser implementation in the heirarchy. use IServiceProvider::QueryService()
+// Top-most browser implementation in the hierarchy. use IServiceProvider::QueryService()
 // to get to interfaces (IID_IShellBrowser, IID_IBrowserService, etc.)
 //
 

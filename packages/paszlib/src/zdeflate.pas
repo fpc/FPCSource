@@ -14,7 +14,7 @@ unit ZDeflate;
            deflate.c -- compress data using the deflation algorithm
   Copyright (C) 1995-1996 Jean-loup Gailly.
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }

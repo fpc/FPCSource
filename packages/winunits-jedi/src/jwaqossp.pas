@@ -537,7 +537,7 @@ type
   {$EXTERNALSYM LPRSVP_ADSPEC}
   _RSVP_ADSPEC = record
     ObjectHdr: QOS_OBJECT_HDR;
-    GeneralParams: AD_GENERAL_PARAMS; // contains the general characterization paramters
+    GeneralParams: AD_GENERAL_PARAMS; // contains the general characterization parameters
     NumberOfServices: ULONG; // count of the number of services
     Services: array [0..0] of CONTROL_SERVICE; // a list of the services supported/requested
   end;
@@ -551,7 +551,7 @@ type
 // Opcode for the SIO_CHK_QOS ioctl
 // (specific for the Microsoft QOS Service Provider
 //
-// Bascially:
+// Basically:
 //
 // SIO_CHK_QOS = _WSAIORW(IOC_VENDOR,1)
 //             = mIOC_IN | mIOC_OUT | mIOC_VENDOR | mCOMPANY | ioctl_code
@@ -614,7 +614,7 @@ const
   LOCAL_TRAFFIC_CONTROL = QOSSPBASE + 4; // check if Kernel Traffic Control is available or not
   {$EXTERNALSYM LOCAL_TRAFFIC_CONTROL}
                                                 //   -- 0 if not available
-                                                //   -- 1 if avaiable
+                                                //   -- 1 if available
                                                 //   -- INFO_NOT_AVAILABLE if there is no way to check
 
   LOCAL_QOSABILITY = QOSSPBASE + 5; // The followings are for

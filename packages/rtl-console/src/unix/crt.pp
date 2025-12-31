@@ -381,7 +381,7 @@ end;
 procedure ttyGotoXY(x,y:longint);
 {
   Goto XY on the Screen, if a value is 0 the goto the current
-  postion of that value and always recalc the ansicode for it
+  position of that value and always recalc the ansicode for it
 }
 begin
   if x=0 then
@@ -680,7 +680,7 @@ Begin
    end
   else
    begin
-   { Tweak WindMaxx and WindMaxy so no scrolling happends }
+   { Tweak WindMaxx and WindMaxy so no scrolling happens }
      len:=WindMaxX-CurrX+1;
      IsLastLine:=false;
      if CurrY=WindMaxY then

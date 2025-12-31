@@ -1,4 +1,4 @@
-{ Unit for handling the serial interfaces for Linux and similar Unices.
+{ Unit for handling the serial interfaces for Linux and similar Unixes.
   (c) 2000 Sebastian Guenther, sg@freepascal.org; modified MarkMLl 2012.
 }
 

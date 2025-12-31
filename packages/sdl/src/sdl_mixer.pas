@@ -952,7 +952,7 @@ cdecl; external {$IFDEF __GPC__}name 'Mix_PlayChannelTimed'{$ELSE} SDL_MixerLibN
 { Play an audio chunk on a specific channel.
    If the specified channel is -1, play on the first free channel.
    If 'loops' is greater than zero, loop the sound that many times.
-   If 'loops' is -1, loop inifinitely (~65000 times).
+   If 'loops' is -1, loop infinitely (~65000 times).
    Returns which channel was used to play the sound.
 }
 function Mix_PlayChannel( channel : integer; chunk : PMix_Chunk; loops : integer ) : integer;

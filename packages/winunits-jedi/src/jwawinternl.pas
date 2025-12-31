@@ -64,7 +64,7 @@
 *       application will be able to detect.  GetProcAddress() may not   *
 *       be able to detect all signature changes, thus avoid using these *
 *       internal functions.  Instead, your application should use the   *
-*       appropriate Win32 function that provides equivalent or similiar *
+*       appropriate Win32 function that provides equivalent or similar  *
 *       functionality.                                                  *
 *                                                                       *
 *   Copyright (c) Microsoft Corp. All rights reserved.                  *

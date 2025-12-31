@@ -63,7 +63,7 @@ Works:
 
   - TPCUReader.AddPendingSpecialize
   - TPCUReader.Set_SpecializeParam
-    - called when a Param of a spezialization was resolved,
+    - called when a Param of a specialization was resolved,
     - can trigger Resolver.GetSpecializedEl and ReadExternalReferences
   - TPCUReader.ReadExternalSpecialized
     -
@@ -4375,7 +4375,7 @@ begin
     Obj.Add('Forward',true);
   if El.IsExternal then
     Obj.Add('External',true);
-  // not needed IsShortDefinition: Boolean; -> class(anchestor); without end
+  // not needed IsShortDefinition: Boolean; -> class(ancestor); without end
   WriteExpr(Obj,El,'GUID',El.GUIDExpr,aContext);
   if El.Modifiers.Count>0 then
     begin
@@ -4687,7 +4687,7 @@ begin
 
   if Scope.SpecializedFromItem<>nil then
     begin
-    // spezialiations are generated on the fly -> cannot be stored
+    // specializations are generated on the fly -> cannot be stored
     RaiseMsg(20191120180305,El,GetObjPath(Scope.SpecializedFromItem.FirstSpecialize));
     end;
   if (Scope.ImplJS<>nil) and (Scope.ImplProc<>nil) then
@@ -9043,7 +9043,7 @@ begin
   ReadElType(Obj,'Ancestor',El,@Set_ClassType_AncestorType,aContext);
   ReadElType(Obj,'HelperFor',El,@Set_ClassType_HelperForType,aContext);
   ReadBoolean(Obj,'External',El.IsExternal,El);
-  // not needed IsShortDefinition: Boolean; -> class(anchestor); without end
+  // not needed IsShortDefinition: Boolean; -> class(ancestor); without end
   El.GUIDExpr:=ReadExpr(Obj,El,'GUID',aContext);
 
   // Modifiers

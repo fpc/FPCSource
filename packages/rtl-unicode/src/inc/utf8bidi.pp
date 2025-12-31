@@ -25,7 +25,7 @@ type
   TUTF8String = UTF8String;
 
 {****************************Conversion routines*******************************}
-{Converts an UCS 16/32 bits charcater to UTF8 character}
+{Converts an UCS 16/32 bits character to UTF8 character}
 function UnicodeToUTF8(aChar:TUCS32Char):TUTF8Char;
 {Converts a wide AnsiChar UCS 16 bits chcarcter to UTF8 character}
 function UnicodeToUTF8(aChar:WideChar):TUTF8Char;
@@ -61,7 +61,7 @@ procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
 {****************************Helper routines***********************************}
 {Returns direction of a character}
 function DirectionOf(Character:TUTF8Char):TDirection;
-{Returns contextual direction of caracter in a string}
+{Returns contextual direction of character in a string}
 function DirectionOf(UTF8String:TUTF8String; lp:Integer; pDir:TDirection):TDirection;
 {Inserts a AnsiChar as if it was typed using keyboard in the most user friendly way.
 Returns the new cursor position after insersion depending on the new visual text}

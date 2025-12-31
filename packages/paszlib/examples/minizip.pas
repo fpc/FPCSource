@@ -8,7 +8,7 @@ program MiniZip;
   to the new .zip file.
   -o an existing .zip file with be overwritten without warning
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 2000 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 }

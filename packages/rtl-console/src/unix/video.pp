@@ -1335,7 +1335,7 @@ begin
 
      envInput := LowerCase(fpgetenv('TV_INPUT'));
      if (envInput = '') or (envInput = 'kitty') then
-       SendEscapeSeq(#27'[>31u');{Entering alternativ screen we have to set up kitty keys}
+       SendEscapeSeq(#27'[>31u');{Entering alternative screen we have to set up kitty keys}
    end
   else
    ErrorCode:=errVioInit; { not a TTY }

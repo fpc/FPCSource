@@ -3146,7 +3146,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
       dec(j);
       end;
 
-    // output remaining chars from begining of Format (f.e. 'abc' if given Format is 'abc0.00')
+    // output remaining chars from beginning of Format (f.e. 'abc' if given Format is 'abc0.00')
     while PFmt >= Section.FmtStart do
       PutFmtDigit(PFmt, i, j, -1);
 

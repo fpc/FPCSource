@@ -221,7 +221,7 @@ Type
        POFNOTIFYEX = ^OFNOTIFYEXA;
      {$endif}
 
-   {CHOOSECOLOR = record confilcts with function ChooseColor }
+   {CHOOSECOLOR = record conflicts with function ChooseColor }
     TCHOOSECOLORA = record
           lStructSize : DWORD;
           hwndOwner : HWND;

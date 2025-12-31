@@ -1544,7 +1544,7 @@ type
     Reserved: array [0..1] of ULONG64;
     Info: ULONG;
     Size: ULONG;
-    ModBase: ULONG64; // Base Address of module comtaining this symbol
+    ModBase: ULONG64; // Base Address of module containing this symbol
     Flags: ULONG;
     Value: ULONG64; // Value of symbol, ValuePresent should be 1
     Address: ULONG64; // Address of symbol including base address of module

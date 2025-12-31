@@ -500,7 +500,7 @@ asm
   {end;}
         jmp     @loop518
 @loop519:
-  { Save to memory what we've registerized for the preceding loop. }
+  { Save to memory what we've registered for the preceding loop. }
 
   { Pass 2: process rows from work array, store into output array. }
   { Note that we must descale the results by a factor of 8 == 2**3, }

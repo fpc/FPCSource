@@ -228,7 +228,7 @@ const
   kbdchange:array[0..35] of chgentry=(
     {This prevents the alt+function keys from switching consoles.
      We code the F1..F12 sequences into ALT+F1..ALT+F12, we check
-     the shiftstates separetely anyway.}
+     the shiftstates separately anyway.}
     (tab:8; idx:$3b; oldtab:0; oldidx:$3b; oldval:0; newval:0),
     (tab:8; idx:$3c; oldtab:0; oldidx:$3c; oldval:0; newval:0),
     (tab:8; idx:$3d; oldtab:0; oldidx:$3d; oldval:0; newval:0),
@@ -549,7 +549,7 @@ const
   begin
     MouseEvent.action := MouseActionUp;
     MouseEvent.buttons := 0;
-    { fake event is to decive LastMouseEvent
+    { fake event is to deceive LastMouseEvent
     PutMouseEvent(MouseEvent); do not make real event }
   end;
 
@@ -983,7 +983,7 @@ begin
   if St='' then
     exit;
   p:=1;
-  {This is a distusting hack for certain even more disgusting xterms: Some of
+  {This is a distrusting hack for certain even more disgusting xterms: Some of
    them send two escapes for an alt-key. If we wouldn't do this, we would need
    to put a lot of entries twice in the table.}
   if double_esc_hack_enabled and (st[1]=#27) and (st[2]='#27') and
@@ -2010,7 +2010,7 @@ const  cKeysUnicodePrivateBase = 57344; { unicode private area starts here}
       kDel = 82;
       kMiddle = 83;
 
-      {modifyers}
+      {modifiers}
       kShiftLeft = 97;
       kCtrlLeft = 98;
       kAltLeft = 99;
@@ -2170,7 +2170,7 @@ begin
     if essRightShift in LastShiftState then
       inc(state,kbRightShift);
     if (essShift in LastShiftState) and (not ((essRightShift in LastShiftState) or (essLeftShift in LastShiftState))) then
-      inc(state,kbShift); {this for super rare case when shift state key press was not recived (maybe that is impossible)}
+      inc(state,kbShift); {this for super rare case when shift state key press was not received (maybe that is impossible)}
   end else
   if essShift in LastShiftState then
     inc(state,kbShift);
@@ -2732,7 +2732,7 @@ begin
           store[arrayind]:=ch;
           inc(arrayind);
           if arrayind >= 31 then break;
-          {check tree for maching sequence}
+          {check tree for matching sequence}
           if assigned(NPT) then
             NNPT:=FindChild(ord(ch),NPT);
           if assigned(NNPT) then
@@ -2747,7 +2747,7 @@ begin
             End
           else
             NPT:=nil;  {not found and not looking for anymore, but don't let hope fade... read sequence till the end}
-          {check sequnce end conditions}
+          {check sequence end conditions}
           if (arrayind>2) and  (ch < #32) then
           begin
             {if two short escape sequences are back to back}
@@ -2767,7 +2767,7 @@ begin
         end else
         if (arrayind>3) then
           if (ch = 'u'  )   { for sure kitty keys  or }
-              or ( isKittyKeys and  not assigned(FoundNPT) ) {probally kitty keys}
+              or ( isKittyKeys and  not assigned(FoundNPT) ) {probably kitty keys}
               then
             begin
               if not (assigned(FoundNPT) and  assigned(FoundNPT^.SpecialHandler)) then
@@ -2896,7 +2896,7 @@ begin
   timewait.tv_nsec := 100000000; {few nano seconds to wait}
   ree:=fpNanoSleep(@timewait,@finalparsec);
   st:='';
-  if syskeypressed then st:=RawReadString; {empty key buffer (key realeas might be pending)}
+  if syskeypressed then st:=RawReadString; {empty key buffer (key release might be pending)}
 end;
 
 { Exported functions }
@@ -3014,7 +3014,7 @@ function SysGetEnhancedKeyEvent: TEnhancedKeyEvent;
       $19, $10, $13, $1F, $14, $16, $2F, $11,
       $2D, $15, $2C, $1A, $2B, $1B, $29, $0C);
   begin
-    if (b and $E0)=$20  { digits / leters } then
+    if (b and $E0)=$20  { digits / letters } then
      EvalScan:=DScan[b and $1F]
     else
      case b of

@@ -96,7 +96,7 @@ type
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_exec{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;                              (* An open database *)
-  sql: pansichar;                            (* SQL to be evaluted *)
+  sql: pansichar;                            (* SQL to be evaluated *)
   cb: sqlite3_callback;                      (* Callback function *)
   user: pointer;                             (* 1st argument to callback *)
   errmsg: ppansichar                         (* Error msg written here *)

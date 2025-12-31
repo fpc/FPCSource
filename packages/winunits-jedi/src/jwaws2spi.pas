@@ -505,7 +505,7 @@ type
 {$IFDEF WIN64}
 
 //
-// This API manipulates 64-bit and 32-bit catalogs simulteneously.
+// This API manipulates 64-bit and 32-bit catalogs simultaneously.
 // It is needed to guarantee the same catalog IDs for provider catalog
 // entries in both 64-bit and 32-bit catalogs.
 //
@@ -614,7 +614,7 @@ function WPUSetEvent(hEvent: WSAEVENT; var lpErrno: Integer): BOOL; stdcall;
 {$EXTERNALSYM WPUSetEvent}
 
 function WPUCompleteOverlappedRequest(s: SOCKET; lpOverlapped: LPWSAOVERLAPPED;
-  dwError, cbTransferred: DWORD; var lpErrno: Integer): Integerl stdcall;
+  dwError, cbTransferred: DWORD; var lpErrno: Integer): Integer; stdcall;
 {$EXTERNALSYM WPUCompleteOverlappedRequest}
 
 function WPUOpenCurrentThread(lpThreadId: LPWSATHREADID; lpErrno: PINT): Integer; stdcall;

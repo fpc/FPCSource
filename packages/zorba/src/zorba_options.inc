@@ -105,7 +105,7 @@ type
   Zorba_SerializerOptions_t = record end;
 
 
-(** \brief Helper function for C to set default values ComplilerHints struct.
+(** \brief Helper function for C to set default values CompilerHints struct.
  *
  * \retval Zorba_CompilerHints_t with default member values
  *)

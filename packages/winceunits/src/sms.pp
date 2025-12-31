@@ -515,7 +515,7 @@ function SmsClearMessageNotification(tszProtocolName:LPCTSTR):HRESULT; external 
 // Additional attempts to get RECEIVE mode on a given protocol will result in
 // SMS_E_RECEIVEHANDLEALREADYOPEN.
 //
-// Currently all protocols have applications whith open RECEIVE handles.  As a
+// Currently all protocols have applications which open RECEIVE handles.  As a
 // result, using the SMS API to receive SMS messages is not supported.  Attempts
 // to do so may interfere with the proper operation of Inbox, WAP, or other SMS
 // applications.

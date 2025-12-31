@@ -58,13 +58,13 @@ unit sdl_image;
 {                                                                              }
 { Programming Notes                                                            }
 { -----------------                                                            }
-{   See the Aliens Demo on how to make use of this libaray                     }
+{   See the Aliens Demo on how to make use of this library                     }
 {                                                                              }
 { Revision History                                                             }
 { ----------------                                                             }
 {   April    02 2001 - MT : Initial Translation                                }
 {                                                                              }
-{   May      08 2001 - DL : Added ExternalSym derectives and copyright header  }
+{   May      08 2001 - DL : Added ExternalSym directives and copyright header  }
 {                                                                              }
 {   April   03 2003 - DL : Added jedi-sdl.inc include file to support more     }
 {                          Pascal compilers. Initial support is now included   }

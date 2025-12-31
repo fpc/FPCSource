@@ -148,7 +148,7 @@ begin
           { line loop }
           for y := 0 to 199 do
           begin
-            { calcalate pointer to start of line }
+            { calculate pointer to start of line }
             line := pixels + y * width;
 
             { get y deltas }

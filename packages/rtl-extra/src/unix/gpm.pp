@@ -19,7 +19,7 @@ unit gpm;
 {Note: Libgpm is *the* interface for Linux text-mode programs.
        Unfortunately it isn't suitable for anything else besides a blocky
        cursor on a text mode interface. The GPM protocol suffers from serious
-       defficiencies and ideally, gpm is abolished as quickly as possible.
+       deficiencies and ideally, gpm is abolished as quickly as possible.
 
        With lack of a good alternative, GPM deserves good support. But
        please keep this in mind while coding.}

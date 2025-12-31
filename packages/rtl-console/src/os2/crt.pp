@@ -131,7 +131,7 @@ external 'DOSCALLS' index 286;
 
 
 procedure GetScreenCursor (var X, Y: dword);inline;
-(* Return current cursor postion - 0-based. *)
+(* Return current cursor position - 0-based. *)
 var
  X0, Y0: word;
 begin
@@ -146,7 +146,7 @@ end;
 
 
 procedure SetScreenCursor (X, Y: dword); inline;
-(* Set current cursor postion - 0-based. *)
+(* Set current cursor position - 0-based. *)
 begin
  VioSetCurPos (Y, X, VioHandle);
 end;

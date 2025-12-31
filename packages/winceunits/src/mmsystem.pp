@@ -274,7 +274,7 @@ type
      LPDRVCALLBACK = DRVCALLBACK;
      PDRVCALLBACK = DRVCALLBACK;
 
-{* CALLBACK_MSGQUEUE - client process sets up a MsgQueuue that receives WAVEMSG structures.
+{* CALLBACK_MSGQUEUE - client process sets up a MsgQueue that receives WAVEMSG structures.
 *  Note that structure fields are identical to arguments to a callback function
 *  but we put the message field first to allow for multi-functional message queues.
 *}

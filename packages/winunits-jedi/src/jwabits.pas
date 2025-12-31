@@ -413,7 +413,7 @@ type
     function JobError(pJob: IBackgroundCopyJob; pError: IBackgroundCopyError): HRESULT; stdcall;
 
     //
-    // The job has been modified.   Intendended for user interfaces.
+    // The job has been modified.   Intended for user interfaces.
     //
     function JobModification(pJob: IBackgroundCopyJob; dwReserved: DWORD): HRESULT; stdcall;
 

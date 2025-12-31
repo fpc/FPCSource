@@ -832,7 +832,7 @@ const
   IMFS_DEFAULT   = MFS_DEFAULT;
 
   // type of soft keyboard
-  // for Windows Tranditional Chinese Edition
+  // for Windows Traditional Chinese Edition
   SOFTKEYBOARD_TYPE_T1 = $0001;
 
   // for Windows Simplified Chinese Edition

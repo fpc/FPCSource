@@ -71,7 +71,7 @@
 {   JwaWindows.dcu file to use in projects and remove every search path to     }
 {   the source codes except for debugger search path (so you can browse the    }
 {   sources in the Delphi IDE). You can also create dynamic and static linked  }
-{   JwaWindows.dcu seperatly and just change the search path. There can also   }
+{   JwaWindows.dcu separately and just change the search path. There can also  }
 {   be a debug and a much smaller release version of the file.                 }
 {   In conclusion there can be 4 JwaWindows.dcu versions:                      }
 {    JwaWindows.dcu                                                            }
@@ -140,7 +140,7 @@ the one of the project.
 
 
 
-{Exclude some units that are not compilabe under FPC
+{Exclude some units that are not compilable under FPC
   JwaSensEvts.pas - not supported
   JwaWinFax.pas - partially fixed
   JwaFaxDev.pas depends on jwaWinFax

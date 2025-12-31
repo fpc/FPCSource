@@ -176,7 +176,7 @@ type
     // composition rate
     rateCompose: UNSIGNED_RATIO;
 
-    // QPC time at a VSync interupt
+    // QPC time at a VSync interrupt
     qpcVBlank: QPC_TIME;
 
     // DWM refresh count of the last vsync
@@ -184,14 +184,14 @@ type
     // the first refresh the DWM woke up to process
     cRefresh: DWM_FRAME_COUNT;
 
-    // DX refresh count at the last Vsync Interupt
+    // DX refresh count at the last Vsync Interrupt
     // DX refresh count is a 32bit number with zero
     // being the first refresh after the card was initialized
     // DX increments a counter when ever a VSync ISR is processed
     // It is possible for DX to miss VSyncs
     //
     // There is not a fixed mapping between DX and DWM refresh counts
-    // because the DX will rollover and may miss VSync interupts
+    // because the DX will rollover and may miss VSync interrupts
     cDXRefresh: UINT;
 
     // QPC time at a compose time.
@@ -235,7 +235,7 @@ type
     cFramesOutstanding: UINT;
 
 
-    // Following fields are only relavent when an HWND is specified
+    // Following fields are only relevant when an HWND is specified
     // Display frame
 
 

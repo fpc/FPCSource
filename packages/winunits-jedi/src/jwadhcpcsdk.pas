@@ -164,7 +164,7 @@ const
   {$EXTERNALSYM OPTION_ETHERNET_ENCAPSULATION}
 
 //
-// TCP Paramters - per host
+// TCP Parameters - per host
 //
 
   OPTION_TTL                  = 37;
@@ -186,7 +186,7 @@ const
   {$EXTERNALSYM OPTION_NETWORK_TIME_SERVERS}
 
 //
-// Vender specific information option
+// Vendor specific information option
 //
 
   OPTION_VENDOR_SPEC_INFO = 43;

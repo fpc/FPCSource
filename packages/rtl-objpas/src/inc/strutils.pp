@@ -420,7 +420,7 @@ end;
 (*
   FindMatchesBoyerMooreCaseSensitive
 
-  Finds one or many ocurrences of an ansistring in another ansistring.
+  Finds one or many occurrences of an ansistring in another ansistring.
   It is case sensitive.
 
   * Parameters:
@@ -432,7 +432,7 @@ end;
   aMatchAll: Finds all matches, not just the first one. (Read only).
 
   * Returns:
-    True if at least one occurence was found.
+    True if at least one occurrence was found.
 
   The function is based in the Boyer-Moore algorithm.
 *)
@@ -541,7 +541,7 @@ var
   MatchTarget: SizeInt;
   AdvanceIndex: SizeInt;
 
-  //Miscelanous variables
+  //Miscellaneous variables
   OldPatternSize: SizeInt;
   NewPatternSize: SizeInt;
 
@@ -613,7 +613,7 @@ begin
     end;
   end else begin
     //Different algorithm for case sensitive and insensitive
-    //This is sensitive, so just 1 binary comprare
+    //This is sensitive, so just 1 binary compare
     MatchIndex:=Length(OldPattern);
     MatchLimit:=Length(S);
     NewPatternSize:=Length(NewPattern);
@@ -677,7 +677,7 @@ end;
 (*
   StringReplaceBoyerMoore
 
-  Replaces one or many ocurrences of an ansistring in another ansistring by a new one.
+  Replaces one or many occurrences of an ansistring in another ansistring by a new one.
   It can perform the compare ignoring case (ansi).
 
   * Parameters (Read only):
@@ -693,7 +693,7 @@ end;
 
   It is memory conservative, just sizeof(SizeInt) per match in blocks off 100 matches
   plus Length(OldPattern)*2 in the case of ignoring case.
-  Memory copies are the minimun necessary.
+  Memory copies are the minimum necessary.
   Algorithm based in the Boyer-Moore string search algorithm.
 
   It is faster when the "S" string is very long and the OldPattern is also
@@ -732,7 +732,7 @@ begin
   MatchesCount:=Length(Matches);
   aCount:=MatchesCount;
 
-  //Create room enougth for the result string
+  //Create room enough for the result string
   SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
   MatchIndex:=1;
   MatchTarget:=1;
@@ -2463,8 +2463,8 @@ end;
 { TryRomanToInt: try to convert a roman numeral to an integer
   Parameters:
   S: Roman numeral (like: 'MCMXXII')
-  N: Integer value of S (only meaningfull if the function succeeds)
-  Stricness: controls how strict the parsing of S is
+  N: Integer value of S (only meaningful if the function succeeds)
+  Strictness: controls how strict the parsing of S is
     - rcsStrict:
       * Follow common subtraction rules
          - only 1 preceding subtraction character allowed: IX = 9, but IIX <> 8
@@ -2494,7 +2494,7 @@ end;
       * negative numbers are supported
       * an empty string as input will return True and N will be 0
       * invalid input will return false
-      // for backwards comatibility: it supports rather ludicrous input like '-IIIMIII' -> -(2+(1000-1)+3)=-1004
+      // for backwards compatibility: it supports rather ludicrous input like '-IIIMIII' -> -(2+(1000-1)+3)=-1004
 }
 
 function TryRomanToInt(S: String; out N: LongInt; Strictness: TRomanConversionStrictness = rcsRelaxed): Boolean;

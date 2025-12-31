@@ -1,7 +1,7 @@
 {
     Copyright (c) 2000-2002 by Marco van de Voort
 
-    Target dependent defines used when compileing the baseunix unit
+    Target dependent defines used when compiling the baseunix unit
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

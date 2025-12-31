@@ -317,7 +317,7 @@ const
   MENUBAR = $1000; { Window has a menu bar (XaAES) }
   SMALLER = $4000; { Window has an iconifier. }
   ICONIFIER = SMALLER;
-  BORDER  = $8000; { Window has an sizeing border }
+  BORDER  = $8000; { Window has an sizing border }
 
 { messages as used by evnt_mesag() }
 const
@@ -674,7 +674,7 @@ const
 {* menu_popup modes *}
     SCROLL_LISTBOX      = -1;
 
-{* the objc_sysvar ob_swhich values *}
+{* the objc_sysvar ob_switch values *}
     LK3DIND      = 1;
     LK3DACT      = 2;
     INDBUTCOL    = 3;

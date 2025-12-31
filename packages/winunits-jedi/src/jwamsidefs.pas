@@ -770,7 +770,7 @@ const
   msidbCustomActionTypeProperty         = $00000030;  // Source = Property.Property, full path to executable
   {$EXTERNALSYM msidbCustomActionTypeProperty}
 
-  // return processing                  // default is syncronous execution, process return code
+  // return processing                  // default is synchronous execution, process return code
 
   msidbCustomActionTypeContinue         = $00000040;  // ignore action return status, continue running
   {$EXTERNALSYM msidbCustomActionTypeContinue}

@@ -731,7 +731,7 @@ begin
       if CurrX > WindMinX then Dec(CurrX);
     end; { ^H }
     #07 : begin
-      //MessagBeep(0);
+      //MessageBeep(0);
     end; { ^G }
     else begin
       WritePos.X := currX - 1;

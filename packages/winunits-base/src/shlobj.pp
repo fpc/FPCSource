@@ -364,7 +364,7 @@ Const
   CSIDL_COMMON_DESKTOPDIRECTORY   = $0019;        // All Users\Desktop
   CSIDL_APPDATA                   = $001a;        // <user name>\Application Data
   CSIDL_PRINTHOOD                 = $001b;        // <user name>\PrintHood
-  CSIDL_LOCAL_APPDATA             = $001c;        // <user name>\Local Settings\Applicaiton Data (non roaming)
+  CSIDL_LOCAL_APPDATA             = $001c;        // <user name>\Local Settings\Application Data (non roaming)
   CSIDL_ALTSTARTUP                = $001d;        // non localized startup
   CSIDL_COMMON_ALTSTARTUP         = $001e;        // non localized common startup
   CSIDL_COMMON_FAVORITES          = $001f;
@@ -389,11 +389,11 @@ Const
   CSIDL_COMMON_MUSIC              = $0035;        // All Users\My Music
   CSIDL_COMMON_PICTURES           = $0036;        // All Users\My Pictures
   CSIDL_COMMON_VIDEO              = $0037;        // All Users\My Video
-  CSIDL_RESOURCES                 = $0038;        // Resource Direcotry
-  CSIDL_RESOURCES_LOCALIZED       = $0039;        // Localized Resource Direcotry
+  CSIDL_RESOURCES                 = $0038;        // Resource Directory
+  CSIDL_RESOURCES_LOCALIZED       = $0039;        // Localized Resource Directory
   CSIDL_COMMON_OEM_LINKS          = $003a;        // Links to All Users OEM specific apps
   CSIDL_CDBURN_AREA               = $003b;        // USERPROFILE\Local Settings\Application Data\Microsoft\CD Burning
-  CSIDL_COMPUTERSNEARME           = $003d;        // Computers Near Me (computered from Workgroup membership)
+  CSIDL_COMPUTERSNEARME           = $003d;        // Computers Near Me (computed from Workgroup membership)
   CSIDL_FLAG_CREATE               = $8000;        // combine with CSIDL_ value to force folder creation in SHGetFolderPath()
   CSIDL_FLAG_DONT_VERIFY          = $4000;        // combine with CSIDL_ value to return an unverified folder path
   CSIDL_FLAG_NO_ALIAS             = $1000;        // combine with CSIDL_ value to insure non-alias versions of the pidl
@@ -445,7 +445,7 @@ Const
   {$endif}
   PROGDLG_NORMAL                  = $00000000;      // default normal progress dlg behavior
   PROGDLG_MODAL                   = $00000001;      // the dialog is modal to its hwndParent (default is modeless)
-  PROGDLG_AUTOTIME                = $00000002;      // automatically updates the "Line3" text with the "time remaining" (you cant call SetLine3 if you passs this!)
+  PROGDLG_AUTOTIME                = $00000002;      // automatically updates the "Line3" text with the "time remaining" (you cant call SetLine3 if you pass this!)
   PROGDLG_NOTIME                  = $00000004;      // we dont show the "time remaining" if this is set. We need this if dwTotal < dwCompleted for sparse files
   PROGDLG_NOMINIMIZE              = $00000008;      // Do not have a minimize button in the caption bar.
   PROGDLG_NOPROGRESSBAR           = $00000010;      // Don't display the progress bar
@@ -661,7 +661,7 @@ Const
   PUIFNF_DEFAULT          = $00000000;
   PUIFNF_MNEMONIC         = $00000001;   // include mnemonic in display name
   PUIF_DEFAULT            = $00000000;
-  PUIF_RIGHTALIGN         = $00000001;   // this property should be right alligned
+  PUIF_RIGHTALIGN         = $00000001;   // this property should be right aligned
   PUIF_NOLABELININFOTIP   = $00000002;   // this property should not display a label in the infotip
   PUIFFDF_DEFAULT         = $00000000;
   PUIFFDF_RIGHTTOLEFT     = $00000001;   // BIDI support, right to left caller
@@ -674,14 +674,14 @@ Const
   CATINFO_HIDDEN          = $00000002;   // This category should follow the "Hidden" files setting for being displayed
   CATSORT_DEFAULT         = $00000000;   // Default Sort order
   CATSORT_NAME            = $00000001;   // Sort by name
-  SLR_NO_UI               = $0001;   // don't post any UI durring the resolve operation, not msgs are pumped
+  SLR_NO_UI               = $0001;   // don't post any UI during the resolve operation, not msgs are pumped
   SLR_ANY_MATCH           = $0002;   // no longer used
   SLR_UPDATE              = $0004;   // save the link back to it's file if the track made it dirty
   SLR_NOUPDATE            = $0008;
   SLR_NOSEARCH            = $0010;   // don't execute the search heuristics
   SLR_NOTRACK             = $0020;   // don't use NT5 object ID to track the link
   SLR_NOLINKINFO          = $0040;   // don't use the net and volume relative info
-  SLR_INVOKE_MSI          = $0080;   // if we have a darwin link, then call msi to fault in the applicaion
+  SLR_INVOKE_MSI          = $0080;   // if we have a darwin link, then call msi to fault in the application
   SLR_NO_UI_WITH_MSG_PUMP = $0101;   // SLR_NO_UI + requires an enable modeless site or HWND
   SLGP_SHORTPATH          = $0001;
   SLGP_UNCPRIORITY        = $0002;
@@ -709,10 +709,10 @@ Const
   IEIFLAG_ASYNC           = $0001;      // ask the extractor if it supports ASYNC extract (free threaded)
   IEIFLAG_CACHE           = $0002;      // returned from the extractor if it does NOT cache the thumbnail
   IEIFLAG_ASPECT          = $0004;      // passed to the extractor to beg it to render to the aspect ratio of the supplied rect
-  IEIFLAG_OFFLINE         = $0008;      // if the extractor shouldn't hit the net to get any content neede for the rendering
+  IEIFLAG_OFFLINE         = $0008;      // if the extractor shouldn't hit the net to get any content needed for the rendering
   IEIFLAG_GLEAM           = $0010;      // does the image have a gleam ? this will be returned if it does
-  IEIFLAG_SCREEN          = $0020;      // render as if for the screen  (this is exlusive with IEIFLAG_ASPECT )
-  IEIFLAG_ORIGSIZE        = $0040;      // render to the approx size passed, but crop if neccessary
+  IEIFLAG_SCREEN          = $0020;      // render as if for the screen  (this is exclusive with IEIFLAG_ASPECT )
+  IEIFLAG_ORIGSIZE        = $0040;      // render to the approx size passed, but crop if necessary
   IEIFLAG_NOSTAMP         = $0080;      // returned from the extractor if it does NOT want an icon stamp on the thumbnail
   IEIFLAG_NOBORDER        = $0100;      // returned from the extractor if it does NOT want an a border around the thumbnail
   IEIFLAG_QUALITY         = $0200;      // passed to the Extract method to indicate that a slower, higher quality image is desired, re-compute the thumbnail
@@ -789,7 +789,7 @@ Const
   MPPF_INITIALSELECT      = $00000002;    // Select the first item
   MPPF_NOANIMATE          = $00000004;    // Do not animate this show
   MPPF_KEYBOARD           = $00000010;    // The menu is activated by keyboard
-  MPPF_REPOSITION         = $00000020;    // Resposition the displayed bar.
+  MPPF_REPOSITION         = $00000020;    // Reposition the displayed bar.
   MPPF_FORCEZORDER        = $00000040;    // internal: Tells menubar to ignore Submenu positions
   MPPF_FINALSELECT        = $00000080;    // Select the last item
   MPPF_TOP                = $20000000;    // Popup menu up from point
@@ -828,9 +828,9 @@ Const
   BFO_SHOW_NAVIGATION_CANCELLED       = $00010000;      // If navigation is aborted, show the "Action Cancelled" HTML page.
   BFO_USE_IE_STATUSBAR                = $00020000;      // Use the persisted IE status bar settings
   BFO_QUERY_ALL                       = $FFFFFFFF;      // Return all values set.
-  NWMF_UNLOADING          = $0001;  // The query is occuring during onBeforeUnload or onUnload
-  NWMF_USERINITED         = $0002;  // The query is occuring in the context of what trident considers to be a user initiated action
-  NWMF_FIRST              = $0004;  // This is the first query since the begining of the last user initiated action
+  NWMF_UNLOADING          = $0001;  // The query is occurring during onBeforeUnload or onUnload
+  NWMF_USERINITED         = $0002;  // The query is occurring in the context of what trident considers to be a user initiated action
+  NWMF_FIRST              = $0004;  // This is the first query since the beginning of the last user initiated action
   NWMF_OVERRIDEKEY        = $0008;  // The override key was pressed at the time the query was made
   NWMF_SHOWHELP           = $0010;  // New window is an HTML help window
   NWMF_HTMLDIALOG         = $0020;  // New window is an HTML dialog
@@ -1076,7 +1076,7 @@ Type
 
      PPERSIST_FOLDER_TARGET_INFO = ^PERSIST_FOLDER_TARGET_INFO;
      PERSIST_FOLDER_TARGET_INFO = record
-          pidlTargetFolder : LPITEMIDLIST;                         { pidl for the folder we want to intiailize }
+          pidlTargetFolder : LPITEMIDLIST;                         { pidl for the folder we want to initialize }
           szTargetParsingName : array[0..(MAX_PATH)-1] of WCHAR;   { optional parsing name for the target }
           szNetworkProvider : array[0..(MAX_PATH)-1] of WCHAR;     { optional network provider }
           dwAttributes : DWORD;                                    { optional FILE_ATTRIBUTES_ flags (-1 if not used) }
@@ -1149,7 +1149,7 @@ Type
           cbSize : DWORD;             { Size of this extra data block }
           dwSignature : DWORD;        { signature of this extra data block }
           idSpecialFolder : DWORD;    { special folder id this link points into }
-          cbOffset : DWORD;           { ofset into pidl from SLDF_HAS_ID_LIST for child }
+          cbOffset : DWORD;           { offset into pidl from SLDF_HAS_ID_LIST for child }
        end;
      LPEXP_SPECIAL_FOLDER = PEXP_SPECIAL_FOLDER;
      PLPEXP_SPECIAL_FOLDER = ^LPEXP_SPECIAL_FOLDER;
@@ -1174,7 +1174,7 @@ Type
                                                                 { Passed in and updated  (in/Out) }
           dwFlags : DWORD;                                      { flags }
           rect : RECT;                                          { Where to create the window may have defaults }
-          punkRel :  IUnknown;                                  { Relese this interface when window is visible }
+          punkRel :  IUnknown;                                  { Release this interface when window is visible}
                                                                 { Stuff that might be returned from viewer (out) }
           strNewFile : array[0..(MAX_PATH)-1] of OLECHAR;       { New File to view. }
        end;
@@ -1391,7 +1391,7 @@ Type
           cpPos : COMPPOS;                 { Width, height etc., } {}
           wszFriendlyName : array[0..(MAX_PATH)-1] of WCHAR;                             { Friendly name of component. }
           wszSource : array[0..(INTERNET_MAX_URL_LENGTH)-1] of WCHAR;                    {URL of the component. }
-          wszSubscribedURL : array[0..(INTERNET_MAX_URL_LENGTH)-1] of WCHAR;             {Subscrined URL }
+          wszSubscribedURL : array[0..(INTERNET_MAX_URL_LENGTH)-1] of WCHAR;             {Subscribed URL }
        end;
      IE4COMPONENT = _tagIE4COMPONENT;
      TIE4COMPONENT = _tagIE4COMPONENT;
@@ -1411,7 +1411,7 @@ Type
           cpPos : COMPPOS;                                                       { Width, height etc., }
           wszFriendlyName : array[0..(MAX_PATH)-1] of WCHAR;                     { Friendly name of component. }
           wszSource : array[0..(INTERNET_MAX_URL_LENGTH)-1] of WCHAR;            {URL of the component. }
-          wszSubscribedURL : array[0..(INTERNET_MAX_URL_LENGTH)-1] of WCHAR;     {Subscrined URL }
+          wszSubscribedURL : array[0..(INTERNET_MAX_URL_LENGTH)-1] of WCHAR;     {Subscribed URL }
                                                                                  {New fields are added below. Everything above here must exactly match the IE4COMPONENT Structure. }
           dwCurItemState : DWORD;                                                { Current state of the Component. }
           csiOriginal : COMPSTATEINFO;                                           { Original state of the component when it was first added. }

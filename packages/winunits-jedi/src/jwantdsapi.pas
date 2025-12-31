@@ -173,7 +173,7 @@ type
     // eg: CN=User Name,OU=Users,DC=Example,DC=Microsoft,DC=Com
     DS_FQDN_1779_NAME,
 
-    // eg: Exmaple\UserName
+    // eg: Example\UserName
     // Domain-only version includes trailing '\\'.
     DS_NT4_ACCOUNT_NAME,
 
@@ -1324,7 +1324,7 @@ function DsCrackSpn(pszSpn: LPCTSTR; pcServiceClass: LPDWORD; ServiceClass: LPTS
 // writes to the SPN property are not allowed -- all writes must come through
 // this RPC call. (Reads via // LDAP are OK.)
 //
-// The account object can be a machine accout, or a service (user) account.
+// The account object can be a machine account, or a service (user) account.
 //
 // If called by the service to register itself, it can most easily get
 // the names by calling DsGetSpn with each of the names that
@@ -1398,7 +1398,7 @@ function DsClientMakeSpnForTargetServer(ServiceClass: LPCTSTR; ServiceName: LPCT
 {$EXTERNALSYM DsClientMakeSpnForTargetServer}
 
 {++
-outine Description:
+routine Description:
 
 Register Service Principal Names for a server application.
 
@@ -1449,7 +1449,7 @@ function DsServerRegisterSpn(Operation: DS_SPN_WRITE_OP; ServiceClass: LPCTSTR;
 // with respect to a source system.  The source system is identified by the
 // uuid.  The uuid is that of the source system's "NTDS Settings" object.
 // The destination system must already be configured such that the source
-// system is one of the systems from which it recieves replication data
+// system is one of the systems from which it receives replication data
 // ("replication from"). This is usually done automatically by the KCC.
 //
 //  PARAMETERS:
@@ -1613,7 +1613,7 @@ function DsReplicaModify(hDS: HANDLE; NameContext: LPCTSTR; pUuidSourceDsa: LPUU
 
 // DsReplicaUpdateRefs
 //
-// In this case, the RPC is being executed on the "source" of destination-sourc
+// In this case, the RPC is being executed on the "source" of destination-source
 // replication relationship.  This function tells the source that it no longer
 // supplies replication information to the indicated destination system.
 // Add or remove a target server from the Reps-To property on the given NC.
@@ -2897,7 +2897,7 @@ Arguments:
 
     psUnquotedRdnValue - Unquoted RDN value.
 
-    pcQuotedRdnValueeLength - IN, maximum length of psQuotedRdnValue, in chars
+    pcQuotedRdnValueLength - IN, maximum length of psQuotedRdnValue, in chars
                         OUT ERROR_SUCCESS, chars utilized in psQuotedRdnValue
                         OUT ERROR_BUFFER_OVERFLOW, chars needed in psQuotedRdnValue
 

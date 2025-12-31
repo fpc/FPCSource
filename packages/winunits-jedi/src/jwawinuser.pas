@@ -3077,7 +3077,7 @@ const
   WS_EX_LAYERED = $00080000;
   {$EXTERNALSYM WS_EX_LAYERED}
 
-  WS_EX_NOINHERITLAYOUT = $00100000; // Disable inheritence of mirroring by children
+  WS_EX_NOINHERITLAYOUT = $00100000; // Disable inheritance of mirroring by children
   {$EXTERNALSYM WS_EX_NOINHERITLAYOUT}
   WS_EX_LAYOUTRTL       = $00400000; // Right to left mirroring
   {$EXTERNALSYM WS_EX_LAYOUTRTL}
@@ -7972,7 +7972,7 @@ const
   {$EXTERNALSYM SS_ELLIPSISMASK}
 
 //
-// Static Control Mesages
+// Static Control Messages
 //
 
   STM_SETICON  = $0170;

@@ -291,8 +291,8 @@ Type
           cbStruct : longint;              { size of this structure }
           iType : longint;                 { the type of the information type ie. Inclusive, Exclusive, or Hidden }
           pszCatName : LPCSTR;             { Set to the name of the Category to enumerate the info types in a category; else NULL }
-          pszITName : LPCSTR;              { volitile pointer to the name of the infotype. Allocated by call. Caller responsible for freeing }
-          pszITDescription : LPCSTR;       { volitile pointer to the description of the infotype. }
+          pszITName : LPCSTR;              { volatile pointer to the name of the infotype. Allocated by call. Caller responsible for freeing }
+          pszITDescription : LPCSTR;       { volatile pointer to the description of the infotype. }
        end;
      HH_ENUM_IT = tagHH_ENUM_IT;
      PHH_ENUM_IT = PtagHH_ENUM_IT;
@@ -301,8 +301,8 @@ Type
      PtagHH_ENUM_CAT = ^tagHH_ENUM_CAT;
      tagHH_ENUM_CAT = packed record
           cbStruct : longint;                  { size of this structure }
-          pszCatName : LPCSTR;                 { volitile pointer to the category name }
-          pszCatDescription : LPCSTR;          { volitile pointer to the category description }
+          pszCatName : LPCSTR;                 { volatile pointer to the category name }
+          pszCatDescription : LPCSTR;          { volatile pointer to the category description }
        end;
      HH_ENUM_CAT = tagHH_ENUM_CAT;
      PHH_ENUM_CAT = PtagHH_ENUM_CAT;
@@ -361,7 +361,7 @@ Type
           pszIndex : LPCTSTR;                                        { IN: Location of the index file }
           pszFile : LPCTSTR;                                         { IN: Default location of the html file }
           pszHome : LPCTSTR;                                         { IN/OUT: html file to display when Home button is clicked }
-          fsToolBarFlags : DWORD;                                    { IN: flags controling the appearance of the toolbar }
+          fsToolBarFlags : DWORD;                                    { IN: flags controlling the appearance of the toolbar }
           fNotExpanded : BOOL;                                       { IN: TRUE/FALSE to contract or expand, OUT: current state }
           curNavType : longint;                                      { IN/OUT: UI to display in the navigational pane }
           tabpos : longint;                                          { IN/OUT: HHWIN_NAVTAB_TOP, HHWIN_NAVTAB_LEFT, or HHWIN_NAVTAB_BOTTOM }

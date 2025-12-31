@@ -340,7 +340,7 @@ function getnodename: PAnsiChar; stdcall;
 {$EXTERNALSYM getnodename}
 *)
 
-// typedefs for C++ compatability
+// typedefs for C++ compatibility
 
 type
   LPDNETADDR = function(cp: PAnsiChar): PDNNAddr; stdcall;

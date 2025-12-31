@@ -1139,7 +1139,7 @@ const
 //
 // MessageText:
 //
-//  Debugger printerd exception on control C.
+//  Debugger printed exception on control C.
 //
 
   DBG_PRINTEXCEPTION_C = NTSTATUS($40010006);
@@ -1150,7 +1150,7 @@ const
 //
 // MessageText:
 //
-//  Debugger recevice RIP exception.
+//  Debugger receive RIP exception.
 //
 
   DBG_RIPEXCEPTION = NTSTATUS($40010007);

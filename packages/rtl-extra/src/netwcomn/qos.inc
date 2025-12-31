@@ -177,7 +177,7 @@
      QOS_OBJECT_SHAPER_QUEUE_LIMIT = $00000006 + QOS_GENERAL_ID_BASE;
   { QOS_ShaperQueueLimit structure  }
   {
-     This structure defines the absolute priorty of the flow.  Priorities in the
+     This structure defines the absolute priority of the flow.  Priorities in the
      range of 0-7 are currently defined. Receive Priority is not currently used,
      but may at some point in the future.
     }
@@ -208,7 +208,7 @@
       will be demoted to less than best-effort priority.
 
      PS_NONCONF_SHAPE - TokenRate must be specified. Non-conforming
-      packets will be retianed in the packet shaper until they become
+      packets will be retained in the packet shaper until they become
       conforming.
 
      PS_NONCONF_DISCARD - TokenRate must be specified. Non-conforming

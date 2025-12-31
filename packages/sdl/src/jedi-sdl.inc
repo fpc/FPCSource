@@ -60,8 +60,8 @@
 { ----------------                                                             }
 {   2003-04-03   DL - Initial addition                                         }
 {                                                                              }
-{   2003-04-07   DL - Added Macro ON derective for FPC and OpenGL and removed  }
-{                WEAKPACKAGE derective. WEAKPACKAGE should be set when         }
+{   2003-04-07   DL - Added Macro ON directive for FPC and OpenGL and removed  }
+{                WEAKPACKAGE directive. WEAKPACKAGE should be set when         }
 {                appropriate.                                                  }
 {                                                                              }
 {   2003-04-23 - DL : under instruction from Alexey Barkovoy I have added      }
@@ -87,19 +87,19 @@
   removed THREADING ON flag as it is no longer needed in latest versions of FPC.
 
   Revision 1.11  2006/01/04 00:52:41  drellis
-  Updated to include defined for ENDIAN values, SDL_BYTEORDER should now be correctly defined depending onthe platform. Code taken from sdl_mixer
+  Updated to include defined for ENDIAN values, SDL_BYTEORDER should now be correctly defined depending on the platform. Code taken from sdl_mixer
 
   Revision 1.10  2005/05/22 18:42:31  savage
   Changes as suggested by Michalis Kamburelis. Thanks again.
 
   Revision 1.9  2004/12/23 23:42:17  savage
-  Applied Patches supplied by Michalis Kamburelis ( THANKS! ), for greater FreePascal compatability.
+  Applied Patches supplied by Michalis Kamburelis ( THANKS! ), for greater FreePascal compatibility.
 
   Revision 1.8  2004/10/20 22:43:04  savage
   Ensure that UNSAFE type warning are off in D9 as well
 
   Revision 1.7  2004/04/05 09:59:51  savage
-  Changes for FreePacal as suggested by Marco
+  Changes for FreePascal as suggested by Marco
 
   Revision 1.6  2004/03/31 22:18:15  savage
   Small comment for turning off warning under GnuPascal
@@ -114,7 +114,7 @@
   {$H+} needed for FPC compatiblity
 
   Revision 1.2  2004/02/14 00:23:39  savage
-  As UNIX is defined in jedi-sdl.inc this will be used to check linux compatability as well. Units have been changed to reflect this change.
+  As UNIX is defined in jedi-sdl.inc this will be used to check linux compatibility as well. Units have been changed to reflect this change.
 
 *)
 {******************************************************************************}

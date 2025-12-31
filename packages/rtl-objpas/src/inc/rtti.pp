@@ -225,7 +225,7 @@ type
     function IsArray: boolean; inline;
     function IsOpenArray: Boolean; inline;
     // Maybe we need to check these now that Cast<> is implemented.
-    // OTOH they will probablu be faster.
+    // OTOH they will probably be faster.
     function AsString: string; inline;
     function AsUnicodeString: UnicodeString;
     function AsAnsiString: AnsiString;
@@ -7684,7 +7684,7 @@ end;
 
 function TRttiType.GetAsInstance: TRttiInstanceType;
 begin
-  // This is a ridicoulous design, but Delphi-compatible...
+  // This is a ridiculous design, but Delphi-compatible...
   result := TRttiInstanceType(self);
 end;
 

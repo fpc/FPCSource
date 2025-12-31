@@ -85,7 +85,7 @@ const
 //
 //  Was there an error last time we tried to exec a program on behalf of
 //  this job.
-//  This flag is meaningfull on output only!
+//  This flag is meaningful on output only!
 //
 
   JOB_EXEC_ERROR                 = $02;    //  set if error
@@ -93,7 +93,7 @@ const
 
 //
 //  Will this job run today or tomorrow.
-//  This flag is meaningfull on output only!
+//  This flag is meaningful on output only!
 //
 
   JOB_RUNS_TODAY                 = $04;    //  set if today
@@ -101,7 +101,7 @@ const
 
 //
 //  Add current day of the month to DaysOfMonth input.
-//  This flag is meaningfull on input only!
+//  This flag is meaningful on input only!
 //
 
   JOB_ADD_CURRENT_DATE            = $08;    // set if to add current date

@@ -420,7 +420,7 @@ begin
   ValueStr:=Copy(AText,1,P);
   if not TryStrToFloat(ValueStr, AValue) then
     Exit;
-  if P=Length(AText) then //no desription found
+  if P=Length(AText) then //no description found
     Exit;
   TypeStr:=Trim(Copy(AText,P+1,MaxInt));
   Result:=DescriptionToConvType(TypeStr, AType);

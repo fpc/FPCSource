@@ -999,7 +999,7 @@ type
   {$EXTERNALSYM PCMS_KEY_INFO}
   _CMS_KEY_INFO = record
     dwVersion: DWORD; // sizeof(CMS_KEY_INFO)
-    Algid: ALG_ID; // algorithmm id for the key to be converted
+    Algid: ALG_ID; // algorithm id for the key to be converted
     pbOID: LPBYTE; // pointer to OID to hash in with Z
     cbOID: DWORD; // length of OID to hash in with Z
   end;
@@ -1043,7 +1043,7 @@ type
   TSChannelAlg = SCHANNEL_ALG;
   PSChannelAlg = PSCHANNEL_ALG;
 
-// uses of algortihms for SCHANNEL_ALG structure
+// uses of algorithms for SCHANNEL_ALG structure
 
 const
   SCHANNEL_MAC_KEY = $00000000;
@@ -1297,7 +1297,7 @@ type
   {$EXTERNALSYM PCMS_DH_KEY_INFO}
   _CMS_DH_KEY_INFO = record
     dwVersion: DWORD; // sizeof(CMS_DH_KEY_INFO)
-    Algid: ALG_ID; // algorithmm id for the key to be converted
+    Algid: ALG_ID; // algorithm id for the key to be converted
     pszContentEncObjId: LPSTR; // pointer to OID to hash in with Z
     PubInfo: CRYPT_DATA_BLOB; // OPTIONAL - public information
     pReserved: Pointer; // reserved - should be NULL
@@ -2335,7 +2335,7 @@ type
 // this struct contains a PKCS8 private key and two pointers to callback
 // functions, with a corresponding pVoids.  the first callback is used to give
 // the caller the opportunity to specify where the key is imported to.  the callback
-// passes the caller the algoroithm OID and key size to use in making the decision.
+// passes the caller the algorithm OID and key size to use in making the decision.
 // the other callback is used to decrypt the private key if the PKCS8 contains an
 // EncryptedPrivateKeyInfo.  both pVoids are preserved and passed back to the caller
 // in the respective callback
@@ -2835,7 +2835,7 @@ const
   {$EXTERNALSYM CRYPT_FORMAT_RDN_REVERSE}
 
 //-------------------------------------------------------------------------
-//  contants dwFormatType of function CryptFormatObject when format a DN.:
+//  constants dwFormatType of function CryptFormatObject when format a DN.:
 //
 //  The following three values are defined in the section above:
 //  CRYPT_FORMAT_SIMPLE:    Just a simple string
@@ -3505,7 +3505,7 @@ const
   szOID_PKIX_POLICY_QUALIFIER_USERNOTICE = '1.3.6.1.5.5.7.2.2';
   {$EXTERNALSYM szOID_PKIX_POLICY_QUALIFIER_USERNOTICE}
 
-// OID for old qualifer
+// OID for old qualifier
 
   szOID_CERT_POLICIES_95_QUALIFIER1 = '2.16.840.1.113733.1.7.1.1';
   {$EXTERNALSYM szOID_CERT_POLICIES_95_QUALIFIER1}
@@ -4884,8 +4884,8 @@ const
 //
 //  The server should return a document with a Content-Type of
 //  application/x-netscape-revocation.  The document should contain
-//  a single ascii digit, '1' if the certificate is not curently valid,
-//  and '0' if it is curently valid.
+//  a single ascii digit, '1' if the certificate is not currently valid,
+//  and '0' if it is currently valid.
 //
 //  Note: for all of the URLs that include the certificate serial number,
 //  the serial number will be encoded as a string which consists of an even
@@ -6689,7 +6689,7 @@ type
 //
 //  Count of recipients in an ENVELOPED or SIGNED_AND_ENVELOPED message.
 //
-//  Count of key transport recepients.
+//  Count of key transport recipients.
 //
 //  The CMSG_CMS_RECIPIENT_COUNT_PARAM has the total count of
 //  recipients (it also includes key agree and mail list recipients).
@@ -6716,7 +6716,7 @@ type
 //  To get all the recipients, repetitively call CryptMsgGetParam, with
 //  dwIndex set to 0 .. RecipientCount - 1.
 //
-//  Only returns the key transport recepients.
+//  Only returns the key transport recipients.
 //
 //  The CMSG_CMS_RECIPIENT_INFO_PARAM returns all recipients.
 //
@@ -7999,7 +7999,7 @@ type
 //              stored. There are two predefined property IDs for a user
 //              certificate: CERT_KEY_PROV_HANDLE_PROP_ID and
 //              CERT_KEY_PROV_INFO_PROP_ID. The CERT_KEY_PROV_HANDLE_PROP_ID
-//              is a HCRYPTPROV handle to the private key assoicated
+//              is a HCRYPTPROV handle to the private key associated
 //              with the certificate. The CERT_KEY_PROV_INFO_PROP_ID contains
 //              information to be used to call
 //              CryptAcquireContext and CryptSetProvParam to get a handle
@@ -9839,7 +9839,7 @@ const
 //  CERT_FIND_ENHKEY_USAGE
 //
 //  Find a certificate having the szOID_ENHANCED_KEY_USAGE extension or
-//  the CERT_ENHKEY_USAGE_PROP_ID and matching the specified pszUsageIdentifers.
+//  the CERT_ENHKEY_USAGE_PROP_ID and matching the specified pszUsageIdentifiers.
 //
 //  pvFindPara points to a CERT_ENHKEY_USAGE data structure. If pvFindPara
 //  is NULL or CERT_ENHKEY_USAGE's cUsageIdentifier is 0, then, matches any
@@ -9847,7 +9847,7 @@ const
 //
 //  If the CERT_FIND_VALID_ENHKEY_USAGE_FLAG is set, then, only does a match
 //  for certificates that are valid for the specified usages. By default,
-//  the ceriticate must be valid for all usages. CERT_FIND_OR_ENHKEY_USAGE_FLAG
+//  the certificate must be valid for all usages. CERT_FIND_OR_ENHKEY_USAGE_FLAG
 //  can be set, if the certificate only needs to be valid for one of the
 //  specified usages. Note, CertGetValidUsages() is called to get the
 //  certificate's list of valid usages. Only the CERT_FIND_OR_ENHKEY_USAGE_FLAG
@@ -10147,7 +10147,7 @@ const
 //
 //  For CERT_KEY_IDENTIFIER_PROP_ID, if property doesn't already exist,
 //  first searches for the szOID_SUBJECT_KEY_IDENTIFIER extension. Next,
-//  does SHA1 hash of the certficate's SubjectPublicKeyInfo. pvData
+//  does SHA1 hash of the certificate's SubjectPublicKeyInfo. pvData
 //  points to the key identifier bytes. Normally, the length is 20 bytes.
 //
 //  For CERT_PUBKEY_ALG_PARA_PROP_ID, pvPara points to the ASN.1 encoded
@@ -10451,14 +10451,14 @@ const
 //
 //  Makes a copy of the encoded certificate before adding to the store.
 //
-//  dwAddDispostion specifies the action to take if the certificate
+//  dwAddDisposition specifies the action to take if the certificate
 //  already exists in the store. This parameter must be one of the following
 //  values:
 //    CERT_STORE_ADD_NEW
 //      Fails if the certificate already exists in the store. LastError
 //      is set to CRYPT_E_EXISTS.
 //    CERT_STORE_ADD_USE_EXISTING
-//      If the certifcate already exists, then, its used and if ppCertContext
+//      If the certificate already exists, then, its used and if ppCertContext
 //      is non-NULL, the existing context is duplicated.
 //    CERT_STORE_ADD_REPLACE_EXISTING
 //      If the certificate already exists, then, the existing certificate
@@ -10506,14 +10506,14 @@ function CertAddEncodedCertificateToStore(hCertStore: HCERTSTORE;
 //
 //  Makes a copy of the certificate context before adding to the store.
 //
-//  dwAddDispostion specifies the action to take if the certificate
+//  dwAddDisposition specifies the action to take if the certificate
 //  already exists in the store. This parameter must be one of the following
 //  values:
 //    CERT_STORE_ADD_NEW
 //      Fails if the certificate already exists in the store. LastError
 //      is set to CRYPT_E_EXISTS.
 //    CERT_STORE_ADD_USE_EXISTING
-//      If the certifcate already exists, then, its used and if ppStoreContext
+//      If the certificate already exists, then, its used and if ppStoreContext
 //      is non-NULL, the existing context is duplicated. Iterates
 //      through pCertContext's properties and only copies the properties
 //      that don't already exist. The SHA1 and MD5 hash properties aren't
@@ -10593,7 +10593,7 @@ const
 //  If hCertStore is NULL, creates a certificate, CRL or CTL context not
 //  residing in any store.
 //
-//  dwAddDispostion specifies the action to take if the certificate or CRL
+//  dwAddDisposition specifies the action to take if the certificate or CRL
 //  already exists in the store. See CertAddCertificateContextToStore for a
 //  list of and actions taken.
 //
@@ -10640,7 +10640,7 @@ function CertDeleteCertificateFromStore(pCertContext: PCCERT_CONTEXT): BOOL; std
 //
 //  Makes a copy of the encoded CRL before adding to the store.
 //
-//  dwAddDispostion specifies the action to take if the CRL
+//  dwAddDisposition specifies the action to take if the CRL
 //  already exists in the store. See CertAddEncodedCertificateToStore for a
 //  list of and actions taken.
 //
@@ -10666,7 +10666,7 @@ function CertAddEncodedCRLToStore(hCertStore: HCERTSTORE; dwCertEncodingType: DW
 //
 //  Makes a copy of the encoded CRL before adding to the store.
 //
-//  dwAddDispostion specifies the action to take if the CRL
+//  dwAddDisposition specifies the action to take if the CRL
 //  already exists in the store. See CertAddCertificateContextToStore for a
 //  list of and actions taken.
 //
@@ -10969,7 +10969,7 @@ type
 //  only match CTLs with the same usage identifiers. CTLs having additional
 //  usage identifiers aren't matched. For example, if only "1.2.3" is specified
 //  in CTL_FIND_USAGE_PARA, then, for a match, the CTL must only contain
-//  "1.2.3" and not any additional usage identifers.
+//  "1.2.3" and not any additional usage identifiers.
 //--------------------------------------------------------------------------
 
 //+-------------------------------------------------------------------------
@@ -10988,7 +10988,7 @@ type
 //
 //  Makes a copy of the encoded CTL before adding to the store.
 //
-//  dwAddDispostion specifies the action to take if the CTL
+//  dwAddDisposition specifies the action to take if the CTL
 //  already exists in the store. See CertAddEncodedCertificateToStore for a
 //  list of and actions taken.
 //
@@ -11014,7 +11014,7 @@ function CertAddEncodedCTLToStore(hCertStore: HCERTSTORE;
 //
 //  Makes a copy of the encoded CTL before adding to the store.
 //
-//  dwAddDispostion specifies the action to take if the CTL
+//  dwAddDisposition specifies the action to take if the CTL
 //  already exists in the store. See CertAddCertificateContextToStore for a
 //  list of and actions taken.
 //
@@ -11592,7 +11592,7 @@ function CertEnumSystemStoreLocation(dwFlags: DWORD; pvArg: Pointer;
 //      "ComputerName\ServiceName"
 //  Note, if only the ComputerName is specified, then, it must have either
 //  the leading "\\" backslashes or a trailing backslash. Otherwise, its
-//  interpretted as the ServiceName or UserName.
+//  interpreted as the ServiceName or UserName.
 //--------------------------------------------------------------------------
 
 function CertEnumSystemStore(dwFlags: DWORD; pvSystemStoreLocationPara: Pointer;
@@ -11935,7 +11935,7 @@ const
 //
 //  If CERT_VERIFY_ALLOW_MORE_USAGE_FLAG is set, then, the CTL may contain
 //  additional usage identifiers than specified by pSubjectUsage. Otherwise,
-//  the found CTL will contain the same usage identifers and no more.
+//  the found CTL will contain the same usage identifiers and no more.
 //
 //  CertVerifyCTLUsage will be implemented as a dispatcher to OID installable
 //  functions. First, it will try to find an OID function matching the first
@@ -12446,7 +12446,7 @@ function CertFindRDNAttr(pszObjId: LPCSTR; pName: PCERT_NAME_INFO): PCERT_RDN_AT
 //
 //  If the certificate doesn't have any intended key usage bytes, returns FALSE
 //  and *pbKeyUsage is zeroed. Otherwise, returns TRUE and up through
-//  cbKeyUsage bytes are copied into *pbKeyUsage. Any remaining uncopied
+//  cbKeyUsage bytes are copied into *pbKeyUsage. Any remaining unoccupied
 //  bytes are zeroed.
 //--------------------------------------------------------------------------
 
@@ -12987,7 +12987,7 @@ const
 //  as ascii hex and converted to a CERT_RDN_OCTET_STRING. Embedded whitespace
 //  is skipped (1.2.3 = # AB CD 01  is the same as 1.2.3=#ABCD01).
 //
-//  Whitespace surrounding the keys, object identifers and values is removed.
+//  Whitespace surrounding the keys, object identifiers and values is removed.
 //
 //  CERT_NAME_STR_COMMA_FLAG can be or'ed into dwStrType to only allow the
 //  "," as the RDN separator.
@@ -13589,7 +13589,7 @@ function CryptSignMessage(pSignPara: PCRYPT_SIGN_MESSAGE_PARA;
 //  the decoded content. Furthermore, if the message doesn't contain any
 //  content or signers, then, pcbDecoded must be set to NULL, to allow the
 //  pVerifyPara->pfnGetCertificate to be called. Normally, this would be
-//  the case when the signed message contains only certficates and CRLs.
+//  the case when the signed message contains only certificates and CRLs.
 //  If pcbDecoded is NULL and the message doesn't have the indicated signer,
 //  pfnGetCertificate is called with pSignerId set to NULL.
 //
@@ -13729,7 +13729,7 @@ function CryptDecryptAndVerifyMessageSignature(pDecryptPara: PCRYPT_DECRYPT_MESS
 //      CMSG_SIGNED_FLAG | CMSG_ENVELOPED_FLAG.
 //
 //  dwProvInnerContentType is only applicable when processing nested
-//  crytographic messages. When processing an outer crytographic message
+//  cryptographic messages. When processing an outer cryptographic message
 //  it must be set to 0. When decoding a nested cryptographic message
 //  its the dwInnerContentType returned by a previous CryptDecodeMessage
 //  of the outer message. The InnerContentType can be any of the CMSG types,
@@ -13881,7 +13881,7 @@ function CertAddEncodedCertificateToSystemStore(szCertStoreName: LPCTSTR;
 //
 //  IE 3.0 ASSUMPTION:
 //   The client certificates are in the "My" system store. The issuer
-//   cerificates may be in the "Root", "CA" or "My" system stores.
+//   certificates may be in the "Root", "CA" or "My" system stores.
 //--------------------------------------------------------------------------
 
 type
@@ -13925,7 +13925,7 @@ function FindCertsByIssuer(pCertChains: PCERT_CHAIN; var pcbCertChains: DWORD;
 //                        PCERT_BLOB, that is, a pointer to a CERT_BLOB
 //
 //  INPUT   dwExpectedContentTypeFlags:
-//                        Indicate the expected contenet type.
+//                        Indicate the expected content type.
 //                        Can be one of the following:
 //                              CERT_QUERY_CONTENT_FLAG_ALL  (the content can be any type)
 //                              CERT_QUERY_CONTENT_FLAG_CERT
@@ -14047,7 +14047,7 @@ const
   {$EXTERNALSYM CERT_QUERY_OBJECT_BLOB}
 
 //-------------------------------------------------------------------------
-//dwConentType for CryptQueryObject
+//dwContentType for CryptQueryObject
 //-------------------------------------------------------------------------
 
 //encoded single certificate
@@ -14111,7 +14111,7 @@ const
   {$EXTERNALSYM CERT_QUERY_CONTENT_PFX}
 
 //-------------------------------------------------------------------------
-//dwExpectedConentTypeFlags for CryptQueryObject
+//dwExpectedContentTypeFlags for CryptQueryObject
 //-------------------------------------------------------------------------
 
 //encoded single certificate
@@ -14783,7 +14783,7 @@ const
   {$EXTERNALSYM CRYPTPROTECT_DEFAULT_PROVIDER}
 
 //
-// CryptProtect PromptStruct dwPromtFlags
+// CryptProtect PromptStruct dwPromptFlags
 //
 //
 // prompt on unprotect
@@ -14859,9 +14859,9 @@ function CryptUnprotectData(pDataIn: PDATA_BLOB; ppszDataDescr: LPLPWSTR;
 // Builds a self-signed certificate and returns a PCCERT_CONTEXT representing
 // the certificate. A hProv must be specified to build the cert context.
 //
-// pSubjectIssuerBlob is the DN for the certifcate. If an alternate subject
+// pSubjectIssuerBlob is the DN for the certificate. If an alternate subject
 // name is desired it must be specified as an extension in the pExtensions
-// parameter. pSubjectIssuerBlob can NOT be NULL, so minimually an empty DN
+// parameter. pSubjectIssuerBlob can NOT be NULL, so minimally an empty DN
 // must be specified.
 //
 // By default:
@@ -14873,7 +14873,7 @@ function CryptUnprotectData(pDataIn: PDATA_BLOB; ppszDataDescr: LPLPWSTR;
 // pSignatureAlgorithm - will default to SHA1RSA
 // pStartTime will default to the current time
 // pEndTime will default to 1 year
-// pEntensions will be empty.
+// pExtensions will be empty.
 //
 // The returned PCCERT_CONTEXT will reference the private keys by setting the
 // CERT_KEY_PROV_INFO_PROP_ID. However, if this property is not desired specify the
@@ -15000,7 +15000,7 @@ type
 //+-------------------------------------------------------------------------
 //  Enumerate the Key Identifiers.
 //
-//  If pKeyIdentifier is NULL, enumerates all Key Identifers. Otherwise,
+//  If pKeyIdentifier is NULL, enumerates all Key Identifiers. Otherwise,
 //  calls the callback for the specified KeyIdentifier. If dwPropId is
 //  0, calls the callback with all the properties. Otherwise, only calls
 //  the callback with the specified property (cProp = 1).

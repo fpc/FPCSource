@@ -168,7 +168,7 @@ const
       IOCTL_SERVICE_STARTED    = (FILE_DEVICE_SERVICE shl 16) or (14 shl 2) or METHOD_BUFFERED or (FILE_ANY_ACCESS shl 14);
 
 //
-// Service is called with IOCTL_SERVICE_CAN_DEINIT immediatly before xxx_Deinit is called during DeregisterService.
+// Service is called with IOCTL_SERVICE_CAN_DEINIT immediately before xxx_Deinit is called during DeregisterService.
 // If xxx_IOControl returns TRUE and sets buffer in pBufOut to zero, service instance will remain loaded and
 // xxx_Deinit will not be called.
 //

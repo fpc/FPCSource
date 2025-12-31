@@ -77,7 +77,7 @@ uses
 // This gets GUI information out of context.  If you pass in a NULL thread ID,
 // we will get the 'global' information, using the foreground thread.  This
 // is guaranteed to be the real active window, focus window, etc.  Yes, you
-// could do it yourself by calling GetForegorundWindow, getting the thread ID
+// could do it yourself by calling GetForegroundWindow, getting the thread ID
 // of that window via GetWindowThreadProcessId, then passing the ID into
 // GetGUIThreadInfo().  However, that takes three calls and aside from being
 // a pain, anything could happen in the middle.  So passing in NULL gets
@@ -130,7 +130,7 @@ function GetWindowModuleFileName(hwnd: HWND; lpFileName: LPTSTR; cchFileName: UI
 //
 // This returns FALSE if the caller doesn't have permissions to do this
 // esp. if someone else is dorking with input.  I.E., if some other thread
-// disabled input, and thread 2 tries to diable/enable it, the call will
+// disabled input, and thread 2 tries to disable/enable it, the call will
 // fail since thread 1 has the cookie.
 //
 

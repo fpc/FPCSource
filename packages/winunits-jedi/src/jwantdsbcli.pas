@@ -310,7 +310,7 @@ Routine Description:
     [in]    hbc - backup context handle
     [in]    szAttachmentName - name of the attachment to be opened for read
     [in]    cbReadHintSize - suggested size in bytes that might be used during the
-                subsequent reads on this attachement
+                subsequent reads on this attachment
     [out]   pliFileSize - pointer to a large integer that would receive the size in
                 bytes of the given attachment
 Return Value:
@@ -357,7 +357,7 @@ Routine Description:
 
       DsBackupClose
         To be called by the application after it completes reading all the data in
-        the currently opened attachement.
+        the currently opened attachment.
 
   Arguments:
     [in]    hbc - backup context handle

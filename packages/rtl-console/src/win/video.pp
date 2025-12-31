@@ -494,7 +494,7 @@ begin
       OrigScreenSize := max(dwMaximumWindowSize.X,dwSize.X) * max(dwMaximumWindowSize.Y,dwSize.Y) * SizeOf (Char_Info);
       if OrigScreenSize > 0 then
        begin
-      { Register the curent video mode in reserved slot in System Modes}
+      { Register the current video mode in reserved slot in System Modes}
         SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
         SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
         SysVMD[SysVideoModeCount-1].Color:=true;

@@ -79,15 +79,15 @@ const
   {$EXTERNALSYM WM_DEVICECHANGE}
 
 (*
- * Broadcast message and receipient flags.
+ * Broadcast message and recipient flags.
  *
  * Note that there is a third "flag". If the wParam has:
  *
- * bit 15 on:   lparam is a pointer and bit 14 is meaningfull.
+ * bit 15 on:   lparam is a pointer and bit 14 is meaningful.
  * bit 15 off:  lparam is just a UNLONG data type.
  *
  * bit 14 on:   lparam is a pointer to an ASCIIZ string.
- * bit 14 off:  lparam is a pointer to a binary struture starting with
+ * bit 14 off:  lparam is a pointer to a binary structure starting with
  *              a dword describing the length of the structure.
  *)
 
@@ -348,7 +348,7 @@ const
  * lParam  = drive number of drive that is low on disk space (1-based)
  *
  * Message issued by VFAT when it detects that a drive it has mounted
- * has the remaning free space below a threshold specified by the
+ * has the remaining free space below a threshold specified by the
  * registry or by a disk space management application.
  * The broadcast is issued by VFAT ONLY when space is either allocated
  * or freed by VFAT.

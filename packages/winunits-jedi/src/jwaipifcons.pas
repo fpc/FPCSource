@@ -262,13 +262,13 @@ const
   {$EXTERNALSYM IF_TYPE_FRAMERELAY_MPI}
   IF_TYPE_X213                    = 93; // CCITT-ITU X213
   {$EXTERNALSYM IF_TYPE_X213}
-  IF_TYPE_ADSL                    = 94; // Asymmetric Digital Subscrbr Loop
+  IF_TYPE_ADSL                    = 94; // Asymmetric Digital Subscriber Loop
   {$EXTERNALSYM IF_TYPE_ADSL}
-  IF_TYPE_RADSL                   = 95; // Rate-Adapt Digital Subscrbr Loop
+  IF_TYPE_RADSL                   = 95; // Rate-Adapt Digital Subscriber Loop
   {$EXTERNALSYM IF_TYPE_RADSL}
   IF_TYPE_SDSL                    = 96; // Symmetric Digital Subscriber Loop
   {$EXTERNALSYM IF_TYPE_SDSL}
-  IF_TYPE_VDSL                    = 97; // Very H-Speed Digital Subscrb Loop
+  IF_TYPE_VDSL                    = 97; // Very H-Speed Digital Subscribe Loop
   {$EXTERNALSYM IF_TYPE_VDSL}
   IF_TYPE_ISO88025_CRFPRINT       = 98; // ISO 802.5 CRFP
   {$EXTERNALSYM IF_TYPE_ISO88025_CRFPRINT}
@@ -354,7 +354,7 @@ const
   {$EXTERNALSYM IF_TYPE_DIGITALPOWERLINE}
   IF_TYPE_MEDIAMAILOVERIP         = 139; // Multimedia Mail over IP
   {$EXTERNALSYM IF_TYPE_MEDIAMAILOVERIP}
-  IF_TYPE_DTM                     = 140; // Dynamic syncronous Transfer Mode
+  IF_TYPE_DTM                     = 140; // Dynamic synchronous Transfer Mode
   {$EXTERNALSYM IF_TYPE_DTM}
   IF_TYPE_DCN                     = 141; // Data Communications Network
   {$EXTERNALSYM IF_TYPE_DCN}

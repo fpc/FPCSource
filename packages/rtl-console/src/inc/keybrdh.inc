@@ -52,7 +52,7 @@ type
   out which one was pressed (Gray+ and Simple+). If you need to know which
   was pressed, you'll need to use the untranslated keycodes, which is system
   dependent. System dependent constants may be defined to cover those, with
-  possibily having the same name (but different value). }
+  possibly having the same name (but different value). }
 
   TEnhancedShiftStateElement = (
     essShift,             { either Left or Right Shift is pressed }

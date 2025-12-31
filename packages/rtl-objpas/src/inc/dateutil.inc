@@ -378,7 +378,7 @@ Function RecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHou
 Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; out AResult: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
-    Comparision of date/time
+    Comparison of date/time
   ---------------------------------------------------------------------}
 
 Function CompareDateTime(const A, B: TDateTime): TValueRelationship;
@@ -2163,7 +2163,7 @@ begin
 end;
 
 { ---------------------------------------------------------------------
-    Comparision of date/time
+    Comparison of date/time
   ---------------------------------------------------------------------}
 
 

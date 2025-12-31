@@ -109,7 +109,7 @@ function is EnumProjectsEx.
 function EnumProjects(lpEnumProc:PROJECTS_ENUMPROC; dwOid:DWORD; dwFlags:DWORD; lParam:LPARAM):longint; external Note_prjDLL name 'EnumProjects';
 
 {*****************************************************************************
-EnumProjectsFiles	Exported API: Enumaretes all files in a project on the
+EnumProjectsFiles	Exported API: Enumerates all files in a project on the
 					specified file system.
 
 PARAMETERS:
@@ -289,7 +289,7 @@ function EnumProjectsEx(pfnEnumProc:PROJECTS_ENUMPROC_EX;
 
 
 {*****************************************************************************
-EnumProjectsFiles	Exported API: Enumaretes all files in a project on the
+EnumProjectsFiles	Exported API: Enumerates all files in a project on the
 					specified file system.
 
 PARAMETERS:

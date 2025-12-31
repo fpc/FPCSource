@@ -82,7 +82,7 @@ type
     counter: TXSyncCounter;       { counter to trigger on }
     value_type: TXSyncValueType;  { absolute/relative }
     wait_value: TXSyncValue;      { value to compare counter to }
-    test_type: TXSyncTestType;    { pos/neg comparison/transtion }
+    test_type: TXSyncTestType;    { pos/neg comparison/transition }
   end;
 
   PXSyncWaitCondition = ^TXSyncWaitCondition;

@@ -249,7 +249,7 @@ type
 //  iPartId             - part number to retrieve size for
 //  iStateId            - state number (of the part)
 //  prc                 - (optional) rect for part drawing destination
-//  eSize               - the type of size to be retreived
+//  eSize               - the type of size to be retrieved
 //  psz                 - receives the specified size of the part
 //-------------------------------------------------------------------------
 
@@ -999,7 +999,7 @@ function GetCurrentThemeName(pszThemeFileName: LPWSTR; cchMaxNameChars: Integer;
 //                        localized version of the property value is returned.
 //
 //  pszThemeFileName    - filename of the theme file to query
-//  pszPropertyName     - name of the string property to retreive a value for
+//  pszPropertyName     - name of the string property to retrieve a value for
 //  pszValueBuff        - receives the property string value
 //  cchMaxValChars      - max chars allowed in pszValueBuff
 //---------------------------------------------------------------------------
@@ -1024,7 +1024,7 @@ function GetThemeDocumentationProperty(pszThemeName, pszPropertyName: LPCWSTR;
 //      All functions in the Theme API not returning an HRESULT (THEMEAPI_)
 //      use the WIN32 function "SetLastError()" to record any call failures.
 //
-//      To retreive the error code of the last failure on the
+//      To retrieve the error code of the last failure on the
 //      current thread for these type of API's, use the WIN32 function
 //      "GetLastError()".
 //
@@ -1078,7 +1078,7 @@ const
   DTBG_COMPUTINGREGION = $00000010;   // TRUE if calling to compute region
   {$EXTERNALSYM DTBG_COMPUTINGREGION}
 
-  DTBG_MIRRORDC        = $00000020;       // assume the hdc is mirrorred and
+  DTBG_MIRRORDC        = $00000020;       // assume the hdc is mirrored and
                                           // flip images as appropriate (currently
                                           // only supported for bgtype=imagefile)
   {$EXTERNALSYM DTBG_MIRRORDC}

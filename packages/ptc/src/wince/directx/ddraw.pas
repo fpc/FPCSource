@@ -43,7 +43,7 @@ uses
 
 
 // Other components use this define to tell if they have the DirectDraw
-// defintitions presents or if they have to re-define stuff.
+// definitions presents or if they have to re-define stuff.
 
 //#define __DDRAW_INCLUDED__
 
@@ -60,7 +60,7 @@ const
   IID_IDirectDrawGammaControl: TGuid = '{69C11C3E-B46B-11D1-AD7A-00C04FC29B4E}';
 
 (*
- * Forward interface declerations
+ * Forward interface declarations
  *)
 
 type
@@ -193,7 +193,7 @@ type
     dwMinOverlayStretch: DWORD;	// minimum overlay stretch factor multiplied by 1000, eg 1000 == 1.0, 1300 == 1.3
     dwMaxOverlayStretch: DWORD;	// maximum overlay stretch factor multiplied by 1000, eg 1000 == 1.0, 1300 == 1.3
 
-    // Miscalenous capabilies
+    // Miscellaneous capabilities
 
     dwMiscCaps: DWORD;
 

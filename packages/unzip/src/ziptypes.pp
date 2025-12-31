@@ -121,7 +121,7 @@ TYPE
          bytes written to the file are reported in "Retcode"; this is
          valuable for updating any progress bar)
 
-    file_completed   = finshed  unzip a file (from archive)
+    file_completed   = finished  unzip a file (from archive)
     file_Failure     = could not extract the file (from archive)
 }
 

@@ -181,7 +181,7 @@ var
 begin
 //  buf:='';
 
-  // Currrency
+  // Currency
   InitBuffer;
   res:=__locale_GetCurrencySymbol(@Buf[1],@len);
   if res=ELocale_SUCCESS then

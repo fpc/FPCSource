@@ -374,7 +374,7 @@ type
     // The trust type and attributes of this trust.
     //
     // If NETLOGON_DOMAIN_DIRECTLY_TRUSTED is not set,
-    //  these value are infered.
+    //  these value are inferred.
     //
     TrustType: ULONG;
     TrustAttributes: ULONG;

@@ -119,7 +119,7 @@ unit sdlutils;
   Ángel Eduardo García Hernández to fix a colour issue with the function. Many thanks.
 
   Revision 1.2  2004/02/14 00:23:39  savage
-  As UNIX is defined in jedi-sdl.inc this will be used to check linux compatability as well. Units have been changed to reflect this change.
+  As UNIX is defined in jedi-sdl.inc this will be used to check linux compatibility as well. Units have been changed to reflect this change.
 
   Revision 1.1  2004/02/05 00:08:20  savage
   Module 1.0 release

@@ -1251,7 +1251,7 @@ const
 
 
 //*****************************************
-// Structure for Globaled candidate proc
+// Structure for Globalized candidate proc
 //*****************************************
 type
      _MYCANDLIST = record
@@ -1306,7 +1306,7 @@ const
 // Edit control is in composition mode, but not in conversion mode.
       IMCR_COMPOSITION            = $0004;
 
-// For set cursor posision on composition string ( Internal )
+// For set cursor position on composition string ( Internal )
       IME_ESC_SETCURSOR           = $100A;
 
 

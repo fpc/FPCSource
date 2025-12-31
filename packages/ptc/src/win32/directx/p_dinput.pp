@@ -3557,7 +3557,7 @@ const
   DIBUTTON_DRIVINGC_PAUSE                 = $020044FC; { Start / Pause / Restart game }
 
 (*--- Driving Simulator - Tank
-      Combat from withing a tank is primary objective  ---*)
+      Combat from within a tank is primary objective  ---*)
   DIVIRTUAL_DRIVING_TANK                  = $03000000;
   DIAXIS_DRIVINGT_STEER                   = $03008A01; { Turn tank left / right }
   DIAXIS_DRIVINGT_BARREL                  = $03010202; { Raise / lower barrel }
@@ -4656,7 +4656,7 @@ const
 
 (*
  * Informs the joystick driver that the configuration has been changed
- * and should be reloaded from the registery.
+ * and should be reloaded from the registry.
  * dwFlags is reserved and should be set to zero
  *)
 //WINMMAPI MMRESULT WINAPI joyConfigChanged( DWORD dwFlags );

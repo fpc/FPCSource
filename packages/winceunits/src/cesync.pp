@@ -326,9 +326,9 @@ const
 
 type
   IReplObjHandler = interface(IUnknown)
-    //  Called everytime when an object is about to be serialized/deserialized
+    //  Called every time when an object is about to be serialized/deserialized
     function Setup(pSetup: PREPLSETUP): HRESULT; stdcall;
-    //  Called everytime when it's the time to clean up the serializer/deserializer for the object
+    //  Called every time when it's the time to clean up the serializer/deserializer for the object
     function Reset(pSetup: PREPLSETUP): HRESULT; stdcall;
     // A request to get a data packet (serialize the object)
     // handler should pass back the buffer along with the size bytes

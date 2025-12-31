@@ -57,7 +57,7 @@ it has a TExpression as argument.
 
 Besides that it gets the pnode from the TExpression, it sets the
 TExpression.Evaluator to self, and a flag to set in the TExpression that its
-assiociated TEvaluator is up to date with the TExpression.
+associated TEvaluator is up to date with the TExpression.
 }
 
 begin

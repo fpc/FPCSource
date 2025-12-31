@@ -127,7 +127,7 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
   begin
     Result := '';
     l := Length(s);
-    //possible flag, with specifier or modifier - glibc exension
+    //possible flag, with specifier or modifier - glibc extension
     while (i<=l) and (s[i] in ['0'..'9', '_', '-', '^', '#', 'E', 'O']) do begin
       Result := Result + s[i];
       inc(i);

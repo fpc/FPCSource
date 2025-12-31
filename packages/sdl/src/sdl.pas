@@ -96,7 +96,7 @@ unit sdl;
 {                           As most games will need it.                        }
 {                                                                              }
 {   April    02 2001 - DL : Added SDL_getenv.h definitions and tested version  }
-{                           1.2.0 compatability.                               }
+{                           1.2.0 compatibility.                               }
 {                                                                              }
 {   March    13 2001 - MT : Added Linux compatibility.                         }
 {                                                                              }
@@ -216,7 +216,7 @@ unit sdl;
   forgot to apply Michalis Kamburelis' patch to the implementation section. now fixed
 
   Revision 1.14  2004/12/23 23:42:18  savage
-  Applied Patches supplied by Michalis Kamburelis ( THANKS! ), for greater FreePascal compatability.
+  Applied Patches supplied by Michalis Kamburelis ( THANKS! ), for greater FreePascal compatibility.
 
   Revision 1.13  2004/09/30 22:31:59  savage
   Updated with slightly different header comments
@@ -250,7 +250,7 @@ unit sdl;
   SDL_GetEnv Fix so that it is not define twice for FPC. Thanks to Rene Hugentobler for pointing out this bug,
 
   Revision 1.3  2004/02/18 22:35:51  savage
-  Brought sdl.pas up to 1.2.7 compatability
+  Brought sdl.pas up to 1.2.7 compatibility
   Thus...
   Added SDL_GL_STEREO,
       SDL_GL_MULTISAMPLEBUFFERS,
@@ -425,7 +425,7 @@ const
   SDLLibName = 'powersdl.library';
 {$ENDIF}
 
-  // SDL_verion.h constants
+  // SDL_version.h constants
   // Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL
   SDL_MAJOR_VERSION = 1;
 {$EXTERNALSYM SDL_MAJOR_VERSION}
@@ -1704,7 +1704,7 @@ type
     ref_count: Integer; // Reference count for multiple opens
   end;
 
-  // SDL_verion.h types
+  // SDL_version.h types
   PSDL_version = ^TSDL_version;
   TSDL_version = record
     major: UInt8;
@@ -2215,7 +2215,7 @@ type
 
 PSDL_semaphore = ^TSDL_semaphore;
 {$IFDEF WINDOWS}
-  // WINDOWS or Machintosh
+  // WINDOWS or Macintosh
   TSDL_semaphore = record
     id: THANDLE;
     count: UInt32;
@@ -3596,7 +3596,7 @@ function SDL_GL_GetProcAddress(procname: PAnsiChar) : Pointer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_GetProcAddress'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GL_GetProcAddress}
 
-{ Set an attribute of the OpenGL subsystem before intialization. }
+{ Set an attribute of the OpenGL subsystem before initialization. }
 function SDL_GL_SetAttribute(attr: TSDL_GLAttr; value: Integer) : Integer;
 cdecl; external {$IFNDEF NDS}{$IFDEF __GPC__}name 'SDL_GL_SetAttribute'{$ELSE} SDLLibName{$ENDIF __GPC__}{$ENDIF};
 {$EXTERNALSYM SDL_GL_SetAttribute}

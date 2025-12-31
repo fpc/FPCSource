@@ -980,7 +980,7 @@ const
       PIMPR_CONTACT_TYPE                    = (CEVT_UI4 shl 16) or $0102; // ContactType: The type of the contact (Device or SIM contact).
       PIMPR_SIM_PHONE                       = (CEVT_LPWSTR shl 16) or $0003; // SIMPhone: The contact's telephone number stored on the telephone's SIM card.
 
-// Alowable values for PIMPR_CONTACT_TYPE
+// Allowable values for PIMPR_CONTACT_TYPE
 type
      _PIMPR_CONTACTTYPE = (PIMPR_CONTACTTYPE_DEVICE := 0,
                            PIMPR_CONTACTTYPE_SIM := 1);

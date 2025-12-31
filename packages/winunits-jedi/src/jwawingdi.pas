@@ -2942,7 +2942,7 @@ const
   {$EXTERNALSYM CC_PIE}
   CC_CHORD      = 4; // Can do chord arcs
   {$EXTERNALSYM CC_CHORD}
-  CC_ELLIPSES   = 8; // Can do ellipese
+  CC_ELLIPSES   = 8; // Can do ellipsis
   {$EXTERNALSYM CC_ELLIPSES}
   CC_WIDE       = 16; // Can do wide lines
   {$EXTERNALSYM CC_WIDE}
@@ -3032,7 +3032,7 @@ const
   {$EXTERNALSYM TC_SA_CONTIN}
   TC_EA_DOUBLE    = $00000200; // Can do EmboldenAbility   DOUBLE
   {$EXTERNALSYM TC_EA_DOUBLE}
-  TC_IA_ABLE      = $00000400; // Can do ItalisizeAbility  ABLE
+  TC_IA_ABLE      = $00000400; // Can do ItalicizeAbility  ABLE
   {$EXTERNALSYM TC_IA_ABLE}
   TC_UA_ABLE      = $00000800; // Can do UnderlineAbility  ABLE
   {$EXTERNALSYM TC_UA_ABLE}
@@ -3730,7 +3730,7 @@ const
 
 //#if(WINVER >= 0x0501)
 
-// DEVMODE dmDisplayOrientation specifiations
+// DEVMODE dmDisplayOrientation specifications
 
   DMDO_DEFAULT   = 0;
   {$EXTERNALSYM DMDO_DEFAULT}
@@ -3741,7 +3741,7 @@ const
   DMDO_270       = 3;
   {$EXTERNALSYM DMDO_270}
 
-// DEVMODE dmDisplayFixedOutput specifiations
+// DEVMODE dmDisplayFixedOutput specifications
 
   DMDFO_DEFAULT  = 0;
   {$EXTERNALSYM DMDFO_DEFAULT}
@@ -5118,7 +5118,7 @@ const
 
 // The actual size of the DESIGNVECTOR and ENUMLOGFONTEXDV structures
 // is determined by dvNumAxes,
-// MM_MAX_NUMAXES only detemines the maximal size allowed
+// MM_MAX_NUMAXES only determines the maximal size allowed
 
 const
   MM_MAX_AXES_NAMELEN = 16;
@@ -5215,7 +5215,7 @@ type
 
 // The actual size of the AXESLIST and ENUMTEXTMETRIC structure is
 // determined by axlNumAxes,
-// MM_MAX_NUMAXES only detemines the maximal size allowed
+// MM_MAX_NUMAXES only determines the maximal size allowed
 
   PEnumLogFontExDVA = ^TEnumLogFontExDVA;
   tagENUMLOGFONTEXDVA = record
@@ -5521,7 +5521,7 @@ type
   TBlendFunction = _BLENDFUNCTION;
 
 //
-// currentlly defined blend function
+// currently defined blend function
 //
 
 const

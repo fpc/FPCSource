@@ -255,7 +255,7 @@ Const
 	IPPROTO_IGRP		= 88; 		{ Cisco/GXS IGRP }
 	IPPROTO_OSPFIGP		= 89; 		{ OSPFIGP }
 	IPPROTO_SRPC		= 90; 		{ Strite RPC protocol }
-	IPPROTO_LARP		= 91; 		{ Locus Address Resoloution }
+	IPPROTO_LARP		= 91; 		{ Locus Address Resolution }
 	IPPROTO_MTP		= 92; 		{ Multicast Transport }
 	IPPROTO_AX25		= 93; 		{ AX.25 Frames }
 	IPPROTO_IPEIP		= 94; 		{ IP encapsulated in IP }
@@ -283,7 +283,7 @@ Const
  }
 	IP_OPTIONS		= 1 ;   { buf/ip_opts; set/get IP options }
 	IP_HDRINCL		= 2 ;   { int; header is included with data }
-	IP_TOS			= 3 ;   { int; IP type of service and preced. }
+	IP_TOS			= 3 ;   { int; IP type of service and precede. }
 	IP_TTL			= 4 ;   { int; IP time to live }
 	IP_RECVOPTS		= 5 ;   { bool; receive all IP opts w/dgram }
 	IP_RECVRETOPTS		= 6 ;   { bool; receive IP opts for response }
@@ -313,7 +313,7 @@ Const
 	IP_RSVP_OFF		= 16;   { disable RSVP in kernel }
 	IP_RSVP_VIF_ON		= 17;   { set RSVP per-vif socket }
 	IP_RSVP_VIF_OFF		= 18;   { unset RSVP per-vif socket }
-	IP_PORTRANGE		= 19;   { int; range to choose for unspec port }
+	IP_PORTRANGE		= 19;   { int; range to choose for unspecified port }
 	IP_RECVIF		= 20;   { bool; receive reception if w/dgram }
 
 { for IPSEC }
@@ -353,7 +353,7 @@ Const
 (* Values not yet defined under Haiku (see netinet/in.h)
 	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
 	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
-	IPV6_PORTRANGE		= 14; { int; range to choose for unspec port }
+	IPV6_PORTRANGE		= 14; { int; range to choose for unspecified port }
 
 	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }	
  	IPV6_HOPLIMIT           = 47; { int; send hop limit }

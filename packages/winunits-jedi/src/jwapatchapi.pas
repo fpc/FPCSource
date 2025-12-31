@@ -390,7 +390,7 @@ function ApplyPatchToFileByHandlesEx(PatchFileHandle: HANDLE; OldFileHandle: HAN
 //  foo.dll files.  Rather than creating a single large patch file that can
 //  update any of the three older foo.dll files, three separate smaller patch
 //  files can be created and "named" according to the patch signature of the
-//  old file.  Then the patch applyer application can determine at runtime
+//  old file.  Then the patch applier application can determine at runtime
 //  which of the three foo.dll patch files is necessary given the specific
 //  foo.dll to be updated.  If patch files are being downloaded over a slow
 //  network connection (Internet over a modem), this signature scheme provides

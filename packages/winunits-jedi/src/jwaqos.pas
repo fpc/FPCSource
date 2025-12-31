@@ -249,7 +249,7 @@ const
 //  will be demoted to less than best-effort priority.
 //
 // TC_NONCONF_SHAPE - TokenRate must be specified. Non-conforming
-//  packets will be retianed in the packet shaper until they become
+//  packets will be retained in the packet shaper until they become
 //  conforming.
 //
 // TC_NONCONF_DISCARD - TokenRate must be specified. Non-conforming

@@ -73,7 +73,7 @@ interface
        EventThreadHandle : Handle;
        EventThreadID : DWord;
 
-       { true, if the event handler should be stoped }
+       { true, if the event handler should be stopped }
        ExitEventHandleThread : boolean;
 
     Function GetMouseEventHandler : TEventProcedure;

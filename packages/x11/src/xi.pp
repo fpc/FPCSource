@@ -52,9 +52,9 @@ SOFTWARE.
 
         Pascal Convertion was made by Ido Kannner - kanerido@actcom.net.il
 
-Histroy:
+History:
         2004/10/15 - Fixed a bug of accessing second based records by removing "paced record" and chnaged it to
-                     "reocrd" only.
+                     "record" only.
         2004/10/07 - Removed the "uses X;" line. The unit does not need it.
         2004/10/03 - Conversion from C header to Pascal unit.
 }

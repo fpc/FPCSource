@@ -351,7 +351,7 @@ const
   SIOCSIFSETSIG = (Ord('i') SHL 8) OR 25;
   SIOCSIFCLRSIG = (Ord('i') SHL 8) OR 26;
   SIOCSIFBRD    = (Ord('i') SHL 8) OR 27; { SINGLE-rt bcst. using old # for bkw cmpt }
-  SIOCSIFALLRTB = (Ord('i') SHL 8) OR 63; { added to configure all-route broadcst }
+  SIOCSIFALLRTB = (Ord('i') SHL 8) OR 63; { added to configure all-route broadcast }
 
   SIOCGIFLOAD     =(Ord('i') SHL 8) OR 27;
   SIOCSIFFILTERSRC=(Ord('i') SHL 8) OR 28;
@@ -387,7 +387,7 @@ const
 
 
 {$IFDEF SLBOOTP}
-  SIOCGUNIT     = (Ord('i') SHL 8) OR 70;    { Used to retreive unit number on }
+  SIOCGUNIT     = (Ord('i') SHL 8) OR 70;    { Used to retrieve unit number on }
                                              { serial interface }
 {$ENDIF}
 
@@ -546,7 +546,7 @@ const
   IP_ADD_MEMBERSHIP     = 5;   // ip_mreq; add an IP group membership
   IP_DROP_MEMBERSHIP    = 6;   // ip_mreq; drop an IP group membership
   IP_HDRINCL            = 7;   // int; header is included with data
-  IP_TOS                = 8;   // int; IP type of service and preced.
+  IP_TOS                = 8;   // int; IP type of service and precede.
   IP_TTL                = 9;   // int; IP time to live
   IP_RECVOPTS           = 10;  // bool; receive all IP opts w/dgram
   IP_RECVRETOPTS        = 11;  // bool; receive IP opts for response

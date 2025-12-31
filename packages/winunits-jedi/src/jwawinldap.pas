@@ -951,7 +951,7 @@ const
 //
 // To retrieve information on an secure connection, a pointer to a
 // SecPkgContext_connectionInfo structure (defined in schnlsp.h) must be
-// passed in. On success, it is filled with relevent security information.
+// passed in. On success, it is filled with relevant security information.
 //
 
   {$EXTERNALSYM LDAP_OPT_SSL_INFO}
@@ -1210,7 +1210,7 @@ function ldap_check_filter(ld: PLDAP; SearchFilter: PAnsiChar): ULONG; cdecl;
 //  multi-thread: ldap_modify calls are not safe in that the message number
 //                is returned rather than the return code.  You have to look
 //                at the connection block in an error case and the return code
-//                may be overwritten by another thread inbetween.
+//                may be overwritten by another thread in between.
 //
 //                Use ldap_modify_ext instead, as these are thread safe.
 //
@@ -1285,7 +1285,7 @@ function ldap_modify_ext_s(ld: PLDAP; dn: PAnsiChar; var mods: PLDAPMod;
 //                the message number is returned rather than the return code.
 //                You have to look   at the connection block in an error case
 //                and the return code may be overwritten by another thread
-//                inbetween.
+//                in between.
 //
 //                Use ldap_rename_ext instead, as these are thread safe.
 //
@@ -1379,7 +1379,7 @@ function ldap_rename_ext_s(ld: PLDAP;
 //  multi-thread: ldap_add calls are not safe in that the message number
 //                is returned rather than the return code.  You have to look
 //                at the connection block in an error case and the return code
-//                may be overwritten by another thread inbetween.
+//                may be overwritten by another thread in between.
 //
 //                Use ldap_add_ext instead, as these are thread safe.
 //
@@ -1486,7 +1486,7 @@ function ldap_compare_ext_s(ld: PLDAP;
 //  multi-thread: ldap_delete calls are not safe in that the message number
 //                is returned rather than the return code.  You have to look
 //                at the connection block in an error case and the return code
-//                may be overwritten by another thread inbetween.
+//                may be overwritten by another thread in between.
 //
 //                Use ldap_delete_ext instead, as these are thread safe.
 //
@@ -1531,7 +1531,7 @@ function ldap_delete_ext_s(ld: PLDAP; dn: PAnsiChar;
   var ServerControls, ClientControls: PLDAPControl): ULONG; cdecl;
 
 //
-//  Give up on a request.  No guarentee that it got there as there is no
+//  Give up on a request.  No guarantee that it got there as there is no
 //  response from the server.
 //
 

@@ -604,7 +604,7 @@ type
 
     //
     // Returns the attributes received in the RADIUS request and any internal
-    // attributes describing the request state. The extenstion can modify the
+    // attributes describing the request state. The extension can modify the
     // request attributes. For example, when IAS is acting as a RADIUS proxy, an
     // extension could filter which attributes are forwarded to a remote RADIUS
     // server.

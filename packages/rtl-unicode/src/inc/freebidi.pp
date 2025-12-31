@@ -43,14 +43,14 @@ function VCharOf(Src:TString; vp:Integer; dir:TDirection):TCharacter;
 procedure VInsert(const Src:TString; var Dest:TString; vp:Integer; pDir:TDirection);
 {Deletes a string into another paying attention of RTL/LTR direction}
 procedure VDelete(var str:TString; vp, len:Integer; pDir:TDirection);
-{Resturns a sub string of source string}
+{Returns a sub string of source string}
 //function VCopy(const Src:TString; vStart, vWidth:Integer):TString;
-{Resturns the visual image of current string}
+{Returns the visual image of current string}
 function VStr(const Src:TString; pDir:TDirection):TString;
 {****************************Helper routines***********************************}
 {Returns direction of a character}
 function DirectionOf(Character:TCharacter):TDirection;
-{Returns contextual direction of caracter in a string}
+{Returns contextual direction of character in a string}
 function DirectionOf(Src:TString; lp:Integer; pDir:TDirection):TDirection;
 {Inserts a AnsiChar as if it was typed using keyboard in the most user friendly way.
 Returns the new cursor position after insersion depending on the new visual text}

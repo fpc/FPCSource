@@ -786,7 +786,7 @@ type
      end;
    {$elseif defined(Solaris)}
      PSEM = ^TSEM;
-     TSEM = record end; // opague
+     TSEM = record end; // opaque
 
      PSEMid_ds = ^TSEMid_ds;
      TSEMid_ds = record

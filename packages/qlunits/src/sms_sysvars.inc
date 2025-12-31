@@ -65,7 +65,7 @@ Type
     sys_rtcf: Word;     { Real time fractional, count down [SMS] }
     sys_rand: Word;     { RANDom number }
 
-    sys_pict: Word;     { Polling Interupt CounT }
+    sys_pict: Word;     { Polling Interrupt CounT }
     sys_dtyp: Byte;     { Display TYPe (0=normal, 1=TV 625, 2=TV 525) }
     sys_dfrz: Byte;     { Display FRoZen (T or F) }
     sys_qlmr: Byte;     { QL Master chip Register value (Copy of MC_STAT) }

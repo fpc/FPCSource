@@ -430,7 +430,7 @@ begin
 {$ifndef NOGPM}
   if PollMouseEvent(ME) then
    begin
-     { Remove mouse event, we are only interrested in
+     { Remove mouse event, we are only interested in
        the X,Y so all other events can be thrown away }
      GetMouseEvent(ME);
      SysGetMouseX:=ME.X
@@ -454,7 +454,7 @@ begin
 {$ifndef NOGPM}
   if PollMouseEvent(ME) then
    begin
-     { Remove mouse event, we are only interrested in
+     { Remove mouse event, we are only interested in
        the X,Y so all other events can be thrown away }
      GetMouseEvent(ME);
      SysGetMouseY:=ME.Y
@@ -510,7 +510,7 @@ begin
 {$ifndef NOGPM}
   if PollMouseEvent(ME) then
    begin
-     { Remove mouse event, we are only interrested in
+     { Remove mouse event, we are only interested in
        the buttons so all other events can be thrown away }
      GetMouseEvent(ME);
      SysGetMouseButtons:=ME.Buttons;

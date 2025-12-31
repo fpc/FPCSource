@@ -103,7 +103,7 @@ Const
     SFGAO_HASSUBFOLDER      = $80000000;     // may contain children with SFGAO_FOLDER
     SFGAO_CONTENTSMASK      = $80000000;
     SFGAO_VALIDATE          = $01000000;     // invalidate cached information
-    SFGAO_REMOVABLE         = $02000000;     // is this removeable media?
+    SFGAO_REMOVABLE         = $02000000;     // is this removable media?
     SFGAO_COMPRESSED        = $04000000;     // Object is compressed (use alt color)
     SFGAO_BROWSABLE         = $08000000;     // supports IShellFolder, but only implements CreateViewObject() (non-folder view)
     SFGAO_NONENUMERATED     = $00100000;     // is a non-enumerated object
@@ -265,7 +265,7 @@ Const
     CSIDL_COMMON_DESKTOPDIRECTORY   = $0019;        // All Users\Desktop
     CSIDL_APPDATA                   = $001a;        // <user name>\Application Data
     CSIDL_PRINTHOOD                 = $001b;        // <user name>\PrintHood
-    CSIDL_LOCAL_APPDATA             = $001c;        // <user name>\Local Settings\Applicaiton Data (non roaming)
+    CSIDL_LOCAL_APPDATA             = $001c;        // <user name>\Local Settings\Application Data (non roaming)
     CSIDL_ALTSTARTUP                = $001d;        // non localized startup
     CSIDL_COMMON_ALTSTARTUP         = $001e;        // non localized common startup
     CSIDL_COMMON_FAVORITES          = $001f;
@@ -290,12 +290,12 @@ Const
     CSIDL_COMMON_MUSIC              = $0035;        // All Users\My Music
     CSIDL_COMMON_PICTURES           = $0036;        // All Users\My Pictures
     CSIDL_COMMON_VIDEO              = $0037;        // All Users\My Video
-    CSIDL_RESOURCES                 = $0038;        // Resource Direcotry
-    CSIDL_RESOURCES_LOCALIZED       = $0039;        // Localized Resource Direcotry
+    CSIDL_RESOURCES                 = $0038;        // Resource Directory
+    CSIDL_RESOURCES_LOCALIZED       = $0039;        // Localized Resource Directory
     CSIDL_COMMON_OEM_LINKS          = $003a;        // Links to All Users OEM specific apps
     CSIDL_CDBURN_AREA               = $003b;        // USERPROFILE\Local Settings\Application Data\Microsoft\CD Burning
 // unused                               = $003c
-    CSIDL_COMPUTERSNEARME           = $003d;        // Computers Near Me (computered from Workgroup membership)
+    CSIDL_COMPUTERSNEARME           = $003d;        // Computers Near Me (computed from Workgroup membership)
 
     CSIDL_FLAG_CREATE               = $8000;        // combine with CSIDL_ value to force folder creation in SHGetFolderPath()
     CSIDL_FLAG_DONT_VERIFY          = $4000;        // combine with CSIDL_ value to return an unverified folder path
@@ -308,7 +308,7 @@ Const
 
     FCS_FLAG_DRAGDROP           = 2;
 
-// Mask which values have been retreived or being set.
+// Mask which values have been retrieved or being set.
     FCSM_VIEWID                 = $00000001;
     FCSM_WEBVIEWTEMPLATE        = $00000002;
     FCSM_INFOTIP                = $00000004;
@@ -378,7 +378,7 @@ Const
 
     PROGDLG_NORMAL          = $00000000;      // default normal progress dlg behavior
     PROGDLG_MODAL           = $00000001;      // the dialog is modal to its hwndParent (default is modeless)
-    PROGDLG_AUTOTIME        = $00000002;      // automatically updates the "Line3" text with the "time remaining" (you cant call SetLine3 if you passs this!)
+    PROGDLG_AUTOTIME        = $00000002;      // automatically updates the "Line3" text with the "time remaining" (you cant call SetLine3 if you pass this!)
     PROGDLG_NOTIME          = $00000004;      // we dont show the "time remaining" if this is set. We need this if dwTotal < dwCompleted for sparse files
     PROGDLG_NOMINIMIZE      = $00000008;      // Do not have a minimize button in the caption bar.
     PROGDLG_NOPROGRESSBAR   = $00000010;      // Don't display the progress bar
@@ -810,7 +810,7 @@ Const
     REST_NOSMBALLOONTIP             = $40000042;   // No Start Menu Balloon Tip
     REST_NOSMHELP                   = $40000043;   // No Help on the Start Menu
     REST_NOWINKEYS                  = $40000044;   // No Windows-X Hot keys
-    REST_NOENCRYPTONMOVE            = $40000045;   // Don't automatically try to encrypt files that are moved to encryped directories
+    REST_NOENCRYPTONMOVE            = $40000045;   // Don't automatically try to encrypt files that are moved to encrypted directories
     REST_NOLOCALMACHINERUN          = $40000046;   // ignore HKLM\sw\ms\win\cv\Run and all of it's sub keys
     REST_NOCURRENTUSERRUN           = $40000047;   // ignore HKCU\sw\ms\win\cv\Run and all of it's sub keys
     REST_NOLOCALMACHINERUNONCE      = $40000048;   // ignore HKLM\sw\ms\win\cv\RunOnce and all of it's sub keys
@@ -868,7 +868,7 @@ Const
     REST_NOPUBLISHWIZARD            = $4000007F;   // disables publishing wizard (WPW)
     REST_NOONLINEPRINTSWIZARD       = $40000080;   // disables online prints wizard (OPW)
     REST_NOWEBSERVICES              = $40000081;   // disables the web specified services for both OPW and WPW
-    REST_ALLOWUNHASHEDWEBVIEW       = $40000082;   // allow the user to be promted to accept web view templates that don't already have an md5 hash in the registry
+    REST_ALLOWUNHASHEDWEBVIEW       = $40000082;   // allow the user to be prompted to accept web view templates that don't already have an md5 hash in the registry
     REST_ALLOWLEGACYWEBVIEW         = $40000083;   // allow legacy webview template to be shown.
     REST_REVERTWEBVIEWSECURITY      = $40000084;   // disable added webview security measures (revert to w2k functionality).
     REST_INHERITCONSOLEHANDLES      = $40000086;   // ShellExec() will check for the current process and target process being console processes to inherit handles
@@ -1851,7 +1851,7 @@ Function SHInvokePrinterCommand(HWND: hwnd; uAction:UINT; lpBuf1: LPCWSTR; lpBuf
     //
     // The SHLoadNonloadedIconOverlayIdentifiers API causes the shell's
     // icon overlay manager to load any registered icon overlay
-    // identifers that are not currently loaded.  This is useful if an
+    // identifiers that are not currently loaded.  This is useful if an
     // overlay identifier did not load at shell startup but is needed
     // and can be loaded at a later time.  Identifiers already loaded
     // are not affected.  Overlay identifiers implement the

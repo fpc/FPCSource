@@ -839,7 +839,7 @@ begin
   'type',
   '  TObject = class end;',
   '  TPoint<T> = class',
-  '    var x: TPoint;', // alowed in objfpc, forbidden in delphi
+  '    var x: TPoint;', // allowed in objfpc, forbidden in delphi
   '  end;',
   'var p: specialize TPoint<word>;',
   'begin',

@@ -28,8 +28,8 @@ progressive compression processes to Turbo Pascal 7.0 for DOS (TP). The code
 has been tested under Delphi 3.0, it can be ported to other Pascal
 environments, since many compilers try to be compatible to TP.
 
-JPEG (pronounced "jay-peg") is a standardized familly of algorithms for
-compression of continous tone still images. Most JPEG processes are lossy,
+JPEG (pronounced "jay-peg") is a standardized family of algorithms for
+compression of continuous tone still images. Most JPEG processes are lossy,
 the output image is not exactly identical to the input image. However, on
 typical photographic images, very good compression levels can be obtained
 with no visible change, and remarkably high compression levels are possible
@@ -118,7 +118,7 @@ jmorecfg.pas    Additional configuration declarations; need not be changed
                 for a standard installation.
 jdeferr.pas     defines the error and message text.
 jerror.pas      Declares JPEG library's error and trace message codes.
-jinclude.pas    the place to specify system depedent input/output code.
+jinclude.pas    the place to specify system dependent input/output code.
 jdct.pas        Private declarations for forward & reverse DCT subsystems.
 
 These files contain most of the functions intended to be called directly by
