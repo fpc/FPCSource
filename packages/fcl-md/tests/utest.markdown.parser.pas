@@ -74,10 +74,17 @@ type
 
   { TTestLists }
   TTestLists = class(TBlockTestCase)
+  private
+    function TestList(const Msg, Source: String; aListCount, aListItemCount: Integer): TMarkDownListBlock;
   published
     procedure TestUnorderedList;
     procedure TestOrderedList;
     procedure TestNestedList;
+    procedure TestNestedList2;
+    procedure TestNestedList3;
+    procedure TestNestedList4;
+    procedure TestNestedList5;
+    procedure TestNestedList6;
   end;
 
   { TTestThematicBreaks }
@@ -361,6 +368,184 @@ begin
 
   InnerList := OuterItem.Blocks[1] as TMarkDownListBlock;
   AssertNotNull('Inner block should be a list', InnerList);
+end;
+
+function TTestLists.TestList(const Msg,Source : String; aListCount,aListItemCount:  Integer) : TMarkDownListBlock;
+
+begin
+  SetupParser(Source);
+  AssertEquals(Msg+': Block count',aListCount,FDoc.Blocks.Count);
+  AssertTrue(Msg+': First block is list',FDoc.Blocks[0] is TMarkDownListBlock);
+  Result:=FDoc.Blocks[0] as TMarkDownListBlock;
+  AssertEquals(Msg+': First list item count',aListItemCount,Result.Blocks.Count);
+
+end;
+
+procedure TTestLists.TestNestedList2;
+
+var
+  OuterList, InnerList: TMarkDownListBlock;
+  OuterItem1, OuterItem2: TMarkDownListItemBlock;
+
+begin
+  //
+  OuterList:=TestList(
+    'Basic nested unordered list',
+    '* First item'#10 +
+    '  * Sub item 1'#10 +
+    '  * Sub item 2'#10 +
+    '* Second item',
+    1,2
+  );
+  // Should have 1 top-level list
+  // Outer list should have 2 items
+  if OuterList.Blocks.Count <> 2 then
+    Fail('Outer list block count not 2');
+  if not (OuterList.Blocks[0] is TMarkDownListItemBlock) then
+    Fail('Outer list block 0 not item');
+  if not (OuterList.Blocks[1] is TMarkDownListItemBlock) then
+    Fail('Outer list block 1 not item');
+
+  OuterItem1 := OuterList.Blocks[0] as TMarkDownListItemBlock;
+  OuterItem2 := OuterList.Blocks[1] as TMarkDownListItemBlock;
+
+  // First outer item should contain paragraph + nested list
+  if OuterItem1.Blocks.Count <> 2 then
+    Fail('Item 1 block count not 2');
+  if not (OuterItem1.Blocks[0] is TMarkDownParagraphBlock) then
+    Fail('Item 1 block 0 not paragraph');
+  if not (OuterItem1.Blocks[1] is TMarkDownListBlock) then
+    Fail('Item 1 block 1 not list');
+
+  InnerList := OuterItem1.Blocks[1] as TMarkDownListBlock;
+
+    // Inner list should have 2 items
+  if InnerList.Blocks.Count <> 2 then
+    Fail('Item 1 - Inner list block count not 2');
+  // Second outer item should contain only a paragraph
+  if OuterItem2.Blocks.Count <> 1 then
+    Fail('Item Inner list block item count not 1');
+  if not (OuterItem2.Blocks[0] is TMarkDownParagraphBlock) then
+    Fail('Item Inner list block item content not paragraph ');
+
+end;
+
+procedure TTestLists.TestNestedList3;
+var
+  List1, List2, List3: TMarkDownListBlock;
+  Item1, Item2: TMarkDownListItemBlock;
+begin
+  // Test 2: Deep nesting (3 levels)
+  List1:=TestList(
+    'Deep nested list (3 levels)',
+    '* Level 1'#10 +
+    '  * Level 2'#10 +
+    '    * Level 3',
+    1,1
+  );
+  if List1.Blocks.Count <> 1 then
+    Fail('List 1 must have 1 item');
+
+  Item1 := List1.Blocks[0] as TMarkDownListItemBlock;
+  if Item1.Blocks.Count <> 2 then
+    Fail('List 1 item 1 has 2 blocks');
+
+  List2 := Item1.Blocks[1] as TMarkDownListBlock;
+  if List2.Blocks.Count <> 1 then
+    Fail('List 1 item 1 has 1 list sub');
+
+  Item2 := List2.Blocks[0] as TMarkDownListItemBlock;
+  if Item2.Blocks.Count <> 2 then
+    // paragraph + nested list
+    Fail('List 2 item 1 has 2 blocks');
+
+  List3 := Item2.Blocks[1] as TMarkDownListBlock;
+  if List3.Blocks.Count <> 1 then // deepest level has 1 item
+    Fail('List 3 item 1 has 1 block');
+
+end;
+
+procedure TTestLists.TestNestedList4;
+var
+  OuterList, InnerList: TMarkDownListBlock;
+  OuterItem: TMarkDownListItemBlock;
+begin
+  // Test 3: Ordered nested list
+  OuterList:=TestList(
+    'Ordered nested list',
+    '1. First item'#10 +
+    '   1. Sub item 1'#10 +
+    '   2. Sub item 2'#10 +
+    '2. Second item',
+    1,2
+  );
+  if Not OuterList.Ordered then
+    Fail('Outer must be ordered');
+  if OuterList.Blocks.Count <> 2 then
+    Fail('Outer has 2 items');
+
+  OuterItem := OuterList.Blocks[0] as TMarkDownListItemBlock;
+  if OuterItem.Blocks.Count <> 2 then
+    Fail('Outer item 1 has 2 children');
+
+  InnerList := OuterItem.Blocks[1] as TMarkDownListBlock;
+  if not InnerList.Ordered then
+    Fail('Inner is unordered');
+
+  if InnerList.Blocks.Count <> 2 then
+    Fail('Inner list has 2 items');
+
+end;
+
+procedure TTestLists.TestNestedList5;
+var
+  OuterList, InnerList: TMarkDownListBlock;
+  OuterItem: TMarkDownListItemBlock;
+begin
+  // Test 4: Mixed nesting (unordered containing ordered)
+  OuterList:=TestList(
+    'Mixed nested list (unordered -> ordered)',
+    '* First item'#10 +
+    '  1. Sub item 1'#10 +
+    '  2. Sub item 2',
+    1,1
+  );
+  if OuterList.Ordered then
+    Fail('Outer list must be unordered');
+  if OuterList.Blocks.Count <> 1 then
+    Fail('Outer list must have 1 item');
+  OuterItem := OuterList.Blocks[0] as TMarkDownListItemBlock;
+  if OuterItem.Blocks.Count <> 2 then
+    Fail('Outer item must have 2 children');
+
+  InnerList := OuterItem.Blocks[1] as TMarkDownListBlock;
+  if not InnerList.Ordered then
+    Fail('Inner list must be ordered');
+  if InnerList.Blocks.Count <> 2 then
+    Fail('Inner list must have 2 items');
+end;
+
+procedure TTestLists.TestNestedList6;
+var
+  OuterList, InnerList: TMarkDownListBlock;
+  OuterItem: TMarkDownListItemBlock;
+begin
+   OuterList:=TestList(
+     'Multiple consecutive nested items',
+     '* First item'#10 +
+     '  * Sub item 1'#10 +
+     '  * Sub item 2'#10 +
+     '  * Sub item 3'#10 +
+     '  * Sub item 4'#10 +
+     '* Second item',
+     1,2
+   );
+  OuterItem := OuterList.Blocks[0] as TMarkDownListItemBlock;
+  if OuterItem.Blocks.Count <> 2 then
+    Fail('Outer item should have 2 children');
+  InnerList := OuterItem.Blocks[1] as TMarkDownListBlock;
+  if not InnerList.Blocks.Count = 4 then
+    Fail('Inner list item should have 4 items');
 end;
 
 { TTestThematicBreaks }
