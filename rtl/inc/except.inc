@@ -197,7 +197,7 @@ begin
   If hp^=nil then
     begin
 {$ifdef excdebug}
-      writeln ('At end of ExceptionAddresStack');
+      writeln ('At end of ExceptionAddressStack');
 {$endif}
       halt (255);
     end
