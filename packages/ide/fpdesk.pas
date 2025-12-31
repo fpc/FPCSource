@@ -20,9 +20,10 @@ interface
 
 const
      MinDesktopVersion  = $000A;
-     DesktopVersion     = $000A; { <- if you change any Load&Store methods,
+     DesktopVersion     = $000B; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
+     ResVersion         = 'VERSION';
      ResDesktopFlags    = 'FLAGS';
      ResVideo           = 'VIDEOMODE';
      ResHistory         = 'HISTORY';
@@ -97,6 +98,7 @@ const
       msg_readingsymbolinformation = 'Reading symbol information...';
       msg_storingsymbolinformation = 'Storing symbol information...';
       msg_failedtoreplacedesktopfile = 'Failed to replace desktop file.';
+      msg_errorstoringversion = 'Error storing desktop file version';
       msg_errorloadinghistory = 'Error loading history';
       msg_errorstoringhistory = 'Error storing history';
       msg_errorloadingkeys = 'Error loading custom keys';
@@ -145,6 +147,35 @@ end;
 
 procedure DoneDesktopFile;
 begin
+end;
+
+function WriteVersion(F: PResourceFile): boolean;
+var
+    OK: boolean;
+    DVersion : Longword;
+begin
+  F^.CreateResource(resVersion,rcBinary,0);
+  DVersion:=DesktopVersion;
+  OK:=F^.AddResourceEntry(resVersion,langDefault,0,DVersion,
+    SizeOf(Longword));
+  if OK=false then
+    ErrorBox(msg_errorstoringversion,nil);
+  WriteVersion:=OK;
+end;
+
+function ReadVersion(F: PResourceFile;var Version : Longword): boolean;
+var
+  OK,test : boolean;
+  DVersion : Longword;
+begin
+  DVersion:=0;
+  test:=F^.ReadResourceEntry(resVersion,langDefault,DVersion,
+    sizeof(Longword));
+  if (not test) or (DVersion=0) then
+    DVersion:=$000A; { last version not recorded }
+  Version:=DVersion; { return version }
+  OK:=true; { always true, getting version should not fail }
+  ReadVersion:=OK;
 end;
 
 function ReadHistory(F: PResourceFile): boolean;
@@ -1022,6 +1053,7 @@ function LoadDesktop: boolean;
 var OK,VOK: boolean;
     F: PResourceFile;
     VM : TVideoMode;
+    DesktopFileVersion: Longword; { Version desktop file was saved with }
 begin
   PushStatus(msg_readingdesktopfile);
   New(F, LoadFile(DesktopPath));
@@ -1030,6 +1062,7 @@ begin
 
   if Assigned(F) then
   begin
+    OK:=ReadVersion(F,DesktopFileVersion);
     OK:=ReadFlags(F);
     VOK:=ReadVideoMode(F,VM);
     if VOK and ((VM.Col<>ScreenMode.Col) or
@@ -1092,7 +1125,8 @@ begin
 
   if Assigned(F) then
     begin
-      OK:=WriteFlags(F);
+      OK:=WriteVersion(F);
+      OK:=OK and WriteFlags(F);
       OK:=OK and WriteVideoMode(F);
       if ((DesktopFileFlags and dfHistoryLists)<>0) then
         OK:=OK and WriteHistory(F);
