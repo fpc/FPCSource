@@ -639,7 +639,7 @@ Const
      TCHARSETINFO = CHARSETINFO;
      PCHARSETINFO = ^CHARSETINFO;
 
-     {CHOOSECOLOR = record confilcts with function ChooseColor }
+     {CHOOSECOLOR = record conflicts with function ChooseColor }
      TCHOOSECOLOR = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -1161,7 +1161,7 @@ Const
 // Context Frame
 //
 //  This frame has a several purposes: 1) it is used as an argument to
-//  NtContinue, 2) is is used to constuct a call frame for APC delivery,
+//  NtContinue, 2) is is used to construct a call frame for APC delivery,
 //  and 3) it is used in the user level thread creation routines.
 //
 //
@@ -1197,7 +1197,7 @@ Const
           //
           // Register parameter home addresses.
           //
-          // N.B. These fields are for convience - they could be used to extend the
+          // N.B. These fields are for convenience - they could be used to extend the
           //      context record in the future.
           //
 

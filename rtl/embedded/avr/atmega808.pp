@@ -8,7 +8,7 @@ type
     Reserved1: byte;
     MUXCTRLA: byte;  //Mux Control A
     Reserved3: byte;
-    DACREF: byte;  //Referance scale control
+    DACREF: byte;  //Reference scale control
     Reserved5: byte;
     INTCTRL: byte;  //Interrupt Control
     STATUS: byte;  //Status
@@ -236,7 +236,7 @@ type
     VLMCFG_BELOW = $00;
     VLMCFG_ABOVE = $02;
     VLMCFG_CROSS = $04;
-    // voltage level monitor interrrupt enable
+    // voltage level monitor interrupt enable
     VLMIEbm = $01;
     // Voltage level monitor interrupt flag
     VLMIFbm = $01;
@@ -1260,7 +1260,7 @@ type
     INTFLAGS: byte;  //Interrupt Flags
     Reserved12: byte;
     Reserved13: byte;
-    DBGCTRL: byte;  //Degbug Control
+    DBGCTRL: byte;  //Debug Control
     TEMP: byte;  //Temporary data for 16-bit Access
     Reserved16: byte;
     Reserved17: byte;
@@ -1389,7 +1389,7 @@ type
     INTFLAGS: byte;  //Interrupt Flags
     Reserved12: byte;
     Reserved13: byte;
-    DBGCTRL: byte;  //Degbug Control
+    DBGCTRL: byte;  //Debug Control
     Reserved15: byte;
     Reserved16: byte;
     Reserved17: byte;
@@ -1942,7 +1942,7 @@ type
     WINDOW_8KCLK = $B0;
     // Lock enable
     LOCKbm = $80;
-    // Syncronization busy
+    // Synchronization busy
     SYNCBUSYbm = $01;
   end;
 

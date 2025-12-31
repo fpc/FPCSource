@@ -54,7 +54,7 @@ Implementation
  For this, PBXGetVolInfoSync can be used. However, this function
  is not available on older versions of Mac OS, so the function has
  to be weak linked. An alternative is to directly look into the VCB
- (Volume Control Block), but since this is on low leveel it is a
+ (Volume Control Block), but since this is on low level it is a
  compatibility risque.}
 
 {TODO Perhaps make SearchRec.paramBlock opaque, so that uses macostp;
@@ -81,7 +81,7 @@ Uses
 {$IFNDEF USE_FEXPAND_INC}
 
 {$DEFINE HAS_FEXPAND}
-{Own implemetation of fexpand.inc}
+{Own implementation of fexpand.inc}
 {$I dos.inc}
 
 {$ELSE}
@@ -443,7 +443,7 @@ End;
                 if (i <= LenPat) then
                   begin
                     repeat
-                                        {find a letter (not only first !) which maches pattern[i]}
+                                        {find a letter (not only first !) which matches pattern[i]}
                       while (j <= LenName) and (name[j] <> pattern[i]) do
                         j := j + 1;
                       if (j < LenName) then

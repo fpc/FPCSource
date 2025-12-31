@@ -206,7 +206,7 @@ type
     MinArenaBinIndex = 96;
     { Maximum size that can be added by AllocVar(isArena := true) to the original request.
       BinIndexToVarSize(MinArenaBinIndex) - 1 is possibly the (minimal) ideal value because it guarantees that
-      there will be no tail left unusable for futher arenas, but can be arbitrary. }
+      there will be no tail left unusable for further arenas, but can be arbitrary. }
     MaxArenaOverallocation = 7968 - 1;
 
   { Adjustable part ends here~ }

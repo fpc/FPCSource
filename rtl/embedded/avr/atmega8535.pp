@@ -130,7 +130,7 @@ const
   TWGCE = 0; // TWI General Call Recognition Enable Bit
   // UCSRA
   RXC = 7; // USART Receive Complete
-  TXC = 6; // USART Transmitt Complete
+  TXC = 6; // USART Transmit Complete
   UDRE = 5; // USART Data Register Empty
   FE = 4; // Framing Error
   DOR = 3; // Data overRun
@@ -261,7 +261,7 @@ const
   EXTRF = 1; // External Reset Flag
   PORF = 0; // Power-on reset flag
   // SFIOR
-  ACME = 3; // Anlog Comparator Multiplexer Enable
+  ACME = 3; // Analog Comparator Multiplexer Enable
   PUD = 2; // Pull-up Disable
   // SPMCR
   SPMIE = 7; // SPM Interrupt Enable

@@ -41,7 +41,7 @@ type
   FCHAR = UCHAR;
   FSHORT = USHORT;
   FLONG = ULONG;
-  { This type is originaly called BOOLEAN, but that might generate problems
+  { This type is originally called BOOLEAN, but that might generate problems
     in SysUtils include files, so we prefix it with NT. Also it's originally
     defined as UCHAR, but ByteBool allows the use of True/False }
   NT_BOOLEAN = ByteBool;

@@ -179,7 +179,7 @@ const
   SPR = 0; // SPI Clock Rate Selects
   // UCSRA
   RXC = 7; // USART Receive Complete
-  TXC = 6; // USART Transmitt Complete
+  TXC = 6; // USART Transmit Complete
   UDRE = 5; // USART Data Register Empty
   FE = 4; // Framing Error
   DOR = 3; // Data overRun
@@ -247,7 +247,7 @@ const
   // SPMCR
   SPMIE = 7; // SPM Interrupt Enable
   RWWSB = 6; // Read While Write Section Busy
-  RWWSRE = 4; // Read While Write secion read enable
+  RWWSRE = 4; // Read While Write section read enable
   BLBSET = 3; // Boot Lock Bit Set
   PGWRT = 2; // Page Write
   PGERS = 1; // Page Erase

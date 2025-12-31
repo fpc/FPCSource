@@ -49,7 +49,7 @@ const
   SIGEMT     =  7;      { EMT instruction }
   SIGSYS     = 12;      { bad argument to system call }
   SIGCLD     = SIGCHLD; { child status change }
-  SIGURG     = 16;      { (+) urgent contition on I/O channel  }
+  SIGURG     = 16;      { (+) urgent condition on I/O channel  }
   SIGPOLL    = 23;      { pollable event occurred }
   SIGXCPU    = 24;      { exceeded cpu limit }
   SIGXFSZ    = 25;
@@ -184,7 +184,7 @@ type
   PSignalRestorer = ^SignalRestorer;
   SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 
-  SigActionRec = record  // this needs correct 8-byte alignment for hander
+  SigActionRec = record  // this needs correct 8-byte alignment for handler
     sa_handler  : SigActionHandler;
     Sa_Mask     : SigSet;
     Sa_Flags    : cint;

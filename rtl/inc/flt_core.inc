@@ -3,7 +3,7 @@
 
     This file contains generalized floating point<->ASCII conversion routines.
     It is included by the FLT_CONV.INC after setting-up correct conditional
-    definitions, therefore it sholud not be used directly.
+    definitions, therefore it should not be used directly.
     Refer to FLT_CONV.INC for further explanation.
 
     This library is free software; you can redistribute it and/or modify it

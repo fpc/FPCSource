@@ -61,7 +61,7 @@ begin
   case sig of
     SIGFPE :
           begin
-    { this is not allways necessary but I don't know yet
+    { this is not always necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
 {$ifdef cpui386}

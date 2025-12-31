@@ -663,7 +663,7 @@
      TCHARSETINFO = CHARSETINFO;
      PCHARSETINFO = ^CHARSETINFO;
 
-     {CHOOSECOLOR = record confilcts with function ChooseColor }
+     {CHOOSECOLOR = record conflicts with function ChooseColor }
      TCHOOSECOLOR = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -1132,7 +1132,7 @@
 // Context Frame
 //
 //  This frame has a several purposes: 1) it is used as an argument to
-//  NtContinue, 2) is is used to constuct a call frame for APC delivery,
+//  NtContinue, 2) is is used to construct a call frame for APC delivery,
 //  and 3) it is used in the user level thread creation routines.
 //
 //  The layout of the record conforms to a standard call frame.
@@ -1196,7 +1196,7 @@
 //  N.B. This frame must be exactly a multiple of 16 bytes in length.
 //
 //  This frame has a several purposes: 1) it is used as an argument to
-//  NtContinue, 2) it is used to constuct a call frame for APC delivery,
+//  NtContinue, 2) it is used to construct a call frame for APC delivery,
 //  3) it is used to construct a call frame for exception dispatching
 //  in user mode, and 4) it is used in the user level thread creation
 //  routines.
@@ -1730,7 +1730,7 @@
 
           BrT0    : ULONGLONG;         // branch registers (b6-b7) - temporary (volatile)
           BrT1    : ULONGLONG;
-          // iA32 related Interger registers
+          // iA32 related Integer registers
           SegCSD  : ULONGLONG;         // iA32 CSDescriptor (Ar25)
           SegSSD  : ULONGLONG;         // iA32 SSDescriptor (Ar26)
 

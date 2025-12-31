@@ -49,7 +49,7 @@ function MacOSErr2RTEerr(err: OSErr): Integer;
 function TranslatePathToMac (const path: string; mpw: Boolean): string;
 
 
-{Concats the relative or full path1 to the relative path2.}
+{Concatenate the relative or full path1 to the relative path2.}
 function ConcatMacPath (path1, path2: string): string;
 
 

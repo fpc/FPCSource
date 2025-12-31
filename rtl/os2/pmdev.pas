@@ -473,7 +473,7 @@ in define line 83 *)
     { -----------------------------------------------------------------
           DJP_SJ_PAPERSIZE
 
-          Note: it is recommended to use DJP_CJ_FORM to chage the papersize.
+          Note: it is recommended to use DJP_CJ_FORM to change the papersize.
                                                         approximate size
         }
     {  inches       millimeters  }
@@ -652,7 +652,7 @@ in define line 83 *)
     { -----------------------------------------------------------------
           DJP_SJ_TRAYTYPE
 
-          Note: it is recommended to use DJP_CJ_FORM to chage the tray type.
+          Note: it is recommended to use DJP_CJ_FORM to change the tray type.
         }
 
     const
@@ -680,7 +680,7 @@ in define line 83 *)
     { -----------------------------------------------------------------
           DJP_SJ_MEDIA
 
-          Note: it is recommended to use DJP_CJ_FORM to chage the media type.
+          Note: it is recommended to use DJP_CJ_FORM to change the media type.
         }
 
     const
@@ -947,7 +947,7 @@ in define line 83 *)
     { -----------------------------------------------------------------
           DJP_CJ_TRAYNAME
 
-          Setting will match only szTrayname.  The perfered way to set which
+          Setting will match only szTrayname.  The preferred way to set which
           tray to use is DJP_CJ_FORM.  Otherwise, you are not guaranteed a
           unique match for all three form, tray, and media possibilities.
 

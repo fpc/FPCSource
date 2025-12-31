@@ -82,7 +82,7 @@ type
 	end;					// 32 byte
 	PVabHdr = ^VabHdr;
 
-	ProgAtr = packed record        		// Program Headdings
+	ProgAtr = packed record        		// Program Headings
 		tones : byte;          		// # of tones
 		mvol : byte;           		// program volume
 		prior : byte;          		// program priority
@@ -95,15 +95,15 @@ type
 	end;					// 16 byte
 	PProgAtr = ^ProgAtr;
 
-	VagAtr = packed record          	// VAG Tone Headdings
+	VagAtr = packed record          	// VAG Tone Headings
 		prior : byte;         		// tone priority
 		mode : byte;          		// play mode
 		vol : byte;           		// tone volume
 		pan : byte;           		// tone panning
 		center : byte;        		// center note
 		shift : byte;         		// center note fine tune
-		min : byte;           		// minimam note limit
-		max : byte;           		// maximam note limit
+		min : byte;           		// minimum note limit
+		max : byte;           		// maximum note limit
 		vibW : byte;          		// vibrate depth
 		vibT : byte;          		// vibrate duration
 		porW : byte;          		// portamento depth

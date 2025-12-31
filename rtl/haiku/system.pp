@@ -140,7 +140,7 @@ var
   s: shortstring;
   s1: shortstring;
 begin
-  { stricly conforming POSIX applications  }
+  { strictly conforming POSIX applications }
   { have the executing filename as argv[0] }
   if l = 0 then
   begin

@@ -321,7 +321,7 @@ const
          V_ADP_INITIALIZED=(1 SHL 17);
          V_ADP_REGISTERED =(1 SHL 18);
 
-{ adapter infromation block }
+{ adapter information block }
 type  video_adapter  = record
                         va_index                : longint;
                         va_type                 : longint;
@@ -1151,8 +1151,8 @@ CONST
         DMAC            =$8d;           { macron}
         DBRE            =$8e;           { breve}
         DDOT            =$8f;           { dot}
-        DUML            =$90;           { umlaut/diaresis}
-        DDIA            =$90;           { diaresis}
+        DUML            =$90;           { umlaut/diaeresis}
+        DDIA            =$90;           { diaeresis}
         DSLA            =$91;           { slash}
         DRIN            =$92;           { ring}
         DCED            =$93;           { cedilla}
@@ -1359,7 +1359,7 @@ type  mousemode = record
                     protocol    : longint;              { MOUSE_PROTO_XXX }
                     rate        : longint;              { report rate (per sec), -1 if unknown }
                     resolution  : longint;              { MOUSE_RES_XXX, -1 if unknown }
-                    accelfactor : longint;              { accelation factor (must be 1 or greater) }
+                    accelfactor : longint;              { acceleration factor (must be 1 or greater) }
                     level       : longint;              { driver operation level }
                     packetsize  : longint;              { the length of the data packet }
                     syncmask    : array[0..1] of uchar; { sync. data bits in the header byte }

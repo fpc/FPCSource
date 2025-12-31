@@ -138,7 +138,7 @@ Var
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-     { Typed file supoort }
+     { Typed file support }
      Procedure AssignFile(out f:TypedFile;p:PAnsiChar);
      Procedure AssignFile(out f:TypedFile;c:AnsiChar);
   {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}

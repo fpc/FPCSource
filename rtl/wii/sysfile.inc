@@ -155,7 +155,7 @@ begin
 
 { real open call }
   FileRec(f).Handle := longint(fopen(p, @oflags[1]));//_open(p,oflags,438);
-  // errno does not seem to be set on succsess ??
+  // errno does not seem to be set on success ??
 {
   if FileRec(f).Handle = 0 then
     Errno2Inoutres

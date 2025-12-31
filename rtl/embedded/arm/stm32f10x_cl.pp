@@ -739,7 +739,7 @@ const
 
 //******************  Bit definition for ADC_CCR register  *******************
   ADC_CCR_VBATEN = longword($01000000);           //Voltage battery enable
-  ADC_CCR_TSEN = longword($00800000);             //Tempurature sensore enable
+  ADC_CCR_TSEN = longword($00800000);             //Tempurature sensor enable
   ADC_CCR_VREFEN = longword($00400000);           //Vrefint enable
 
 //****************************************************************************
@@ -1948,7 +1948,7 @@ const
   RCC_BDCR_RTCSEL_0 = longword($00000100);        //Bit 0
   RCC_BDCR_RTCSEL_1 = longword($00000200);        //Bit 1
 
-//RTC congiguration
+//RTC configuration
   RCC_BDCR_RTCSEL_NOCLOCK = longword($00000000);  //No clock
   RCC_BDCR_RTCSEL_LSE = longword($00000100);      //LSE oscillator clock used as RTC clock
   RCC_BDCR_RTCSEL_LSI = longword($00000200);      //LSI oscillator clock used as RTC clock

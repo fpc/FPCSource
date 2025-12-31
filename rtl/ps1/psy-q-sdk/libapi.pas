@@ -4,7 +4,7 @@
 //
 // $PSLibId: Run-time Library Release 4.6$
 
-// don't change these macros and structures which is referred in controler code
+// don't change these macros and structures which is referred in controller code
 
 // Prototypes
 // prototypes added by suzu 96/03/01 and changed by hakama 96/06/06

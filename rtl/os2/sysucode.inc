@@ -1603,7 +1603,7 @@ function CodePointLength(const Str: PAnsiChar; maxlookahead: ptrint): PtrInt;
 {$else beos}
     fillchar(mbstate,sizeof(mbstate),0);
     result:=ptrint(mbrlen(str,maxlookahead,@mbstate));
-    { mbrlen can also return -2 for "incomplete but potially valid character
+    { mbrlen can also return -2 for "incomplete but potentially valid character
       and data has been processed" }
     if result<0 then
       result:=-1;

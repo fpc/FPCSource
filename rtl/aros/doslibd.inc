@@ -313,7 +313,7 @@ type  // Checked OK 04.08.2011 ALB
   PProcess = ^TProcess;
   TProcess = record
     pr_Task          : TTask;    // Embedded task structure
-    pr_MsgPort       : TMsgPort; // Processes standard message-port. Used for various puposes.
+    pr_MsgPort       : TMsgPort; // Processes standard message-port. Used for various purposes.
     pr_Pad           : Word;     // Private
     pr_SegList       : BPTR;     // SegList array, used by this process.
     pr_StackSize     : LongInt;  // StackSize of the current process.

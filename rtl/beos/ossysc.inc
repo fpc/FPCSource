@@ -2,7 +2,7 @@
     Copyright (c) 2002 by Marco van de Voort
 
     The base *BSD syscalls required to implement the system unit. These
-    are aliased for use in other units (to avoid poluting the system units
+    are aliased for use in other units (to avoid polluting the system units
     interface)
 
     See the file COPYING.FPC, included in this distribution,
@@ -566,7 +566,7 @@ begin
  if (dirp^.dd_loc=-1)   OR     {First readdir on this pdir. Initial fill of buffer}
    (dirp^.dd_rewind>=(longint(dirp^.dd_buf)+dirblksiz)) then  {no more entries left?}
   Begin
-    if readbuffer=0 then        {succesful read?}
+    if readbuffer=0 then        {successful read?}
      Exit(NIL);                 {No more data}
   End;
  FinalEntry:=NIL;
@@ -585,7 +585,7 @@ begin
    begin {block entirely searched or reclen=0}
     Novalid:=True;
     if dirp^.dd_loc<>0 THEN             {blocks left?}
-     if readbuffer()<>0 then        {succesful read?}
+     if readbuffer()<>0 then        {successful read?}
       novalid:=false;
    end;
  until (FinalEntry<>nil) or novalid;
@@ -1049,9 +1049,9 @@ end;
 {$endif}
 
 
-(* Implemented in sytem under BeOS
+(* Implemented in system under BeOS
 CONST
- { Constansts for MMAP }
+ { Constants for MMAP }
   MAP_PRIVATE   =2;
   MAP_ANONYMOUS =$1000;
 

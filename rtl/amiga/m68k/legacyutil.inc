@@ -104,7 +104,7 @@ begin// how many days are passed
       end;
     end;
   end;
-  // the current year is a leap year and we are after Februar
+  // the current year is a leap year and we are after February
   if IsLeap and (d >= StartOfMonth[2]) then
     d := d + 1;
   // get the actual month

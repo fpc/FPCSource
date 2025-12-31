@@ -64,7 +64,7 @@ Function fpgetenv(name:Shortstring):PAnsiChar; [public, alias : 'FPC_SYSC_FPGETE
 {
   Searches the environment for a string with name p and
   returns a PAnsiChar to it's value.
-  A PAnsiChar is used to accomodate for strings of length > 255
+  A PAnsiChar is used to accommodate for strings of length > 255
 }
 
 Begin

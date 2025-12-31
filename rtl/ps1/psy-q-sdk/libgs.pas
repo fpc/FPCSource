@@ -615,7 +615,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg0 : longint;						// gte flag
 						flg : longint;						// gte flag
@@ -638,7 +638,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg0 : longint;						// gte flag
 						flg : longint;						// gte flag
@@ -660,7 +660,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg0 : longint;						// gte flag
 						flg : longint;						// gte flag
@@ -681,7 +681,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg0 : longint;						// gte flag
 						flg : longint;						// gte flag
@@ -703,7 +703,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg : longint;						// gte flag
 						minx, miny, maxx, maxy : smallint;	// polygon min-max
@@ -724,7 +724,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg : longint;						// gte flag
 						minx, miny, maxx, maxy : smallint;	// polygon min-max
@@ -744,7 +744,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg : longint;						// gte flag
 						minx, miny, maxx, maxy : smallint;	// polygon min-max
@@ -764,7 +764,7 @@ type
 						org : pdword;						// OT org
 						pk : pdword;						// packet base
 						otz : longint;						// gte otz
-						adivz : longint;					// active divide codition z
+						adivz : longint;					// active divide condition z
 						adivw, adivh : smallint;			// active divide condition w,h
 						flg : longint;						// gte flag
 						minx, miny, maxx, maxy : smallint;	// polygon min-max
@@ -947,7 +947,7 @@ var
 	GsWSMATRIX : MATRIX; external; 							// Current World-Screen Matrix of Gs
 	GsWSMATRIX_ORG : MATRIX; external; 						// Original World-Screen Matrix of Gs
 	HWD0 : longint; external;
-	VWD0 : longint; external;							// rezolution of Holyzontal and Vertical
+	VWD0 : longint; external;							// resolution of Holyzontal and Vertical
 	GsLIGHTWSMATRIX : MATRIX; external;						// World-Screen Light Matrix of Gs
 	GsIDMATRIX : MATRIX; external;							// Unit Matrix
 	GsIDMATRIX2 : MATRIX; external;							// Unit Matrix including Aspect retio

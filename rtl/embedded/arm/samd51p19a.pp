@@ -216,9 +216,9 @@ type
     INTFLAG      : byte;                 //002E Interrupt Flag Status and Clear
     STATUS       : byte;                 //002F Status
     SYNCBUSY     : longWord;             //0030 Synchronization Busy
-    DSEQDATA     : longWord;             //0034 DMA Sequencial Data
+    DSEQDATA     : longWord;             //0034 DMA Sequential Data
     DSEQCTRL     : longWord;             //0038 DMA Sequential Control
-    DSEQSTAT     : longWord;             //003C DMA Sequencial Status
+    DSEQSTAT     : longWord;             //003C DMA Sequential Status
     RESULT       : word;                 //0040 Result Conversion Value
     RESERVED2    : word;
     RESS         : word;                 //0044 Last Sample Result

@@ -194,7 +194,7 @@ function is_prefetch(p : pointer) : boolean;
     i : longint;
   begin
     result:=false;
-    { read memory savely without causing another exeception }
+    { read memory safely without causing another exeception }
     if not(ReadProcessMemory(GetCurrentProcess,p,@a,sizeof(a),nil)) then
       exit;
     i:=0;

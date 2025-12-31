@@ -584,7 +584,7 @@ Type
   { copy parameters in }
   IOC_IN = culong($80000000);
 
-  { copy paramters in and out }
+  { copy parameters in and out }
   IOC_INOUT = (IOC_IN or IOC_OUT);
 
   { mask for IN/OUT/VOID }

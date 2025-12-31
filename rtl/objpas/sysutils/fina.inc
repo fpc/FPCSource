@@ -354,7 +354,7 @@ begin
   For J:=I to DC do Result:=Result+DD[J]+DirectorySeparator;
 {$else SYSUTILSUNICODE}
   { prevent conversion to DefaultSystemCodePage due to concatenation of
-    constant string -- and optimise a little by reducing the numher of
+    constant string -- and optimise a little by reducing the number of
     setlength cals }
   if SC>=I then
     begin

@@ -256,7 +256,7 @@ Begin
 { real open call }
   FileRec(f).Handle := _open(p,oflags,438);
   //WriteLn ('_open (',p,') returned ',ErrNo, 'Handle: ',FileRec(f).Handle);
-  // errno does not seem to be set on succsess ??
+  // errno does not seem to be set on success ??
   IF FileRec(f).Handle < 0 THEN
     if (ErrNo=Sys_EROFS) and ((OFlags and O_RDWR)<>0) then
     begin  // i.e. for cd-rom

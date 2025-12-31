@@ -65,7 +65,7 @@ asm
     addl	$4,%esp
     ret
 // this is a hack to avoid that FPC_NW_CHECKFUNCTION will be
-// eleminated by the linker (with smartlinking)
+// eliminated by the linker (with smartlinking)
 // TODO: change the internal linker to allow check and stop
     call	FPC_NW_CHECKFUNCTION
     call	_Stop

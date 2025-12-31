@@ -66,7 +66,7 @@ var
 {**  MacOS specific functions    **}
 {*********************************}
 
-{To be called at regular intervals, for lenghty tasks.
+{To be called at regular intervals, for lengthy tasks.
  Yield might give time for other tasks to run under the cooperative
  multitasked macos. For an MPW Tool, it also spinns the cursor.}
 
@@ -538,7 +538,7 @@ var
 begin
   InvestigateSystem; {Must be first}
 
-  {Check requred features for system.pp to work.}
+  {Check required features for system.pp to work.}
   if not macosHasFSSpec then
     Halt(3);  //exit code 3 according to MPW
 

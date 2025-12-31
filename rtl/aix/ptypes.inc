@@ -64,7 +64,7 @@ Type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-    size_t   = culong;         { as definied in the C standard}
+    size_t   = culong;         { as defined in the C standard}
     ssize_t  = clong;          { used by function for returning number of bytes }
     clock_t  = cint;
     time_t   = {$ifdef cpu64}clong{$else}cint{$endif};           { used for returning the time  }
@@ -169,7 +169,7 @@ Type
 {$endif}
     vfstype : cint;    { what type of vfs this is }
     fsize   : culong;  { fundamental file system block size }
-    vfsnumber : cint;  { vfs indentifier number }
+    vfsnumber : cint;  { vfs identifier number }
     vfsoff : cint;     { reserved, for vfs specific data offset }
     vfslen : cint;     { reserved, for len of vfs specific data }
     vfsvers : cint;    { reserved, for vers of vfs specific data }

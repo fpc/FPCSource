@@ -437,7 +437,7 @@ Action              = 0 = Wait until child terminates (DCWA_PROCESS).
                       (DCWA_PROCESSTREE).
 Option              = Flags. Either dtWait or dtNoWait.
 Res                 = See TResultCodes.
-TermPID             = Process ID that has been terminated. Usefull when
+TermPID             = Process ID that has been terminated. Useful when
                       terminating a random process.
 PID                 = Process ID of process to terminate. Use a zero to
                       terminate a random process.}
@@ -673,9 +673,9 @@ type    TgEA = record
         EASizeBuf = TEASizeBuf;
 
 
-{*******************End of extented attribute datastructures.***************}
+{*******************End of extended attribute datastructures.***************}
 
-{Usefull constanst for Action parameter.}
+{Useful constants for Action parameter.}
    { DosOpen() actions }
 const       doOpened        =  1;
             doCreated       =  2;
@@ -685,7 +685,7 @@ const       doOpened        =  1;
             FILE_CREATED    =  doCreated;
             FILE_TRUNCATED  =  doOverwritten;
 
-{Usefull constants for OpenFlags parameter.}
+{Useful constants for OpenFlags parameter.}
    { DosOpen() open flags }
 const       doFail          =  0;
             doOpen          =  1;
@@ -939,7 +939,7 @@ function DosQueryHType (Handle: THandle; var HandType:cardinal;
 {Edit a filename using wildcard.
 
 Example editing CONFIG.SYS with *.BAK becomes CONFIG.BAK.
-Usefull when parsing commands like 'copy config.sys *.bak'.
+Useful when parsing commands like 'copy config.sys *.bak'.
 All filename characters are casemapped.'
 
 MetaLevel       = 0 Use modern semantics
@@ -982,8 +982,8 @@ function DosForceDelete(const FileName:string):cardinal;
 {Create a new directory.
 
 Name            = Name of directory to create.
-EA              = Extented attributes to give the directory. Use nil if you
-                  do not want do give it extented attributes. Only the FEA
+EA              = Extended attributes to give the directory. Use nil if you
+                  do not want do give it extended attributes. Only the FEA
                   list is used.}
 function DosCreateDir(Name:PAnsiChar;EA:PEAOp2):cardinal; cdecl;
 function DosCreateDir(const Name:string;EA:PEAOp2):cardinal;
@@ -1299,7 +1299,7 @@ function DosScanEnv(const Name:string;var Value:string):cardinal;
 
 const   dsPathOnly      = 0;    {Do not search current dir. (Unless it is
                                  in the directory list.)}
-        dsCurrentDir    = 1;    {Search in the current direcotry and in the
+        dsCurrentDir    = 1;    {Search in the current directory and in the
                                  directory list.}
         dsEnvironment   = 2;    {The dirlist parameter is not a directory
                                  list, but an environment variable
@@ -1333,7 +1333,7 @@ type    TFSInfo=record
                      Free_Clusters:cardinal;
                      Bytes_Per_Sector:word);
                 2:                          {For date/time description,
-                                             see file searching realted
+                                             see file searching related
                                              routines.}
                     (Label_Date,            {Date when volumelabel created.}
                      Label_Time:word;       {Time when volumelabel created.}
@@ -1409,7 +1409,7 @@ function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
                       devices. Starts at 1. Ignored for infolevel 1.
  InfoLevel          = 1 = Return information about a drive or device named
                           by DevName.
-                      2 = Return information about a (pseudo) charachter
+                      2 = Return information about a (pseudo) character
                           device numbered by Ordinal.
                       3 = Return information about a drive numbered by
                           Ordinal.
@@ -1696,7 +1696,7 @@ function DosFreeMem(P:pointer):cardinal; cdecl;
               memory block allocated with DosAllocMem, but must be a multiple
               of 4096.
  Size       = Number of bytes to change settings for. Is rounded up to a
-              multile of 4096.
+              multiple of 4096.
  Flags      = New flags for the memory.}
 function DosSetMem(P:pointer;Size,Flag:cardinal):cardinal; cdecl;
 
@@ -1724,7 +1724,7 @@ function DosGetNamedSharedMem(var P:pointer;const Name:string;
                               Flag:cardinal):cardinal;
 
 {Allocate memory so that it can later be shared with another program.
- P          = Reveives pointer to memory.
+ P          = Revives pointer to memory.
  Name       = Optional: name to give memory. Must start with '\SHAREMEM\'.
               Use nil for the PAnsiChar or '' for the string variant for no name.
  Size       = Number of bytes to allocate.}
@@ -2461,7 +2461,7 @@ function DosExitMustComplete(var Nesting:longint):cardinal; cdecl;
 function DosExitMustComplete(var Nesting:cardinal):cardinal; cdecl;
 
 {Tell we want further signal exceptions.
- SignalNum  = Signal nummer to acknowlegde.}
+ SignalNum  = Signal nummer to acknowledge.}
 function DosAcknowledgeSignalException (SignalNum: cardinal): cardinal; cdecl;
 
 
@@ -5732,7 +5732,7 @@ function DosFreeSpinLock (SpinLock: TSpinLock): cardinal; cdecl;
  DosFreeSpinLock       = DOSCALLS.452
  DosListIO 2.45
  DosListIOL 2.45
- DosQueryABIOSSuport 2.10
+ DosQueryABIOSSupport 2.10
 
 ___ functionDos16QueryModFromCS (...): ...
 external 'DOSCALLS' index 359;

@@ -1148,7 +1148,7 @@ const
       EM_SETINPUTMODE       = $00DE;
 
      // Sets symbols that are displayed when the user presses the 1 key in
-     // Multipress mode. lParam is a null-teminated string containing the symbols
+     // Multipress mode. lParam is a null-terminated string containing the symbols
      // or NULL to revert to standard symbols.
       EM_SETSYMBOLS         = $00DF;
 

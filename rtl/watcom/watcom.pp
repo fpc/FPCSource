@@ -15,7 +15,7 @@ unit watcom;
 interface
 
     const
-    { contants for the run modes returned by get_run_mode }
+    { constants for the run modes returned by get_run_mode }
        rm_unknown = 0;
        rm_raw     = 1;     { raw (without HIMEM) }
        rm_xms     = 2;     { XMS (for example with HIMEM, without EMM386) }

@@ -87,7 +87,7 @@ const
 
 (*
   ------------------------------------------------------------------------------
-    Directory iterator for mantaining state between dir* calls
+    Directory iterator for maintaining state between dir* calls
   ------------------------------------------------------------------------------
 *)
 type

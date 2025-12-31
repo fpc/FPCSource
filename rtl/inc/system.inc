@@ -107,7 +107,7 @@ end;
 
 {$if not defined(FPC_SYSTEM_FPU_CUSTOM_CONTROL_WORD) and not defined(FPUNONE) and not defined(FPC_SYSTEM_FPUCW_IMMUTABLE)}
 var
-  { Control word of the fpu that determes which exceptions will be thrown and
+  { Control word of the fpu that determines which exceptions will be thrown and
     potentially other flags (precision, exception-happened flags, ... Used to
     initialise the FPU when starting a new thread (in SysResetFPU).
 

@@ -69,11 +69,11 @@ Interface
  right and middle button}
 Function GetLastButtonRelease (button : Longint; var x,y:Longint): Longint;
 
-{sets mouse's x range, with Min and Max resp. the higest and the lowest
+{sets mouse's x range, with Min and Max resp. the highest and the lowest
  column (in pixels) in between which the mouse cursor can move}
   Procedure SetMouseXRange (Min,Max:Longint);
 
-{sets mouse's y range, with Min and Max resp. the higest and the lowest
+{sets mouse's y range, with Min and Max resp. the highest and the lowest
  row (in pixels) in between which the mouse cursor can move}
   Procedure SetMouseYRange (Min,Max:Longint);
 

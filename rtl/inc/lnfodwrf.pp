@@ -1235,7 +1235,7 @@ begin
                 end
               { DW_AT_name }
               else if (abbrevs.Attrs[abbrev][i].attr=$3) and
-                { avoid that we accidently read an DW_FORM_strp entry accidently }
+                { avoid that we accidentally read an DW_FORM_strp entry accidentally }
                 (abbrevs.Attrs[abbrev][i].form=DW_FORM_string) then
                 begin
                   name:=er.ReadString;

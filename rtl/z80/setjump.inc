@@ -31,7 +31,7 @@ function fpc_setjmp(var S : jmp_buf) : shortint;assembler;[Public, alias : 'FPC_
     ld (hl), b
     inc hl
 
-    { save caller sp (i.e. what its value was, right before the call instrunction) }
+    { save caller sp (i.e. what its value was, right before the call instruction) }
     ld iy, 4
     add iy, sp
     push iy

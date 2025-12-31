@@ -400,7 +400,7 @@ begin
             else
  {$ENDIF FPC_FEXPAND_DRIVES}
 
-                (* We already have a slash if root is the curent directory. *)
+                (* We already have a slash if root is the current directory. *)
                 if Length (S) = PathStart then
                     Pa := S + Pa
 {$ELSE FPC_FEXPAND_DIRSEP_IS_CURDIR}
@@ -639,7 +639,7 @@ end;
 
 (* Description of individual conditional defines supported for FExpand
    (disregard the used directory separators in examples, constant
-   System.DirectorySeparator is used in the real implemenation, of course):
+   System.DirectorySeparator is used in the real implementation, of course):
 
    FPC_FEXPAND_UNC - UNC ("Universal Naming Convention") paths are
    supported (usually used for networking, used in DOS (with
@@ -676,7 +676,7 @@ end;
    should be used as beginning of the "real" path for a particular
    drive or volume instead of the DirectorySeparator. This would be
    used in case that there is only one character (DriveSeparator)
-   delimitting the drive letter or volume name from the remaining
+   delimiting the drive letter or volume name from the remaining
    path _and_ the DriveSeparator marks the root of an absolute path
    in that case. Example - 'Volume:This/Is/Absolute/Path'.
 

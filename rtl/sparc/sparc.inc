@@ -329,7 +329,7 @@ var
 function declocked(var l : longint) : boolean;assembler;
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 {$ifdef FPC_PIC}
@@ -379,7 +379,7 @@ end;
 procedure inclocked(var l : longint);assembler;
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 {$ifdef FPC_PIC}
@@ -426,7 +426,7 @@ function fpc_atomic_dec_32 (var Target: longint) : longint; assembler;
 {$endif VER3_2}
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 {$ifdef FPC_PIC}
@@ -477,7 +477,7 @@ function fpc_atomic_inc_32 (var Target: longint) : longint; assembler;
 {$endif VER3_2}
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 {$ifdef FPC_PIC}
@@ -529,7 +529,7 @@ function fpc_atomic_xchg_32 (var Target: longint;Source : longint) : longint; as
 {$endif VER3_2}
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 {$ifdef FPC_PIC}
@@ -579,7 +579,7 @@ function fpc_atomic_add_32 (var Target: longint;Value : longint) : longint; asse
 {$endif VER3_2}
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 {$ifdef FPC_PIC}
@@ -631,7 +631,7 @@ function fpc_atomic_xchg_32 (var Target: longint; NewValue: longint; Comparand: 
 {$endif VER3_2}
 {$ifndef FPC_PIC}nostackframe;{$endif}
 asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+  { usually, we shouldn't lock here so saving the stack frame for these extra instructions is
     worse the effort, especially while waiting :)
   }
 { input:  address of target in o0, newvalue in o1, comparand in o2 }

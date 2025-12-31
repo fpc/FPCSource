@@ -3,7 +3,7 @@ unit libhmd;
 interface
 uses libgte, libgs;
 const
-	GsUNIT_TERM	= $ffffffff;	// Primitive terminater
+	GsUNIT_TERM	= $ffffffff;	// Primitive terminator
 	GsUNIT_DIV1	= 1 shl 24;		//  2 x  2 divide
 	GsUNIT_DIV2	= 2 shl 24;		//  4 x  4 divide
 	GsUNIT_DIV3	= 3 shl 24;		//  8 x  8 divide

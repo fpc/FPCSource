@@ -163,7 +163,7 @@ function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}in
 
 
 {   CompareStr compares S1 and S2, the result is the based on
-    substraction of the ascii values of the characters in S1 and S2
+    subtraction of the ascii values of the characters in S1 and S2
     case     result
     S1 < S2  < 0
     S1 > S2  > 0
@@ -232,7 +232,7 @@ end;
 
 
 {   CompareText compares S1 and S2, the result is the based on
-    substraction of the ascii values of characters in S1 and S2
+    subtraction of the ascii values of characters in S1 and S2
     comparison is case-insensitive
     case     result
     S1 < S2  < 0

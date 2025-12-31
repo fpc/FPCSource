@@ -167,7 +167,7 @@ Function PrfQueryProgramTitles(ahini: HINI; hprogGroup: HProgram;
     external 'PMSHAPI' index 113;
 
 //*********************************************************************/
-//*  NOTE: string information is concatanated after the array of      */
+//*  NOTE: string information is concatenated after the array of      */
 //*        PROGTITLE structures so you need to allocate storage       */
 //*        greater than sizeof(PROGTITLE)*cPrograms to query programs */
 //*        in a group.                                                */
@@ -178,7 +178,7 @@ Function PrfQueryProgramTitles(ahini: HINI; hprogGroup: HProgram;
 //*  BufLen = PrfQueryProgramTitles(Hini, Hgroup,                     */
 //*                                  (PPROGTITLE)NULL, 0, &Count);    */
 //*                                                                   */
-//*  Alocate buffer of  Buflen                                        */
+//*  Allocate buffer of  Buflen                                       */
 //*                                                                   */
 //*  Len = PrfQueryProgramTitles(Hini, Hgroup, (PPROGTITLE)pBuffer,   */
 //*                               BufLen, pCount);                    */
@@ -199,15 +199,15 @@ Function PrfQueryDefinition(ahini: HINI; hprog: HProgram;
     external 'PMSHAPI' index 111;
 
 //*********************************************************************/
-//*  NOTE: string information is concatanated after the PROGDETAILS   */
+//*  NOTE: string information is concatenated after the PROGDETAILS   */
 //*        field structure so you need to allocate storage greater    */
 //*        than sizeof(PROGDETAILS) to query programs                 */
 //*                                                                   */
-//*  PrfQueryDefinition recomended usage:                             */
+//*  PrfQueryDefinition recommended usage:                            */
 //*                                                                   */
 //*  bufferlen = PrfQueryDefinition(Hini,Hprog,(PPROGDETAILS)NULL,0)  */
 //*                                                                   */
-//*  Alocate buffer of bufferlen bytes                                */
+//*  Allocate buffer of bufferlen bytes                               */
 //*  set Length field (0 will be supported)                           */
 //*                                                                   */
 //*  (PPROGDETAILS)pBuffer->Length=sizeof(PPROGDETAILS)               */

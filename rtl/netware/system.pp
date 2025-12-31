@@ -328,7 +328,7 @@ begin
   oldTG := _SetThreadGroupID (NetwareMainThreadGroupID); { this is only needed for nw 3.11 }
 
   { _GetThreadDataAreaPtr will not be valid because the signal
-    handler is called by netware with a differnt thread. To avoid
+    handler is called by netware with a different thread. To avoid
     problems in the exit routines, we set the data of the main thread
     here }
   if assigned (SetThreadDataAreaPtr) then

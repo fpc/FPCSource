@@ -228,7 +228,7 @@ Const
   F_GetOwn = 24;
 
 Const
- { Constansts for MMAP }
+ { Constants for MMAP }
  {$ifdef FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;
  {$endif}

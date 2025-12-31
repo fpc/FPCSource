@@ -62,7 +62,7 @@
 {$ifndef FPC_SYSTEM_HAS_float64}
 type
 { also necessary for Int() on systems with 64bit floats (JM) }
-{ case record required to get correct alignement for floating point type }
+{ case record required to get correct alignment for floating point type }
 {$ifdef ENDIAN_LITTLE}
   float64 = record
     case byte of

@@ -99,7 +99,7 @@ begin
      trans_end:=high(trans_end);
    end
   else
-   { timer inbetween }
+   { timer in between }
    begin
       // Use binary search.
       L := 1;

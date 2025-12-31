@@ -320,7 +320,7 @@ const
         ret     $12
 
 .LInfNaN:
-        { Bother a bit to explicitly handle infinity instead of jumping to fldt + fsubrp + ret that would conveniently substract Inf/NaN from itself and give NaN.
+        { Bother a bit to explicitly handle infinity instead of jumping to fldt + fsubrp + ret that would conveniently subtract Inf/NaN from itself and give NaN.
           Such subtracting is likely to be very slow even on newer CPUs whose SSE units handle infinities/NaNs at full speed.
           I’d prefer frac(Inf) = 0, but x86-64 version returns NaN too. }
         mov     8(%esp), %eax { Check if mantissa bits 0:62 are all zeros. }

@@ -68,7 +68,7 @@ type
     pPid     = ^pid_t;
 
     wint_t	 = cint32;
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = cuint32;         { as defined in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
     psize_t   = pSize;		

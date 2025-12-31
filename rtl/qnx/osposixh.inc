@@ -33,7 +33,7 @@ type
     nlink_t  = cardinal;  { used for link counts         }
     off_t  = cardinal;    { used for file sizes          }
     pid_t  = longint;     { used as process identifier   }
-    size_t = cardinal;    { as definied in the C standard }
+    size_t = cardinal;    { as defined in the C standard }
     ssize_t = longint;    { used by function for returning number of bytes }
     uid_t = longint;      { used for user ID type        }
     time_t = cardinal;    { used for returning the time  }

@@ -315,7 +315,7 @@ begin
        PopObjectStack;
 
        Also the PopAddrStack shouldn't be done, we do it now
-       immediatly in the exception handler (FK)
+       immediately in the exception handler (FK)
       PopAddrStack; }
     end;
 end;

@@ -522,7 +522,7 @@ Var
                 if (i<=LenPat) then
                   begin
                     repeat
-                      {find a letter (not only first !) which maches pattern[i]}
+                      {find a letter (not only first !) which matches pattern[i]}
                       while (j<=LenName) and
                             ((name[j]<>pattern[i]) or
                              not CompareUtf16CodePoint(i,j,false)) do

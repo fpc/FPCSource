@@ -290,7 +290,7 @@ begin
               If ToAdd[1]<>'-' then
                 ToAdd:=TFormatString(StringOfChar('0',Index))+ToAdd
               else
-                // + 1 to accomodate for - sign in length !!
+                // + 1 to accommodate for - sign in length !!
                 Insert(TFormatString(StringOfChar('0',Index+1)),toadd,2);
               end;
         'U' : begin

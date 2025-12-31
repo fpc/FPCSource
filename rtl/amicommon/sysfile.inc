@@ -21,7 +21,7 @@
 *****************************************************************************}
 type
   { AmigaOS does not automatically close opened files on exit back to  }
-  { the operating system, therefore as a precuation we close all files }
+  { the operating system, therefore as a precaution we close all files }
   { manually on exit.                                                  }
   PFileList = ^TFileList;
   TFileList = record { no packed, must be correctly aligned }

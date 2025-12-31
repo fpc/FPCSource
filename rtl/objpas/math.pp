@@ -400,7 +400,7 @@ Function DegNormalize(deg : double) : double; inline;
 Function DegNormalize(deg : extended) : extended; inline;
 {$ENDIF}
 
-{ trigoniometric functions }
+{ trigonometric functions }
 
 function Tan(x : float) : float;
 function Cotan(x : float) : float;
@@ -3677,7 +3677,7 @@ begin
 end;
 
 // Some CPUs probably allow a faster way of doing this in a single operation...
-// There weshould define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
+// There we should define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
 {$ifndef FPC_MATH_HAS_DIVMOD}
 procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: Word);
 begin
@@ -3995,14 +3995,14 @@ function InterestRate(NPeriods: Integer; APayment, APresentValue, AFutureValue: 
 const
   DELTA = 0.001;
   EPS = 1E-9;   // required precision of interest rate (after typ. 6 iterations)
-  MAXIT = 20;   // max iteration count to protect agains non-convergence
+  MAXIT = 20;   // max iteration count to protect against non-convergence
 var
   r1, r2, dr: Float;
   fv1, fv2: Float;
   iteration: Integer;
 begin
   iteration := 0;
-  r1 := 0.05;  // inital guess
+  r1 := 0.05;  // initial guess
   repeat
     r2 := r1 + DELTA;
     fv1 := FutureValue(r1, NPeriods, APayment, APresentValue, APaymentTime);

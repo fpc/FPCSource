@@ -257,7 +257,7 @@ begin
     DriveNames[1][0]:='\';
     DriveNames[1][1]:=#0;
 
-    // Other drives are found dinamically
+    // Other drives are found dynamically
     h:=FindFirstFile('\*', @fd);
     if h <> 0 then
     begin

@@ -49,7 +49,7 @@ const
 	DslGetTN			=	$13;// get number of TOC
 	DslGetTD			=	$14;// get TOC data
 	DslSeekL			=	$15;// logical seek
-	DslSeekP			=	$16;// phisical seek
+	DslSeekP			=	$16;// physical seek
 	DslReadS			=	$1B;// read data without retry
 
 	// Interrupts

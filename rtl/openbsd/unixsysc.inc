@@ -91,7 +91,7 @@ Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; oldfpcc
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
+  If the operation was unsuccessful, linuxerror is set.
 }
 
 begin
@@ -183,7 +183,7 @@ Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
+  If the operation was unsuccessful, linuxerror is set.
 }
 var
   ret  : longint;

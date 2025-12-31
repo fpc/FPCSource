@@ -390,9 +390,9 @@ type
   end;
 
   TGPIOTE_Registers = record          // GPIOTE Structure
-    TASKS_OUT  : array[0..3] of longword; // Tasks asssociated with GPIOTE channels.
+    TASKS_OUT  : array[0..3] of longword; // Tasks associated with GPIOTE channels.
     RESERVED0  : array[0..59] of longword;
-    EVENTS_IN  : array[0..3] of longword; // Tasks asssociated with GPIOTE channels.
+    EVENTS_IN  : array[0..3] of longword; // Tasks associated with GPIOTE channels.
     RESERVED1  : array[0..26] of longword;
     EVENTS_PORT : longword;           // Event generated from multiple pins.
     RESERVED2  : array[0..96] of longword;
@@ -662,7 +662,7 @@ type
     ERASEPAGE  : longword;            // Register for erasing a non-protected non-volatile memory page.
     ERASEALL   : longword;            // Register for erasing all non-volatile user memory.
     ERASEPCR0  : longword;            // Register for erasing a protected non-volatile memory page.
-    ERASEUICR  : longword;            // Register for start erasing User Information Congfiguration Registers.
+    ERASEUICR  : longword;            // Register for start erasing User Information Configuration Registers.
   end;
 
   TPPI_Registers = record             // PPI Structure
@@ -685,7 +685,7 @@ type
     CLENR0     : longword;            // Length of code region 0 in bytes.
     PPFC       : longword;            // Pre-programmed factory code present.
     RESERVED2  : longword;
-    NUMRAMBLOCK : longword;           // Number of individualy controllable RAM blocks.
+    NUMRAMBLOCK : longword;           // Number of individually controllable RAM blocks.
     SIZERAMBLOCK : array[0..3] of longword; // Deprecated array of size of RAM block in bytes. This name is
     RESERVED3  : array[0..4] of longword;
     CONFIGID   : longword;            // Configuration identifier.

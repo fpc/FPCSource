@@ -148,7 +148,7 @@ procedure FixResEndian;
 var ptr : plongword;
     blockend : plongword;
 begin
-  //all info nodes reside in a contiguos block of memory.
+  //all info nodes reside in a contiguous block of memory.
   //they are all 16 bytes long and made by longwords
   //so, simply swap each longword in the block
   ptr:=GetPtr(sizeof(TExtHeader));
@@ -283,7 +283,7 @@ begin
     FpClose(fd);
     exit;
   end;
-//  writeln('fpfstat suceeded');
+//  writeln('fpfstat succeeded');
   fd_size:=fdstat.st_size;
   ResHeader:=PExtHeader(Fpmmap(nil,fd_size,PROT_READ or PROT_WRITE,
     MAP_PRIVATE,fd,0));

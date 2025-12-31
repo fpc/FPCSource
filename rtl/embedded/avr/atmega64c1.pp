@@ -180,12 +180,12 @@ const
   SERG = 3; // Stuff Error General Flag
   CERG = 2; // CRC Error General Flag
   FERG = 1; // Form Error General Flag
-  AERG = 0; // Ackknowledgement Error General Flag
+  AERG = 0; // Acknowledgment Error General Flag
   // CANGIE
   ENIT = 7; // Enable all Interrupts
   ENBOFF = 6; // Enable Bus Off Interrupt
   ENRX = 5; // Enable Receive Interrupt
-  ENTX = 4; // Enable Transmitt Interrupt
+  ENTX = 4; // Enable Transmit Interrupt
   ENERR = 3; // Enable MOb Error Interrupt
   ENBX = 2; // Enable Burst Receive Interrupt
   ENERG = 1; // Enable General Error Interrupt
@@ -220,7 +220,7 @@ const
   SERR = 3; // Stuff Error on MOb
   CERR = 2; // CRC Error on MOb
   FERR = 1; // Form Error on MOb
-  AERR = 0; // Ackknowledgement Error on MOb
+  AERR = 0; // Acknowledgment Error on MOb
   // CANCDMOB
   CONMOB = 6; // MOb Config bits
   RPLV = 5; // Reply Valid

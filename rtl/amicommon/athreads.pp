@@ -73,7 +73,7 @@ type
     nextThread: PThreadInfo; { threadinfos are a linked list, using this field }
     threadPtr: PProcess;     { our thread pointer, as returned by CreateNewProc(). invalid after exited field is true! }
     threadID: TThreadID;     { thread Unique ID }
-    stackLen: PtrUInt;       { stack size the thread was construced with }
+    stackLen: PtrUInt;       { stack size the thread was constructed with}
     exitCode: Pointer;       { exitcode after the process has exited     }
     f: TThreadFunc;          { ThreadFunc function pointer }
     p: Pointer;              { ThreadFunc argument }
@@ -1236,7 +1236,7 @@ begin
           {$ENDIF}
           Break;
         end;
-        // if we reach here, nothing happend...
+        // if we reach here, nothing happened...
         // we release the semaphore and wait for other threads to do something
         ReleaseSemaphore(@AmiEvent^.Sem);
         DosDelay(1);

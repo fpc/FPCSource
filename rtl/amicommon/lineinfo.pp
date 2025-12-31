@@ -127,7 +127,7 @@ var
   stabofs,              { absolute stab section offset in executable }
   stabstrlen,
   stabstrofs : longint; { absolute stabstr section offset in executable }
-  dirlength  : longint; { length of the dirctory part of the source file }
+  dirlength  : longint; { length of the directory part of the source file }
   stabs      : array[0..maxstabs-1] of tstab;  { buffer }
   stabsreloc : array[0..maxstabsreloc-1] of telf32_reloc;
   textofs,
@@ -502,7 +502,7 @@ begin
   BackTraceStrFunc:=@SysBackTraceStr;
 
   { on most architectures, (but not everywhere, Sparc is a notable exception)
-    for valid stacktraces you have to substract sizeof(pointer), or similar
+    for valid stacktraces you have to subtract sizeof(pointer), or similar
     instruction length from the trace address otherwise the lineinfo might
     be off-by-one, because of course the backtrace addresses don't point to
     the jump instructions, but the following address, which might belong to

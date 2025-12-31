@@ -15,7 +15,7 @@
  **********************************************************************}
 
 
-{ In Java, threadvars are represented by descendnts of java.lang.ThreadLocal.
+{ In Java, threadvars are represented by descendants of java.lang.ThreadLocal.
   This class has three important methods: set, get and initialValue.
 
   If you call the "get" method of a JLThreadLocal instance in a thread for the

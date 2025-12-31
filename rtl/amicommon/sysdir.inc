@@ -92,7 +92,7 @@ begin
   Dir := '';
 
   { dos.library's GetCurrentDirName() doesn't work when called from
-    Workbench (ie. when the process has no CLI sructure) }
+    Workbench (ie. when the process has no CLI structure) }
   { it also doesn't seem to work when invoked from make on AROS }
   LockDir := CurrentDir(0);
   NameFromLock(LockDir, tmpBuf, 256);

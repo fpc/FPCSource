@@ -596,7 +596,7 @@ begin
          if h>=5 then
            do_close(h);
       end;
-  { halt is not allways called !! }
+  { halt is not always called !! }
   { not on normal exit !! PM }
   set_pm_interrupt($00,old_int00);
 {$ifndef EXCEPTIONS_IN_SYSTEM}

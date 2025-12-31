@@ -302,7 +302,7 @@ type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
       PKey = ^TKey;
-// unsed      PData = ^TData;
+// unused      PData = ^TData;
   protected
     var
       FOnKeyCompare: TKeyCompareFunc;
@@ -350,7 +350,7 @@ type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
       PKey = ^TKey;
-// unsed      PData = ^TData;
+// unused      PData = ^TData;
   protected
     var
       FOnKeyCompare: TKeyCompareFunc;
@@ -400,7 +400,7 @@ type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
       PKey = ^TKey;
-// unsed      PData = ^TData;
+// unused      PData = ^TData;
   protected
     var
       FOnKeyCompare: TKeyCompareFunc;

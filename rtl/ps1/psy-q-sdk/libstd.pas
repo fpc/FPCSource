@@ -268,7 +268,7 @@ const
 
 	HwVBLANK	= DescHW or $01;	// VBLANK
 	HwGPU		= DescHW or $02;	// GPU
-	HwCdRom		= DescHW or $03;	// CDROM Decorder
+	HwCdRom		= DescHW or $03;	// CDROM Recorder
 	HwDMAC		= DescHW or $04;	// DMA controller
 	HwRTC0		= DescHW or $05;	// RTC0
 	HwRTC1		= DescHW or $06;	// RTC1
@@ -312,8 +312,8 @@ const
 	EvSpTRAP    = $1000;    	    // general interrupt
 	EvSpNEW		= $2000;			// new device
 	EvSpSYSCALL	= $4000;			// system call instruction
-	EvSpERROR	= $8000;			// error happned
-	EvSpPERROR	= $8001;			// previous write error happned
+	EvSpERROR	= $8000;			// error happened
+	EvSpPERROR	= $8001;			// previous write error happened
 	EvSpEDOM    = $0301;			// domain error in libmath
 	EvSpERANGE  = $0302;			// range error in libmath
 
@@ -595,7 +595,7 @@ function TIOCRAW: longint; 	   // disable xon/xoff control
 function TIOCFLUSH: longint;   // flush input buffer
 function TIOCREOPEN: longint;  // reopen
 function TIOCBAUD: longint;    // set baud rate
-function TIOCEXIT: longint;    // console interrup
+function TIOCEXIT: longint;    // console interrupt
 function TIOCDTR: longint;     // control DTR line
 function TIOCRTS: longint;     // control RTS line
 function TIOCLEN: longint;     // stop<<16 | char
@@ -660,8 +660,8 @@ type
 		dt_write : function(): plongint;	// fs write routine, return count
 		dt_delete : function(): plongint;	// file delete routine
 		dt_undelete : function(): plongint;	// file delete routine
-		dt_firstfile : function(): plongint;// directory serach routine
-		dt_nextfile : function(): plongint;	// directory serach routine
+		dt_firstfile : function(): plongint;// directory search routine
+		dt_nextfile : function(): plongint;	// directory search routine
 		dt_format : function(): plongint;
 		dt_cd : function(): plongint;
 		dt_rename : function(): plongint;
@@ -682,7 +682,7 @@ const
 // character device flags
 	DB_RAW = $1;			// don't interpret special chars
 	DB_STOPPED	= $2;		// stop output
-	DB_BREAK = $4;			// cntl-c raise console interrpt
+	DB_BREAK = $4;			// cntl-c raise console interrupt
 
 // character device buffer
 	CBUFSIZE = 256;

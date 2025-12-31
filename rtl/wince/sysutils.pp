@@ -1008,7 +1008,7 @@ begin
 end;
 
 
-{ there is a similiar procedure in the system unit which inits the fields which
+{ there is a similar procedure in the system unit which inits the fields which
   are relevant already for the system unit }
 procedure InitWinCEWidestrings;
   begin

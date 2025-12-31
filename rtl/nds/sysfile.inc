@@ -276,7 +276,7 @@ begin
 { real open call }
   errno^ := 0;
   FileRec(f).Handle := _open(p, oflags, 438);
-  { open somtimes returns > -1 but errno was set }
+  { open sometimes returns > -1 but errno was set }
   if (errno^ <> 0) or (longint(FileRec(f).Handle) < 0) then
     if (errno^ = Sys_EROFS) and ((OFlags and O_RDWR) <> 0) then
     begin  // i.e. for cd-rom

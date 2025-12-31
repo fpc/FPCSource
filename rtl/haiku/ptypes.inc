@@ -78,11 +78,11 @@ type
     pPid     = ^pid_t;
 
 {$ifdef cpu64}
-    size_t   = cuint64;         { as definied in the C standard}
+    size_t   = cuint64;         { as defined in the C standard}
     ssize_t  = cint64;          { used by function for returning number of bytes }
     time_t   = cint64;           { used for returning the time  }
 {$else}
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = cuint32;         { as defined in the C standard}
     ssize_t  = cint32;          { used by function for returning number of bytes }
     time_t   = clong;           { used for returning the time  }
 {$endif}

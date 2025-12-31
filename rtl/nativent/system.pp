@@ -431,7 +431,7 @@ begin
 {$endif ndef KMODE and ndef HAS_MEMORYMANAGER}
   SysInitExceptions;
   { we do not use winlike widestrings and also the RTL can't be compiled with
-    2.2, so we can savely use the UnicodeString manager only. }
+    2.2, so we can safely use the UnicodeString manager only. }
   initunicodestringmanager;
 {$ifndef KMODE}
   SysInitStdIO;

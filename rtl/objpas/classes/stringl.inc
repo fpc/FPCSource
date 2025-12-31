@@ -2215,7 +2215,7 @@ begin
     Context.ListStartPtr := FList;
     Context.CompareFn := CompareFn;
 
-    //if ExchangeItems is overriden call that, else call (faster) ItemListSorter_ContextComparer
+    //if ExchangeItems is overridden call that, else call (faster) ItemListSorter_ContextComparer
     if TMethod(@Self.ExchangeItems).Code = CodePointer(@TStringList.ExchangeItems) then
       SortingAlgorithm^.ItemListSorter_ContextComparer(
         FList, FCount, SizeOf(TStringItem), @TStringList_CustomSort_Comparer,

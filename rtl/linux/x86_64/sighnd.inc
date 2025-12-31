@@ -60,7 +60,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
     case sig of
       SIGFPE :
         begin
-          { this is not allways necessary but I don't know yet
+          { this is not always necessary but I don't know yet
             how to tell if it is or not PM }
           res:=200;
           if SigInfo^.si_code<>FPE_INTDIV then
@@ -108,7 +108,7 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
   {$ifdef SYSTEM_DEBUG}
                     Writeln(stderr,'fpstate^.swd = ',swd);
   {$endif SYSTEM_DEBUG}
-                    { actually, I am not sure if we should really touch the controll word }
+                    { actually, I am not sure if we should really touch the control word }
                     cwd:=Default8087CW;
                     { found by trial and error that setting to 0 means empty }
                     twd:=$0;

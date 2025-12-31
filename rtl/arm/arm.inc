@@ -323,7 +323,7 @@ asm
         mov     ip,r2
 .LFillchar_at_least_8bytes:
         // Do 16 bytes per loop
-        // More unrolling is uncessary, as we'll just stall on the write buffers
+        // More unrolling is unnecessary, as we'll just stall on the write buffers
         stmia   r3!,{r2,ip}
         subs    r1,r1,#8
         stmplia r3!,{r2,ip}
@@ -788,11 +788,11 @@ asm
 
   // We expect this to work without looping most of the time
   // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
-  // loop here again, we have to reload the value. Normaly this just fills the
+  // loop here again, we have to reload the value. Normally this just fills the
   // load stall-cycles from the above ldr so in reality we'll not get any additional
   // delays because of this
   // Don't use ldr to load r3 to avoid cacheline trashing
-  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // Load 0xffff0fff into r3 and subtract to 0xffff0fc0,
   // the kuser_cmpxchg entry point
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
@@ -876,11 +876,11 @@ asm
 
   // We expect this to work without looping most of the time
   // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
-  // loop here again, we have to reload the value. Normaly this just fills the
+  // loop here again, we have to reload the value. Normally this just fills the
   // load stall-cycles from the above ldr so in reality we'll not get any additional
   // delays because of this
   // Don't use ldr to load r3 to avoid cacheline trashing
-  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // Load 0xffff0fff into r3 and subtract to 0xffff0fc0,
   // the kuser_cmpxchg entry point
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
@@ -962,11 +962,11 @@ asm
 
   // We expect this to work without looping most of the time
   // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
-  // loop here again, we have to reload the value. Normaly this just fills the
+  // loop here again, we have to reload the value. Normally this just fills the
   // load stall-cycles from the above ldr so in reality we'll not get any additional
   // delays because of this
   // Don't use ldr to load r3 to avoid cacheline trashing
-  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // Load 0xffff0fff into r3 and subtract to 0xffff0fc0,
   // the kuser_cmpxchg entry point
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
@@ -1049,11 +1049,11 @@ asm
 
   // We expect this to work without looping most of the time
   // R3 gets clobbered in kuser_cmpxchg so in the unlikely case that we have to
-  // loop here again, we have to reload the value. Normaly this just fills the
+  // loop here again, we have to reload the value. Normally this just fills the
   // load stall-cycles from the above ldr so in reality we'll not get any additional
   // delays because of this
   // Don't use ldr to load r3 to avoid cacheline trashing
-  // Load 0xffff0fff into r3 and substract to 0xffff0fc0,
+  // Load 0xffff0fff into r3 and subtract to 0xffff0fc0,
   // the kuser_cmpxchg entry point
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
@@ -1163,7 +1163,7 @@ asm
   // The error case is a bit tricky, kuser_cmpxchg does not return the current value
   // So we may need to loop to avoid race conditions
   // The loop case is HIGHLY unlikely, it would require that we got rescheduled between
-  // calling kuser_cmpxchg and the ldr. While beeing rescheduled another process/thread
+  // calling kuser_cmpxchg and the ldr. While being rescheduled another process/thread
   // would have the set the value to our comperand
   ldr   r0, [r2] // Load the currently set value
   cmp   r0, r4   // Return if Comperand != current value, otherwise loop again

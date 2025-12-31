@@ -299,7 +299,7 @@ Function fpc_Val_smallint_UnicodeStr (Const S : UnicodeString; out Code : ValSIn
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 { A glitch in FPC 3.2.2 prevents inline from working properly here on
-  ARM (causes a dangling pointer and hence heap corrpution). }
+  ARM (causes a dangling pointer and hence heap corruption). }
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc; {$if FPC_FULLVERSION>30202}inline;{$ifend}
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc; {$if FPC_FULLVERSION>30202}inline;{$ifend}
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;

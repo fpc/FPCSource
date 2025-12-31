@@ -81,7 +81,7 @@ Uses Sysctl;
 
 {$i oscdecl.inc}        // implementation of wrappers in oscdeclh.inc
 
-{$i osmacro.inc}        { macro implenenations }
+{$i osmacro.inc}        { macro implementations }
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
 

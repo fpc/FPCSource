@@ -495,7 +495,7 @@ begin
          { Need a complete new widestring...}
          Pointer(s):=NewWideString(l);
        end
-      { windows doesn't support reallocing widestrings, this code
+      { windows doesn't support reallocating widestrings, this code
         is anyways subject to be removed because widestrings shouldn't be
         ref. counted anymore (FK) }
       else

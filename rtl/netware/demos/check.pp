@@ -19,7 +19,7 @@
 
 
 { using crt automatically calls _SetAutoScreenDestructionMode (TRUE);
-  so no "Press any key to close screeen" will be shown by netware }
+  so no "Press any key to close screen" will be shown by netware }
 uses crt;
 
 var first : boolean = true;

@@ -238,7 +238,7 @@ asm
   bne .Lbyteloop
 (*
   // yes, then align
-  // alignment to 4 byte boundries is enough
+  // alignment to 4 byte boundaries is enough
   ldrb ip,[r0],#1
   sub r2,r2,#1
   stb ip,[r1],#1
@@ -309,7 +309,7 @@ asm
   bne .Lbyteloop
 (*
   // yes, then align
-  // alignment to 4 byte boundries is enough
+  // alignment to 4 byte boundaries is enough
   ldrb ip,[r0],#1
   sub r2,r2,#1
   stb ip,[r1],#1

@@ -91,7 +91,7 @@ begin
    run_c_constructors;
    If cardinal(@first_dtor)<>cardinal(@last_dtor) then
      begin
-        { can exitproc be allready non nil here ?
+        { can exitproc be already non nil here ?
           you have to make really weird things to achieve
           that be lets suppose it is possible !! (PM) }
         save_exit:=exitproc;

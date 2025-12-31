@@ -79,7 +79,7 @@ Const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
-  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  {Constants Termios/Ioctl (used in Do_IsDevice) }
   {$if defined(PowerPC) or defined(Powerpc64)}
   IOCtl_TCGETS=$402c7413;
   {$else}

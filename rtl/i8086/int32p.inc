@@ -137,7 +137,7 @@ begin
       // Special case of the generic "schoolbook" division [see e.g. Knuth]:
       //  1. normalize divisor: [n1:n0] := n<<m, so that 0x8000<=n1<=0xFFFF
       //     n>=0x10000 -> m<=15
-      //  2. adjust divident accordingly: [z2:z1:z0] := z<<m
+      //  2. adjust dividend accordingly: [z2:z1:z0] := z<<m
       //     m<=15 -> z2<=0x7FFF
       // implementation: instead do >> dropping n0 and z0
       mov    si,bx // save n0
@@ -232,7 +232,7 @@ begin
       // Special case of the generic "schoolbook" division [see e.g. Knuth]:
       //  1. normalize divisor: [n1:n0] := n<<m, so that 0x8000<=n1<=0xFFFF
       //     n>=0x10000 -> m<=15
-      //  2. adjust divident accordingly: [z2:z1:z0] := z<<m
+      //  2. adjust dividend accordingly: [z2:z1:z0] := z<<m
       //     m<=15 -> z2<=0x7FFF
       // implementation: instead do >> dropping n0 and z0
       mov    si,bx // save n0

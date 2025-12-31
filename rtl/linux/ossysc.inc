@@ -2,7 +2,7 @@
     Copyright (c) 2002 by Marco van de Voort
 
     The base Linux syscalls required to implement the system unit. These
-    are aliased for use in other units (to avoid poluting the system units
+    are aliased for use in other units (to avoid polluting the system units
     interface)
 
     See the file COPYING.FPC, included in this distribution,

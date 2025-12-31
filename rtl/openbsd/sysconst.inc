@@ -89,11 +89,11 @@ const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
-  { Constansts for MMAP }
+  { Constants for MMAP }
   MAP_PRIVATE   =2;
   MAP_ANONYMOUS =$1000;
 
-  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  {Constants Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
 
 // a type, and a wrong one. only for quick port atm.

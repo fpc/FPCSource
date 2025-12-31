@@ -58,7 +58,7 @@ type
 {$ifdef CPU64}
     size_t   = cuint64;
 {$else}
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = cuint32;         { as defined in the C standard}
 {$endif}
     TSize    = size_t;
     pSize    = ^size_t;
@@ -101,7 +101,7 @@ type
   TTimeVal = timeval;
 
   timespec = packed record
-    tv_sec   : time_t;                  // should be time_t, bug compability
+    tv_sec   : time_t;                  // should be time_t, bug compatibility
     tv_nsec  : clong;
   end;
   ptimespec= ^timespec;

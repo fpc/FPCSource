@@ -170,7 +170,7 @@ end;
 
 function paramstr(l: longint) : shortstring;
  begin
-   { stricly conforming POSIX applications  }
+   { strictly conforming POSIX applications }
    { have the executing filename as argv[0] }
 //   if l=0 then
 //     begin
@@ -216,7 +216,7 @@ end;
 {$ifdef DEBUG}
   { Declare InstallDefaultSignalHandler as forward to be able
     to test aclling fpsigaction again within SignalToRunError
-    function implemented within sighnd.inc inlcude file }
+    function implemented within sighnd.inc include file }
 procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); forward;
 {$endif}
 

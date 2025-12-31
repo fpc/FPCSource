@@ -464,7 +464,7 @@ const
    Pseudo-Random Number Generator.
 
    What is Mersenne Twister?
-   Mersenne Twister(MT) is a pseudorandom number generator developped by
+   Mersenne Twister(MT) is a pseudorandom number generator developed by
    Makoto Matsumoto and Takuji Nishimura (alphabetical order) during
    1996-1997. MT has the following merits:
    It is designed with consideration on the flaws of various existing
@@ -518,7 +518,7 @@ const
 
   Revised 21.6.2000: Bug in the function RandInt_MT19937 fixed
 
-  2003/10/26: adapted to use the improved intialisation mentioned at
+  2003/10/26: adapted to use the improved initialization mentioned at
   <http://www.math.keio.ac.jp/~matumoto/MT2002/emt19937ar.html> and
   removed the assembler code
 

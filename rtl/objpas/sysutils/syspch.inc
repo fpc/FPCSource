@@ -17,7 +17,7 @@
 
 {  PAnsiChar functions  }
 
-{ Processor dependent part, shared withs strings unit }
+{ Processor dependent part, shared with strings unit }
 {$ifdef FPC_USE_LIBC}
 {$i cgenstr.inc}
 {$endif FPC_USE_LIBC}

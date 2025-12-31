@@ -464,7 +464,7 @@ asm
         subfic    r10,r10,32
         { if already 32byte aligned, skip align loop }
         beq       .L32ByteAlignLoopDone
-        { substract from the total count }
+        { subtract from the total count }
         sub       r4,r4,r10
 .L32ByteAlignLoop:
         { we were already aligned to 4 byres, so this will count down to }

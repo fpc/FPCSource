@@ -665,7 +665,7 @@ procedure Win32Ansi2UnicodeMove(source:PAnsiChar;cp : TSystemCodePage;var dest:U
       end;
     destlen:=MultiByteToWideChar(cp, dwFlags, source, len, nil, 0);
     { destlen=0 means that Windows cannot convert, so call the default
-      handler. This is similiar to what unix does and is a good fallback
+      handler. This is similar to what unix does and is a good fallback
       if rawbyte strings are passed }
     if destlen=0 then
       begin
@@ -771,7 +771,7 @@ function Win32GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCo
     end;
   end;
 
-{ there is a similiar procedure in sysutils which inits the fields which
+{ there is a similar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
   var

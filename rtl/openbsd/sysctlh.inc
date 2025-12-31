@@ -135,7 +135,7 @@ CONST
         KERN_RND                = 31;   { struct: rnd(Name:4) statistics }
         KERN_NOSUIDCOREDUMP     = 32;   { int: no setuid coredumps ever }
         KERN_FSYNC              = 33;   { int: file synchronization support }
-        KERN_SYSVMSG            = 34;   { int: SysV message queue suppoprt }
+        KERN_SYSVMSG            = 34;   { int: SysV message queue support }
         KERN_SYSVSEM            = 35;   { int: SysV semaphore support }
         KERN_SYSVSHM            = 36;   { int: SysV shared memory support }
         KERN_ARND               = 37;   { int: random integer from arc4rnd }
@@ -680,7 +680,7 @@ CONST
 }
         IP_OPTIONS              = 1;    { buf/ip_opts; set/get IP options }
         IP_HDRINCL              = 2;    { int; header is included with data }
-        IP_TOS                  = 3;    { int; IP type of service and preced. }
+        IP_TOS                  = 3;    { int; IP type of service and precede. }
         IP_TTL                  = 4;    { int; IP time to live }
         IP_RECVOPTS             = 5;    { bool; receive all IP opts w/dgram }
         IP_RECVRETOPTS          = 6;    { bool; receive IP opts for response }
@@ -694,7 +694,7 @@ CONST
 
 { 14-17 left empty for future compatibility with FreeBSD }
 
-        IP_PORTRANGE            = 19;   { int; range to choose for unspec port }
+        IP_PORTRANGE            = 19;   { int; range to choose for unspecified port }
         IP_AUTH_LEVEL           = 20;   { int; authentication used }
         IP_ESP_TRANS_LEVEL      = 21;   { int; transport encryption }
         IP_ESP_NETWORK_LEVEL    = 22;   { int; full-packet encryption }
@@ -875,7 +875,7 @@ CONST
         IPCTL_IPPORT_HILASTAUTO = 10;
         IPCTL_IPPORT_MAXQUEUE   = 11;
         IPCTL_ENCDEBUG          = 12;
-{$ifdef obssolete}
+{$ifdef obsolete}
         IPCTL_GIF_TTL           = 13;   { default TTL for gif encap packet }
 {$endif}
         IPCTL_IPSEC_EXPIRE_ACQUIRE = 14;   { How long to wait for key mgmt. }

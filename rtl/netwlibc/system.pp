@@ -386,7 +386,7 @@ var oldPtr : pointer;
     current_exit : procedure;
 begin
   { Threadvar Pointer will not be valid because the signal
-    handler is called by netware with a differnt thread. To avoid
+    handler is called by netware with a different thread. To avoid
     problems in the exit routines, we set the data of the main thread
     here }
   if assigned (SetThreadDataAreaPtr) then
