@@ -104,8 +104,8 @@ type
     procedure   Seek(Pos: Longint); virtual;
     procedure Readline(var S:ShortString;var linecomplete,hasCR : boolean);
     procedure Readline(var S:AnsiString;var linecomplete,hasCR : boolean);
-  private
-    BasePos: longint;
+  //private
+    {BasePos: longint;  Removed from object, calculate its value on the fly }
   end;
 
   PTextCollection = ^TTextCollection;
@@ -938,17 +938,21 @@ end;
 constructor TFastBufStream.Init (FileName: FNameStr; Mode, Size: Word);
 begin
   Inherited Init(FileName,Mode,Size);
-  BasePos:=0;
+  //BasePos:=0;
 end;
 
 procedure TFastBufStream.Seek(Pos: Longint);
-var RelOfs: longint;
+var RelOfs,BasePos: longint;
 begin
+  { Wrong BasePos caused mystery errors while reading resource file (fp.dsk).
+    Real base position can change in TBufStream without our knowledge. Making
+    BasePos local and calculating its value on demand is the solution. M. }
+  BasePos:=Position-BufPtr;
   RelOfs:=Pos-BasePos;
   if (RelOfs<0) or (RelOfs>=BufEnd) or (BufEnd=0) then
     begin
       inherited Seek(Pos);
-      BasePos:=Pos-BufPtr;
+      {BasePos:=Pos-BufPtr;  BasePos is local, no need to save. M. }
     end
   else
     begin
