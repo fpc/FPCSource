@@ -682,7 +682,7 @@ begin
           // Update file size
           if FCacheStreamPosition>FCacheStreamSize then FCacheStreamSize:=FCacheStreamPosition;
 
-          Assert(pCache^.PageRealSize=FStreamCachePageSize,'This must not happend');
+          Assert(pCache^.PageRealSize=FStreamCachePageSize,'This must not happened');
           lNewBuffer:=PBYTE(@Buffer)+lAvailableInThisPage;
           Result:=lAvailableInThisPage+DoCacheWrite(lNewBuffer^,Count-lAvailableInThisPage);
           exit;

@@ -305,7 +305,7 @@ procedure GetTPasExpr(lex:TPasExpr);
     pekFuncParams:begin lbrak:='('; rbrak:=')'; Result:=','; end;
     pekArrayParams:begin lbrak:='['; rbrak:=']'; Result:=','; end;
     pekListOfExp:Result:=',';
-    pekInherited:Result:=' InheriteD';
+    pekInherited:Result:=' InheritD';
     pekSelf:Result:=' SelF';
    end;
   end;

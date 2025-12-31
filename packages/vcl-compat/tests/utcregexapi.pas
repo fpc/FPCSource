@@ -280,7 +280,7 @@ begin
   AssertEquals('Match 0 group 1 length: ',2,M.Groups[1].Length);
   M2:=M.NextMatch;
   M:=MS[1];
-  AssertTrue('Match 1 resul: ',M.Success);
+  AssertTrue('Match 1 result: ',M.Success);
   AssertEquals('Match 1 value: ','abbba',M.Value);
   AssertEquals('NextMatch value: ','abbba',M2.Value);
   AssertEquals('Match 1 index: ',10,M.Index);
@@ -305,10 +305,10 @@ begin
   MS:=RegEx.Matches(TestStr,9);
   AssertEquals('Match count',2,MS.Count);
   M:=MS[0];
-  AssertTrue('Match 1 resul: ',M.Success);
+  AssertTrue('Match 1 result: ',M.Success);
   AssertEquals('Match 1 value: ','abbba',M.Value);
   M:=MS[1];
-  AssertTrue('Match 1 resul: ',M.Success);
+  AssertTrue('Match 1 result: ',M.Success);
   AssertEquals('Match 1 value: ','abbbba',M.Value);
 
 end;

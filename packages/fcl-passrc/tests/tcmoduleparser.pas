@@ -214,7 +214,7 @@ begin
   StartImplementation;
   Add('finalization');
   ParseUnit;
-  AssertNull('Have no initalization section',Module.InitializationSection);
+  AssertNull('Have no initialization section',Module.InitializationSection);
   AssertNotNull('Have finalization section',Module.FinalizationSection)
 end;
 

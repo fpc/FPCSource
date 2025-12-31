@@ -24,7 +24,7 @@ begin
       else
         begin
         Writeln('Name          : ',ResolvedName);
-        Writeln('Addres        : ',AddressAsString);
+        Writeln('Address       : ',AddressAsString);
 {
         Writeln('Address count : ',);
         For I:=0 to AddressCount-1 do

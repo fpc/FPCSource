@@ -3002,7 +3002,7 @@ begin
   depLs := compObj.getList('departments');
   depObj := compObj.createDataObject('departments');
   depLs.append(depObj);
-  depObj.setString('name','RAD Departement');
+  depObj.setString('name','RAD Department');
   depObj.setString('location','Moon');
   depObj.setInteger('number',2);
     empLs := depObj.getList('employees');
@@ -3030,7 +3030,7 @@ begin
 
   depObj := compObj.createDataObject('departments');
   depLs.append(depObj);
-  depObj.setString('name','Sales Departement');
+  depObj.setString('name','Sales Department');
   depObj.setString('location','Mars');
   depObj.setInteger('number',2);
     empLs := depObj.getList('employees');

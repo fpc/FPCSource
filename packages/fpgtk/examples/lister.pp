@@ -299,7 +299,7 @@ begin
   om.Menu := NewMenu ('Selection Mode', [
                  NewMenuItem ('Single',@CList_SelectionMode, inttopointer(0)),
                  NewMenuItem ('Browse',@CList_SelectionMode, inttopointer(1)),
-                 NewMenuItem ('Mutiple',@CList_SelectionMode, inttopointer(2)),
+                 NewMenuItem ('Multiple',@CList_SelectionMode, inttopointer(2)),
                  NewMenuItem ('Extended',@CList_SelectionMode, inttopointer(3))]);
   om.SetHistory (0);
   CList.CList.SelectionMode := GTK_SELECTION_SINGLE;
@@ -348,7 +348,7 @@ begin
   om.Menu := NewMenu ('Selection Mode', [
                  NewMenuItem ('Single','','',@List_SelectionMode, inttopointer(0)),
                  NewMenuItem ('Browse','','',@List_SelectionMode, inttopointer(1)),
-                 NewMenuItem ('Mutiple','','',@List_SelectionMode, inttopointer(2)),
+                 NewMenuItem ('Multiple','','',@List_SelectionMode, inttopointer(2)),
                  NewMenuItem ('Extended','','',@List_SelectionMode, inttopointer(3))]);
   om.SetHistory (0);
   List.List.SelectionMode := GTK_SELECTION_SINGLE;

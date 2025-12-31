@@ -1489,7 +1489,7 @@ begin
           ok := True;
         end;
       end;
-      Check(ok, 'Succefully create a object who''s type tree contains circular dependency.');
+      Check(ok, 'Successfully create a object who''s type tree contains circular dependency.');
       locTypeX := locFac.getType(s_uri,'B') as ISDOObjectType;
       locTypeX.DropProperty(locTypeX.getProperty('p_BA'));
       locFac := nil;
@@ -1518,7 +1518,7 @@ begin
             ok := True;
           end;
         end;
-        Check(ok, 'Succefully create a object who''s type tree contains circular dependency.');
+        Check(ok, 'Successfully create a object who''s type tree contains circular dependency.');
         locTypeX := locFac.getType(s_uri,'C') as ISDOObjectType;
         locTypeX.DropProperty(locTypeX.getProperty('p_CA'));
         locFac := nil;
@@ -1538,7 +1538,7 @@ begin
             ok := True;
           end;
         end;
-        Check(ok, 'Succefully create a object who''s type tree contains circular dependency.');
+        Check(ok, 'Successfully create a object who''s type tree contains circular dependency.');
         locTypeX := locFac.getType(s_uri,'C') as ISDOObjectType;
         locTypeX.DropProperty(locTypeX.getProperty('p_CB'));
         locFac := nil;
@@ -1568,7 +1568,7 @@ begin
         on  e : ESDOCircularDependencyTypeException do
           ok := True
       end;
-      Check(ok, 'Succefully create a object who''s type tree contains circular dependency.');
+      Check(ok, 'Successfully create a object who''s type tree contains circular dependency.');
 end;
 
 procedure TSDOBaseDataFactory_Test.check_circular_dependy_4();
@@ -1593,7 +1593,7 @@ begin
       ok := True;
     end;
   end;
-  Check(ok, 'Succefully create a object who''s type contains circular dependency.');
+  Check(ok, 'Successfully create a object who''s type contains circular dependency.');
   locTypeX := locFac.getType(s_uri,'A') as ISDOObjectType;
   locTypeX.DropProperty(locTypeX.getProperty('p_circular'));
 end;

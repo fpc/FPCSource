@@ -248,7 +248,7 @@ begin
 
   {$ifdef VIDEODEBUG}
   If GetWindow <> nil then
-    WriteLn('DEBUG: Sucessfully opened videounit Window')
+    WriteLn('DEBUG: Successfully opened videounit Window')
   else
     WriteLn('ERROR: Failed to open videounit Window');
   {$endif}
@@ -340,7 +340,7 @@ begin
     ScreenColor := False;
 
     {$ifdef VIDEODEBUG}
-    Writeln('DEBUG: Fullscreen - windowed - Width * Heigth = ',ScreenWidth,' * ',ScreenHeight);
+    Writeln('DEBUG: Fullscreen - windowed - Width * Height = ',ScreenWidth,' * ',ScreenHeight);
     {$endif}
   end else
   begin

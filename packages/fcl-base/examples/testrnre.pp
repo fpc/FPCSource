@@ -24,7 +24,7 @@ begin
       else
         begin
         Writeln('Name          : ',ResolvedName);
-        Writeln('Addres        : ',AddressAsString);
+        Writeln('Address       : ',AddressAsString);
         Writeln('Alias count   : ',AliasCount);
         For I:=0 to AliasCount-1 do
           Writeln('Alias ',i:2,'  : ',Aliases[I]);

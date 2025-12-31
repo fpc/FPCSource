@@ -169,7 +169,7 @@ begin
       end;
     endtime := Now;
     if N <> 0 then
-      WriteLog('Endexing succesful')
+      WriteLog('Endexing successful')
     else
       WriteLog('Error indexing or no words found...');
     WriteLog(Format('Done, indexed %d words in %d directories in %d sec.', [N,Length(FDirs),SecondsBetween(endtime,start)]));
