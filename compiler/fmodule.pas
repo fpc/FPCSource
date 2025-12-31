@@ -33,7 +33,7 @@ unit fmodule;
   {$define shortasmprefix}
 {$endif}
 {$ifdef OS2}
-  { Allthough OS/2 supports long filenames I play it safe and
+  { Although OS/2 supports long filenames I play it safe and
     use 8.3 filenames, because this allows the compiler to run
     on a FAT partition. (DM) }
   {$define shortasmprefix}
@@ -250,7 +250,7 @@ interface
 
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
-        module. This allow inheritence of all path lists. MUST pay attention
+        module. This allow inheritance of all path lists. MUST pay attention
         to that when creating link.res!!!!(mazen)}
         constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
         destructor destroy;override;

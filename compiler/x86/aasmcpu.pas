@@ -962,7 +962,7 @@ implementation
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
         { Updated according to
-          Software Optimization Guide for AMD Family 15h Processors, Verison 3.08, January 2014
+          Software Optimization Guide for AMD Family 15h Processors, Version 3.08, January 2014
           and
           Intel 64 and IA-32 Architectures Software Developer’s Manual
             Volume 2B: Instruction Set Reference, N-Z, January 2015
@@ -1728,7 +1728,7 @@ implementation
               top_none :
                 begin
                   { generated when there was an error in the
-                    assembler reader. It never happends when generating
+                    assembler reader. It never happens when generating
                     assembler }
                 end;
               else
@@ -1820,7 +1820,7 @@ implementation
              exit;
          end;
 
-        { Chack Evex support in encoding }
+        { Check Evex support in encoding }
         if EvexRegs then
         begin
           for i:=0 to  maxinfolen do
@@ -2061,7 +2061,7 @@ implementation
            { create the .ot fields }
 
            create_ot(objdata);
-           { set the file postion }
+           { set the file position }
          end
         else
          begin
@@ -2089,7 +2089,7 @@ implementation
                         Message1(asmw_e_registers_should_be_distinct,GetString)
                       else
                         Message1(asmw_e_destination_and_source_registers_must_be_distinct,GetString);
-                      exit;  { unacceptable register combination (shoud be distinct) }
+                      exit;  { unacceptable register combination (should be distinct) }
                     end;
                result:=true;
                exit;
@@ -2333,7 +2333,7 @@ implementation
         { Error? }
         if (Insentry=nil) and (InsSize=-1) then
           exit;
-        { set the file postion }
+        { set the file position }
         current_filepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry(ObjData) then
@@ -3451,7 +3451,7 @@ implementation
               end;
             &351: exists_l512 := true; // EVEX length bit 512
             &352: exists_EVEXW1 := true; // EVEX W1
-            &362: // VEX prefix for AVX (length = 2 or 3 bytes, dependens on REX.XBW or opcode-prefix ($0F38 or $0F3A))
+            &362: // VEX prefix for AVX (length = 2 or 3 bytes, depends on REX.XBW or opcode-prefix ($0F38 or $0F3A))
                   // =>> DEFAULT = 2 Bytes
               begin
                 //if not(exists_vex) then
@@ -4026,7 +4026,7 @@ implementation
                                  if getsupreg(oper[opidx]^.ref^.index) and $08 = $0 then EVEXx := 1;
                                  if getsubreg(oper[opidx]^.ref^.index) in [R_SUBMMX,R_SUBMMY,R_SUBMMZ] then
                                  begin
-                                   // VSIB memory addresing
+                                   // VSIB memory addressing
                                    if getsupreg(oper[opidx]^.ref^.index) and $10 = $0 then EVEXv := 1; // VECTOR-Index
                                    {$ifdef x86_64}
                                    needed_VSIB := true;
@@ -4653,7 +4653,7 @@ implementation
             &327,
             &331,&332 :
               begin
-                { these are dissambler hints or 32 bit prefixes which
+                { these are dissembler hints or 32 bit prefixes which
                   are not needed }
               end;
             &362..&364: ; // VEX flags =>> nothing todo
@@ -5779,7 +5779,7 @@ implementation
       begin
 
 
-        // only supported intructiones with SSE- or AVX-operands
+        // only supported instructions with SSE- or AVX-operands
         if not(InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX) then
         begin
           InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize  := msiUnknown;

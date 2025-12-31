@@ -749,7 +749,7 @@ unit cpupara;
                 end;
                 repeat
                   paraloc^.loc:=LOC_MMREGISTER;
-                  { mm registers are strangly ordered in the arm compiler }
+                  { mm registers are strangely ordered in the arm compiler }
                   case retcgsize of
                     OS_32,OS_F32:
                       begin

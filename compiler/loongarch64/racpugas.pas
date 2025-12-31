@@ -326,7 +326,7 @@ unit racpugas;
       begin
         instr:=tloongarch64instruction.create(tloongarch64operand);
         BuildOpCode(instr);
-        { TODO insruction field }
+        { TODO instruction field }
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;

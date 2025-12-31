@@ -134,7 +134,7 @@ type
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
-      and concats it to the passed list. The newly created item is returned if the
+      and concatenate it to the passed list. The newly created item is returned if the
       instruction was valid, otherwise nil is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
   end;
@@ -181,7 +181,7 @@ type
      Function RPNPop: tcgint;
      Procedure RPNCalc(const token: String; prefix: boolean);
      Procedure OpPush(_Operator: char; prefix: boolean);
-     { In reality returns TExprOperaotr }
+     { In reality returns TExprOperator }
      Procedure OpPop(var _Operator:TExprOperator);
   end;
 

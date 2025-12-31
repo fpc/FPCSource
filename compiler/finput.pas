@@ -156,7 +156,7 @@ interface
           { paths and filenames }
           paramallowoutput : boolean;  { original allowoutput parameter }
           modulename,               { name of the module in uppercase }
-          realmodulename: pshortstring; { name of the module in the orignal case }
+          realmodulename: pshortstring; { name of the module in the original case }
           paramfn,                  { original filename }
           mainsource,               { name of the main sourcefile }
           objfilename,              { fullname of the objectfile }
@@ -339,7 +339,7 @@ uses
         tempopen:=false;
         if is_macro then
          begin
-           { seek buffer postion to bufstart }
+           { seek buffer position to bufstart }
            if bufstart>0 then
             begin
               move(buf[bufstart],buf[0],bufsize-bufstart+1);
@@ -624,7 +624,7 @@ uses
          staticlibfilename:=p+target_info.staticlibprefix+n+target_info.staticlibext;
          exportfilename:=p+'exp'+n+target_info.objext;
 
-         { output dir of exe can be specified separatly }
+         { output dir of exe can be specified separately }
          if AllowOutput and (OutputExeDir<>'') then
            p:=OutputExeDir
          else

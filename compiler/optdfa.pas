@@ -150,7 +150,7 @@ unit optdfa;
       begin
         exclude(n.transientflags,tnf_processing);
         { dfa works only on normalized trees, so do not recurse into expressions, because
-          ResetProcessing eats a signififcant amount of time of CheckAndWarn
+          ResetProcessing eats a significant amount of time of CheckAndWarn
 
           the following set contains (hopefully) most of the expression nodes }
         if n.nodetype in [calln,inlinen,assignn,callparan,andn,addn,orn,subn,muln,divn,slashn,notn,equaln,unequaln,gtn,ltn,lten,gten,loadn,
@@ -292,7 +292,7 @@ unit optdfa;
                 if lnf_testatbegin in twhilerepeatnode(node).loopflags then
                   begin
                     DFASetIncludeSet(l,node.optinfo^.use);
-                    { ... loop body could be skipped, so include life info of the successsor node }
+                    { ... loop body could be skipped, so include life info of the successor node }
                     if assigned(node.successor) then
                       DFASetIncludeSet(l,node.successor.optinfo^.life);
                   end;
@@ -348,7 +348,7 @@ unit optdfa;
                 { get the life of the loop block }
                 l:=copy(tfornode(node).t2.optinfo^.life);
 
-                { take care of the sucessor }
+                { take care of the successor }
                 if assigned(node.successor) then
                   DFASetIncludeSet(l,node.successor.optinfo^.life);
 
@@ -368,7 +368,7 @@ unit optdfa;
                 { get the life of the loop block }
                 l:=copy(tfornode(node).t2.optinfo^.life);
 
-                { take care of the sucessor as it's possible that we don't have one execution of the body }
+                { take care of the successor as it's possible that we don't have one execution of the body }
                 if (not(tfornode(node).right.nodetype=ordconstn) or not(tfornode(node).t1.nodetype=ordconstn)) and
                   assigned(node.successor) then
                   DFASetIncludeSet(l,node.successor.optinfo^.life);
@@ -493,7 +493,7 @@ unit optdfa;
                 for i:=0 to tcasenode(node).blocks.count-1 do
                   DFASetIncludeSet(l,pcaseblock(tcasenode(node).blocks[i])^.statement.optinfo^.life);
 
-                { get life info from else branch or the succesor }
+                { get life info from else branch or the successor }
                 if assigned(tcasenode(node).elseblock) then
                   DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
                 else if assigned(node.successor) then
@@ -653,7 +653,7 @@ unit optdfa;
             resultnode.allocoptinfo;
           end;
 
-        { add controll flow information }
+        { add control flow information }
         SetNodeSucessors(node,resultnode);
 
         { now, collect life information }

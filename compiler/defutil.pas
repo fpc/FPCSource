@@ -329,7 +329,7 @@ interface
   type
     tperformrangecheck = (
       rc_internal,  { nothing, internal conversion }
-      rc_explicit,  { no, but this is an explcit user conversion and hence can still give warnings in some cases (or errors in case of enums) }
+      rc_explicit,  { no, but this is an explicit user conversion and hence can still give warnings in some cases (or errors in case of enums) }
       rc_implicit,  { no, but this is an implicit conversion and hence can still give warnings/errors in some cases }
       rc_yes        { yes }
     );
@@ -368,7 +368,7 @@ interface
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
 
-    { #Return an orddef (integer) correspondig to a tcgsize }
+    { #Return an orddef (integer) corresponding to a tcgsize }
     function cgsize_orddef(size: tcgsize): torddef;
 
     {# Same as def_cgsize, except that it will interpret certain arrays as
@@ -386,11 +386,11 @@ interface
 
     { # returns the smallest base integer type whose range encompasses that of
         both ld and rd; if keep_sign_if_equal, then if ld and rd have the same
-        signdness, the result will also get that signdness }
+        signedness, the result will also get that signedness }
     function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
 
     { # calculates "not v" based on the provided def; returns true if the def
-        was negatable, false otherwise }
+        was negligible, false otherwise }
     function calc_not_ordvalue(var v:Tconstexprint; var def:tdef):boolean;
 
     { # returns whether the type is potentially a valid type of/for an "univ" parameter

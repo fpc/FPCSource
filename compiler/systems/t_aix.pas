@@ -309,7 +309,7 @@ begin
 
   success:=DoExec(BinStr,cmdstr,true,true);
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(outputexedir+Info.ResName);
@@ -406,7 +406,7 @@ begin
 
   success:=DoExec(BinStr,cmdstr,true,true);
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       DeleteFile(libobj);

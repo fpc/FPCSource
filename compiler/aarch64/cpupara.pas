@@ -312,7 +312,7 @@ unit cpupara;
            bits filled with unspecified values."
 
            Therefore at caller side force the ordinal result to be always 64-bit, so it
-           will be stripped to the required size and uneeded bits are discarded.
+           will be stripped to the required size and unneeded bits are discarded.
 
            According to Jonas iOS doesn't zero extend results in the callee either
          }

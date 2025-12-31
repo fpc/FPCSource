@@ -139,7 +139,7 @@ unit optdead;
   class procedure twpodeadcodeinfo.checkoptions;
     begin
       { we don't have access to the symbol info if the linking
-        hasn't happend
+        hasn't happened
       }
       if (([cs_link_on_target,cs_link_nolink] * init_settings.globalswitches) <> []) then
         begin

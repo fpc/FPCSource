@@ -595,7 +595,7 @@ implementation
          (extdbgbinstr<>'') then
         success:=DoExec(extdbgbinstr,extdbgcmdstr,false,false);
 
-      { Remove ReponseFile }
+      { Remove ResponseFile }
       if (success) and not(cs_link_nolink in current_settings.globalswitches) then
        begin
          DeleteFile(outputexedir+Info.ResName);

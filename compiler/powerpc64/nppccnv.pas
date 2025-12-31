@@ -132,7 +132,7 @@ begin
   signed := (left.location.size <> OS_64);
 
   { we need a certain constant for the conversion of unsigned 64 bit integers,
-    so create them here. Additonally another temporary location is neeted }
+    so create them here. Additionally another temporary location is needed }
   if (not signed) then begin
     // allocate temp for constant value used for unsigned 64 bit ints
     tempconst :=

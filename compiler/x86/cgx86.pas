@@ -1097,7 +1097,7 @@ unit cgx86;
         dirref:=ref;
 
         { this could probably done in a more optimized way, but for now this
-          is sufficent }
+          is sufficient }
         make_direct_ref(list,dirref);
 
         with dirref do
@@ -1105,7 +1105,7 @@ unit cgx86;
 {$ifdef i386}
             if refaddr=addr_ntpoff then
               begin
-                { Convert thread local address to a process global addres
+                { Convert thread local address to a process global address
                   as we cannot handle far pointers.}
                 case target_info.system of
                   system_i386_linux,system_i386_android:
@@ -1137,7 +1137,7 @@ unit cgx86;
 {$ifdef x86_64}
             if refaddr=addr_tpoff then
               begin
-                { Convert thread local address to a process global addres
+                { Convert thread local address to a process global address
                   as we cannot handle far pointers.}
                 case target_info.system of
                   system_x86_64_linux:
@@ -2016,7 +2016,7 @@ unit cgx86;
           end
         else if (op=OP_ADD) and
           ((size in [OS_32,OS_S32]) or
-           { lea supports only 32 bit signed displacments }
+           { lea supports only 32 bit signed displacements }
            ((size=OS_64) and (a>=0) and (a<=maxLongint)) or
            ((size=OS_S64) and (a>=-maxLongint) and (a<=maxLongint))
           ) and
@@ -2041,7 +2041,7 @@ unit cgx86;
           end
         else if (op=OP_SUB) and
           ((size in [OS_32,OS_S32]) or
-           { lea supports only 32 bit signed displacments }
+           { lea supports only 32 bit signed displacements }
            ((size=OS_64) and (a>=0) and (a<=maxLongint)) or
            ((size=OS_S64) and (a>=-maxLongint) and (a<=maxLongint))
           ) and
@@ -2542,7 +2542,7 @@ unit cgx86;
          a_load_reg_reg(list,srcsize,dstsize,tmpreg,dst);
      end;
 
-{*************** compare instructructions ****************}
+{*************** compare instructions ****************}
 
     procedure tcgx86.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
       l : tasmlabel);
@@ -3519,7 +3519,7 @@ unit cgx86;
               begin
                 { in the tiny memory model, we can't use dgroup, because that
                   adds a relocation entry to the .exe and we can't produce a
-                  .com file (because they don't support relactions), so instead
+                  .com file (because they don't support relocations), so instead
                   we initialize DS from CS. }
                 if cs_opt_size in current_settings.optimizerswitches then
                   begin

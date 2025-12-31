@@ -452,7 +452,7 @@ implementation
              if tnormalset(Aset^)=[] then
                 {The expression...
                     if expr in []
-                 ...is allways false. It should be optimized away in the
+                 ...is always false. It should be optimized away in the
                  resultdef pass, and thus never occur here. Since we
                  do generate wrong code for it, do internalerror.}
                 internalerror(2002072301);
@@ -460,9 +460,9 @@ implementation
              ranges:=false;
              numparts:=0;
              compares:=0;
-             { Lots of comparisions take a lot of time, so do not allow
-               too much comparisions. 8 comparisions are, however, still
-               smalller than emitting the set }
+             { Lots of comparisons take a lot of time, so do not allow
+               too much comparisons. 8 comparisons are, however, still
+               smaller than emitting the set }
              if cs_opt_size in current_settings.optimizerswitches then
                maxcompares:=8
              else
@@ -556,7 +556,7 @@ implementation
          if codegenerror then
           exit;
 
-         { ofcourse not commutative }
+         { of course not commutative }
          if nf_swapped in flags then
           swapleftright;
 
@@ -597,7 +597,7 @@ implementation
 
             current_asmdata.getjumplabel(l);
 
-            { how much have we already substracted from the x in the }
+            { how much have we already subtracted from the x in the  }
             { "x in [y..z]" expression                               }
             adjustment := 0;
 
@@ -619,7 +619,7 @@ implementation
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
                       end;
 
-                    { new total value substracted from x:           }
+                    { new total value subtracted from x:            }
                     { adjustment + (setparts[i].start - adjustment) }
                     adjustment := setparts[i].start;
 

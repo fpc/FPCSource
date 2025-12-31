@@ -1334,7 +1334,7 @@ implementation
           { add fileparameter }
           para.right := filepara.getcopy;
 
-          { create call statment                                             }
+          { create call statement                                            }
           { since the parameters are in the correct order, we have to insert }
           { the statements always at the end of the current block            }
           addstatement(Tstatementnode(newstatement),
@@ -1710,7 +1710,7 @@ implementation
             exit;
           end;
 
-        { we're going to reuse the exisiting para's, so make sure they }
+        { we're going to reuse the existing para's, so make sure they  }
         { won't be disposed                                            }
         left := nil;
 
@@ -1750,7 +1750,7 @@ implementation
           { unsigned para's  }
           begin
             codepara.left := ctypeconvnode.create_internal(codepara.left,valsinttype);
-            { make it explicit, oterwise you may get a nonsense range }
+            { make it explicit, otherwise you may get a nonsense range}
             { check error if the cardinal already contained a value   }
             { > $7fffffff                                             }
             codepara.get_paratype;
@@ -1796,7 +1796,7 @@ implementation
         { the shortstring-longint val routine by default                   }
         if (sourcepara.resultdef.typ = stringdef) then
           procname := procname + tstringdef(sourcepara.resultdef).stringtypname
-        { zero-based arrays (of char) can be implicitely converted to ansistring, but don't do
+        { zero-based arrays (of char) can be implicitly converted to ansistring, but don't do
           so if not needed because the array is too short }
         else if is_zero_based_array(sourcepara.resultdef) and (sourcepara.resultdef.size>255) then
           procname := procname + 'ansistr'
@@ -1808,7 +1808,7 @@ implementation
         { and the source para }
         codepara.right := sourcepara;
         { sizepara either contains nil if none is needed (which is ok, since   }
-        { then the next statement severes any possible links with other paras  }
+        { then the next statement serves any possible links with other paras   }
         { that sourcepara may have) or it contains the necessary size para and }
         { its right field is nil                                               }
         sourcepara.right := sizepara;
@@ -4498,7 +4498,7 @@ implementation
                   if not is_integer(left.resultdef) then
                     inserttypeconv_internal(left,sinttype);
 
-                  { addition/substraction depending on succ/pred }
+                  { addition/subtraction depending on succ/pred }
                   if inlinenumber=in_succ_x then
                     hp:=caddnode.create(addn,left,hp)
                   else
@@ -4675,14 +4675,14 @@ implementation
             end;
 
           in_slice_x:
-            { slice can be used only in calls for open array parameters, so it has to be converted appropriatly before
+            { slice can be used only in calls for open array parameters, so it has to be converted appropriately before
               if we get here, the array could not be passed to an open array parameter so it is an error }
             CGMessagePos(left.fileinfo,type_e_mismatch);
 
           in_ord_x,
           in_chr_byte:
             begin
-               { should not happend as it's converted to typeconv }
+               { should not happened as it's converted to typeconv }
                internalerror(200104045);
             end;
 
@@ -4842,7 +4842,7 @@ implementation
          temp_pnode: pnode;
       begin
 {$ifndef cpufpemu}
-        { this procedure might be only used for cpus definining cpufpemu else
+        { this procedure might be only used for cpus defining cpufpemu else
           the optimizer might go into an endless loop when doing x*x -> changes }
         internalerror(2011092401);
 {$endif cpufpemu}
@@ -5863,7 +5863,7 @@ implementation
                      end;
                    if lastchanged then
                      begin
-                       { we concatted all consecutive ones, so typecheck the new one again }
+                       { we concatenated all consecutive ones, so typecheck the new one again }
                        n:=tnode(list[i]);
                        typecheckpass(n);
                        list[i]:=n;
@@ -5897,7 +5897,7 @@ implementation
                      if not is_array_constructor(n.resultdef) then
                        inserttypeconv(n,arrn.resultdef);
                      { we need to ensure that we get a reference counted
-                       assignement for the temp array }
+                       assignment for the temp array }
                      tempnode:=ctempcreatenode.create(arrn.resultdef,arrn.resultdef.size,tt_persistent,true);
                      addstatement(newstatement,tempnode);
                      addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),n));

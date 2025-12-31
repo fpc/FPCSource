@@ -328,7 +328,7 @@ implementation
                   else
                     begin
                       tbasecgarm(cg).cgsetflags:=true;
-                      { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                      { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be used }
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
                       tbasecgarm(cg).cgsetflags:=false;
@@ -348,7 +348,7 @@ implementation
                        if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
                          begin
                            tbasecgarm(cg).cgsetflags:=true;
-                           { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                           { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                              then genlinearlist wouldn't be use }
                            cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low)), hregister);
                            tbasecgarm(cg).cgsetflags:=false;
@@ -361,7 +361,7 @@ implementation
                       { immediately. else check the range in between:       }
 
                       tbasecgarm(cg).cgsetflags:=true;
-                      { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                      { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                         then genlinearlist wouldn't be use }
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, OS_32, aint(int64(t^._low-last)), hregister);
                       tbasecgarm(cg).cgsetflags:=false;
@@ -372,7 +372,7 @@ implementation
                         cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
                   tbasecgarm(cg).cgsetflags:=true;
-                  { use OS_32 here to avoid uncessary sign extensions, at this place hregister will never be negative, because
+                  { use OS_32 here to avoid unnecessary sign extensions, at this place hregister will never be negative, because
                     then genlinearlist wouldn't be use }
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_32,aint(int64(t^._high-t^._low)),hregister);
                   tbasecgarm(cg).cgsetflags:=false;

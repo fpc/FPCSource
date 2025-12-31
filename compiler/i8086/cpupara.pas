@@ -532,7 +532,7 @@ unit cpupara;
                         if not(po_nostackframe in p.procoptions) then
                           inc(paraloc^.reference.offset,target_info.first_parm_offset)
                         else
-                          { return addres }
+                          { return address }
                           inc(paraloc^.reference.offset,2);
                         if is_proc_far(p) then
                           inc(paraloc^.reference.offset,2);

@@ -36,7 +36,7 @@ interface
          a ; on the statement before }
        endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT,_FINALLY];
 
-       { true, if we are after an assignement }
+       { true, if we are after an assignment }
        afterassignment : boolean = false;
 
        { true, if we are parsing arguments }

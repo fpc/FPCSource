@@ -1046,7 +1046,7 @@ implementation
           (target_info.system in systems_all_windows+systems_nativent-[system_i8086_win16]) then
           secname:='.rodata';
 
-        { section type user gives the user full controll on the section name }
+        { section type user gives the user full control on the section name }
         if atype=sec_user then
           secname:=aname;
 

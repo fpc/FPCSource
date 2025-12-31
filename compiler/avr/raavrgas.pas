@@ -371,7 +371,7 @@ Unit raavrgas;
                   oper.InitRef;
                   oper.opr.ref.offset:=BuildConstExpression(True,False);
 
-                  { absolute memory addresss? }
+                  { absolute memory address? }
                   if ((actopcode = A_LDS) and (actasmtoken <> AS_SEPARATOR)) or
                      ((actopcode = A_STS) and (actasmtoken <> AS_COMMA)) then
                     begin

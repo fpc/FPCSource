@@ -1067,7 +1067,7 @@ implementation
                          inc(tmpref.offset,4);
                          reghasvalue:=true;
                        end;
-{$endif defind(cpu64bitalu) or defined(cpuhighleveltarget)}
+{$endif defined(cpu64bitalu) or defined(cpuhighleveltarget)}
                      if sizeleft>=2 then
                        begin
                          tmpreg:=getintregister(list,location^.def);
@@ -2775,7 +2775,7 @@ implementation
             end;
           LOC_REGISTER,LOC_CREGISTER:
             begin
-              { paramfpu_ref does the check_simpe_location check here if necessary }
+              { paramfpu_ref does the check_simple_location check here if necessary }
               tg.gethltemp(list,fromsize,fromsize.size,tt_normal,ref);
               a_loadfpu_reg_ref(list,fromsize,fromsize,r,ref);
               a_loadfpu_ref_cgpara(list,fromsize,ref,cgpara);
@@ -4433,7 +4433,7 @@ implementation
           begin
             { load_loc_reg can only handle size >= l.size, when the
               new size is smaller then we need to adjust the size
-              of the orignal and maybe recalculate l.register for i386 }
+              of the original and maybe recalculate l.register for i386 }
             if (dst_size.size<src_size.size) then
               begin
                 hregister2:=getregisterfordef(list,src_size);
@@ -5178,7 +5178,7 @@ implementation
       if (tsym(p).typ=staticvarsym) and not(tstaticvarsym(p).noregvarinitneeded) then
        begin
          { Static variables can have the initialloc only set to LOC_CxREGISTER
-           or LOC_INVALID, for explaination see gen_alloc_symtable (PFV) }
+           or LOC_INVALID, for explanation see gen_alloc_symtable (PFV) }
          case tstaticvarsym(p).initialloc.loc of
            LOC_CREGISTER :
              begin
@@ -5397,7 +5397,7 @@ implementation
         begin
           { initialize refcounted paras, and trash others. Needed here
             instead of in gen_initialize_code, because when a reference is
-            intialised or trashed while the pointer to that reference is kept
+            initialized or trashed while the pointer to that reference is kept
             in a regvar, we add a register move and that one again has to
             come after the parameter loading code as far as the register
             allocator is concerned }
@@ -5788,7 +5788,7 @@ implementation
       else
         new_section(current_asmdata.asmlists[alt],sec_code,lower(pd.mangledname),getprocalign);
       current_asmdata.asmlists[alt].concatlist(code);
-      { save local data (casetable) also in the same file }
+      { save local data (castable) also in the same file }
       if assigned(data) and
          (not data.empty) then
         current_asmdata.asmlists[alt].concatlist(data);

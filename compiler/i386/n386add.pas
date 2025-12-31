@@ -302,7 +302,7 @@ interface
            case nodetype of
               ltn,gtn,lten,gten:
                 begin
-                   { the comparisaion of the low dword have to be }
+                   { the comparison of the low dword have to be   }
                    {  always unsigned!                            }
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),location.truelabel);
                    cg.a_jmp_always(current_asmdata.CurrAsmList,location.falselabel);

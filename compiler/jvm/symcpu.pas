@@ -267,7 +267,7 @@ implementation
           may not be visible at the Pascal level }
 
         explicitwrapper:=
-          { private methods are not visibile outside the current class, so
+          { private methods are not visible outside the current class, so
             no use in making life harder for us by introducing potential
             (future or current) naming conflicts }
           (visibility<>vis_private) and
@@ -535,7 +535,7 @@ implementation
             { if the visibility of the field is lower than the
               visibility of the property, wrap it in a getter
               so that we can access it from all contexts in
-              which the property is visibile }
+              which the property is visible }
             if (pprefix^<>'') or
                (tfieldvarsym(sym).visibility<visibility) then
               create_getter_or_setter_for_property(nil,getset=palt_read);

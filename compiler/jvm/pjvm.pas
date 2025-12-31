@@ -32,7 +32,7 @@ interface
 
     { records are emulated via Java classes. They require a default constructor
       to initialise temps, a deep copy helper for assignments, and clone()
-      to initialse dynamic arrays }
+      to initialize dynamic arrays }
     procedure add_java_default_record_methods_intf(def: trecorddef);
 
     procedure jvm_maybe_create_enum_class(const name: TIDString; def: tdef);

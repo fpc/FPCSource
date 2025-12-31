@@ -1141,7 +1141,7 @@ implementation
           {Do not bother to recycle the existing register. The register
            allocator eliminates unnecessary moves, so it's not needed
            and trying to recycle registers can cause problems because
-           the registers changes size and may need aditional constraints.
+           the registers changes size and may need additional constraints.
 
            Not if it's about LOC_CREGISTER's (JM)
            }
@@ -1186,7 +1186,7 @@ implementation
               begin
                 { load_loc_reg can only handle size >= l.size, when the
                   new size is smaller then we need to adjust the size
-                  of the orignal and maybe recalculate l.register for i386 }
+                  of the original and maybe recalculate l.register for i386 }
                 if (TCGSize2Size[dst_cgsize]<TCGSize2Size[l.size]) then
                  begin
                    if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1426,7 +1426,7 @@ implementation
        begin
          { initialize refcounted paras, and trash others. Needed here
            instead of in gen_initialize_code, because when a reference is
-           intialised or trashed while the pointer to that reference is kept
+           initialized or trashed while the pointer to that reference is kept
            in a regvar, we add a register move and that one again has to
            come after the parameter loading code as far as the register
            allocator is concerned }

@@ -695,7 +695,7 @@ unit agz80vasm;
                         hp:=tai(hp.next);
                         writer.AsmWrite(',');
                       until false;
-                      { Substract section start for secrel32 type }
+                      { Subtract section start for secrel32 type }
                       {if consttype=aitconst_secrel32_symbol then
                         writer.AsmWrite(' - $$');}
                       writer.AsmLn;
@@ -734,7 +734,7 @@ unit agz80vasm;
                         hp:=tai(hp.next);
                         writer.AsmWrite(',');
                       until false;
-                      { Substract section start for secrel32 type }
+                      { Subtract section start for secrel32 type }
                       if consttype=aitconst_secrel32_symbol then
                         writer.AsmWrite(' - $$');
                       writer.AsmLn;

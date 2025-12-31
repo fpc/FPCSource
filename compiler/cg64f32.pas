@@ -3,7 +3,7 @@
     Member of the Free Pascal development team
 
     This unit implements the code generation for 64 bit int
-    arithmethics on 32 bit processors
+    arithmetics on 32 bit processors
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
  ****************************************************************************
 }
-{# This unit implements the code generation for 64 bit int arithmethics on
+{# This unit implements the code generation for 64 bit int arithmetics on
    32 bit processors.
 }
 unit cg64f32;
@@ -1057,7 +1057,7 @@ unit cg64f32;
               (from_signed or
                (torddef(fromdef).ordtype = u64bit)) then
              begin
-               { in all cases, there is only a problem if the higest bit is set }
+               { in all cases, there is only a problem if the highest bit is set }
                if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                  begin
                    if is_64bit(fromdef) then

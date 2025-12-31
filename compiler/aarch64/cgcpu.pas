@@ -149,7 +149,7 @@ implementation
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
-        { no abitrary scale factor support (the generic code doesn't set it,
+        { no arbitrary scale factor support (the generic code doesn't set it,
           AArch-specific code shouldn't either) }
         if not(ref.scalefactor in [0,1]) then
           internalerror(2014111002);
@@ -372,7 +372,7 @@ implementation
                           begin
                             if preferred_newbasereg=NR_NO then
                               preferred_newbasereg:=getaddressregister(list);
-                            { can we split the offset beween an
+                            { can we split the offset between an
                               "add/sub (imm12 shl 12)" and the load (also an
                               imm12)?
                               -- the offset from the load will always be added,
@@ -1638,7 +1638,7 @@ implementation
 
 
 
-  {*************** compare instructructions ****************}
+  {*************** compare instructions ****************}
 
     procedure tcgaarch64.a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
       var

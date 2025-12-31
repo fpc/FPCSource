@@ -770,7 +770,7 @@ implementation
             result:='TODO: add support for constant sets';
           constpointer:
             { can only be null, but that's the default value and should not
-              be written; there's no primitive type that can hold nill }
+              be written; there's no primitive type that can hold nil }
             internalerror(2011021201);
           constnil:
             internalerror(2011021202);
@@ -829,7 +829,7 @@ implementation
               if sym.owner.symtabletype=globalsymtable then
                 result:='public '
               else
-                { package visbility }
+                { package visibility }
                 result:='';
             end;
           fieldvarsym,

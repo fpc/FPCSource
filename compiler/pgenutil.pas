@@ -393,7 +393,7 @@ uses
                     case formaldef.typ of
                       recorddef:
                         { delphi has own fantasy about record constraint
-                          (almost non-nullable/non-nilable value type) }
+                          (almost non-nullable/non-nil-able value type) }
                         if m_delphi in current_settings.modeswitches then
                           case paradef.typ of
                             floatdef,enumdef,orddef:
@@ -441,7 +441,7 @@ uses
                           internalerror(2012101102);
                         if formalobjdef.objecttype in [odt_interfacecom,odt_interfacecorba,odt_interfacejava,odt_dispinterface] then
                           begin
-                            { this is either a concerete interface or class type (the
+                            { this is either a concrete interface or class type (the
                               latter without specific implemented interfaces) }
                             case paraobjdef.objecttype of
                               odt_interfacecom,
@@ -2171,7 +2171,7 @@ uses
                       else
                         handle_calling_convention(tprocdef(result),hcc_default_actions_impl);
                       proc_add_definition(tprocdef(result));
-                      { for partial specializations we implicitely declare the routine as
+                      { for partial specializations we implicitly declare the routine as
                         having its implementation although we'll not specialize it in reality }
                       if parse_generic then
                         unset_forwarddef(result);
@@ -2222,7 +2222,7 @@ uses
                 { using changeowner the def is automatically added to the new
                   symtable }
                 tdef(item).ChangeOwner(specializest);
-                { for partial specializations we implicitely declare any methods as having their
+                { for partial specializations we implicitly declare any methods as having their
                   implementations although we'll not specialize them in reality }
                 if parse_generic or has_generic_paras(tstoreddef(item)) then
                   unset_forwarddef(tdef(item));
@@ -2980,7 +2980,7 @@ uses
                { only generate the code if we need a body }
                if assigned(tprocdef(hp).struct) and not tprocdef(hp).forwarddef then
                  continue;
-               { and the body is available already (which is implicitely the
+               { and the body is available already (which is implicitly the
                  case if the generic routine is part of another unit) }
                if (
                     not assigned(hmodule) or

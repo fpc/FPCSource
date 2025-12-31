@@ -279,7 +279,7 @@ implementation
             else
               begin
                 { For new(var,constructor) we need to take a copy because
-                  p is also used in the assignmentn below }
+                  p is also used in the assignment below }
                 if is_new then
                   begin
                     p2:=cderefnode.create(p.getcopy);

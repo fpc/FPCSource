@@ -76,7 +76,7 @@ implementation
            (right.nodetype=ordconstn) and
            (nodetype=divn) and
            not(is_64bit(resultdef)) and
-           {Only the ARM and thumb2-isa support umull and smull, which are required for arbitary division by const optimization}
+           {Only the ARM and thumb2-isa support umull and smull, which are required for arbitrary division by const optimization}
            (((GenerateArmCode or
              GenerateThumb2Code) and (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype])) or
             (ispowerof2(tordconstnode(right).value,power) or

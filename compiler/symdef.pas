@@ -117,7 +117,7 @@ interface
             def, and contains a reference to this other def. If this other
             def is in a non-persistent symboltable, the new def cannot actually
             be safely reused everywhere in the current module. This routine
-            abtracts that checking, and also restores the symtable stack
+            abstracts that checking, and also restores the symtable stack
             (which had to be reset before creating the new def, so that the new
              def did not automatically get added to its top) }
           class procedure setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
@@ -344,7 +344,7 @@ interface
           objectoptions  : tobjectoptions;
           rtti           : trtti_directive;
           { for targets that initialise typed constants via explicit assignments
-            instead of by generating an initialised data sectino }
+            instead of by generating an initialised data section }
           tcinitcode     : tnode;
           constructor create(const n:string; dt:tdeftyp;doregister:boolean);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
@@ -1275,7 +1275,7 @@ interface
        { return type of the setjmp function }
        exceptionreasontype      : tdef;
 
-       { pointer to the anchestor of all classes }
+       { pointer to the ancestor of all classes }
        class_tobject : tobjectdef;
        { pointer to the base type for custom attributes }
        class_tcustomattribute : tobjectdef;
@@ -4150,7 +4150,7 @@ implementation
         { parameter types and the resultdef of a procvardef can contain a
           pointer to this procvardef itself, resulting in endless recursion ->
           use the typesym's name instead if it exists (if it doesn't, such as
-          for anynonymous procedure types in macpas/iso mode, then there cannot
+          for anonymous procedure types in macpas/iso mode, then there cannot
           be any recursive references to it either) }
         if (pointeddef.typ<>procvardef) or
            not assigned(pointeddef.typesym) then
@@ -6142,7 +6142,7 @@ implementation
         if (typ<>procvardef) and
            (newtyp=procvardef) then
           begin
-            { procvars can't be (class)constructures/destructors etc }
+            { procvars can't be (class)constructors/destructors etc }
             if proctypeoption=potype_constructor then
               begin
                 tabstractprocdef(result).returndef:=tdef(owner.defowner);
@@ -7314,7 +7314,7 @@ implementation
       begin
          inherited buildderef;
          structderef.build(struct);
-         { procsym that originaly defined this definition, should be in the
+         { procsym that originally defined this definition, should be in the
            same symtable }
          procsymderef.build(procsym);
       end;
@@ -7344,7 +7344,7 @@ implementation
       begin
          inherited deref;
          struct:=tabstractrecorddef(structderef.resolve);
-         { procsym that originaly defined this definition, should be in the
+         { procsym that originally defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
       end;
@@ -8386,7 +8386,7 @@ implementation
          objectoptions:=objectoptions+[oo_inherits_not_specialized];
         { initially has the same number of abstract methods as the parent }
         abstractcnt:=c.abstractcnt;
-        { add the data of the anchestor class/object }
+        { add the data of the ancestor class/object }
         if (objecttype in [odt_class,odt_object,odt_objcclass,odt_javaclass]) then
           begin
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
@@ -9157,7 +9157,7 @@ implementation
         i : longint;
       begin
         result:=false;
-        { interfaces being implemented through delegation are not mergable (FK) }
+        { interfaces being implemented through delegation are not mergeable (FK) }
         if (IType<>etStandard) or (MergingIntf.IType<>etStandard) or not(assigned(ProcDefs)) or not(assigned(MergingIntf.ProcDefs)) then
           exit;
         weight:=0;

@@ -535,7 +535,7 @@ implementation
           origowner:=origowner.defowner.owner;
         { if the def is in an exceptionsymtable, we can't create a reusable
           def because the original one will be freed when the (always
-          temprary) exceptionsymtable is freed }
+          temporary) exceptionsymtable is freed }
         if origowner.symtabletype=exceptsymtable then
           internalerror(2015111701)
         else if origowner.symtabletype=localsymtable then

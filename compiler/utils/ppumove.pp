@@ -107,7 +107,7 @@ end;
 
 function Shell(const s:string):longint;
 {
-  Run a shell commnad and return the exitcode
+  Run a shell command and return the exitcode
 }
 begin
   if Batch then
@@ -560,7 +560,7 @@ end;
 
 Procedure processopts;
 {
-  Process command line opions, and checks if command line options OK.
+  Process command line options, and checks if command line options OK.
 }
 var
   C : char;

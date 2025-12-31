@@ -94,7 +94,7 @@ interface
           function use_mul_helper: boolean; virtual;
 {$endif cpuneedsmulhelper}
 
-          { shall be overriden if the target cpu supports
+          { shall be overridden if the target cpu supports
             an fma instruction
           }
           function use_fma : boolean; virtual;
@@ -242,7 +242,7 @@ const
         v           : tconstexprint;
       begin
         result:=false;
-        { check for comparision with known result because the ranges of the operands don't overlap }
+        { check for comparison with known result because the ranges of the operands don't overlap }
         if (is_constintnode(right) and (left.resultdef.typ=orddef) and
             { don't ignore type checks }
             is_subequal(right.resultdef,left.resultdef)) or
@@ -958,7 +958,7 @@ const
             }
             else if (left.nodetype=nodetype) and
               { there might be a mul operation e.g. longint*longint => int64 in this case
-                we cannot do this optimziation, see e.g. tests/webtbs/tw36587.pp on arm }
+                we cannot do this optimization, see e.g. tests/webtbs/tw36587.pp on arm }
               (compare_defs(resultdef,ld,nothingn)=te_exact) then
               begin
                 if is_constintnode(taddnode(left).left) then
@@ -1313,7 +1313,7 @@ const
              exit;
           end;
 
-        { concating strings ? }
+        { concatenating strings ? }
         concatstrings:=false;
 
         if (lt=ordconstn) and (rt=ordconstn) and
@@ -1495,7 +1495,7 @@ const
               end;
           end;
 
-        { optimze @<proc>=/<>@<proc>,
+        { optimize @<proc>=/<>@<proc>,
           such code might appear in generic specializations }
         if (nodetype in [equaln,unequaln]) and
           (left.nodetype=typeconvn) and (is_voidpointer(left.resultdef)) and (ttypeconvnode(left).left.nodetype=typeconvn) and
@@ -1604,7 +1604,7 @@ const
                     { SwapRightWithLeftLeft moves the nodes around in way that we need to insert a minus
                       on left.right: a-b-c becomes b-c-a so we
                       need
-                      1) insert a minus bevor b
+                      1) insert a minus before b
                       2) make the current node an add node, see below
                     }
                     if nodetype=subn then
@@ -1784,7 +1784,7 @@ const
                         ;
                     end;
                   end
-                { short to full boolean evalution possible and useful? }
+                { short to full boolean evaluation possible and useful? }
                 else if not(might_have_sideeffects(right,[mhs_exceptions])) and doshortbooleval(self) then
                   begin
                     case nodetype of
@@ -2827,7 +2827,7 @@ const
                   end;
               end;
           end
-         { pointer comparision and subtraction }
+         { pointer comparison and subtraction }
          else if (
                   (rd.typ=pointerdef) and (ld.typ=pointerdef)
                  ) or
@@ -4614,7 +4614,7 @@ const
          { if both are orddefs then check sub types }
          else if (ld.typ=orddef) and (rd.typ=orddef) then
            begin
-             { optimize multiplacation by a power of 2 }
+             { optimize multiplication by a power of 2 }
              if not(cs_check_overflow in current_settings.localswitches) and
                 (nodetype = muln) and
                 (((left.nodetype = ordconstn) and
@@ -4869,7 +4869,7 @@ const
                 exit;
             end
 
-         { pointer comperation and subtraction }
+         { pointer comparison and subtraction }
          else if (ld.typ=pointerdef) then
             begin
               if nodetype in [addn,subn,muln,andn,orn,xorn] then

@@ -249,7 +249,7 @@ Unit raz80asm;
           { Here we must handle all possible cases }
           begin
             case c of
-              '.' :  { possiblities : - local label reference , such as in jmp @local1 }
+              '.' :  { possibilities : - local label reference , such as in jmp @local1 }
                      {               - field of object/record                         }
                      {               - directive.                                     }
                 begin
@@ -708,7 +708,7 @@ Unit raz80asm;
                   exit;
                 end;
 
-              '@' : { possiblities : - local label reference , such as in jmp @local1 }
+              '@' : { possibilities : - local label reference , such as in jmp @local1}
                     {                - @Result, @Code or @Data special variables.     }
                 begin
                   actasmpattern:=c;

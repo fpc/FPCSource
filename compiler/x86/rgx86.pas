@@ -105,7 +105,7 @@ implementation
       register ireg26d can be replaced by a memory reference.}
     function trgx86.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
 
-       { returns true if opcde is an avx opcode which allows only the first (zero) operand might be a memory reference }
+       { returns true if opcode is an avx opcode which allows only the first (zero) operand might be a memory reference }
        function avx_opcode_only_op0_may_be_memref(opcode : TAsmOp) : boolean;
          begin
            case opcode of

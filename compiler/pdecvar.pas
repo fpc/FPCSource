@@ -574,7 +574,7 @@ implementation
                     sym:=p.propaccesslist[palt_write].firstsym^.sym;
                     if sym.typ=procsym then
                       begin
-                        { settter is a procedure with an extra value parameter
+                        { setter is a procedure with an extra value parameter
                           of the of the property }
                         writeprocdef.returndef:=voidtype;
                         inc(paranr);

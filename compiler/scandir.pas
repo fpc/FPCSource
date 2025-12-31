@@ -501,7 +501,7 @@ unit scandir;
     procedure dir_screenname; {ad}
       begin
         if not (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
-          {Message(scan_w_decription_not_support);}
+          {Message(scan_w_description_not_support);}
           comment (V_Warning,'Screenname only supported for target netware');
         current_scanner.skipspace;
         nwscreenname:=current_scanner.readcomment;
@@ -510,7 +510,7 @@ unit scandir;
       procedure dir_threadname; {ad}
       begin
         if not (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
-          {Message(scan_w_decription_not_support);}
+          {Message(scan_w_description_not_support);}
           comment (V_Warning,'Threadname only supported for target netware');
         current_scanner.skipspace;
         nwthreadname:=current_scanner.readcomment;
@@ -519,7 +519,7 @@ unit scandir;
       procedure dir_copyright; {ad}
       begin
         if not (target_info.system in [system_i386_netware,system_i386_netwlibc]) then
-          {Message(scan_w_decription_not_support);}
+          {Message(scan_w_description_not_support);}
           comment (V_Warning,'Copyright only supported for target netware');
         current_scanner.skipspace;
         nwcopyright:=current_scanner.readcomment;

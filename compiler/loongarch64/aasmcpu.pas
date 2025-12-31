@@ -38,7 +38,7 @@ uses
 
 
     type
-      { TODO: Branch condition? TRefernece and Symbol? }
+      { TODO: Branch condition? TReference and Symbol? }
       { taicpu }
 
       taicpu = class(tai_cpu_abstract_sym)

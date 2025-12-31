@@ -305,7 +305,7 @@ type
      destructor destroy; override;
 
     public
-     { returns a builder for generating data that is only referrenced by the
+     { returns a builder for generating data that is only referenced by the
        typed constant date we are currently generating (e.g. string data for a
        pchar constant). Also returns the label that will be placed at the start
        of that data. list is the tasmlist to which the data will be added.
@@ -472,7 +472,7 @@ type
        supported this is equal to the header size }
      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
 
-     { returns the offset of the array data relatve to dynamic array constant
+     { returns the offset of the array data relative to dynamic array constant
        labels. On most platforms, this is 0 (with the header at a negative
        offset), but on some platforms such negative offsets are not supported
        and thus this is equal to the header size }

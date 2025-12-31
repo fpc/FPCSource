@@ -813,7 +813,7 @@ implementation
       end;
 
 
-  {*************** compare instructructions ****************}
+  {*************** compare instructions ****************}
 
     procedure TCGSparcGen.a_cmp_const_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;a:tcgint;reg:tregister;l:tasmlabel);
       begin
@@ -996,13 +996,13 @@ implementation
       begin
         if nostackframe then
           exit;
-        { Althogh the SPARC architecture require only word alignment, software
+        { Although the SPARC architecture require only word alignment, software
           convention and the operating system require every stack frame to be double word
           aligned }
         LocalSize:=align(LocalSize,8);
         { Execute the SAVE instruction to get a new register window and create a new
           stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
-          before execution of the SAVE instrucion so it is the caller %i6, when the %i6
+          before execution of the SAVE instruction so it is the caller %i6, when the %i6
           after execution of that instruction is the called function stack pointer}
         { constant can be 13 bit signed, since it's negative, size can be max. 4096 }
         if LocalSize>4096 then
@@ -1046,7 +1046,7 @@ implementation
 
     procedure TCGSparcGen.g_restore_registers(list:TAsmList);
       begin
-        { The sparc port uses the sparc standard calling convetions so this function has no used }
+        { The sparc port uses the sparc standard calling conventions so this function has no used }
       end;
 
 
@@ -1097,7 +1097,7 @@ implementation
 
     procedure TCGSparcGen.g_save_registers(list : TAsmList);
       begin
-        { The sparc port uses the sparc standard calling convetions so this function has no used }
+        { The sparc port uses the sparc standard calling conventions so this function has no used }
       end;
 
 

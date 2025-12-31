@@ -544,7 +544,7 @@ implementation
                 firstparaloc:=false;
               end;
           end;
-        { O32 ABI reqires at least 16 bytes }
+        { O32 ABI requires at least 16 bytes }
         if (intparasize < 16) then
           intparasize := 16;
       end;

@@ -110,7 +110,7 @@ implementation
             tobject1 = object
               function f : tobject1;
               ...
-              contructor init;
+              constructor init;
             end;
 
             the constructor changes the size of tobject1, so its return location might change from register to memory, this

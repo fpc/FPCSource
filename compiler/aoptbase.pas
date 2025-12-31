@@ -77,7 +77,7 @@ unit aoptbase;
         { returns the maximum width component of Reg. Only has to be }
         { overridden for the 80x86 (afaik)                           }
         Function RegMaxSize(Reg: TRegister): TRegister; Virtual;
-        { returns true if Reg1 and Reg2 are of the samae width. Only has to }
+        { returns true if Reg1 and Reg2 are of the same width. Only has to  }
         { overridden for the 80x86 (afaik)                                  }
         Function RegsSameSize(Reg1, Reg2: TRegister): Boolean; Virtual;
         { returns whether P is a load instruction (load contents from a }

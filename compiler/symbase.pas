@@ -361,7 +361,7 @@ implementation
              checkduplicate(hashedid,sym);
            end;
          { Now we can insert the symbol, any duplicate entries
-           are renamed to an unique (and for users unaccessible) name }
+           are renamed to an unique (and for users inaccessible) name }
          if sym.realname[1]='$' then
            sym.ChangeOwnerAndName(SymList,Copy(sym.realname,2,maxidlen+1))
          else if length(sym.realname)>maxidlen then

@@ -85,7 +85,7 @@ begin
     addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), left.getcopy));
 
     if (right.nodetype <> ordconstn) then begin
-      // implementated optimization: use temps to store the right value, otherwise
+      // implemented optimization: use temps to store the right value, otherwise
       // it is calculated twice when simply copying it which might result in side
       // effects
       temp_right := ctempcreatenode.create(right.resultdef, right.resultdef.size, tt_persistent, true);

@@ -1284,7 +1284,7 @@ implementation
                       if GenerateThumb2Code then
                         penalty:=multiplier;
                         { check if the next instruction fits as well
-                          or if we splitted after the it so split before }
+                          or if we split after the it so split before }
                         CheckLimit(hp,1);
                     end;
                   A_ITE,
@@ -1293,7 +1293,7 @@ implementation
                       if GenerateThumb2Code then
                         penalty:=2*multiplier;
                         { check if the next two instructions fit as well
-                          or if we splitted them so split before }
+                          or if we split them so split before }
                         CheckLimit(hp,2);
                     end;
                   A_ITEE,
@@ -1304,7 +1304,7 @@ implementation
                       if GenerateThumb2Code then
                         penalty:=3*multiplier;
                         { check if the next three instructions fit as well
-                          or if we splitted them so split before }
+                          or if we split them so split before }
                         CheckLimit(hp,3);
                     end;
                   A_ITEEE,
@@ -1319,7 +1319,7 @@ implementation
                       if GenerateThumb2Code then
                         penalty:=4*multiplier;
                         { check if the next three instructions fit as well
-                          or if we splitted them so split before }
+                          or if we split them so split before }
                       CheckLimit(hp,4);
                     end;
                   else
@@ -2157,10 +2157,10 @@ implementation
         { Error? }
         if (Insentry=nil) and (InsSize=-1) then
           exit;
-        { set the file postion }
+        { set the file position }
         current_filepos:=fileinfo;
 
-        { tranlate LDR+postfix to complete opcode }
+        { translate LDR+postfix to complete opcode }
         if (opcode=A_LDR) and (oppostfix=PF_D) then
           begin
             opcode:=A_LDRD;
@@ -2348,7 +2348,7 @@ implementation
                   if ref^.refaddr=addr_no then
                     begin
                       { create ot field }
-                      { we should get the size here dependend on the
+                      { we should get the size here dependent on the
                         instruction }
                       if (ot and OT_SIZE_MASK)=0 then
                         ot:=OT_MEMORY or OT_BITS32
@@ -2443,7 +2443,7 @@ implementation
                 end;
               top_local :
                 begin
-                  { we should get the size here dependend on the
+                  { we should get the size here dependent on the
                     instruction }
                   if (ot and OT_SIZE_MASK)=0 then
                     ot:=OT_MEMORY or OT_BITS32
@@ -2465,7 +2465,7 @@ implementation
               top_none :
                 begin
                   { generated when there was an error in the
-                    assembler reader. It never happends when generating
+                    assembler reader. It never happens when generating
                     assembler }
                 end;
               top_shifterop:
@@ -2583,7 +2583,7 @@ implementation
          end;
 
       { check postfixes:
-        the existance of a certain postfix requires a
+        the existence of a certain postfix requires a
         particular code }
 
         { update condition flags
@@ -2794,7 +2794,7 @@ implementation
            create_ot(objdata);
 
            BuildArmMasks(objdata);
-           { set the file postion }
+           { set the file position }
            current_filepos:=fileinfo;
          end
         else
@@ -5860,7 +5860,7 @@ implementation
             end;
         end;
 
-        { Todo: Decide whether the code above should take care of writing data in an order that makes senes }
+        { Todo: Decide whether the code above should take care of writing data in an order that makes sense }
         if (insentry^.code[0] in [#$80..#$96]) and (bytelen=4) then
           bytes:=((bytes shr 16) and $FFFF) or ((bytes and $FFFF) shl 16);
 

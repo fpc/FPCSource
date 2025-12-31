@@ -157,7 +157,7 @@ interface
     procedure replacenode(var dest,src : tnode);
 
     { strip off deref/addr combinations when looking for a the load node of an open array/array of const
-      since there is no possiblity to defined a pointer to an open array/array of const, we have not to
+      since there is no possibility to defined a pointer to an open array/array of const, we have not to
       take care of type casts, further, it means also that deref/addr nodes must always appear coupled
     }
     function get_open_const_array(p : tnode) : tnode;
@@ -169,7 +169,7 @@ interface
     procedure node_change_local_switch(p : tnode;cs : tlocalswitch;enable : boolean);
 
     { returns true, if p is a node which shall be short boolean evaluated,
-      if it is not an orn/andn with boolean operans, the result is undefined }
+      if it is not an orn/andn with boolean operands, the result is undefined }
     function doshortbooleval(p : tnode) : Boolean;
 
     { returns true if the node has the int value l }
@@ -181,7 +181,7 @@ interface
     { returns true if the node is an inline node of type i }
     function is_inlinefunction(p : tnode;i : tinlinenumber) : Boolean;
 
-    { checks if p is a series of length(a) statments, if yes, they are returned
+    { checks if p is a series of length(a) statements, if yes, they are returned
       in a and the function returns true }
     function GetStatements(p : tnode;var a : array of tstatementnode) : Boolean;
 
@@ -205,7 +205,7 @@ interface
       combinations are tested, if it returns true, transformproc is called,
       the result of transformproc is assigned to res
 
-      this allows to find pattern like (3*a)+(3*b) and transfrom them into 3*(a+b)
+      this allows to find pattern like (3*a)+(3*b) and transform them into 3*(a+b)
     }
     function MatchAndTransformNodesCommutative(n1,n2,n3,n4 : tnode;matchproc : TMatchProc4;transformproc : TTransformProc4;var res : tnode) : Boolean;
 
@@ -1090,7 +1090,7 @@ implementation
             doinlinesimplify(tloopnode(n).left);
             // call directly second part below,
             // which might change the loopnode into
-            // something else if the conditino is a constant node
+            // something else if the condition is a constant node
             include(tloopnode(n).loopflags,lnf_simplify_processing);
             callsimplify(n,arg);
             // Be careful, n might have change node type
@@ -1403,7 +1403,7 @@ implementation
            ) or
            { foreachonode does not recurse into the init code for temprefnode as this is done for
              by the tempcreatenode but the considered tree might not contain the tempcreatenode so play
-             save and recurce into the init code if there is any }
+             save and recurrence into the init code if there is any }
            ((n.nodetype=temprefn) and (ti_executeinitialisation in ttemprefnode(n).tempflags) and
             might_have_sideeffects(ttemprefnode(n).tempinfo^.tempinitcode,pmhs_flags(arg)^)) then
            result:=fen_norecurse_true
@@ -1419,7 +1419,7 @@ implementation
     function check_for_conditional_nodes(var n: tnode; arg: pointer): foreachnoderesult;
       begin
         result:=fen_false;
-        { this check is not complete yet, but sufficent to cover the current use case: swapping
+        { this check is not complete yet, but sufficient to cover the current use case: swapping
           of trees in expressions }
         if (n.nodetype in [ifn,whilerepeatn,forn,tryexceptn]) or
           ((n.nodetype in [orn,andn]) and is_boolean(n.resultdef) and doshortbooleval(n)) then
@@ -1604,7 +1604,7 @@ implementation
       end;
 
 
-    { checks if p is a series of length(a) statments, if yes, they are returned
+    { checks if p is a series of length(a) statements, if yes, they are returned
       in a and the function returns true }
     function GetStatements(p : tnode;var a : array of tstatementnode) : Boolean;
       var

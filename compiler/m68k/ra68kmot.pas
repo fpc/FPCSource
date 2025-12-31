@@ -39,7 +39,7 @@ unit ra68kmot;
 {      presently only (an,dn) is supported for indexing --                  }
 {        size defaults to LONG.                                             }
 {  o Add support for MC68020 opcodes.                                       }
-{  o Add support for MC68020 adressing modes.                               }
+{  o Add support for MC68020 addressing modes.                              }
 {  o Add operand checking with m68k opcode table in ConcatOpCode            }
 {  o Add Floating point support                                             }
 {---------------------------------------------------------------------------}
@@ -262,7 +262,7 @@ const
 
     if not (c in [#10,#13,'{',';','(','/']) then
      current_scanner.gettokenpos;
-    { Possiblities for first token in a statement:                }
+    { Possibilities for first token in a statement:               }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
     if firsttoken and not (c in [#10,#13,'{',';','(','/']) then
     begin
@@ -317,7 +317,7 @@ const
     begin
       case c of
 
-         '@':   { possiblities : - local label reference , such as in jmp @local1 }
+         '@':   { possibilities : - local label reference , such as in jmp @local1}
                 {                - @Result, @Code or @Data special variables.     }
                             begin
                              actasmpattern := c;

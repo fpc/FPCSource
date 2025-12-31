@@ -205,7 +205,7 @@ function tjvmloadnode.handle_threadvar_access: tnode;
       begin
         { in these cases, the threadvar was internally constructed as an
           "array of jlobject", while the variable itself is a different kind of
-          pointer (dynarmic array, class, interface, pointer type). We cannot
+          pointer (dynamic array, class, interface, pointer type). We cannot
           typecast an "array of jlobject" to e.g. an "array of array of byte",
           even if all elements inside the array are "array of byte" (since the
           outer array type is simply different) -> first dereference (= select
@@ -231,7 +231,7 @@ function tjvmloadnode.keep_param_address_in_nested_struct: boolean;
   begin
     { we don't need an extra load when implicit pointer types  are passed as
       var/out/constref parameter (since they are already pointers). However,
-      when transfering them into a nestedfp struct, we do want to transfer the
+      when transferring them into a nestedfp struct, we do want to transfer the
       pointer and not make a deep copy in case they are var/out/constref (since
       changes made to the var/out parameter should propagate up) }
     result:=

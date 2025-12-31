@@ -2543,7 +2543,7 @@ implementation
         if assigned(ExeSymbolList.Find(aname)) then
           exit;
         internalObjData.createsection('*'+aname,0,[]);
-        // Use AB_COMMON to avoid muliple defined complaints
+        // Use AB_COMMON to avoid multiple defined complaints
         internalObjData.SymbolDefine(aname,AB_COMMON,AT_DATA);
       end;
 
@@ -2988,7 +2988,7 @@ implementation
           for j:=0 to ObjData.ObjSymbolList.Count-1 do
             begin
               objsym:=TObjSymbol(ObjData.ObjSymbolList[j]);
-              { From the local symbols we are only interessed in the
+              { From the local symbols we are only interested in the
                 VTENTRY and VTINHERIT symbols }
               if objsym.bind=AB_LOCAL then
                 begin
@@ -3637,7 +3637,7 @@ implementation
                             inc(currstabrelocidx);
                           end;
 
-                        { Check if the stab is refering to a removed section }
+                        { Check if the stab is referring to a removed section }
                         if assigned(hstabreloc) then
                           begin
                             if assigned(hstabreloc.Symbol) then

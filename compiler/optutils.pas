@@ -223,7 +223,7 @@ unit optutils;
         BreakContinueStack : TBreakContinueStack;
         Exitsuccessor: TNode;
       { sets the successor nodes of a node tree block
-        returns the first node of the tree if it's a controll flow node }
+        returns the first node of the tree if it's a control flow node }
       function DoSet(p : tnode;succ : tnode) : tnode;
         var
           hp1,hp2, oldexitsuccessor: tnode;

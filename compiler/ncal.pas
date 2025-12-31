@@ -1239,7 +1239,7 @@ implementation
                     else
                      begin
                        include(tarrayconstructornode(left).arrayconstructornodeflags,acnf_novariaallowed);
-                       { now that the resultting type is know we can insert the required
+                       { now that the resulting type is know we can insert the required
                          typeconvs for the array constructor }
                        if parasym.vardef.typ=arraydef then
                          tarrayconstructornode(left).force_type(tarraydef(parasym.vardef).elementdef);
@@ -1602,7 +1602,7 @@ implementation
             assigned(current_procinfo) then
            begin
             { only needed when calling a destructor from an exception block in a
-              contructor of a TP-style object }
+              constructor of a TP-style object }
             if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                (cnf_create_failed in callflags) then
               if is_object(current_structdef) then
@@ -2453,7 +2453,7 @@ implementation
                       maybe_load_in_temp(p);
                       hightree:=geninlinenode(in_ord_x,false,geninlinenode(in_high_x,false,p.getcopy));
                       typecheckpass(hightree);
-                      { only substract low(array) if it's <> 0 }
+                      { only subtract low(array) if it's <> 0 }
                       temp:=geninlinenode(in_ord_x,false,geninlinenode(in_low_x,false,p.getcopy));
                       typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
@@ -3313,7 +3313,7 @@ implementation
                       if called from a constructor then
                         don't call afterconstruction, vmt=0
                       else
-                        call afterconstrution but not NewInstance, vmt=-1 }
+                        call afterconstruction but not NewInstance, vmt=-1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
                     if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
                       vmttree:=cpointerconstnode.create(1,voidpointertype)
@@ -3834,7 +3834,7 @@ implementation
           end;
         { Remove value of old array of const parameter, but keep it
           in the list because it is required for bind_parasym.
-          Generate a nothign to keep callparanoed.left valid }
+          Generate a nothing to keep callparanoed.left valid }
         oldleft.left.free;
         oldleft.left:=cnothingnode.create;
       end;
@@ -4634,7 +4634,7 @@ implementation
         hpfirst:=nil;
         hpcurr:=tcallparanode(left);
         { cache all info about parameters containing stack tainting calls,
-          since we will need it a lot below and calculting it can be expensive }
+          since we will need it a lot below and calculating it can be expensive }
         while assigned(hpcurr) do
           begin
             { Also remember the original parameter order for the sake of
@@ -4686,7 +4686,7 @@ implementation
               because they will prevent any other parameters from being put
               in their final place; if both the current and the next para
               contain a stack tainting call, don't do anything to prevent
-              them from keeping on chasing eachother's tail }
+              them from keeping on chasing each other's tail }
             while assigned(hp) do
               begin
                 if paramanager.use_fixed_stack and
@@ -4756,7 +4756,7 @@ implementation
         left:=hpfirst;
         { now mark each parameter that is followed by a stack-tainting call,
           to determine on use_fixed_stack targets which ones can immediately be
-          put in their final destination. Unforunately we can never put register
+          put in their final destination. Unfortunately we can never put register
           parameters immediately in their final destination (even on register-
           rich architectures such as the PowerPC), because the code generator
           can still insert extra calls that only make use of register
@@ -4887,7 +4887,7 @@ implementation
                 parameter and we can pass the address transparently (but
                 that is handled by make_not_regable if ra_addr_regable is
                 passed, and make_not_regable always needs to called for
-                the ra_addr_taken info for non-invisble parameters) }
+                the ra_addr_taken info for non-invisible parameters) }
               if (not (cpf_varargs_para in hp.callparaflags)) and (
                   not(
                       (vo_is_hidden_para in hp.parasym.varoptions) and

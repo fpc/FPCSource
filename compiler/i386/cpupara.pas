@@ -561,7 +561,7 @@ unit cpupara;
                       if not(po_nostackframe in p.procoptions) then
                         inc(paraloc^.reference.offset,target_info.first_parm_offset)
                       else
-                        { return addres }
+                        { return address }
                         inc(paraloc^.reference.offset,4);
                     parasize:=align(parasize+l,varalign);
                     dec(paralen,l);

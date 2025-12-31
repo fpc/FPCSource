@@ -174,7 +174,7 @@ unit itcpugas;
         { Supervisor mode }
         'sfence.vm',
 
-        { pseudo instructions for accessiong control and status registers }
+        { pseudo instructions for accessing control and status registers }
         'rdinstret','rdinstreth','rdcycle','rdcycleh','rdtime','rdtimeh','csrr','csrw','csrs','csrc','csrwi',
         'csrsi','csrci'
         );

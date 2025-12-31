@@ -69,7 +69,7 @@ implementation
          // Note for casual readers: gas (GNU as) uses -Av7, -Av8, -Av9 etc. on SPARC,
          // rather than variants of the -m option used by most other CPUs. Solaris as
          // uses -xarch=v7, -xarch=v8 etc., that form is not supported here since there
-         // are probably other incompatibilties between the GNU and Solaris binutils
+         // are probably other incompatibilities between the GNU and Solaris binutils
          // that need to be reviewed.
          //
          // v9 is required as the default since the RTL started using membar at 2.2.2.

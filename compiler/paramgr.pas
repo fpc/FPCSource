@@ -183,7 +183,7 @@ unit paramgr;
           function get_paraloc_def(paradef: tdef; restlen: aint; fullsize: boolean): tdef;
 
           { convert a single CGParaLocation to a RTTIParaLoc; the method *might*
-            be overriden by targets to provide backwards compatibility with
+            be overridden by targets to provide backwards compatibility with
             older versions in case register indices changed }
           function cgparaloc_to_rttiparaloc(paraloc:pcgparalocation):trttiparaloc;virtual;
        end;

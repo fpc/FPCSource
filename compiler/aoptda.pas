@@ -44,7 +44,7 @@ Unit aoptda;
         { at the end of every instruction                                  }
         Procedure DoDFA;
 
-        { handles the processor dependent dataflow analizing               }
+        { handles the processor dependent dataflow analyzing               }
         Procedure CpuDFA(p: PInstr); Virtual; Abstract;
 
         { convert a TInsChange value into the corresponding register }
@@ -75,7 +75,7 @@ Unit aoptda;
       UsedRegs.Create;
       UsedRegs.Update(p);
       NewBlockStart := SkipHead(p);
-      { done implicitely by the constructor
+      { done implicitly by the constructor
       FillChar(InstrSinceLastMod, SizeOf(InstrSinceLastMod), 0); }
       While (P <> BlockEnd) Do
         Begin

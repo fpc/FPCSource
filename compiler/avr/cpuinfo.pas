@@ -886,7 +886,7 @@ Const
        CPUAVR_2_BYTE_PC,        // 2 byte PC is used (for devices with <= 128 kB flash)
        CPUAVR_3_BYTE_PC,        // 3 byte PC is used (for devices with > 128 kB flash), implies EIND register
        CPUAVR_16_REGS,          // avrtiny device with only 16 core registers
-       CPUAVR_NOMEMMAPPED_REGS  // Core registers not accesible in data space
+       CPUAVR_NOMEMMAPPED_REGS  // Core registers not accessible in data space
       );
 
  const

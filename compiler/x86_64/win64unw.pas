@@ -78,7 +78,7 @@ const
   UWOP_SAVE_XMM128_FAR = 9;  { info = XMM reg number, offset in next 2 slots }
   UWOP_PUSH_MACHFRAME  = 10; { info = 0: no error-code, 1: error-code }
 
-  UNW_FLAG_EHANDLER    = $01; { exceptiion handler }
+  UNW_FLAG_EHANDLER    = $01; { exception handler }
   UNW_FLAG_UHANDLER    = $02; { termination handler }
   UNW_FLAG_FHANDLER    = UNW_FLAG_EHANDLER or UNW_FLAG_UHANDLER;
   UNW_FLAG_CHAININFO   = $04; { mutually exclusive with the above }

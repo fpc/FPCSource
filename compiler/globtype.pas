@@ -29,7 +29,7 @@ interface
 
     type
        { TCmdStr is used to pass command line parameters to an external program to be
-         executed from the FPC application. In some circomstances, this can be more
+         executed from the FPC application. In some circumstances, this can be more
          than 255 characters. That's why using Ansi Strings}
        TCmdStr = AnsiString;
        TPathStr = AnsiString;
@@ -290,7 +290,7 @@ interface
            constants in order to reduce the generated code size (Java routines
            are limited to 64kb of bytecode) }
          ts_compact_int_array_init,
-         { for the JVM target: intialize enum fields in constructors with the
+         { for the JVM target: initialize enum fields in constructors with the
            enum class instance corresponding to ordinal value 0 (not done by
            default because this initialization can only be performed after the
            inherited constructors have run, and if they call a virtual method
@@ -437,7 +437,7 @@ interface
     type
        ttargetswitchinfo = record
           name: string[22];
-          { target switch can have an arbitratry value, not only on/off }
+          { target switch can have an arbitrary value, not only on/off }
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
@@ -519,7 +519,7 @@ interface
          m_tp_procvar,          { tp style procvars (no @ needed) }
          m_mac_procvar,         { macpas style procvars }
          m_repeat_forward,      { repeating forward declarations is needed }
-         m_pointer_2_procedure, { allows the assignement of pointers to
+         m_pointer_2_procedure, { allows the assignment of pointers to
                                   procedure variables                     }
          m_autoderef,           { does auto dereferencing of struct. vars }
          m_initfinal,           { initialization/finalization for units }

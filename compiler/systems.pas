@@ -161,7 +161,7 @@ interface
                                                 // The original result (if it exists) is passed as an extra parameter
             tf_no_backquote_support,
             { do not generate an object file when smartlinking is turned on,
-              this is usefull for architectures which require a small code footprint }
+              this is useful for architectures which require a small code footprint }
             tf_no_objectfiles_when_smartlinking,
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
             tf_cld,
@@ -174,7 +174,7 @@ interface
             tf_use_psabieh,
             { use high level cfi directives to generate call frame information }
             tf_use_hlcfi,
-            { supports symbol order file (to ensure symbols in vectorised sections are kept in the correct order) }
+            { supports symbol order file (to ensure symbols in vectored sections are kept in the correct order) }
             tf_supports_symbolorderfile,
             { supports hidden/private extern symbols: visible across object files, but local/private in exe/library }
             tf_supports_hidden_symbols,

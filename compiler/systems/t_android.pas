@@ -237,7 +237,7 @@ begin
        end;
 
       { force local symbol resolution (i.e., inside the shared }
-      { library itself) for all non-exorted symbols, otherwise }
+      { library itself) for all non-exported symbols, otherwise}
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
@@ -464,7 +464,7 @@ begin
         end;
     end;
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
 

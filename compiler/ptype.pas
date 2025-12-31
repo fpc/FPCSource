@@ -1562,7 +1562,7 @@ implementation
              current_genericdef:=arrdef;
            symtablestack.push(arrdef.symtable);
            insert_generic_parameter_types(arrdef,genericdef,genericlist,false);
-           { there are two possibilties for the following to be true:
+           { there are two possibilities for the following to be true:
              * the array declaration itself is generic
              * the array is declared inside a generic
              in both cases we need "parse_generic" and "current_genericdef"
@@ -1651,7 +1651,7 @@ implementation
                      pt := nil;
                    end;
 
-                  { if we are not at the first dimension, add the new arrray
+                  { if we are not at the first dimension, add the new array
                     as element of the existing array, otherwise modify the existing array }
                   if not(first) then
                     begin
@@ -1752,7 +1752,7 @@ implementation
               current_genericdef:=pd;
             symtablestack.push(pd.parast);
             insert_generic_parameter_types(pd,genericdef,genericlist,false);
-            { there are two possibilties for the following to be true:
+            { there are two possibilities for the following to be true:
               * the procvar declaration itself is generic
               * the procvar is declared inside a generic
               in both cases we need "parse_generic" and "current_genericdef"
@@ -2191,7 +2191,7 @@ implementation
           typed constants inside method bodies -> always force the addition
           of a class constructor.
 
-          We cannot directly add the typed constant initialisations to the
+          We cannot directly add the typed constant initializations to the
           class constructor, because when it's parsed not all method bodies
           are necessarily already parsed }
         pd:=def.find_procdef_bytype(potype_class_constructor);

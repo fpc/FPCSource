@@ -1567,7 +1567,7 @@ end;
   procedure ProcessDefIfStruct(Symbol: PSymbol; definition: tdef);
   begin
     { still led to infinite recursions
-      only useful for unamed types PM }
+      only useful for unnamed types PM }
     if assigned(definition) and not assigned(definition.typesym) then
     begin
       case definition.typ of
@@ -1994,7 +1994,7 @@ begin
 
   if (cs_browser in current_settings.moduleswitches) then
     BuildObjectInfo;
-  { can allways be done
+  { can always be done
     needed to know when recompilation of sources is necessary }
   BuildSourceList;
 end;

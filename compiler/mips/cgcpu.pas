@@ -1018,7 +1018,7 @@ end;
 
 
 
-{*************** compare instructructions ****************}
+{*************** compare instructions ****************}
 
 procedure TCGMIPS.a_cmp_const_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);
 var
@@ -1927,7 +1927,7 @@ begin
         else
           cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
 
-        { With overflow checking and unsigned args, this generates slighly suboptimal code
+        { With overflow checking and unsigned args, this generates slightly suboptimal code
          ($80000000 constant loaded twice). Other cases are fine. Getting it perfect does not
          look worth the effort. }
         cg.a_op_const_reg_reg_checkoverflow(list,OP_ADD,hisize,aint(hi(value)),regsrc.reghi,regdst.reghi,setflags,ovloc);

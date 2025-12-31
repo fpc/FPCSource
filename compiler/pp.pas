@@ -35,7 +35,7 @@ program pp;
   LOONGARCH64         generate a compiler for the LoongArch64 architecture
   M68K                generate a compiler for the M68000
   MIPS                generate a compiler for the MIPS (Big Endian)
-  MIPSEL              generate a compiler for the MIPSEL (Littel Endian)
+  MIPSEL              generate a compiler for the MIPSEL (Little Endian)
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
   RISCV32             generate a compiler for the RiscV32 architecture
@@ -60,7 +60,7 @@ program pp;
                       target architecture (not supported for all targets)
 
   -----------------------------------------------------------------
-  ARM specfic switches
+  ARM specific switches
   -----------------------------------------------------------------
   FPC_ARMEL           create an arm eabi compiler
   FPC_ARMEB           create an arm big endian compiler
@@ -69,7 +69,7 @@ program pp;
   FPC_ARMHF           create an armhf (eabi vfp variant) compiler
 
   -----------------------------------------------------------------
-  I386 specfic switches
+  I386 specific switches
   -----------------------------------------------------------------
   SUPPORT_MMX         only i386: releases the compiler switch
                       MMX which allows the compiler to generate

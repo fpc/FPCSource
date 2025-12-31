@@ -319,7 +319,7 @@ unit nx86add;
         refnode:=nil;
 
         { later on, no mm registers are allowed, so transfer everything to memory here
-          below it is loaded into an fpu register if neede }
+          below it is loaded into an fpu register if needed }
         if left.location.loc in [LOC_CMMREGISTER,LOC_MMREGISTER] then
           hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
 
@@ -2172,7 +2172,7 @@ unit nx86add;
          make no sense if right is a reference }
        if ((left.location.loc<>LOC_REGISTER) and (right.location.loc<>LOC_REGISTER) and
            ((nodetype<>subn) or not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE])) and
-           { 3 op mul makes only sense if a constant is involed }
+           { 3 op mul makes only sense if a constant is involved }
            ((nodetype<>muln) or (left.location.loc=LOC_CONSTANT) or (right.location.loc=LOC_CONSTANT)
 {$ifndef i8086}
             or ((CPUX86_HAS_BMI2 in cpu_capabilities[current_settings.cputype]) and (not(needoverflowcheck))

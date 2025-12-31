@@ -189,7 +189,7 @@ implementation
         fcl, fcr: longint;
         ncl, ncr: longint;
       begin
-         { calculate boolean AND and OR from left to right if it's short boolean evaluted }
+         { calculate boolean AND and OR from left to right if it's short boolean evaluated }
          if (p.nodetype in [orn,andn]) and is_boolean(p.left.resultdef) and is_boolean(p.right.resultdef) and doshortbooleval(p) then
            begin
              if nf_swapped in p.flags then
@@ -216,7 +216,7 @@ implementation
                 (((fcr=fcl) or
                   (fcr=0)) and
                  (ncr>ncl)) and
-                { if one tree contains nodes being conditionally executated, we cannot swap the trees
+                { if one tree contains nodes being conditionally executed, we cannot swap the trees
                   as the other tree might depend on all nodes being executed, this applies for example
                   for temp. create nodes with init part, they must be executed else things break, see
                   issue #34653

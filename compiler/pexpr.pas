@@ -43,7 +43,7 @@ interface
     { reads a whole expression }
     function expr(dotypecheck:boolean) : tnode;
 
-    { reads an expression without assignements and .. }
+    { reads an expression without assignments and .. }
     function comp_expr(flags:texprflags):tnode;
 
     { reads a single factor }
@@ -1220,7 +1220,7 @@ implementation
                end
              else
                p1:=ccallnode.create(para,tprocsym(sym),st,p1,callflags,spezcontext);
-             { in case of calling an anonynmous function we already know the concrete
+             { in case of calling an anonymous function we already know the concrete
                procdef that is going to be called }
              if (tprocsym(sym).ProcdefList.count=1) and (po_anonymous in tprocdef(tprocsym(sym).procdeflist[0]).procoptions) then
                tcallnode(p1).procdefinition:=tprocdef(tprocsym(sym).procdeflist[0]);
@@ -1246,7 +1246,7 @@ implementation
                  (hp.nodetype=typeconvn) do
             begin
               hp:=ttypeconvnode(hp).left;
-              { save orignal address of the old tree so we can replace the node }
+              { save original address of the old tree so we can replace the node }
               hpp:=@hp;
             end;
            if (hp.nodetype=calln) and
@@ -1288,7 +1288,7 @@ implementation
                  (hp.nodetype=typeconvn) do
             begin
               hp:=ttypeconvnode(hp).left;
-              { save orignal address of the old tree so we can replace the node }
+              { save original address of the old tree so we can replace the node }
               hpp:=@hp;
             end;
            if (hp.nodetype=calln) and
@@ -1744,7 +1744,7 @@ implementation
          if sym=nil then
            sym:=hdef.typesym;
          { allow Ordinal(Value) for type declarations since it
-           can be an enummeration declaration or a set lke:
+           can be an enumeration declaration or a set lke:
            (OrdinalType(const1)..OrdinalType(const2) }
          if (not typeonly or is_ordinal(hdef)) and
             try_to_consume(_LKLAMMER) then
@@ -1828,7 +1828,7 @@ implementation
                   isspecialize:=false;
                 erroroutresult:=true;
                 { TP allows also @TMenu.Load if Load is only }
-                { defined in an anchestor class              }
+                { defined in an ancestor class               }
                 srsym:=search_struct_member(tabstractrecorddef(hdef),pattern);
                 if isspecialize and assigned(srsym) then
                   begin
@@ -1886,7 +1886,7 @@ implementation
                   result:=ctypenode.create(hdef);
                   ttypenode(result).typesym:=sym;
                   { TP allows also @TMenu.Load if Load is only }
-                  { defined in an anchestor class              }
+                  { defined in an ancestor class               }
                   srsym:=search_struct_member(tobjectdef(hdef),pattern);
                   if assigned(srsym) then
                    begin
@@ -2145,7 +2145,7 @@ implementation
                    nil))))
 
             ));
-          { add assignment statememnts }
+          { add assignment statements }
           addstatement(newstatement,ctempdeletenode.create(temp2));
           if assigned(assnode) then
             addstatement(newstatement,assnode);
@@ -3227,7 +3227,7 @@ implementation
                     callflags:=[]
                   else
                     callflags:=[cnf_unit_specified];
-                  { TP7 uglyness: @proc^ is parsed as (@proc)^,
+                  { TP7 ugliness: @proc^ is parsed as (@proc)^,
                     but @notproc^ is parsed as @(notproc^) }
                   if m_tp_procvar in current_settings.modeswitches then
                     tmpgetaddr:=getaddr and not(token in [_POINT,_LECKKLAMMER])
@@ -3802,7 +3802,7 @@ implementation
                    sub_expr if necessary }
                  dopostfix:=not could_be_generic(idstr);
                end;
-           { TP7 uglyness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
+           { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^ is parsed
              as @(notproc^) }
            if (m_tp_procvar in current_settings.modeswitches) and (token=_CARET) and
               getaddr and (p1.nodetype=loadn) and (tloadnode(p1).symtableentry.typ=procsym) then
@@ -4221,7 +4221,7 @@ implementation
                  else
                   p1:=factor(true,[]);
                  if (token in postfixoperator_tokens) and
-                   { TP7 uglyness: @proc^ is parsed as (@proc)^, but @notproc^
+                   { TP7 ugliness: @proc^ is parsed as (@proc)^, but @notproc^
                      is parsed as @(notproc^) }
                     not
                     (
@@ -4445,7 +4445,7 @@ implementation
 ****************************************************************************}
     function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
-     level, or any higher level. Replaces the old term, simpl_expr and
+     level, or any higher level. Replaces the old term, simple_expr and
      simpl2_expr.}
 
       function istypenode(n:tnode):boolean;inline;
@@ -5076,7 +5076,7 @@ implementation
       end;
 
     function get_intconst:TConstExprInt;
-    {Reads an expression, tries to evalute it and check if it is an integer
+    {Reads an expression, tries to evaluate it and check if it is an integer
      constant. Then the constant is returned.}
     var
       p:tnode;

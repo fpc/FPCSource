@@ -358,7 +358,7 @@ implementation
                   if not jvmaddencodedtype(tarraydef(def).elementdef,false,encodedstr,forcesignature,founderror) then
                     begin
                       result:=false;
-                      { report the exact (nested) error defintion }
+                      { report the exact (nested) error definition }
                       exit;
                     end;
                 end;

@@ -40,7 +40,7 @@ Unit aopt;
           future register usage without upsetting the current state. }
         TmpUsedRegs: TAllUsedRegs;
 
-        { _AsmL is the PAasmOutpout list that has to be optimized }
+        { _AsmL is the PAasmOutput list that has to be optimized }
         Constructor create(_AsmL: TAsmList); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
@@ -60,7 +60,7 @@ Unit aopt;
       TAsmOptimizerClass = class of TAsmOptimizer;
 
       TAsmScheduler = class(TAoptObj)
-        { _AsmL is the PAasmOutpout list that has to be re-scheduled }
+        { _AsmL is the PAasmOutput list that has to be re-scheduled }
         Constructor Create(_AsmL: TAsmList); virtual; reintroduce;
         Procedure Optimize;
         function SchedulerPass1Cpu(var p: tai): boolean; virtual; abstract;
@@ -205,7 +205,7 @@ Unit aopt;
                             AsmL.Remove(p);
                             InsertLLItem(hp2, tai(hp2.Next), p);
                             { don't remove this deallocation later on when merging dealloc/alloc pairs because
-                              it marks indenpendent use of a register
+                              it marks independent use of a register
 
                               This could be also achieved by a separate passes for merging first and then later
                               moving but I did not choose this solution because it takes more time and code (FK) }

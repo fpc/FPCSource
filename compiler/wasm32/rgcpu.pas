@@ -63,7 +63,7 @@ implementation
         l: longint;
         reg: tregister;
       begin
-        { WebAssebly instructions never have more than one memory (virtual register)
+        { WebAssembly instructions never have more than one memory (virtual register)
           operand, so there is no danger of superregister conflicts }
         for l:=0 to instr.ops-1 do
           if (instr.oper[l]^.typ=top_reg) and (instr.oper[l]^.reg<>NR_LOCAL_FRAME_POINTER_REG) then

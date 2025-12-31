@@ -880,7 +880,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if node.nodetype=stringconstn then
                 begin
                   len:=tstringconstnode(node).len;
-                  { For tp7 the maximum lentgh can be 255 }
+                  { For tp7 the maximum length can be 255 }
                   if (m_tp7 in current_settings.modeswitches) and
                      (len>255) then
                     len:=255;
@@ -1405,7 +1405,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     else
                       internalerror(2010033005);
                   end;
-                 { For tp7 the maximum lentgh can be 255 }
+                 { For tp7 the maximum length can be 255 }
                  if (m_tp7 in current_settings.modeswitches) and
                     (len>255) then
                   len:=255;

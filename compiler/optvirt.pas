@@ -285,7 +285,7 @@ unit optvirt;
           begin
             { recursively add parent, of which we have no info about whether or not it is
               instantiated at this point -> default to false (will be overridden by "true"
-              if this class is instantioted, since then registerinstantiatedobjdef() will
+              if this class is instantiated, since then registerinstantiatedobjdef() will
               be called for this class as well)
             }
             result:=registerinstantiatedobjectdefrecursive(def.childof,false);

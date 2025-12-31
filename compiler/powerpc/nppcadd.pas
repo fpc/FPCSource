@@ -341,7 +341,7 @@ interface
                 begin
                   // instead of doing a complicated compare, do
                   // (left.hi xor right.hi) or (left.lo xor right.lo)
-                  // (somewhate optimized so that no superfluous 'mr's are
+                  // (somewhat optimized so that no superfluous 'mr's are
                   //  generated)
                   if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;

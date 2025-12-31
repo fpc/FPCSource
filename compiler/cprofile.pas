@@ -21,7 +21,7 @@
 }
 unit cprofile;
 
-{ to use this profile intrastructure, the epiktimer sources must be available, the official repository is currently:
+{ to use this profile infrastructure, the epiktimer sources must be available, the official repository is currently:
 
   https://github.com/graemeg/epiktimer.git
 
@@ -29,7 +29,7 @@ unit cprofile;
   <base dir>/fpc/compiler
   <base dir>/epiktimer
 
-  As the offical branch requires the use of the classes units, I recommend to
+  As the official branch requires the use of the classes units, I recommend to
   use my modified version of epiktimer which allows to disable the use of the classes unit,
   this is done automatically by the compiler sources through a define. You can get my epiktimer source from
 

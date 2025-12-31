@@ -77,7 +77,7 @@ unit cpupi;
           the local offsets after generating the code could cause trouble because
           "shifter" constants could change to non-"shifter" constants. This
           is especially a problem when taking the address of a local. For now,
-          this extra memory should hurt less than generating all local contants with offsets
+          this extra memory should hurt less than generating all local constants with offsets
           >256 as non shifter constants }
         if (po_nostackframe in procdef.procoptions) then
           begin
@@ -227,7 +227,7 @@ unit cpupi;
                     point to lower end of area)
                 o in this case, firsttemp starts right after the saved int
                   registers area (or a bit further, because it's calculated for
-                  the worst-case scenario, when all non-volative integer
+                  the worst-case scenario, when all non-volatile integer
                   registers have to be saved) -> we store the floating point
                   registers between the last temp and the parameter pushing area
                -> fp+(-result) points to the top of the stack (= end of

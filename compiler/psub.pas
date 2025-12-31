@@ -391,7 +391,7 @@ implementation
                    else if token=_FINALIZATION then
                      begin
                        { when a unit has only a finalization section, we can come to this
-                         point when we try to read the nonh existing initalization section
+                         point when we try to read the nonh existing initialization section
                          so we've to check if we are really try to parse the finalization }
                        if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
                          block:=statement_block(_FINALIZATION)
@@ -2101,7 +2101,7 @@ implementation
             else if not temps_finalized then
               begin
                 hlcg.gen_finalize_code(templist);
-                { the finalcode must be concated if there was no position available,
+                { the finalcode must be concatenated if there was no position available,
                   using insertlistafter will result in an insert at the start
                   when currentai=nil }
                 aktproccode.concatlist(templist);
@@ -2676,7 +2676,7 @@ implementation
 
         { When it's a nested procedure then defer the code generation,
           when back at normal function level then generate the code
-          for all defered nested procedures and the current procedure }
+          for all deferred nested procedures and the current procedure }
         if not isnestedproc then
           begin
             if not(df_generic in current_procinfo.procdef.defoptions) then
@@ -3221,7 +3221,7 @@ implementation
 
          { add implementations for synthetic method declarations added by
            the compiler (not for unit/program init functions, their localst
-           is the staticst -> would duplicate the work done in pmodules) }
+           is the statistic -> would duplicate the work done in pmodules) }
          if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
            { we cannot call add_synthetic_method_implementations as it throws an internalerror if
              the token is a string/char. As this is a syntax error and compilation will abort anyways,

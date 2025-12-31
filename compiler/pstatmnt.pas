@@ -1025,7 +1025,7 @@ implementation
                           last:=tonnode(last).left;
                        end;
                      { set the informations }
-                     { only if the creation of the onnode was succesful, it's possible }
+                     { only if the creation of the onnode was successful, it's possible}
                      { that last and hp are errornodes (JM)                            }
                      if last.nodetype = onn then
                        begin
@@ -1622,7 +1622,7 @@ implementation
 
          { don't consume the finalization token, it is consumed when
            reading the finalization block, but allow it only after
-           an initalization ! }
+           an initialization ! }
          if (starttoken<>_INITIALIZATION) or (token<>_FINALIZATION) then
            consume(_END);
 

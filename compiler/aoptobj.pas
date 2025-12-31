@@ -73,7 +73,7 @@ Unit AoptObj;
       TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
     { ************************************************************************* }
-    { * Object to hold information on which regiters are in use and which not * }
+    { * Object to hold information on which registers are in use and which not *}
     { ************************************************************************* }
 
       { TUsedRegs }
@@ -114,10 +114,10 @@ Unit AoptObj;
         { content of this register. If Typ = con_const, then   }
         { Longint(StartMod) = value of the constant)           }
         StartMod: Tai;
-        { starts at 0, gets increased everytime the register is }
+        { starts at 0, gets increased every time the register is}
         { written to                                            }
         WState: TStateInt;
-        { starts at 0, gets increased everytime the register is read }
+        { starts at 0, gets increased every time the register is read}
         { from                                                       }
         RState: TStateInt;
         { how many instructions starting with StarMod does the block }
@@ -262,7 +262,7 @@ Unit AoptObj;
 
         UsedRegs: TAllUsedRegs;
 
-        { _AsmL is the PAasmOutpout list that has to be optimized,     }
+        { _AsmL is the PAasmOutput list that has to be optimized,      }
         { _BlockStart and _BlockEnd the start and the end of the block }
         { that has to be optimized and _LabelInfo a pointer to a       }
         { TLabelInfo record                                            }
@@ -307,7 +307,7 @@ Unit AoptObj;
         { inserts new_one between prev and foll in AsmL }
         Procedure InsertLLItem(prev, foll, new_one: TLinkedListItem);
 
-        { If P is a Tai object releveant to the optimizer, P is returned
+        { If P is a Tai object relevant to the optimizer, P is returned
           If it is not relevant tot he optimizer, the first object after P
           that is relevant is returned                                     }
         class function SkipHead(P: Tai): Tai; static;
@@ -364,7 +364,7 @@ Unit AoptObj;
         { removes hp from asml then frees it }
         procedure RemoveInstruction(const hp: tai); inline;
 
-       { traces sucessive jumps to their final destination and sets it, e.g.
+       { traces successive jumps to their final destination and sets it, e.g.
          je l1                je l3
          <code>               <code>
          l1:       becomes    l1:
@@ -373,7 +373,7 @@ Unit AoptObj;
          l2:                  l2:
          jmp l3               jmp l3
 
-         the level parameter denotes how deeep we have already followed the jump,
+         the level parameter denotes how deep we have already followed the jump,
          to avoid endless loops with constructs such as "l5: ; jmp l5"           }
         function GetFinalDestination(hp: taicpu; level: longint): boolean;
 
@@ -450,7 +450,7 @@ Unit AoptObj;
       private
         procedure DebugMsg(const s: string; p: tai);
 
-        { Utilty function for the UpdateUsedRegs family of methods }
+        { Utility function for the UpdateUsedRegs family of methods }
         class function GetNextRegUpdatePoint(var p : Tai; pTerm: tai): Boolean; static;
       End;
 
@@ -765,10 +765,10 @@ Unit AoptObj;
           End
         Else
       {write something to a pointer location, so
-         * with uncertain optimzations on:
+         * with uncertain optimizations on:
             - do not destroy registers which contain a local/global variable or a
               parameter, except if DestroyRefs is called because of a "movsl"
-         * with uncertain optimzations off:
+         * with uncertain optimizations off:
             - destroy every register which contains a memory location
             }
             For Counter := LoGPReg to HiGPReg Do
@@ -794,7 +794,7 @@ Unit AoptObj;
 
       Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
       {Var Counter: TRegister;}
-      Begin {initializes/desrtoys all registers}
+      Begin {initializes/destroys all registers}
       (*!!!!!!!!!
         For Counter := LoGPReg To HiGPReg Do
           Begin
@@ -1523,7 +1523,7 @@ Unit AoptObj;
         if (reg = NR_STACK_POINTER_REG) or
           (reg = current_procinfo.framepointer) or
            not(assigned(p1)) then
-          { this happens with registers which are loaded implicitely, outside the }
+          { this happens with registers which are loaded implicitly, outside the  }
           { current block (e.g. esi with self)                                    }
           exit;
 
@@ -1807,7 +1807,7 @@ Unit AoptObj;
 {$endif}
 {$endif not avr}
 {$ifdef mips}
-        { MIPS conditional jump instructions also conntain register
+        { MIPS conditional jump instructions also contain register
           operands. A proper implementation is needed here. }
         internalerror(2020071301);
 {$endif}
@@ -2469,7 +2469,7 @@ Unit AoptObj;
 
 
     function TAOptObj.GetFinalDestination(hp: taicpu; level: longint): boolean;
-      {traces sucessive jumps to their final destination and sets it, e.g.
+      {traces successive jumps to their final destination and sets it, e.g.
        je l1                je l3       <code>               <code>
        l1:       becomes    l1:
        je l2                je l3

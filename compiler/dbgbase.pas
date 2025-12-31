@@ -607,7 +607,7 @@ implementation
           begin
             if not pu.u.is_dbginfo_written and not assigned(pu.u.package) then
               begin
-                { prevent infinte loop for circular dependencies }
+                { prevent infinite loop for circular dependencies }
                 pu.u.is_dbginfo_written:=true;
                 { write type info from used units, use a depth first
                   strategy to reduce the recursion in writing all

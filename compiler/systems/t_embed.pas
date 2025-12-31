@@ -1842,7 +1842,7 @@ begin
    end;
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
-{ Remove ReponseFile }
+{ Remove ResponseFile }
   if success and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 
@@ -2201,7 +2201,7 @@ function TlinkerEmbedded_SdccSdld.MakeExecutable: boolean;
      end;
     success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
     if success and not(cs_link_nolink in current_settings.globalswitches) then
      DeleteFile(outputexedir+Info.ResName);
 

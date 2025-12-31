@@ -204,7 +204,7 @@ implementation
 
         //todo: MOVE all current_asm_data actions to Wasm HL CodeGen
 
-        secondpass(left); // condition exprssions
+        secondpass(left); // condition expressions
         thlcgwasm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,left.resultdef,left.location);
 
         if is_64bit(left.resultdef) then

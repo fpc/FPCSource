@@ -819,7 +819,7 @@ implementation
         { base + immediate offset. Variants:
             * LDR*/STR*:
               - pre- or post-indexed with signed 9 bit immediate
-              - regular with unsiged scaled immediate (multiple of access
+              - regular with unsigned scaled immediate (multiple of access
                 size), in the range 0 to (12 bit * access_size)-1
             * LDP/STP
               - pre- or post-indexed with signed 9 bit immediate
@@ -859,7 +859,7 @@ implementation
                   { only supported for 32/64 bit }
                   if not(oppostfix in [PF_W,PF_SW,PF_None]) then
                     exit;
-                  { offset must be a multple of the access size }
+                  { offset must be a multiple of the access size }
                   if (ref.offset mod accesssize)<>0 then
                     exit;
                   { offset must fit in a signed 7 bit offset }

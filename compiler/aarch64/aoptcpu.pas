@@ -301,7 +301,7 @@ Implementation
          ) and
          (taicpu(movp).ops=2) and
          MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
-         { the destination register of the mov might not be used beween p and movp }
+         { the destination register of the mov might not be used between p and movp }
          not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
          { Take care to only do this for instructions which REALLY load to the first register.
            Otherwise
@@ -420,7 +420,7 @@ Implementation
          (taicpu(hp1).oper[0]^.reg<>NR_SP) and
          (taicpu(hp1).oper[1]^.reg<>NR_SP) and
          (taicpu(hp1).oper[taicpu(hp1).ops-1]^.reg<>NR_SP) and
-         { reg1 might not be modified inbetween }
+         { reg1 might not be modified in between }
          not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) and
          (
            { Only ONE of the two src operands is allowed to match }
@@ -872,7 +872,7 @@ Implementation
             RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
             { the reference in strb might not use reg2 }
             not(RegInRef(taicpu(p).oper[0]^.reg,taicpu(hp1).oper[1]^.ref^)) and
-            { reg1 might not be modified inbetween }
+            { reg1 might not be modified in between }
             not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
               DebugMsg('Peephole SXTHStr2Str done', p);
@@ -893,7 +893,7 @@ Implementation
             (taicpu(hp1).ops=2) and
             MatchOperand(taicpu(hp1).oper[1]^, taicpu(p).oper[0]^.reg) and
             RegEndofLife(taicpu(p).oper[0]^.reg,taicpu(hp1)) and
-            { reg1 might not be modified inbetween }
+            { reg1 might not be modified in between }
             not(RegModifiedBetween(taicpu(p).oper[1]^.reg,p,hp1)) then
             begin
               DebugMsg('Peephole SxtwSxtw2Sxtw done', p);

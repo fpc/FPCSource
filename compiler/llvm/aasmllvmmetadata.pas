@@ -160,7 +160,7 @@ interface
       procedure addstring(const aitemname: TSymStr; const stringval: TSymStr);
       procedure addenum(const aitemname: TSymStr; const enumval: TSymStr);
       { only allowed before adding any items; needed because when generating
-        debug info, we first generat everything as DIDerivedType (works for
+        debug info, we first generate everything as DIDerivedType (works for
         typedefs and most other types, and switch it later when necessary).
         Make it an explicit proc rather than a setter for kind to avoid
         accidental usage }

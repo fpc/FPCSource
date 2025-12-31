@@ -643,7 +643,7 @@ implementation
             v.Version:=SwapEndian(v.Version);
             v.Machine:=SwapEndian(v.Machine);
             v.TimeDateStame:=SwapEndian(v.TimeDateStame);
-	    { UUID byte array no swap neeeded }
+	    { UUID byte array no swap needed }
 	    { Assume unused fields are indeed really unused }
             v.NumberOfSections:=SwapEndian(v.NumberOfSections);
             v.PointerToSymbolTable:=SwapEndian(v.PointerToSymbolTable);
@@ -1600,7 +1600,7 @@ const pemagic : array[0..3] of byte = (
         sep     : string[3];
         secname : string;
       begin
-        { section type user gives the user full controll on the section name }
+        { section type user gives the user full control on the section name }
         if atype=sec_user then
           result:=aname
         else

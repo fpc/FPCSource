@@ -238,7 +238,7 @@ begin
 
   success:=MakeHuman68kExe;
 
-  { Remove ReponseFile }
+  { Remove ResponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
 

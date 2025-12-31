@@ -129,7 +129,7 @@ Implementation
             Exit(True);
 
           { Instruction sets CPSR register due to S suffix (floating-point
-            instructios won't raise false positives) }
+            instructions won't raise false positives) }
           if (taicpu(p1).oppostfix = PF_S) then
             Exit(True);
 

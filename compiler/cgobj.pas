@@ -21,7 +21,7 @@
  ****************************************************************************
 }
 {# @abstract(Abstract code generator unit)
-   Abstreact code generator unit. This contains the base class
+   Abstract code generator unit. This contains the base class
    to implement for all new supported processors.
 
    WARNING: None of the routines implemented in these modules,
@@ -600,7 +600,7 @@ implementation
        cpuinfo;
 
 {*****************************************************************************
-                            basic functionallity
+                            basic functionality
 ******************************************************************************}
 
     constructor tcg.create;
@@ -1903,7 +1903,7 @@ implementation
               end;
             LOC_REGISTER,LOC_CREGISTER:
               begin
-                { paramfpu_ref does the check_simpe_location check here if necessary }
+                { paramfpu_ref does the check_simple_location check here if necessary }
                 tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,ref);
                 a_loadfpu_reg_ref(list,size,size,r,ref);
                 a_loadfpu_ref_cgpara(list,size,ref,cgpara);
