@@ -1,5 +1,5 @@
 { Old file: tbs0095.pp }
-{ case with ranges starting with #0 bugss                OK 0.99.1 (FK) }
+{ case with ranges starting with #0 bugs                OK 0.99.1 (FK) }
 
 var
   ch : char;

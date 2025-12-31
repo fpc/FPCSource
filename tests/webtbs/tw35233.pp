@@ -28,7 +28,7 @@ type
   TDerivedClassImpl = class(TBaseClassImpl)
   public
    //
-   // In delphi mode it is not neccessary to repeat stdcall calling convention in the overriding method.
+   // In delphi mode it is not necessary to repeat stdcall calling convention in the overriding method.
    // But the compiler then generates a call stack with another calling convention for the overriding method!
    // If you call the overriding method through an interface this crashes (SIGSEV) since it is supposed to be stdcall!
    // Repeating the calling convention in the overriding method fixes the crash.

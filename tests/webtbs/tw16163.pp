@@ -13,7 +13,7 @@ type
   TFColorA = record
     c : TFColor;
     a : Byte;
-    // adding some field here, or chaning a type to Word or Interger
+    // adding some field here, or changing a type to Word or Integer
     // also fixed the problem.
   end;
 

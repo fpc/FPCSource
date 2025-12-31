@@ -346,7 +346,7 @@ type
 
   {
     complex testing, nested field access, with parameters and
-    comple return value.
+    compile return value.
 
     On exit : global_u8bit := x;
               global_u16bit := object_u16bit (from func_getu16bit);

@@ -1,5 +1,5 @@
 { Old file: tbs0264.pp }
-{ methodpointer bugss                                   OK 0.99.12b (FK) }
+{ methodpointer bugs                                   OK 0.99.12b (FK) }
 
 {$MODE DELPHI}
 

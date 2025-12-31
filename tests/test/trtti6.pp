@@ -35,7 +35,7 @@ begin
   Data := GetTypeData(Info);
   if Data^.RefType <> TReferredClass.ClassInfo then
     halt(2);
-  // next check TRefferedClass.P method
+  // next check TReferredClass.P method
   Info := TypeInfo(TPtr);
   if Info^.Kind <> tkPointer then
     halt(3);

@@ -1,5 +1,5 @@
 { Old file: tbs0238.pp }
-{ Internal error 432645 (from Frank MCCormick, mailinglist 24/2) OK 0.99.11 (PM) }
+{ Internal error 432645 (from Frank MCCormick, mailing list 24/2) OK 0.99.11 (PM) }
 
 program test1;
 

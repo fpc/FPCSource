@@ -6,7 +6,7 @@ program tb0627b;
 
 { we allow some expressions with side effects to be removed at the -O4
   optimization level, but we still disallow removing them for some of
-  the simplificationss. This test checks that behaviour. }
+  the simplifications. This test checks that behaviour. }
 
 {$mode objfpc}
 

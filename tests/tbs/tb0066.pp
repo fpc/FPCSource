@@ -1,5 +1,5 @@
 { Old file: tbs0073.pp }
-{  shows incompatiblity with bp for distance qualifiers OK 0.99.6 (PFV) }
+{  shows incompatibility with bp for distance qualifiers OK 0.99.6 (PFV) }
 
 Unit tb0066;
 

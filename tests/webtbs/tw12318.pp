@@ -34,7 +34,7 @@ var AMethod : TMethod;
 begin
   ATestObject := TTestObject.create;
 
-// uncomment the next line and the exception wil occur on the line after the 'this' writeln,
+// uncomment the next line and the exception will occur on the line after the 'this' writeln,
 // else the crash will occur in TTestObject.GetOnGetAction
   ATestObject.GetOnGetAction;
 

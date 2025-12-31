@@ -9,7 +9,7 @@
 {$modeswitch objectivec1}
 
 { test forward-declared objcprotocol }
-{ make sure no warning is given about the absense of any constructors }
+{ make sure no warning is given about the absence of any constructors }
 
 type
   ta = objcprotocol;

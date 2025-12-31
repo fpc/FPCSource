@@ -135,7 +135,7 @@ begin
 end;
 
 { -------------------------------------------------------------------
-    Comparision operators test
+    Comparison operators test
   ------------------------------------------------------------------- }
 
 Procedure TestCompare;

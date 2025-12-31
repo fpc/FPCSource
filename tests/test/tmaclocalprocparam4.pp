@@ -14,6 +14,6 @@ var
 begin
   { passing global procvars to nested procedures is not allowed to
     ensure that they can also be implemented using compile-time
-    generated trampolines if necesarry }
+    generated trampolines if necessary }
   test(pp);
 end.

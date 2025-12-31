@@ -8,7 +8,7 @@ uses
 var a:string;
 
 begin
-  writeln('B:'='B:');            { debbuger evaluates this to FALSE }
+  writeln('B:'='B:');            { debugger evaluates this to FALSE }
   if 'B:'='B:' then
     writeln('OK')
   else

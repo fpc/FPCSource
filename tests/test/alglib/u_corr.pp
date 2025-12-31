@@ -63,7 +63,7 @@ INPUT PARAMETERS
                 signal containing pattern
     N       -   problem size
     Pattern -   array[0..M-1] - complex function to be transformed,
-                pattern to search withing signal
+                pattern to search within signal
     M       -   problem size
 
 OUTPUT PARAMETERS
@@ -135,7 +135,7 @@ INPUT PARAMETERS
                 periodic signal containing pattern
     N       -   problem size
     Pattern -   array[0..M-1] - complex function to be transformed,
-                non-periodic pattern to search withing signal
+                non-periodic pattern to search within signal
     M       -   problem size
 
 OUTPUT PARAMETERS
@@ -238,7 +238,7 @@ INPUT PARAMETERS
                 signal containing pattern
     N       -   problem size
     Pattern -   array[0..M-1] - real function to be transformed,
-                pattern to search withing signal
+                pattern to search within signal
     M       -   problem size
 
 OUTPUT PARAMETERS
@@ -300,7 +300,7 @@ INPUT PARAMETERS
                 periodic signal containing pattern
     N       -   problem size
     Pattern -   array[0..M-1] - real function to be transformed,
-                non-periodic pattern to search withing signal
+                non-periodic pattern to search within signal
     M       -   problem size
 
 OUTPUT PARAMETERS

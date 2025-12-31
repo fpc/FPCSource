@@ -458,7 +458,7 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
 { $ ifndef unix }
 {   avoid a and b drives for
    no unix systems to reduce the
-   probablility of getting an alert message box }
+   probability of getting an alert message box }
  { This should not be needed - unit popuperr should solve this?! TH }
  I := 3;
 {$else unix} *)

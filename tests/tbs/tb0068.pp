@@ -5,7 +5,7 @@ program bug0076;
 
 {Generates wrong code when compiled with output set to intel asm.
 
- Reported from mailinglist by Vtech Kavan.
+ Reported from mailing list by Vtech Kavan.
 
  15 Januari 1998, Daniel Mantione}
 

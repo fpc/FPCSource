@@ -4,7 +4,7 @@
 {   chdir()                                               }
 {   rmdir()                                               }
 {   getdir()                                              }
-{ This program tests support for non-ASCII chaaracters in }
+{ This program tests support for non-ASCII characters in  }
 { path names                                              }
 
 { %target=win32,win64,darwin,freebsd,openbsd,netbsd,linux,morphos,haiku,aix,nativent }
@@ -39,7 +39,7 @@ uses
   cpall,
  {$endif}
  { The unit strings is not really used here,
-   but simpifies the conditional construction
+   but simplifies the conditional construction
    for fpwidestring and unicodeducet use }
   strings;
 {$endif def USE_INTERNAL_UNICODE}

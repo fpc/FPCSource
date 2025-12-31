@@ -24,11 +24,11 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property S: Double read fS write fS stored SStored nodefault;
-    property T: Double read fT write fT nodefault;    // stored implicitely True
-    property U: Double read fU write fU;              // stored implicitely True, default=0
+    property T: Double read fT write fT nodefault;    // stored implicitly True
+    property U: Double read fU write fU;              // stored implicitly True, default=0
     property Sn: Double read fSn write fSn stored SnStored nodefault;
-    property Tn: Double read fTn write fTn nodefault; // stored implicitely True
-    property Un: Double read fUn write fUn;           // stored implicitely True, default=0
+    property Tn: Double read fTn write fTn nodefault; // stored implicitly True
+    property Un: Double read fUn write fUn;           // stored implicitly True, default=0
     property Sdef: Double read fSdef write fSdef stored SdefStored nodefault;
   end;
   TMyCompClass = class of TMyComp;

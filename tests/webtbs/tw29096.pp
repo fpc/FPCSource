@@ -98,7 +98,7 @@ var
 a1,a2   :ptruint;
 
 var
-c0,c1,c2,c3     :byte;  //___ the test with internal assemlber not fair because of 16-byte aligment of global variables _
+c0,c1,c2,c3     :byte;  //___ the test with internal assembler not fair because of 16-byte alignment of global variables _
 
 begin  //____ m a i n _
   a1:= ptruint(@obj1.b0);

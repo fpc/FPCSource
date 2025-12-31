@@ -310,7 +310,7 @@ begin
   for i:= 1 to MAX_TABLE do
     test(dst_arraybyte[i], DEFAULT_VALUE);
   writeln('Passed!');
-  { withh null value as first value in index }
+  { with null value as first value in index }
   write('test movechar0 with null character...');
   for i := 1 to MAX_TABLE do
   begin

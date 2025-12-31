@@ -1,4 +1,4 @@
-{ comparsion with empty string as bound of 'needed' range }
+{ comparison with empty string as bound of 'needed' range }
 
 {$H-}
 var

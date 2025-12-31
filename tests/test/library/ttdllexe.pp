@@ -3,7 +3,7 @@
 {
 
   Win32 DLL usage example. It needs testdll2.pp
-  This test checksq the windows abality to
+  This test checksq the windows ability to
   export a function in an executable.
 
   Here procedure TestExeProc is exported

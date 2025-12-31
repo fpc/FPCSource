@@ -5,6 +5,6 @@ var
     p: ^integer;
     c: char;
 begin
-    // test that addr return untyped pointer inspite of $TypedAddress directive
+    // test that addr return untyped pointer in spite of $TypedAddress directive
     p := addr(c)
 end.

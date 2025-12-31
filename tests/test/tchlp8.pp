@@ -1,5 +1,5 @@
 { helpers may introduce new default properties (includes default properties
-  introudced by the helper's parent) }
+  introduced by the helper's parent) }
 program tchlp8;
 
 {$ifdef fpc}

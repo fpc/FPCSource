@@ -417,7 +417,7 @@ begin
   AddItems(3);
   FColl.ResetNotify;
   FColl.Delete(1);
-  // cnDeleting/cnExtracing. Can't currently test for 2 events...
+  // cnDeleting/cnExtracting. Can't currently test for 2 events...
   AssertEquals('Notify count is 2',2,FColl.FNotifyCount);
   AssertEquals('Notify action is cnExtracted',Ord(cnExtracting),Ord(FColl.FLastNotify));
 end;

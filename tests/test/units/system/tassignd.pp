@@ -74,7 +74,7 @@ var
    begin
    end;
 
-  { possible chocies (fixes branch only)  :
+  { possible choices (fixes branch only)  :
       LOC_REGISTER
       LOC_REFERENCE
     second branch handles this in a generic way

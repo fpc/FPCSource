@@ -1,6 +1,6 @@
 {%FAIL}
 
-{ left bound is greater; comparsion with empty string. Fails }
+{ left bound is greater; comparison with empty string. Fails }
 
 {$H-}
 var

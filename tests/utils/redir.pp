@@ -1106,7 +1106,7 @@ end;
 {............................................................................}
 {$ifdef UNIX}
 function TransformfpSystemToShell(s:cint):cint;
-// transforms standarized (fp)System(3) result to the conventions of the old Unix.shell function.
+// transforms standardized (fp)System(3) result to the conventions of the old Unix.shell function.
 begin
  if s=-1 then exit(-1);
  if wifexited(s) then

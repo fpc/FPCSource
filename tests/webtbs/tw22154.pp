@@ -10,7 +10,7 @@ type
 procedure TWrapper<T>.Z;
 const
   A0: array [0..0] of Integer = (0);     { OK }
-  A1: array [0..1] of Integer = (0, 1);  { Comma not exepcted }
+  A1: array [0..1] of Integer = (0, 1);  { Comma not expected }
 begin
 end;
 

@@ -80,7 +80,7 @@ for i:=1 to dim do
     else } Ref:=sin(i*10/float(180)*pi)/cos(i*10/float(180)*pi);
     Value := tan(i*10/float(180)*pi);
     Delta := Value - Ref;
-    { Test modifed to cope with different rounding for Win64 PM }
+    { Test modified to cope with different rounding for Win64 PM }
     if (Abs(Delta) > 1E-15) or
        ((abs(Value)+abs(ref)>1) and
         (Abs(Delta / (abs(Value)+abs(ref))) > 1E-15)) then

@@ -513,7 +513,7 @@ begin
   proc_var_openstring(value_smallstring);
   if (value_smallstring <> RESULT_SMALLSTRING) or
      { high is not passed to cdecl'ared functions thus
-       value_smallstring should be 255 on retyurn PM }
+       value_smallstring should be 255 on return PM }
      (global_u8bit <> {high(value_smallstring)}255) then
     failed := true;
 
@@ -664,7 +664,7 @@ begin
   proc_var_openstring_mixed(RESULT_U8BIT, value_smallstring, RESULT_U8BIT);
   if (value_smallstring <> RESULT_SMALLSTRING) or
      { high is not passed to cdecl'ared functions thus
-       value_smallstring should be 255 on retyurn PM }
+       value_smallstring should be 255 on return PM }
      (global_u8bit <> {high(value_smallstring)}255) then
     failed := true;
   if value_u8bit <> RESULT_U8BIT then

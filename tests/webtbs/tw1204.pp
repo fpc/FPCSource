@@ -11,7 +11,7 @@ type
   TICMPReply   = procedure(Sender: TObject; Error : Integer) of
 object;
 
-  // The object wich encapsulate the ICMP.DLL
+  // The object which encapsulate the ICMP.DLL
   TICMP = class(TObject)
   private
     FOnDisplay :      TICMPDisplay;               // Event handler to display

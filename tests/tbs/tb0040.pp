@@ -1,5 +1,5 @@
 { Old file: tbs0045.pp }
-{  shows problem with virtual private methods (might not be a true bugs but more of an incompatiblity?) the compiler warns now if there is a private and virtual method }
+{  shows problem with virtual private methods (might not be a true bugs but more of an incompatibility?) the compiler warns now if there is a private and virtual method }
 
 
 TYPE

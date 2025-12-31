@@ -16,7 +16,7 @@ const Y = `
 
 `;
 
-{ Test some wacky concatentation }
+{ Test some wacky concatenation }
 
 begin
   Write(X + Y);

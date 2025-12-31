@@ -111,9 +111,9 @@ begin
   Test(4,'4294967295', FALSE, 0);
   Test(4,'7795000000', FALSE, 0);
   Test(4,'%11111111111111111111111111111111', TRUE, -1);  //High(Dword)
-  Test(4,'%100000000000000000000000000000000', FALSE, 0); //Hig(Dword) + 1
+  Test(4,'%100000000000000000000000000000000', FALSE, 0); //High(Dword) + 1
   Test(4,'&37777777777', TRUE, -1);                       //High(Dword)
-  Test(4,'&40000000000', FALSE, 0);                       //Hig(Dword) + 1
+  Test(4,'&40000000000', FALSE, 0);                       //High(Dword) + 1
   Test(4,'-$123', TRUE, -291);
   Test(4,'+$123', TRUE, 291);
   Test(4,'xFFFFFFFF', TRUE, -1);

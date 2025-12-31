@@ -12,7 +12,7 @@ Type tDemo=Object
 Type tDemo1=Object
         Static:Longint;
         Constructor Init;
-        Procedure Run; Dynamic;   // I caouldn't find this keyword in documentation
+        Procedure Run; Dynamic;   // I couldn't find this keyword in documentation
      End;
 
 Constructor tDemo.Init;

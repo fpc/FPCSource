@@ -358,9 +358,9 @@ var
   s: ansistring;
 BEGIN
   cg := 1; // grid row index
-  for cp := Low(Precs) to High(Precs) do  //itarete through precisions
-    for cd := Low(decs) to High(decs) do  //itarete through decimals
-      for ce := Low(e) to High(e) do  //itarete through extended values
+  for cp := Low(Precs) to High(Precs) do  //iterate through precisions
+    for cd := Low(decs) to High(decs) do  //iterate through decimals
+      for ce := Low(e) to High(e) do  //iterate through extended values
         begin
 //        write(IntToStr(precs[cp]):2,';',IntToStr(decs[cd]):2,';');
 //        str(e[ce]:250, s); s := Trim(s);
@@ -378,9 +378,9 @@ BEGIN
         inc(cg);
         end;
   // integers
-  for cp := Low(Precs) to High(Precs) do  //itarete through precisions
-    for cd := Low(decs) to High(decs) do  //itarete through decimals
-      for ci := Low(i) to High(i) do  //itarete through integers
+  for cp := Low(Precs) to High(Precs) do  //iterate through precisions
+    for cd := Low(decs) to High(decs) do  //iterate through decimals
+      for ci := Low(i) to High(i) do  //iterate through integers
         begin
 //        write(IntToStr(precs[cp]):2, ';', IntToStr(decs[cd]):2, ';');
 //        s := IntToStr(i[ci]);

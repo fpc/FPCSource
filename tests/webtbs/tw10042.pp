@@ -1,6 +1,6 @@
 {$mode objfpc}
 {$H+}
-// Run with paramters "1 2 3 4 5"
+// Run with parameters "1 2 3 4 5"
 
 {$MACRO ON}
 { $DEFINE stdcall:=register}

@@ -13,7 +13,7 @@ type
   end;
 
 type
-  // The attribute should be also accessable without the Attribute suffix.
+  // The attribute should be also accessible without the Attribute suffix.
   [TMyAttr]
   TMyObject = class(TObject)
   end;

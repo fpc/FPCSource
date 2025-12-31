@@ -1,4 +1,4 @@
-{ test for simple comparsion }
+{ test for simple comparison }
 
 {$H+}
 

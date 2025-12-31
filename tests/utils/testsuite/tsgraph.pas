@@ -113,7 +113,7 @@ begin
       Writeln(stdout,'width=',W,' height=',H);
       //system.flush(stdout);
     end;
-  // Writeln('Transparant');
+  // Writeln('Transparent');
   cnv.Brush.Style:=bsSolid;
   cnv.Brush.FPColor:=colTransparent;
   cnv.Pen.FPColor:=colWhite;

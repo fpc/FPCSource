@@ -4,7 +4,7 @@
 { Submitted by "Sergey" on  2005-02-11 }
 { e-mail: sergey@michint.kiev.ua }
 // Title: stdcall and variant/record parameters
-// Succeded: dcc32.exe, Delphi6
+// Succeeded: dcc32.exe, Delphi6
 // Failed: fpc-1.9.6, fpc-1.9.7
 {$IFDEF FPC}
 {$mode delphi}

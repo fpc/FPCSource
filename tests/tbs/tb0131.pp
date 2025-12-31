@@ -14,7 +14,7 @@ PROCEDURE LGrow(VAR S : String;C:CHAR;Count:WORD);
  VAR  I,J :WORD;
 
 BEGIN
-  I:=ORD(S[0]);           { Keeping length in local data eases optimalisations}
+  I:=ORD(S[0]);           { Keeping length in local data eases optimizations}
   IF I<Count THEN
      BEGIN
      Move(S[1],S[Count-I+1],I);

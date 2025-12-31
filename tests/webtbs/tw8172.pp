@@ -12,19 +12,19 @@ type
   TnxMessageHeaderFlag = (
     {the message header is followed by a string}
     mhfErrorMessage,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved1,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved2,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved3,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved4,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved5,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved6,
-    { reserver for future use }
+    { reserved for future use }
     mhfReserved7
   );
 

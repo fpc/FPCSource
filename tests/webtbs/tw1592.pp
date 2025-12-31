@@ -33,6 +33,6 @@ begin
    writeln ('tmp = ', tmp);
    (* OK *)
    writeln('1/R-tmp = ', 1/R-tmp);
-   (* Next line causes FPE at run time, althogh it is the same as previous line *)
+   (* Next line causes FPE at run time, although it is the same as previous line *)
    Z1 := 1/R-  1/(pi*R)*(ArcCos(B/A) - 1/(2*L)*(sqrt((A+2)*(A+2)-2*R*R)*ArcCos(B/(R*A)) + B*ArcSin(1/R) ));
 end.

@@ -226,7 +226,7 @@ procedure testlogqword;
      assignqword($a0a0a0a0,0,q6);
 
      { here we don't need to test all cases of locations, }
-     { this is already done by the addtion test           }
+     { this is already done by the addition test          }
      if (q2 or q3)<>q1 then
        do_error(1400);
      if (q5 or q6)<>q4 then

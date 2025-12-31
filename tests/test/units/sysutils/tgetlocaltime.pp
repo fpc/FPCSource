@@ -24,7 +24,7 @@ begin
     Error('Invalid hour');
   if (st.Minute<0) or (st.Minute>59) then
     Error('Invalid minute');
-  { 60 seconds can be valid, due to the existance of leap seconds }
+  { 60 seconds can be valid, due to the existence of leap seconds }
   if (st.Second<0) or (st.Second>60) then
     Error('Invalid second');
   if (st.Millisecond<0) or (st.Millisecond>999) then

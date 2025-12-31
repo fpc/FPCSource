@@ -62,7 +62,7 @@ begin
     else Halt(3);
   end;
 
-  { Test 4: object without desturtor, statically allocated. }
+  { Test 4: object without destructor, statically allocated. }
   try
     ps2.init;
   except

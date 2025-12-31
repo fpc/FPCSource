@@ -129,7 +129,7 @@ WPOPASSES..........Number of whole program optimization iterations to perform
         No space between the elements and the comma.
 
 
-Controling testing in more detail
+Controlling testing in more detail
 ---------------------------------
 Calling "make full" will perform tests in a standard manner. To have
 more control of the test process one must distinguish between:
@@ -139,7 +139,7 @@ more control of the test process one must distinguish between:
   OS_TARGET, OPT etc. controls this.
 
 * Test environment:  compiler/rtl etc. to be tested, to be used
-  *in* the tests. Ususal options, prepended with TEST_ , controls
+  *in* the tests. Usual options, prepended with TEST_ , controls
   this. If no such options are given, test and driver environment
   will be the same.
 

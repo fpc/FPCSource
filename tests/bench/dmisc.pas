@@ -488,7 +488,7 @@ begin
      end
    else
      dir:='';
-   { split the path and the name, there are no more path informtions }
+   { split the path and the name, there are no more path information }
    { if path contains no backslashes                                 }
    while true do
      begin
@@ -743,7 +743,7 @@ begin
    p:=GetEnvironmentStrings;
    hp:=p;
 
-   { retrive the string with the given index }
+   { retrieve the string with the given index }
    for i:=2 to index do
      hp:=hp+strlen(hp)+1;
 

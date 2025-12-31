@@ -1,4 +1,4 @@
-{ comparsion of one-symbol strings as ranges and single cases }
+{ comparison of one-symbol strings as ranges and single cases }
 
 {$H+}
 var

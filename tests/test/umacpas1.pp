@@ -9,7 +9,7 @@ unit umacpas1;
 
 interface
 {$SETC UMACPAS_COMP_VAR = TRUE}
-{The above macro is deliberatelly immediatelly after INTERFACE
+{The above macro is deliberately immediately after INTERFACE
  to check that this works.}
 
 {$SETC UMACPAS_PRE_INTERFACE_VAR = TRUE}
@@ -28,7 +28,7 @@ var
 {$SETC UMACPAS_PRE_IMPL_COMP_VAR = TRUE}
 implementation
 {$SETC UMACPAS_COMP_VAR = FALSE}
-{The above macro is deliberatelly immediatelly after IMPLEMENTATION
+{The above macro is deliberately immediately after IMPLEMENTATION
  to check that this works. Note that here UMACPAS_COMP_VAR is set to false,
  but the exported value of UMACPAS_COMP_VAR should nevertheless be TRUE. }
 

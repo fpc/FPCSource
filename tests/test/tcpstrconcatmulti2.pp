@@ -1,5 +1,5 @@
 {$APPTYPE CONSOLE}
-// test "fpc_AnsiStr_Concat_multi" with a differant types(encodings)
+// test "fpc_AnsiStr_Concat_multi" with a different types(encodings)
 {$if defined(go32v2) or defined(wasi)}
   {$define USE_INTERNAL_UNICODE}
 {$endif}

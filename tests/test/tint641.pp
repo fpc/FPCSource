@@ -44,7 +44,7 @@ begin
    q:=q-q;
    q:=q-(q*q);
    q:=(q*q)-(q*q);
-   { first test the comparisation }
+   { first test the comparison }
    i:=f2;
    if q<>q then
      begin

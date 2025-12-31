@@ -74,7 +74,7 @@ begin
   else
     check('error, not yet implemented!!!!');
 {$endif}
-  { the number of exponents depends on the maaping of the real type }
+  { the number of exponents depends on the mapping of the real type }
   if sizeof(real) = 8 then
     begin
       str(f:0,s);
@@ -258,7 +258,7 @@ begin
   else
     check('error, not yet implemented!!!!');
 {$endif}
-  { the number of exponents depends on the maaping of the real type }
+  { the number of exponents depends on the mapping of the real type }
   if sizeof(real) = 8 then
     begin
       str(f:0,s);
@@ -442,7 +442,7 @@ begin
   else
     check('error, not yet implemented!!!!');
 {$endif}
-  { the number of exponents depends on the maaping of the real type }
+  { the number of exponents depends on the mapping of the real type }
   if sizeof(real) = 8 then
     begin
       str(f:0,s);

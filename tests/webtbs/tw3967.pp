@@ -11,7 +11,7 @@ begin
       s:=s*(i+2);
       p:=p*i;
       {The error is here!If we swap the variable i and the variable p then the value of the variable p is right}
-      {But now the value of the vairable p is zero,you see,the value of the vairable p must be 3}
+      {But now the value of the variable p is zero,you see,the value of the variable p must be 3}
       {The compiler was 1.98}
       if p<>3 then
         halt(1);

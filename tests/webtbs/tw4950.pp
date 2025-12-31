@@ -16,7 +16,7 @@ var
 
 type
   // It really doesn't matters what this interface contains,
-  // is just represet some functionality set that is provided
+  // is just represent some functionality set that is provided
   // with two complementary sets of implementations.
   IBase = interface
     ['{6CEA50E0-1844-405F-9B6F-2E9D50BE6EFC}']
@@ -25,13 +25,13 @@ type
     function Base3(const Arg1: WideString; const Arg2: Integer): Boolean;
   end;
 
-  // Derived 1 to provide an IBase with a specific funtionality when used from IDerived1
+  // Derived 1 to provide an IBase with a specific functionality when used from IDerived1
   IDerived1 = interface (IBase)
     ['{3DC49E1B-9A52-499E-8BCD-E1BA160329C9}']
     function Derived1Specific(Arg1: Integer): Integer;
   end;
 
-  // Derived 2 to provide an IBase with a complementary funtionality when used from IDerived2
+  // Derived 2 to provide an IBase with a complementary functionality when used from IDerived2
   IDerived2 = interface (IBase)
     ['{E44DF3BC-75C8-4284-928B-DE3162347C21}']
     function Derived2Specific(Arg1: Integer): Integer;

@@ -290,7 +290,7 @@ begin
         begin
 
             //
-            // Complex circilar and non-circular
+            // Complex circular and non-circular
             //
             SetLength(CA, M);
             I:=0;
@@ -330,7 +330,7 @@ begin
             end;
 
             //
-            // Real circilar and non-circular
+            // Real circular and non-circular
             //
             SetLength(RA, M);
             I:=0;

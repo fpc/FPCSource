@@ -16,7 +16,7 @@ function TGen.Check(ASource: TObject): Boolean;
 begin
   Result := not (ASource is G) // we are testing this: usage of another generic is not allowed
   and (ASource is TGen) // this should work...
-  and (ASource is ClassType);   // ...and it should be equivelent to this line
+  and (ASource is ClassType);   // ...and it should be equivalent to this line
 end;
 
 var

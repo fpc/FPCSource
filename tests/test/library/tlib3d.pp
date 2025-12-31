@@ -4,7 +4,7 @@
 { %neededafter }
 
 { On targets that support dll overloading, no
-  warning should be generated, and the resulting code sholud work correctly. }
+  warning should be generated, and the resulting code should work correctly. }
 program tlib3b;
 
   procedure p_proc(var a : dword); external 'tlib3a' name 'p';

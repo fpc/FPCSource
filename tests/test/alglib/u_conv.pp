@@ -87,7 +87,7 @@ For given A/B returns conv(A,B) (non-circular). Subroutine can automatically
 choose between three implementations: straightforward O(M*N)  formula  for
 very small N (or M), overlap-add algorithm for  cases  where  max(M,N)  is
 significantly larger than min(M,N), but O(M*N) algorithm is too slow,  and
-general FFT-based formula for cases where two previois algorithms are  too
+general FFT-based formula for cases where two previous algorithms are  too
 slow.
 
 Algorithm has max(M,N)*log(max(M,N)) complexity for any M/N.

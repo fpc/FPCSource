@@ -40,7 +40,7 @@ constructor td.create;
 begin
     inherited;
     ftc:= tc.create;
-    fiio:= ftc; // increace reference counter to one
+    fiio:= ftc; // increase reference counter to one
 end;
 destructor td.destroy;
 begin

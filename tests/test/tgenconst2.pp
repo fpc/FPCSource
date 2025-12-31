@@ -1,7 +1,7 @@
 { %NORUN }
 {$mode objfpc}
 {
-  test lists of types/contants
+  test lists of types/constants
 }
 program tgenconst2;
 

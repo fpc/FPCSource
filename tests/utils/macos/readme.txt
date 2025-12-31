@@ -17,7 +17,7 @@ Example:
 
 Here output and error is redirected to a file, stored in a variable.
 
-The MPW script also writes entires (with unix line endings) in the "log" file.
+The MPW script also writes entries (with unix line endings) in the "log" file.
 This can then be analyzed by the unix command:
 
     make rundigest

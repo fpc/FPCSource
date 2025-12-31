@@ -56,7 +56,7 @@ var
     z1 : bits64;
 begin
     z1 := a1 + b1;
-    z1Ptr := z1; // overrites "a1" when called as below and inlined
+    z1Ptr := z1; // overwrites "a1" when called as below and inlined
     z0Ptr := a0 + b0 + ord( z1 < a1 ); // z1 compared with wrong value
 end;
 

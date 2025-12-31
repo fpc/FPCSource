@@ -85,7 +85,7 @@ begin
     end;
 
     //
-    // convert input array to the more convinient format
+    // convert input array to the more convenient format
     //
     SetLength(Buf, 2*N);
     I:=0;
@@ -184,7 +184,7 @@ OUTPUT PARAMETERS
 
 NOTE:
     F[] satisfies symmetry property F[k] = conj(F[N-k]),  so just one half
-of  array  is  usually needed. But for convinience subroutine returns full
+of  array  is  usually needed. But for convenience subroutine returns full
 complex array (with frequencies above N/2), so its result may be  used  by
 other FFT-related subroutines.
 
