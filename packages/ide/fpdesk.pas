@@ -368,14 +368,12 @@ begin
   DeskUseSyntaxHighlight:=b;
 end;
 
-function ReadVideoMode(F: PResourceFile;var NewScreenMode : TVideoMode): boolean; forward;
 
-function ReadOpenWindows(F: PResourceFile): boolean;
+function ReadOpenWindows(F: PResourceFile; const VM : TVideoMode): boolean;
 var S: PMemoryStream;
     OK: boolean;
     DV: word;
     WI: TWindowInfo;
-    VM: TVideoMode;
     Title: string;
     XDataOfs: word;
     XData: array[0..1024] of byte;
@@ -598,7 +596,6 @@ begin
 end;
 begin
   PushStatus(msg_readingdesktopcontents);
-  OK:=ReadVideoMode(F,VM); {read video mode again (need old Hight and Width)}
   New(S, Init(32*1024,4096));
   OK:=F^.ReadResourceEntryToStream(resDesktop,langDefault,S^);
   S^.Seek(0);
@@ -1041,6 +1038,10 @@ begin
         if Assigned(Application) then
           Application^.SetScreenVideoMode(VM);
       end;
+    if not VOK then
+     begin
+       VM.row:=0; VM.col:=0; {safety measure}
+     end;
     if ((DesktopFileFlags and dfHistoryLists)<>0) then
       OK:=ReadHistory(F) and OK;
     if ((DesktopFileFlags and dfWatches)<>0) then
@@ -1048,7 +1049,7 @@ begin
     if ((DesktopFileFlags and dfBreakpoints)<>0) then
       OK:=ReadBreakpoints(F) and OK;
     if ((DesktopFileFlags and dfOpenWindows)<>0) then
-      OK:=ReadOpenWindows(F) and OK;
+      OK:=ReadOpenWindows(F,VM) and OK;
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=ReadSymbols(F) and OK;
