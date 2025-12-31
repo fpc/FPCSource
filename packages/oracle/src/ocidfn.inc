@@ -18,7 +18,7 @@
   { Copyright (c) 1991, 2002, Oracle Corporation.  All rights reserved.   }
   {
      NAME
-       ocidfn.h - OCI Definations
+       ocidfn.h - OCI Definitions
      NOTES
        Shipped to users.
      MODIFIED   (MM/DD/YY)
@@ -117,8 +117,8 @@
 
   {
   ** Size of HDA area:
-  ** 512 for 64 bit arquitectures
-  ** 256 for 32 bit arquitectures
+  ** 512 for 64 bit architectures
+  ** 256 for 32 bit architectures
    }
 { $if defined(SS_64BIT_SERVER) || defined(__64BIT__)}
 

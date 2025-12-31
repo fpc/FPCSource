@@ -1066,7 +1066,7 @@ type
     {* A bitwise OR combination of \ref libusb_transfer_flags.  }
     {* Address of the endpoint where this transfer will be sent.  }
     {* Type of the endpoint from \ref libusb_transfer_type  }
-    {* Timeout for this transfer in millseconds. A value of 0 indicates no
+    {* Timeout for this transfer in milliseconds. A value of 0 indicates no
     	 * timeout.  }
     {* The status of the transfer. Read-only, and only for use within
     	 * transfer callback function.

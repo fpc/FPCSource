@@ -183,7 +183,7 @@ begin
 	
 	// set up GL2D for 2d mode
 	glBegin2D();
-		// Draw a full revolution of some radially dispalced pixels
+		// Draw a full revolution of some radially displaced pixels
 		for angle := 0 to 512 do
 		begin
 			a2 := (angle * 64) + i;
@@ -207,7 +207,7 @@ begin
 end;
 
 //-------------------------------------------------------
-// set up a 2D layer construced of bitmap sprites
+// set up a 2D layer constructed of bitmap sprites
 // this holds the image when rendering to the top screen
 //-------------------------------------------------------
 procedure initSubSprites();

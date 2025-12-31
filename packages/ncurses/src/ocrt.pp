@@ -113,7 +113,7 @@ Unit oCrt;
           | 3) Removed tnWindow.readln, write, and writeln methods.
           | 4) See ncrt.inc.
   2.12.00 | 1) Remove the "n" from the tnWindow.editxxx functions for
-          | consistancy. Procedurals are prefaced with an "n". Object methods
+          | consistency. Procedurals are prefaced with an "n". Object methods
           | are not.
           | 2) Procedural FWrite renamed to nFWrite.
           | 3) tEC object type renamed to tnEC.
@@ -296,7 +296,7 @@ Const
    nKeyF20       = abs(nkF20);
 
    { character mapping }
-   nMaxChMaps    = 255;     { maximun index for character mapping }
+   nMaxChMaps    = 255;     { maximum index for character mapping }
 
    { menus }
    nMAXMENUITEMS = 100;
@@ -552,7 +552,7 @@ Procedure nFrame(win : pWindow);
  Function nPL : longint; { plus, + }
  Function nLA : longint; { left arrow }
  Function nRA : longint; { right arrow }
- Function nUA : longint; { up arror }
+ Function nUA : longint; { up arrow }
  Function nDA : longint; { down arrow }
  Function nDI : longint; { diamond }
  Function nCB : longint; { checkerboard }
@@ -804,7 +804,7 @@ End;
 
      hdr = header shortstring (top line of window, only if hasframe = true)
   hcolor = header line color
-    hpos = justfication of header shortstring, left, center, or right
+    hpos = justification of header shortstring, left, center, or right
  ----------------------------------------------------------------------}
 Procedure tnWindow.PutHeader(hdr : shortstring; hcolor : integer; hpos : tnJustify);
 Var
@@ -2534,7 +2534,7 @@ Begin
    { how many rows does this window need ? }
    For i := 1 to Length(msg) Do Begin
       inc(wid);
-      { let's be consistant! }
+      { let's be consistent! }
       If msg[i] = #13 Then msg[i] := #10;
       { either a forced line break or we need to word-wrap }
       If (msg[i] = #10) or (wid >= (MaxCols-2)) Then Begin
@@ -2552,7 +2552,7 @@ Begin
                j := 0;
          End;
          If wid > maxwid Then maxwid := wid;
-         wid := j; { either 0 or word-wrap remnent }
+         wid := j; { either 0 or word-wrap remnant }
       End;
    End;
    If wid > maxwid Then maxwid := wid;
@@ -2636,7 +2636,7 @@ Begin
    If win <> nil Then Begin
       getmaxyx(win,my,mx);
       If (x in [1..mx]) and (y in [1..my]) Then Begin
-         { n is contrained to the right margin, so no need to range check }
+         { n is constrained to the right margin, so no need to range check }
          mvwinchnstr(win,y-1,x-1,buf,n);
          nGotoXY(win,cx,cy);
       End;
@@ -3128,7 +3128,7 @@ Begin
    If IsValid(idx) Then Begin
       ClearItem(nMAXMENUITEMS);
       If idx < nMAXMENUITEMS Then Begin
-         { shift the pointer list up and keep lists syncronized }
+         { shift the pointer list up and keep lists synchronized }
          system.Move(pi[idx],pi[idx+1],SizeOf(pnMenuStr)*(nMAXMENUITEMS-idx));
          system.Move(items[idx],items[idx+1],SizeOf(pItem)*(nMAXMENUITEMS-idx));
          pi[idx] := nil;
@@ -3142,7 +3142,7 @@ Procedure tnMenu.Remove(idx : integer);
 Begin
    If IsValid(idx) Then Begin
       ClearItem(idx);
-      { shift the pointer list down and keep lists syncronized }
+      { shift the pointer list down and keep lists synchronized }
       system.Move(pi[idx+1],pi[idx],SizeOf(pnMenuStr)*(nMAXMENUITEMS-idx));
       system.Move(items[idx+1],items[idx],SizeOf(pItem)*(nMAXMENUITEMS-idx));
       pi[nMAXMENUITEMS] := nil;

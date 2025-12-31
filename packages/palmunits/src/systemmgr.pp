@@ -93,7 +93,7 @@ const
  * PilotMain() function without launching the app.  For these action codes, the
  * application's global and static variables are *not* available, unless the
  * application is already running. Some action codes are synchronized with the
- * currently running UI applcation via the event manager (alarm action codes,
+ * currently running UI application via the event manager (alarm action codes,
  * for example), while others, such as HotSync action codes, are sent from a
  * background thread. To find out if your app is running (is the current UI
  * app) when an action code is received, test the sysAppLaunchFlagSubCall flag
@@ -193,7 +193,7 @@ const
                // is responsible for making any alarm sounds
                // and for displaying the alarm UI.
                // sysAppLaunchCmdDisplayAlarm calls are ordered
-               // chronoligically and are not overlapped.
+               // chronologically and are not overlapped.
                // This means that your app will receive
                // sysAppLaunchCmdDisplayAlarm only after
                // all earlier alarms have been displayed.
@@ -532,7 +532,7 @@ type
  * Structure of Application info for an application. Applications
  *  do not necessarily have to be on their own thread - there
  *  can be more than 1 app on the same AMX task. Each application
- *  has an assocated SysAppInfoType structure which holds the
+ *  has an associated SysAppInfoType structure which holds the
  *  application specific information like the database MemHandle of the
  *  app, the code MemHandle, the stack chunk pointer, the owner ID, etc.
  *
@@ -1055,7 +1055,7 @@ function SysLibWake(refNum: UInt16): Err; syscall sysLibTrapWake;
 // Kernel Prototypes
 //-----------------------------------------------------
 
-// Task Creation and deleation
+// Task Creation and deletion
 function SysTranslateKernelErr(err: Err): Err; syscall sysTrapSysTranslateKernelErr;
 
 function SysTaskCreate(var taskIDP, creator: UInt32; codeP: ProcPtr; stackP: MemPtr;

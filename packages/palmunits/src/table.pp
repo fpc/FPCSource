@@ -35,7 +35,7 @@ const
   tableDefaultColumnSpacing = 1;
   tableNoteIndicatorWidth   = 7;
   tableNoteIndicatorHeight  = 11;
-  tableMaxTextItemSize      = 255; // does not incude terminating null
+  tableMaxTextItemSize      = 255; // does not include terminating null
 
   tblUnusableRow            = $ffff;
 

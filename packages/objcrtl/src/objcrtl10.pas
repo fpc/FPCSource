@@ -92,7 +92,7 @@ const
   // CLS_HAS_LOAD_METHOD	  = $8000;
 
 
-// all obj-c types are postfixed with 1, to avoid type name confilcts
+// all obj-c types are postfixed with 1, to avoid type name conflicts
 
 type
   // P_Class = ^_Class;
@@ -830,7 +830,7 @@ begin
   objc_getProtocol := @objc_getProtocol10;
   objc_copyProtocolList := @objc_copyProtocolList10;
 
-  // Initializating additional objective-c runtime 1.0 functions
+  // Initializing additional objective-c runtime 1.0 functions
 
   Pointer(objc_addClass) := GetProcedureAddress(hnd, 'objc_addClass');
   //Pointer(class_addMethods) := GetProcedureAddress(hnd, 'objc_addMethods');

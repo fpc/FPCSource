@@ -505,7 +505,7 @@ type
 {$if not FFI_NATIVE_RAW_API}
     (* If this is enabled, then a raw closure has the same layout
        as a regular closure.  We use this to install an intermediate
-       handler to do the transaltion, void** -> ffi_raw*.  *)
+       handler to do the translation, void** -> ffi_raw*.  *)
     translate_args: ffi_closure_fun;
     this_closure: Pointer;
 {$endif}
@@ -526,7 +526,7 @@ type
 {$if not FFI_NATIVE_RAW_API}
     (* If this is enabled, then a raw closure has the same layout
        as a regular closure.  We use this to install an intermediate
-       handler to do the transaltion, void** -> ffi_raw*.  *)
+       handler to do the translation, void** -> ffi_raw*.  *)
     translate_args: ffi_closure_fun;
     this_closure: Pointer;
 {$endif}

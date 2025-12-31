@@ -82,7 +82,7 @@ Function WtkGetNextEaValue(pszName, pszEaName: PAnsiChar; var pulEaType: Cardina
 Function WtkPutEaValue(pszName, pszEaName: PAnsiChar; ulMultiType, ulEaType: Cardinal; var pbValue: Byte; ulValuelen: Cardinal; fWriteThru: Longbool; fEA: Byte): Longint; cdecl;
   external wpstkdll name 'WtkPutEaValue';
 
-//*** simplified APIs to read/write exatcly one string EA********************/
+//*** simplified APIs to read/write exactly one string EA********************/
 Function WtkWriteStringEa(pszName, pszEaName, pszEaValue: PAnsiChar): Longint; cdecl;
   external wpstkdll name 'WtkWriteStringEa';
 Function WtkReadStringEa(pszName, pszEaName, pszEaValue: PAnsiChar; var pulBuflen: Cardinal): Longint; cdecl;
@@ -600,7 +600,7 @@ Function WtkSetErrorInfo(rc: Cardinal): Longbool; cdecl;
 Const
   PMHERR_USE_EXISTING_ERRORINFO = -(1);
 
-//*** check existance of files & directories ********************************/
+//*** check existence of files & directories ********************************/
 Function WtkFileExists(pszName: PAnsiChar): Longbool;
 Function WtkDirExists(pszName: PAnsiChar): Longbool;
 Function WtkFileMaskExists(pszFileMask, pszFirstFile: PAnsiChar; ulBuflen: Cardinal): Longbool;
@@ -657,7 +657,7 @@ Const
   WTK_OPENDEVICE_SHARED = $0000;
   WTK_OPENDEVICE_EXCLUSIVE = $0001;
   WTK_OPENDEVICE_NOCACHE = $0002;
-  { implicitely set, when pszName specifies drive  }
+  { implicitly set, when pszName specifies drive  }
   WTK_OPENDEVICE_BLOCKDEVICE = $0004;
 
 //*** prototypes for performing an I/o Control transaction ******************/

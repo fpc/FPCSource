@@ -28,7 +28,7 @@ In the FPC revision, instead of picking a certain floating point type,
  the type you want.
  However for IEEE Double (64bit) and Extended(80bit) these constants are
  already defined, and autoselected by the library. (the library tests the
- size of the float type in bytes for 8 and 10 and picks the appropiate
+ size of the float type in bytes for 8 and 10 and picks the appropriate
  constants
 
 Also some stuff had to be added to get ipf running (vector object and
@@ -216,7 +216,7 @@ const
 
 type
      {Definition of matrix types in NumLib. First some vectors.
-      The high boundery is a maximal number only. Vectors can be smaller, but
+      The high boundary is a maximal number only. Vectors can be smaller, but
       not bigger. The difference is the starting number}
      arfloat0   = array[0..highestfloatelement-1] of ArbFloat;
      arfloat1   = array[1..highestfloatelement] of ArbFloat;
@@ -304,7 +304,7 @@ begin
   Im := z.imag
 end;
 
-{Kind of Sysutils.TrimRight and TrimLeft called after eachother}
+{Kind of Sysutils.TrimRight and TrimLeft called after each other}
 procedure Compress(var s: ShortString);
 var i, j: LONGINT;
 begin

@@ -1071,7 +1071,7 @@ type
   configfile_t = record
     getch: getch_t;	{ a getc()-like function }
     getstr: getstr_t;   { a fgets()-like function }
-    close: close_t;	{ a close hander function }
+    close: close_t;	{ a close handler function }
     param: Pointer;	{ the argument passed to getch/getstr/close }
     name: PAnsiChar;	{ the filename / description }
     line_number: cuint;	{ current line number, starting at 1 }

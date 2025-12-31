@@ -698,7 +698,7 @@ function apr_file_perms_set(const fname: PAnsiChar;
  * </PRE>
  * @param attr_mask Mask of valid bits in attributes.
  * @param pool the pool to use.
- * @remark This function should be used in preference to explict manipulation
+ * @remark This function should be used in preference to explicit manipulation
  *      of the file permissions, because the operations to provide these
  *      attributes are platform specific and may involve more than simply
  *      setting permission bits.
@@ -727,7 +727,7 @@ function apr_file_mtime_set(const fname: PAnsiChar;
 {
  * Create a new directory on the file system.
  * @param path the path for the directory to be created.  (use / on all systems)
- * @param perm Permissions for the new direcoty.
+ * @param perm Permissions for the new directory.
  * @param pool the pool to use.
  }
 function apr_dir_make(const path: PAnsiChar; perm: apr_fileperms_t;
@@ -739,7 +739,7 @@ function apr_dir_make(const path: PAnsiChar; perm: apr_fileperms_t;
  * 'mkdir -p'. Creates intermediate directories as required. No error
  * will be reported if PATH already exists.
  * @param path the path for the directory to be created.  (use / on all systems)
- * @param perm Permissions for the new direcoty.
+ * @param perm Permissions for the new directory.
  * @param pool the pool to use.
  }
 function apr_dir_make_recursive(const path: PAnsiChar;

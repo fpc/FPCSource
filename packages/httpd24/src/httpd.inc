@@ -238,7 +238,7 @@ const
 
   {*
    * APR_HAS_LARGE_FILES introduces the problem of spliting sendfile into
-   * mutiple buckets, no greater than MAX(apr_size_t), and more granular
+   * multiple buckets, no greater than MAX(apr_size_t), and more granular
    * than that in case the brigade code/filters attempt to read it directly.
    * ### 16mb is an invention, no idea if it is reasonable.
     }
@@ -288,7 +288,7 @@ const
    * use by modules.  The difference between #AP_DECLARE and
    * #AP_DECLARE_NONSTD is that the latter is required for any functions
    * which use varargs or are used via indirect function call.  This
-   * is to accomodate the two calling conventions in windows dlls.
+   * is to accommodate the two calling conventions in windows dlls.
     }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
@@ -931,7 +931,7 @@ const
         log_id : PAnsiChar;
   {* This points to the current thread being used to process this request,
    * over the lifetime of a request, the value may change. Users of the connection
-   * record should not rely upon it staying the same between calls that invole
+   * record should not rely upon it staying the same between calls that involve
    * the MPM.
    }
 //{$if APR_HAS_THREADS}
@@ -1229,7 +1229,7 @@ function ap_context_prefix(r: Prequest_rec): PAnsiChar;
    * @param prefix the URI prefix, without trailing slash
    * @param document_root the corresponding directory on disk, without trailing
    * slash
-   * @note If one of prefix of document_root is NULL, the corrsponding
+   * @note If one of prefix of document_root is NULL, the corresponding
    * property will not be changed.
     }
 procedure ap_set_context_info(r: Prequest_rec; const prefix, document_root: PAnsiChar);
@@ -1323,7 +1323,7 @@ function ap_getword_white_nc(p: Papr_pool_t; line: PPAnsiChar): PAnsiChar;
    * @param p The pool to allocate memory from
    * @param line The line to traverse
    * @param stop The character to start at
-   * @return A copy of all caracters after the first occurance of the specified
+   * @return A copy of all characters after the first occurance of the specified
    *         character
     }
 function ap_getword_nulls(p: Papr_pool_t; const line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
@@ -1335,7 +1335,7 @@ function ap_getword_nulls(p: Papr_pool_t; const line: PPAnsiChar; stop: AnsiChar
    * @param p The pool to allocate memory from
    * @param line The line to traverse
    * @param stop The character to start at
-   * @return A copy of all caracters after the first occurance of the specified
+   * @return A copy of all characters after the first occurance of the specified
    *         character
    * @note The same as ap_getword_nulls(), except it doesn't use const AnsiChar **.
     }
@@ -1718,7 +1718,7 @@ function ap_is_matchexp(const str: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_is_matchexp' + LibSuff4;
 
 {*
- * Determine if a string matches a patterm containing the wildcards '?' or '*'
+ * Determine if a string matches a pattern containing the wildcards '?' or '*'
  * @param str The string to check
  * @param expected The pattern to match against
  * @return 0 if the two strings match, 1 otherwise
@@ -1728,7 +1728,7 @@ function ap_strcmp_match(const str, expected: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_strcmp_match' + LibSuff8;
 
 {*
- * Determine if a string matches a patterm containing the wildcards '?' or '*',
+ * Determine if a string matches a pattern containing the wildcards '?' or '*',
  * ignoring case
  * @param str The string to check
  * @param expected The pattern to match against
@@ -1914,13 +1914,13 @@ function ap_escape_quotes(p: Papr_pool_t; const instring: PAnsiChar): PAnsiChar;
  external LibHTTPD name LibNamePrefix + 'ap_escape_quotes' + LibSuff8;
 
 {*
- * Given a string, append the PID deliminated by delim.
+ * Given a string, append the PID delimitated by delim.
  * Usually used to create a pid-appended filepath name
  * (eg: /a/b/foo -> /a/b/foo.6726). A function, and not
  * a macro, to avoid unistd.h dependency
  * @param p The pool to allocate memory from
  * @param string The string to append the PID to
- * @param delim The string to use to deliminate the string from the PID
+ * @param delim The string to use to delimitate the string from the PID
  * @return A copy of the string with the PID appended
   }
 function ap_append_pid(p: Papr_pool_t; const string_, delim: PAnsiChar): PAnsiChar;

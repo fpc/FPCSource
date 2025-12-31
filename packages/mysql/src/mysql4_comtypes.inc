@@ -142,11 +142,11 @@ type
        FIELD_TYPE_BLOB := 252,FIELD_TYPE_VAR_STRING := 253,
        FIELD_TYPE_STRING := 254);
 
-  { For compability  }
+  { For compatibility  }
 
   const
      FIELD_TYPE_CHAR = FIELD_TYPE_TINY;
-  { For compability  }
+  { For compatibility  }
      FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;
   {
   #define net_new_transaction(net) ((net)->pkt_nr=0)

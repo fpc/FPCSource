@@ -384,7 +384,7 @@ procedure _fp_set_fpscr(Value: Int32); syscall sysTrapFlpEmDispatch, sysFloatEm_
  *      ull --> UInt32 long int
  *      f   --> float
  *      d   --> double
- *      q   --> long double (defaults to double in this implementaton)
+ *      q   --> long double (defaults to double in this implementation)
  *      XtoY--> map of type X to a value of type Y
  *)
 

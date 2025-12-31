@@ -499,7 +499,7 @@
       cxcheng    02/26/97 -  fix lint problem with oro names
       cxcheng    02/06/97 -  take out short name support except with SLSHORTNAME
       cxcheng    01/15/97 -  change prototype of OCITypeElemParameterizedType()
-      cxcheng    01/03/97 -  replace bit in OCI_TYPEPARAM_IS_REQUIRED with bitwis
+      cxcheng    01/03/97 -  replace bit in OCI_TYPEPARAM_IS_REQUIRED with bitwise
       cxcheng    12/31/96 -  replace OCI_PARAM_IS_REQUIRED with OCI_TYPEPARAM_IS_
       cxcheng    12/09/96 -  add prototype for OCITypeElemExtTypeCode and OCIType
       cxcheng    11/25/96 -  add schema name parameter to OCITypeVTInsert()
@@ -753,7 +753,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                   initialize the iterator with
          iterator_ort (OUT) - pointer to the pointer to the new iterator created
     DESCRIPTION:
-         Create a new instance of a method/attribute iterator and initalize
+         Create a new instance of a method/attribute iterator and initialize
          it's values.
     RETURNS:
           OCI_SUCCESS if the function completes successfully.
@@ -919,7 +919,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          v_length (IN) - array of the lengths of version names in the
                     version_name array in bytes.
          pin_duration (IN) - pin duration (e.g. until the end of current
-                    transaction) for the types retreieve.  See 'oro.h' for a
+                    transaction) for the types retrieve.  See 'oro.h' for a
                     description of each option.
          get_option (IN) - options for loading the types. It can be one of two
                      values:
@@ -962,7 +962,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                     the type descriptor object to obtain.
                     The array must have array_len elements if specified.
          pin_duration (IN) - pin duration (e.g. until the end of current
-                    transaction) for the type to retreieve.  See 'oro.h' for a
+                    transaction) for the type to retrieve.  See 'oro.h' for a
                     description of each option.
          get_option (IN) - options for loading the type. It can be one of two
                      values:
@@ -1004,7 +1004,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
                     the type descriptor object to obtain.
                     The array must have array_len elements if specified.
          pin_duration (IN) - pin duration (e.g. until the end of current
-                    transaction) for the types retreieve.  See 'oro.h' for a
+                    transaction) for the types retrieve.  See 'oro.h' for a
                     description of each option.
          get_option (IN) - options for loading the types. It can be one of two
                      values:
@@ -2367,7 +2367,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
   {                           TYPE VERSION TABLE                              }
   {-------------------------------------------------------------------------- }
   { For V8.0, the type version table is meant to be an internal data structure
-     only for Oracle clients for type version maintanence purposes. A more
+     only for Oracle clients for type version maintenance purposes. A more
      general version of the API may be made public in subsequent releases.  }
   {--------------------------- OCITypeVTInit -------------------------------- }
   { ** OBSOLETE **  }
@@ -2393,7 +2393,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'env' or 'err' is null.
-          OCI_ERROR if internal errors occurrs during initialization.
+          OCI_ERROR if internal errors occurs during initialization.
     }
   {--------------------------- OCITypeVTInsert ------------------------------- }
   { ** OBSOLETE **  }
@@ -2582,7 +2582,7 @@ var OCITypeIterNew : function (env:POCIEnv; err:POCIError; tdo:POCIType; var ite
          type(IN OUT)     - The OCIType (Type Descriptor) that is being
                             constructed.
          builtin_info     - builtin_info provides information on the built-in
-                            (like precision, scale, charater set etc.). It is
+                            (like precision, scale, character set etc.). It is
                             obtained by allocating an OCIParam (parameter handle)
                             and setting type information in the OCIParam using
                              OCIAttrSet() calls.

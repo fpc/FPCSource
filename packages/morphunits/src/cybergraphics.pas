@@ -84,7 +84,7 @@ const
      CYBRMATTR_DEPTH = $80000007;
   { returns -1 if supplied bitmap is a cybergfx one  }
      CYBRMATTR_ISCYBERGFX = $80000008;
-  { returns -1 if supplied bitmap is linear accessable  }
+  { returns -1 if supplied bitmap is linear accessible  }
      CYBRMATTR_ISLINEARMEM = $80000009;
   { returns colormap associated with that bitmap (v50) }
      CYBRMATTR_COLORMAP = $8000000A;
@@ -112,13 +112,13 @@ const
      CYBRMREQ_MinDepth = CYBRMREQ_TB + 0;
   { Maximum depth  "       "        "  }
      CYBRMREQ_MaxDepth = CYBRMREQ_TB + 1;
-  { Minumum width  "       "        "  }
+  { Minimum width  "       "        "  }
      CYBRMREQ_MinWidth = CYBRMREQ_TB + 2;
   { Maximum width  "       "        "  }
      CYBRMREQ_MaxWidth = CYBRMREQ_TB + 3;
-  { Minumum height "       "        "  }
+  { Minimum height "       "        "  }
      CYBRMREQ_MinHeight = CYBRMREQ_TB + 4;
-  { Minumum height "       "        "  }
+  { Minimum height "       "        "  }
      CYBRMREQ_MaxHeight = CYBRMREQ_TB + 5;
      CYBRMREQ_CModelArray = CYBRMREQ_TB + 6;
      CYBRMREQ_WinTitle = CYBRMREQ_TB + 20;

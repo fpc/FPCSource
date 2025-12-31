@@ -210,7 +210,7 @@ var
 
 // Our level map
 // I used shorts since we would be able to reference 65535
-// uinique tiles with shorts.
+// unique tiles with shorts.
 // You should use malloc() or new[] to dimension
 // your maps for a real game though.
   level_map: TMapArray;
@@ -235,7 +235,7 @@ begin
 	crono.y := 16 * 5;
 	crono.state := P_RIGHT;	// facing right
 	crono.anim_frame := 0;	// starting frame
-	lvl.width := MAP_WIDTH;		// init map dimesions
+	lvl.width := MAP_WIDTH;		// init map dimensions
 	lvl.height := MAP_HEIGHT;
 	
 	InitMap(level_map);			// load a randomized map (too lazy to make a proper one)

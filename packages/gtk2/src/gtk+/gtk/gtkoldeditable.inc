@@ -21,7 +21,7 @@
    TGtkTextFunction = procedure (editable:PGtkOldEditable; time:guint32); cdecl;
 
 { Bindings actions  }
-{ Virtual functions. get_chars is in paricular not a signal because
+{ Virtual functions. get_chars is in particular not a signal because
      it returns malloced memory. The others are not signals because
      they would not be particularly useful as such. (All changes to
      selection and position do not go through these functions)

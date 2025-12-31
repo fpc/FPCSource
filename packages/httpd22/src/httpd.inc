@@ -233,8 +233,8 @@ const
   AP_MAX_REG_MATCH = 10;
 
 {
- * APR_HAS_LARGE_FILES introduces the problem of spliting sendfile into
- * mutiple buckets, no greater than MAX(apr_size_t), and more granular
+ * APR_HAS_LARGE_FILES introduces the problem of splitting sendfile into
+ * multiple buckets, no greater than MAX(apr_size_t), and more granular
  * than that in case the brigade code/filters attempt to read it directly.
  * ### 16mb is an invention, no idea if it is reasonable.
  }
@@ -276,7 +276,7 @@ const
  * use by modules.  The difference between #AP_DECLARE and
  * #AP_DECLARE_NONSTD is that the latter is required for any functions
  * which use varargs or are used via indirect function call.  This
- * is to accomodate the two calling conventions in windows dlls.
+ * is to accommodate the two calling conventions in windows dlls.
 }
 //# define AP_DECLARE_NONSTD(type)    type
 
@@ -545,9 +545,9 @@ const
 { Just in case your linefeed isn't the one the other end is expecting. }
 { linefeed }
   LF = 10;
-{ carrige return }
+{ carriage return }
   CR = 13;
-{ carrige return /Line Feed Combo }
+{ carriage return /Line Feed Combo }
   CRLF = #015#012;
 
 {
@@ -1210,7 +1210,7 @@ function ap_getword_white_nc(p: Papr_pool_t; const line: PPAnsiChar): PAnsiChar;
  * @param p The pool to allocate memory from
  * @param line The line to traverse
  * @param stop The character to start at
- * @return A copy of all caracters after the first occurance of the specified
+ * @return A copy of all characters after the first occurance of the specified
  *         character
 }
 function ap_getword_nulls(p: Papr_pool_t; const line: PPAnsiChar; stop: AnsiChar): PAnsiChar;
@@ -1222,7 +1222,7 @@ function ap_getword_nulls(p: Papr_pool_t; const line: PPAnsiChar; stop: AnsiChar
  * @param p The pool to allocate memory from
  * @param line The line to traverse
  * @param stop The character to start at
- * @return A copy of all caracters after the first occurance of the specified
+ * @return A copy of all characters after the first occurance of the specified
  *         character
  * @note The same as ap_getword_nulls(), except it doesn't use const AnsiChar **.
 }
@@ -1500,7 +1500,7 @@ function ap_make_dirstr_parent(p: Papr_pool_t; const s: PAnsiChar): PAnsiChar;
 
 {
  * Given a directory and filename, create a single path from them.  This
- * function is smart enough to ensure that there is a sinlge '/' between the
+ * function is smart enough to ensure that there is a single '/' between the
  * directory and file names
  * @param a The pool to allocate from
  * @param dir The directory name
@@ -1538,7 +1538,7 @@ function ap_is_matchexp(const str: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_is_matchexp' + LibSuff4;
 
 {
- * Determine if a string matches a patterm containing the wildcards '?' or '*'
+ * Determine if a string matches a pattern containing the wildcards '?' or '*'
  * @param str The string to check
  * @param expected The pattern to match against
  * @return 1 if the two strings match, 0 otherwise
@@ -1548,7 +1548,7 @@ function ap_strcmp_match(const str, expected: PAnsiChar): Integer;
  external LibHTTPD name LibNamePrefix + 'ap_strcmp_match' + LibSuff8;
 
 {
- * Determine if a string matches a patterm containing the wildcards '?' or '*',
+ * Determine if a string matches a pattern containing the wildcards '?' or '*',
  * ignoring case
  * @param str The string to check
  * @param expected The pattern to match against
@@ -1690,7 +1690,7 @@ function ap_escape_quotes(p: Papr_pool_t; const instring: PAnsiChar): PAnsiChar;
  external LibHTTPD name LibNamePrefix + 'ap_escape_quotes' + LibSuff8;
 
 {
- * Given a string, append the PID deliminated by delim.
+ * Given a string, append the PID delimitated by delim.
  * Usually used to create a pid-appended filepath name
  * (eg: /a/b/foo -> /a/b/foo.6726). A function, and not
  * a macro, to avoid unistd.h dependency

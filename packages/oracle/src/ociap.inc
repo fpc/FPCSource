@@ -226,7 +226,7 @@
      vyanaman    04/16/98 - Add get/set TZ
      kkarun      04/13/98 - Add Datetime prototypes
      rkasamse    04/13/98 - change OCIEnv* to dvoid* for context/memory cart serv
-     rkasamse    04/15/98 - chage pickler cart interface
+     rkasamse    04/15/98 - change pickler cart interface
      slari       03/20/98 - change proto of OCIUserCallback
      slari       02/17/98 - add OCIUserCallback
      jiyang      04/02/98 - Accept both env and user handles for NLS
@@ -1563,7 +1563,7 @@
                    recorded in 'err' and this function returns OCI_ERROR.
                    The error recorded in 'err' can be retrieved by calling
                    OCIErrorGet().
-  inarray (IN)   - Pointer to input array representtion of DateTime
+  inarray (IN)   - Pointer to input array representation of DateTime
   len (IN)       - len of inarray.
   type (IN)      - One of SQLT_DATE, SQLT_TIME, SQLT_TIME_TZ, SQLT_TIMESTAMP,
                    SQLT_TIMESTAMP_TZ, or SQLT_TIMESTAMP_LTZ.
@@ -3420,7 +3420,7 @@
     DESCRIPTION
       Retuns an OCI_DTYPE_INTERVAL_DS OCIInterval with the region id (if
       the region is specified in the input string) set and the current
-      absolute offset or an absolut offset with the region id set to 0.
+      absolute offset or an absolute offset with the region id set to 0.
     PARAMETERS
       hndl (IN) - Session/Env handle.
       err (IN/OUT) - error handle. If there is an error, it is
@@ -5691,7 +5691,7 @@
   Parameters
   svchp (IN) - the service context handle that contains the session that
                this stmt handle belongs to.
-  stmtp (OUT) - an unallocated stmt handle must be pased in. An allocated
+  stmtp (OUT) - an unallocated stmt handle must be passed in. An allocated
                 and prepared  statement handle will be returned.
   errhp (IN) - an error handle to retrieve diagnostic information.
   stmt (IN) - SQL or PL/SQL statement to be executed. Must be a null-
@@ -5715,7 +5715,7 @@
   OCIStmtRelease()
   Name
   OCI Statement Release. This call is used to relesae the stmt that
-  was retreived using OCIStmtPrepare2(). If the stmt is release
+  was retrieved using OCIStmtPrepare2(). If the stmt is release
   using this call, OCIHandleFree() must not be called on the stmt
   handle.
   Purpose
@@ -7676,7 +7676,7 @@ var OCIInitialize : function (mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:t
                              instance. If (*data) is NULL, a new OCIAnyData will
                              be allocated for same duration as the OCIAnyDataSet.
                              If (*data) is not NULL, it will get reused. This
-                             OCIAnyData can be subseqently constructed using the
+                             OCIAnyData can be subsequently constructed using the
                              OCIAnyDataConvert() call or it can be constructed
                              piece-wise using the OCIAnyDataAttrSet and
                              OCIAnyDataCollAddElem calls.
@@ -7911,7 +7911,7 @@ var OCIInitialize : function (mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:t
        Given a database name return the service handle that is used by the
        XA library
      NOTE
-       This macro has been provided for backward compatibilty with 8.0.2
+       This macro has been provided for backward compatibility with 8.0.2
    }
 {$IFNDEF LinkDynamically}
   function xaosvch(dbname:POraText):POCISvcCtx;cdecl;external ocilib name 'xaosvch';
@@ -8043,7 +8043,7 @@ var OCIInitialize : function (mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:t
          OCI_NLS_DECIMAL : decimal character.
          OCI_NLS_GROUP : group separator.
          OCI_NLS_DEBIT : Native symbol of debit.
-         OCI_NLS_CREDIT : Native sumbol of credit.
+         OCI_NLS_CREDIT : Native symbol of credit.
          OCI_NLS_DATEFORMAT : Oracle date format.
          OCI_NLS_INT_CURRENCY: International currency symbol.
          OCI_NLS_LOC_CURRENCY : Locale currency symbol.

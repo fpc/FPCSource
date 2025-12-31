@@ -27,7 +27,7 @@
 @created(17 Dec 2002)
 @lastmod(19 Jan 2003)
 OS/2 2.0 Multimedia Extensions Input/Output Manager
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -658,7 +658,7 @@ Const
 
 Type
   jpegoptions = record            // this comment needed by h2inc        ///
-    ulStructLen:Longint;                    // size of this sturcture                  ///
+    ulStructLen:Longint;                    // size of this structure                  ///
     usQuantization:Array [0..4] of word;              // Each number may be 1 - 65535      ///
     usScale:Word;                        // 1 (1/8 Size) - 8 (Full Size; default)  ///
     ulColorOrder:LongInt;                   // YUV_YVU (Default) or ~YUV_YVU     ///
@@ -915,11 +915,11 @@ Const
 // * frames in the output data stream, regardless of
 // * the requested quality level.  This value only
 // * considers video data, i.e. audio data and file format
-// * overhead must be considered seperately when determining
+// * overhead must be considered separately when determining
 // * the final output file data rate.  The interval of
 // * frames over which the data is constrained is specified
 //* in ulConstraintInterval.  A value of zero for
-// * ulDataContraint specifies that the data rate is not
+// * ulDataConstraint specifies that the data rate is not
 // * to be constrained and is compressed according to
 // * the requested quality level.
 // *

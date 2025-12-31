@@ -52,7 +52,7 @@ function pango_language_from_string(language:PAnsiChar):PPangoLanguage; cdecl; e
 function pango_language_to_string(language : PPangoLanguage) : PAnsiChar;
 
 function pango_language_matches(language:PPangoLanguage; range_list:PAnsiChar):gboolean; cdecl; external pangolib;
-{$endif read_interface_funtions}
+{$endif read_interface_functions}
 
 //------------------------------------------------------------------------------
 

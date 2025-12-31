@@ -235,7 +235,7 @@ var
   objc_setEnumerationMutationHandler : procedure (handler:TMutationHandlerProc); cdecl = nil;
   objc_setForwardHandler: procedure (fwd:pointer; fwd_stret:pointer); cdecl = nil;
 
-  {$WARNINGS OFF} // warning: cdecl'ared funtions have no high parameter
+  {$WARNINGS OFF} // warning: cdecl'ared functions have no high parameter
   objc_msgSend       : function  (self: id; op: SEL; param3: array of const): id; cdecl = nil;
   objc_msgSendSuper  : function  (super: pobjc_super; op: SEL; param3: array of const): id; cdecl = nil;
   objc_msgSend_stret : procedure (stret: Pointer; self: id; op: SEL; param3: array of const); cdecl= nil;

@@ -365,7 +365,7 @@ var
 const
   tileWidth   : integer = 8;          //width of a tile in pixels
   mapWidth    : integer = 1024 div 8; //width of the big map in tiles
-  mapHeight   : integer = 1024 div 8; //heigh of the big map in tiles
+  mapHeight   : integer = 1024 div 8; //height of the big map in tiles
   bgWidth     : integer = 256 div 8;  //width of the hardware map in tiles
   bgHeight    : integer = 256 div 8;  //height of the hardware map in tiles
   screenWidth : integer = 256 div 8;  //screen width in tiles

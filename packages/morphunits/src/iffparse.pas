@@ -118,7 +118,7 @@ Type
 {
  * Collection Item: the actual node in the collection list at which
  * client will look.  The next pointers cross context boundaries so
- * that the complete list is accessable.
+ * that the complete list is accessible.
  }
        pCollectionItem = ^tCollectionItem;
        tCollectionItem = record

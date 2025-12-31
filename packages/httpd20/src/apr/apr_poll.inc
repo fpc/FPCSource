@@ -43,7 +43,7 @@ const
   APR_POLLOUT  = $004;     {< Can write without blocking }
   APR_POLLERR  = $010;     {< Pending error }
   APR_POLLHUP  = $020;     {< Hangup occurred }
-  APR_POLLNVAL = $040;     {< Descriptior invalid }
+  APR_POLLNVAL = $040;     {< Descriptor invalid }
 
 { Used in apr_pollfd_t to determine what the apr_descriptor is }
 type
@@ -117,7 +117,7 @@ function apr_poll(aprset: Papr_pollfd_t; numsock: apr_int32_t;
  * @param event The events to look for when we do the poll.  One of:
  * <PRE>
  *            APR_POLLIN       signal if read will not block
- *            APR_POLLPRI      signal if prioirty data is availble to be read
+ *            APR_POLLPRI      signal if priority data is available to be read
  *            APR_POLLOUT      signal if write will not block
  * </PRE>
  * @deprecated This function is deprecated, APR applications should control the pollset memory themselves.

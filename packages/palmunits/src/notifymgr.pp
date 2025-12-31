@@ -289,7 +289,7 @@ const
                                      // notifyDetailsP: ptr to SysNotifyDBInfoType.
 
   sysNotifyIrDASniffEvent          = Rsc('irda');
-                                     // Sent by IrDA sniffing code when an incomming IrDA frame is detected
+                                     // Sent by IrDA sniffing code when an incoming IrDA frame is detected
 
 // for sysNotifyDisplayChangeEvent
 type
@@ -358,7 +358,7 @@ NOTE that these are NOT implemented yet!!!!
 
  sysNotifyInitializeEvent       = Ord('helo');
                                  // broadcast to an app after its installed
-                                 // so it can do any necessary initalization
+                                 // so it can do any necessary initialization
                                  // This event is always broadcast.
                                  // param: ptr to SysNotifyDBInfoType.
 

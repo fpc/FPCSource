@@ -57,7 +57,7 @@ type
     dbCardNo: UInt16;    // card number of the database
     dbID: LocalID;       // LocalID of the database
     recordNum: UInt16;   // index of record that contain a match
-    uniqueID: UInt32;    // postion in record of the match.
+    uniqueID: UInt32;    // position in record of the match.
     matchCustom: UInt32; // application specific info
   end;
 
@@ -117,8 +117,8 @@ type
 const
   exgSeparatorChar    = #9;    // '\t' AnsiChar used to separate multiple registry entries
 
-  exgRegLibraryID     = $fffc; // library register thier presence
-  exgRegExtensionID   = $fffd; // filename extenstion registry
+  exgRegLibraryID     = $fffc; // library register their presence
+  exgRegExtensionID   = $fffd; // filename extension registry
   exgRegTypeID        = $fffe; // MIME type registry
 
   exgDataPrefVersion  = 0;

@@ -62,5 +62,5 @@ function GetAuthenticPixels(_image: PImage; const x, y: clong;
   SetPixelCacheVirtualMethod(const Image *,const VirtualPixelMethod);
 
 extern MagickExport void
-  DestroyCacheFaclity(void);}
+  DestroyCacheFacility(void);}
 

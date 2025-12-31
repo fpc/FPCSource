@@ -196,7 +196,7 @@ const
   pixels are represented by integers, which
   must be 32 bits wide or more.
 
-  True colors are repsented as follows:
+  True colors are represented as follows:
 
   ARGB
 
@@ -485,7 +485,7 @@ type
     xshow: PAnsiChar;
       (* if(flags & gdFTEX_XSHOW)
          then, on return, xshow is a malloc'ed
-         string contining xshow position data for
+         string containing xshow position data for
          the last string.
 
          NB. The caller is responsible for gdFree'ing

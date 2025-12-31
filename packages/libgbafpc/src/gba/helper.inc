@@ -105,7 +105,7 @@ function ftell(stream: P_FILE): longint; cdecl; external;
 function fseek(stream: P_FILE; off: longint; whence: longint): longint; cdecl; external;
 function fclose(stream: P_FILE): longint; cdecl; external;
 
-(* Directory iterator for mantaining state between dir* calls *)
+(* Directory iterator for maintaining state between dir* calls *)
 type
   DIR_ITER = record
     device: cint;

@@ -448,7 +448,7 @@ const
    *        can be set with the MHD_OPTION_NOTIFY_COMPLETED).
    *        Initially, <tt>*con_cls</tt> will be NULL.
    * @return MHS_YES if the connection was handled successfully,
-   *         MHS_NO if the socket must be closed due to a serios
+   *         MHS_NO if the socket must be closed due to a serious
    *         error while handling the request
    *)
   function create_response(cls: Pointer; connection: PMHD_Connection;

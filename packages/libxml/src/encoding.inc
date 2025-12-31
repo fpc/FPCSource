@@ -85,7 +85,7 @@
  * Returns the number of bytes written, -1 if lack of space, or -2
  *     if the transcoding failed.
  * The value of @inlen after return is the number of octets consumed
- *     if the return value is positive, else unpredictiable.
+ *     if the return value is positive, else unpredictable.
  * The value of @outlen after return is the number of octets consumed.
  *)
   xmlCharEncodingInputFunc = function(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; cdecl;
@@ -105,7 +105,7 @@
  * Returns the number of bytes written, -1 if lack of space, or -2
  *     if the transcoding failed.
  * The value of @inlen after return is the number of octets consumed
- *     if the return value is positive, else unpredictiable.
+ *     if the return value is positive, else unpredictable.
  * The value of @outlen after return is the number of octets produced.
  *)
   xmlCharEncodingOutputFunc = function(_out: PAnsiChar; outlen: pcint; _in: PAnsiChar; inlen: pcint): cint; cdecl;

@@ -762,9 +762,9 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           OCI_INVALID_HANDLE if 'err' is NULL.
           OCI_ERROR if
             any of the number arguments is null
-            underflow errorr
-            overflow errorr
-            divide by zero errorr
+            underflow error
+            overflow error
+            divide by zero error
     }
   {----------------------------- OCINumberMod -------------------------------- }
 {$IFNDEF LinkDynamically}
@@ -790,7 +790,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           OCI_INVALID_HANDLE if 'err' is NULL.
           OCI_ERROR if
             any of the number arguments is null
-            divide by zero errorr
+            divide by zero error
     }
   {------------------------ OCINumberIntPower -------------------------------- }
 {$IFNDEF LinkDynamically}
@@ -800,7 +800,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
 {$ENDIF}
 
   {
-     NAME: OCINumberIntPower - OCINumber takes an arbitary base to an arbitary
+     NAME: OCINumberIntPower - OCINumber takes an arbitrary base to an arbitrary
                                integer PoWeR
      PARAMETERS:
           err (IN/OUT) - error handle. If there is an error, it is
@@ -811,7 +811,7 @@ var OCINumberInc : function (err:POCIError; number:POCINumber):sword;cdecl;
           exp (IN) - exponent to which the base is to be raised
           result (OUT) - output of exponentiation
      DESCRIPTION:
-          Takes an arbitary base to an arbitary integer power.
+          Takes an arbitrary base to an arbitrary integer power.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'err' is NULL.
@@ -1250,7 +1250,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           number (IN) - input number
-          result (OUT) - output which will contain the absolue value of the
+          result (OUT) - output which will contain the absolute value of the
                   input number
      DESCRIPTION:
           Computes the absolute value of an Oracle number.
@@ -1382,7 +1382,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
           number (IN) - exponent to which the base is to be raised
           result (OUT) - output of exponentiation
      DESCRIPTION:
-          Takes an arbitary base to an arbitary power.
+          Takes an arbitrary base to an arbitrary power.
      RETURNS:
           OCI_SUCCESS if the function completes successfully.
           OCI_INVALID_HANDLE if 'err' is NULL.
@@ -1763,7 +1763,7 @@ var OCINumberToInt : function (err:POCIError; number:POCINumber; rsl_length:uwor
                   The error recorded in 'err' can be retrieved by calling
                   OCIErrorGet().
           base (IN) - base of the logarithm
-          number (IN) - opearnd
+          number (IN) - operand
           result (OUT) - logarithm result
      DESCRIPTION:
           Takes the logarithm with the specified base of an Oracle number.
@@ -1898,7 +1898,7 @@ in declaration at line 1789
             min (OUT) - minute value returned
             sec (OUT) - second value returned
        DESCRIPTION:
-            Return time inforamtion stored in the given date. The time
+            Return time information stored in the given date. The time
             information returned is: hour, minute and seconds.
        RETURNS:
             NONE
@@ -1929,7 +1929,7 @@ in declaration at line 1812 *)
             month (OUT) - month value returned
             day (OUT) - day value returned
        DESCRIPTION:
-            Return year, month, day inforamtion stored in the given date.
+            Return year, month, day information stored in the given date.
        RETURNS:
             NONE
       }
@@ -1959,7 +1959,7 @@ in declaration at line 1834
             min (IN) - minute value to be set
             sec (IN) - second value to be set
        DESCRIPTION:
-            Set the date with the given time inforamtion.
+            Set the date with the given time information.
        RETURNS:
             NONE
       }
@@ -1988,7 +1988,7 @@ in declaration at line 1855
             month (OUT) - month value to be set
             day (OUT) - day value to be set
        DESCRIPTION:
-            Set the date with the given year, month, day inforamtion.
+            Set the date with the given year, month, day information.
        RETURNS:
             NONE
       }
@@ -2268,7 +2268,7 @@ var OCIDateToText : function (err:POCIError; date:POCIDate; fmt:Poratext; fmt_le
             OCI_SUCCESS if the function completes successfully.
             OCI_INVALID_HANDLE if 'err' is NULL.
             OCI_ERROR if
-              invlid date
+              invalid date
               invald input time zone
               invald output time zone
               <to be discovered>

@@ -233,7 +233,7 @@ uses
      SCRAMBLE_LENGTH = 20;
      SCRAMBLE_LENGTH_323 = 8;
 
-  { length of password stored in the db: new passwords are preceeded with '*'  }
+  { length of password stored in the db: new passwords are preceded with '*'  }
 
      SCRAMBLED_PASSWORD_CHAR_LENGTH = SCRAMBLE_LENGTH*2+1;
      SCRAMBLED_PASSWORD_CHAR_LENGTH_323 = SCRAMBLE_LENGTH_323*2;
@@ -299,7 +299,7 @@ uses
        REFRESH_REPLICA = 64;         // Reset master info and restart replica thread
        REFRESH_SLAVE = REFRESH_REPLICA;  // Reset master info and restart slave thread
        REFRESH_MASTER = 128;       // Remove all bin logs in the index and truncate the index
-       REFRESH_ERROR_LOG = 256;    // Rotate only the erorr log
+       REFRESH_ERROR_LOG = 256;    // Rotate only the error log
        REFRESH_ENGINE_LOG = 512;   // Flush all storage engine logs
        REFRESH_BINARY_LOG = 1024;  // Flush the binary log
        REFRESH_RELAY_LOG = 2048;   // Flush the relay log
@@ -1194,8 +1194,8 @@ uses
          MYSQL_PROTOCOL_MEMORY);
 
     { There are three types of queries - the ones that have to go to
-      the master, the ones that go to a slave, and the adminstrative
-      type which must happen on the pivot connectioin     }
+      the master, the ones that go to a slave, and the administrative
+      type which must happen on the pivot connection     }
        mysql_rpl_type = (MYSQL_RPL_MASTER,MYSQL_RPL_SLAVE,MYSQL_RPL_ADMIN
          );
 
@@ -1458,7 +1458,7 @@ uses
 
       length         - On input: in case when lengths of input values
                        are different for each execute, you can set this to
-                       point at a variable containining value length. This
+                       point at a variable containing value length. This
                        way the value length can be different in each execute.
                        If length is not NULL, buffer_length is not used.
                        Note, length can even point at buffer_length if

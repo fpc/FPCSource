@@ -36,7 +36,7 @@ begin
 	target := aDest;
 	
 	//------------------------------------------------------------
-	// synthensize a sine wave with an LFO applied to the pitch
+	// synthesize a sine wave with an LFO applied to the pitch
 	// the stereo data is interleaved
 	//------------------------------------------------------------
 	len := aLength;

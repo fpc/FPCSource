@@ -41,7 +41,7 @@ uses
 // functions added for Pascal
 procedure lua_pushstring(L: Plua_State; const s: ansistring);
 
-// compatibilty macros
+// compatibility macros
 function luaL_getn(L: Plua_State; n: Integer): Integer; // calls lua_objlen
 procedure luaL_setn(L: Plua_State; t, n: Integer); // does nothing!
 

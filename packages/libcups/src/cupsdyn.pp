@@ -1358,7 +1358,7 @@ begin
 end;
 
 //Return true if CUPS lib can be loaded and
-//initilized.
+//initialized.
 function CUPSLibInstalled : Boolean;
 begin
   Result:=False;

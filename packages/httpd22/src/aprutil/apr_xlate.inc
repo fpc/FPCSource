@@ -63,7 +63,7 @@ function apr_xlate_open(convset: PPapr_xlate_t;
  external LibAPRUtil name LibNamePrefix + 'apr_xlate_open' + LibSuff16;
 
 {
- * This is to indicate the charset of the sourcecode at compile time
+ * This is to indicate the charset of the source code at compile time
  * names to indicate the charset of the source code at
  * compile time.  This is useful if there are literal
  * strings in the source code which must be translated

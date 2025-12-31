@@ -1364,7 +1364,7 @@ begin
   Dos.FindClose(Dir);
 end;
 
-{ returns zero for empty and non existant files }
+{ returns zero for empty and non existent files }
 
 function SizeOfFile(const FileName: string): longint;
 var

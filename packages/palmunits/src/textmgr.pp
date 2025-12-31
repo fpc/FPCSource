@@ -339,21 +339,21 @@ function TxtTransliterate(const inSrcText: PAnsiChar; inSrcLength: UInt16; outDs
 // character encodings have state or modes (e.g. JIS), processing a single
 // sequence of text with multiple calls will work correctly.
 
-// When an error occurs due to an unconvertable character, the behavior of
+// When an error occurs due to an nonconvertible character, the behavior of
 // the routine will depend on the <substitutionStr> parameter. If it is NULL,
-// then <*ioSrcBytes> will be set to the offset of the unconvertable character,
+// then <*ioSrcBytes> will be set to the offset of the nonconvertible character,
 // <ioDstBytes> will be set to the number of successfully converted resulting
 // bytes, and <dstTextP>, in not NULL, will contain conversion results up to
 // the point of the error. The routine will return an appropriate error code,
 // and it is up to the caller to either terminate conversion or skip over the
-// unconvertable character and continue the conversion process (passing false
+// nonconvertible character and continue the conversion process (passing false
 // for the <newConversion> parameter in subsequent calls to TxtConvertEncoding).
 // If <substitutionStr> is not NULL, then this string is written to the
-// destination buffer when an unconvertable character is encountered in the
+// destination buffer when an nonconvertible character is encountered in the
 // source text, and the source character is skipped. Processing continues, though
 // the error code will still be returned when the routine terminates. Note that
 // if a more serious error occurs during processing (e.g. buffer overflow) then
-// that error will be returned even if there was an earlier unconvertable character.
+// that error will be returned even if there was an earlier nonconvertible character.
 // Note that the substitution string must use the destination character encoding.
 
 function TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStateType;

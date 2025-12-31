@@ -140,7 +140,7 @@ const
   telErrTTaskNotFound         = telErrorClass or $35; // couldn't find the specified (by phone driver) telephony task
 
 // constants
-  kTelInvalidAppId = TelAppID(-1); // this value can't be returned on TelMgr attachement
+  kTelInvalidAppId = TelAppID(-1); // this value can't be returned on TelMgr attachment
 
   kTelInfiniteDelay = $FFFFFFFF; // infinite time-out delay
 

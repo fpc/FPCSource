@@ -29,7 +29,7 @@ uses
 {$ENDIF FPC_DOTTEDUNITS}
 
 const
-// unit defintions
+// unit definitions
 // enTimerUnits
   UNIT_MICROHZ    = 0; // 1/1000000 second granularity
   UNIT_VBLANK     = 1; // 1/60 second granularity

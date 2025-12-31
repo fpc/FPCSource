@@ -64,7 +64,7 @@ begin
 	config.memory := rv_buffer_left;		// Set memory target (for left)
 	config.delay := rv_size_left;		// Set delay (for left)
 	config.feedback := 1024;				// Set feedback to 50% (for both)
-	config.panning := 0;					// Set panning to 0% (and inversed (100%) for right channel)
+	config.panning := 0;					// Set panning to 0% (and inverted (100%) for right channel)
 	config.rate := 16777216 div rv_rate;	// Set sampling rate for both channels
 	mmReverbConfigure(@config);		// Run configuration...
 

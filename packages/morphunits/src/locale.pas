@@ -141,7 +141,7 @@ type
     // Currency symbol
     loc_MonCS: STRPTR;             // Currency symbol (e.g. $)
     loc_MonSmallCS: STRPTR;        // Symbol for small amounts (eg. cent)
-    loc_MonIntCS: STRPTR;          // Internationl (ISO 4217) code (e.g. EUR/USD/GBP)
+    loc_MonIntCS: STRPTR;          // International (ISO 4217) code (e.g. EUR/USD/GBP)
 
     loc_MonPositiveSign: STRPTR;   // for positive money value
     loc_MonPositiveSpaceSep: Byte; // Separated by space (SS_*)

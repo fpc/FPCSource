@@ -12,7 +12,7 @@ Type
 {$ifndef GTK_TEXT_ITER_PRIVATE_H}
 {$define GTK_TEXT_ITER_PRIVATE_H}
 {$include gtktextiter.inc}
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 { __cplusplus  }
 {$include gtktextiter.inc}
 {$include gtktextbtree.inc}
@@ -34,7 +34,7 @@ function _gtk_text_iter_get_segment_char(iter:PGtkTextIter):gint; cdecl; externa
 { debug  }
 
 procedure _gtk_text_iter_check(iter:PGtkTextIter); cdecl; external gtklib;
-{ C++ end of extern C conditionnal removed }
+{ C++ end of extern C conditional removed }
 { __cplusplus  }
 {$endif}
 

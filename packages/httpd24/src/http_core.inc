@@ -54,7 +54,7 @@
  *}
 
 (**
- * @defgroup APACHE_CORE_HTTPD_ACESSORS Acessors
+ * @defgroup APACHE_CORE_HTTPD_ACESSORS Assessors
  *
  * @brief File/Directory Accessor directives
  *
@@ -878,7 +878,7 @@ type
 //extern AP_DECLARE_DATA ap_filter_rec_t *ap_core_input_filter_handle;
 
 {**
- * This hook provdes a way for modules to provide metrics/statistics about
+ * This hook provides a way for modules to provide metrics/statistics about
  * their operational status.
  *
  * @param p A pool to use to create entries in the hash table
@@ -934,7 +934,7 @@ type
     s: Pserver_rec;
 
     {** current conn_rec.
-     *  Should be preferred over r->connecction
+     *  Should be preferred over r->connection
      *}
     c: Pconn_rec;
 

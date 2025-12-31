@@ -91,7 +91,7 @@ type
     RAW_ARGS,			{< cmd_func parses command line itself }
     TAKE1,			{< one argument only }
     TAKE2,			{< two arguments only }
-    ITERATE,			{< one argument, occuring multiple times
+    ITERATE,			{< one argument, occurring multiple times
 				 * (e.g., IndexIgnore)
                                  }
     ITERATE2,			{< two arguments, 2nd occurs multiple times
@@ -507,7 +507,7 @@ function ap_set_int_slot(cmd: Pcmd_parms; struct_ptr: Pointer; const arg: PAnsiC
 
 {
  * Return true if the specified method is limited by being listed in
- * a <Limit> container, or by *not* being listed in a <LimiteExcept>
+ * a <Limit> container, or by *not* being listed in a <LimitExcept>
  * container.
  *
  * @param   method  Pointer to a string specifying the method to check.
@@ -700,7 +700,7 @@ function ap_cfg_getc(cfp: Pap_configfile_t): Integer;
 {
  * Detach from open ap_configfile_t, calling the close handler
  * @param cfp The file to close
- * @return 1 on sucess, 0 on failure
+ * @return 1 on success, 0 on failure
  }
 function ap_cfg_closefile(cfp: Pap_configfile_t): Integer;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF}

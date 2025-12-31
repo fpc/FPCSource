@@ -183,7 +183,7 @@ begin
 	
 	// set up GL2D for 2d mode
 	glBegin2D();
-		// Draw a full revolution of some radially dispalced pixels
+		// Draw a full revolution of some radially displaced pixels
 		for angle := 0 to 512 do
 		begin
 			a2 := (angle * 64) + i;

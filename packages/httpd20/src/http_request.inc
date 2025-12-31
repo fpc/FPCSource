@@ -282,7 +282,7 @@ const
 //void ap_process_request(request_rec *);
 {
  * Kill the current request
- * @param type Why the request is dieing
+ * @param type Why the request is dying
  * @param r The current request
  * @deffunc void ap_die(int type, request_rec *r)
  }

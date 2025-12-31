@@ -20,7 +20,7 @@ var
 
 procedure Initialize();
 begin
-//verticies for the cube
+//vertices for the cube
   CubeVectors[0] := floattov16(-0.5); CubeVectors[1] := floattov16(-0.5); CubeVectors[2] := floattov16(0.5);
   CubeVectors[3] := floattov16(0.5); CubeVectors[4] := floattov16(-0.5); CubeVectors[5] := floattov16(0.5);
   CubeVectors[6] := floattov16(0.5); CubeVectors[7] := floattov16(-0.5); CubeVectors[8] := floattov16(-0.5);
@@ -166,7 +166,7 @@ begin
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 40);
 
-  gluLookAt(  0.0, 0.0, 1.0,    //camera possition
+  gluLookAt(  0.0, 0.0, 1.0,    //camera position
               0.0, 0.0, 0.0,    //look at
               0.0, 1.0, 0.0);   //up
 

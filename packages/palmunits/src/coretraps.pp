@@ -290,18 +290,18 @@ const
   sysTrapConPutS = $A0DD;
   sysTrapConGetS = $A0DE;
 
-  sysTrapFplInit = $A0DF; // Obsolete, here for compatibilty only!
-  sysTrapFplFree = $A0E0; // Obsolete, here for compatibilty only!
-  sysTrapFplFToA = $A0E1; // Obsolete, here for compatibilty only!
-  sysTrapFplAToF = $A0E2; // Obsolete, here for compatibilty only!
-  sysTrapFplBase10Info = $A0E3; // Obsolete, here for compatibilty only!
-  sysTrapFplLongToFloat = $A0E4; // Obsolete, here for compatibilty only!
-  sysTrapFplFloatToLong = $A0E5; // Obsolete, here for compatibilty only!
-  sysTrapFplFloatToULong = $A0E6; // Obsolete, here for compatibilty only!
-  sysTrapFplMul = $A0E7; // Obsolete, here for compatibilty only!
-  sysTrapFplAdd = $A0E8; // Obsolete, here for compatibilty only!
-  sysTrapFplSub = $A0E9; // Obsolete, here for compatibilty only!
-  sysTrapFplDiv = $A0EA; // Obsolete, here for compatibilty only!
+  sysTrapFplInit = $A0DF; // Obsolete, here for compatibility only!
+  sysTrapFplFree = $A0E0; // Obsolete, here for compatibility only!
+  sysTrapFplFToA = $A0E1; // Obsolete, here for compatibility only!
+  sysTrapFplAToF = $A0E2; // Obsolete, here for compatibility only!
+  sysTrapFplBase10Info = $A0E3; // Obsolete, here for compatibility only!
+  sysTrapFplLongToFloat = $A0E4; // Obsolete, here for compatibility only!
+  sysTrapFplFloatToLong = $A0E5; // Obsolete, here for compatibility only!
+  sysTrapFplFloatToULong = $A0E6; // Obsolete, here for compatibility only!
+  sysTrapFplMul = $A0E7; // Obsolete, here for compatibility only!
+  sysTrapFplAdd = $A0E8; // Obsolete, here for compatibility only!
+  sysTrapFplSub = $A0E9; // Obsolete, here for compatibility only!
+  sysTrapFplDiv = $A0EA; // Obsolete, here for compatibility only!
 
   sysTrapWinScreenInit = $A0EB; // was sysTrapScrInit
   sysTrapScrCopyRectangle = $A0EC;

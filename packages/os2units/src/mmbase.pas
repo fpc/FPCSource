@@ -27,7 +27,7 @@
 @created(17 Dec 2002)
 @lastmod(19 Jan 2003)
 OS/2 Multimedia structures and definitions
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 //****************************************************************************/
@@ -989,7 +989,7 @@ TYPE _MCI_AUDIO_CAPS = RECORD
     ulResourceUnits:LongInt;          //    out Resource units this mode            */
     ulResourceClass:LongInt;          //    out Resource class for this mode        */
     ulBlockAlign:LongInt;             //    out Block alignment for this mode.      */
-    fCanRecord:LongInt;               //    out Is recording possbile - this mode   */
+    fCanRecord:LongInt;               //    out Is recording possible - this mode   */
     ulFlags:LongInt;                  //    out                                     */
     ulCapability:LongInt;             //    out Capability of the device.           */
     end;
@@ -1468,7 +1468,7 @@ CDHW_CAP_CAN_WRITE    =$00000008; //* Can write to disc               */
 CDHW_CAP_CAN_PLAY     =$00000010; //* Can play CD-DA tracks           */
 CDHW_CAP_CAN_INTERLEV =$00000020; //* Supports ISO-9660 interleaving  */
 CDHW_CAP_CAN_PREFETCH =$00000080; //* Can prefetch internally         */
-CDHW_CAP_MANIP_AUDIO  =$00000100; //* Can manipulte audio channels    */
+CDHW_CAP_MANIP_AUDIO  =$00000100; //* Can manipulate audio channels   */
 CDHW_CAP_USES_REDBOOK =$00000200; //* Can use Red Book mode           */
 CDHW_CAP_READS_XA     =$00000400; //* Can read CD-ROM/XA data         */
 CDHW_CAP_CONT_READS   =$00000800; //* Continues to read DA after stop */
@@ -1553,7 +1553,7 @@ TYPE PVIDEO_FRAME_HDR = ^_VIDEO_FRAME_HDR;
 //                                                                          */
 // DESCRIPTIVE NAME: Ultimotion File Format Headers (Beta)                  */
 //                                                                          */
-//   An Ultimotion file consists of interlevaed audio and video and text    */
+//   An Ultimotion file consists of interleaved audio and video and text    */
 //   chunks within the data list chunk.                                     */
 //                                                                          */
 //   A file may contain interleaved audio chunks or the soundtrack may      */
@@ -1594,7 +1594,7 @@ TYPE PVIDEO_FRAME_HDR = ^_VIDEO_FRAME_HDR;
 //    - An audio frame has the same duration as its corresponding video     */
 //         frame                                                            */
 //    - Audio frames always follow their corresponding video frame, and     */
-//         as such preceed the next video frame                             */
+//         as such precede the next video frame                             */
 //                                                                          */
 // Legend:                                                                  */
 //     [<element name>]      optional                                       */
@@ -1710,7 +1710,7 @@ type UMCHUNKHEADER =record  // umch */
    UMVIDEOHEADER = record   // umvh */
    ulTotalDuration:LongInt;        // Video duration in MMTIME            */
    ulMaxFrameSize:LongInt;         // Max video frame size in bytes       */
-   ulMaxAvgDataRate:LongInt;       // Max avergage data rate              */
+   ulMaxAvgDataRate:LongInt;       // Max average data rate               */
    ulMaxBurstInterval:LongInt;     // Max interval for max data rate      */
    ulCompressionRatioX100:LongInt; // Compression ratio                   */
    ulPosterFrameOffset:LongInt;    // Poster for video (from beginning)   */
@@ -1874,7 +1874,7 @@ UM_VIDEO_COMPRESSION_TYPE_BH211UCS4       =12;   // unique chroma sub4 */
 // *
 // **********************************************/
   _spcb = record
-   ulSPCBLen       : LongInt;       // SPCB struture length
+   ulSPCBLen       : LongInt;       // SPCB structure length
    spcbkey         : SPCBKEY;
    ulDataFlags     : LongInt;       // Data type flags
    ulNumRec        : LongInt;       // Max # records/buffer (Only used for Split streams)
@@ -2000,7 +2000,7 @@ const
 // Module Name: SHDD.H
 //
 // OS/2 2.0 Multimedia Extensions Stream Handler Device Driver Interfaces
-// Block defintions.
+// Block definitions.
 //
 // Copyright (c) International Business Machines Corporation 1990,1991
 //                         All Rights Reserved
@@ -2014,7 +2014,7 @@ const
 //***************************************************************************/
 
 // Multimedia Extensions Stream Handler Device Driver Interfaces
-// Block defintions.
+// Block definitions.
 
 type
   shdfn   = pointer;
@@ -2727,7 +2727,7 @@ type
 // Module Name: EVCB.H                                                      */
 //                                                                          */
 // OS/2 2.0 Multimedia Extensions Sync/Stream Manager Event Control         */
-// Block defintitions.                                                      */
+// Block definitions.                                                       */
 //                                                                          */
 // Copyright (c) International Business Machines Corporation 1991, 1992     */
 //                        All Rights Reserved                               */
@@ -2987,7 +2987,7 @@ TYPE PSTATUS_EVCB = ^_STATUS_LEVEL_EVCB;     // Ptr to a  EVCB       */
 // Module Name: DCB.H                                                       */
 //                                                                          */
 // OS/2 2.0 Multimedia Extensions Sync/Stream Manager Device Control        */
-// Block defintitions.                                                      */
+// Block definitions.                                                       */
 //                                                                          */
 // Copyright (c) International Business Machines Corporation 1991, 1992     */
 //                        All Rights Reserved                               */

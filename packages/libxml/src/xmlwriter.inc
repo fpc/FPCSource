@@ -58,7 +58,7 @@ function xmlTextWriterEndElement(writer: xmlTextWriterPtr): cint; EXTDECL; exter
 function xmlTextWriterFullEndElement(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * Elements conveniency functions
+ * Elements convenience functions
  *)
 function xmlTextWriterWriteFormatElement(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatElement(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -88,7 +88,7 @@ function xmlTextWriterStartAttributeNS(writer: xmlTextWriterPtr; prefix, name, n
 function xmlTextWriterEndAttribute(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * Attributes conveniency functions
+ * Attributes convenience functions
  *)
 function xmlTextWriterWriteFormatAttribute(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatAttribute(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -104,7 +104,7 @@ function xmlTextWriterStartPI(writer: xmlTextWriterPtr; target: xmlCharPtr): cin
 function xmlTextWriterEndPI(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * PI conveniency functions
+ * PI convenience functions
  *)
 function xmlTextWriterWriteFormatPI(writer: xmlTextWriterPtr; target: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatPI(writer: xmlTextWriterPtr; target: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -124,7 +124,7 @@ function xmlTextWriterStartCDATA(writer: xmlTextWriterPtr): cint; EXTDECL; exter
 function xmlTextWriterEndCDATA(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * CDATA conveniency functions
+ * CDATA convenience functions
  *)
 function xmlTextWriterWriteFormatCDATA(writer: xmlTextWriterPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatCDATA(writer: xmlTextWriterPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -137,7 +137,7 @@ function xmlTextWriterStartDTD(writer: xmlTextWriterPtr; name, pubid, sysid: xml
 function xmlTextWriterEndDTD(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * DTD conveniency functions
+ * DTD convenience functions
  *)
 function xmlTextWriterWriteFormatDTD(writer: xmlTextWriterPtr; name, pubid, sysid: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatDTD(writer: xmlTextWriterPtr; name, pubid, sysid: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -157,7 +157,7 @@ function xmlTextWriterStartDTDElement(writer: xmlTextWriterPtr; name: xmlCharPtr
 function xmlTextWriterEndDTDElement(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * DTD element definition conveniency functions
+ * DTD element definition convenience functions
  *)
 function xmlTextWriterWriteFormatDTDElement(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatDTDElement(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -170,7 +170,7 @@ function xmlTextWriterStartDTDAttlist(writer: xmlTextWriterPtr; name: xmlCharPtr
 function xmlTextWriterEndDTDAttlist(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * DTD attribute list definition conveniency functions
+ * DTD attribute list definition convenience functions
  *)
 function xmlTextWriterWriteFormatDTDAttlist(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatDTDAttlist(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -183,7 +183,7 @@ function xmlTextWriterStartDTDEntity(writer: xmlTextWriterPtr; pe: cint; name: x
 function xmlTextWriterEndDTDEntity(writer: xmlTextWriterPtr): cint; EXTDECL; external xml2lib;
 
 (*
- * DTD entity definition conveniency functions
+ * DTD entity definition convenience functions
  *)
 function xmlTextWriterWriteFormatDTDInternalEntity(writer: xmlTextWriterPtr; pe: cint; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL; external xml2lib;
 function xmlTextWriterWriteVFormatDTDInternalEntity(writer: xmlTextWriterPtr; pe: cint; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL; external xml2lib;
@@ -251,7 +251,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterFullEndElement: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * Elements conveniency functions
+ * Elements convenience functions
  *)
   xmlTextWriterWriteFormatElement: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatElement: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -281,7 +281,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndAttribute: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * Attributes conveniency functions
+ * Attributes convenience functions
  *)
   xmlTextWriterWriteFormatAttribute: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatAttribute: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -297,7 +297,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndPI: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * PI conveniency functions
+ * PI convenience functions
  *)
   xmlTextWriterWriteFormatPI: function(writer: xmlTextWriterPtr; target: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatPI: function(writer: xmlTextWriterPtr; target: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -317,7 +317,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndCDATA: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * CDATA conveniency functions
+ * CDATA convenience functions
  *)
   xmlTextWriterWriteFormatCDATA: function(writer: xmlTextWriterPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatCDATA: function(writer: xmlTextWriterPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -330,7 +330,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndDTD: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * DTD conveniency functions
+ * DTD convenience functions
  *)
   xmlTextWriterWriteFormatDTD: function(writer: xmlTextWriterPtr; name, pubid, sysid: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatDTD: function(writer: xmlTextWriterPtr; name, pubid, sysid: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -350,7 +350,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndDTDElement: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * DTD element definition conveniency functions
+ * DTD element definition convenience functions
  *)
   xmlTextWriterWriteFormatDTDElement: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatDTDElement: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -363,7 +363,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndDTDAttlist: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * DTD attribute list definition conveniency functions
+ * DTD attribute list definition convenience functions
  *)
   xmlTextWriterWriteFormatDTDAttlist: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatDTDAttlist: function(writer: xmlTextWriterPtr; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;
@@ -376,7 +376,7 @@ function xmlTextWriterClose(writer: xmlTextWriterPtr): cint; EXTDECL; external x
   xmlTextWriterEndDTDEntity: function(writer: xmlTextWriterPtr): cint; EXTDECL;
 
 (*
- * DTD entity definition conveniency functions
+ * DTD entity definition convenience functions
  *)
   xmlTextWriterWriteFormatDTDInternalEntity: function(writer: xmlTextWriterPtr; pe: cint; name: xmlCharPtr; format: PAnsiChar; args: array of const): cint; EXTDECL;
   xmlTextWriterWriteVFormatDTDInternalEntity: function(writer: xmlTextWriterPtr; pe: cint; name: xmlCharPtr; format: PAnsiChar; argptr: va_list): cint; EXTDECL;

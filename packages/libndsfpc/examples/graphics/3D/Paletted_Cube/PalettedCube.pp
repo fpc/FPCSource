@@ -55,7 +55,7 @@ uses
 {$include inc/texture10_COMP_pal.bin.inc}
 
 var
-  //verticies for the cube
+  //vertices for the cube
   CubeVectors: array [0..23] of v16;
 
   //polys
@@ -67,7 +67,7 @@ var
 
 procedure Initialize();
 begin
-  //verticies for the cube
+  //vertices for the cube
   CubeVectors[0] := floattov16(-0.5); CubeVectors[1] := floattov16(-0.5); CubeVectors[2] := floattov16(0.5);
   CubeVectors[3] := floattov16(0.5); CubeVectors[4] := floattov16(-0.5); CubeVectors[5] := floattov16(0.5);
   CubeVectors[6] := floattov16(0.5); CubeVectors[7] := floattov16(-0.5); CubeVectors[8] := floattov16(-0.5);
@@ -195,7 +195,7 @@ begin
 
   glGenTextures(11, textureIDS);
 
-  // inital full 16 bit colour texture
+  // initial full 16 bit colour texture
   glBindTexture(0, textureIDS[0]);
   glTexImage2D(0, 0, GL_RGB, TEXTURE_SIZE_128 , TEXTURE_SIZE_128, 0, TEXGEN_TEXCOORD, pcuint8(@texture_bin));
 
@@ -268,7 +268,7 @@ begin
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 0.1, 40);
 
-  gluLookAt( 0.0, 0.0, 2.0,    //camera possition
+  gluLookAt( 0.0, 0.0, 2.0,    //camera position
              0.0, 0.0, 0.0,    //look at
              0.0, 1.0, 0.0);   //up
 

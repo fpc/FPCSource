@@ -113,7 +113,7 @@ type
     serDevCreator: UInt32;             // Four Character creator type for serial driver ('sdrv')
     serDevFtrInfo: UInt32;             // Flags defining features of this serial hardware.
     serDevMaxBaudRate: UInt32;         // Maximum baud rate for this device.
-    serDevHandshakeBaud: UInt32;       // HW Handshaking is reccomended for baud rates over this
+    serDevHandshakeBaud: UInt32;       // HW Handshaking is recommended for baud rates over this
     serDevPortInfoStr: PAnsiChar;          // Description of serial HW device or virtual device.
     reserved: array [0..8-1] of UInt8; // Reserved.
   end;
@@ -144,7 +144,7 @@ type
                           // Drivers that do not require a baud rate should
                           // ignore this field
     function_: UInt32;    // Designates the function of the connection. A value
-                          // of zero indictates default behavior for the protocol.
+                          // of zero indicates default behavior for the protocol.
                           // Drivers that do not support multiple functions should
                           // ignore this field.
     drvrDataP: MemPtr;    // Pointer to driver specific data.

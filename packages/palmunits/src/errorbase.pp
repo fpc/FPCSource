@@ -66,7 +66,7 @@
  *
  *    An ExceptionCode is a 32-bit number. You will normally use
  *    Pilot error codes, which are 16-bit numbers. This allows
- *    plently of room for defining codes for your own kinds of errors.
+ *    plenty of room for defining codes for your own kinds of errors.
  *
  *
  * Limitations

@@ -43,7 +43,7 @@ const
   APR_POLLOUT  = $004;     {< Can write without blocking }
   APR_POLLERR  = $010;     {< Pending error }
   APR_POLLHUP  = $020;     {< Hangup occurred }
-  APR_POLLNVAL = $040;     {< Descriptior invalid }
+  APR_POLLNVAL = $040;     {< Descriptor invalid }
 
 {
  * Pollset Flags

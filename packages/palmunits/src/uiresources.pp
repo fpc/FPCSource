@@ -32,7 +32,7 @@
  *                   these are now features.
  *    07/12/00 gap   Remove unused MenuCtlRsc definition (tcbr).
  *    07/12/00 gap   Remove unused MenuCtlRsc definition (tcbr).
- *    09/04/00 ppl   Add constant for Current and default profiel name for ConnectionMgr
+ *    09/04/00 ppl   Add constant for Current and default profile name for ConnectionMgr
  *    09/07/00 kwk   Deleted daysOfWeekStrID, dayFullNamesStrID, monthNamesStrID,
  *                   and monthFullNamesStrID, since these are no longer in the
  *                   ROM as of 4.0 (tSTR=10000...10003).

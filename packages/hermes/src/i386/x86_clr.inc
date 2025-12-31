@@ -195,7 +195,7 @@ end;
 
 {
  ClearX86_8 version 2,
- Im not sure wheather this is faster or not...
+ Im not sure whether this is faster or not...
  too many jumps could confuse the CPU branch guessing
 }
 procedure ClearX86_8_2(hci: PHermesClearInterface); cdecl; nostackframe; assembler;

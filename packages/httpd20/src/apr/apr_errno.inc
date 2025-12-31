@@ -269,7 +269,7 @@ const
  * @warning For any particular error condition, more than one of these tests
  *      may match. This is because platform-specific error codes may not
  *      always match the semantics of the POSIX codes these tests (and the
- *      correcponding APR error codes) are named after. A notable example
+ *      corresponding APR error codes) are named after. A notable example
  *      are the APR_STATUS_IS_ENOENT and APR_STATUS_IS_ENOTDIR tests on
  *      Win32 platforms. The programmer should always be aware of this and
  *      adjust the order of the tests accordingly.
@@ -1177,7 +1177,7 @@ const
 //#define APR_STATUS_IS_EHOSTUNREACH(s)    ((s) == APR_EHOSTUNREACH)
 { network is unreachable }
 //#define APR_STATUS_IS_ENETUNREACH(s)     ((s) == APR_ENETUNREACH)
-{ inappropiate file type or format }
+{ inappropriate file type or format }
 //#define APR_STATUS_IS_EFTYPE(s)          ((s) == APR_EFTYPE)
 { broken pipe }
 //#define APR_STATUS_IS_EPIPE(s)           ((s) == APR_EPIPE)

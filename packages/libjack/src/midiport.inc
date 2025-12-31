@@ -70,7 +70,7 @@ jack_midi_get_event_count(port_buffer: Pointer): uint32_t; cdecl; JACK_OPTIONAL_
  *
  * This rule does not apply to System Exclusive MIDI messages
  * since they can be of arbitrary length.
- * To maintain smooth realtime operation such events CAN be deliverd
+ * To maintain smooth realtime operation such events CAN be delivered
  * as multiple, non-normalised events.
  * The maximum size of one event "chunk" depends on the MIDI backend in use.
  * For example the midiseq driver will create chunks of 256 bytes.

@@ -8,7 +8,7 @@ unit crc;
   crc32.c -- compute the CRC-32 of a data stream
   Copyright (C) 1995-1998 Mark Adler
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 1998 by Jacques Nomssi Nzali
   For conditions of distribution and use, see copyright notice in readme.txt
 
@@ -16,7 +16,7 @@ unit crc;
   crc64.c -- compute the CRC-64 of a data stream
   By David T. Jones (dtj@cs.ucl.ac.uk)  - September 28th 2002
 
-  Pascal tranlastion
+  Pascal translation
   Copyright (C) 2009 by Ivo Steinmann
 }
 

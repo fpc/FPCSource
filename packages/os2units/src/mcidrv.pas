@@ -27,7 +27,7 @@
 @created(01 Oct 2002)
 @lastmod(19 Jan 2003)
 MCI drivers interface
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 {$IFNDEF FPC_DOTTEDUNITS}

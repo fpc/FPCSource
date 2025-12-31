@@ -253,7 +253,7 @@ asm
         andl $7,%ecx            // Could be up to 7 left
         jz .L_endline
 
-        testb $0b100,%cl        // If theres less than four jump
+        testb $0b100,%cl        // If there is less than four jump
         jz .L_lessthanfour
 
         movl %eax,(%edi)        // Otherwise write a dword

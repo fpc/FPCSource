@@ -51,7 +51,7 @@ begin
 
 		//swap the current buffer by changing the base. Each base
 		//represents 16KB of offset and each screen is 256x256x2 (128KB)
-		//this requires a map base seperation of 8 (could get away with smaller
+		//this requires a map base separation of 8 (could get away with smaller
 		//as the screen is really only showing 256x192 (96KB or map base 6)
 		if (bgGetMapBase(bg) = 8) then
 		  bgSetMapBase(bg, 0)

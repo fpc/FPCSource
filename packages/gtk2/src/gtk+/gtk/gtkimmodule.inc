@@ -29,7 +29,7 @@ Type
   }
 {$ifndef __GTK_IM_MODULE_H__}
 {$define __GTK_IM_MODULE_H__}
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 { __cplusplus  }
 {$include gtkimcontext.inc}
 type
@@ -66,7 +66,7 @@ void          im_module_init   (GtkModule              module);
 void          im_module_exit   (void);
 GtkIMContext  im_module_create (const gchar              context_id);
  }
-{ C++ end of extern C conditionnal removed }
+{ C++ end of extern C conditional removed }
 { __cplusplus  }
 {$endif}
 { __GTK_IM_MODULE_H__  }

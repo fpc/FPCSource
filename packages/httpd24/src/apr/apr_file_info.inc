@@ -40,7 +40,7 @@
  *)
 
 {* Many applications use the type member to determine the
- * existance of a file or initialization of the file info,
+ * existence of a file or initialization of the file info,
  * so the APR_NOFILE value must be distinct from APR_UNKFILE.
  *}
 
@@ -347,7 +347,7 @@ const
  * @param filepath the pathname to parse for its root component
  * @param flags the desired rules to apply, from
  * <PRE>
- *      APR_FILEPATH_NATIVE    Use native path seperators (e.g. '\' on Win32)
+ *      APR_FILEPATH_NATIVE    Use native path separators (e.g. '\' on Win32)
  *      APR_FILEPATH_TRUENAME  Tests that the root exists, and makes it proper
  * </PRE>
  * @param p the pool to allocate the new path string from
@@ -404,7 +404,7 @@ function apr_filepath_merge(newpath: PPAnsiChar;
  * @param pathelts the returned components of the search path
  * @param liststr the search path (e.g., <tt>getenv("PATH")</tt>)
  * @param p the pool to allocate the array and path components from
- * @remark empty path componenta do not become part of @a pathelts.
+ * @remark empty path component do not become part of @a pathelts.
  * @remark the path separator in @a liststr is system specific;
  * e.g., ':' on Unix, ';' on Windows, etc.
  *}
@@ -422,7 +422,7 @@ function apr_filepath_list_split(pathelts: PPapr_array_header_t;
  * @param liststr the returned search path; may be NULL if @a pathelts is empty
  * @param pathelts the components of the search path
  * @param p the pool to allocate the search path from
- * @remark emtpy strings in the source array are ignored.
+ * @remark empty strings in the source array are ignored.
  * @remark the path separator in @a liststr is system specific;
  * e.g., ':' on Unix, ';' on Windows, etc.
  *}

@@ -36,7 +36,7 @@
     conversion routine from the mmx programming tutorial pages).
 
     These routines aren't exactly pII optimised - it's just that as they
-    are, theyre terrible on p5 MMXs, but less so on pIIs.  Someone needs to
+    are, they're terrible on p5 MMXs, but less so on pIIs.  Someone needs to
     optimise them for p5 MMXs..
 }
 

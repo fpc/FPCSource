@@ -1245,7 +1245,7 @@ begin
     GFX_STATUS^ := GFX_STATUS^ or (1 shl 15); // clear push/pop errors or push/pop busy bit never clears
   end;
 
-  // pop the projection stack to the top; poping 0 off an empty stack causes an error... weird?
+  // pop the projection stack to the top; popping 0 off an empty stack causes an error... weird?
   if  (GFX_STATUS^ and (1 shl 13)) <> 0 then
   begin
     glMatrixMode(GL_PROJECTION);

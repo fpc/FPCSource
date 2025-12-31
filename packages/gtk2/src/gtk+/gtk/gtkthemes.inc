@@ -39,7 +39,7 @@ Type
 {$include <gdk/gdk.inc}
 {$include gtkstyle.inc}
 {$include gtkwidget.inc}
-{ C++ extern C conditionnal removed }
+{ C++ extern C conditional removed }
 { __cplusplus  }
 function GTK_TYPE_THEME_ENGINE : GType;
 function GTK_THEME_ENGINE(theme_engine : longint) : longint;
@@ -49,7 +49,7 @@ function gtk_theme_engine_get_type:GType; cdecl; external gtklib;
 
 function gtk_theme_engine_get(name:Pgchar):PGtkThemeEngine; cdecl; external gtklib;
 function gtk_theme_engine_create_rc_style(engine:PGtkThemeEngine):PGtkRcStyle; cdecl; external gtklib;
-{ C++ end of extern C conditionnal removed }
+{ C++ end of extern C conditional removed }
 { __cplusplus  }
 {$endif}
 { __GTK_THEMES_H__  }

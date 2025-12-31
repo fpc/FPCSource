@@ -184,7 +184,7 @@
     function g_utf8_strncpy(dest:Pgchar; src:Pgchar; n:gsize):Pgchar;cdecl;external gliblib name 'g_utf8_strncpy';
 
     { Find the UTF-8 character corresponding to ch, in string p. These
-       functions are equivalants to strchr and strrchr  }
+       functions are equivalents to strchr and strrchr  }
     function g_utf8_strchr(p:Pgchar; len:gssize; c:gunichar):Pgchar;cdecl;external gliblib name 'g_utf8_strchr';
 
     function g_utf8_strrchr(p:Pgchar; len:gssize; c:gunichar):Pgchar;cdecl;external gliblib name 'g_utf8_strrchr';

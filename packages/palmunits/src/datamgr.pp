@@ -61,7 +61,7 @@ const
   dmRecAttrBusy         = $20; // record currently in use
   dmRecAttrSecret       = $10; // "secret" record - password protected
 
-// All record atributes (for error-checking)
+// All record attributes (for error-checking)
   dmAllRecAttrs         = dmRecAttrDelete or dmRecAttrDirty or dmRecAttrBusy or dmRecAttrSecret;
 
 // Record attributes which only the system is allowed to change (for error-checking)
@@ -117,7 +117,7 @@ const
   dmHdrAttrOpen              = $8000; // Database not closed properly
 
 
-// All database atributes (for error-checking)
+// All database attributes (for error-checking)
   dmAllHdrAttrs              = dmHdrAttrResDB or
                                dmHdrAttrReadOnly or
                                dmHdrAttrAppInfoDirty or

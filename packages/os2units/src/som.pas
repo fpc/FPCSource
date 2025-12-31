@@ -396,7 +396,7 @@ const
  * set this field to the address of the new class object when it is built.
  *
  * The address of the class's auxiliary ClassData structure is passed.
- * Thi structure should have the external name,
+ * This structure should have the external name,
  * <className>CClassData. The parentMtab field will be set by somBuildClass.
  * This field often allows method calls to a class object to be avoided.
  *
@@ -415,7 +415,7 @@ const
  * class is contained in an IDL module, the descriptor syntax
  * <moduleName>::<className>::<methodName> can be used. Method
  * descriptors can be useful when a class supports different methods
- * that have the same name (note: IDL prevents this from occuring
+ * that have the same name (note: IDL prevents this from occurring
  * statically, but SOM itself has no problems with this).
  *)
 
@@ -449,7 +449,7 @@ type
   somInheritedMethod_p  =^somInheritedMethod_t;
 
 (* to register a method that has been moved from this *)
-(* class <cls> upwards in the class hierachy to class <dest> *)
+(* class <cls> upwards in the class hierarchy to class <dest> *)
   somMigratedMethodStruct=record
     clsMToken           :somMTokenPtr;
                                 (* points into the <cls> classdata structure *)
@@ -529,7 +529,7 @@ type
   somVarargsFuncs_t     =somVarargsFuncsStruct;
   somVarargsFuncs_p     =^somVarargsFuncs_t;
 
-(* to specify dynamically computed information (incl. embbeded objs) *)
+(* to specify dynamically computed information (incl. embedded objs) *)
   somDynamicSCIPtr      =^somDynamicSciPtr;
   somDynamicSCI         =record
     version             :Longint;       (* 1 for now *)
@@ -858,7 +858,7 @@ Procedure somBeginPersistentIds; cdecl;
 (* the id manager to just use a pointer to the string in the *)
 (* unregistered id as the master copy of the ids string. Thus saving *)
 (* space *)
-(* Under normal use (where ids are static varibles) the string *)
+(* Under normal use (where ids are static variables) the string *)
 (* associated with an id would only be freed if the code module in *)
 (* which it occurred was unloaded *)
 
@@ -866,7 +866,7 @@ Procedure somEndPersistentIds; cdecl;
   external 'som' name 'somEndPersistentIds'; {index 29}
 (* Tells the id manager that strings for any new ids that are *)
 (* registered may be freed or otherwise modified.  Therefore the id *)
-(* manager must copy the strings inorder to remember the name of an *)
+(* manager must copy the strings in order to remember the name of an*)
 (* id. *)
 
 (*----------------------------------------------------------------------
@@ -958,7 +958,7 @@ Function  somBuildClass(inherit_vars:Longint;
 
 (*---------------------------------------------------------------------
  *  Used by old single-inheritance emitters to make class creation
- *  an atomic operation. Kept for backwards compatability.
+ *  an atomic operation. Kept for backwards compatibility.
  *)
 type
   somTD_classInitRoutine=Procedure(var a,b:SOMClassType); cdecl;

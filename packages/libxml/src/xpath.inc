@@ -325,7 +325,7 @@
 
     flags               : cint;				(* flags to control compilation *)
 
-    (* Cache for reusal of XPath objects *)
+    (* Cache for reuse of XPath objects *)
     cache               : pointer;
 
     (* Resource limits *)

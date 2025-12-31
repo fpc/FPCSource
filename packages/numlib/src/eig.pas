@@ -810,7 +810,7 @@ begin
               begin
                 jj:=(j-1)*rwidthv;
                 p:=pv^[jj+i]; pv^[jj+i]:=pv^[jj+k]; pv^[jj+k]:=p
-              end { interchange in u and v column i with comlumn k }
+              end { interchange in u and v column i with column k }
           end
     end; {i}
   freemem(e, ns)

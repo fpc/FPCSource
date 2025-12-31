@@ -15,7 +15,7 @@
 
   ImageMagick structure members.
 
-  NOTE: This is a simplifyed version of magick/magick-type.h
+  NOTE: This is a simplified version of magick/magick-type.h
 }
 
 const MaxTextExtent = 4096;

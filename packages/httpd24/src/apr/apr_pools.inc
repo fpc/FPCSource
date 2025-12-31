@@ -723,7 +723,7 @@ procedure apr_pool_cleanup_register(p: Papr_pool_t;
  *
  * Unlike apr_pool_cleanup_register which register a cleanup
  * that is called AFTER all subpools are destroyed this function register
- * a function that will be called before any of the subpool is destoryed.
+ * a function that will be called before any of the subpool is destroyed.
  *
  * @param p The pool register the cleanup with
  * @param data The data to pass to the cleanup function.

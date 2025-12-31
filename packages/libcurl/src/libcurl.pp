@@ -1478,7 +1478,7 @@ Const
   CURL_VERSION_ASYNCHDNS   =(1 shl 7); // Asynchronous DNS resolves
   CURL_VERSION_SPNEGO      =(1 shl 8); // SPNEGO auth is supported
   CURL_VERSION_LARGEFILE   =(1 shl 9); // Supports files larger than 2GB
-  CURL_VERSION_IDN         =(1 shl 10);// Internationized Domain Names are supported
+  CURL_VERSION_IDN         =(1 shl 10);// Internationalized Domain Names are supported
   CURL_VERSION_SSPI        =(1 shl 11);// Built against Windows SSPI
   CURL_VERSION_CONV        =(1 shl 12);// Character conversions supported
   CURL_VERSION_CURLDEBUG   =(1 shl 13);// Debug memory tracking supported

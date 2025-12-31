@@ -28,7 +28,7 @@ uses palmos, coretraps;
 {$ENDIF FPC_DOTTEDUNITS}
 
 // The number format (thousands separator and decimal point).  This defines
-// how numbers are formatted and not neccessarily currency numbers (i.e. Switzerland).
+// how numbers are formatted and not necessarily currency numbers (i.e. Switzerland).
 type
   NumberFormatType = Enum;
 

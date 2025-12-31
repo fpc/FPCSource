@@ -49,7 +49,7 @@ unit openssl;
 |                                                                              |
 | 2010 - Felipe Monteiro de Carvalho - Added RAND functios                     |
 |==============================================================================|
-|  2010-08-24 add fuctions to hash strings based on rsa key PEM format         |
+|  2010-08-24 add functions to hash strings based on rsa key PEM format        |
 |             change some type declarationc on x509 type                       |
 |             work is not complete.                                            |
 |             Work made by Alberto Brito based on unit from                    |
@@ -75,7 +75,7 @@ Special thanks to Gregor Ibic <gregor.ibic@intelicom.si>
 {:@abstract(OpenSSL support)
 
 This unit is Pascal interface to OpenSSL library (used by @link(ssl_openssl) unit).
-OpenSSL is loaded dynamicly on-demand. If this library is not found in system,
+OpenSSL is loaded dynamically on-demand. If this library is not found in system,
 requested OpenSSL function just return errorcode.
 }
 

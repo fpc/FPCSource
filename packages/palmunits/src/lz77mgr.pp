@@ -117,7 +117,7 @@ function Lz77LibOpen(
   primerL:          UInt32;    // ->  Byte length of primer
   processedPrimerL: UInt32     // ->  Byte length of processed primer
   ): Err; syscall sysLibTrapOpen;
-   // Note: The output buffer must be large enough to include the emtire processed primer.
+   // Note: The output buffer must be large enough to include the entire processed primer.
    //       When Expanding, the compressed primer is passed to the Open routine and
    //       the output buffer must be large enough to contain the expanded primer.
 

@@ -181,7 +181,7 @@ const
 
 // More system date string resources, introduced in Palm OS 3.5.  If you use
 // these, you are limiting yourself to running on nothing earlier than 3.5,
-// so you likely might as well use DateTempalateToAscii instead.
+// so you likely might as well use DateTemplateToAscii instead.
 
   daysOfWeekShortStrListID         = 10200;
   daysOfWeekStdStrListID           = 10201;

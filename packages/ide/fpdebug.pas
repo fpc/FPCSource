@@ -931,7 +931,7 @@ begin
     begin
 {$endif SUPPORT_REMOTE}
 {$ifdef Windows}
-  { Run the debugge in another console }
+  { Run the debuggee in another console }
   if DebuggeeTTY<>'' then
     SetCommand('new-console on')
   else

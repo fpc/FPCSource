@@ -37,7 +37,7 @@ type
    *    nztwCloseWallet          - Close a wallet.
    * +  nztwCreateWallet         - Create a new wallet.
    * +  nztwDestroyWallet        - Destroy an existing wallet.
-   *    nztwRetrievePersonaCopy  - Retieve a copy of a particular persona.
+   *    nztwRetrievePersonaCopy  - Retrieve a copy of a particular persona.
    * +  nzteStorePersona         - Store a persona in the wallet.
    *    nzteOpenPersona          - Open a persona.
    *    nzteClosePersona         - Close a persona.
@@ -261,8 +261,8 @@ type
   { Signature and encryption with content  }
   { Encryption for one or more recipients  }
   { Symmetric encryption  }
-  { Keyed hash/checkusm  }
-  { Hash/checsum  }
+  { Keyed hash/checksum  }
+  { Hash/checksum  }
   { Random byte generation  }
   { Used for array size  }
      nzttcef = (NZTTCEF_DETACHEDSIGNATURE := 1,NZTTCEF_SIGNATURE,
@@ -496,7 +496,7 @@ type
   {
    * The wallet contains, one or more personas.  A persona always
    * contains its private key and its identity.  It may also contain
-   * other 3rd party identites.  All identities qualified with trust
+   * other 3rd party identities.  All identities qualified with trust
    * where the qualifier can indicate anything from untrusted to trusted
    * for specific operations.
     }
@@ -604,7 +604,7 @@ type
    * A persona can be stored separately from the wallet that references
    * it.  By default, a persona is stored with the wallet (it inherits
    * with WRL used to open the wallet).  If a WRL is specified, then it
-   * is used to store the actuall persona and the wallet will have a
+   * is used to store the actual persona and the wallet will have a
    * reference to it.
     }
   { Length of private info (key) }

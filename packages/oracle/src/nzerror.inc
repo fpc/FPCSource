@@ -60,7 +60,7 @@
        lkethana   07/30/00 - add pkcs12 errors
        lkethana   06/17/00 - mult cert errors
        lkethana   06/11/00 - multiple cert support
-       rturlapa   03/29/00 - Add error meesage for Entrust Login failure.
+       rturlapa   03/29/00 - Add error message for Entrust Login failure.
        rwessman   07/07/99 - Deleted include of sslerrs.h. It caused the RDBMS bu
        rwessman   07/02/99 - fixed merge errors
        rwessman   07/01/99 - moved NZOS errors to nzerror to make them visible
@@ -173,7 +173,7 @@
   { Data method specified not supported  }
   { Invalid data type specified for key  }
   { Number of sub-keys to bind does not match count in initialized key  }
-  { Failed to retreieve authentication information from the shared memory  }
+  { Failed to retrieve authentication information from the shared memory  }
   { RIO Open Failed  }
   { RIO object type invalid  }
   { RIO mode invalid  }

@@ -47,11 +47,11 @@
      end;
 
 { mem chunks  }
-{ allocation rectangle after the conatiner_border_width
+{ allocation rectangle after the container_border_width
      and the width of the shadow border  }
 { rows  }
 { columns  }
-{ dynamicly allocated array of column structures  }
+{ dynamically allocated array of column structures  }
 { the scrolling window and its height and width to
      make things a little speedier  }
 { offsets for scrolling  }
@@ -357,8 +357,8 @@ procedure gtk_clist_set_reorderable(clist:PGtkCList; reorderable:gboolean); cdec
 procedure gtk_clist_set_use_drag_icons(clist:PGtkCList; use_icons:gboolean); cdecl; external gtklib;
 procedure gtk_clist_set_button_actions(clist:PGtkCList; button:guint; button_actions:guint8); cdecl; external gtklib;
 { freeze all visual updates of the list, and then thaw the list after
-   you have made a number of changes and the updates wil occure in a
-   more efficent mannor than if you made them on a unfrozen list
+   you have made a number of changes and the updates will occur in a
+   more efficient mannor than if you made them on a unfrozen list
   }
 procedure gtk_clist_freeze(clist:PGtkCList); cdecl; external gtklib;
 procedure gtk_clist_thaw(clist:PGtkCList); cdecl; external gtklib;
@@ -444,8 +444,8 @@ function gtk_clist_get_cell_style(clist:PGtkCList; row:gint; column:gint):PGtkSt
 procedure gtk_clist_set_row_style(clist:PGtkCList; row:gint; style:PGtkStyle); cdecl; external gtklib;
 function gtk_clist_get_row_style(clist:PGtkCList; row:gint):PGtkStyle; cdecl; external gtklib;
 { this sets a horizontal and vertical shift for drawing
-   the contents of a cell; it can be positive or negitive;
-   this is particulary useful for indenting items in a column
+   the contents of a cell; it can be positive or negative;
+   this is particularly useful for indenting items in a column
   }
 procedure gtk_clist_set_shift(clist:PGtkCList; row:gint; column:gint; vertical:gint; horizontal:gint); cdecl; external gtklib;
 { set/get selectable flag of a single row  }

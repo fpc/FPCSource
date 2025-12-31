@@ -28,7 +28,7 @@
 { The gap size, s.t.  (text + gap_position + gap_size) is
      the first valid character following the gap.  }
 { The last character position, index into address where a
-     character should be appeneded.  Thus, text_end - gap_size
+     character should be appended.  Thus, text_end - gap_size
      is the length of the actual data.  }
 { LINE START CACHE  }
 { A cache of line-start information.  Data is a LineParam .  }

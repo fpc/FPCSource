@@ -184,7 +184,7 @@ const
   {
 	** SFC_SET_ADD_* values are deprecated and will disappear at some
 	** time in the future. They are guaranteed to be here up to and
-	** including version 1.0.8 to avoid breakage of existng software.
+	** including version 1.0.8 to avoid breakage of existing software.
 	** They currently do nothing and will continue to do nothing.
   }
 	SFC_SET_ADD_DITHER_ON_WRITE	   = $1070;
@@ -423,7 +423,7 @@ function sf_open (path : PAnsiChar; mode : cint; sfinfo : PSF_INFO) : PSNDFILE; 
 {
 ** Use the existing file descriptor to create a SNDFILE object. If close_desc
 ** is TRUE, the file descriptor will be closed when sf_close() is called. If
-** it is FALSE, the descritor will not be closed.
+** it is FALSE, the descriptor will not be closed.
 ** When passed a descriptor like this, the library will assume that the start
 ** of file header is at the current file offset. This allows sound files within
 ** larger container files to be read and/or written.

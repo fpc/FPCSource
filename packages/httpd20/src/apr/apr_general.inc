@@ -41,7 +41,7 @@
 const
 { a space }
   APR_ASCII_BLANK = #040;
-{ a carrige return }
+{ a carriage return }
   APR_ASCII_CR    = #015;
 { a line feed }
   APR_ASCII_LF    = #012;

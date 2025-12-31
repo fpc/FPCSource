@@ -4,7 +4,7 @@
 
 type
 { Offsets to add to X coordinates within window  }
-{   to get GDK coodinates within window  }
+{   to get GDK coordinates within window  }
 { Set when the window background is temporarily
    unset during resizing and scaling  }
 { visible rectangle of window  }

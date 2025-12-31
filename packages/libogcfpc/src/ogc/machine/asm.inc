@@ -246,7 +246,7 @@ const
   PSR30_OFFSET = 712;
   PSR31_OFFSET = 720;
   (*
-   * maintain the EABI requested 8 bytes aligment
+   * maintain the EABI requested 8 bytes alignment
    * As SVR4 ABI requires 16, make it 16 (as some
    * exception may need more registers to be processed...)
    *)

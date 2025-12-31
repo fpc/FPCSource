@@ -477,7 +477,7 @@ end;
 { intervention by other parts of the server, they need to make             }
 { sure any accumulated HTTP headers are sent first.  This is done by       }
 { calling send_http_header().  Otherwise, no header will be sent at all,   }
-{ and the output sent to the client will actually be HTTP-uncompliant.     }
+{ and the output sent to the client will actually be HTTP-noncompliant.    }
 {--------------------------------------------------------------------------}
 {
  * Sample content handler.  All this does is display the call list that has
@@ -763,7 +763,7 @@ begin
     sname := s^.server_hostname;
 
     {
-     * As with the x_create_dir_config() reoutine, we allocate and fill
+     * As with the x_create_dir_config() routine, we allocate and fill
      * in an empty record.
      }
     cfg := Px_cfg(apr_pcalloc(p, sizeof(x_cfg)));

@@ -83,7 +83,7 @@
       cxcheng    07/28/97 - fix compile with SLSHORTNAME
       skrishna   07/14/97 - add OCIObjectGetProperty
       cxcheng    04/30/97 - make OCITypeParamMode values consistent with PL/SQL
-      skrishna   04/28/97 - undocument OCIObjectProperty & OCIObjectEvent
+      skrishna   04/28/97 - undocumented OCIObjectProperty & OCIObjectEvent
       cxcheng    03/29/97 - remove all remaining short names
       sthakur    03/20/97 - add casts to constants
       cxcheng    02/21/97 - temporarily put SLSHORTNAME for PL/SQL

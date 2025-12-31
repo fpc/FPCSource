@@ -688,7 +688,7 @@
 (**
  * XML_SCHEMAS_ELEM_BLOCK_SUBSTITUTION:
  *
- * disallowed substitutions: "substituion"
+ * disallowed substitutions: "substitution"
  *)
   XML_SCHEMAS_ELEM_BLOCK_SUBSTITUTION        = (1 shl 13);
 (**
@@ -752,7 +752,7 @@
     contModel         : xmlRegexpPtr; (* Obsolete for WXS, maybe used for RelaxNG *)
     contentType       : xmlSchemaContentType;
     refPrefix         : xmlCharPtr; (* Deprecated; not used *)
-    defVal            : xmlSchemaValPtr; (* The compiled value contraint. *)
+    defVal            : xmlSchemaValPtr; (* The compiled value constraint. *)
     idcs              : pointer; (* The identity-constraint defs *)
   end;
 {$ENDIF}
@@ -913,7 +913,7 @@
     dict            : xmlDictPtr;
     includes        : pointer;     (* the includes, this is opaque for now *)
     preserve        : cint;        (* whether to free the document *)
-    counter         : cint; (* used to give ononymous components unique names *)
+    counter         : cint; (* used to give anonymous components unique names *)
     idcDef          : xmlHashTablePtr; (* All identity-constraint defs. *)
     volatiles       : pointer; (* Obsolete *)
   end;

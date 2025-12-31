@@ -152,7 +152,7 @@ begin
   glLoadIdentity();
   gluPerspective(70, 256.0 / 192.0, 1, 200);
 
-  gluLookAt(0.0, 0.0, 1.0,    //camera possition
+  gluLookAt(0.0, 0.0, 1.0,    //camera position
     0.0, 0.0, 0.0,    //look at
     0.0, 1.0, 0.0);    //up
 
@@ -174,7 +174,7 @@ end;
 procedure glBegin2D();
 begin
 
-  // save 3d perpective projection matrix
+  // save 3d perspective projection matrix
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
 

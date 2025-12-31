@@ -225,7 +225,7 @@ begin
       sprites[i].x := sprites[i].x + sprites[i].dx;
       sprites[i].y := sprites[i].y + sprites[i].dy;
 
-      //check for collision with the screen boundries
+      //check for collision with the screen boundaries
       if (sprites[i].x < (1 shl 8)) or (sprites[i].x > (247 shl 8)) then
         sprites[i].dx := -sprites[i].dx;
 

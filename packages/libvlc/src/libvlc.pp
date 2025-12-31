@@ -999,7 +999,7 @@ begin
   if (hlib=NilHandle) then
     begin
     D:=ExtractFilePath(lib);
-    // Try default name in same directiory.
+    // Try default name in same directory.
     hlib:=TryLoadLib(d+libname);
     if (hLib=NilHandle) and (d='') then
       begin

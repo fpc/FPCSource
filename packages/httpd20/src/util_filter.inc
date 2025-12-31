@@ -147,7 +147,7 @@ type
  * and sort the filters to properly sequence their operation.
  *
  * The types have a particular sort order, which allows us to insert them
- * into the filter chain in a determistic order. Within a particular grouping,
+ * into the filter chain in a deterministic order. Within a particular grouping,
  * the ordering is equivalent to the order of calls to ap_add_*_filter().
  }
   ap_filter_type = (
@@ -513,7 +513,7 @@ function ap_fputstrs(f: Pap_filter_t; bb: Papr_bucket_brigade;
  * @param f the filter doing the writing
  * @param bb The brigade to buffer into
  * @param fmt The format string
- * @param ... The argumets to use to fill out the format string
+ * @param ... The arguments to use to fill out the format string
  }
 function ap_fprintf(f: Pap_filter_t; bb: Papr_bucket_brigade;
  const fmt: PAnsiChar; others: array of const): apr_status_t;

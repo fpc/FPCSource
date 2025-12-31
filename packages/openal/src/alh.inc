@@ -168,7 +168,7 @@ const
  * Range:  ]0.0-  ]
  * A value of 1.0 means un-attenuated/unchanged.
  * Each division by 2 equals an attenuation of -6dB.
- * Each multiplicaton with 2 equals an amplification of +6dB.
+ * Each multiplication with 2 equals an amplification of +6dB.
  * A value of 0.0 is meaningless with respect to a logarithmic
  *  scale; it is interpreted as zero volume - the channel
  *  is effectively disabled.
@@ -355,7 +355,7 @@ const
  *
  * used in conjunction with DistanceModel
  *
- * implicit: NONE, which disances distance attenuation.
+ * implicit: NONE, which distances distance attenuation.
  *)
   AL_DISTANCE_MODEL                 = $D000;
   AL_INVERSE_DISTANCE               = $D001;
@@ -559,7 +559,7 @@ procedure alSourcePlay(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$
 (* Stop a Source *)
 procedure alSourceStop(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-(* Rewind a Source (set playback postiton to beginning) *)
+(* Rewind a Source (set playback position to beginning) *)
 procedure alSourceRewind(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (* Pause a Source *)

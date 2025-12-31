@@ -1191,7 +1191,7 @@ const
 //#define APR_STATUS_IS_EHOSTUNREACH(s)    ((s) == APR_EHOSTUNREACH)
 { network is unreachable }
 //#define APR_STATUS_IS_ENETUNREACH(s)     ((s) == APR_ENETUNREACH)
-{ inappropiate file type or format }
+{ inappropriate file type or format }
 //#define APR_STATUS_IS_EFTYPE(s)          ((s) == APR_EFTYPE)
 { broken pipe }
 //#define APR_STATUS_IS_EPIPE(s)           ((s) == APR_EPIPE)

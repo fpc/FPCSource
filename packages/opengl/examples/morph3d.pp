@@ -19,7 +19,7 @@
  *
  * Thanks goes also to Brian Paul for making it possible and inexpensive
  * to use OpenGL at home. *
- * Since I'm not a native english speaker, my apologies for any gramatical
+ * Since I'm not a native english speaker, my apologies for any grammatical
  * mistake.
  *
  * My e-mail addresses are
@@ -38,13 +38,13 @@ program morph3d;
 {
 This document is VERY incomplete, but tries to describe the mathematics used
 in the program. At this moment it just describes how the polyhedra are
-generated. On futhurer versions, this document will be probabbly improved.
+generated. On further versions, this document will be probably improved.
 
-Since I'm not a native english speaker, my apologies for any gramatical
+Since I'm not a native english speaker, my apologies for any grammatical
 mistake.
 
 Marcelo Fernandes Vianna
-- Undergraduate in Computer Engeneering at Catholic Pontifical University
+- Undergraduate in Computer Engineering at Catholic Pontifical University
 - of Rio de Janeiro (PUC-Rio) Brasil.
 - e-mail: vianna@cat.cbpf.br or marcelo@venus.rdc.puc-rio.br
 - Feb-13-1997
@@ -55,7 +55,7 @@ For the purpose of this program it's not sufficient to know the polyhedra
 vertexes coordinates. Since the morphing algorithm applies a nonlinear
 transformation over the surfaces (faces) of the polyhedron, each face has
 to be divided into smaller ones. The morphing algorithm needs to transform
-each vertex of these smaller faces individually. It's a very time consoming
+each vertex of these smaller faces individually. It's a very time consuming
 task.
 
 In order to reduce calculation overload, and since all the macro faces of
@@ -86,13 +86,13 @@ vertexes are in the same straight line starting in the cube/tetrahedron
 center and crossing the center of each tetrahedron's face. At this point
 it's easy to obtain the bigger angle of the isosceles triangle formed by
 the center of the cube and two opposite vertexes on the same cube face.
-The edges of this triangle have the following lenghts: sqrt(2) for the base
+The edges of this triangle have the following lengths: sqrt(2) for the base
 and sqrt(3)/2 for the other two other edges. So the angle we want is:
      +-----------------------------------------------------------+
      | 2*ARCSIN(sqrt(2)/sqrt(3)) = 109.47122063449069174 degrees |
      +-----------------------------------------------------------+
 For the cube this angle is obvious, but just for formality it can be
-easily obtained because we also know it's isosceles edge lenghts:
+easily obtained because we also know it's isosceles edge lengths:
 sqrt(2)/2 for the base and 1/2 for the other two edges. So the angle we
 want is:
      +-----------------------------------------------------------+
@@ -100,7 +100,7 @@ want is:
      +-----------------------------------------------------------+
 For the octahedron we use the same idea used for the tetrahedron, but now
 we inscribe the cube inside the octahedron so that all cubes's vertexes
-matches excatly the center of each octahedron's face. It's now clear that
+matches exactly the center of each octahedron's face. It's now clear that
 this angle is the same of the thetrahedron one:
      +-----------------------------------------------------------+
      | 2*ARCSIN(sqrt(2)/sqrt(3)) = 109.47122063449069174 degrees |

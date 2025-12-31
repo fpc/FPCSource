@@ -147,7 +147,7 @@ type
 
     // This enum is set by the protocol task (through PrgUpdateDialog()) as it
     //  progresses through the  connection establishment and is checked by
-    //  PrgHandleEvent() when needUpate is true. It is used to determine what
+    //  PrgHandleEvent() when needUpdate is true. It is used to determine what
     //  string to display in the progress dialog.
     stage: UInt16;                  // which stage of the connection we're in
 
@@ -217,7 +217,7 @@ type
 
    // This enum is set by the protocol task (through PrgUpdateDialog()) as it
    //  progresses through the  connection establishment and is checked by
-   //  PrgHandleEvent() when needUpate is true. It is used to determine what
+   //  PrgHandleEvent() when needUpdate is true. It is used to determine what
    //  string to display in the progress dialog.
            stage: UInt16;               // which stage of the connection we're in
   {$endif}

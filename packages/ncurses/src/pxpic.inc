@@ -265,7 +265,7 @@ function nCheckPxPicture(var s, Pic : shortstring;
 
   { Function Repetition handles characters that may be     }
   { repeated in the input string.  The picture string      }
-  { indicates this possiblity with "*" character.          }
+  { indicates this possibility with "*" character.         }
     function Repetition:word;
     var
       result_:word;

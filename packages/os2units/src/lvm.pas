@@ -48,7 +48,7 @@ Interface
 const
   BYTES_PER_SECTOR=512;
 
-//The maximum number of cylinders, heads, and sectors that a partition table entry can accomodate.
+//The maximum number of cylinders, heads, and sectors that a partition table entry can accommodate.
 //Cylinders are numbered 0 - 1023, for a maximum of 1024 cylinders.
 //eads are numbered 0 - 255, for a maximum of 256 heads.
 //Sectors are numbered 1 - 63, for a maximum of 63 sectors per track.
@@ -265,8 +265,8 @@ type
     LVM_Minor_Version_Number: CARDINAL32;                  // The version of LVM that this feature was designed to work with.
     Preferred_Class: LVM_Classes;                           // The class from which this "feature" prefers to be chosen.  Encryption can be performed
 //at the partition level or the volume level, and may therefore belong to both the
-//Partition_Class and the Volume_Class.  However, it is preferrable for it to be used
-//on the volume level instead of at the partition level.  Thus, its perferred class would
+//Partition_Class and the Volume_Class.  However, it is preferable for it to be used
+//on the volume level instead of at the partition level.  Thus, its preferred class would
 //be the Volume_Class, but it would still be a member of both the Volume_Class and the
 //Partition_Class.
     ClassData: Array[0..MAXIMUM_LVM_CLASSES-1] of LVM_Class_Attributes;  // The attributes for each of the LVM classes that this "feature" is in.
@@ -786,7 +786,7 @@ procedure Open_LVM_Engine2(Ignore_CHS: BOOLEAN; Interface_Type: LVM_Interface_Ty
 //*            written to disk.  Also, *Error_Code will be 0 if no    */
 //*            errors occur.                                          */
 //*                                                                   */
-//*            If an error occurs, then the furnction return value    */
+//*            If an error occurs, then the function return value     */
 //*            will be FALSE and *Error_Code will contain a non-zero  */
 //*            error code.                                            */
 //*                                                                   */
@@ -2014,7 +2014,7 @@ function Get_Installable_Volume(Error_Code: PCARDINAL32): Volume_Information_Rec
 //*           LVM Version 1 format.  If this function is successful   */
 //*           and all volumes were converted, then *Error_Code will be*/
 //*           set to LVM_ENGINE_NO_ERROR and the bitmap returned will */
-//*           have no bits set.  If this function failes, *Error_Code */
+//*           have no bits set.  If this function fails, *Error_Code  */
 //*           will contain a non-zero error code and the bitmap       */
 //*           returned by this function may be non-zero.              */
 //*                                                                   */
@@ -2450,7 +2450,7 @@ function Get_Boot_Manager_Menu(Error_Code: PCARDINAL32): Boot_Manager_Menu; cdec
 //*   Error Handling: If an error occurs, *Error_Code will be set to a*/
 //*                   non-zero value.  Depending upon the error, it   */
 //*                   is possible that the Boot Manager partition can */
-//*                   be left in an unusuable state (such as for a    */
+//*                   be left in an unusable state (such as for a     */
 //*                   write error).                                   */
 //*                                                                   */
 //*   Side Effects: Boot Manager may be installed on drive 1 or 2.    */
@@ -2773,7 +2773,7 @@ function Reboot_Required: BOOLEAN; cdecl; external 'lvm' {$ifdef useordinals}ind
 //*   Input: None.                                                    */
 //*                                                                   */
 //*   Output: The function return value will be TRUE if there are     */
-//*           uncomitted changes to the partitioning of one or more of*/
+//*           uncommitted changes to the partitioning of one or more of*/
 //*           the drives in the system.                               */
 //*                                                                   */
 //*   Error Handling: None required.                                  */
@@ -3179,7 +3179,7 @@ procedure Stop_Logging(Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef u
 (*
 * Description:  This module implements a simple, generic, doubly linked list.
 *               Data objects of any type can be placed into a linked list
-*               created by this module.  Futhermore, data objects of different
+*               created by this module.  Furthermore, data objects of different
 *               types may be placed into the same linked list.
 *
 * Notes:  This linked list implementation makes use of the concept of the
@@ -3231,7 +3231,7 @@ procedure Stop_Logging(Error_Code: PCARDINAL32); cdecl; external 'lvm' {$ifdef u
 *         be made the current item in the list quickly.  Example:  If you
 *         use the GetHandle function to get a handle for the current item
 *         (lets call the item B1), then, regardless of where you are in the
-*         list (or any reodering of the items in the list), you can make item
+*         list (or any reordering of the items in the list), you can make item
 *         B1 the current item by passing its handle to the GoToSpecifiedItem
 *         function.  Alternatively, you could operate directly on B1 using
 *         the other handle based functions, such as GetItem_By_Handle, for

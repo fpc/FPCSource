@@ -163,7 +163,7 @@ var
 
 function LBER_OPT_ON: Pointer;
 
-(* Structure for LBER IO operarion descriptor *)
+(* Structure for LBER IO operation descriptor *)
 type
   PBerElement                       = Pointer;
 

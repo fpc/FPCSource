@@ -67,7 +67,7 @@
  * @param b The second string to compare
  * @return Either <0, 0, or >0.  If the first string is less than the second
  *          this returns <0, if they are equivalent it returns 0, and if the
- *          first string is greater than second string it retuns >0.
+ *          first string is greater than second string it returns >0.
  *}
 //APR_DECLARE(int) apr_strnatcmp(AnsiChar const *a, AnsiChar const *b);
 function apr_strnatcmp(a, b: PAnsiChar): Integer;
@@ -81,7 +81,7 @@ function apr_strnatcmp(a, b: PAnsiChar): Integer;
  * @param b The second string to compare
  * @return Either <0, 0, or >0.  If the first string is less than the second
  *         this returns <0, if they are equivalent it returns 0, and if the
- *         first string is greater than second string it retuns >0.
+ *         first string is greater than second string it returns >0.
  *}
 //APR_DECLARE(int) apr_strnatcasecmp(AnsiChar const *a, AnsiChar const *b);
 function apr_strnatcasecmp(a, b: PAnsiChar): Integer;

@@ -28,7 +28,7 @@ var
   // Textures
   BlurTexture : glUint;              // An Unsigned Int To Store The Texture Number
 
-  // User vaiables
+  // User variables
   Angle : glFloat;
   Vertexes : Array[0..3] of TVector;
   normal : TVector;
@@ -299,7 +299,7 @@ begin
   glClearDepth(1.0);                       // Depth Buffer Setup
   glDepthFunc(GL_LESS);                    // The Type Of Depth Test To Do
 
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);   //Realy Nice perspective calculations
+  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);   //Really Nice perspective calculations
 
   glEnable(GL_DEPTH_TEST);                 // Enable Depth Buffer
   glEnable(GL_TEXTURE_2D);                 // Enable Texture Mapping

@@ -30,7 +30,7 @@ type
     RAW_ARGS,			{ cmd_func parses command line itself }
     TAKE1,			{ one argument only }
     TAKE2,			{ two arguments only }
-    ITERATE,			{ one argument, occuring multiple times
+    ITERATE,			{ one argument, occurring multiple times
 				 * (e.g., IndexIgnore)
                                  }
     ITERATE2,			{ two arguments, 2nd occurs multiple times
@@ -123,7 +123,7 @@ type
     path: PAnsiChar;	        { If configuring for a directory,
 				 * pathname of that directory.
 				 * NOPE!  That's what it meant previous to the
-				 * existance of <Files>, <Location> and regex
+				 * existence of <Files>, <Location> and regex
 				 * matching.  Now the only usefulness that can
 				 * be derived from this field is whether a command
 				 * is being called in a server context (path == NULL)

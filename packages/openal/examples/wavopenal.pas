@@ -258,7 +258,7 @@ begin
 
   source := TFileStream.Create(Filename, fmOpenRead);
 
-  // inittialize codec
+  // initialize codec
   wave:=TWaveReader.Create;
   if not wave.LoadFromStream(source) then begin
     writeln('unable to read WAVE format');

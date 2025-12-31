@@ -138,7 +138,7 @@ const
   OC_REASON_DEATH      = 0;	{ child has died, caller must call
 					 * unregister still }
   OC_REASON_UNWRITABLE = 1;	{ write_fd is unwritable }
-  OC_REASON_RESTART    = 2;	{ a restart is occuring, perform
+  OC_REASON_RESTART    = 2;	{ a restart is occurring, perform
 					 * any necessary cleanup (including
 					 * sending a special signal to child)
                                          }

@@ -188,7 +188,7 @@ procedure gtk_ctree_unselect(ctree:PGtkCTree; node:PGtkCTreeNode); cdecl; extern
 procedure gtk_ctree_unselect_recursive(ctree:PGtkCTree; node:PGtkCTreeNode); cdecl; external gtklib;
 procedure gtk_ctree_real_select_recursive(ctree:PGtkCTree; node:PGtkCTreeNode; state:gint); cdecl; external gtklib;
 {
-             Analogons of GtkCList functions
+             Analogous of GtkCList functions
                                                             }
 procedure gtk_ctree_node_set_text(ctree:PGtkCTree; node:PGtkCTreeNode; column:gint; text:Pgchar); cdecl; external gtklib;
 procedure gtk_ctree_node_set_pixmap(ctree:PGtkCTree; node:PGtkCTreeNode; column:gint; pixmap:PGdkPixmap; mask:PGdkBitmap); cdecl; external gtklib;

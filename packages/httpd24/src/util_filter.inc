@@ -158,7 +158,7 @@ type
  * and sort the filters to properly sequence their operation.
  *
  * The types have a particular sort order, which allows us to insert them
- * into the filter chain in a determistic order. Within a particular grouping,
+ * into the filter chain in a deterministic order. Within a particular grouping,
  * the ordering is equivalent to the order of calls to ap_add_*_filter().
   }
   Pap_filter_type = ^ap_filter_type;

@@ -68,7 +68,7 @@ const
 type
   PDiskFontHeader = ^TDiskFontHeader;
   TDiskFontHeader = record
-    // the following 8 bytes are not actually considered a part of the  DiskFontHeader, but immediately preceed it.
+    // the following 8 bytes are not actually considered a part of the  DiskFontHeader, but immediately precede it.
     // The NextSegment is supplied by the linker/loader, and the ReturnCode is the code at the beginning of the font in case someone runs it...
     // Warning: you can find those bytes on disk but not in memory.
     //   uint32 dfh_NextSegment; \* actually a BPTR

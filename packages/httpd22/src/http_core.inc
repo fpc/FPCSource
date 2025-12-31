@@ -700,7 +700,7 @@ extern AP_DECLARE_DATA ap_filter_rec_t *ap_content_length_filter_handle;
 extern AP_DECLARE_DATA ap_filter_rec_t *ap_core_input_filter_handle;}
 
 {
- * This hook provdes a way for modules to provide metrics/statistics about
+ * This hook provides a way for modules to provide metrics/statistics about
  * their operational status.
  *
  * @param p A pool to use to create entries in the hash table

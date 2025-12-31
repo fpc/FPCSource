@@ -19,7 +19,7 @@
  * optionally be passed as the 'pDetails' element in the
  * HelperNotifyExecuteType structure. We strongly recommend that
  * every extra details data structure include a version number,
- * which will alow the structure to be extended by adding new structure
+ * which will allow the structure to be extended by adding new structure
  * elements later.
  *
  * The Service Class ID is a 32-bit value that uniquely identifies the

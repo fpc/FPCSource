@@ -29,7 +29,7 @@
 This is the High-Level Macro Service API Routines of OS/2 Multimedia subsystem.
 All functions are from MCIAPI dll (which also contains REXX functions.
 See "Multimedia with REXX" for more information.).
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -55,7 +55,7 @@ Const
 
 {
 This function plays a multimedia data file (video, audio) using MCI commands.
-hwndOwner is handle of owner window. If hwndOwner equial to zero used active
+hwndOwner is handle of owner window. If hwndOwner equal to zero used active
           window.
 pszFile is pointer to asciiz name of data file. For compound files can be
         used 'filename+element'.

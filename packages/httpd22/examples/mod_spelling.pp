@@ -319,8 +319,8 @@ begin
 
   {
    * The request should end up looking like this:
-   * r->uri: /correct-url/mispelling/more
-   * r->filename: /correct-file/mispelling r->path_info: /more
+   * r->uri: /correct-url/misspelling/more
+   * r->filename: /correct-file/misspelling r->path_info: /more
    *
    * So we do this in steps. First break r->filename into two pieces
    }
@@ -338,9 +338,9 @@ begin
 
   { good = /correct-file }
   good := apr_pstrndup(r^.pool, r^.filename, filoc);
-  { bad = mispelling }
+  { bad = misspelling }
   bad := apr_pstrdup(r^.pool, r^.filename + filoc + 1);
-  { postgood = mispelling/more }
+  { postgood = misspelling/more }
   postgood := apr_pstrcat(r^.pool, [bad, r^.path_info, nil]);
 
   urlen := strlen(r^.uri);
@@ -457,7 +457,7 @@ begin
 
   if (candidates^.nelts <> 0) then
   begin
-    { Wow... we found us a mispelling. Construct a fixed url }
+    { Wow... we found us a misspelling. Construct a fixed url }
     variant_ := Pmisspelled_file(candidates^.elts);
 
     ref := apr_table_get(r^.headers_in, 'Referer');

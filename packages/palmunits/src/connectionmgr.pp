@@ -22,7 +22,7 @@
  *    03/30/2000  PPL      Constant change from cncXXXX to kCncXXXX
  *                         and # defining old names (cncXXXX) for compatibility.
  *    10/19/00    PPL      Update the header with GuideLines
- *    10/20/00    PPL      Remove CncProfileBroacast - The notification it sent
+ *    10/20/00    PPL      Remove CncProfileBroadcast - The notification it sent
  *                         is always in usage.
  *    10/23/00    PPL      Update Connection Manager API
  *    11/06/2000  PPL      Use the CncProfileId abstract type for profileIDs
@@ -62,13 +62,13 @@ type
    //       any additional fields of CncProfileNotifyDetailsType
    version: UInt16;
 
-   // In: Broacasted Profile ID
+   // In: Broadcasted Profile ID
    profileID: CncProfileID;
 
    // In:  Device Kind of the profile
    deviceKind: UInt16;
 
-   // In: Resquested Action
+   // In: Requested Action
    request: UInt16;
   end;
   CncProfileNotifyDetailsType = CncProfileNotifyDetailsTag;
@@ -106,8 +106,8 @@ const
   kCncParamTypeMask          = $7800; // bit #11 to #14 set to 1 (4 bits)
 
 // parameter type definition macros
-  kCncParamFixedLen          = $00; // higth bit of 4 set to 0
-  kCncParamVariableLen       = $08; // higth bit of 4 set to 1
+  kCncParamFixedLen          = $00; // high bit of 4 set to 0
+  kCncParamVariableLen       = $08; // high bit of 4 set to 1
 
 //#define CncDefineParameterType( variableBit , typeOrder) ( ( (variableBit) | (typeOrder) ) << 11)
 
@@ -251,7 +251,7 @@ const
   kCncParamResetString                = kCncParamOSRange or kCncParamString or 8;
   kCncParamResetStringMaxSize         = mdmCmdBufSize;
 
-// New piece of info -  extented device kind cf kCncDeviveXXX  after
+// New piece of info -  extended device kind cf kCncDeviveXXX  after
   kCncParamDeviceKind                 = kCncParamOSRange or kCncParamUInt16 or 9;
   kCncParamDeviceKindSize             = kCncParamUInt16Size;
 

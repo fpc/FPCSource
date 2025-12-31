@@ -38,7 +38,7 @@
      should work in most cases.
     }
 { Fill in engine specific parts of GtkRcStyle by parsing contents
-     of brackets. Returns G_TOKEN_NONE if succesful, otherwise returns
+     of brackets. Returns G_TOKEN_NONE if successful, otherwise returns
      the token it expected but didn't get.
     }
 { Combine RC style data from src into dest. If overridden, this

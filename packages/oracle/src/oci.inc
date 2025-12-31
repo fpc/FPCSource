@@ -224,7 +224,7 @@ uses ctypes,
      rphillip    05/02/01 - Add date cache attributes
      rphillip    08/22/01 - Add new stream version
      ebatbout    04/13/01 - add definition, OCI_ATTR_RESERVED_11
-     chliang     04/12/01 - add shortnames for newer oci funcation
+     chliang     04/12/01 - add shortnames for newer oci function
      wzhang      04/11/01 - Add new OCI NLS constants.
      cmlim       04/13/01 - remove attrs not used by dpapi (151 & 152 avail)
      rkambo      03/23/01 - bugfix 1421793
@@ -234,7 +234,7 @@ uses ctypes,
      preilly     03/05/01 - Add stream versioning support to DirPath context
      schandir    12/18/00 - remove attr CONN_INCR_DELAY.
      schandir    12/12/00 - change mode from OCI_POOL to OCI_CPOOL.
-     cbarclay    01/12/01 - add atribute for OCIP_ATTR_TMZ
+     cbarclay    01/12/01 - add attribute for OCIP_ATTR_TMZ
      whe         01/07/01 - add attributes related to UTF16 env mode
      slari       12/29/00 - add blank line
      slari       12/28/00 - OCI_ATTR_RESERVED_10
@@ -275,7 +275,7 @@ uses ctypes,
      whe         05/23/00 - validate OCI_NO_CACHE mode
      dsaha       02/02/00 - Add no-cache attr in statement handle
      whe         05/23/00 - add OCIP_ICACHE
-     allee       05/17/00 - describe support for JAVA implmented TYPE
+     allee       05/17/00 - describe support for JAVA implemented TYPE
      preilly     05/30/00 - Continue adding support for objects in direct path lo
      cmlim       05/16/00 - 8.2 dpapi support of ADTs
      rxgovind    05/04/00 - OCIAnyDataSet changes
@@ -418,10 +418,10 @@ uses ctypes,
      sgollapu    03/19/97 - Add OCI_ATTR_OVRLD_ID
      aroy        03/17/97 - add postprocessing callback
      sgollapu    03/15/97 - Add OCI_ATTR_PARAM
-     cxcheng     02/07/97 - change OCI_PTYPE codes for type method for consistenc
+     cxcheng     02/07/97 - change OCI_PTYPE codes for type method for consistence
      cxcheng     02/05/97 - add OCI_PTYPE_TYPE_RESULT
      cxcheng     02/04/97 - rename OCI_PTYPE constants to be more consistent
-     cxcheng     02/03/97 - add OCI_ATTR, OCI_PTYPE contants for describe type
+     cxcheng     02/03/97 - add OCI_ATTR, OCI_PTYPE constants for describe type
      esoyleme    01/23/97 - merge neerja callback
      sgollapu    12/30/96 - Remove OCI_DTYPE_SECURITY
      asurpur     12/26/96 - CHanging OCI_NO_AUTH to OCI_AUTH

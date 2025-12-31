@@ -167,7 +167,7 @@ type
 type
   SmsSendGSMParamsType = record
     protocolId: UInt16;         // Reserved - not supported (Fax, paging, . . .)
-    serviceCenterNumber: PAnsiChar; // SMS Center number - Optionel
+    serviceCenterNumber: PAnsiChar; // SMS Center number - Optional
 
     rejectDuplicated: Boolean;  // Network must reject msg if the same exists
     replyPath: Boolean;         // Use reply specified path
@@ -283,9 +283,9 @@ type
     creator: UInt32;         // MUST ALWAYS BE SET TO sysFileCSmsLib
     smsID: UInt16;           // ID of the SMS (output)
 
-    extension: PAnsiChar;        // Extension type of the data - Optionel     (Output)
-    mimeTypes: PAnsiChar;        // Mime type of object - Optionel            (Output)
-    appCreator: UInt32;      // Application Creator of the target - Optionel (Output)
+    extension: PAnsiChar;        // Extension type of the data - Optional     (Output)
+    mimeTypes: PAnsiChar;        // Mime type of object - Optional            (Output)
+    appCreator: UInt32;      // Application Creator of the target - Optional (Output)
 
     dataCodingScheme: UInt8; // How SMS are going to convert the data (0 = 8 bit, 1 = 7 bit)
     networkType: UInt8;      // Indicates the type of advanced parameters (input - output)

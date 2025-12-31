@@ -55,7 +55,7 @@ begin
 	//set mode 0, enable BG0 and set it to 3D
 	videoSetMode(MODE_0_3D);
 
-	// intialize gl
+	// initialize gl
 	glInit();
 	
 	// enable antialiasing

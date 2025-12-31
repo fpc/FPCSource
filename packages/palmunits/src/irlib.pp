@@ -95,7 +95,7 @@ const
 // structure returned by irGetStatistics
 type
   IrStatsType = record
-    recLineErrors: UInt16; // # of serial errors since library opend
+    recLineErrors: UInt16; // # of serial errors since library opened
     crcErrors: UInt16;     // # of crc errors ...
   end;
 
@@ -321,7 +321,7 @@ const
  *
  ****************************************************************************)
 
-// stack functions use a diferent type for booleans
+// stack functions use a different type for booleans
 type
   BOOL = Int16;
 
@@ -468,13 +468,13 @@ type
 
 (****************************************************************************
  *
- * IAS Data Strucutres
+ * IAS Data Structures
  *
  ****************************************************************************)
 
 (*---------------------------------------------------------------------------
  *
- * The LmIasAttribute is a strucutre that holds one attribute of an IAS
+ * The LmIasAttribute is a structure that holds one attribute of an IAS
  * object.
  *)
 
@@ -758,7 +758,7 @@ function IrDisconnectIrLap(refNum: UInt16): IrStatus; syscall irLibTrapDisconnec
  *                the connection. The rLsap field must contain the LSAP
  *                selector for the peer on the other device. Also the type
  *                of the connection must be set. Use IR_SetConTypeLMP() to
- *                set the type to an IrLMP conneciton or IR_SetConTypeTTP()
+ *                set the type to an IrLMP connection or IR_SetConTypeTTP()
  *                to set the type to a Tiny TP connection.
  *
  *                packet - pointer to a packet that contains connection data.
@@ -964,7 +964,7 @@ procedure IrLocalBusy(refNum: UInt16; flag: BOOL); syscall irLibTrapLocalBusy;
  *                con - pointer to IrConnect structure which represents
  *                an active connection.
  *
- * Return Values: Maxmum number of bytes for a transmit packet.
+ * Return Values: Maximum number of bytes for a transmit packet.
  *)
 
 function IrMaxTxSize(refNum: UInt16; var con: IrConnect): UInt16; syscall irLibTrapMaxTxSize;
@@ -984,7 +984,7 @@ function IrMaxTxSize(refNum: UInt16; var con: IrConnect): UInt16; syscall irLibT
  *                con - pointer to IrConnect structure which represents
  *                an active connection.
  *
- * Return Values: Maxmum number of bytes that can be sent by the other
+ * Return Values: Maximum number of bytes that can be sent by the other
  *                device (maximum bytes that can be received).
  *)
 
@@ -1471,7 +1471,7 @@ function IrIAS_SetDeviceName(refNum: UInt16; var name: UInt8; len: UInt8): IrSta
  *
  * Description:   Move the internal pointer to the next result item. This
  *                function returns a pointer to the start of the next result
- *                item. If the poiinter is 0 then there are no more result
+ *                item. If the pointer is 0 then there are no more result
  *                items. Only available if IR_IAS_NEXT is defined.
  *
  * Parameters:    refNum - library reference number
@@ -1513,7 +1513,7 @@ function IrIAS_Next(refNum: UInt16; var token: IrIasQuery): UInt8Ptr; syscall ir
  *
  * Prototype:     IrHandleEvent(UInt16 refnum)
  *
- * Description:   MemHandle background task event (ony used for special cases)
+ * Description:   MemHandle background task event (only used for special cases)
  *                  Normally you will not use this function
  *
  * Parameters:    refNum - library reference number
@@ -1527,7 +1527,7 @@ function IrHandleEvent(refnum: UInt16): Boolean; syscall irLibTrapHandleEvent;
  *
  * Prototype:     IrWaitForEvent(UInt16 libRefnum,Int32 timeout)
  *
- * Description:   Wait for background task event (ony used for special cases)
+ * Description:   Wait for background task event (only used for special cases)
  *                  Normally you will not use this function
  *
  * Parameters:    refNum - library reference number

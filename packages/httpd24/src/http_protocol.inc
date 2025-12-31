@@ -250,7 +250,7 @@ function ap_meets_conditions(r: Prequest_rec): Integer;
  * us centralize a bit of accounting (bytes_sent).
  *
  * These also return the number of bytes written by the call.
- * They should only be called with a timeout registered, for obvious reaasons.
+ * They should only be called with a timeout registered, for obvious reasons.
  * (Ditto the send_header stuff).
  *}
 

@@ -27,7 +27,7 @@
 @created(29 Nov 2002)
 @lastmod(05 Dec 2002)
 This is Media Control Interface of MMPM/2.
-Warning: This code is alfa. Future versions of this unit will propably
+Warning: This code is alfa. Future versions of this unit will probably
 not be compatible.
 }
 {$IFNDEF FPC_DOTTEDUNITS}
@@ -939,7 +939,7 @@ CONST
 type
   mci_Palette_Parms = record
     hwndCallback     : hwnd;                   // PM window handle for MCI notify message
-    usRegisteredMap  : Integer;                 // Id of the palette from the registed color map
+    usRegisteredMap  : Integer;                 // Id of the palette from the registered color map
     usReserved0      : Integer;                 // Reserved field
     ulPalEntries     : LongInt;                  // size of the palette returned
     pPalette         : Pointer;                // pointer to the palette
@@ -988,7 +988,7 @@ type
     usGroupID                   : Integer;      // GroupID
     usReserved0                 : Integer;      // RESERVED
     ulStructLength              : LongInt;       // Length of Structure in ULONGS.
-    usMasterID                  : Integer;      // ID of Master device in Synchrounous groups.
+    usMasterID                  : Integer;      // ID of Master device in Synchronous groups.
     usReserved1                 : Integer;      // RESERVED
     pszGroupAlias               : PAnsiChar;       // Pointer to Alias Name.
     ulNumDevices                : LongInt;       // Number of Devices in group.
@@ -1630,7 +1630,7 @@ type
     ulAudio                     : Longint;       // Channel number for this operation
                                                // (MCI_SET_AUDIO_LEFT, MCI_SET_AUDIO_RIGHT,
                                                //  MCI_SET_AUDIO_ALL)
-    ulLevel                     : Longint;       // Volume, trebble or bass level as % of max.
+    ulLevel                     : Longint;       // Volume, treble or bass level as % of max.
     ulOver                      : Longint;       // Delay time for vectored change in milliseconds
     ulItem                      : Longint;       // Item field for set item flags
     ulValue                     : Longint;       // Value associated with item flag
@@ -1658,7 +1658,7 @@ type
     ulAudio                     : Longint;       // Channel number for this operation
                                                // (MCI_SET_AUDIO_LEFT, MCI_SET_AUDIO_RIGHT,
                                                //  MCI_SET_AUDIO_ALL)
-    ulLevel                     : Longint;       // Volume, trebble or bass level as % of max.
+    ulLevel                     : Longint;       // Volume, treble or bass level as % of max.
     ulOver                      : Longint;       // Delay time for vectored change in millisecond
     ulItem                      : Longint;       // Item field for set item flags
     ulValue                     : Longint;       // Value associated with item flag
@@ -1683,7 +1683,7 @@ type
   mci_CuePoint_Parms = record
     hwndCallback                : hwnd;        // PM window handle for MCI notify message
     ulCuepoint                  : Longint;       // Specifies the cuepoint location
-    usUserParm                  : Integer;      // User parmameter returned on cuepoint
+    usUserParm                  : Integer;      // User parameter returned on cuepoint
                                                // notify message
     usReserved0                 : Integer;      // Reserved field
   end;

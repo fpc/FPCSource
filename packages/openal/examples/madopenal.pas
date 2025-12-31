@@ -243,7 +243,7 @@ begin
   source := TFileStream.Create(Filename, fmOpenRead);
 
 
-// inittialize codec
+// initialize codec
   case codec of
     1: // mad
       begin

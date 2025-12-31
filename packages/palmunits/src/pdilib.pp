@@ -140,7 +140,7 @@ const
   kPdiPropertyValueEventMask          = UInt16(64);   // An entire property value is found
   kPdiPropertyValueFieldEventMask     = UInt16(128);  // A value field is found (';' separated)
   kPdiPropertyValueItemEventMask      = UInt16(256);  // A value item is found (',' separated)
-  kPdiPropertyValueMoreCharsEventMask = UInt16(512);  // The application didn't provide a large enought buffer: more chars must be read
+  kPdiPropertyValueMoreCharsEventMask = UInt16(512);  // The application didn't provide a large enough buffer: more chars must be read
   kPdiBeginObjectEventMask            = UInt16(1024); // BEGIN reached
   kPdiEndObjectEventMask              = UInt16(2048); // END reached
   kPdiPropertyValueCRLFEventMask      = UInt16(4096); // A value item is found (',' separated)
@@ -164,7 +164,7 @@ type
     propertyValueType: UInt16;              // type of property value
     parameter: UInt16;                      // ID of the last parsed parameter name
     parameterPairs: array [0..7] of UInt32; // set of bits of parsed parameter values
-    customFieldNumber: UInt16;              // Value of X-PALM-CUSTOM (cutom fields)
+    customFieldNumber: UInt16;              // Value of X-PALM-CUSTOM (custom fields)
     appData: Pointer;                       // General usage app dependent field
     pdiRefNum: UInt16;                      // The refNum of the Pdi library
     events: UInt16;                         // Mask of events (see kPdiXXXXEventMask constants)

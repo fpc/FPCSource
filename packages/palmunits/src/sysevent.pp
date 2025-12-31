@@ -68,7 +68,7 @@ const
   sysEventFirstUserEvent = $6000;
   sysEventLastUserEvent  = $7FFF;
 
-// keyDownEvent modifers
+// keyDownEvent modifiers
 const
   shiftKeyMask      = $0001;
   capsLockMask      = $0002;

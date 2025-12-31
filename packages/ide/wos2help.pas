@@ -43,14 +43,14 @@ type
                                  { seem to work with INF settings here as well. }
         HeaderSize  : word;      { total size of header                         }
         Unknown2    : word;      { unknown purpose                              }
-        NumTOC      : word;      { 16 bit number of entries in the tocarray     }
+        NumTOC      : word;      { 16 bit number of entries in the to carray    }
         TOCStrTabOfs: longint;   { 32 bit file offset of the start of the       }
                                  { strings for the table-of-contents            }
         TOCStrTabSize: longint;  { number of bytes in file occupied by the      }
                                  { table-of-contents strings                    }
-        TOCArrayOfs : longint;   { 32 bit file offset of the start of tocarray  }
-        NumResPanels: word;      { number of panels with ressource numbers      }
-        ResTabOfs   : longint;   { 32 bit file offset of ressource number table }
+        TOCArrayOfs : longint;   { 32 bit file offset of the start of to carray }
+        NumResPanels: word;      { number of panels with resource numbers       }
+        ResTabOfs   : longint;   { 32 bit file offset of resource number table  }
         NumNames    : word;      { number of panels with textual name           }
         NameTabOfs  : longint;   { 32 bit file offset to panel name table       }
         NumIndexes  : word;      { number of index entries                      }

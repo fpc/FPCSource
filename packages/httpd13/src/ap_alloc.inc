@@ -410,7 +410,7 @@ procedure ap_pclosedir(p: Ppool; d: PDIR);
  * or to kill outright, on unexpected termination).
  *
  * ap_spawn_child is a utility routine which handles an awful lot of
- * the rigamarole associated with spawning a child --- it arranges
+ * the rigmarole associated with spawning a child --- it arranges
  * for pipes to the child's stdin and stdout, if desired (if not,
  * set the associated args to NULL).  It takes as args a function
  * to call in the child, and an argument to be passed to the function.

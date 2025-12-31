@@ -1255,7 +1255,7 @@ begin
 	  AddInclude('gtktextiterh.inc');
 	  AddInclude('gtktextiter.inc');
         end;
-// For some reson this isn't build in the buildunit nor the Makefile.fpc
+// For some reason this isn't build in the buildunit nor the Makefile.fpc
 {     T:=P.Targets.AddUnit('src/gtkhtml/gtkhtml.pas');
        T.IncludePath.Add('src/gtkhtml');
        with T.Dependencies do

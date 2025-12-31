@@ -20,7 +20,7 @@
     function g_async_queue_new:PGAsyncQueue;cdecl;external gliblib name 'g_async_queue_new';
 
 {* Lock and unlock an GAsyncQueue, all functions lock the queue for
- * themselves, but in certain cirumstances you want to hold the lock longer,
+ * themselves, but in certain circumstances you want to hold the lock longer,
  * thus you lock the queue, call the *_unlocked functions and unlock it again
  *}
     procedure g_async_queue_lock(queue:PGAsyncQueue);cdecl;external gliblib name 'g_async_queue_lock';

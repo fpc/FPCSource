@@ -49,10 +49,10 @@ Type
     dth_Name,                                         { Descriptive name of the data type }
     dth_BaseName,                                     { Base name of the data type }
     dth_Pattern  : PAnsiChar;                            { Match pattern for file name. }
-    dth_Mask : Pointer;                               { Comparision mask }
+    dth_Mask : Pointer;                               { Comparison mask }
     dth_GroupID,                                      { Group that the DataType is in }
     dth_ID   : longword;                                 { ID for DataType (same as IFF FORM type) }
-    dth_MaskLen,                                      { Length of comparision mask }
+    dth_MaskLen,                                      { Length of comparison mask }
     dth_Pad   : smallint;                              { Unused at present (must be 0) }
     dth_Flags,                                        { Flags }
     dth_Priority  : WORD;                             { Priority }
@@ -128,8 +128,8 @@ const
  ID_CODE = 1146372932;
 
 Type
-{ DataTypes comparision hook context (Read-Only).  This is the
- * argument that is passed to a custom comparision routine. }
+{ DataTypes comparison hook context (Read-Only).  This is the
+ * argument that is passed to a custom comparison routine. }
 
  pDTHookContext = ^tDTHookContext;
  tDTHookContext = record
@@ -192,7 +192,7 @@ Type
     dtn_Node2   : tNode;            { Reserved for system use }
     dtn_Header  : pDataTypeHeader;  { Pointer to the DataTypeHeader }
     dtn_ToolList: tList;            { List of tool nodes }
-    dtn_FunctionName : PAnsiChar;      { Name of comparision routine }
+    dtn_FunctionName : PAnsiChar;      { Name of comparison routine }
     dtn_AttrList : pTagItem;         { Object creation tags }
     dtn_Length : longword;             { Length of the memory block }
  end;
@@ -1128,7 +1128,7 @@ Type
 
 
     ah_Left,                    {  (XOR mode only - position of rectangular }
-    ah_Top         : WORD;      {  area representd by the BODY) }
+    ah_Top         : WORD;      {  area represented by the BODY) }
 
 
     ah_AbsTime,                 {  Timing for a frame relative to the time

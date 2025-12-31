@@ -259,7 +259,7 @@ const
  * [ GLX 1.3 and later ]
  *}
   { Pascal translation comments:
-    Name GDK_GL_WINDOW conflicts (even in case-sensitve C,
+    Name GDK_GL_WINDOW conflicts (even in case-sensitive C,
     but there macros conflicts are not errors)
     with function GDK_GL_WINDOW in gdkglwindow.inc.
     Renamed to GDK_GL_WINDOW_VALUE. }

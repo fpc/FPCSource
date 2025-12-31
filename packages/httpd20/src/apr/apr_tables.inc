@@ -434,7 +434,7 @@ procedure apr_table_overlap(a: Papr_table_t;
  external LibAPR name LibNamePrefix + 'apr_table_overlap' + LibSuff12;
 
 {
- * Eliminate redunandant entries in a table by either overwriting
+ * Eliminate redundant entries in a table by either overwriting
  * or merging duplicates
  *
  * @param t Table.

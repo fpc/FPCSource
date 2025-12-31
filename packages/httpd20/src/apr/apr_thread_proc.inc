@@ -96,7 +96,7 @@ const
   APR_OC_REASON_DEATH        = 0;     {< child has died, caller must call
                                            * unregister still }
   APR_OC_REASON_UNWRITABLE   = 1;     {< write_fd is unwritable }
-  APR_OC_REASON_RESTART      = 2;     {< a restart is occuring, perform
+  APR_OC_REASON_RESTART      = 2;     {< a restart is occurring, perform
                                            * any necessary cleanup (including
                                            * sending a special signal to child)
                                            }
@@ -105,8 +105,8 @@ const
                                            * kill the child) }
   APR_OC_REASON_LOST         = 4;     {< somehow the child exited without
                                            * us knowing ... buggy os? }
-  APR_OC_REASON_RUNNING      = 5;     {< a health check is occuring,
-                                           * for most maintainence functions
+  APR_OC_REASON_RUNNING      = 5;     {< a health check is occurring,
+                                           * for most maintenance functions
                                            * this is a no-op.
                                            }
 
@@ -122,7 +122,7 @@ type
     { Parent's side of pipe to child's stdouterr }
     err: Papr_file_t;
 {$if defined(APR_HAS_PROC_INVOKED) or defined(DOXYGEN)}
-    { Diagnositics/debugging string of the command invoked for
+    { Diagnostics/debugging string of the command invoked for
      *  this process [only present if APR_HAS_PROC_INVOKED is true]
      * @remark Only enabled on Win32 by default.
      * @bug This should either always or never be present in release

@@ -186,7 +186,7 @@ var
   magic: magic_t;
 
   (**
-   * Mark the given response as HTML for the brower.
+   * Mark the given response as HTML for the browser.
    *
    * @param response response to mark
    *)

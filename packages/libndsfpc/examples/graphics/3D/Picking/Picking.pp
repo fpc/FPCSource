@@ -17,7 +17,7 @@ type
 
 var
   clicked: TClickable; // what is being clicked
-  closeW: integer; // closest distace to camera
+  closeW: integer; // closest distance to camera
   polyCount: integer; // keeps track of the number of polygons drawn
 
 // run before starting to draw an object while picking
