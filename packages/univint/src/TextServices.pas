@@ -764,7 +764,7 @@ type
 		glyphInfo: array[0..$7F000000 div SizeOf(TSMGlyphInfo)-1] of TSMGlyphInfo;
 	end;
 
-{ High level TSM Doucment routines }
+{ High level TSM Document routines }
 {$ifc not TARGET_CPU_64}
 {
  *  NewTSMDocument()
@@ -1274,7 +1274,7 @@ const
    * introduced as a way for the Setup Assistant to tell Apple's
    * Kotoeri (Japanese) input method to switch to either Roman or
    * Katakana input mode in certain text fields. The entire input mode
-   * mechanism is being superceded by kTextServiceInputModePropertyTag.
+   * mechanism is being superseded by kTextServiceInputModePropertyTag.
    * Property available in TSM 1.5 on MacOSX 10.0 and later
    }
 	kTextServiceJaTypingMethodPropertyTag = FourCharCode('jtyp'); { Japanese input method typing property}
@@ -1478,7 +1478,7 @@ function SetTextServiceProperty( ts: ComponentInstance; inPropertyTag: TextServi
  *    </array> </dict> Available in TSM 2.2 and later Important:  This
  *    dictionary must also be present in the component bundle's
  *    Info.plist, in addition to being available through this component
- *    call.  This will allow retrival of input modes by the System
+ *    call.  This will allow retrieval of input modes by the System
  *    without opening the component.  The component call will be used
  *    whenever the System is notified of a change in the contents of
  *    the inputMode list, such as when the name or key-equivalents of

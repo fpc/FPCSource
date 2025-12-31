@@ -43,7 +43,7 @@ const
 
 { implementation of the functions }
 
-{ Functions to easely generate carbon structures }
+{ Functions to easily generate carbon structures }
 
 function GetQDRect(Left, Top, Width, Height: Integer): MacOSAll.Rect;
 begin

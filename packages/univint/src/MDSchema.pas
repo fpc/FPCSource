@@ -220,14 +220,14 @@ uses MacTypes,CFBase,CFString,CFArray,CFDictionary,MDItem;
 
 	Functions in MDSchema return meta data about attributes, for example
         the type of an attribute, and a localized string for an attribute that is
-        sutable to display to a user.
+        suitable to display to a user.
 }
 
 {!
 	@function MDSchemaCopyAttributesForContentType
         Returns an dictionary attributes to display or show the
                 user for a given UTI type. This function does not walk up the
-                UTI hiearchy and perform a union of the information.
+                UTI hierarchy and perform a union of the information.
         @param utiType the UTI type to be interrogated.
         @result A CFDictionaryRef with keys ==  to kMDAttributeDisplayValues etc..
 

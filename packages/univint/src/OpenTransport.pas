@@ -295,7 +295,7 @@ uses MacTypes,MixedMode,MacErrors;
    error codes.  Note that kernel modules shouldn't be including
    standard C libraries, so this is rarely a problem.
    In general, the clash between OT and standard C definitions
-   of these error codes is rarely a problem becasue both OT
+   of these error codes is rarely a problem because both OT
    and the C libraries define them to have the same value.  But
    I'm sure this check is useful to some people.
 }
@@ -759,7 +759,7 @@ type
    way the compiler will do the right subclass type checking,
    ie you will be able to pass an EndpointRef to a parameter
    of type ProviderRef, but not vice versa.
-   On the other hand, if your compiling for straighth C,
+   On the other hand, if your compiling for straight C,
    everything is defined as void.  This is somewhat dangerous,
    but it prevents you have to cast an EndpointRef to a
    ProviderRef every time you call a function that works
@@ -840,7 +840,7 @@ const
 	T_OPTMGMTCOMPLETE = $20000006; { OptMgmt call is complete          }
 	T_OPENCOMPLETE = $20000007; { An Open call is complete          }
 	T_GETPROTADDRCOMPLETE = $20000008; { GetProtAddress call is complete       }
-	T_RESOLVEADDRCOMPLETE = $20000009; { A ResolveAddress call is complet     }
+	T_RESOLVEADDRCOMPLETE = $20000009; { A ResolveAddress call is complete     }
 	T_GETINFOCOMPLETE = $2000000A; { A GetInfo call is complete        }
 	T_SYNCCOMPLETE = $2000000B; { A Sync call is complete          }
 	T_MEMORYRELEASED = $2000000C; { No-copy memory was released         }
@@ -1231,7 +1231,7 @@ const
 }
 
 const
-	T_INFINITE = -1;   { supports infinit amounts of data     }
+	T_INFINITE = -1;   { supports infinite amounts of data     }
 	T_INVALID = -2;    { Does not support data transmission }
 
 
@@ -1545,7 +1545,7 @@ function OTFindPortByRef( var portRecord: OTPortRecord; ref: OTPortRef ): Boolea
 {
    Unregister the port with the given name (If you re-register the
    port, it may get a different name - use OTChangePortState if
-   that is not desireable).  Since a single OTPortRef can be registered
+   that is not desirable).  Since a single OTPortRef can be registered
    with several names, the API needs to use the portName rather than
    the OTPortRef to disambiguate.
 }

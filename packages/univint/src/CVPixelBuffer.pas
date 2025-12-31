@@ -410,7 +410,7 @@ function CVPixelBufferCreateResolvedAttributesDictionary( allocator: CFAllocator
     @discussion Creates a single PixelBuffer for a given size and pixelFormatType. It allocates the necessary memory based on the pixel dimensions, pixelFormatType and extended pixels described in the pixelBufferAttributes. Not all parameters of the pixelBufferAttributes will be used here.
     @param      width   Width of the PixelBuffer in pixels.
     @param      height  Height of the PixelBuffer in pixels.
-    @param	pixelFormatType		Pixel format indentified by its respective OSType.
+    @param	pixelFormatType		Pixel format identified by its respective OSType.
     @param	pixelBufferAttributes      A dictionary with additional attributes for a a pixel buffer. This parameter is optional. See PixelBufferAttributes for more details.
     @param      pixelBufferOut          The new pixel buffer will be returned here
     @result	returns kCVReturnSuccess on success.
@@ -427,7 +427,7 @@ type
     @discussion Creates a single PixelBuffer for a given size and pixelFormatType. Not all parameters of the pixelBufferAttributes will be used here. It requires a release callback function that will be called, when the PixelBuffer gets destroyed so that the owner of the pixels can free the memory.
     @param      width   Width of the PixelBuffer in pixels
     @param      height  Height of the PixelBuffer in pixels
-    @param      pixelFormatType		Pixel format indentified by its respective OSType.
+    @param      pixelFormatType		Pixel format identified by its respective OSType.
     @param      baseAddress		Address of the memory storing the pixels.
     @param      bytesPerRow		Row bytes of the pixel storage memory.
     @param      releaseCallback         CVPixelBufferReleaseBytePointerCallback function that gets called when the PixelBuffer gets destroyed.
@@ -448,7 +448,7 @@ type
     @discussion Creates a single PixelBuffer for a given size and pixelFormatType. Not all parameters of the pixelBufferAttributes will be used here. It requires a release callback function that will be called, when the PixelBuffer gets destroyed so that the owner of the pixels can free the memory.
     @param      width			Width of the PixelBuffer in pixels
     @param      height			Height of the PixelBuffer in pixels
-    @param      pixelFormatType		Pixel format indentified by its respective OSType.
+    @param      pixelFormatType		Pixel format identified by its respective OSType.
     @param	dataPtr			Pass a pointer to a plane descriptor block, or NULL.
     @param	dataSize		pass size if planes are contiguous, NULL if not.
     @param	numberOfPlanes		Number of planes.
@@ -538,7 +538,7 @@ function CVPixelBufferGetBytesPerRow( pixelBuffer: CVPixelBufferRef ): size_t; e
 
 {!
     @function   CVPixelBufferGetDataSize
-    @abstract   Returns the data size for contigous planes of the PixelBuffer.
+    @abstract   Returns the data size for contiguous planes of the PixelBuffer.
     @param      pixelBuffer Target PixelBuffer.
     @result     Data size used in CVPixelBufferCreateWithPlanarBytes.
 }

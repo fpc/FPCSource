@@ -838,7 +838,7 @@ function CSIdentityIsHidden( identity: CSIdentityRef ): Boolean; external name '
  *    example, as an entry in an application-specific access control
  *    list associated with a shared resource. Use of a persistent
  *    identity reference is preferred over a pure UUID-based identity
- *    reference because the peristent reference contains additional
+ *    reference because the persistent reference contains additional
  *    information needed to optimize the identity query and to improve
  *    the user experience when working in a distributed identity
  *    environment (LDAP, Active Directory, etc.).
@@ -1500,7 +1500,7 @@ type
 		copyDescription: CFAllocatorCopyDescriptionCallBack;
 
   {
-   * The client callback invoked when the status of an asnchronous
+   * The client callback invoked when the status of an asynchronous
    * operation changes
    }
 		statusUpdated: CSIdentityStatusUpdatedCallback;

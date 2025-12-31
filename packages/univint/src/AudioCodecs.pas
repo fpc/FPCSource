@@ -538,7 +538,7 @@ const
 						A Float64 containing the current output sample rate in Hz. No Default.
 						May be writable. If only one sample rate is supported it does not have to be.
 	@constant		kAudioCodecPropertyQualitySetting
-						A UInt32 that sets the tradeoff between sound quality and CPU time consumption.
+						A UInt32 that sets the trade-off between sound quality and CPU time consumption.
 						The property value is between [0 - 0x7F].
 						Some enum constants are defined below for convenience.
 						Writable if supported.
@@ -627,10 +627,10 @@ const
                         Writable if supported.
 	@constant		kAudioCodecPropertyAdjustLocalQuality
 						An SInt32 number in the range [-128, 127] to allow encoding quality adjustements on a packet by packet basis.
-						This property can be set on an initialized encoder object without having to uninitialize and re-intialize it
+						This property can be set on an initialized encoder object without having to uninitialize and re-initialize it
 						and allows to adjust the encoder quality level for every packet. This is useful for packets streamed over
 						unreliable IP networks where the encoder needs to adapt immediately to network condition changes.
-						Escape property ID's start with a '^' symbol as the first AnsiChar code. This bypasses the initilization check.
+						Escape property ID's start with a '^' symbol as the first AnsiChar code. This bypasses the initialization check.
     @constant		kAudioCodecPropertyProgramTargetLevel
 						A Float32 specifying the program target level in dB FS for decoders.
 						Supported target levels are in the range of -31.0 to -20.0dB.

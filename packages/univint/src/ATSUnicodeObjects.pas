@@ -1797,7 +1797,7 @@ function ATSUCopyLayoutControls( iSourceTextLayout: ATSUTextLayout; iDestTextLay
  *    width of the text area from margin to margin, the alignment of
  *    the text, its justification, rotation, and direction, as well as
  *    other layout options. See ATSUSetLineControls for information
- *    about controling text and the line level. Similar to style
+ *    about controlling text and the line level. Similar to style
  *    attributes, you use a "triple" to specify a line or layout
  *    control attribute. That is, (1) an attribute tag, (2) the size
  *    (in bytes) of the attribute value, and (3) the value of the

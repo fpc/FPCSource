@@ -261,7 +261,7 @@ const
 	kCSIdentityPermissionErr = -3;
 	
 	{
-	 * The requested identity has been deteled
+	 * The requested identity has been deleted
 	 }
 	kCSIdentityDeletedErr = -4;
 	
@@ -271,7 +271,7 @@ const
 	kCSIdentityInvalidFullNameErr = -5;
 	
 	{
-	 * The full name is aleady assigned to another identity
+	 * The full name is already assigned to another identity
 	 }
 	kCSIdentityDuplicateFullNameErr = -6;
 	
@@ -282,7 +282,7 @@ const
 	kCSIdentityInvalidPosixNameErr = -7;
 	
 	{
-	 * The Posix name is aleady assigned to another identity
+	 * The Posix name is already assigned to another identity
 	 }
 	kCSIdentityDuplicatePosixNameErr = -8;
 	

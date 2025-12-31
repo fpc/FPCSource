@@ -837,7 +837,7 @@ type
 	TimeRecord = record
 		value: CompTimeValue;                  { units (duration or absolute) }
 		scale: TimeScale;                  { units per second }
-		base: TimeBase;                   { refernce to the time base }
+		base: TimeBase;                   { reference to the time base }
 	end;
 	TimeRecordPtr = ^TimeRecord;
 
@@ -867,7 +867,7 @@ type
 {$elsec}
 type
 	NumVersion = packed record
-{ Numeric version part of 'vers' resource accessable in little endian format }
+{ Numeric version part of 'vers' resource accessible in little endian format }
 		nonRelRev: UInt8;              {revision level of non-released version}
 		stage: UInt8;                  {stage code: dev, alpha, beta, final}
 		minorAndBugRev: UInt8;         {2nd & 3rd part of version number share a byte}

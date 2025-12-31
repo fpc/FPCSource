@@ -474,7 +474,7 @@ const
 	siCompressionInputRateList = FourCharCode('crtl'); { GetInfo only: only implemented by compressors that only take certain input rates }
 	siCompressionType = FourCharCode('comp'); {current compression type}
 	siCompressionConfiguration = FourCharCode('ccfg'); {compression extensions}
-	siContinuous = FourCharCode('cont'); {continous recording}
+	siContinuous = FourCharCode('cont'); {continuous recording}
 	siDecompressionParams = FourCharCode('wave'); {decompression parameters}
 	siDecompressionConfiguration = FourCharCode('dcfg'); {decompression extensions}
 	siDeviceBufferInfo = FourCharCode('dbin'); {size of interrupt buffer}
@@ -482,8 +482,8 @@ const
 	siDeviceIcon = FourCharCode('icon'); {input device icon}
 	siDeviceName = FourCharCode('name'); {input device name}
 	siEQSpectrumBands = FourCharCode('eqsb'); { number of spectrum bands}
-	siEQSpectrumLevels = FourCharCode('eqlv'); { gets spectum meter levels}
-	siEQSpectrumOnOff = FourCharCode('eqlo'); { turn on/off spectum meter levels}
+	siEQSpectrumLevels = FourCharCode('eqlv'); { gets spectrum meter levels}
+	siEQSpectrumOnOff = FourCharCode('eqlo'); { turn on/off spectrum meter levels}
 	siEQSpectrumResolution = FourCharCode('eqrs'); { set the resolution of the FFT, 0 = low res (<=16 bands), 1 = high res (16-64 bands)}
 	siEQToneControlGain = FourCharCode('eqtg'); { set the bass and treble gain}
 	siEQToneControlOnOff = FourCharCode('eqtc'); { turn on equalizer attenuation}
@@ -702,7 +702,7 @@ const
 	kPassThrough = 1 shl 16;
 	kNoSoundComponentChain = 1 shl 17;
 
-{SoundParamBlock flags, usefull for OpenMixerSoundComponent}
+{SoundParamBlock flags, useful for OpenMixerSoundComponent}
 const
 	kNoMixing = 1 shl 0; {don't mix source}
 	kNoSampleRateConversion = 1 shl 1; {don't convert sample rate (i.e. 11 kHz -> 22 kHz)}

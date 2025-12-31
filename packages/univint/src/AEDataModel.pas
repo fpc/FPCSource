@@ -284,7 +284,7 @@ const
         typeShortFloat      typeIEEE32BitFloatingPoint  Float32
         typeLongFloat       typeIEEE64BitFloatingPoint  Float64
 
-    There is no good type on 64 bit to use for typeEntended; either change your code to pass typeIEEE64BitFloatingPoint
+    There is no good type on 64 bit to use for typeExtended; either change your code to pass typeIEEE64BitFloatingPoint
     for typeExtended and live with the reduction in range or use type128BitFloatingPoint.
 
 }
@@ -393,7 +393,7 @@ const
 	keySenderApplescriptEntitlementsAttr = FourCharCode('entl'); { read only, an AEDesc containing opaque data representing the entitlements held by the sender. Interpreted by sandbox routines. }
 	keySenderApplicationIdentifierEntitlementAttr = FourCharCode('aiea');
 	keySenderApplicationSandboxed = FourCharCode('sssb'); { read-only, an AEDesc typeBoolean, true if the sender application was in an application sandbox }
-	keyActualSenderAuditToken = FourCharCode('acat'); { read-only, an AEDesc typeAuditToken of the acual ( possibly over-ridden ) audit token for the sender of this event }
+	keyActualSenderAuditToken = FourCharCode('acat'); { read-only, an AEDesc typeAuditToken of the actual ( possibly over-ridden ) audit token for the sender of this event }
 //	#endif
 
 //	#if defined(__MAC_10_13) && __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_13
@@ -433,7 +433,7 @@ const
 	keyRPCMethodName = FourCharCode('meth'); { name of the method to call }
 	keyRPCMethodParam = FourCharCode('parm'); { the list (or structure) of parameters }
 	keyRPCMethodParamOrder = FourCharCode('/ord'); { if a structure, the order of parameters (a list) }
-                                        { when keyXMLDebugginAttr so specifies, these additional parameters will be part of the reply. }
+                                        { when keyXMLDebuggingAttr so specifies, these additional parameters will be part of the reply. }
 	keyAEPOSTHeaderData = FourCharCode('phed'); { what we sent to the server }
 	keyAEReplyHeaderData = FourCharCode('rhed'); { what the server sent to us }
 	keyAEXMLRequestData = FourCharCode('xreq'); { what we sent to the server }
@@ -450,7 +450,7 @@ const
    to specify the namespace and type of the structure.  To do this,
    add a keySOAPStructureMetaData record to the top level of the
    record to be serialized.  If present, this will be used to specify
-   the structure namespace.  This will produce a structure elment that
+   the structure namespace.  This will produce a structure element that
    looks like:
 
     <myStruct
@@ -1218,7 +1218,7 @@ function AECreateDescFromExternalPtr( descriptorType: OSType; dataPtr: {const} U
 	 *	  resultP:
 	 *		If non-NULL, on a noErr return will be filled in with
 	 *		true or false indicating whether the descriptors are
-	 *		equilavent or not.
+	 *		equivalent or not.
 	 *
 	 *  Two descriptors are identical if they are the same type and have
 	 *  the same data; typeAEList descriptors must contain the same number

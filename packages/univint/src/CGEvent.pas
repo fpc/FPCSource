@@ -248,7 +248,7 @@ function CGEventCreateFromData( allocator: CFAllocatorRef; data: CFDataRef ): CG
    is ignored unless `mouseType' is one of `kCGEventOtherMouseDown',
    `kCGEventOtherMouseDragged', or `kCGEventOtherMouseUp'.
 
-   The current implemementation of the event system supports a maximum of
+   The current implementation of the event system supports a maximum of
    thirty-two buttons. Mouse button 0 is the primary button on the mouse.
    Mouse button 1 is the secondary mouse button (right). Mouse button 2 is
    the center button, and the remaining buttons are in USB device order. }
@@ -434,7 +434,7 @@ procedure CGEventSetDoubleValueField( event: CGEventRef; field: CGEventField; va
    A function registers an event tap, taking a pointer to the program's tap
    function and an arbitrary reference to be passed to the tap function, and
    returning a `CFMachPortRef' the program can add to the appropriate run
-   loop by creating a surce and using `CFRunLoopAddSource'.
+   loop by creating a source and using `CFRunLoopAddSource'.
 
    Taps may be placed at the point where HIDSystem events enter the server,
    at the point where HIDSystem and remote control events enter a session,

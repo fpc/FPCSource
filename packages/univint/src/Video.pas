@@ -393,7 +393,7 @@ const
 	kReportsDDCConnection = 7;    { Card can do ddc (set kHasDirectConnect && kHasDDCConnect if you actually found a ddc display). }
 	kHasDDCConnection = 8;    { Card has ddc connect now. }
 	kConnectionInactive = 9;    { Set when the connection is NOT currently active (generally used in a multiconnection environment). }
-	kDependentConnection = 10;   { Set when some ascpect of THIS connection depends on another (will generally be set in a kModeSimulscan environment). }
+	kDependentConnection = 10;   { Set when some aspect of THIS connection depends on another (will generally be set in a kModeSimulscan environment). }
 	kBuiltInConnection = 11;   { Set when connection is KNOWN to be built-in (this is not the same as kHasDirectConnection). }
 	kOverrideConnection = 12;   { Set when the reported connection is not the true one, but is one that has been forced through a SetConnection call }
 	kFastCheckForDDC = 13;   { Set when all 3 are true: 1) sense codes indicate DDC display could be attached 2) attempted fast check 3) DDC failed }
@@ -438,7 +438,7 @@ const
 	kModeShowNever = 7;    { This mode should not be shown in the user interface. }
 	kModeSimulscan = 8;    { Indicates that more than one display connection can be driven from a single framebuffer controller. }
 	kModeNotPreset = 9;    { Indicates that the timing is not a factory preset for the current display (geometry may need correction) }
-	kModeBuiltIn = 10;   { Indicates that the display mode is for the built-in connect only (on multiconnect devices like the PB 3400) Only the driver is quieried }
+	kModeBuiltIn = 10;   { Indicates that the display mode is for the built-in connect only (on multiconnect devices like the PB 3400) Only the driver is queried }
 	kModeStretched = 11;    { Indicates that the display mode will be stretched/distorted to match the display aspect ratio }
 
 { csDepthFlags in VDVideoParametersInfoRec }
@@ -1277,7 +1277,7 @@ type
 	VDClutBehaviorPtr = ^VDClutBehavior;
 const
 	kSetClutAtSetEntries = 0;    { SetEntries behavior is to update clut during SetEntries call}
-	kSetClutAtVBL = 1;     { SetEntries behavior is to upate clut at next vbl}
+	kSetClutAtVBL = 1;     { SetEntries behavior is to update clut at next vbl}
 
 
 type

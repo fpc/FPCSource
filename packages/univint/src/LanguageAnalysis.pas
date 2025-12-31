@@ -480,7 +480,7 @@ function LADeleteCustomEnvironment( environment: LAEnvironmentRef ): OSStatus; e
 
 
 {
-    Handling dictionries
+    Handling dictionaries
 }
 {
  *  LAOpenDictionary()   *** DEPRECATED ***
@@ -671,7 +671,7 @@ const
 const
 	kLAJapaneseTTSEnvironment = 'JapaneseTextToSpeech';
 {
-    File cretor for dictionary of Apple Japanese access method
+    File creator for dictionary of Apple Japanese access method
 }
 const
 	kAppleJapaneseDictionarySignature = FourCharCode('jlan');

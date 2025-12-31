@@ -522,14 +522,14 @@ function CGDisplayRelease( display: CGDirectDisplayID ): CGError; external name 
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 { Capture all displays. This operation provides an immersive environment
-   for an appplication, and prevents other applications from trying to
+   for an application, and prevents other applications from trying to
    adjust to display changes. }
 
 function CGCaptureAllDisplays: CGError; external name '_CGCaptureAllDisplays';
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_NA) *)
 
 { Capture all displays, using the options specified by `options'. This
-   operation provides an immersive environment for an appplication, and
+   operation provides an immersive environment for an application, and
    prevents other applications from trying to adjust to display changes. }
 
 function CGCaptureAllDisplaysWithOptions( options: CGCaptureOptions ): CGError; external name '_CGCaptureAllDisplaysWithOptions';

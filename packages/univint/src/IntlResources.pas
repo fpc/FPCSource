@@ -233,11 +233,11 @@ const
 
 const
 { One more flag in the itlcFlags byte }
-	itlcDisableKeyScriptSync = 3;     {Disable font and keyboard script synchrinozation}
+	itlcDisableKeyScriptSync = 3;     {Disable font and keyboard script synchronization}
 
 const
 { We should define masks, too. }
-	itlcDisableKeyScriptSyncMask = 1 shl itlcDisableKeyScriptSync; {Disable font and keyboard script synchrinozation mask}
+	itlcDisableKeyScriptSyncMask = 1 shl itlcDisableKeyScriptSync; {Disable font and keyboard script synchronization mask}
 
 
 const

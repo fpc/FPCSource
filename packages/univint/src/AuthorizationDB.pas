@@ -259,7 +259,7 @@ uses MacTypes,Authorization,CFBase,CFDictionary,CFString,CFBundle;
 
 	add identical rule, but specify additional attributes this time.
 
-	Keep in mind while specifying a comment to be specific about what you need to authorize for (1 fax), in terms of a general message for user.  The means of proof required for kRuleIsAdmin (enter username/password for example) should not be included here, since it could be configured differently.  Also note that the "authRef" variable used in each of the above examples must be a vaild AuthorizationRef obtained from AuthorizationCreate().
+	Keep in mind while specifying a comment to be specific about what you need to authorize for (1 fax), in terms of a general message for user.  The means of proof required for kRuleIsAdmin (enter username/password for example) should not be included here, since it could be configured differently.  Also note that the "authRef" variable used in each of the above examples must be a valid AuthorizationRef obtained from AuthorizationCreate().
 
 }
 

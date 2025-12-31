@@ -981,7 +981,7 @@ const
 	kThemeSmoothFontEnabledTag = FourCharCode('smoo'); { Boolean}
 	kThemeSmoothFontMinSizeTag = FourCharCode('smos'); { UInt16 (must be >= 12 and <= 24)}
 
-{ Picture Aligmnents that might be reported in the data for kThemeDesktopPictureAlignmentTag}
+{ Picture Alignments that might be reported in the data for kThemeDesktopPictureAlignmentTag}
 const
 	kTiledOnScreen = 1;    { draws picture repeatedly}
 	kCenterOnScreen = 2;    { "actual size", shows pattern on sides or clips picture if necessary}
@@ -2401,7 +2401,7 @@ type
 {      handle on the window.                                                               }
 {  kThemePopupTabCenterOnOffset                                                            }
 {      tells us to center the width of the handle around the value passed in offset.       }
-{  The Appearance Manager will try its best to accomodate the requested placement, but may }
+{  The Appearance Manager will try its best to accommodate the requested placement, but may}
 {  move the handle slightly to make it fit correctly.                                      }
 const
 	kThemePopupTabNormalPosition = 0;

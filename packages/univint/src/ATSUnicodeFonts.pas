@@ -1810,7 +1810,7 @@ function ATSUCountFontInstances( iFontID: ATSUFontID; var oInstances: ItemCount 
  *    the font, with a similar value range. The type designer can then
  *    choose to declare a font instance for a set of specific values
  *    within these axes, such as “Demibold” for a value of 0.8 for the
- *    'wght' axis and 0.5 for the 'wdth' axis. By calling the function
+ *    'wight' axis and 0.5 for the 'wdth' axis. By calling the function
  *    ATSUGetFontInstance , you can obtain the variation axis values
  *    for a given index into an array of font instances. Typically you
  *    use the function ATSUGetFontInstance by calling it twice, as

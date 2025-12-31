@@ -357,7 +357,7 @@ procedure InvokeNSLEventUPP( var newEvent: EventRecord; userContext: UnivPtr; us
    directly affect the contents of the services popup in the dialog.
    The structure of this string is a set of tuples as follows:
    Name of ServiceType as to be represented in the popup followed by
-   a comma delimted list of service descriptors (ie http,https) that will
+   a comma delimited list of service descriptors (ie http,https) that will
    used in the search of that type.  Each comma delimited tuple is delimited
    by semi-colons.
 }

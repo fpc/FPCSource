@@ -9307,7 +9307,7 @@ function HIWindowCopyDrawers( inWindow: WindowRef; var outDrawers: CFArrayRef ):
  *  Discussion:
  *    It is appropriate to disable updates if you are moving or
  *    resizing multiple windows and you want all of the geometry
- *    changes to appear onscreen simulataneously. In most other cases,
+ *    changes to appear onscreen simultaneously. In most other cases,
  *    you should strive to avoid disabling screen updates. The window
  *    server will automatically re-enable updates (and print a message
  *    to the Console log) if you leave updates disabled for a

@@ -356,7 +356,7 @@ function SCDynamicStoreKeyCreateNetworkServiceEntity( allocator: CFAllocatorRef;
 
 {!
 	@function SCDynamicStoreKeyCreateComputerName
-	@discussion Creates a key that can be used in conjuntion with
+	@discussion Creates a key that can be used in conjunction with
 		SCDynamicStoreSetNotificationKeys function to receive
 		notifications when the current computer name changes.
 	@param allocator The CFAllocator that should be used to allocate

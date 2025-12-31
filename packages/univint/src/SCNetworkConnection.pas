@@ -292,7 +292,7 @@ type SCNetworkConnectionContext = record
 		This status is intended to be generic and high level.
 		An extended status, specific to the type of network
 		connection is also available for applications that
-		need additonal information.
+		need additional information.
 	@constant kSCNetworkConnectionInvalid
 		The network connection refers to an invalid service.
 	@constant kSCNetworkConnectionDisconnected

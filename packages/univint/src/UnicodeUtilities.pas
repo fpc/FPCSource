@@ -604,7 +604,7 @@ function InvokeIndexToUCStringUPP( index: UInt32; listDataPtr: UnivPtr; refcon: 
 (* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_NA) *)
 
 {
-   kUCTypeSelectMaxListSize can be used for any listSize arguement
+   kUCTypeSelectMaxListSize can be used for any listSize argument
    when the length of the list is unknown.
 }
 const

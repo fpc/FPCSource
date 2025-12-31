@@ -345,7 +345,7 @@ type
 {
    The Block 2 Structures are not currently used by any of ATSUI's internal parsing
    or packing routines. They are, however, part of the 'ustl' standard and are put
-   here for developer conveniance, as well as to properly define the standard.
+   here for developer convenience, as well as to properly define the standard.
 }
 
 {
@@ -500,7 +500,7 @@ type
 
                                               { the number of attributes set in this flattened style object. This should }
                                               { be at least one for the font data, although it can be 0 if this is to be}
-                                              { unspecfied.}
+                                              { unspecified.}
 		numberOfSetAttributes: UInt32;
 
                                               { the number of font features set in the flattened style object. This can}
@@ -593,12 +593,12 @@ type
 }
 
 
-{ these are the currenly supported font specifiers. }
+{ these are the currently supported font specifiers. }
 type
 	ATSFlatDataFontSpeciferType = UInt32;
 const
 { this specifier allows the storage of font data based on name data. This}
-                                        { uses the stuctures below to store the actual data itself.}
+                                        { uses the structures below to store the actual data itself.}
 	kATSFlattenedFontSpecifierRawNameData = FourCharCode('namd');
 
 {
@@ -611,8 +611,8 @@ type
 { the type of data that is flattened in this structure}
 		nameSpecifierType: ATSFlatDataFontSpeciferType;
 
-                                              { the size of the data that is flattened in this structre, not including }
-                                              { any padding bytes that may be necessary to achive the four byte }
+                                              { the size of the data that is flattened in this structure, not including }
+                                              { any padding bytes that may be necessary to achieve the four byte }
                                               { alignment of the data, unless they are specified as part of structure, }
                                               { such as with the ATSFlatDataFontSpecRawNameData structure.}
 		nameSpecifierSize: UInt32;

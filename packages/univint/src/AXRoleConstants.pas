@@ -328,7 +328,7 @@ uses MacTypes;
 	vertical scrolling for the outline. Outlines are expected to follow certain conventions
 	with respect to their hierarchy of sub-elements. In particular, if the outline uses
 	columns, the data should be accessible via either rows or columns. Thus, the data in a
-	given cell will be represented as two diffrent elements. Here's a hierarchy for a
+	given cell will be represented as two different elements. Here's a hierarchy for a
 	typical outline:
 	
 		AXScrollArea (parent of the outline)

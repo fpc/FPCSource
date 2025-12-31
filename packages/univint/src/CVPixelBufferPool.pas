@@ -298,7 +298,7 @@ function CVPixelBufferPoolGetPixelBufferAttributes( pool: CVPixelBufferPoolRef )
 {!
     @function   CVPixelBufferPoolCreatePixelBuffer
     @abstract   Creates a new PixelBuffer object from the pool.
-    @discussion The function creates a new (attachment-free) CVPixelBuffer using the pixel buffer attributes specifed during pool creation.
+    @discussion The function creates a new (attachment-free) CVPixelBuffer using the pixel buffer attributes specified during pool creation.
     @param      allocator The CFAllocatorRef to use for creating the pixel buffer.  May be NULL.
     @param      pool      The CVPixelBufferPool that should create the new CVPixelBuffer.
     @param      pixelBufferOut   The newly created pixel buffer will be placed here

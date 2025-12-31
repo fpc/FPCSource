@@ -269,7 +269,7 @@ function CGConfigureDisplayFadeEffect( config: CGDisplayConfigRef; fadeOutSecond
    period of time that the program will be doing fades.
 
    Failing to release the hardware by the end of the reservation interval
-   will result in the reservation token becomingn invalid, and the hardware
+   will result in the reservation token becoming invalid, and the hardware
    being unfaded back to a normal state. The reservation interval is limited
    to a maximum of 15 seconds and should be greater than zero. }
 
@@ -306,7 +306,7 @@ function CGReleaseDisplayFadeReservation( token: CGDisplayFadeReservationToken )
    applying a nonlinear (sine-based) bias term, and blends the video output
    with the specified color based on the resulting value.
 
-   If the time interval is specifed as 0, then the ending state blend value
+   If the time interval is specified as 0, then the ending state blend value
    is applied at once and the function returns.
 
    The maximum allowable time interval is 15 seconds.

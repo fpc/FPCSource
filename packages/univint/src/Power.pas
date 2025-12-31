@@ -727,7 +727,7 @@ const
 	hasSleep = 17;   { 1=hardware supports normal (PowerBook-like) sleep   }
 	supportsServerModeAPIs = 18;   { 1=hardware supports server mode API routines          }
 	supportsUPSIntegration = 19;   { 1=hardware support UPS integration and reporting      }
-	hasAggressiveIdling = 20;   { 1=Power Manager only resets OverallAct on UsrActvity     }
+	hasAggressiveIdling = 20;   { 1=Power Manager only resets OverallAct on UsrActivity    }
 	supportsIdleQueue = 21;    { 1=Power Manager supports the idle queue              }
 
 { bits in bitfield returned by GetIntModemInfo and set by SetIntModemState }

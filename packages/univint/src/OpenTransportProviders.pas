@@ -358,7 +358,7 @@ const
 	DVMRP_DEL_MRT = 107;
 
 
-{ IP_TOS precdence levels}
+{ IP_TOS precedence levels}
 
 const
 	T_ROUTINE = 0;
@@ -1619,7 +1619,7 @@ const
 	kOTSerialXOnOffInputHandshake = 1;    { Want XOn/XOff handshake for incoming characters    }
 	kOTSerialXOnOffOutputHandshake = 2;   { Want XOn/XOff handshake for outgoing characters    }
 	kOTSerialCTSInputHandshake = 4;    { Want CTS handshake for incoming characters     }
-	kOTSerialDTROutputHandshake = 8;     { Want DTR handshake for outoing characters   }
+	kOTSerialDTROutputHandshake = 8;     { Want DTR handshake for outgoing characters   }
 
 
 // #define OTSerialHandshakeData(type, onChar, offChar)    \

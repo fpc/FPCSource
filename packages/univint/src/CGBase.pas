@@ -242,7 +242,7 @@ const
 type
   CGFloatPtr = ^CGFloat;
 
-// Avoid cyclic dependencises by putting CGRefs here
+// Avoid cyclic dependencies by putting CGRefs here
 
 type
 	CGColorRef = ^OpaqueCGColorRef; { an opaque type }

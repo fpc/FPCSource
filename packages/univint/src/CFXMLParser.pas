@@ -236,7 +236,7 @@ kCFXMLParserReplacePhysicalEntities -
    Currently not supported.
 
 kCFXMLParserSkipWhitespace -
-   skip over all whitespace that does not abut non-whitespace character data.
+   skip over all whitespace that does not about non-whitespace character data.
    In other words, given <foo>  <bar> blah </bar></foo>, the whitespace between
    foo's open tag and bar's open tag would be suppressed, but the whitespace
    around blah would be preserved.

@@ -404,7 +404,7 @@ const
    * be delivered after latency seconds have elapsed. This flag is
    * useful for apps that are interactive and want to react immediately
    * to changes but avoid getting swamped by notifications when changes
-   * are occurringin rapid succession. If you do not specify this flag,
+   * are occurring in rapid succession. If you do not specify this flag,
    * then when an event occurs after a period of no events, the latency
    * timer is started. Any events that occur during the next latency
    * seconds will be delivered as one group (including that first

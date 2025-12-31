@@ -476,7 +476,7 @@ function SCPreferencesCopyKeyList( prefs: SCPreferencesRef ): CFArrayRef; extern
 		This function retrieves data associated with the specified
 		key.
 
-		Note: To avoid inadvertantly reading stale data, first call
+		Note: To avoid inadvertently reading stale data, first call
 		the SCPreferencesLock function.
 	@param prefs The preferences session.
 	@param key The preference key to be returned.

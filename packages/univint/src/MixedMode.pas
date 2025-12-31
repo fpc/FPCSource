@@ -294,7 +294,7 @@ const
   GetCurrentArchitecture = 0;
 {$endc}
 
-{ Constants for specifing 68k registers }
+{ Constants for specifying 68k registers }
 const
 	kRegisterD0 = 0;
 	kRegisterD1 = 1;

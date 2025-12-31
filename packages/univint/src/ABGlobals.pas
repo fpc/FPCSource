@@ -6,7 +6,7 @@
  *
  }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-{   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, Feburary 2006 }
+{   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, February 2006 }
 {	  Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, November 2009 }
 {     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2018 }
 

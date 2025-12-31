@@ -238,7 +238,7 @@ uses MacTypes,CFBase,CFArray,CFData,CFDictionary,CFRunLoop,CFXMLNode,WSTypes;
  *    dictionaries into web services requests.  Typically, it is used
  *    to implement the server side of a web service by converting XML
  *    into CoreFoundation types, but it can also be used to produced
- *    serialzed web services requests without going through a
+ *    serialized web services requests without going through a
  *    WSMethodInvocation. It is created with a string specifying the
  *    web services protocol (XML-RPC or SOAP) and can also be modified
  *    through a set of external properties.

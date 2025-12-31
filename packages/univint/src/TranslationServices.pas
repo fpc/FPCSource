@@ -311,7 +311,7 @@ uses MacTypes, CFArray, CFBase, CFData, CFDictionary, CFURL, Files;
  *    contents format from which to translate. Upon translation, the
  *    filter service should place a "public.file-url" flavor on the
  *    pasteboard indicating where the translated file has been placed,
- *    typically next to the orignal named "<filename> (converted)"
+ *    typically next to the original named "<filename> (converted)"
  *    (ala. Finder's "<filename> copy" behavior for duplicated files).
  }
 type

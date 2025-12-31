@@ -726,7 +726,7 @@ procedure CGContextSetStrokeColorSpace( context: CGContextRef; space: CGColorSpa
 {* Color functions. *}
 
 { Set the components of the current fill color in `context' to the values
-   specifed by `components'. The number of elements in `components' must be
+   specified by `components'. The number of elements in `components' must be
    one greater than the number of components in the current fill color space
    (N color components + 1 alpha component). The current fill color space
    must not be a pattern color space. }
@@ -735,7 +735,7 @@ procedure CGContextSetFillColor( context: CGContextRef; {const} components: {var
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Set the components of the current stroke color in `context' to the values
-   specifed by `components'. The number of elements in `components' must be
+   specified by `components'. The number of elements in `components' must be
    one greater than the number of components in the current stroke color
    space (N color components + 1 alpha component). The current stroke color
    space must not be a pattern color space. }
@@ -746,7 +746,7 @@ procedure CGContextSetStrokeColor( context: CGContextRef; {const} components: {v
 {* Pattern functions. *}
 
 { Set the components of the current fill color in `context' to the values
-   specifed by `components', and set the current fill pattern to `pattern'.
+   specified by `components', and set the current fill pattern to `pattern'.
    The number of elements in `components' must be one greater than the
    number of components in the current fill color space (N color components
    + 1 alpha component). The current fill color space must be a pattern
@@ -756,7 +756,7 @@ procedure CGContextSetFillPattern( context: CGContextRef; pattern: CGPatternRef;
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Set the components of the current stroke color in `context' to the values
-   specifed by `components', and set the current stroke pattern to
+   specified by `components', and set the current stroke pattern to
    `pattern'. The number of elements in `components' must be one greater
    than the number of components in the current stroke color space (N color
    components + 1 alpha component). The current stroke color space must be a
@@ -1098,12 +1098,12 @@ procedure CGContextBeginTransparencyLayer( context: CGContextRef; auxiliaryInfo:
 procedure CGContextBeginTransparencyLayerWithRect( context: CGContextRef; rect: CGRect; auxiliaryInfo: CFDictionaryRef ); external name '_CGContextBeginTransparencyLayerWithRect';
 (* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
 
-{ End a tranparency layer. }
+{ End a transparency layer. }
 
 procedure CGContextEndTransparencyLayer( context: CGContextRef ); external name '_CGContextEndTransparencyLayer';
 (* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
-{* User space to device space tranformations. *}
+{* User space to device space transformations. *}
 
 { Return the affine transform mapping the user space (abstract coordinates)
    of `context' to device space (pixels). }

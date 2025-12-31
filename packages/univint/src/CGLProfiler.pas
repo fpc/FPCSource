@@ -284,7 +284,7 @@ const
 	
 { 	kCGLGOEnableDebugAttach  = 1512; }
         { param is GL_TRUE or GL_FALSE }
-        { Turns proflier attach feature on and off.  Off by default, you can
+        { Turns profiler attach feature on and off.  Off by default, you can
 	   override this with the environment variable GL_ENABLE_DEBUG_ATTACH }
 	{ Availability: set only, get is ignored. }
 	kCGLGOEnableDebugAttach = 1512;

@@ -347,7 +347,7 @@ function IOSurfaceGetID( buffer: IOSurfaceRef ): IOSurfaceID; external name '_IO
 const
 // If you are not going to modify the data while you hold the lock, you should set this flag to avoid invalidating
 	// any existing caches of the buffer contents.  This flag should be passed both to the lock and unlock functions.
-	// Non-symmentrical usage of this flag will result in undefined behavior.
+	// Non-symmetrical usage of this flag will result in undefined behavior.
 	kIOSurfaceLockReadOnly = $00000001;
 	
 	// If you want to detect/avoid a potentially expensive paging operation (such as readback from a GPU to system memory)
@@ -472,7 +472,7 @@ function IOSurfaceLookupFromMachPort( port: mach_port_t ): IOSurfaceRef; externa
 
 {$ifdef XPC_TRANSLATED}
 { This call lets you get an xpc_object_t that holds a reference to the IOSurface.
-   Note: Any live XPC objects created from an IOSurfaceRef implicity increase the IOSurface's global use
+   Note: Any live XPC objects created from an IOSurfaceRef implicitly increase the IOSurface's global use
    count by one until the object is destroyed. }
 function IOSurfaceCreateXPCObject( aSurface: IOSurfaceRef ): xpc_object_t; external name '_IOSurfaceCreateXPCObject';
 (* IOSFC_AVAILABLE_STARTING(__MAC_10_7, __IPHONE_NA) *)

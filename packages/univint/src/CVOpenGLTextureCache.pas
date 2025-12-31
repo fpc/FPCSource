@@ -241,7 +241,7 @@ type
 var kCVOpenGLTextureCacheChromaSamplingModeKey: CFStringRef; external name '_kCVOpenGLTextureCacheChromaSamplingModeKey'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 var kCVOpenGLTextureCacheChromaSamplingModeAutomatic: CFStringRef; external name '_kCVOpenGLTextureCacheChromaSamplingModeAutomatic'; (* attribute const *)
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)	    // Defaut if the key is not present
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)	    // Default if the key is not present
 var kCVOpenGLTextureCacheChromaSamplingModeHighestQuality: CFStringRef; external name '_kCVOpenGLTextureCacheChromaSamplingModeHighestQuality'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)    // Force highest quality regardless of performance impact
 var kCVOpenGLTextureCacheChromaSamplingModeBestPerformance: CFStringRef; external name '_kCVOpenGLTextureCacheChromaSamplingModeBestPerformance'; (* attribute const *)

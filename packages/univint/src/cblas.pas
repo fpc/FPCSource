@@ -229,7 +229,7 @@ uses MacTypes;
    Matrix shape and storage
    ========================
    Keeping the various matrix shape and storage parameters straight can be difficult.  The BLAS
-   documentation generally makes a distinction between the concpetual "matrix" and the physical
+   documentation generally makes a distinction between the conceptual "matrix" and the physical
    "array".  However there are a number of places where this becomes fuzzy because of the overall
    bias towards FORTRAN's column major storage.  The confusion is made worse by style differences
    between the level 2 and level 3 functions.  It is amplified further by the explicit choice of row

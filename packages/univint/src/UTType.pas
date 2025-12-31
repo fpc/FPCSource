@@ -312,7 +312,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     open application B's document format, then application A makes
     an imported declaration of application B's document type so that
     even if application B is not present on the system, there is an
-    acessible declaration of its document type.
+    accessible declaration of its document type.
 
     An exported declaration of a particular type identifier is always
     preferred over an imported declaration.
@@ -353,7 +353,7 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
 
     Dynamic Type Identifiers
 
-    Uniform Type Identifiation uses dynamic type identifiers to
+    Uniform Type Identification uses dynamic type identifiers to
     represent types for which no identifier has been declared. A
     dynamic type identifier is syntactially a regular uniform
     type identifier in the "dyn" domain. However, after the

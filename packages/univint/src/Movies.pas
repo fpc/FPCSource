@@ -1002,7 +1002,7 @@ const
 	dfScrollIn = 1 shl 5; { Scroll text in until last of text is in view }
 	dfScrollOut = 1 shl 6; { Scroll text out until last of text is gone (if both set, scroll in then out)}
 	dfHorizScroll = 1 shl 7; { Scroll text horizontally (otherwise it's vertical)}
-	dfReverseScroll = 1 shl 8; { vert: scroll down rather than up; horiz: scroll backwards (justfication dependent)}
+	dfReverseScroll = 1 shl 8; { vert: scroll down rather than up; horiz: scroll backwards (justification dependent)}
 	dfContinuousScroll = 1 shl 9; { new samples cause previous samples to scroll out }
 	dfFlowHoriz = 1 shl 10; { horiz scroll text flows in textbox rather than extend to right }
 	dfContinuousKaraoke = 1 shl 11; { ignore begin offset, hilite everything up to the end offset(karaoke)}
@@ -1380,7 +1380,7 @@ const
 	kOperandLog = 8201; { float x }
 	kOperandFlashTrackVariable = 9216; { [CString path, CString name] }
 	kOperandStringLength = 10240; { (C string text) }
-	kOperandStringCompare = 10241; { (C string aText, C string bText, Boolean caseSensitive, Boolan diacSensitive) }
+	kOperandStringCompare = 10241; { (C string aText, C string bText, Boolean caseSensitive, Boolean diacSensitive) }
 	kOperandStringSubString = 10242; { (C string text, long offset, long length) }
 	kOperandStringConcat = 10243; { (C string aText, C string bText) }
 
@@ -8833,7 +8833,7 @@ const
 type
 	QTParamComponentPropertyRecord = record
 		component: ComponentInstance;              { component to call for get/set properties}
-		defaultClass: OSType;           { default property class if not overriden by a given parameter}
+		defaultClass: OSType;           { default property class if not overridden by a given parameter}
 	end;
 type
 	QTParamSampleTimeRecordPtr = ^QTParamSampleTimeRecord;
@@ -8938,7 +8938,7 @@ type
 {
     pdActionCustomPositionControl is called by the application to position the control within a window or dialog.
 
-    The control should determine if it will fit in the alloted area and position itself there.  It should also
+    The control should determine if it will fit in the allotted area and position itself there.  It should also
     return the space taken up by the control.   Note you are free to implement controls which are variable in size depending upon
     which parameter you are editing.  You need not scale your control to the requested size.  If the area presented to your
     control is too small, set didFit to false.  You should still return in used the size you would have liked to use for
@@ -9661,7 +9661,7 @@ const
 	kQTAudioRenderQuality_High = $60;
 
   {
-   * A value that represents a good quality/performance tradeoff.
+   * A value that represents a good quality/performance trade-off.
    }
 	kQTAudioRenderQuality_Medium = $40;
 
@@ -12255,7 +12255,7 @@ const
 	spriteHitTestImage = 1 shl 1; {  point must be within the shape of the sprite's image}
 	spriteHitTestInvisibleSprites = 1 shl 2; {  invisible sprites may be hit tested}
 	spriteHitTestIsClick = 1 shl 3; {  for codecs that want mouse events}
-	spriteHitTestLocInDisplayCoordinates = 1 shl 4; {    set if you want to pass a display coordiate point to SpriteHitTest}
+	spriteHitTestLocInDisplayCoordinates = 1 shl 4; {    set if you want to pass a display coordinate point to SpriteHitTest}
 	spriteHitTestTreatAllSpritesAsHitTestable = 1 shl 5; { set if you want to override each sprites hittestable property as true}
 
 { atom types for sprite media }
@@ -13250,7 +13250,7 @@ const
 	mcActionGetNextURL = 76;   { param is a Handle to URL}
 	mcActionMovieChanged = 77;
 	mcActionDoScript = 78;   { param is QTDoScriptPtr}
-	mcActionRestartAtTime = 79;   { param is QTResartAtTimePtr}
+	mcActionRestartAtTime = 79;   { param is QTRestartAtTimePtr}
 	mcActionGetIndChapter = 80;   { param is QTChapterInfoPtr}
 	mcActionLinkToURLExtended = 81;   { param is QTAtomContainer as used by QTParseHREF}
 	mcActionSetVolumeStep = 82;   { param is short containing amount to step volume via arrow keys - default = 64}

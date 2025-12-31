@@ -506,7 +506,7 @@ function CFHTTPAuthenticationRequiresOrderedRequests( auth: CFHTTPAuthentication
  *	
  *	error:
  *	  Reference to a CFStreamError which will be populated with the
- *	  error information should one occurr during the application of
+ *	  error information should one occur during the application of
  *	  the credentials. Pass NULL if not interested in the failure
  *	  reason.  The error domain will be kCFStreamErrorDomainHTTP, and
  *	  the error code will be one of those define in CFHTTPStream.h or
@@ -552,7 +552,7 @@ function CFHTTPMessageApplyCredentials( request: CFHTTPMessageRef; auth: CFHTTPA
  *	
  *	error:
  *	  Reference to a CFStreamError which will be populated with the
- *	  error information should one occurr during the application of
+ *	  error information should one occur during the application of
  *	  the credentials. Pass NULL if not interested in the failure
  *	  reason.  The error domain will be kCFStreamErrorDomainHTTP, and
  *	  the error code will be one of those define in CFHTTPStream.h or

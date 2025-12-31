@@ -220,9 +220,9 @@ uses MacTypes,CFBase;
 {$ALIGN POWER}
 
 
-{  HandToHand and other memory utilties were moved to MacMemory.h }
+{  HandToHand and other memory utilities were moved to MacMemory.h }
 
-{  Date and Time utilties were moved to DateTimeUtils.h }
+{  Date and Time utilities were moved to DateTimeUtils.h }
 
 
 {$ALIGN MAC68K}

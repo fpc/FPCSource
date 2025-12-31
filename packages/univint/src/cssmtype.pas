@@ -2039,7 +2039,7 @@ const
 	{ certificate holder has moved from this
 	   jurisdiction }
 	CSSM_TP_CERTCHANGE_REASON_SUPERCEDED = $5;
-	{ certificate holder as issued a new, superceding
+	{ certificate holder as issued a new, superseding
 	   certificate }
 	CSSM_TP_CERTCHANGE_REASON_SUSPECTEDCOMPROMISE = $6;
 	{ certificate could be compromised }

@@ -500,7 +500,7 @@ var kCFStreamPropertyNoCellular: CFStringRef; external name '_kCFStreamPropertyN
  * Discussion:
  * Stream property key for copy operations.  Returns a CFBooleanRef value
  * of kCFBooleanTrue if the stream has connected using the built in cellular radios.
- * It returns kCFBooleanFalse if the stream is conneceted over a non-cellular
+ * It returns kCFBooleanFalse if the stream is connected over a non-cellular
  * interface or has not yet established a connection.
  }
 var kCFStreamPropertyConnectionIsCellular: CFStringRef; external name '_kCFStreamPropertyConnectionIsCellular'; (* attribute const *)

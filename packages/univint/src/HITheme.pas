@@ -1386,7 +1386,7 @@ type
 
   {
    * The ThemeWindowAttributes of the window for which the scroll bar
-   * delimters are to be drawn.
+   * delimiters are to be drawn.
    }
 		attributes: ThemeWindowAttributes;
 	end;

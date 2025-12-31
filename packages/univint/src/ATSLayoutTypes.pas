@@ -387,7 +387,7 @@ const
 	kATSLineHasNoOpticalAlignment = $00000004;
 
   {
-   * Specifies that space charcters should not be treated as hangers.
+   * Specifies that space characters should not be treated as hangers.
    }
 	kATSLineKeepSpacesOutOfMargin = $00000008;
 
@@ -410,7 +410,7 @@ const
 
   {
    * Specifies that the carets at the ends of the line will be
-   * guarenteed to be perpendicular to the baseline.
+   * guaranteed to be perpendicular to the baseline.
    }
 	kATSLineImposeNoAngleForEnds = $00000080;
 
@@ -454,7 +454,7 @@ const
   {
    * Specifies that lines with any integer glyph positioning (due to
    * either any character non-antialiased or kATSLineFractDisable
-   * specified), not automatically esthetically adjust individual
+   * specified), not automatically aesthetically adjust individual
    * character positions while rendering to display.
    }
 	kATSLineDisableAutoAdjustDisplayPos = $00004000;
@@ -510,7 +510,7 @@ const
 
   {
    * These bits are reserved by Apple and will result in a invalid
-   * value error if attemped to set. Obsolete constants:
+   * value error if attempted to set. Obsolete constants:
    }
 	kATSLineAppleReserved = $FCE00000;
 
@@ -554,7 +554,7 @@ const
 
   {
    * These bits are reserved by Apple and will result in a invalid
-   * value error if attemped to set.
+   * value error if attempted to set.
    }
 	kATSStyleAppleReserved = $FFFFFFF8;
 

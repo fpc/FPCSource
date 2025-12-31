@@ -378,7 +378,7 @@ const
  *    considered "closed" and should point to the right (or sometimes
  *    to the left). When the user clicks on it, the Disclosure Triangle
  *    rotates downwards into the "open" state. The application should
- *    repond by revealing the appropriate information or interface. On
+ *    respond by revealing the appropriate information or interface. On
  *    Mac OS X, a root control will be created for the window if one
  *    does not already exist. If a root control exists for the window,
  *    the Disclosure Triangle control will be embedded into it.

@@ -31,7 +31,7 @@
 {     Copyright:  Subject to the constraints of Apple's original rights, you're free to use this		}
 {				  translation as you deem fit.															}
 { 																										}
-{     Bugs?:      This is an AS IS translation with no express guarentees of any kind.					}
+{     Bugs?:      This is an AS IS translation with no express guarantees of any kind.					}
 {                 If you do find a bug, please help out the Macintosh Pascal programming community by   }
 {				  reporting your bug finding and possible fix to either personal e-mail to Gale Paeper	}
 {				  or a posting to the MacPascal mailing list.											}

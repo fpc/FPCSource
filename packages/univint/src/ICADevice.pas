@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2000-2006 Apple Computer, Inc. All rights reserved.
  *
- *  For bug reports, consult the following page onthe World Wide Web:
+ *  For bug reports, consult the following page on the World Wide Web:
  *  http://bugs.freepascal.org
  *
  *----------------------------------------------------------------------------------------------------------------------------}
